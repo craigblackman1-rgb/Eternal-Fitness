@@ -130,11 +130,16 @@ export default async function BlockViewPage({
               Print
             </Button>
           </Link>
-          {block.status === "draft" && (
-            <Link href={`/hub/clients/${clientId}/blocks/${params.blockId}/review`}>
+          <Link href={`/hub/clients/${clientId}/blocks/${params.blockId}/review`}>
+            {block.status === "draft" ? (
               <Button className="rounded-lg bg-rose hover:bg-rose/90 text-white">Review & Approve</Button>
-            </Link>
-          )}
+            ) : (
+              <Button variant="outline" className="rounded-lg gap-1.5 border-border/60">
+                <IconCalendar className="h-4 w-4" />
+                Schedule
+              </Button>
+            )}
+          </Link>
           <ExportSpreadsheetButton
             blockId={params.blockId}
             blockNumber={block.block_number}

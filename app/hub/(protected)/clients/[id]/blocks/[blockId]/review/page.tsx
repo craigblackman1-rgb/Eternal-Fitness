@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { IconAlertTriangle, IconCheckCircle, IconChevronLeft, IconEye } from "@/components/icons";
+import { StatusBadge } from "@/components/hub/StatusBadge";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { DBSession, DBBlock } from "@/types";
@@ -83,12 +84,17 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
           <IconChevronLeft className="h-5 w-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold tracking-tight">Review & Approve</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold tracking-tight">
+              {block.status === "draft" ? "Review & Approve" : "Schedule Sessions"}
+            </h1>
+            <StatusBadge status={block.status} />
+          </div>
           <p className="text-muted-foreground">Block {block.block_number} — {sessions.length} sessions</p>
         </div>
       </div>
 
-      {hasMissingMods && (
+      {block.status === "draft" && hasMissingMods && (
         <HubAlert severity="warning" title="Missing Modifications">
           Some exercises are missing client-specific modifications. Review each session before approving.
         </HubAlert>
@@ -155,10 +161,12 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
         <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}`}>
           <Button variant="outline" className="rounded-lg">Back to Block</Button>
         </Link>
-        <Button onClick={handleApprove} disabled={approving} className="gap-2 bg-rose hover:bg-rose/90 text-white rounded-lg">
-          <IconCheckCircle className="h-4 w-4" />
-          {approving ? "Approving..." : "Approve Block"}
-        </Button>
+        {block.status === "draft" && (
+          <Button onClick={handleApprove} disabled={approving} className="gap-2 bg-rose hover:bg-rose/90 text-white rounded-lg">
+            <IconCheckCircle className="h-4 w-4" />
+            {approving ? "Approving..." : "Approve Block"}
+          </Button>
+        )}
       </div>
     </div>
   );
