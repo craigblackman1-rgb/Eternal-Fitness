@@ -6,12 +6,14 @@
  * engine's public links). Defense-in-depth: each method re-asserts client_id.
  */
 
-import { createPgClient } from "@/lib/pg-client";
+import { createPgClient, getPool } from "@/lib/pg-client";
+import type { DeliveryMode, Exercise, Session, SetLog } from "@/types";
 
 export interface PortalClient {
   id: string;
   name: string;
   email: string | null;
+  delivery_mode: DeliveryMode;
 }
 
 export interface PortalDocument {
@@ -35,6 +37,41 @@ export interface PortalUpdate {
   opened_at: string | null;
 }
 
+/** A prescribed exercise as shown in the portal — trimmed to client-facing
+ *  fields, with the video link resolved (embedded media first, then a by-name
+ *  match against the exercises library). */
+export interface PortalExercise {
+  exercise_name: string;
+  sets: number;
+  reps: string;
+  tempo: string;
+  rest: string;
+  coaching_cue: string;
+  modification: string;
+  equipment: string[];
+  group_label?: string;
+  video_url: string | null;
+}
+
+export interface PortalSessionPlan {
+  id: string;
+  session_number: number;
+  week: number;
+  phase: string;
+  focus_label: string;
+  archetype: string;
+  client_intro: string;
+  completed_at: string | null;
+  warm_up: PortalExercise[];
+  main_block: PortalExercise[];
+  cooldown: PortalExercise[];
+}
+
+export interface PortalTrainingPlan {
+  block: { id: string; block_number: number; status: string };
+  sessions: PortalSessionPlan[];
+}
+
 export class PortalDataClient {
   private clientId: string;
   constructor(clientId: string) {
@@ -45,7 +82,7 @@ export class PortalDataClient {
     const pg = createPgClient();
     const { data, error } = await pg
       .from("clients")
-      .select("id, name, email")
+      .select("id, name, email, delivery_mode")
       .eq("id", this.clientId)
       .single();
     if (error || !data) return null;
@@ -82,6 +119,125 @@ export class PortalDataClient {
       .neq("status", "signed")
       .order("sent_at", { ascending: false });
     return (data ?? []) as PortalDocument[];
+  }
+
+  /**
+   * The client's current training block with its sessions, trimmed to the
+   * portal-safe shape: HOME version exercises only (this view exists solely for
+   * home-training clients), no trainer-facing coaching_notes/session RPE data.
+   * Exercises missing an embedded video_url are backfilled by name from the
+   * exercises library where a video exists there. Returns null when the client
+   * has no active/approved block yet.
+   *
+   * Callers are responsible for the delivery_mode gate — this method still
+   * re-asserts client_id on every query (defense-in-depth).
+   */
+  async getTrainingPlan(): Promise<PortalTrainingPlan | null> {
+    const pg = createPgClient();
+
+    const { data: blocks } = await pg
+      .from("blocks")
+      .select("id, block_number, status")
+      .eq("client_id", this.clientId)
+      .in("status", ["active", "approved"])
+      .order("block_number", { ascending: false })
+      .limit(1);
+    const block = (blocks ?? [])[0] as { id: string; block_number: number; status: string } | undefined;
+    if (!block) return null;
+
+    const { data: sessionRows } = await pg
+      .from("sessions")
+      .select("id, session_number, week, phase, data")
+      .eq("block_id", block.id)
+      .order("session_number", { ascending: true });
+    const rows = (sessionRows ?? []) as {
+      id: string;
+      session_number: number;
+      week: number;
+      phase: string;
+      data: Session;
+    }[];
+
+    // Backfill missing exercise videos by name from the exercises library.
+    const missingNames = new Set<string>();
+    for (const row of rows) {
+      const home = row.data?.versions?.home;
+      for (const section of [home?.warm_up, home?.main_block, home?.cooldown]) {
+        for (const ex of section ?? []) {
+          if (!ex.media?.video_url && ex.exercise_name) {
+            missingNames.add(ex.exercise_name.toLowerCase());
+          }
+        }
+      }
+    }
+    const videoByName = new Map<string, string>();
+    if (missingNames.size > 0) {
+      const { data: library } = await pg
+        .from("exercises")
+        .select("name, video_url")
+        .not("video_url", "is", null);
+      for (const entry of (library ?? []) as { name: string; video_url: string | null }[]) {
+        if (entry.video_url && entry.name) {
+          videoByName.set(entry.name.toLowerCase(), entry.video_url);
+        }
+      }
+    }
+
+    const toPortalExercise = (ex: Exercise): PortalExercise => ({
+      exercise_name: ex.exercise_name,
+      sets: ex.sets,
+      reps: ex.reps,
+      tempo: ex.tempo,
+      rest: ex.rest,
+      coaching_cue: ex.coaching_cue,
+      modification: ex.modification,
+      equipment: ex.equipment ?? [],
+      group_label: ex.group_label,
+      video_url:
+        ex.media?.video_url ||
+        videoByName.get((ex.exercise_name ?? "").toLowerCase()) ||
+        null,
+    });
+
+    const sessions: PortalSessionPlan[] = rows.map((row) => {
+      const home = row.data?.versions?.home;
+      return {
+        id: row.id,
+        session_number: row.session_number,
+        week: row.week,
+        phase: row.phase,
+        focus_label: row.data?.focus_label ?? "",
+        archetype: row.data?.archetype ?? "",
+        client_intro: row.data?.client_intro ?? "",
+        completed_at: row.data?.session_log?.completed_at ?? null,
+        warm_up: (home?.warm_up ?? []).map(toPortalExercise),
+        main_block: (home?.main_block ?? []).map(toPortalExercise),
+        cooldown: (home?.cooldown ?? []).map(toPortalExercise),
+      };
+    });
+
+    return {
+      block: { id: block.id, block_number: block.block_number, status: block.status },
+      sessions,
+    };
+  }
+
+  /** Set logs for the given sessions — every session id is re-verified against
+   *  this client's ownership server-side before anything is returned. */
+  async getSetLogsForSessions(sessionIds: string[]): Promise<SetLog[]> {
+    if (sessionIds.length === 0) return [];
+    const pool = getPool();
+    const res = await pool.query(
+      `SELECT sl.*
+         FROM set_logs sl
+         JOIN sessions s ON s.id = sl.session_id
+         JOIN blocks b ON b.id = s.block_id
+        WHERE b.client_id = $1
+          AND sl.session_id = ANY($2::uuid[])
+        ORDER BY sl.exercise_ref ASC, sl.set_number ASC`,
+      [this.clientId, sessionIds],
+    );
+    return res.rows as SetLog[];
   }
 
   /** History of update emails sent to this client. */

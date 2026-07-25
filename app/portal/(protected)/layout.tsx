@@ -47,6 +47,25 @@ export default async function PortalLayout({ children }: { children: ReactNode }
             </button>
           </form>
         </div>
+        {client?.delivery_mode === "home_training" && (
+          <nav
+            aria-label="Portal sections"
+            className="mx-auto flex max-w-5xl gap-2 px-4 pb-3 sm:px-6"
+          >
+            <Link
+              href="/portal"
+              className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            >
+              Documents &amp; updates
+            </Link>
+            <Link
+              href="/portal/training"
+              className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            >
+              Your training
+            </Link>
+          </nav>
+        )}
       </header>
 
       <main id="portal-main" className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
