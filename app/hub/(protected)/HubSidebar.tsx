@@ -24,7 +24,10 @@ import {
 const navGroups: { label: string; items: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
   {
     label: "Overview",
-    items: [{ href: "/hub", label: "Dashboard", icon: IconLayoutDashboard }],
+    items: [
+      { href: "/hub", label: "Dashboard", icon: IconLayoutDashboard },
+      { href: "/hub/tasks", label: "Tasks", icon: IconCheckSquare },
+    ],
   },
   {
     label: "Clients",

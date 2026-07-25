@@ -94,6 +94,20 @@ export interface ImprovementEntry {
   created_at: string;
 }
 
+/** Hub to-do task list (see supabase/migrations/20260725_hub_tasks.sql). */
+export type TaskStatus = "todo" | "in_progress" | "done";
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  assignee: string | null;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /** A structured, per-client instance of a TrainingRuleType — replaces bare-string
   *  programming_adaptations so the Plan Agent applies it systematically rather than
   *  parsing prose. Stored inline in ClientProfile, not a separate table. */
