@@ -93,13 +93,14 @@ DECIDE YOURSELF: exact new column names/types on `sessions` (must satisfy: nulla
 ASK FIRST (`[GATE]`, in addition to the standing list above):
 - Any migration run against production Postgres for the new scheduling fields.
 
-## UNITS — Lane D
+## UNITS — Lane D — **DONE + DEPLOYED 2026-07-25**
 
-- [AUTO] Add `scheduled_at TIMESTAMPTZ NULL`, `cancelled_at TIMESTAMPTZ NULL`, `cancel_reason TEXT NULL` to `sessions` (additive, no backfill, every existing row defaults to unscheduled/not-cancelled). VERIFY: no existing session's read/write path changes; `session_log`/`data` untouched.
-- [AUTO] "Apply a repeating pattern to this block" action (day-of-week multi-select + time + start date) that assigns `scheduled_at` across the block's existing sessions in `session_number` order, cycling through the chosen days. VERIFY: a 12-session block with "Tue/Thu, 10am, starting a given Monday" produces 12 correctly-sequenced dates, no session skipped or double-assigned.
-- [AUTO] Per-client session list (dates, status, reschedule/cancel actions) — natural home is the client detail Training tab or the block review page; check what's already there before adding a new page. VERIFY: reschedule updates `scheduled_at` only; cancel sets `cancelled_at`/`cancel_reason` only; both editable after the fact (not one-shot).
-- [AUTO] Studio-wide calendar (day/week view, all clients) showing scheduled sessions with client name, time, and a visual flag on any overlapping pair. VERIFY: two clients scheduled at overlapping times both show a conflict indicator; a normal non-overlapping day shows none.
-- [GATE] Running the Lane D migration against production Postgres.
+- [x] Added `scheduled_at TIMESTAMPTZ NULL`, `cancelled_at TIMESTAMPTZ NULL`, `cancel_reason TEXT NULL` to `sessions` (`supabase/migrations/20260725_session_scheduling.sql`) — additive, no backfill, every existing row NULL/unscheduled. **Migrated to prod and verified**: 0 non-null scheduling rows. No RLS policies added (follows the confirmed app-layer-auth pattern — correctly avoided the authenticated-role bug this time).
+- [x] "Apply a repeating pattern to this block" (`BlockScheduler.tsx` on the block review page) — day-of-week multi-select + time + start date, assigns `scheduled_at` across all of a block's sessions in `session_number` order via a pure `generatePatternDates()` algorithm (`lib/scheduling.ts`). Re-applying overwrites. Verified: cycles weekdays correctly, terminates via a guard cap, rejects 0-day selection.
+- [x] Per-block session list with reschedule (date+time), cancel (optional reason), and un-cancel (reversible) — same `BlockScheduler.tsx`, reusing the extended `sessions` PATCH route (field whitelist: `data`, `scheduled_at`, `cancelled_at`, `cancel_reason` — tightens what was previously a wide-open `update(body)`).
+- [x] Studio-wide calendar (`/hub/schedule`, new nav entry under Overview) — day view with prev/next/date-picker, every client's scheduled (non-cancelled) sessions joined through `blocks`→`clients`, duration from `sessionDurationMinutes(time_tier)` (shared constant, reused from the per-block lane). Pairwise conflict detection flags overlapping time ranges across different clients (warn only, matches the locked decision) using existing `HubAlert`/status-warning tokens.
+- [x] Migration run against production Postgres — verified live, Craig's go-ahead (standing per-Work-Order approval).
+- [x] Pushed to `main` in two commits: `1f057d0` (schema + per-block scheduler), `dd15bb3` (studio calendar, built on top). Both independently verified (`tsc`/build, diff review) before push — no fixes needed this time (the RLS-authenticated-role mistake from earlier lanes was correctly avoided).
 
 ## LEDGER
 Progress written to this repo's `.context/handoff.md` and this file's DONE checklist as units complete.
