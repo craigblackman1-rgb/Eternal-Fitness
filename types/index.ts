@@ -213,6 +213,27 @@ export interface SessionLog {
   notes: string;
 }
 
+/** One performed set against a prescribed exercise — set_logs table
+ *  (see supabase/migrations/20260725_session_set_logs.sql).
+ *  exercise_ref convention: `<version>:<section>:<index>:<exercise_name>`,
+ *  e.g. "studio:warm_up:0:Bodyweight Squat". */
+export interface SetLog {
+  id: string;
+  session_id: string;
+  exercise_ref: string;
+  set_number: number;
+  reps: number | null;
+  weight_kg: number | null;
+  duration_seconds: number | null;
+  completed: boolean;
+  logged_by: "trainer" | "client";
+  logged_at: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export type DeliveryMode = "studio_1to1" | "home_training";
+
 export type DBClientComplianceStatus = "clear" | "action_needed" | "do_not_train" | "pending_medical";
 export type DBClientGroupType = "individual_journey" | "calendar_block";
 export type DBClientPaceMode = "fast" | "medium" | "slow";

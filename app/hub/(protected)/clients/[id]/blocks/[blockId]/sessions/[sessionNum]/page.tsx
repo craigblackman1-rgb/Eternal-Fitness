@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconChevronLeft, IconChevronRight, IconVideo, IconCheckCircle, IconActivity, IconPencil, IconSearch } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconPencil, IconSearch, IconX } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import type { DBSession, Exercise, SessionLog } from "@/types";
+import type { DBSession, Exercise, SessionLog, SetLog } from "@/types";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 import { SwapExerciseDialog } from "../swap-exercise-dialog";
 
@@ -29,6 +29,8 @@ export default function SessionViewPage({
   const [fatigue, setFatigue] = useState<SessionLog["fatigue"]>(null);
   const [logNotes, setLogNotes] = useState("");
   const [savingLog, setSavingLog] = useState(false);
+  // Per-set quick logs, keyed by `${exercise_ref}::${set_number}`.
+  const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -46,6 +48,15 @@ export default function SessionViewPage({
         setRpe(log?.rpe != null ? String(log.rpe) : "");
         setFatigue(log?.fatigue ?? null);
         setLogNotes(log?.notes || "");
+        if (data?.id) {
+          const logsRes = await fetch(`/api/sessions/${data.id}/set-logs`);
+          if (logsRes.ok) {
+            const rows: SetLog[] = await logsRes.json();
+            const map: Record<string, SetLog> = {};
+            for (const row of rows) map[`${row.exercise_ref}::${row.set_number}`] = row;
+            setSetLogs(map);
+          }
+        }
       }
       if (countRes.ok) {
         const { count } = await countRes.json();
@@ -97,6 +108,33 @@ export default function SessionViewPage({
     setSession({ ...session, data: updatedData });
     toast.success(markComplete ? "Session marked complete" : "Session log saved");
     setEditingLog(false);
+  };
+
+  /** POST on first log of a set, PATCH on subsequent edits (already-logged ids are
+   *  tracked in setLogs state). Returns true on success. */
+  const saveSetLog = async (payload: {
+    exercise_ref: string;
+    set_number: number;
+    reps: number | null;
+    weight_kg: number | null;
+    duration_seconds: number | null;
+    completed: boolean;
+  }): Promise<boolean> => {
+    if (!session) return false;
+    const key = `${payload.exercise_ref}::${payload.set_number}`;
+    const existing = setLogs[key];
+    const res = await fetch(`/api/sessions/${session.id}/set-logs`, {
+      method: existing ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(existing ? { id: existing.id, reps: payload.reps, weight_kg: payload.weight_kg, duration_seconds: payload.duration_seconds, completed: payload.completed } : payload),
+    });
+    if (!res.ok) {
+      toast.error("Failed to save set");
+      return false;
+    }
+    const saved: SetLog = await res.json();
+    setSetLogs((prev) => ({ ...prev, [key]: saved }));
+    return true;
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
@@ -160,6 +198,8 @@ export default function SessionViewPage({
               sectionKey="warm_up"
               session={session}
               onUpdateSession={setSession}
+              setLogs={setLogs}
+              onSaveSetLog={saveSetLog}
             />
             <SessionSection
               title="Main Block"
@@ -168,6 +208,8 @@ export default function SessionViewPage({
               sectionKey="main_block"
               session={session}
               onUpdateSession={setSession}
+              setLogs={setLogs}
+              onSaveSetLog={saveSetLog}
             />
             <SessionSection
               title="Cool-down"
@@ -176,6 +218,8 @@ export default function SessionViewPage({
               sectionKey="cooldown"
               session={session}
               onUpdateSession={setSession}
+              setLogs={setLogs}
+              onSaveSetLog={saveSetLog}
             />
           </TabsContent>
         ))}
@@ -307,6 +351,15 @@ function isSuperset(label: string): boolean {
   return label.toLowerCase().startsWith("superset");
 }
 
+interface SetLogSavePayload {
+  exercise_ref: string;
+  set_number: number;
+  reps: number | null;
+  weight_kg: number | null;
+  duration_seconds: number | null;
+  completed: boolean;
+}
+
 function SessionSection({
   title,
   exercises,
@@ -314,6 +367,8 @@ function SessionSection({
   sectionKey,
   session,
   onUpdateSession,
+  setLogs,
+  onSaveSetLog,
 }: {
   title: string;
   exercises: Exercise[];
@@ -321,10 +376,13 @@ function SessionSection({
   sectionKey: string;
   session: DBSession;
   onUpdateSession: (s: DBSession) => void;
+  setLogs: Record<string, SetLog>;
+  onSaveSetLog: (payload: SetLogSavePayload) => Promise<boolean>;
 }) {
   const [editingUrl, setEditingUrl] = useState<number | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [swapping, setSwapping] = useState<number | null>(null);
+  const [loggingOpen, setLoggingOpen] = useState<number | null>(null);
 
   if (exercises.length === 0) {
     return (
@@ -442,9 +500,15 @@ function SessionSection({
                   {group.exercises.map(({ exercise: ex, index: i }) => {
                 const hasDetail = Boolean(ex.coaching_cue || ex.modification);
                 const superset = group.label ? isSuperset(group.label) : false;
+                const exerciseRef = `${versionKey}:${sectionKey}:${i}:${ex.exercise_name}`;
+                const totalSets = Math.max(1, ex.sets || 1);
+                let loggedCount = 0;
+                for (let s = 1; s <= totalSets; s++) {
+                  if (setLogs[`${exerciseRef}::${s}`]) loggedCount++;
+                }
                 return (
                   <Fragment key={i}>
-                    <tr className={hasDetail || editingUrl === i ? "" : "border-b border-[var(--hub-border)]"}>
+                    <tr className={hasDetail || editingUrl === i || loggingOpen === i ? "" : "border-b border-[var(--hub-border)]"}>
                       <td className={`px-4 py-2 align-top${superset ? " border-l-2 border-rose/30" : ""}`}>
                         <p className="text-sm font-medium text-foreground">{ex.exercise_name}</p>
                         {ex.equipment?.length > 0 && (
@@ -505,6 +569,16 @@ function SessionSection({
                           >
                             Swap
                           </button>
+                          <button
+                            title="Log sets"
+                            onClick={() => setLoggingOpen(loggingOpen === i ? null : i)}
+                            className={`inline-flex h-7 items-center justify-center gap-1 rounded-lg px-2 text-xs font-medium hover:bg-[var(--hub-hover)] ${
+                              loggedCount > 0 ? "text-teal" : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {loggedCount > 0 && <IconCheckCircle className="h-3 w-3" />}
+                            Log{loggedCount > 0 ? ` ${loggedCount}/${totalSets}` : ""}
+                          </button>
                         </div>
                         {swapping === i && (
                           <SwapExerciseDialog
@@ -556,6 +630,18 @@ function SessionSection({
                         </td>
                       </tr>
                     )}
+                    {loggingOpen === i && (
+                      <tr key={`log-${i}`} className="border-b border-[var(--hub-border)]">
+                        <td colSpan={6} className="px-4 pb-3">
+                          <ExerciseSetLogger
+                            exercise={ex}
+                            exerciseRef={exerciseRef}
+                            setLogs={setLogs}
+                            onSave={onSaveSetLog}
+                          />
+                        </td>
+                      </tr>
+                    )}
                   </Fragment>
                 );
                   })}
@@ -566,5 +652,147 @@ function SessionSection({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** True when the prescription is time-based rather than rep-based — inferred from the
+ * reps string carrying a duration unit (e.g. "30s", "45 sec each side", "1 min"). */
+function isTimeBasedReps(reps: string): boolean {
+  return /\d\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i.test(reps || "");
+}
+
+function parsePrescribedSeconds(reps: string): number | null {
+  const m = (reps || "").match(/(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return /^m/i.test(m[2]) ? n * 60 : n;
+}
+
+/** First number in the prescription's reps string ("8-10" → 8, "AMRAP" → null). */
+function parsePrescribedReps(reps: string): number | null {
+  const m = (reps || "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+/** Per-set quick-log control — one row per prescribed set, sized for one-handed use
+ * on a phone mid-session. Tap ✓ with the inputs empty to log the set exactly as
+ * prescribed; type first to log what actually happened. ✗ logs the set as skipped.
+ * Already-logged sets stay editable — change a value and tap ✓ (or ✗) again. */
+function ExerciseSetLogger({
+  exercise,
+  exerciseRef,
+  setLogs,
+  onSave,
+}: {
+  exercise: Exercise;
+  exerciseRef: string;
+  setLogs: Record<string, SetLog>;
+  onSave: (payload: SetLogSavePayload) => Promise<boolean>;
+}) {
+  const totalSets = Math.max(1, exercise.sets || 1);
+  const timeBased = isTimeBasedReps(exercise.reps);
+  const prescribedSeconds = parsePrescribedSeconds(exercise.reps);
+  const prescribedReps = parsePrescribedReps(exercise.reps);
+
+  const [drafts, setDrafts] = useState<Record<number, { main: string; weight: string }>>(() => {
+    const init: Record<number, { main: string; weight: string }> = {};
+    for (let s = 1; s <= totalSets; s++) {
+      const log = setLogs[`${exerciseRef}::${s}`];
+      init[s] = {
+        main: log
+          ? timeBased
+            ? log.duration_seconds != null ? String(log.duration_seconds) : ""
+            : log.reps != null ? String(log.reps) : ""
+          : "",
+        weight: log?.weight_kg != null ? String(log.weight_kg) : "",
+      };
+    }
+    return init;
+  });
+  const [savingSet, setSavingSet] = useState<number | null>(null);
+
+  const save = async (setNumber: number, completed: boolean) => {
+    const draft = drafts[setNumber] ?? { main: "", weight: "" };
+    const mainVal = draft.main.trim() === "" ? null : Number(draft.main);
+    const weightVal = draft.weight.trim() === "" ? null : Number(draft.weight);
+    // Empty main input on a done set falls back to the prescription — one tap logs "as prescribed".
+    const reps = timeBased ? null : mainVal ?? (completed ? prescribedReps : null);
+    const duration = timeBased ? mainVal ?? (completed ? prescribedSeconds : null) : null;
+    setSavingSet(setNumber);
+    await onSave({
+      exercise_ref: exerciseRef,
+      set_number: setNumber,
+      reps: reps != null && Number.isFinite(reps) ? Math.round(reps) : null,
+      weight_kg: weightVal != null && Number.isFinite(weightVal) ? weightVal : null,
+      duration_seconds: duration != null && Number.isFinite(duration) ? Math.round(duration) : null,
+      completed,
+    });
+    setSavingSet(null);
+  };
+
+  return (
+    <div className="rounded-xl bg-[var(--hub-hover)] p-3 space-y-2">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        Log sets · prescribed {exercise.sets ?? 1} × {exercise.reps || "—"}
+      </p>
+      {Array.from({ length: totalSets }, (_, idx) => idx + 1).map((setNumber) => {
+        const log = setLogs[`${exerciseRef}::${setNumber}`];
+        const draft = drafts[setNumber] ?? { main: "", weight: "" };
+        const saving = savingSet === setNumber;
+        return (
+          <div key={setNumber} className="flex flex-wrap items-center gap-2">
+            <span className="w-10 shrink-0 text-xs font-medium text-muted-foreground">Set {setNumber}</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={draft.main}
+              onChange={(e) => setDrafts((p) => ({ ...p, [setNumber]: { ...draft, main: e.target.value } }))}
+              placeholder={timeBased ? (prescribedSeconds != null ? `${prescribedSeconds}s` : exercise.reps || "secs") : exercise.reps || "reps"}
+              aria-label={timeBased ? `Set ${setNumber} duration in seconds` : `Set ${setNumber} reps`}
+              className="h-11 w-20 min-w-0 rounded-lg border border-border/60 bg-background px-2 text-center text-sm tabular-nums"
+            />
+            <input
+              type="text"
+              inputMode="decimal"
+              value={draft.weight}
+              onChange={(e) => setDrafts((p) => ({ ...p, [setNumber]: { ...draft, weight: e.target.value } }))}
+              placeholder="kg"
+              aria-label={`Set ${setNumber} weight in kg (leave blank if not applicable)`}
+              className="h-11 w-20 min-w-0 rounded-lg border border-border/60 bg-background px-2 text-center text-sm tabular-nums"
+            />
+            <button
+              title="Done"
+              disabled={saving}
+              onClick={() => save(setNumber, true)}
+              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-50 ${
+                log && log.completed
+                  ? "border-teal/30 bg-teal/15 text-teal"
+                  : "border-border/60 bg-background text-muted-foreground hover:border-teal/40 hover:text-teal"
+              }`}
+            >
+              <IconCheck className="h-5 w-5" />
+            </button>
+            <button
+              title="Skip"
+              disabled={saving}
+              onClick={() => save(setNumber, false)}
+              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-50 ${
+                log && !log.completed
+                  ? "border-rose/30 bg-rose/10 text-rose"
+                  : "border-border/60 bg-background text-muted-foreground hover:border-rose/40 hover:text-rose"
+              }`}
+            >
+              <IconX className="h-5 w-5" />
+            </button>
+            <span className="text-[11px] text-muted-foreground">
+              {log ? (log.completed ? "Done" : "Skipped") : ""}
+            </span>
+          </div>
+        );
+      })}
+      <p className="text-[11px] text-muted-foreground">
+        Tap ✓ with the boxes empty to log as prescribed. Weight is optional — leave blank for bodyweight moves.
+      </p>
+    </div>
   );
 }
