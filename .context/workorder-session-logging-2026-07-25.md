@@ -1,6 +1,6 @@
 # Work Order: Eternal Fitness — Session Logging (Trainerize Replacement) — 2026-07-25
 
-OWNER: Claude Code — **ACTIVE, signed off by Craig 2026-07-25. Lanes A, B, C all DONE + DEPLOYED same day** (commits `b67163c`/`deed2d4`/`da21c2c`, live on `staging.eternal-fitness.co.uk`, Coolify confirmed `running:healthy`). Remaining open items are the two `[GATE]`s below (client-facing nudge send mechanism; assigning a real client to home_training) plus the hub-UI gap noted in Lane B.
+OWNER: Claude Code — **ACTIVE, signed off by Craig 2026-07-25. Lanes A, B, C all DONE + DEPLOYED same day** (commits `b67163c`/`deed2d4`/`da21c2c`, live on `staging.eternal-fitness.co.uk`, Coolify confirmed `running:healthy`). `delivery_mode` toggle added to client edit page same day (`f6cf896`). **Lane D added 2026-07-25, same day, Craig-directed — session scheduling & calendar** (see below). Remaining open items are the two `[GATE]`s below (client-facing nudge send mechanism; assigning a real client to home_training) plus the hub-UI gap noted in Lane B, plus Lane D's units.
 SCOPE: `eternal-fitness-website` (`D:\apps\eternal-fitness-website` — new DB schema for logged sets, hub session-detail page, client portal, Plan Agent output shape); Eternal Fitness production Postgres (`eternal_fitness` DB, via Coolify SSH tunnel `127.0.0.1:5433`). No other repo touched. Registry: `infrastructure/.context/active-workorders.md` (no scope overlap with the current cleared hub-consolidation Work Order at this repo — same repo, different tables/pages, safe to run as its own Work Order per that registry's own guidance).
 
 GOAL: Replace Trainerize as the client-delivery/progress-tracking layer, in two tracks that ship together:
@@ -73,6 +73,33 @@ ASK FIRST (`[GATE]`):
 - [x] "Gone quiet" detection (`lib/progress-db.ts`, `HOME_TRAINING_QUIET_DAYS = 7`, named constant) — surfaces as a `HubAlert` on both the hub dashboard and the client detail page for `home_training` clients with no self-logged set in 7 days. Esther-facing only.
 - [ ] Client-facing nudge send mechanism — still `[GATE]`, not built, per the ASK FIRST item below. Detection/flagging only, as scoped.
 - [x] Pushed to `main` (`da21c2c`, rebased onto Lane B — one real merge conflict in `lib/portal-data.ts`, both lanes' methods kept, resolved and re-verified). Real environmental finding during verification, not a regression: a build-time `ECONNREFUSED` appeared because no worktree has `.env.local` (gitignored) — confirmed via `git stash` that the baseline has the same gap, and the new code degrades to `[]` exactly as designed rather than crashing. Production has real env vars via Coolify, so this doesn't occur live.
+
+### Lane D — Session scheduling & calendar (added 2026-07-25, Craig-directed, not in original scope)
+Craig: there is currently no way to see when a block's sessions are actually booked for — the hub tracks `session_number`/`week`/`phase` only, real booking happens entirely in Outlook today, separate from this app. Ask: a studio-wide calendar showing who's training when, plus a per-client list of their sessions with dates, both editable (move/cancel/reschedule) — to prove out the method before any longer-term Outlook sync. Confirmed via investigation: **zero scheduling data exists anywhere in this codebase** — no date field on `sessions`/`blocks`, no calendar UI, no calendar library in `package.json`, no Outlook/Graph/ICS integration of any kind. This is genuinely new capability, not an extension.
+
+**Decisions locked (2026-07-25, Craig, via clarifying questions):**
+- **Bulk repeating pattern for initial scheduling.** Esther sets a pattern once per block (days of week + time, start date) and every session in that block gets a `scheduled_at` assigned in sequence automatically; she adjusts individual sessions afterward as needed. Not one-at-a-time manual entry for every session.
+- **Double-booking: warn, don't block.** Overlapping sessions across different clients are flagged visually but still savable — no hard validation error.
+- **Cancel/reschedule: no automatic side effects.** Cancelling sets a status + optional free-text reason; rescheduling just changes `scheduled_at`. No renumbering, no auto-generated makeup session, no client-facing email triggered by this lane.
+
+MUST (Lane D specific, in addition to the standing MUST list above):
+- Additive schema only — `scheduled_at`/cancellation fields on `sessions`, no change to the existing prescription (`data` JSONB) or the existing `session_log` (RPE/fatigue/notes/`completed_at`) concept. A session's "scheduled for" date and its "actually completed" record are two different things — don't conflate them.
+- Every existing session row defaults to unscheduled (`scheduled_at IS NULL`) — no existing block/session's behaviour changes until Esther actually applies a pattern to it.
+- Conflict detection compares a session's `scheduled_at` + an estimated duration (derive from `time_tier`: compact ~45m / standard ~60m / extended ~75–90m — reuse whatever the existing print/review pages already use for that mapping, don't invent new numbers) against every other client's scheduled sessions on the same day.
+- Studio-wide calendar and per-client list are both required (not one or the other) — Craig asked for both explicitly.
+
+DECIDE YOURSELF: exact new column names/types on `sessions` (must satisfy: nullable `scheduled_at`, a cancelled flag + optional reason, no loss of existing data); calendar view granularity (day/week) and layout — no existing calendar library in this repo, so build a simple grid/list view with existing hub design tokens rather than pulling in a new dependency unless there's a strong reason; where in the hub nav the calendar lives (a new top-level route seems right, e.g. `/hub/schedule` — check `HubSidebar.tsx` for the existing nav-item pattern before adding one); exact UI for the "apply a repeating pattern to this block" action (a button on the block review/detail page is the natural home — check what's already there before adding a new page).
+
+ASK FIRST (`[GATE]`, in addition to the standing list above):
+- Any migration run against production Postgres for the new scheduling fields.
+
+## UNITS — Lane D
+
+- [AUTO] Add `scheduled_at TIMESTAMPTZ NULL`, `cancelled_at TIMESTAMPTZ NULL`, `cancel_reason TEXT NULL` to `sessions` (additive, no backfill, every existing row defaults to unscheduled/not-cancelled). VERIFY: no existing session's read/write path changes; `session_log`/`data` untouched.
+- [AUTO] "Apply a repeating pattern to this block" action (day-of-week multi-select + time + start date) that assigns `scheduled_at` across the block's existing sessions in `session_number` order, cycling through the chosen days. VERIFY: a 12-session block with "Tue/Thu, 10am, starting a given Monday" produces 12 correctly-sequenced dates, no session skipped or double-assigned.
+- [AUTO] Per-client session list (dates, status, reschedule/cancel actions) — natural home is the client detail Training tab or the block review page; check what's already there before adding a new page. VERIFY: reschedule updates `scheduled_at` only; cancel sets `cancelled_at`/`cancel_reason` only; both editable after the fact (not one-shot).
+- [AUTO] Studio-wide calendar (day/week view, all clients) showing scheduled sessions with client name, time, and a visual flag on any overlapping pair. VERIFY: two clients scheduled at overlapping times both show a conflict indicator; a normal non-overlapping day shows none.
+- [GATE] Running the Lane D migration against production Postgres.
 
 ## LEDGER
 Progress written to this repo's `.context/handoff.md` and this file's DONE checklist as units complete.

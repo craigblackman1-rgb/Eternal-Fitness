@@ -377,6 +377,13 @@ export interface DBSession {
   week: number;
   phase: Phase;
   data: Session;
+  /** When this session is booked to happen. NULL = unscheduled. Distinct from
+   *  the performed record in data.session_log.completed_at (see 20260725_session_scheduling.sql). */
+  scheduled_at?: string | null;
+  /** When the booking was cancelled. NULL = not cancelled. Reversible. */
+  cancelled_at?: string | null;
+  /** Optional free-text reason for the cancellation. */
+  cancel_reason?: string | null;
 }
 
 export type DocumentStatus = "draft" | "sent" | "received" | "signed" | "expired" | "needs_update" | "superseded";

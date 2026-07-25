@@ -11,6 +11,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import type { DBSession, DBBlock } from "@/types";
 import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
+import { BlockScheduler } from "./BlockScheduler";
 
 export default function ReviewPage({ params }: { params: { id: string; blockId: string } }) {
   const router = useRouter();
@@ -18,6 +19,11 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
   const [sessions, setSessions] = useState<DBSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
+
+  const loadSessions = async () => {
+    const sessionsRes = await fetch(`/api/blocks/${params.blockId}/sessions`);
+    if (sessionsRes.ok) setSessions(await sessionsRes.json());
+  };
 
   useEffect(() => {
     async function load() {
@@ -87,6 +93,8 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
           Some exercises are missing client-specific modifications. Review each session before approving.
         </HubAlert>
       )}
+
+      <BlockScheduler sessions={sessions} onChanged={loadSessions} />
 
       <HubCard>
         <HubCardHeader title="Session Overview" />
