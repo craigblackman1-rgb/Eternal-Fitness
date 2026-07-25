@@ -14,6 +14,12 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
+    // Hub staff accounts are provisioned by hand (no public registration surface
+    // for a 2-person studio) -- this closes the previously-open /api/auth/sign-up/email
+    // endpoint, which anyone on the public internet could otherwise use to create
+    // a full staff account with no invite or approval step. Existing accounts and
+    // the login/password-reset flow are unaffected.
+    disableSignUp: true,
     requireEmailVerification: false,
     sendResetPassword: async ({ user, url }) => {
       await getEmailSender().send({
