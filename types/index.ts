@@ -97,12 +97,19 @@ export interface ImprovementEntry {
 /** Hub to-do task list (see supabase/migrations/20260725_hub_tasks.sql). */
 export type TaskStatus = "todo" | "in_progress" | "done";
 
+export interface TaskBucket {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
 export interface Task {
   id: string;
   title: string;
   description: string | null;
   status: TaskStatus;
   assignee: string | null;
+  bucket_id: string | null;
   due_date: string | null;
   created_at: string;
   updated_at: string;

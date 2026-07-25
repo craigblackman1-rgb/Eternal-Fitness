@@ -16,6 +16,7 @@ export async function PATCH(
     description: string | null;
     status: string;
     assignee: string | null;
+    bucket_id: string | null;
     due_date: string | null;
   }>;
 
