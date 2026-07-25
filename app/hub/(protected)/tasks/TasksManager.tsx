@@ -13,6 +13,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconCheckSquare,
+  IconCheck,
   IconX,
 } from "@/components/icons";
 import { toast } from "sonner";
@@ -62,6 +63,9 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [bucketFilter, setBucketFilter] = useState<string | null>(null);
+  const [editingBucketId, setEditingBucketId] = useState<string | null>(null);
+  const [bucketNameDraft, setBucketNameDraft] = useState("");
+  const [bucketBusy, setBucketBusy] = useState(false);
   // Default to "my tasks" whenever the logged-in user's name matches an assignee option
   // (e.g. Esther logging in as "Esther Fair") — otherwise show everything.
   const [showOnlyMine, setShowOnlyMine] = useState(
@@ -177,6 +181,68 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       toast.error(err instanceof Error ? err.message : "Failed to create bucket");
     } finally {
       setAddingBucket(false);
+    }
+  }
+
+  function startEditBucket(bucket: TaskBucket) {
+    setEditingBucketId(bucket.id);
+    setBucketNameDraft(bucket.name);
+  }
+
+  function cancelEditBucket() {
+    setEditingBucketId(null);
+    setBucketNameDraft("");
+  }
+
+  async function saveBucketRename(bucket: TaskBucket) {
+    const name = bucketNameDraft.trim();
+    if (!name || name === bucket.name) {
+      cancelEditBucket();
+      return;
+    }
+    setBucketBusy(true);
+    try {
+      const res = await fetch(`/api/task-buckets/${bucket.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? "Failed to rename bucket");
+      }
+      const updated = await res.json();
+      setBuckets((prev) =>
+        prev.map((b) => (b.id === bucket.id ? updated : b)).sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      toast.success(`Renamed to "${updated.name}"`);
+      cancelEditBucket();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to rename bucket");
+    } finally {
+      setBucketBusy(false);
+    }
+  }
+
+  async function deleteBucket(bucket: TaskBucket) {
+    if (!confirm(`Delete bucket "${bucket.name}"? Tasks in it become unbucketed, not deleted.`)) return;
+    setBucketBusy(true);
+    try {
+      const res = await fetch(`/api/task-buckets/${bucket.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error ?? "Failed to delete bucket");
+      }
+      setBuckets((prev) => prev.filter((b) => b.id !== bucket.id));
+      setTasks((prev) =>
+        prev.map((t) => (t.bucket_id === bucket.id ? { ...t, bucket_id: null } : t)),
+      );
+      if (bucketFilter === bucket.id) setBucketFilter(null);
+      toast.success(`Bucket "${bucket.name}" deleted`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete bucket");
+    } finally {
+      setBucketBusy(false);
     }
   }
 
@@ -420,27 +486,77 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
           {buckets.map((b) => {
             const isActive = bucketFilter === b.id;
             const count = assigneeScopedTasks.filter((t) => t.bucket_id === b.id).length;
+
+            if (editingBucketId === b.id) {
+              return (
+                <div key={b.id} className="inline-flex items-center gap-1 rounded-lg bg-[var(--hub-hover)] px-2 py-1">
+                  <input
+                    autoFocus
+                    value={bucketNameDraft}
+                    onChange={(e) => setBucketNameDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveBucketRename(b);
+                      if (e.key === "Escape") cancelEditBucket();
+                    }}
+                    disabled={bucketBusy}
+                    className="w-28 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose"
+                  />
+                  <button
+                    onClick={() => saveBucketRename(b)}
+                    disabled={bucketBusy}
+                    title="Save"
+                    className="rounded-md p-1 text-muted-foreground hover:bg-[var(--hub-card)] hover:text-foreground"
+                  >
+                    <IconCheck className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={cancelEditBucket}
+                    disabled={bucketBusy}
+                    title="Cancel"
+                    className="rounded-md p-1 text-muted-foreground hover:bg-[var(--hub-card)] hover:text-foreground"
+                  >
+                    <IconX className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            }
+
             return (
-              <button
-                key={b.id}
-                onClick={() => setBucketFilter(isActive ? null : b.id)}
-                className={`inline-flex items-center gap-2 rounded-lg border-0 px-3.5 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground shadow-none"
-                    : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
-                }`}
-              >
-                {b.name}
-                <span
-                  className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+              <div key={b.id} className="group inline-flex items-center rounded-lg">
+                <button
+                  onClick={() => setBucketFilter(isActive ? null : b.id)}
+                  className={`inline-flex items-center gap-2 rounded-lg border-0 px-3.5 py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
-                      : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
+                      ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground shadow-none"
+                      : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
                   }`}
                 >
-                  {count}
-                </span>
-              </button>
+                  {b.name}
+                  <span
+                    className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+                      isActive
+                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
+                        : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+                <button
+                  onClick={() => startEditBucket(b)}
+                  title={`Rename "${b.name}"`}
+                  className="ml-0.5 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-[var(--hub-hover)] hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
+                >
+                  <IconPencil className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => deleteBucket(b)}
+                  title={`Delete "${b.name}"`}
+                  className="rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-[var(--hub-hover)] hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100"
+                >
+                  <IconTrash2 className="h-3 w-3" />
+                </button>
+              </div>
             );
           })}
         </div>
