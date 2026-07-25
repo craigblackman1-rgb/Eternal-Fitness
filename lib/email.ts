@@ -1,15 +1,17 @@
 /**
  * Reusable email send layer. Designed so the Decoded Ops hub can adopt it too.
  *
- * Two backends, auto-selected:
- *   1. Twilio SendGrid Web API (preferred) — set SENDGRID_API_KEY.
- *   2. SMTP relay (fallback) — set SMTP_HOST / SMTP_USER / SMTP_PASS.
- * If neither is set, send() is a graceful dry run (nothing leaves the app).
+ * Three backends, auto-selected in priority order:
+ *   1. Resend (preferred) — set RESEND_API_KEY.
+ *   2. Twilio SendGrid Web API (fallback) — set SENDGRID_API_KEY.
+ *   3. SMTP relay (fallback) — set SMTP_HOST / SMTP_USER / SMTP_PASS.
+ * If none are set, send() is a graceful dry run (nothing leaves the app).
  *
- * From address (both backends): MAIL_FROM or SENDGRID_FROM or SMTP_FROM,
+ * From address (all backends): MAIL_FROM or RESEND_FROM or SENDGRID_FROM or SMTP_FROM,
  * accepting either "email@x.com" or "Name <email@x.com>".
  *
  * Env vars:
+ *   RESEND_API_KEY   — Resend API key (enables the Resend backend)
  *   SENDGRID_API_KEY — SendGrid API key (enables the Web API backend)
  *   MAIL_FROM        — From address, e.g. "Esther Fair <esther@eternal-fitness.co.uk>"
  *   SMTP_HOST/PORT/USER/PASS/FROM — SMTP relay fallback
@@ -41,9 +43,10 @@ export interface EmailSender {
   send(input: SendEmailInput): Promise<SendEmailResult>;
 }
 
-type Backend = "sendgrid" | "smtp" | "none";
+type Backend = "resend" | "sendgrid" | "smtp" | "none";
 
 function selectBackend(): Backend {
+  if (process.env.RESEND_API_KEY) return "resend";
   if (process.env.SENDGRID_API_KEY) return "sendgrid";
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) return "smtp";
   return "none";
@@ -52,7 +55,13 @@ function selectBackend(): Backend {
 const DEFAULT_FROM = "Eternal Fitness <noreply@eternal-fitness.co.uk>";
 
 function getFromRaw(): string {
-  return process.env.MAIL_FROM || process.env.SENDGRID_FROM || process.env.SMTP_FROM || DEFAULT_FROM;
+  return (
+    process.env.MAIL_FROM ||
+    process.env.RESEND_FROM ||
+    process.env.SENDGRID_FROM ||
+    process.env.SMTP_FROM ||
+    DEFAULT_FROM
+  );
 }
 
 /** Parse "Name <email@x.com>" or "email@x.com" into its parts. */
@@ -76,6 +85,32 @@ function htmlToText(html: string): string {
     .replace(/&hellip;/gi, "…")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+// --- Resend ------------------------------------------------------------
+
+async function sendResend(input: SendEmailInput): Promise<SendEmailResult> {
+  const { Resend } = await import("resend");
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const text = input.text || htmlToText(input.html);
+
+  const { data, error } = await resend.emails.send({
+    from: getFromRaw(),
+    to: input.to,
+    subject: input.subject,
+    html: input.html,
+    text: text || undefined,
+    attachments: input.attachments?.map((a) => ({
+      filename: a.filename,
+      content: a.content,
+    })),
+  });
+
+  if (error) {
+    throw new Error(`Resend send failed: ${error.message || JSON.stringify(error)}`);
+  }
+
+  return { success: true, messageId: data?.id || "resend-accepted" };
 }
 
 // --- SendGrid Web API ------------------------------------------------------
@@ -148,6 +183,7 @@ async function sendNodemailer(input: SendEmailInput): Promise<SendEmailResult> {
 
 export function getEmailSender(): EmailSender {
   const backend = selectBackend();
+  if (backend === "resend") return { send: sendResend };
   if (backend === "sendgrid") return { send: sendSendgrid };
   if (backend === "smtp") return { send: sendNodemailer };
   return {
