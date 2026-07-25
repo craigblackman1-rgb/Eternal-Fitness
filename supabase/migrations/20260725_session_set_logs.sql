@@ -21,6 +21,12 @@
 -- segment guards against silent misattribution if an exercise is later swapped at
 -- the same index.
 
+-- Delivery mode on clients — additive, defaulted, so no existing client changes
+-- behaviour (every current client is studio 1:1). Placed first so it lands
+-- regardless of anything below it.
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_mode TEXT NOT NULL DEFAULT 'studio_1to1'
+  CHECK (delivery_mode IN ('studio_1to1', 'home_training'));
+
 CREATE TABLE IF NOT EXISTS set_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
@@ -41,34 +47,12 @@ COMMENT ON COLUMN set_logs.exercise_ref IS
 
 CREATE INDEX IF NOT EXISTS idx_set_logs_session_id ON set_logs(session_id);
 
-ALTER TABLE set_logs ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can read set_logs" ON set_logs;
-CREATE POLICY "Users can read set_logs"
-  ON set_logs FOR SELECT
-  TO authenticated
-  USING (true);
-
-DROP POLICY IF EXISTS "Users can insert set_logs" ON set_logs;
-CREATE POLICY "Users can insert set_logs"
-  ON set_logs FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Users can update set_logs" ON set_logs;
-CREATE POLICY "Users can update set_logs"
-  ON set_logs FOR UPDATE
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Users can delete set_logs" ON set_logs;
-CREATE POLICY "Users can delete set_logs"
-  ON set_logs FOR DELETE
-  TO authenticated
-  USING (true);
-
--- Delivery mode on clients — additive, defaulted, so no existing client changes
--- behaviour (every current client is studio 1:1).
-ALTER TABLE clients ADD COLUMN IF NOT EXISTS delivery_mode TEXT NOT NULL DEFAULT 'studio_1to1'
-  CHECK (delivery_mode IN ('studio_1to1', 'home_training'));
+-- RLS deliberately not enabled here: matches the confirmed, working
+-- client_documents/client_document_files pattern (see 20260722_scanned_
+-- document_storage.sql) — this is a plain-Postgres instance where the
+-- Supabase "authenticated" role never carried over, so CREATE POLICY ...
+-- TO authenticated errors with "role authenticated does not exist" and
+-- would abort this migration (including the delivery_mode column above,
+-- if the runner is transactional). Access control on this table is
+-- enforced at the app layer (staff session check in the API routes), same
+-- as every other table added since the Postgres migration.
