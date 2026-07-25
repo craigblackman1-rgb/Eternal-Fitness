@@ -14,7 +14,7 @@ import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
-import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, Gender } from "@/types";
+import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender } from "@/types";
 import { DEFAULT_SPLITS, parseSplits } from "@/lib/planAgentPrompt";
 
 function calculateAge(dob: string | null): number {
@@ -106,6 +106,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [outstandingActions, setOutstandingActions] = useState("");
   const [groupType, setGroupType] = useState<DBClientGroupType>("individual_journey");
   const [paceMode, setPaceMode] = useState<DBClientPaceMode>("medium");
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("studio_1to1");
   const [splitOptions, setSplitOptions] = useState<string[]>(parseSplits(DEFAULT_SPLITS).map((s) => s.label));
 
   useEffect(() => {
@@ -156,6 +157,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setOutstandingActions((data.outstanding_actions ?? []).join("\n"));
       setGroupType(data.group_type ?? "individual_journey");
       setPaceMode(data.pace_mode ?? "medium");
+      setDeliveryMode(data.delivery_mode ?? "studio_1to1");
       setLoading(false);
     }
     load();
@@ -196,6 +198,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         outstanding_actions: outstandingActions.split("\n").map((s) => s.trim()).filter(Boolean),
         group_type: groupType,
         pace_mode: paceMode,
+        delivery_mode: deliveryMode,
       }),
     });
 
@@ -354,6 +357,23 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   { value: "extended", label: "Extended", sub: "~75–90m" },
                 ]}
               />
+            </div>
+            <div className="space-y-2">
+              <SegmentedControl
+                legend="Delivery mode"
+                name="delivery_mode"
+                value={deliveryMode}
+                onChange={(v) => { setDirty(true); setDeliveryMode(v); }}
+                options={[
+                  { value: "studio_1to1", label: "Studio 1:1" },
+                  { value: "home_training", label: "Home training" },
+                ]}
+              />
+              <p className="text-xs text-muted-foreground">
+                Home training gives this client a "Your training" tab in their portal, where they can
+                view their plan and log their own sets. Studio 1:1 clients see no change — Esther logs
+                for them from the session page as usual.
+              </p>
             </div>
           </div>
         </HubCard>
