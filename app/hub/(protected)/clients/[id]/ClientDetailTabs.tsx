@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs } from "@/components/ui/tabs";
 
-const VALID_TABS = ["overview", "profile", "compliance", "training", "plan-agent", "updates"];
+const VALID_TABS = ["overview", "profile", "compliance", "training", "progress", "plan-agent", "updates"];
 
 export function ClientDetailTabs({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();

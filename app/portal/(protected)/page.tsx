@@ -3,8 +3,10 @@ import { createPortalDataClient } from "@/lib/portal-data";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { IconFileText, IconClock, IconMail, IconCheckCircle, IconAlertTriangle } from "@/components/icons";
+import { IconFileText, IconClock, IconMail, IconCheckCircle, IconAlertTriangle, IconBarChart3 } from "@/components/icons";
 import { formatUpdateTime } from "@/lib/updates/status";
+import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
+import { buildExerciseTrends } from "@/lib/progress";
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -30,11 +32,16 @@ export default async function PortalDashboardPage() {
   if (!session) return null; // layout already redirects; guard for types.
 
   const data = createPortalDataClient(session.clientId);
-  const [signed, outstanding, updates] = await Promise.all([
+  const [signed, outstanding, updates, setLogHistory] = await Promise.all([
     data.getSignedDocuments(),
     data.getOutstandingDocuments(),
     data.getUpdateHistory(),
+    data.getSetLogHistory(),
   ]);
+
+  // Lane C — own-data-only progress trends. Empty/sparse-safe: no logged
+  // sets simply shows the empty state below, never a broken chart.
+  const exerciseTrends = buildExerciseTrends(setLogHistory.logs, setLogHistory.sessionMeta);
 
   return (
     <div className="space-y-10">
@@ -46,6 +53,24 @@ export default async function PortalDashboardPage() {
           A read-only view of what you&rsquo;ve signed, what&rsquo;s still outstanding, and the
           updates Eternal Fitness has sent you.
         </p>
+      </section>
+
+      {/* Your progress ---------------------------------------------------- */}
+      <section aria-labelledby="portal-progress">
+        <HubCard>
+          <HubCardHeader
+            icon={<IconBarChart3 className="w-5 h-5" aria-hidden="true" />}
+            title="Your progress"
+            subtitle="Working weight and reps per exercise, from your logged sessions"
+            color="teal"
+          />
+          <ExerciseTrendsPanel
+            trends={exerciseTrends}
+            emptyTitle="No logged sessions yet"
+            emptyDescription="Once sets are logged against your training plan, your per-exercise progress will appear here."
+            idPrefix="portal-exercise-trends"
+          />
+        </HubCard>
       </section>
 
       {/* Signed documents ------------------------------------------------ */}

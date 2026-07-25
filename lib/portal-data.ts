@@ -8,6 +8,7 @@
 
 import { createPgClient, getPool } from "@/lib/pg-client";
 import type { DeliveryMode, Exercise, Session, SetLog } from "@/types";
+import type { TrendSessionMeta } from "@/lib/progress";
 
 export interface PortalClient {
   id: string;
@@ -238,6 +239,45 @@ export class PortalDataClient {
       [this.clientId, sessionIds],
     );
     return res.rows as SetLog[];
+  }
+
+  /**
+   * Logged sets for this client's progress view (Lane C), plus block/session
+   * labels for charting. Scoped by client_id at every step of the join chain
+   * (client -> blocks -> sessions -> set_logs); a client can never see another
+   * client's logs. Read-only. Empty at every step degrades to empty arrays.
+   */
+  async getSetLogHistory(): Promise<{ logs: SetLog[]; sessionMeta: Record<string, TrendSessionMeta> }> {
+    const pg = createPgClient();
+    const { data: blocks } = await pg
+      .from("blocks")
+      .select("id, block_number")
+      .eq("client_id", this.clientId);
+    const blockIds = (blocks ?? []).map((b: any) => b.id);
+    if (blockIds.length === 0) return { logs: [], sessionMeta: {} };
+
+    const { data: sessions } = await pg
+      .from("sessions")
+      .select("id, block_id, session_number")
+      .in("block_id", blockIds);
+    const sessionRows = (sessions ?? []) as { id: string; block_id: string; session_number: number | null }[];
+    if (sessionRows.length === 0) return { logs: [], sessionMeta: {} };
+
+    const blockNumberById = new Map((blocks ?? []).map((b: any) => [b.id, b.block_number as number | null]));
+    const sessionMeta: Record<string, TrendSessionMeta> = {};
+    for (const s of sessionRows) {
+      sessionMeta[s.id] = {
+        blockNumber: blockNumberById.get(s.block_id) ?? null,
+        sessionNumber: s.session_number ?? null,
+      };
+    }
+
+    const { data: logs } = await pg
+      .from("set_logs")
+      .select("*")
+      .in("session_id", sessionRows.map((s) => s.id))
+      .order("logged_at", { ascending: true });
+    return { logs: (logs ?? []) as SetLog[], sessionMeta };
   }
 
   /** History of update emails sent to this client. */

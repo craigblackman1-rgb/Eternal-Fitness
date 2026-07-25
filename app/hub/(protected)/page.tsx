@@ -6,6 +6,8 @@ import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
 import { IconActivity, IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText, IconTriangleAlert, IconUserPlus, IconUsers, IconPencil, IconPlus, IconMail } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
+import { getQuietHomeTrainingClients } from "@/lib/progress-db";
+import { HOME_TRAINING_QUIET_DAYS } from "@/lib/progress";
 
 interface RecentCheckIn {
   clientName: string;
@@ -61,6 +63,10 @@ export default async function DashboardPage() {
   const needsAttention = (clients ?? []).filter(
     (c) => c.compliance_status && (c.compliance_status as DBClientComplianceStatus) !== "clear",
   );
+
+  // Lane C — home-training clients with no self-logged sets in the last N days
+  // (detection only, Esther-facing; no client-facing nudge is sent from here).
+  const quietClients = await getQuietHomeTrainingClients();
 
   const doNotTrain = needsAttention.filter((c) => c.compliance_status === "do_not_train");
   const pendingReview = needsAttention.filter(
@@ -126,6 +132,21 @@ export default async function DashboardPage() {
         <HubAlert severity="warning" title={`Action needed — ${pendingReview.length} client${pendingReview.length > 1 ? "s" : ""}`}>
           {pendingReview.map((c) => c.name).join(", ")}
           {pendingReview.length === 1 ? " needs" : " need"} clearance or outstanding actions resolved.
+        </HubAlert>
+      )}
+      {quietClients.length > 0 && (
+        <HubAlert severity="warning" title={`Gone quiet — ${quietClients.length} home-training client${quietClients.length > 1 ? "s" : ""}`}>
+          <span>
+            {quietClients.map((c, i) => (
+              <span key={c.clientId}>
+                {i > 0 && ", "}
+                <Link href={`/hub/clients/${c.clientNumber}`} className="font-medium underline underline-offset-2 hover:no-underline">
+                  {c.name}
+                </Link>
+              </span>
+            ))}{" "}
+            {quietClients.length === 1 ? "has" : "have"} not logged any sets in the last {HOME_TRAINING_QUIET_DAYS} days — worth checking in.
+          </span>
         </HubAlert>
       )}
 

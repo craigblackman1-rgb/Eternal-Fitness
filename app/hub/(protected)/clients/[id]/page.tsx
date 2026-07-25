@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot } from "@/components/icons";
+import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3 } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { HubCard, HubCardHeader, HubPageHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
@@ -20,7 +20,10 @@ import { ClinicalComplianceCard } from "@/components/hub/ClinicalComplianceCard"
 import { PackagePaymentsCard } from "@/components/hub/PackagePaymentsCard";
 import { ClientUpdatesPanel } from "@/components/hub/ClientUpdatesPanel";
 import { InviteToPortalButton } from "./InviteToPortalButton";
-import type { SentUpdate } from "@/types";
+import type { SentUpdate, SetLog } from "@/types";
+import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
+import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
+import { getLastClientLogAt } from "@/lib/progress-db";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -94,6 +97,26 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     .eq("blocks.client_id", client.id)
     .order("session_number", { ascending: false })
     .limit(50);
+
+  // Lane C — per-exercise progress from set_logs (empty/sparse-safe: no rows → empty state).
+  const sessionIds = (sessions ?? []).map((s) => s.id);
+  const { data: setLogs } = sessionIds.length > 0
+    ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
+    : { data: [] as SetLog[] };
+  const trendSessionMeta: Record<string, TrendSessionMeta> = {};
+  for (const s of sessions ?? []) {
+    trendSessionMeta[s.id] = {
+      blockNumber: (s as any).blocks?.block_number ?? null,
+      sessionNumber: s.session_number ?? null,
+    };
+  }
+  const exerciseTrends = buildExerciseTrends((setLogs ?? []) as SetLog[], trendSessionMeta);
+
+  // Lane C — "gone quiet" detection for home-training clients (Esther-facing only;
+  // no client-facing send is wired — gated on the Work Order's ASK FIRST decision).
+  const isHomeTraining = client.delivery_mode === "home_training";
+  const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
+  const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
   const { data: ruleTypes } = await supabase.from("training_rule_types").select("id, label, bucket");
@@ -256,6 +279,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           <OutstandingActionsInline actions={manualActions} />
         </HubAlert>
       )}
+      {goneQuiet && (
+        <HubAlert severity="warning" title="Home-training client gone quiet">
+          No self-logged sets in the last {HOME_TRAINING_QUIET_DAYS} days
+          {lastClientLogAt
+            ? ` — last logged ${new Date(lastClientLogAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.`
+            : " — no sets logged yet."}{" "}
+          Worth checking in with {client.name.split(" ")[0]}.
+        </HubAlert>
+      )}
 
       {/* ── Tabs ── */}
       <ClientDetailTabs>
@@ -272,6 +304,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </TabsTrigger>
           <TabsTrigger value="training" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
             <IconDumbbell className="w-3.5 h-3.5 text-muted-foreground" /> Training
+          </TabsTrigger>
+          <TabsTrigger value="progress" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconBarChart3 className="w-3.5 h-3.5 text-muted-foreground" /> Progress
           </TabsTrigger>
           <TabsTrigger value="plan-agent" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
             <IconBot className="w-3.5 h-3.5 text-muted-foreground" /> Plan Agent
@@ -775,6 +810,30 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 <EmptyState title="No sessions logged yet." />
               </div>
             )}
+          </HubCard>
+        </TabsContent>
+
+        {/* ── Tab: Progress ── */}
+        {/* Workout progress from logged sets — deliberately separate from the
+            Compliance tab and the /hub/tracker page, whose "status" is the
+            medical-compliance meaning (PAR-Q / GP letter / risk level). */}
+        <TabsContent value="progress" className="mt-6">
+          <HubCard padded={false}>
+            <HubCardHeader
+              icon={<IconBarChart3 className="w-4 h-4" />}
+              title="Exercise Progress"
+              color="teal"
+              subtitle="Working weight and reps per exercise, from logged sets"
+              className="px-5 pt-5"
+            />
+            <div className="px-5 pb-5">
+              <ExerciseTrendsPanel
+                trends={exerciseTrends}
+                emptyTitle="No logged sessions yet"
+                emptyDescription="Log sets from a session page (or a home-training client logs their own) and per-exercise trends will appear here."
+                idPrefix="hub-exercise-trends"
+              />
+            </div>
           </HubCard>
         </TabsContent>
 
