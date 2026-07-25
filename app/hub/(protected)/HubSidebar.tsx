@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
 import {
   IconBookText,
+  IconCalendar,
   IconCheckSquare,
   IconClipboardCheck,
   IconClipboardList,
@@ -26,6 +27,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Overview",
     items: [
       { href: "/hub", label: "Dashboard", icon: IconLayoutDashboard },
+      { href: "/hub/schedule", label: "Schedule", icon: IconCalendar },
       { href: "/hub/tasks", label: "Tasks", icon: IconCheckSquare },
     ],
   },
