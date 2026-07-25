@@ -21,6 +21,7 @@ import type { Task, TaskBucket, TaskStatus } from "@/types";
 interface TasksManagerProps {
   initialTasks: Task[];
   initialBuckets: TaskBucket[];
+  currentUserName: string | null;
 }
 
 const STATUS_OPTIONS: TaskStatus[] = ["todo", "in_progress", "done"];
@@ -54,13 +55,18 @@ function getPrevStatus(current: TaskStatus): TaskStatus | null {
   return null;
 }
 
-export function TasksManager({ initialTasks, initialBuckets }: TasksManagerProps) {
+export function TasksManager({ initialTasks, initialBuckets, currentUserName }: TasksManagerProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [buckets, setBuckets] = useState(initialBuckets);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [bucketFilter, setBucketFilter] = useState<string | null>(null);
+  // Default to "my tasks" whenever the logged-in user's name matches an assignee option
+  // (e.g. Esther logging in as "Esther Fair") — otherwise show everything.
+  const [showOnlyMine, setShowOnlyMine] = useState(
+    () => !!currentUserName && ASSIGNEE_OPTIONS.includes(currentUserName),
+  );
 
   const blankForm = {
     title: "",
@@ -210,19 +216,46 @@ export function TasksManager({ initialTasks, initialBuckets }: TasksManagerProps
     return buckets.find((b) => b.id === bucketId)?.name ?? null;
   }
 
-  const filteredTasks = bucketFilter
-    ? tasks.filter((t) => t.bucket_id === bucketFilter)
-    : tasks;
+  const assigneeScopedTasks = tasks.filter((t) =>
+    showOnlyMine && currentUserName ? t.assignee === currentUserName : true,
+  );
+  const filteredTasks = assigneeScopedTasks.filter((t) =>
+    bucketFilter ? t.bucket_id === bucketFilter : true,
+  );
 
   const filterByStatus = (status: TaskStatus) =>
     filteredTasks.filter((t) => t.status === status);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={startAdd}>
           <IconPlus className="h-4 w-4" /> New Task
         </Button>
+        {currentUserName && ASSIGNEE_OPTIONS.includes(currentUserName) && (
+          <div className="inline-flex gap-1 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm">
+            <button
+              onClick={() => setShowOnlyMine(true)}
+              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                showOnlyMine
+                  ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground"
+                  : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
+              }`}
+            >
+              My Tasks
+            </button>
+            <button
+              onClick={() => setShowOnlyMine(false)}
+              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                !showOnlyMine
+                  ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground"
+                  : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
+              }`}
+            >
+              All Tasks
+            </button>
+          </div>
+        )}
       </div>
 
       {showForm && (
@@ -386,7 +419,7 @@ export function TasksManager({ initialTasks, initialBuckets }: TasksManagerProps
           </button>
           {buckets.map((b) => {
             const isActive = bucketFilter === b.id;
-            const count = tasks.filter((t) => t.bucket_id === b.id).length;
+            const count = assigneeScopedTasks.filter((t) => t.bucket_id === b.id).length;
             return (
               <button
                 key={b.id}

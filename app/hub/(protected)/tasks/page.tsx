@@ -28,6 +28,7 @@ export default async function TasksPage() {
       <TasksManager
         initialTasks={(tasks ?? []) as Task[]}
         initialBuckets={(buckets ?? []) as TaskBucket[]}
+        currentUserName={user.name ?? null}
       />
     </div>
   );
