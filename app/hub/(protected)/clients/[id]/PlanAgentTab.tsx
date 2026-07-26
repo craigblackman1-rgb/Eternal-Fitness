@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubCardHeader } from "@/components/hub";
-import { TokenPill } from "@/components/hub/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { IconBot, IconLoader2, IconPlus, IconSend } from "@/components/icons";
 import { useRouter } from "next/navigation";
@@ -152,7 +151,6 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <TokenPill token="success" label="Connected" />
           {hasConversation && lastMessageIsAssistant && !streaming && (
             <Button
               onClick={generateBlock}
