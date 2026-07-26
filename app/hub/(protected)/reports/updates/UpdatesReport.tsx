@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { IconSearch, IconEye, IconEdit3, IconTrash2, IconMail, IconExternalLink, IconSend } from "@/components/icons";
-import { HubCard } from "@/components/hub/HubCard";
-import { HubCardHeader } from "@/components/hub/HubCardHeader";
+import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import { updateStatusMeta, formatUpdateTime } from "@/lib/updates/status";
 import { getTemplateKind } from "@/lib/email-templates/registry";
@@ -51,6 +50,24 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
     const c: Record<string, number> = { all: updates.length };
     for (const u of updates) c[u.status] = (c[u.status] ?? 0) + 1;
     return c;
+  }, [updates]);
+
+  const pendingDrafts = useMemo(() => {
+    const drafts = updates.filter((u) => u.status === "draft");
+    if (drafts.length === 0) return null;
+    const names = drafts
+      .map((u) => u.client?.name ?? "")
+      .filter(Boolean)
+      .slice(0, 3);
+    const remainder = drafts.length - names.length;
+    const nameList =
+      names.length === 0
+        ? "Some clients"
+        : names.length === 1
+          ? names[0]
+          : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    const extra = remainder > 0 ? ` and ${remainder} more` : "";
+    return { count: drafts.length, nameList, extra };
   }, [updates]);
 
   const rows = useMemo(() => {
@@ -98,6 +115,16 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
           />
         </div>
       </div>
+
+      {pendingDrafts && (
+        <HubAlert
+          severity="success"
+          title={`${pendingDrafts.count} draft${pendingDrafts.count === 1 ? "" : "s"} awaiting review`}
+        >
+          {pendingDrafts.nameList}
+          {pendingDrafts.extra} {pendingDrafts.count === 1 ? "has" : "have"} an update due.
+        </HubAlert>
+      )}
 
       <HubCard padded={false}>
         <HubCardHeader

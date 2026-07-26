@@ -22,7 +22,7 @@ export default async function ProcessQualityPage() {
   return (
     <div>
       <HubPageHeader
-        title="Process & Quality System"
+        title="Process & Quality"
         subtitle="Plain English. One page per process. Built so Esther can edit it without a deploy."
         className="mb-6"
       />
