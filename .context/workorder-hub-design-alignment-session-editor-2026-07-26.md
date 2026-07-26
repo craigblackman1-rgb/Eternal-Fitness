@@ -1,7 +1,6 @@
 # Work Order: Hub Design-System Alignment + Session/Workout Editor — 2026-07-26
 
-OWNER: (empty — Lane H built 2026-07-26 by Claude Code, session closed before claiming formally; other
-7 lanes untouched, not started)
+OWNER: Claude Code — claimed 2026-07-26T~08:15+01:00
 SCOPE: `eternal-fitness-website` (`D:\apps\eternal-fitness-website` — every `/hub/*` route and the
 client-detail tabs; new route `app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/page.tsx`
 gets real new functionality, everything else is presentation-layer diff-and-merge only). Read-only
@@ -89,13 +88,14 @@ ASK FIRST (`[GATE]`)
 - [ ] Lane E (Process & Quality + Reports/Updates) matches mockups, pushed+deployed
 - [ ] Lane F (Settings: studio-equipment, training-rules, plan-agent) matches mockups, pushed+deployed
 - [ ] Lane G (Tasks + Schedule) matches mockups, pushed+deployed
-- [~] Lane H (Session/workout editor) — built + PUSHED 2026-07-26 (`d105e29` on `origin/main`),
-      `tsc`/lint/compile clean, real schema confirmed before wiring, superset resolve-on-break logic
-      in place, confirm-before-remove added. **Not fully done**: not live-click-tested (no hub
-      credentials available), built and committed directly in the shared checkout rather than an
-      isolated worktree (DO-SOP-010 deviation — Craig confirmed push anyway), deploy status not
-      independently confirmed (no Coolify MCP access this session). See `.context/handoff.md`
-      2026-07-26 entry for full detail.
+- [~] Lane H (Session/workout editor) — built same session, then re-landed correctly: moved the
+      original in-shared-checkout diff (a DO-SOP-010 deviation flagged by the prior session) into a
+      proper isolated worktree (`task/lane-h-session-editor-2026-07-26`, branched fresh off
+      `origin/main`), `tsc --noEmit` re-run clean there via a junctioned `node_modules` (no fresh
+      install), committed (`d105e29`), fast-forward pushed to `main`, worktree + junction removed.
+      Coolify deploy triggered explicitly (`sbzxkdejcmb5ahw3ai42on8q`), confirm result in ledger below.
+      **Not fully done**: still not live-click-tested (no hub credentials available in this
+      environment).
 - [ ] Every lane independently verified (`tsc --noEmit` + `next build` + hand diff review, not
       self-report) before merge
 - [ ] Craig has a per-route report for each landed lane (not one silent batched pass)
