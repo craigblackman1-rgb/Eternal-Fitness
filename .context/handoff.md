@@ -38,10 +38,12 @@ hub locally without Craig's own session.
 
 **Process note, flag for Craig:** this was built directly in the shared checkout
 (`D:\apps\eternal-fitness-website`), not an isolated `git worktree`, breaking DO-SOP-010's standing
-rule. Nothing has been committed or pushed — working tree is dirty with the new/changed files only, no
-risk yet, but the correct next step is to move this diff into a proper worktree (branched fresh off
-`origin/main`) before committing, not commit in place. Flagging rather than silently fixing since it
-touches how this lands in git history.
+rule. Craig explicitly confirmed push after being told about the deviation — committed and pushed
+straight from the shared checkout (`d105e29` on `origin/main`) rather than moved into a worktree first,
+a deliberate one-off exception, not a new default. Flagging in full rather than silently proceeding,
+since it's the kind of thing that matters if two sessions ever touch this repo at the same time.
+**Deploy not independently confirmed this session** — no Coolify MCP access available; prior sessions
+record auto-deploy as ON for this app, but that should be re-checked before assuming this is live.
 
 **Caught on close-out, fixed same session:** re-reading the Work Order's own MUST list against what
 was actually built surfaced a real gap — "Remove exercise" removed immediately with no confirmation,

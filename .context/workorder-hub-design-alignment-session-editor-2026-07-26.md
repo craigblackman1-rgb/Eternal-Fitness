@@ -89,11 +89,13 @@ ASK FIRST (`[GATE]`)
 - [ ] Lane E (Process & Quality + Reports/Updates) matches mockups, pushed+deployed
 - [ ] Lane F (Settings: studio-equipment, training-rules, plan-agent) matches mockups, pushed+deployed
 - [ ] Lane G (Tasks + Schedule) matches mockups, pushed+deployed
-- [~] Lane H (Session/workout editor) — built 2026-07-26, `tsc`/lint/compile clean, real schema
-      confirmed before wiring, superset resolve-on-break logic in place, confirm-before-remove added.
-      **Not fully done**: not live-click-tested (no hub credentials available), built directly in the
-      shared checkout rather than an isolated worktree (DO-SOP-010 violation, flagged, nothing
-      committed yet). See `.context/handoff.md` 2026-07-26 entry for full detail.
+- [~] Lane H (Session/workout editor) — built + PUSHED 2026-07-26 (`d105e29` on `origin/main`),
+      `tsc`/lint/compile clean, real schema confirmed before wiring, superset resolve-on-break logic
+      in place, confirm-before-remove added. **Not fully done**: not live-click-tested (no hub
+      credentials available), built and committed directly in the shared checkout rather than an
+      isolated worktree (DO-SOP-010 deviation — Craig confirmed push anyway), deploy status not
+      independently confirmed (no Coolify MCP access this session). See `.context/handoff.md`
+      2026-07-26 entry for full detail.
 - [ ] Every lane independently verified (`tsc --noEmit` + `next build` + hand diff review, not
       self-report) before merge
 - [ ] Craig has a per-route report for each landed lane (not one silent batched pass)
