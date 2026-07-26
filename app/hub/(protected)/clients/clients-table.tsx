@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { HubTable, type HubColumn } from "@/components/hub/HubTable";
+import { EmptyState } from "@/components/hub/EmptyState";
+import { IconUsers } from "@/components/icons";
 import type { DBClient } from "@/types";
 
 const complianceFilters = [
@@ -136,10 +138,13 @@ export function ClientsTable({ clients }: { clients: DBClient[] }) {
         </select>
       }
       emptyState={
-        <div className="flex items-center justify-center py-12">
-          <p className="text-sm text-muted-foreground">No clients match your search.</p>
-        </div>
+        <EmptyState
+          icon={<IconUsers className="w-7 h-7" />}
+          title="No clients match your search."
+          description="Try a different name or clear the compliance filter."
+        />
       }
+      countLabel="client"
     />
   );
 }

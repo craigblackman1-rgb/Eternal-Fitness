@@ -162,6 +162,7 @@ export default async function DashboardPage() {
               color="teal"
               subtitle="Logged sessions across active blocks"
               noBottomPadding
+              divider
               className="px-5 pt-5"
             />
             <div className="px-5 pb-5">

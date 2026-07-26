@@ -28,6 +28,8 @@ interface HubTableProps<T> {
   toolbar?: React.ReactNode;
   /** Rows per page; pagination footer appears only when data exceeds this. Default 25. */
   pageSize?: number;
+  /** Singular count label for the toolbar. Default "record". Pass "client" etc. */
+  countLabel?: string;
 }
 
 export function HubTable<T>({
@@ -39,6 +41,7 @@ export function HubTable<T>({
   emptyState,
   toolbar,
   pageSize = 25,
+  countLabel = "record",
 }: HubTableProps<T>) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -113,7 +116,7 @@ export function HubTable<T>({
         </div>
         {toolbar}
         <p className="ml-auto text-xs text-muted-foreground tabular-nums">
-          {sorted.length} {sorted.length === 1 ? "record" : "records"}
+          {sorted.length} {sorted.length === 1 ? countLabel : `${countLabel}s`}
         </p>
       </div>
 
