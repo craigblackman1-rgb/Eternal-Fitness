@@ -18,7 +18,7 @@ export default async function TrainingRuleTypesPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Training Rules</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Training rules</h1>
           <p className="text-sm text-muted-foreground mt-1">
             The rule types available when setting a client&apos;s structured programming rules
             (Client → Edit → Training Rules). Add a new type here first — no deploy needed — then it

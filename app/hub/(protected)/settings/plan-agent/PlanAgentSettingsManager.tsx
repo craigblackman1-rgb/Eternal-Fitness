@@ -173,7 +173,7 @@ function PaceModesEditor({
                 <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Mode</th>
                 <th className="text-center py-2 px-3 font-medium text-muted-foreground">Superset A</th>
                 <th className="text-center py-2 px-3 font-medium text-muted-foreground">Superset B</th>
-                <th className="text-center py-2 px-3 font-medium text-muted-foreground">Arms + Core</th>
+                <th className="text-center py-2 px-3 font-medium text-muted-foreground">Arms + core</th>
                 <th className="text-center py-2 px-3 font-medium text-muted-foreground">Total</th>
                 <th className="text-center py-2 pl-3 font-medium text-muted-foreground">Finisher</th>
               </tr>

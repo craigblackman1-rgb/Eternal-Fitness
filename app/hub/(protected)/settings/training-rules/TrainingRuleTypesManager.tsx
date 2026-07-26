@@ -23,6 +23,15 @@ const BUCKET_LABELS: Record<TrainingRuleBucket, string> = {
 
 const BUCKET_OPTIONS = Object.keys(BUCKET_LABELS) as TrainingRuleBucket[];
 
+const BUCKET_STATUS_MAP: Record<TrainingRuleBucket, string> = {
+  exclusion: "danger",
+  restriction: "warning",
+  emphasis: "primary",
+  structural: "neutral",
+  coaching_style: "success",
+  general: "neutral",
+};
+
 interface TrainingRuleTypesManagerProps {
   initialRuleTypes: TrainingRuleType[];
 }
@@ -77,6 +86,7 @@ export function TrainingRuleTypesManager({ initialRuleTypes }: TrainingRuleTypes
       <HubCardHeader
         icon={<IconAlertCircle className="w-4 h-4" />}
         title="Rule types"
+        subtitle={`${ruleTypes.length} type${ruleTypes.length !== 1 ? 's' : ''} across ${new Set(ruleTypes.map((rt) => rt.bucket)).size} bucket${new Set(ruleTypes.map((rt) => rt.bucket)).size !== 1 ? 's' : ''}`}
         color="amber"
         action={
           <Button size="sm" className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold h-auto py-1.5 px-3" onClick={() => setAdding((v) => !v)}>
@@ -133,7 +143,14 @@ export function TrainingRuleTypesManager({ initialRuleTypes }: TrainingRuleTypes
                 <tr key={rt.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
                   <td className="py-3 px-5 font-semibold text-foreground">{rt.label}</td>
                   <td className="py-3 px-5">
-                    <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">{BUCKET_LABELS[rt.bucket]}</span>
+                    <span
+                      className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                      style={{
+                        borderColor: `var(--status-${BUCKET_STATUS_MAP[rt.bucket]}-border)`,
+                        backgroundColor: `var(--status-${BUCKET_STATUS_MAP[rt.bucket]}-bg)`,
+                        color: `var(--status-${BUCKET_STATUS_MAP[rt.bucket]})`,
+                      }}
+                    >{BUCKET_LABELS[rt.bucket]}</span>
                   </td>
                   <td className="py-3 px-5 text-sm text-muted-foreground max-w-md">{rt.description ?? "—"}</td>
                   <td className="py-3 px-5 text-right">
