@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { IconUser, IconHeart, IconBone, IconClipboardCheck, IconFileText, IconActivity, IconFileSignature, IconSave, IconCopy } from "@/components/icons";
+import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
 import {
   section2Questions, section3Questions, section4Questions, section6bQuestions,
 } from "@/lib/parq-data";
@@ -142,6 +144,7 @@ export default function ParqEditClient({
   clientNumber,
   linkExp,
   linkSig,
+  hubMode = false,
 }: {
   parq: ParqData;
   /** Esther editing in the hub — save without a signature, then hand the client a link to finish + sign. */
@@ -151,6 +154,8 @@ export default function ParqEditClient({
    *  A bare /parq/edit/[id] with no exp/sig is always rejected — see lib/parq-link.ts. */
   linkExp?: number;
   linkSig?: string;
+  /** When true, skip the standalone page wrapper and render sections in HubCard form. */
+  hubMode?: boolean;
 }) {
   const [formData, setFormData] = useState<ParqFormData>(toFormData(parq));
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -334,31 +339,23 @@ export default function ParqEditClient({
   if (isSubmitted) {
     if (adminMode) {
       return (
-        <div className="min-h-screen bg-[#F1F1F1] flex items-center justify-center p-4">
-          <div className="max-w-lg w-full bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            </div>
-            <h2 className="text-xl font-bold text-[#1E1E1E] mb-2">Changes saved</h2>
-            <p className="text-[#525A61] text-sm mb-5">
-              This PAR-Q is saved and still awaiting the client&apos;s signature. Send them the link below to finish and sign it.
-            </p>
-            <div className="text-left bg-[#F1F1F1] rounded-md p-3 mb-3">
-              <p className="text-xs text-[#525A61] mb-1 font-medium">Client link to finish &amp; sign</p>
-              <code className="text-xs text-[#1E1E1E] break-all">{clientResumeUrl}</code>
-            </div>
-            <div className="flex items-center justify-center gap-3">
-              <Button type="button" onClick={copyClientLink} className="bg-[#087E8B] text-white hover:bg-[#087E8B]/90">
-                {linkCopied ? "Copied!" : "Copy client link"}
-              </Button>
-              {clientNumber != null && (
-                <a href={`/hub/clients/${clientNumber}?tab=profile-compliance`} className="text-sm text-[#087E8B] font-medium hover:underline">
-                  Back to client
-                </a>
-              )}
-            </div>
+        <HubAlert severity="success" title="Changes saved">
+          This PAR-Q is saved and still awaiting the client&apos;s signature. Send them the link below to finish and sign it.
+          <div className="mt-3 text-left bg-[var(--hub-canvas)] rounded-md p-3">
+            <p className="text-xs text-muted-foreground mb-1 font-medium">Client link to finish &amp; sign</p>
+            <code className="text-xs text-foreground break-all">{clientResumeUrl}</code>
           </div>
-        </div>
+          <div className="flex items-center gap-3 mt-3">
+            <Button type="button" onClick={copyClientLink} size="sm" className="rounded-lg bg-teal text-white hover:bg-teal/90">
+              {linkCopied ? "Copied!" : "Copy client link"}
+            </Button>
+            {clientNumber != null && (
+              <a href={`/hub/clients/${clientNumber}?tab=profile-compliance`} className="text-sm text-teal font-medium hover:underline">
+                Back to client
+              </a>
+            )}
+          </div>
+        </HubAlert>
       );
     }
     return (
@@ -374,6 +371,263 @@ export default function ParqEditClient({
     );
   }
 
+  // ── Hub admin-mode compact question row ──
+  const HubYesNoRow = ({ q, text, note, field }: { q: string; text: string; note?: string | null; field: keyof ParqFormData }) => {
+    const isYes = formData[field] === "yes";
+    return (
+      <div
+        className={cn(
+          "flex items-start justify-between gap-4 py-3 px-1 border-t border-[var(--hub-border)]",
+          isYes && "border-l-[3px] border-l-[var(--status-warning)] bg-[var(--status-warning-bg)] rounded-r-lg pl-3.5 -mx-1 px-3.5",
+        )}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-medium text-foreground leading-snug">
+            <b className="font-semibold text-muted-foreground mr-1">{q}.</b>{text}
+          </p>
+          {note && <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{note}</p>}
+        </div>
+        <div className={cn("flex shrink-0 rounded-lg border p-0.5 gap-0.5", isYes ? "bg-white border-[var(--color-muted-text)]" : "bg-[var(--hub-canvas)] border-[var(--color-muted-text)]")}>
+          {(["yes", "no"] as const).map((opt) => (
+            <label key={opt} className="relative">
+              <input
+                type="radio"
+                name={field}
+                value={opt}
+                checked={formData[field] === opt}
+                onChange={() => handleChange(field, opt)}
+                className="sr-only"
+              />
+              <span
+                className={cn(
+                  "grid place-items-center min-w-[44px] min-h-[26px] px-1 text-[11px] font-bold tracking-wider rounded-md cursor-pointer transition-colors",
+                  formData[field] === opt
+                    ? isYes && opt === "yes"
+                      ? "bg-[var(--status-warning)] text-white"
+                      : "bg-white text-foreground shadow-sm"
+                    : "text-[var(--color-body)]",
+                )}
+              >
+                {opt.toUpperCase()}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  if (hubMode && adminMode) {
+    // ── Hub-styled admin-mode PAR-Q editor ──
+    return (
+      <div className="space-y-5">
+        <div ref={formRef} role="document" aria-label="PAR-Q Physical Activity Readiness Questionnaire">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+            {submitError && (
+              <HubAlert severity="danger" title="Error saving form">{submitError}</HubAlert>
+            )}
+            {Object.keys(errors).length > 0 && (
+              <HubAlert severity="danger" title="Please correct the following errors">
+                <ul className="list-disc list-inside space-y-0.5 mt-1">
+                  {Object.entries(errors).map(([field, message]) => (
+                    <li key={field}><a href={`#field-${field}`} className="underline">{message}</a></li>
+                  ))}
+                </ul>
+              </HubAlert>
+            )}
+
+            {/* Section 1 — Personal details */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconUser className="w-4 h-4" />} title="Section 1 — Personal details" subtitle="Who the client is, and who to contact if something happens in a session" color="navy" />
+              <div className="px-5 pb-5 grid grid-cols-2 gap-x-5 gap-y-4">
+                <div className="col-span-2" data-error-first>
+                  <Label htmlFor="fullName" className="text-xs font-semibold text-foreground mb-1.5 block">Full name</Label>
+                  <Input id="fullName" type="text" value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} className={inputClass("fullName")} autoComplete="name" />
+                  {errors.fullName && <p className="text-red-600 text-xs mt-1" role="alert">{errors.fullName}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="dateOfBirth" className="text-xs font-semibold text-foreground mb-1.5 block">Date of birth</Label>
+                  <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => handleChange("dateOfBirth", e.target.value)} className={inputClass("dateOfBirth")} autoComplete="bday" />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-xs font-semibold text-foreground mb-1.5 block">Email address</Label>
+                  <Input id="email" type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} className={inputClass("email")} autoComplete="email" />
+                  {errors.email && <p className="text-red-600 text-xs mt-1" role="alert">{errors.email}</p>}
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="address" className="text-xs font-semibold text-foreground mb-1.5 block">Home address</Label>
+                  <Input id="address" type="text" value={formData.address} onChange={(e) => handleChange("address", e.target.value)} className={inputClass("address")} autoComplete="street-address" />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-xs font-semibold text-foreground mb-1.5 block">Phone number</Label>
+                  <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} className={inputClass("phone")} autoComplete="tel" />
+                </div>
+                <div>
+                  <Label htmlFor="emergencyContactName" className="text-xs font-semibold text-foreground mb-1.5 block">Emergency contact name</Label>
+                  <Input id="emergencyContactName" type="text" value={formData.emergencyContactName} onChange={(e) => handleChange("emergencyContactName", e.target.value)} className={inputClass("emergencyContactName")} />
+                </div>
+                <div>
+                  <Label htmlFor="emergencyContactPhone" className="text-xs font-semibold text-foreground mb-1.5 block">Emergency contact phone</Label>
+                  <Input id="emergencyContactPhone" type="tel" value={formData.emergencyContactPhone} onChange={(e) => handleChange("emergencyContactPhone", e.target.value)} className={inputClass("emergencyContactPhone")} />
+                </div>
+                <div>
+                  <Label htmlFor="gpName" className="text-xs font-semibold text-foreground mb-1.5 block">GP name</Label>
+                  <Input id="gpName" type="text" value={formData.gpName} onChange={(e) => handleChange("gpName", e.target.value)} className={inputClass("gpName")} />
+                </div>
+                <div>
+                  <Label htmlFor="gpSurgery" className="text-xs font-semibold text-foreground mb-1.5 block">GP surgery — name &amp; address</Label>
+                  <Input id="gpSurgery" type="text" value={formData.gpSurgery} onChange={(e) => handleChange("gpSurgery", e.target.value)} className={inputClass("gpSurgery")} />
+                </div>
+                <div>
+                  <Label htmlFor="gpPhone" className="text-xs font-semibold text-foreground mb-1.5 block">GP phone number <span className="font-medium text-muted-foreground">(optional)</span></Label>
+                  <Input id="gpPhone" type="tel" value={formData.gpPhone} onChange={(e) => handleChange("gpPhone", e.target.value)} className={inputClass("gpPhone")} />
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 2 — Cardiovascular */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Section 2 — Cardiovascular &amp; general health" subtitle="A YES here is discussed before the next block is planned, not treated as a block" color="rose" />
+              <div className="px-5 pb-5">
+                <div className="flex flex-col">
+                  {section2Questions.map(({ q, text, note }) => (
+                    <HubYesNoRow key={q} q={q.replace("q", "Q")} text={text} note={note} field={q as keyof ParqFormData} />
+                  ))}
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 3 — Musculoskeletal */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconBone className="w-4 h-4" />} title="Section 3 — Musculoskeletal, neurological &amp; surgical history" color="navy" />
+              <div className="px-5 pb-5">
+                <div className="flex flex-col">
+                  {section3Questions.map(({ q, text, note }) => (
+                    <HubYesNoRow key={q} q={q.replace("q", "Q")} text={text} note={note} field={q as keyof ParqFormData} />
+                  ))}
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 4 — Blood & Medications */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Section 4 — Blood, medications &amp; diagnosed conditions" subtitle="Critical for safety — disclose everything, even if it seems unrelated" color="amber" />
+              <div className="px-5 pb-5">
+                <div className="flex flex-col">
+                  {section4Questions.map(({ q, text, note }) => (
+                    <HubYesNoRow key={q} q={q.replace("q", "Q")} text={text} note={note} field={q as keyof ParqFormData} />
+                  ))}
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 5 — Full details */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Section 5 — Full details" subtitle="Required for every YES answer above, referenced by question number" color="slate" />
+              <div className="px-5 pb-5 grid gap-4">
+                <div data-error-first>
+                  <Label htmlFor="conditions" className="text-xs font-semibold text-foreground mb-1.5 block">Diagnosed medical conditions <span className="font-medium text-muted-foreground">(condition, date of diagnosis, treating doctor)</span></Label>
+                  <Textarea id="conditions" value={formData.conditions} onChange={(e) => handleChange("conditions", e.target.value)} className={textareaClass("conditions")} placeholder="E.g. Type 2 Diabetes — diagnosed March 2023 — Dr. Smith, Worthing Hospital" />
+                  {errors.conditions && <p className="text-red-600 text-xs mt-1" role="alert">{errors.conditions}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="medications" className="text-xs font-semibold text-foreground mb-1.5 block">Current prescription medications <span className="font-medium text-muted-foreground">(medication, dosage, what it's for)</span></Label>
+                  <Textarea id="medications" value={formData.medications} onChange={(e) => handleChange("medications", e.target.value)} className={textareaClass("medications")} />
+                  {errors.medications && <p className="text-red-600 text-xs mt-1" role="alert">{errors.medications}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="devices" className="text-xs font-semibold text-foreground mb-1.5 block">Implanted medical devices</Label>
+                  <Textarea id="devices" value={formData.devices} onChange={(e) => handleChange("devices", e.target.value)} className={textareaClass("devices")} placeholder="E.g. None" />
+                </div>
+                <div>
+                  <Label htmlFor="exerciseRestrictions" className="text-xs font-semibold text-foreground mb-1.5 block">Exercise restrictions <span className="font-medium text-muted-foreground">(who gave them)</span></Label>
+                  <Textarea id="exerciseRestrictions" value={formData.exerciseRestrictions} onChange={(e) => handleChange("exerciseRestrictions", e.target.value)} className={textareaClass("exerciseRestrictions")} />
+                </div>
+                <div>
+                  <Label htmlFor="surgeries" className="text-xs font-semibold text-foreground mb-1.5 block">Surgeries / hospital admissions in the last 5 years</Label>
+                  <Textarea id="surgeries" value={formData.surgeries} onChange={(e) => handleChange("surgeries", e.target.value)} className={textareaClass("surgeries")} />
+                </div>
+                <div>
+                  <Label htmlFor="otherInfo" className="text-xs font-semibold text-foreground mb-1.5 block">Any other information</Label>
+                  <Textarea id="otherInfo" value={formData.otherInfo} onChange={(e) => handleChange("otherInfo", e.target.value)} className={textareaClass("otherInfo")} placeholder="E.g. None" />
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 6 — Lifestyle */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconActivity className="w-4 h-4" />} title="Section 6 — Lifestyle &amp; physical activity" color="teal" />
+              <div className="px-5 pb-5 grid gap-4">
+                <div>
+                  <Label htmlFor="currentExercise" className="text-xs font-semibold text-foreground mb-1.5 block">Current exercise or sport <span className="font-medium text-muted-foreground">(frequency &amp; duration)</span></Label>
+                  <Textarea id="currentExercise" value={formData.currentExercise} onChange={(e) => handleChange("currentExercise", e.target.value)} className={textareaClass("currentExercise")} />
+                </div>
+                <div>
+                  <Label htmlFor="trainingGoals" className="text-xs font-semibold text-foreground mb-1.5 block">Goals for working with a personal trainer</Label>
+                  <Textarea id="trainingGoals" value={formData.trainingGoals} onChange={(e) => handleChange("trainingGoals", e.target.value)} className={textareaClass("trainingGoals")} />
+                </div>
+                <div className="flex flex-col mt-1">
+                  {section6bQuestions.map(({ q, text, note }) => (
+                    <HubYesNoRow key={q} q={q.replace("q", "Q")} text={text} note={note} field={q as keyof ParqFormData} />
+                  ))}
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 7 — Medical Clearance Record */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconFileSignature className="w-4 h-4" />} title="Section 7 — Medical clearance record" subtitle="Completed by the trainer, not the client" color="navy" />
+              <div className="px-5 pb-5">
+                <p className="text-xs text-[var(--color-body)] italic leading-relaxed mb-3">
+                  Joan has YES answers in Sections 2, 3 and 4 — assess whether written GP or consultant clearance is required before her next block. No sessions should run until that clearance is on file, where it&apos;s needed.
+                </p>
+                <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
+                  <span className="text-muted-foreground">Medical clearance required?</span>
+                  <span className="font-semibold text-foreground text-right">To be assessed by trainer</span>
+                </div>
+                <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
+                  <span className="text-muted-foreground">GP / consultant letter received?</span>
+                  <span className="font-semibold text-foreground text-right">Not yet — none required to date</span>
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Section 9 — Declaration (locked) */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconFileSignature className="w-4 h-4" />} title="Section 9 — Declaration &amp; signature" color="amber" />
+              <div className="px-5 pb-5">
+                <div className="flex gap-3.5 py-1.5">
+                  <div className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-warning-bg)] text-[var(--status-warning)] flex items-center justify-center shrink-0">
+                    <IconFileSignature className="w-[18px] h-[18px]" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-foreground mb-1">Only the client can complete this section</p>
+                    <p className="text-xs text-[var(--color-body)] leading-relaxed">The declaration and signature confirm the information above is accurate — that has to come from the client, not from an admin save. Once you&apos;ve saved your changes, use the link in the panel on the right to send them straight to this section.</p>
+                  </div>
+                </div>
+              </div>
+            </HubCard>
+
+            {/* Save bar */}
+            <div className="sticky bottom-0 z-15 flex items-center gap-3 mt-5 rounded-xl border border-[var(--hub-border)] bg-white/90 backdrop-blur px-5 py-3 shadow-[0_-1px_3px_rgba(16,24,40,0.05)]">
+              <p className="m-0 text-xs text-muted-foreground"><b className="text-foreground font-semibold">Admin save — no signature required.</b></p>
+              <div className="ml-auto flex gap-2">
+                <Button type="submit" disabled={isSubmitting} variant="outline" className="rounded-lg border-teal text-teal hover:bg-teal/10">
+                  {isSubmitting ? "Saving..." : "Save without signing"}
+                </Button>
+                <Button type="button" disabled={isSubmitting} onClick={(e) => handleSubmit(e, { copyLink: true })} className="rounded-lg gap-2 bg-teal text-white hover:bg-teal/90">
+                  <IconSave className="w-4 h-4" />
+                  {isSubmitting ? "Saving..." : "Save & copy client link"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Non-hub rendering (public mode or non-hub admin) — unchanged ──
   return (
     <div className="min-h-screen bg-[#F1F1F1]">
       <div className="max-w-4xl mx-auto py-8 px-4">

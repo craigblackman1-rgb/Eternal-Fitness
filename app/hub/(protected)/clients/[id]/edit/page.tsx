@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { IconChevronLeft, IconCalendar, IconUser, IconHeart, IconRuler, IconTarget, IconShieldCheck, IconBot, IconFileText } from "@/components/icons";
+import { IconChevronLeft, IconCalendar, IconUser, IconHeart, IconRuler, IconTarget, IconShieldCheck, IconBot, IconFileText, IconCheck, IconAlertCircle, IconSave } from "@/components/icons";
 import Link from "next/link";
-import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
+import { HubCard, HubCardHeader, HubAlert, StatusBadge } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
@@ -98,6 +98,8 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [clientNumber, setClientNumber] = useState<number | null>(null);
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -136,6 +138,8 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setEmail(data.email ?? "");
       setPhone(data.phone ?? "");
       setDirty(false);
+      setClientNumber(data.client_number ?? null);
+      setCreatedAt(data.created_at ?? null);
       const p = data.profile || {};
       setProfile({
         client: { ...emptyProfile.client, ...(p.client || {}) },
@@ -217,25 +221,71 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
     return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   }
 
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    || "?";
+
+  const gpHeld = profile.health.gp_clearance;
+  const parqOverridden = profile.health.parq_trainer_override ?? false;
+  const outstandingCount = outstandingActions.split("\n").filter((l) => l.trim()).length;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/hub/clients/${params.id}`} className="text-muted-foreground hover:text-foreground shrink-0 mt-1">
-          <IconChevronLeft className="h-5 w-5" />
+      {/* Page header — back link, avatar, title row with badges */}
+      <div>
+        <Link
+          href={`/hub/clients/${params.id}`}
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-md px-2 py-1 -ml-2 mb-3 transition-colors"
+        >
+          <IconChevronLeft className="h-3.5 w-3.5" />
+          Back to {name || "client"}
         </Link>
-        <HubPageHeader
-          title="Edit client"
-          subtitle={name}
-        />
+        <div className="flex items-start gap-3.5">
+          <div className="w-12 h-12 rounded-full bg-rose/15 text-rose flex items-center justify-center shrink-0 text-base font-bold">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-[22px] font-bold tracking-tight text-foreground">Edit client</h1>
+              {clientNumber != null && (
+                <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-md px-1.5 py-0.5">
+                  #{clientNumber}
+                </span>
+              )}
+              <StatusBadge status={complianceStatus} />
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {name}{createdAt ? ` · with the studio since ${new Date(createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-6">
+      {/* Clinical clearance warning */}
+      {(complianceStatus === "pending_medical" || complianceStatus === "action_needed") && (
+        <HubAlert
+          severity="warning"
+          title="Clearance is still outstanding"
+        >
+          The Plan Agent will not issue a block for {name || "this client"} until GP clearance is recorded, or a PAR-Q override is applied below.
+        </HubAlert>
+      )}
+
+      {/* Two-column layout — form column + rail */}
+      <div className="grid grid-cols-[minmax(0,1fr)_300px] gap-5 items-start max-[1100px]:grid-cols-1">
+        <div className="space-y-6 min-w-0">
+          {/* ── All form cards (unchanged) ── */}
         <HubCard>
           <HubCardHeader icon={<IconUser className="w-4 h-4" />} title="Basic info" subtitle="Who the client is, and how to reach them" color="navy" noBottomPadding />
           <div className="px-5 pb-5 pt-4 space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Name <span className="font-medium text-muted-foreground">(required)</span></Label>
                 <Input id="name" value={name} onChange={(e) => { setDirty(true); setName(e.target.value); }} placeholder="Client name" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
               </div>
               <div className="space-y-2">
@@ -381,31 +431,46 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         <HubCard>
           <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health and clearance" subtitle="What has to be adapted around, and what unblocks planning" color="rose" noBottomPadding />
           <div className="px-5 pb-5 pt-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="gp_clearance"
-                checked={profile.health.gp_clearance}
-                onChange={(e) => updateProfile("health", { gp_clearance: e.target.checked })}
-                className="h-4 w-4 rounded border-[var(--color-muted-text)] accent-rose"
-              />
-              <Label htmlFor="gp_clearance">GP clearance obtained</Label>
-            </div>
-            <div className="space-y-2 rounded-xl border border-[var(--hub-border)] p-3">
-              <div className="flex items-center gap-2">
+            <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
+              <span className="relative shrink-0 w-5 h-5 mt-px">
                 <input
                   type="checkbox"
-                  id="parq_trainer_override"
-                  checked={profile.health.parq_trainer_override ?? false}
-                  onChange={(e) => updateProfile("health", { parq_trainer_override: e.target.checked })}
-                  className="h-4 w-4 rounded border-[var(--color-muted-text)] accent-rose"
+                  id="gp_clearance"
+                  checked={profile.health.gp_clearance}
+                  onChange={(e) => updateProfile("health", { gp_clearance: e.target.checked })}
+                  className="sr-only"
                 />
-                <Label htmlFor="parq_trainer_override">PAR-Q trainer override — completed on Microsoft Forms, not yet in system</Label>
+                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--field-fill)] border-[var(--color-muted-text)]"}`}>
+                  {profile.health.gp_clearance && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                </span>
+              </span>
+              <div className="min-w-0">
+                <Label htmlFor="gp_clearance" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance obtained</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Tick once the written clearance letter is on file.</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Only tick this once you've personally reviewed the client's submitted PAR-Q. This unblocks plan
-                generation until the record is migrated into the hub — it does not replace a signed PAR-Q on file.
-              </p>
+            </div>
+            <div className="space-y-2 rounded-xl border border-[var(--hub-border)] p-3">
+              <div className="flex items-start gap-3">
+                <span className="relative shrink-0 w-5 h-5 mt-px">
+                  <input
+                    type="checkbox"
+                    id="parq_trainer_override"
+                    checked={profile.health.parq_trainer_override ?? false}
+                    onChange={(e) => updateProfile("health", { parq_trainer_override: e.target.checked })}
+                    className="sr-only"
+                  />
+                  <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--field-fill)] border-[var(--color-muted-text)]"}`}>
+                    {(profile.health.parq_trainer_override ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                  </span>
+                </span>
+                <div className="min-w-0">
+                  <Label htmlFor="parq_trainer_override" className="text-[13px] font-semibold text-foreground cursor-pointer">PAR-Q trainer override — completed on Microsoft Forms, not yet in system</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Only tick this once you've personally reviewed the client's submitted PAR-Q. This unblocks plan
+                    generation until the record is migrated into the hub — it does not replace a signed PAR-Q on file.
+                  </p>
+                </div>
+              </div>
               {profile.health.parq_trainer_override && (
                 <Textarea
                   placeholder="Optional note — anything flagged on the form Esther should know (e.g. risk factors, restrictions)"
@@ -661,11 +726,71 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
               <Button variant="outline" className="rounded-lg border border-[var(--color-muted-text)]">Cancel</Button>
             </Link>
             <Button onClick={handleSave} disabled={saving} className="rounded-lg gap-2 bg-rose hover:bg-rose/90 text-white">
+              <IconSave className="w-4 h-4" />
               {saving ? "Saving..." : "Save changes"}
             </Button>
           </div>
         </div>
-      </div>
+        </div>{/* /form-col */}
+
+        {/* ── Rail ── */}
+        <aside className="flex flex-col gap-5 sticky top-[82px] max-[1100px]:static">
+          {/* Computed status */}
+          <HubCard>
+            <HubCardHeader
+              icon={<IconAlertCircle className="w-4 h-4" />}
+              title="Computed status"
+              color="amber"
+            />
+            <p className="text-xs text-muted-foreground mb-3">Worked out from the record — not set by hand.</p>
+            <div className="space-y-0">
+              <div className="flex items-start gap-2.5 py-2.5 border-t border-[var(--hub-border)] text-xs text-[var(--color-body)]">
+                {gpHeld
+                  ? <><IconCheck className="w-4 h-4 shrink-0 text-teal mt-px" /><span>GP clearance on file</span></>
+                  : <><IconAlertCircle className="w-4 h-4 shrink-0 text-amber mt-px" /><span>GP clearance not recorded</span></>
+                }
+              </div>
+              <div className="flex items-start gap-2.5 py-2.5 border-t border-[var(--hub-border)] text-xs text-[var(--color-body)]">
+                {parqOverridden
+                  ? <><IconCheck className="w-4 h-4 shrink-0 text-teal mt-px" /><span>PAR-Q override applied — planning unblocked</span></>
+                  : <><IconAlertCircle className="w-4 h-4 shrink-0 text-amber mt-px" /><span>No PAR-Q override</span></>
+                }
+              </div>
+              <div className="flex items-start gap-2.5 py-2.5 border-t border-[var(--hub-border)] text-xs text-[var(--color-body)]">
+                {outstandingCount === 0
+                  ? <><IconCheck className="w-4 h-4 shrink-0 text-teal mt-px" /><span>No outstanding actions</span></>
+                  : <><IconAlertCircle className="w-4 h-4 shrink-0 text-amber mt-px" /><span>{outstandingCount} outstanding action{outstandingCount !== 1 ? "s" : ""}</span></>
+                }
+              </div>
+            </div>
+          </HubCard>
+
+          {/* Record */}
+          <HubCard>
+            <HubCardHeader
+              icon={<IconFileText className="w-4 h-4" />}
+              title="Record"
+              color="slate"
+            />
+            <div className="space-y-0">
+              <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px] first:border-t-0 first:pt-0">
+                <span className="text-muted-foreground">Client</span>
+                <span className="font-semibold text-foreground text-right">
+                  {clientNumber != null ? `#${clientNumber}` : "—"}
+                </span>
+              </div>
+              {createdAt && (
+                <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
+                  <span className="text-muted-foreground">Created</span>
+                  <span className="font-semibold text-foreground text-right">
+                    {new Date(createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </HubCard>
+        </aside>
+      </div>{/* /two-col */}
     </div>
   );
 }
