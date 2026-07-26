@@ -187,7 +187,7 @@ export function SiteContentEditor({
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-2"
         >
           <IconArrowLeft className="h-4 w-4" />
-          Back to Site Content
+          Back to site content
         </Link>
         <div className="flex items-center justify-between">
           <div>
@@ -195,7 +195,7 @@ export function SiteContentEditor({
               {keyword.page_title}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {keyword.url_path}
+              {keyword.url_path} &middot; Edit the SEO metadata and the copy blocks that make up this page.
             </p>
           </div>
           <StatusBadge status={keyword.status} />
@@ -395,7 +395,7 @@ export function SiteContentEditor({
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{block.label}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {block.block_key} &middot; v{block.version}
+                        <span className="font-mono">{block.block_key}</span> &middot; v{block.version}
                         {block.updated_by && (
                           <> &middot; by {block.updated_by}</>
                         )}
