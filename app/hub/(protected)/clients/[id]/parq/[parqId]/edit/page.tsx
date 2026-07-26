@@ -65,7 +65,7 @@ export default async function HubParqEditPage({ params }: { params: { id: string
 
       {/* Admin-mode alert */}
       <HubAlert severity="warning" title="Editing as Esther — nothing here is mandatory">
-        Update whatever fields have changed, then save without signing. Joan&apos;s shoulder range and fatigue profile have shifted since this PAR-Q was last signed — once you&apos;re done, send her the link on the right to review and re-sign before her next block.
+        Update whatever fields have changed, then save without signing. Once you&apos;re done, send {client.name} the link on the right to review and re-sign before their next block.
       </HubAlert>
 
       {/* Two-column layout */}
@@ -85,10 +85,10 @@ export default async function HubParqEditPage({ params }: { params: { id: string
             />
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${needsResign ? "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]" : "bg-[var(--status-success-bg)] text-[var(--status-success-text)]"}`}>
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              {needsResign ? "Awaiting Joan's signature" : "Signed"}
+              {needsResign ? `Awaiting ${client.name}'s signature` : "Signed"}
             </span>
             <p className="text-xs text-muted-foreground mt-2.5">
-              Save your changes first, then copy this link and send it to Joan so she can review and sign.
+              Save your changes first, then copy this link and send it to {client.name} so they can review and sign.
             </p>
             {linkExp && linkSig && (
               <>

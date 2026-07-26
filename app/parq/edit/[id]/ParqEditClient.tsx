@@ -574,24 +574,6 @@ export default function ParqEditClient({
               </div>
             </HubCard>
 
-            {/* Section 7 — Medical Clearance Record */}
-            <HubCard padded={false}>
-              <HubCardHeader icon={<IconFileSignature className="w-4 h-4" />} title="Section 7 — Medical clearance record" subtitle="Completed by the trainer, not the client" color="navy" />
-              <div className="px-5 pb-5">
-                <p className="text-xs text-[var(--color-body)] italic leading-relaxed mb-3">
-                  Joan has YES answers in Sections 2, 3 and 4 — assess whether written GP or consultant clearance is required before her next block. No sessions should run until that clearance is on file, where it&apos;s needed.
-                </p>
-                <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
-                  <span className="text-muted-foreground">Medical clearance required?</span>
-                  <span className="font-semibold text-foreground text-right">To be assessed by trainer</span>
-                </div>
-                <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
-                  <span className="text-muted-foreground">GP / consultant letter received?</span>
-                  <span className="font-semibold text-foreground text-right">Not yet — none required to date</span>
-                </div>
-              </div>
-            </HubCard>
-
             {/* Section 9 — Declaration (locked) */}
             <HubCard padded={false}>
               <HubCardHeader icon={<IconFileSignature className="w-4 h-4" />} title="Section 9 — Declaration &amp; signature" color="amber" />
