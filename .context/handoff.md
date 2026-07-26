@@ -1,5 +1,57 @@
 # Handoff
 
+## Session close — 2026-07-26 — session/workout editor built (Lane H of the hub design-alignment Work Order)
+
+Craig wanted workouts/sessions to be editable in the hub, with drag-and-drop to reorder exercises.
+Scoped via clarifying questions first (desk-based planning tool, not a live in-studio tool; full scope
+— reorder, add/remove, inline sets/reps/tempo/rest, section moves; edits scoped to one session only,
+no propagation) and written up as a functionality brief for OpenDesign
+(`.context/brief-session-editor-opendesign.md`). Craig ran that through OpenDesign and dropped the
+resulting mockup at `D:\apps\design-systems\brand-staging-2662e9\hub-session-editor.html`; a broader
+Work Order also appeared there covering it as Lane H of an 8-lane hub design-alignment pass
+(`.context/workorder-hub-design-alignment-session-editor-2026-07-26.md`, registered in
+`infrastructure/.context/active-workorders.md` but not yet formally claimed).
+
+**Built Lane H only** (the other 7 lanes — presentation-only diffs of existing hub routes against their
+mockups — not started this session):
+- New `SessionEditor.tsx` (`app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/`)
+  and `add-exercise-dialog.tsx` (sibling of the existing `swap-exercise-dialog.tsx`, same
+  `/api/exercises` search pattern).
+- `page.tsx` wired with an "Edit session" toggle; the inactive Studio/Home tab locks while editing;
+  Save merges only the edited version back into `session.data.versions` via the existing
+  `PATCH /api/sessions/[id]` route (no new API, no migration — confirmed the real `types.ts` shape
+  first, matches the Work Order's assumption that this is additive-in-place to the JSONB blob).
+- Functionality: drag-and-drop reorder (whole exercises or whole supersets as one draggable unit) +
+  up/down arrow fallback, move-between-sections via a "⋯" menu, add/remove exercise, inline
+  sets/reps/tempo/rest editing, superset (`group_label`) resolves cleanly with a toast when broken by
+  a move/remove, existing Swap-exercise and video-URL controls carried over onto local edit state so
+  Discard actually discards them too.
+
+**Verification:** `tsc --noEmit` clean, ESLint clean on all new/touched code (4 pre-existing `any`
+lint errors in untouched code, not introduced here), `next build`'s actual compile step reports
+"✓ Compiled successfully" — the build then fails at the `output: standalone` file-tracing stage on
+Windows `EPERM` symlink errors, a pre-existing environmental limitation unrelated to this change (not
+a code issue). **Not live-click-tested** — no hub login credentials available in this environment,
+the same standing limitation noted throughout this file for prior sessions; the dev server points at
+the real production DB via the Coolify SSH tunnel, so nobody has ever been able to browser-test this
+hub locally without Craig's own session.
+
+**Process note, flag for Craig:** this was built directly in the shared checkout
+(`D:\apps\eternal-fitness-website`), not an isolated `git worktree`, breaking DO-SOP-010's standing
+rule. Nothing has been committed or pushed — working tree is dirty with the new/changed files only, no
+risk yet, but the correct next step is to move this diff into a proper worktree (branched fresh off
+`origin/main`) before committing, not commit in place. Flagging rather than silently fixing since it
+touches how this lands in git history.
+
+**Caught on close-out, fixed same session:** re-reading the Work Order's own MUST list against what
+was actually built surfaced a real gap — "Remove exercise" removed immediately with no confirmation,
+against the WO's explicit "confirm-before-remove" requirement. Added an `AlertDialog` around it,
+matching the existing `delete-block-button.tsx` pattern already used elsewhere in the hub. `tsc`/lint
+re-verified clean after.
+
+**Not done:** the other 7 presentation-alignment lanes of the Work Order are untouched; no live
+click-test.
+
 ## Session close — 2026-07-25 (later) — block schedule/review link fixed; docs/Work Order cleaned up
 
 Craig reported he couldn't find the "Review" button on an already-approved training block, after the

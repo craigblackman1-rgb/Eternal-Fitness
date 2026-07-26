@@ -5,14 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconPencil, IconSearch, IconX } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconPencil, IconSearch, IconX, IconEdit3 } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import type { DBSession, Exercise, SessionLog, SetLog } from "@/types";
+import type { DBSession, Exercise, SessionLog, SessionVersion, SetLog } from "@/types";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 import { SwapExerciseDialog } from "../swap-exercise-dialog";
+import { SessionEditor } from "./SessionEditor";
 
 export default function SessionViewPage({
   params,
@@ -31,6 +32,9 @@ export default function SessionViewPage({
   const [savingLog, setSavingLog] = useState(false);
   // Per-set quick logs, keyed by `${exercise_ref}::${set_number}`.
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
+  // Desk-planning session editor — locked to one version (studio/home) while active.
+  const [editingVersion, setEditingVersion] = useState<"studio" | "home" | null>(null);
+  const [activeTab, setActiveTab] = useState<"studio" | "home">("studio");
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -137,6 +141,26 @@ export default function SessionViewPage({
     return true;
   };
 
+  /** Merges the edited version's sections back into session.data and persists — used by
+   *  SessionEditor's "Save changes". Only the version being edited is touched. */
+  const saveSessionEdit = async (version: "studio" | "home", updated: SessionVersion): Promise<boolean> => {
+    if (!session) return false;
+    const updatedData = {
+      ...session.data,
+      versions: { ...session.data.versions, [version]: updated },
+    };
+    const res = await fetch(`/api/sessions/${session.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: updatedData }),
+    });
+    if (!res.ok) return false;
+    setSession({ ...session, data: updatedData });
+    setEditingVersion(null);
+    toast.success("Session saved");
+    return true;
+  };
+
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   if (!session) return <div className="p-8 text-center text-muted-foreground">Session not found</div>;
 
@@ -161,6 +185,17 @@ export default function SessionViewPage({
           <p className="text-muted-foreground">{archetypeNames[session.archetype]}</p>
         </div>
         <div className="flex gap-2">
+          {!editingVersion && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg gap-1.5"
+              onClick={() => setEditingVersion(activeTab)}
+            >
+              <IconEdit3 className="h-4 w-4" />
+              Edit session
+            </Button>
+          )}
           {sessionNum > 1 && (
             <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${sessionNum - 1}`}>
               <Button variant="outline" size="icon" className="rounded-lg"><IconChevronLeft className="h-4 w-4" /></Button>
@@ -183,44 +218,68 @@ export default function SessionViewPage({
         </Card>
       )}
 
-      <Tabs defaultValue="studio" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="studio">Studio Version</TabsTrigger>
-          <TabsTrigger value="home">Home Version</TabsTrigger>
-        </TabsList>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => !editingVersion && setActiveTab(v as "studio" | "home")}
+        className="space-y-4"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="studio" disabled={editingVersion !== null && editingVersion !== "studio"}>Studio Version</TabsTrigger>
+            <TabsTrigger value="home" disabled={editingVersion !== null && editingVersion !== "home"}>Home Version</TabsTrigger>
+          </TabsList>
+          {editingVersion && (
+            <p className="text-xs text-muted-foreground">
+              Locked to {editingVersion === "studio" ? "Studio" : "Home"} while editing — the other version is independent and won&rsquo;t change.
+            </p>
+          )}
+        </div>
 
         {(["studio", "home"] as const).map((version) => (
           <TabsContent key={version} value={version} className="space-y-6">
-            <SessionSection
-              title="Warm-up"
-              exercises={session.data?.versions?.[version]?.warm_up || []}
-              versionKey={version}
-              sectionKey="warm_up"
-              session={session}
-              onUpdateSession={setSession}
-              setLogs={setLogs}
-              onSaveSetLog={saveSetLog}
-            />
-            <SessionSection
-              title="Main Block"
-              exercises={session.data?.versions?.[version]?.main_block || []}
-              versionKey={version}
-              sectionKey="main_block"
-              session={session}
-              onUpdateSession={setSession}
-              setLogs={setLogs}
-              onSaveSetLog={saveSetLog}
-            />
-            <SessionSection
-              title="Cool-down"
-              exercises={session.data?.versions?.[version]?.cooldown || []}
-              versionKey={version}
-              sectionKey="cooldown"
-              session={session}
-              onUpdateSession={setSession}
-              setLogs={setLogs}
-              onSaveSetLog={saveSetLog}
-            />
+            {editingVersion === version ? (
+              <SessionEditor
+                version={version}
+                data={
+                  session.data?.versions?.[version] || { warm_up: [], main_block: [], cooldown: [] }
+                }
+                onSaved={(updated) => saveSessionEdit(version, updated)}
+                onCancel={() => setEditingVersion(null)}
+              />
+            ) : (
+              <>
+                <SessionSection
+                  title="Warm-up"
+                  exercises={session.data?.versions?.[version]?.warm_up || []}
+                  versionKey={version}
+                  sectionKey="warm_up"
+                  session={session}
+                  onUpdateSession={setSession}
+                  setLogs={setLogs}
+                  onSaveSetLog={saveSetLog}
+                />
+                <SessionSection
+                  title="Main Block"
+                  exercises={session.data?.versions?.[version]?.main_block || []}
+                  versionKey={version}
+                  sectionKey="main_block"
+                  session={session}
+                  onUpdateSession={setSession}
+                  setLogs={setLogs}
+                  onSaveSetLog={saveSetLog}
+                />
+                <SessionSection
+                  title="Cool-down"
+                  exercises={session.data?.versions?.[version]?.cooldown || []}
+                  versionKey={version}
+                  sectionKey="cooldown"
+                  session={session}
+                  onUpdateSession={setSession}
+                  setLogs={setLogs}
+                  onSaveSetLog={saveSetLog}
+                />
+              </>
+            )}
           </TabsContent>
         ))}
       </Tabs>

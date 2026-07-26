@@ -1,6 +1,17 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Session/workout editor built, NOT committed/pushed, NOT click-tested — 2026-07-26.** Craig wanted
+  workouts/sessions editable in the hub with drag-and-drop reordering; scoped via clarifying questions
+  (desk-planning tool, full edit scope, single-session-only edits), written as a functionality brief
+  for OpenDesign (`.context/brief-session-editor-opendesign.md`), mockup came back
+  (`D:\apps\design-systems\brand-staging-2662e9\hub-session-editor.html`) alongside a broader 8-lane
+  Work Order (`.context/workorder-hub-design-alignment-session-editor-2026-07-26.md`, registered but
+  unclaimed). Built Lane H only (the new editor) — new `SessionEditor.tsx` +
+  `add-exercise-dialog.tsx`, `page.tsx` wired with an edit-mode toggle. `tsc --noEmit` clean, ESLint
+  clean, `next build` compiles successfully (fails only at the Windows symlink/standalone-tracing
+  stage, unrelated to this change). **Built directly in the shared checkout, not an isolated worktree
+  — breaks DO-SOP-010, flagged, nothing committed yet.** See handoff.md for full detail.
 - **Block schedule/review link fix — DONE + DEPLOYED 2026-07-25 (later), not click-tested.** Craig
   couldn't find the "Review" button on an already-approved training block. Root cause: the link to
   `/hub/clients/[id]/blocks/[blockId]/review` (Lane D's scheduler lives there) only rendered for
