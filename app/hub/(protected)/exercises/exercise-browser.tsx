@@ -196,7 +196,8 @@ export function ExerciseBrowser({
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Exercise library</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {exercises.length} exercises &middot; adapted for cancer rehab, cardiac, long COVID and fibromyalgia
+            {exercises.length} exercises &middot; {filtered.length} match
+            {filtered.length > 0 && ` · page ${safePage + 1} of ${pageCount}`}
           </p>
         </div>
         <ExerciseFormDialog
