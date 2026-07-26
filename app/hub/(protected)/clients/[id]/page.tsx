@@ -201,6 +201,29 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     </div>
   );
 
+  /* ── Right rail for Profile tab (compact Record card matching mockup) ── */
+  const recordRail = (
+    <div className="space-y-5">
+      <HubCard>
+        <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Record" color="slate" noBottomPadding />
+        <div className="pb-5 space-y-0">
+          <div className="flex items-center justify-between py-2 text-sm">
+            <span className="text-muted-foreground">Client number</span>
+            <span className="font-medium text-foreground">#{client.client_number}</span>
+          </div>
+          <div className="flex items-center justify-between py-2 text-sm">
+            <span className="text-muted-foreground">Created</span>
+            <span className="font-medium text-foreground">{new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+          </div>
+          <div className="flex items-center justify-between py-2 text-sm">
+            <span className="text-muted-foreground">Last edited</span>
+            <span className="font-medium text-foreground">{(client as any).updated_at ? new Date((client as any).updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</span>
+          </div>
+        </div>
+      </HubCard>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* ── Page header ── */}
@@ -324,10 +347,17 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               <HubCard>
                 <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Snapshot" color="navy" noBottomPadding />
                 <div className="pb-5">
-                  <HubDataGrid cols={3}>
-                    <HubDataField label="Sessions/week">{p?.logistics?.sessions_per_week ?? "—"}</HubDataField>
+                  <HubDataGrid cols={2}>
+                    {client.referral_source && (
+                      <HubDataField label="Referral source">{client.referral_source}</HubDataField>
+                    )}
+                    <HubDataField label="Primary goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
+                    <HubDataField label="Sessions per week">{p?.logistics?.sessions_per_week ? `${p.logistics.sessions_per_week}×` : "—"}</HubDataField>
+                    <HubDataField label="Session length"><span className="capitalize">{p?.logistics?.time_tier ?? "—"}</span></HubDataField>
+                    {p?.health?.conditions && (
+                      <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
+                    )}
                     <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
-                    <HubDataField label="Primary Goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
                   </HubDataGrid>
                 </div>
               </HubCard>
@@ -335,38 +365,29 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               <HubCard>
                 <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Training Snapshot" color="teal" noBottomPadding />
                 <div className="pb-5">
-                  {latestSessionLog ? (
-                    <HubDataGrid cols={3}>
-                      <HubDataField label="Last Session">
-                        {new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                      </HubDataField>
-                      <HubDataField label="RPE">{latestSessionLog.rpe ?? "—"}</HubDataField>
-                      <HubDataField label="Fatigue"><span className="capitalize">{latestSessionLog.fatigue ?? "—"}</span></HubDataField>
-                    </HubDataGrid>
-                  ) : (
-                    <div className="flex items-center justify-between rounded-lg py-2 px-1 text-sm">
-                      <span className="text-muted-foreground">No sessions logged yet</span>
-                      <Link href={`/hub/clients/${client.client_number}?tab=training`} className="text-rose font-medium hover:underline">View Training</Link>
-                    </div>
-                  )}
-                  {latestBlock && (
-                    <div className="mt-3 pt-3 border-t border-[var(--hub-border)]">
-                      <HubDataGrid cols={2}>
-                        <HubDataField label="Active Block">
-                          <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="font-semibold text-foreground hover:text-rose transition-colors">
-                            Block {latestBlock.block_number}
-                          </Link>
-                        </HubDataField>
-                        <HubDataField label="Status"><StatusBadge status={latestBlock.status} /></HubDataField>
-                      </HubDataGrid>
-                    </div>
-                  )}
+                  <HubDataGrid cols={2}>
+                    <HubDataField label="Blocks completed">{blocks?.length ?? 0}</HubDataField>
+                    <HubDataField label="Current block">
+                      {latestBlock ? (
+                        <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="font-semibold text-foreground hover:text-rose transition-colors">
+                          Block {latestBlock.block_number}
+                        </Link>
+                      ) : "—"}
+                    </HubDataField>
+                    <HubDataField label="Sessions logged">{sessions?.length ?? 0}</HubDataField>
+                    <HubDataField label="Pace mode"><span className="capitalize">{client.pace_mode ?? "—"}</span></HubDataField>
+                    <HubDataField label="Last session">
+                      {latestSessionLog?.completed_at
+                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                        : "—"}
+                    </HubDataField>
+                  </HubDataGrid>
                 </div>
               </HubCard>
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
                 <HubCard>
-                  <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Active Training Rules" color="amber" noBottomPadding />
+                  <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Active Training Rules" color="amber" noBottomPadding subtitle="Applied to every generated block" />
                   <div className="pb-5">
                     <ul className="list-none space-y-2">
                       {p!.programming_adaptations
@@ -419,6 +440,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       <span className="text-muted-foreground text-xs">GP Clearance</span>
                       <YesNoPill yes={!!p.health.gp_clearance} />
                     </div>
+                    {client.referral_source && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-xs">Referral route</span>
+                        <span className="text-sm font-medium text-foreground">{client.referral_source}</span>
+                      </div>
+                    )}
                     <HubDataGrid cols={2}>
                       {p.health.conditions?.length > 0 && (
                         <HubDataField label="Conditions">
@@ -619,7 +646,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </HubCard>
               )}
             </div>
-            <div className="lg:col-span-4">{rightRail}</div>
+            <div className="lg:col-span-4">{recordRail}</div>
           </div>
         </TabsContent>
 

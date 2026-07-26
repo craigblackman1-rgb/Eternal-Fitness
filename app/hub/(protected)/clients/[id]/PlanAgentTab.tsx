@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubCardHeader } from "@/components/hub";
+import { TokenPill } from "@/components/hub/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { IconBot, IconLoader2, IconPlus, IconSend } from "@/components/icons";
 import { useRouter } from "next/navigation";
@@ -150,20 +151,23 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
             </p>
           </div>
         </div>
-        {hasConversation && lastMessageIsAssistant && !streaming && (
-          <Button
-            onClick={generateBlock}
-            disabled={generatingBlock}
-            className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white"
-          >
-            {generatingBlock ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconPlus className="h-4 w-4" />
-            )}
-            Create Block
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <TokenPill token="success" label="Connected" />
+          {hasConversation && lastMessageIsAssistant && !streaming && (
+            <Button
+              onClick={generateBlock}
+              disabled={generatingBlock}
+              className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white"
+            >
+              {generatingBlock ? (
+                <IconLoader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <IconPlus className="h-4 w-4" />
+              )}
+              Create Block
+            </Button>
+          )}
+        </div>
       </div>
 
       {!hasConversation && (
