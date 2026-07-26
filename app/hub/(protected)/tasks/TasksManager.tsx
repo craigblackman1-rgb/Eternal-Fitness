@@ -12,7 +12,9 @@ import {
   IconPencil,
   IconChevronLeft,
   IconChevronRight,
-  IconCheckSquare,
+  IconCircle,
+  IconShieldCheck,
+  IconCheckCircle,
   IconCheck,
   IconX,
 } from "@/components/icons";
@@ -31,6 +33,12 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
   todo: "To Do",
   in_progress: "In Progress",
   done: "Done",
+};
+
+const STATUS_ICON: Record<TaskStatus, React.ReactNode> = {
+  todo: <IconCircle className="w-4 h-4" />,
+  in_progress: <IconShieldCheck className="w-4 h-4" />,
+  done: <IconCheckCircle className="w-4 h-4" />,
 };
 
 const ASSIGNEE_OPTIONS = ["Unassigned", "Esther Fair", "Craig Blackman"];
@@ -568,7 +576,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
           return (
             <HubCard key={status} padded={false}>
               <HubCardHeader
-                icon={<IconCheckSquare className="w-4 h-4" />}
+                icon={STATUS_ICON[status]}
                 title={STATUS_LABELS[status]}
                 subtitle={`${columnTasks.length} task${columnTasks.length !== 1 ? "s" : ""}`}
                 color={

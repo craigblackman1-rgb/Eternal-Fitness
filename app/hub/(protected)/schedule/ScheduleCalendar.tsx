@@ -262,6 +262,7 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
             icon={<IconCalendar className="h-4 w-4" />}
             title="Sessions"
             subtitle="Sorted by start time"
+            color="teal"
             noBottomPadding
           />
         </div>
