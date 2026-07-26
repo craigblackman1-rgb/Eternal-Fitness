@@ -1,5 +1,87 @@
 # Handoff
 
+## Session close — 2026-07-25 (later) — block schedule/review link fixed; docs/Work Order cleaned up
+
+Craig reported he couldn't find the "Review" button on an already-approved training block, after the
+prior session's handoff pointed him at the per-block scheduler (`BlockScheduler.tsx`, built in Lane D
+of `workorder-session-logging-2026-07-25.md`).
+
+**Root cause, two real bugs, not one:** the block page's link to `/hub/clients/[id]/blocks/[blockId]/
+review` only rendered when `block.status === "draft"` — once Esther approves a block, the link
+vanishes even though the scheduler still lives at that URL and still works. Separately, the review
+page's "Approve Block" button had no draft guard either, so clicking it on an already-approved block
+would have hit the `/api/blocks/[id]/approve` route's existing `400 "Block is already X"` rejection —
+a guaranteed-fail trap nobody had hit yet because nobody could reach the button post-approval anyway.
+
+**Fixed (`77f5861`):** block page now always links through to `/review` — "Review & Approve" pre-
+approval, "Schedule" post-approval. Review page hides the Approve button once `status !== "draft"` and
+shows the block's real status via `StatusBadge` next to the (now conditional) title. Built in an
+isolated worktree (`D:\apps\worktrees\eternal-fitness-website-fix-schedule-link`, branch
+`fix/block-schedule-link`, off fresh `origin/main`) per DO-SOP-010, `tsc --noEmit` clean via a
+temporary node_modules junction (removed after, `tsconfig.tsbuildinfo` churn reverted before commit).
+Fast-forward pushed straight to `main`.
+
+**Deploy hit a real transient infra failure on the first attempt** — Coolify's build container lost
+its SSH exec channel mid-`next build` (`exit code 255` right after "Compiled with warnings", no actual
+compiler/type error in the log) and the deployment was auto-removed. Diagnosed via the full raw JSON
+log (the plain-text log view truncates before the real failure line — worth remembering for next time
+a deploy fails with no visible cause) rather than assumed a code problem, since the diff only touched
+two presentational files using an already-imported shared component. Retriggered via the Coolify MCP;
+it built and deployed clean second time (~3.5 min), landing as part of `f25b98c` after an unrelated
+same-day commit (a hub sign-up-endpoint security fix, not this session's work) fast-forwarded on top.
+Confirmed `77f5861` is an ancestor of the deployed commit and the app is `running:healthy`.
+
+**Not click-tested live** — needs Craig to open an approved block and confirm the "Schedule" button
+now appears and works.
+
+**Docs/Work Order cleanup, same session:** `workorder-session-logging-2026-07-25.md`'s OWNER line was
+stale (read as still "ACTIVE" when Lanes A–D were in fact all done) — updated to reflect only the
+genuine Craig-decision GATE items remain open, plus logged this fix under Lane D. This file's own
+`state.md` "Active Work Order" line was also stale, still pointing only at the 2026-07-20 hub-
+consolidation Work Order (closed that day) with no mention of the newer session-logging one — fixed to
+list both with accurate current status.
+
+---
+
+## Session close — 2026-07-25 — hub to-do task list built and shipped (3 lanes, same day)
+
+Craig asked for a to-do list in the hub so Esther can set tasks and assign them to a person. Scoped up
+front with him: assignee is a fixed Esther Fair/Craig Blackman picker (no new staff table), buckets are
+status columns (kanban), lives as a new top-level `/hub/tasks` page. Built and shipped in three
+same-day increments as Craig asked for more each time — each one built in its own isolated worktree
+(DO-SOP-010), independently verified (hand-read every changed file against existing conventions,
+`tsc --noEmit` + full `next build` via a temporary node_modules junction to the main checkout, junction
++ build output removed after each), migrated against prod Postgres, fast-forward pushed, and confirmed
+`running:healthy` on Coolify before moving to the next lane.
+
+1. **Base list** (`51e6a38`, built by OpenCode/deepseek-v4-pro) — new `tasks` table; 3-column kanban
+   (To Do/In Progress/Done) at `app/hub/(protected)/tasks/`; `app/api/tasks/route.ts` +
+   `[id]/route.ts`; new sidebar entry. Left/right arrow buttons move a task between status columns (no
+   drag-and-drop library in this codebase, didn't add one).
+2. **Buckets** (`9542840`, OpenCode) — new `task_buckets` table + `tasks.bucket_id` (nullable FK, `ON
+   DELETE SET NULL`). Free-form, staff-creatable groupings (Website/Content/Admin/etc.) added inline
+   from the task form (a "+ Add new bucket…" option that POSTs and auto-selects); a filter-pill bar
+   with live per-bucket counts sits above the kanban; each card shows a bucket tag next to its assignee
+   tag. Deliberately did not add bucket-delete UI this pass — Craig only asked for creation/grouping.
+3. **My Tasks default filter** (`a3e861e`, built directly by Claude Code — small, well-understood
+   diff, skipped the OpenCode round-trip) — no DB change. Reads the signed-in Better Auth user's
+   `name` against the existing `assignee` string field and defaults the board to "My Tasks" whenever
+   they match, with a one-click "All Tasks" toggle. Bucket-pill counts now respect whichever scope is
+   active. **Real gap found while building this**: queried the live `user` table directly — only
+   Esther Fair has a hub account at all, no Craig Blackman row exists, so this only activates for her
+   session until/unless he gets one too. Flagged to Craig, not silently worked around.
+
+**Not done / needs Craig:** no live authenticated click-test of any of this — the page correctly
+redirects to `/hub/login` with no session available from this side, and credentials are never entered
+into any login form, hub or otherwise. Worth a real click-through next time Craig's in the hub. Also
+worth deciding whether Craig wants his own hub account created if "My Tasks" should ever apply to him.
+
+All three worktrees + branches removed after merge (one had a Windows long-path node_modules-copy
+artifact from a `next build` standalone-tracing quirk — cleared via a robocopy-mirror-empty-dir trick,
+noted here in case it recurs on a future build-verification pass in this repo).
+
+---
+
 ## Session close — 2026-07-24 — consent choices surfaced in hub admin portal
 
 Craig reported: "Unsigned consent forms. We can't see what people have consented to in the admin

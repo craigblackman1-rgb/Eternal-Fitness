@@ -1,6 +1,23 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Block schedule/review link fix — DONE + DEPLOYED 2026-07-25 (later), not click-tested.** Craig
+  couldn't find the "Review" button on an already-approved training block. Root cause: the link to
+  `/hub/clients/[id]/blocks/[blockId]/review` (Lane D's scheduler lives there) only rendered for
+  `status === "draft"`, and the review page's Approve button had no such guard either — clicking it on
+  an approved block would have hit the API's existing `400 "Block is already X"` rejection. Fixed both
+  (`77f5861`, deployed via `f25b98c`): block page always links through ("Schedule" once approved),
+  review page hides Approve and shows real status once non-draft. First deploy attempt hit a one-off
+  Coolify/SSH infra failure (unrelated to the code, retried clean). See
+  `.context/workorder-session-logging-2026-07-25.md` (Lane D follow-up) and `handoff.md`.
+- **Hub to-do task list — DONE + DEPLOYED 2026-07-25, not click-tested.** New `/hub/tasks` page: a
+  3-column kanban (To Do/In Progress/Done), tasks assignable to Esther Fair/Craig Blackman/Unassigned,
+  free-form staff-creatable buckets (Website/Content/Admin/etc.) for grouping, and a "My Tasks" default
+  filter that reads the signed-in user's name against the `assignee` field. Only Esther has a hub
+  account today (verified against the live `user` table) so "My Tasks" only activates for her. Three
+  commits (`51e6a38`, `9542840`, `a3e861e`), each independently verified (`tsc`/`next build` clean) and
+  confirmed `running:healthy` on Coolify before the next was built. **Not done:** no live logged-in
+  click-test — needs Craig's own session. See handoff.md for full detail.
 - **Consent choices surfaced in hub admin portal — DONE + PUSHED 2026-07-24, not click-tested.**
   Craig couldn't see what clients had actually consented to from the hub. Investigated first: the data
   (`client_documents.consent_choices`) was already captured correctly on sign — no schema change
@@ -58,7 +75,13 @@
 - Hub with client management, training blocks, agreements, PAR-Q
 - **Custom icon system**: 90+ SVG icons replacing lucide-react (grew from 36+ this session — `IconRefreshCw`, `IconUser`, `IconShieldCheck`, `IconRuler` added where a mockup specified a shape genuinely missing) ✅
 - 6-week client update email feature: **BUILT** (all phases complete, build+tsc clean)
-- **Active Work Order** (2026-07-20, SOP-008): `.context/workorder-eternal-fitness-hub-consolidation-2026-07-20.md` — client data consolidation + document-led client portal. See that file's DONE checklist for live status; see `.context/handoff.md` for the full per-unit log.
+- **Work Orders:** `.context/workorder-eternal-fitness-hub-consolidation-2026-07-20.md` (client data
+  consolidation + document-led client portal) — closed 2026-07-20, all AUTO units done; client data
+  consolidation itself (manual entry) still not started, not blocking. `.context/workorder-session-
+  logging-2026-07-25.md` (Trainerize-replacement session logging + scheduling) — Lanes A–D all DONE +
+  DEPLOYED 2026-07-25, only Craig-decision GATE items open (nudge auto-send vs. Esther-reviewed;
+  assigning a real client to `home_training`; a live click-test of the whole thing). See either file's
+  DONE checklist for live status; see `.context/handoff.md` for the full per-unit log.
 - Client document engine now visually matches the new brand design system (`D:\apps\design-systems\brand-staging-2662e9`) — masthead, accessibility toolbar (text size + high contrast), sign-boxes — applied to all 4 document kinds. New `consent` document type live (checkbox-based content permissions). Documents can now be emailed to clients directly from the hub, not just copy-link.
 - Client detail page (`/hub/clients/[id]`) fully rolled out against `hub-client-detail.html`. Live on staging (commits `2acaf4e`, `211f3f7`).
 - Six more hub screens restyled to match mockups (dashboard, exercise library, process & quality, reports/updates, SOP detail view, studio equipment) — live on staging.
