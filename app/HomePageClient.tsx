@@ -82,9 +82,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div>
               <div className="stag stag-r">{content.why_tag ?? "Why Eternal Fitness"}</div>
               <h2 className="D" style={{ marginBottom: 16 }}>Training That Meets<br />You Where You Are</h2>
-              <p className="L">
-                {content.why_body ?? "I'm Esther — a personal trainer based in a private studio in Worthing. Every session starts with a check-in, and the plan adapts to how you actually feel that day. I'm also qualified in exercise referral and cancer and exercise rehabilitation, so if your health ever changes, I don't have to stop training you."}
-              </p>
+              {content.why_body && <p className="L">{content.why_body}</p>}
               <div className="wfeats">
                 <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Real, sustainable strength and mobility"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves how you move, day to day."}</div></div></div>
                 <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No gym floor, no other clients, no pressure to perform."}</div></div></div>
