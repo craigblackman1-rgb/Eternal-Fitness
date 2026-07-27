@@ -29,7 +29,7 @@ const Footer = () => {
       <footer className="bg-dark-navy text-white">
         {/* Main grid */}
         <div className="px-6 md:px-12 py-16 md:py-20">
-          <div className="max-w-[1320px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1.3fr_1fr_0.8fr] gap-12 lg:gap-16">
+          <div className="max-w-[1320px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1.3fr_1fr] gap-12 lg:gap-16">
             {/* Brand + Credentials */}
             <div>
               <Link href="/" aria-label="Eternal Fitness home" className={`inline-block ${focusRing}`}>
@@ -78,46 +78,14 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Services */}
-            <div>
-              <h2 className="text-[13px] font-bold text-white/40 tracking-widest uppercase mb-6">Services</h2>
-              <ul className="space-y-3.5">
-                <li>
-                  <Link href="/personal-training" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>
-                    Personal Training
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cancer-rehabilitation" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>
-                    Cancer Rehabilitation
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/exercise-for-health" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>
-                    Exercise for Health
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/exercise-for-health/visual-impairment" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>
-                    Visual Impairment
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/personal-training" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>
-                    Adaptive Training
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
             {/* Information + Social */}
             <div>
               <h2 className="text-[13px] font-bold text-white/40 tracking-widest uppercase mb-6">More</h2>
               <ul className="space-y-3.5 mb-8">
+                <li><Link href="/personal-training" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Personal Training</Link></li>
                 <li><Link href="/about" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>About Me</Link></li>
                 <li><Link href="/pricing" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Pricing</Link></li>
                 <li><Link href="/faqs" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>FAQs</Link></li>
-                <li><Link href="/blog" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Blog</Link></li>
                 <li><Link href="/contact" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Contact</Link></li>
               </ul>
               <div className="flex gap-3">

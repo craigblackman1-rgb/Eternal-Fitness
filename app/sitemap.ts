@@ -1,57 +1,25 @@
 import type { MetadataRoute } from "next";
-import { supabase } from "@/lib/supabase";
 
-// Without this, Next prerenders sitemap.xml at build time (before the DB is
-// reachable from the build container) and it silently ships without any
-// blog posts — same reason app/blog/page.tsx forces dynamic rendering.
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
+// Launch scope only (2026-07-27): the Specialist Training / condition pages and
+// Blog are disabled (see next.config.js redirects) pending separate work, so
+// they're deliberately left out of the sitemap too. Re-add them here once
+// those routes are re-enabled.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
     : process.env.NEXT_PUBLIC_SITE_URL || "https://eternal-fitness.co.uk";
 
-  let posts: { slug: string; published_at: string; updated_at: string | null }[] | null = null;
-  try {
-    const { data, error } = await supabase
-      .from("blog_posts")
-      .select("*")
-      .order("published_at", { ascending: false });
-    if (error) throw error;
-    posts = data;
-  } catch (err) {
-    console.error("sitemap: failed to load blog_posts", err);
-    posts = [];
-  }
-
-  const blogEntries = (posts ?? []).map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.updated_at || post.published_at),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
-
   const staticPages = [
     { url: `${baseUrl}`, priority: 1.0, changeFrequency: "weekly" as const },
     { url: `${baseUrl}/about`, priority: 0.9, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/personal-training`, priority: 0.9, changeFrequency: "monthly" as const },
-    { url: `${baseUrl}/exercise-for-health`, priority: 0.9, changeFrequency: "monthly" as const },
-    { url: `${baseUrl}/cancer-rehabilitation`, priority: 0.9, changeFrequency: "monthly" as const },
-    { url: `${baseUrl}/exercise-for-health/visual-impairment`, priority: 0.85, changeFrequency: "monthly" as const },
-    { url: `${baseUrl}/exercise-for-health/high-blood-pressure`, priority: 0.85, changeFrequency: "monthly" as const },
-    { url: `${baseUrl}/exercise-for-health/bone-health`, priority: 0.85, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/pricing`, priority: 0.85, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/contact`, priority: 0.8, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/faqs`, priority: 0.7, changeFrequency: "monthly" as const },
-    { url: `${baseUrl}/blog`, priority: 0.85, changeFrequency: "weekly" as const },
     { url: `${baseUrl}/privacy-policy`, priority: 0.5, changeFrequency: "yearly" as const },
     { url: `${baseUrl}/terms`, priority: 0.5, changeFrequency: "yearly" as const },
     { url: `${baseUrl}/cookies-policy`, priority: 0.5, changeFrequency: "yearly" as const },
   ];
 
-  return [
-    ...staticPages.map((page) => ({ ...page, lastModified: new Date() })),
-    ...blogEntries,
-  ];
+  return staticPages.map((page) => ({ ...page, lastModified: new Date() }));
 }

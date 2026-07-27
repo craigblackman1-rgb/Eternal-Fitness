@@ -108,6 +108,18 @@ const nextConfig = {
       { source: "/category/exercise", destination: "/blog", permanent: true },
       { source: "/category/myth-buster", destination: "/blog", permanent: true },
       { source: "/category/sleep", destination: "/blog", permanent: true },
+
+      // --- Pages not part of the 2026-07-27 launch scope ---
+      // Launch set is Home, About, Personal Training, Pricing, FAQs, Contact, plus the
+      // 3 legal pages. Blog and the specialist/condition pages (Exercise for Health hub +
+      // subpages, Cancer Rehabilitation) are pending separate work (blog rewrite scope
+      // decision; Specialist Training catalogue restructure) — disabled, not deleted.
+      // Temporary (permanent: false) so these are easy to re-enable by removing this block.
+      { source: "/blog", destination: "/", permanent: false },
+      { source: "/blog/:path*", destination: "/", permanent: false },
+      { source: "/cancer-rehabilitation", destination: "/", permanent: false },
+      { source: "/exercise-for-health", destination: "/", permanent: false },
+      { source: "/exercise-for-health/:path*", destination: "/", permanent: false },
     ];
   },
 };

@@ -162,7 +162,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               <strong style={{ color: "var(--color-ink)" }}>{content.pricing_note_bold ?? "Not sure which to choose?"}</strong>{content.pricing_note_body ?? " Start with the free consultation. I will give you an honest recommendation based on your situation — not the most expensive option."}
             </p>
             <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14 }}>
-              <Link href="/personal-training" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
+              <Link href="/personal-training" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_areas ?? "Learn About Personal Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
               <Link href="/faqs" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
             </div>
           </div>

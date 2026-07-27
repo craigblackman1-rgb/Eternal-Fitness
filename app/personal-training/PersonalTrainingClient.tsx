@@ -2,11 +2,8 @@
 
 import Image from "next/image";
 import {
-  IconActivity,
   IconAward,
-  IconBloodPressure,
   IconClipboardList,
-  IconHeart,
   IconMessageCircle,
   IconUsers,
 } from "@/components/icons";
@@ -26,46 +23,7 @@ import {
   StatStrip,
   PulseLine,
   MotionArcs,
-  IndexList,
-  FeatureBand,
 } from "@/components/ds";
-
-const specialistAreas = [
-  {
-    title: "GP-referred exercise",
-    desc: "I am qualified in exercise referral and experienced in working alongside medical guidance from GPs and healthcare teams.",
-    image: "/images/services-training.jpg",
-    href: "/exercise-for-health",
-  },
-  {
-    title: "Chronic health conditions",
-    desc: "A wide range of ongoing conditions — every session adapts to what your body can manage that day.",
-    image: "/images/specialise-2.jpg",
-    href: "/exercise-for-health",
-  },
-  {
-    title: "Injury recovery & rehabilitation",
-    desc: "Post-surgical, post-fracture, and musculoskeletal conditions. I work within the guidance of your physiotherapist or consultant.",
-    image: "/images/mobility-movement.jpg",
-  },
-  {
-    title: "Disability & adaptive training",
-    desc: "Physical disabilities, significant mobility limitations, and sensory impairments including visual impairment. Programmes are built around your body, not a template.",
-    image: "/images/specialise-3.jpg",
-    href: "/exercise-for-health/visual-impairment",
-  },
-  {
-    title: "Neurological conditions",
-    desc: "Conditions affecting balance, coordination, or mobility. Gentle, progressive, and always adapted.",
-    image: "/images/mind-body.jpg",
-  },
-  {
-    title: "Cancer & cancer rehabilitation",
-    desc: "During active treatment, in remission, or post-surgery. I am qualified in cancer and exercise rehabilitation and adapt to wherever you are in your journey.",
-    image: "/images/specialise-1.jpg",
-    href: "/cancer-rehabilitation",
-  },
-];
 
 const focusCards = [
   {
@@ -102,33 +60,6 @@ const steps = [
   {
     title: "Ongoing Support",
     desc: "I adjust your programme as your health and capacity change — keeping training sustainable, realistic, and aligned with where you are.",
-  },
-];
-
-const specialistPages = [
-  { href: "/exercise-for-health", title: "Exercise for Health", desc: "Training for high blood pressure, type 2 diabetes, osteoporosis, COPD, heart conditions, chronic pain and more.", image: "/images/coaching-plank-client.jpg", imageAlt: "Exercise for Health" },
-  { href: "/cancer-rehabilitation", title: "Cancer Rehabilitation", desc: "Training during active treatment, in remission, or post-surgery. Qualified and experienced in cancer rehabilitation.", image: "/images/spec-card-cancer.jpg", imageAlt: "Cancer Rehabilitation" },
-  { href: "/exercise-for-health/visual-impairment", title: "Visual Impairment", desc: "Adapted training for people who are blind or partially sighted. Verbal instruction, consistent environment, tactile guidance.", image: "/images/who-blind-sport.jpg", imageAlt: "Visual Impairment" },
-];
-
-const relatedArticles = [
-  {
-    href: "/blog/exercise-illness",
-    title: "Exercise & Illness",
-    desc: "Understanding how to stay active during health challenges and what's safe when managing chronic conditions.",
-    icon: IconActivity,
-  },
-  {
-    href: "/blog/why-bmi-doesnt-matter-with-health-conditions",
-    title: "Why BMI Doesn't Matter With Health Conditions",
-    desc: "Why a single number on a chart misses the point for anyone training with a chronic condition, and what to focus on instead.",
-    icon: IconHeart,
-  },
-  {
-    href: "/blog/myth-buster-does-resistance-training-cause-high-blood-pressure",
-    title: "Resistance Training & Blood Pressure",
-    desc: "Safety considerations for people managing cardiovascular health and how resistance training can be part of a healthy approach.",
-    icon: IconBloodPressure,
   },
 ];
 
@@ -206,28 +137,6 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         </div>
       </Section>
 
-      {/* Specialist Training */}
-      <Section background="cream" id="specialist-areas">
-        <SectionHeading
-          eyebrow={content.spec_eyebrow ?? "Specialist Training"}
-          heading={content.spec_heading ?? "If Your Health Picture Is More Specific"}
-          intro={content.spec_intro ?? "Some clients need more specific support — a health condition, an injury, adapting for a disability. If your situation is not listed here, please still get in touch — the answer is almost always yes."}
-        />
-        <Reveal y={40} start="top 80%" style={{ marginTop: 40 }}>
-          <IndexList
-            accent="rose"
-            panelEyebrow={content.spec_panel_eyebrow ?? "Specialist areas"}
-            items={specialistAreas.map((a, i) => ({
-              title: content[`area_${i + 1}_title`] ?? a.title,
-              body: content[`area_${i + 1}_desc`] ?? a.desc,
-              cta: a.href
-                ? { label: content.spec_cta_learn ?? "Learn more", href: a.href }
-                : { label: content.spec_cta_book ?? "Book a consultation", onClick: openDialog },
-            }))}
-          />
-        </Reveal>
-      </Section>
-
       {/* How It Works */}
       <Section background="cream">
         <SectionHeading align="center" eyebrow={content.process_eyebrow ?? "The Process"} heading={content.process_heading ?? "How It Works"} />
@@ -242,23 +151,6 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         </div>
       </Section>
 
-      {/* Specialist Pages */}
-      <Section background="white">
-        <SectionHeading
-          align="center"
-          eyebrow={content.pages_eyebrow ?? "Specialist Training"}
-          eyebrowColor="teal"
-          heading={content.pages_heading ?? "More on Specific Conditions"}
-          intro={content.pages_intro ?? "Each specialist area has a dedicated page with more detail about how I work with it."}
-        />
-        <Reveal y={40} start="top 82%" style={{ marginTop: 40 }}>
-          <FeatureBand
-            accent="teal"
-            items={specialistPages.map((p, i) => ({ title: content[`page_${i + 1}_title`] ?? p.title, body: content[`page_${i + 1}_desc`] ?? p.desc, href: p.href, linkLabel: "Read more" }))}
-          />
-        </Reveal>
-      </Section>
-
       {/* Credentials */}
       <Section background="cream">
         <StatStrip
@@ -270,25 +162,6 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             { icon: IconClipboardList, value: "Worthing", label: content.stat_4_label ?? "Private studio, West Sussex" },
           ]}
         />
-      </Section>
-
-      {/* Related Articles */}
-      <Section background="white">
-        <SectionHeading
-          align="center"
-          eyebrow={content.blog_eyebrow ?? "Learn More"}
-          heading={content.blog_heading ?? "Related Articles"}
-          intro={content.blog_intro ?? "Read more about training with health conditions, recovery strategies, and what makes specialist personal training different."}
-        />
-        <Reveal y={40} start="top 82%" style={{ marginTop: 40 }}>
-          <FeatureBand
-            accent="rose"
-            items={relatedArticles.map((a, i) => ({ icon: a.icon, title: content[`article_${i + 1}_title`] ?? a.title, body: content[`article_${i + 1}_desc`] ?? a.desc, href: a.href, linkLabel: content.blog_link_label ?? "Read article" }))}
-          />
-        </Reveal>
-        <div style={{ textAlign: "center", marginTop: 44 }}>
-          <CtaButton cta={{ label: content.blog_btn ?? "View All Articles", href: "/blog", variant: "outline", arrow: true }} />
-        </div>
       </Section>
 
       <CTABand

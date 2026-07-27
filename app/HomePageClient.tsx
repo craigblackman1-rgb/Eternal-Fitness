@@ -116,7 +116,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <div className="wcb">
                 <h3>{content.who_card_1_title ?? "If your health picture is more specific"}</h3>
                 <p>{content.who_card_1_desc ?? "High blood pressure, a GP referral, recovery from treatment — I'm trained to work with it safely, and to adjust as things change."}</p>
-                <Link href="/personal-training" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_1_link ?? "See Specialist Training"} <Arrow /></Link>
+                <Link href="/personal-training" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_1_link ?? "Learn More"} <Arrow /></Link>
               </div>
             </div>
             <div className="wc">
@@ -160,23 +160,6 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="aq-g">
             <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to adapt when things change"}</h4><p>{content.approach_box_1_desc ?? "Trained in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation, alongside my personal training qualification — so if your health picture shifts, I can adjust safely rather than you needing to find someone new."}</p></div>
             <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
-          </div>
-        </div>
-      </section>
-
-      {/* SPECIALIST */}
-      <section id="specialist" className="sec" style={{ background: "var(--white)" }}>
-        <div className="sin">
-          <div className="spec-h">
-            <div><div className="stag stag-r">{content.spec_tag ?? "Specialist Training"}</div><h2 className="D">{content.spec_heading ?? "Who I Work With"}</h2></div>
-            <p className="L">
-              {content.spec_body ?? "If your health picture is more specific, here's where to find more detail — heart health and blood pressure, bone and joint health, visual impairment, cancer rehabilitation, and more. If your situation isn't listed, get in touch — the answer is almost always yes."}
-            </p>
-          </div>
-          <div className="spec-g">
-            <Link href="/cancer-rehabilitation" className="spc"><div className="spc-img"><Image src="/images/spec-card-cancer.jpg" alt="Cancer rehabilitation training in Worthing" fill sizes="(max-width: 1000px) 100vw, 33vw" style={{ objectFit: "cover" }} /></div><div className="spc-n">01</div><div className="spc-t">{content.spec_card_1_title ?? "Cancer Rehabilitation"}</div><div className="spc-d">{content.spec_card_1_desc ?? "Specialist support during treatment, in remission, and post-surgery."}</div></Link>
-            <Link href="/exercise-for-health" className="spc"><div className="spc-img"><Image src="/images/spec-card-health.jpg" alt="Exercise for health conditions in Worthing" fill sizes="(max-width: 1000px) 100vw, 33vw" style={{ objectFit: "cover" }} /></div><div className="spc-n">02</div><div className="spc-t">{content.spec_card_2_title ?? "Exercise for Health"}</div><div className="spc-d">{content.spec_card_2_desc ?? "Blood pressure, diabetes, bone strength, mobility and more — exercise referral specialists."}</div></Link>
-            <Link href="/exercise-for-health/visual-impairment" className="spc"><div className="spc-img"><Image src="/images/who-blind-sport.jpg" alt="Personal training for visually impaired clients in Worthing" fill sizes="(max-width: 1000px) 100vw, 33vw" style={{ objectFit: "cover" }} /></div><div className="spc-n">03</div><div className="spc-t">{content.spec_card_3_title ?? "Visual Impairment"}</div><div className="spc-d">{content.spec_card_3_desc ?? "Adapted training for people who are blind or partially sighted."}</div></Link>
           </div>
         </div>
       </section>

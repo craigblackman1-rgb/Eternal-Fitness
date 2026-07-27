@@ -12,20 +12,9 @@ type NavItem = { label: string; to: string; children?: NavChild[] };
 const navItems: NavItem[] = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
-  {
-    label: "Personal Training",
-    to: "/personal-training",
-    children: [
-      { label: "Exercise for Health", to: "/exercise-for-health" },
-      { label: "High Blood Pressure", to: "/exercise-for-health/high-blood-pressure" },
-      { label: "Bone Health & Osteoporosis", to: "/exercise-for-health/bone-health" },
-      { label: "Visual Impairment", to: "/exercise-for-health/visual-impairment" },
-      { label: "Cancer Rehabilitation", to: "/cancer-rehabilitation" },
-    ],
-  },
+  { label: "Personal Training", to: "/personal-training" },
   { label: "Pricing", to: "/pricing" },
   { label: "FAQs", to: "/faqs" },
-  { label: "Blog", to: "/blog" },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -39,14 +28,8 @@ const pageTitles: Record<string, string> = {
   "/": "Home",
   "/about": "About",
   "/personal-training": "Personal Training",
-  "/exercise-for-health": "Exercise for Health",
-  "/exercise-for-health/high-blood-pressure": "High Blood Pressure",
-  "/exercise-for-health/bone-health": "Bone Health & Osteoporosis",
-  "/exercise-for-health/visual-impairment": "Visual Impairment",
-  "/cancer-rehabilitation": "Cancer Rehabilitation",
   "/pricing": "Pricing",
   "/faqs": "FAQs",
-  "/blog": "Blog",
   "/contact": "Contact",
 };
 
