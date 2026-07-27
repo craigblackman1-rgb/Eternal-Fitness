@@ -93,6 +93,40 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         </div>
       </section>
 
+      {/* APPROACH */}
+      <section id="approach" className="sec" style={{ background: "var(--cream)" }}>
+        <div className="sin">
+          <div style={{ maxWidth: 640, marginBottom: 12 }}>
+            <div className="stag stag-f">{content.approach_tag ?? "The Approach"}</div>
+            <h2 className="D">How I Actually<br />Train You</h2>
+          </div>
+          <p className="L" style={{ maxWidth: 560 }}>
+            {content.approach_body ?? "I'm always watching, and always adapting. Every session starts with a check-in — energy, pain, sleep, what's changed since last week. The plan for that day gets set then, not before you walk through the door."}
+          </p>
+          <div className="steps">
+            <div className="step">
+              <div className="sn">01</div>
+              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it. You leave having done something worthwhile."}</p></div>
+              <div className="si"><Image src="/images/approach-step1.jpg" alt="Esther Fair adapting a training session in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+            </div>
+            <div className="step">
+              <div className="sn">02</div>
+              <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, no dress code. Just you and what you need today."}</p></div>
+              <div className="si"><Image src="/images/studio-2.jpg" alt="Private personal training studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+            </div>
+            <div className="step">
+              <div className="sn">03</div>
+              <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That's what I build towards."}</p></div>
+              <div className="si"><Image src="/images/approach-step3.jpg" alt="Long-term sustainable training in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+            </div>
+          </div>
+          <div className="aq-g">
+            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h4><p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p></div>
+            <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
+          </div>
+        </div>
+      </section>
+
       {/* WHO */}
       <section id="who" className="sec" style={{ background: "var(--ink)" }}>
         <div className="sin">
@@ -129,40 +163,6 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             {content.specialist_body ?? "If your health picture is more specific, here's more detail on how I work with it — heart health and blood pressure, bone and joint health, visual impairment, cancer rehabilitation, and more."}
           </p>
           <Link href="/personal-training#specialist" className="btn btn-ol" style={{ marginTop: 20 }}>{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
-        </div>
-      </section>
-
-      {/* APPROACH */}
-      <section id="approach" className="sec" style={{ background: "var(--cream)" }}>
-        <div className="sin">
-          <div style={{ maxWidth: 640, marginBottom: 12 }}>
-            <div className="stag stag-f">{content.approach_tag ?? "The Approach"}</div>
-            <h2 className="D">How I Actually<br />Train You</h2>
-          </div>
-          <p className="L" style={{ maxWidth: 560 }}>
-            {content.approach_body ?? "I'm always watching, and always adapting. Every session starts with a check-in — energy, pain, sleep, what's changed since last week. The plan for that day gets set then, not before you walk through the door."}
-          </p>
-          <div className="steps">
-            <div className="step">
-              <div className="sn">01</div>
-              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it. You leave having done something worthwhile."}</p></div>
-              <div className="si"><Image src="/images/approach-step1.jpg" alt="Esther Fair adapting a training session in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
-            </div>
-            <div className="step">
-              <div className="sn">02</div>
-              <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, no dress code. Just you and what you need today."}</p></div>
-              <div className="si"><Image src="/images/studio-2.jpg" alt="Private personal training studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
-            </div>
-            <div className="step">
-              <div className="sn">03</div>
-              <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That's what I build towards."}</p></div>
-              <div className="si"><Image src="/images/approach-step3.jpg" alt="Long-term sustainable training in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
-            </div>
-          </div>
-          <div className="aq-g">
-            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h4><p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p></div>
-            <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
-          </div>
         </div>
       </section>
 
