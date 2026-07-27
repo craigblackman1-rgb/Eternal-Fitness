@@ -26,14 +26,14 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       icon: IconHeart,
       title: content.vp_1_title ?? "One person. One trainer. One focus.",
       description:
-        content.vp_1_desc ?? "Your health is not a short-term purchase — it is a long-term investment in your energy, confidence, and overall quality of life. Prioritising wellness now pays dividends for years to come.",
+        content.vp_1_desc ?? "Your health is not a short-term purchase — it is a long-term investment in your energy, confidence, and overall quality of life.",
       accent: "rose" as const,
     },
     {
       icon: IconDumbbell,
-      title: content.vp_2_title ?? "Qualified to work where others cannot",
+      title: content.vp_2_title ?? "Built around real, sustainable change",
       description:
-        content.vp_2_desc ?? "My pricing reflects personalised coaching focused on real, sustainable change — not quick fixes. You are paying for private sessions, tailored programmes, and expert guidance designed around your goals.",
+        content.vp_2_desc ?? "My pricing reflects private one-to-one sessions and a programme built around your goals — not a quick fix.",
       accent: "teal" as const,
     },
     {
@@ -47,31 +47,16 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
 
   const plans = [
     {
-      name: content.plan_1_name ?? "Single Session",
-      price: "£45",
-      per: "per session",
-      popular: false,
-      description: content.plan_1_desc ?? "Pay as you go. Ideal if you want to try a session before committing to a block.",
-      features: [
-        content.plan_1_feat_1 ?? "60-minute one-to-one session",
-        content.plan_1_feat_2 ?? "Programme adapted to your needs",
-        content.plan_1_feat_3 ?? "Private studio in Worthing",
-        content.plan_1_feat_4 ?? "Full health and mobility assessment on first visit",
-      ],
-      cta: content.plan_1_cta ?? "Book a Free Consultation First",
-    },
-    {
       name: content.plan_2_name ?? "Block of 12",
       price: "£480",
       per: "£40 per session",
       popular: true,
-      description: content.plan_2_desc ?? "The most popular choice. Enough sessions to build real momentum and see meaningful change.",
+      description: content.plan_2_desc ?? "The most popular choice. Enough sessions to build real momentum.",
       features: [
-        content.plan_2_feat_1 ?? "12 x 60-minute sessions",
-        content.plan_2_feat_2 ?? "Save £5 per session vs pay-as-you-go",
-        content.plan_2_feat_3 ?? "Programme review and adjustment included",
-        content.plan_2_feat_4 ?? "Private studio in Worthing",
-        content.plan_2_feat_5 ?? "Sessions used at your pace — no expiry pressure",
+        content.plan_2_feat_1 ?? "12 x 60-minute one-to-one sessions",
+        content.plan_2_feat_2 ?? "Programme review and adjustment included",
+        content.plan_2_feat_3 ?? "Private studio in Worthing, or live online",
+        content.plan_2_feat_4 ?? "Sessions used at your pace — no expiry pressure",
       ],
       cta: content.plan_2_cta ?? "Book a Free Consultation",
     },
@@ -80,13 +65,13 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       price: "£840",
       per: "£35 per session",
       popular: false,
-      description: content.plan_3_desc ?? "Best value. For clients committed to long-term progress with complex or ongoing health needs.",
+      description: content.plan_3_desc ?? "Best value. For longer-term progress or more complex needs.",
       features: [
-        content.plan_3_feat_1 ?? "24 x 60-minute sessions",
-        content.plan_3_feat_2 ?? "Save £10 per session vs pay-as-you-go",
+        content.plan_3_feat_1 ?? "24 x 60-minute one-to-one sessions",
+        content.plan_3_feat_2 ?? "Save £5 per session vs. Block of 12",
         content.plan_3_feat_3 ?? "Ongoing programme management",
         content.plan_3_feat_4 ?? "Priority scheduling",
-        content.plan_3_feat_5 ?? "Private studio in Worthing",
+        content.plan_3_feat_5 ?? "Private studio in Worthing, or live online",
       ],
       cta: content.plan_3_cta ?? "Book a Free Consultation",
     },
@@ -101,10 +86,10 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         imageAlt="Personal training pricing Worthing"
         eyebrow={content.hero_eyebrow ?? "Pricing"}
         heading={content.hero_heading ?? "Straightforward pricing. No contracts. No surprises."}
-        subhead={content.hero_subhead ?? "My pricing reflects premium 1:1 support, tailored programming, and accountability that helps you build long-term results. I start with a free consultation so you only invest in what you actually need."}
+        subhead={content.hero_subhead ?? "One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}
         primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
         secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing", variant: "ghost-white" }}
-        badge={<StatBadge value="1:1" label={content.badge_label ?? "Private Training"} sublabel={content.badge_sublabel ?? "60-minute sessions in Worthing"} />}
+        badge={<StatBadge value="1:1" label={content.badge_label ?? "Private Training"} sublabel={content.badge_sublabel ?? "60-minute sessions, studio or online"} />}
       />
 
       {/* What You Are Investing In */}
@@ -133,7 +118,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
           heading={content.pricing_heading ?? "Choose what works for you"}
           intro={content.pricing_intro ?? "All sessions are 60 minutes, one-to-one, in a private studio in Worthing."}
         />
-        <Reveal className="ds-grid-3" stagger={0.13} y={48} start="top 82%">
+        <Reveal className="ds-grid-2" stagger={0.13} y={48} start="top 82%" style={{ maxWidth: 760, margin: "0 auto" }}>
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -177,7 +162,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               <strong style={{ color: "var(--color-ink)" }}>{content.pricing_note_bold ?? "Not sure which to choose?"}</strong>{content.pricing_note_body ?? " Start with the free consultation. I will give you an honest recommendation based on your situation — not the most expensive option."}
             </p>
             <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14 }}>
-              <Link href="/personal-training" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_areas ?? "See my specialist areas"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
+              <Link href="/personal-training" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
               <Link href="/faqs" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
             </div>
           </div>

@@ -7,16 +7,15 @@ const ptSchema = {
   "@type": "Service",
   "@id": "https://eternal-fitness.co.uk/personal-training/#service",
   "name": "Personal Training in Worthing",
-  "description": "One-to-one personal training in Worthing for people with health conditions, cancer rehabilitation needs, disabilities, injuries, and complex needs. Level 4 qualified trainer.",
+  "description": "Private, one-to-one personal training in Worthing. Also trained to adapt for health conditions, disability, injury recovery, and GP referrals.",
   "url": "https://eternal-fitness.co.uk/personal-training",
   "provider": { "@type": "LocalBusiness", "name": "Eternal Fitness", "@id": "https://eternal-fitness.co.uk/#business" },
   "areaServed": { "@type": "City", "name": "Worthing" },
   "serviceType": "Personal Training",
-  "audience": { "@type": "Audience", "audienceType": "People with health conditions, disabilities, injuries, and complex needs seeking personal training" },
+  "audience": { "@type": "Audience", "audienceType": "Adults seeking private one-to-one personal training, including those with health conditions, disabilities, injuries, or complex needs" },
   "hasOfferCatalog": {
     "@type": "OfferCatalog", "name": "Personal Training Sessions",
     "itemListElement": [
-      { "@type": "Offer", "name": "Single Session", "price": "45", "priceCurrency": "GBP" },
       { "@type": "Offer", "name": "Block of 12", "price": "480", "priceCurrency": "GBP" },
       { "@type": "Offer", "name": "Block of 24", "price": "840", "priceCurrency": "GBP" }
     ]
@@ -24,8 +23,8 @@ const ptSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "Personal Training in Worthing for Health Conditions and Complex Needs",
-  description: "Personal training in Worthing with a Level 4 specialist. Sessions adapted for health conditions, cancer rehab, disability, injury recovery and GP referrals.",
+  title: "Personal Training in Worthing | Eternal Fitness",
+  description: "Private, one-to-one personal training in Worthing. Strength, mobility, and a plan that adapts to how you actually feel — with the training to adapt further if you need it.",
   alternates: { canonical: "https://eternal-fitness.co.uk/personal-training" },
 };
 

@@ -7,7 +7,7 @@ const localBusinessSchema = {
   "@type": "LocalBusiness",
   "@id": "https://eternal-fitness.co.uk/#business",
   "name": "Eternal Fitness",
-  "description": "Private one-to-one personal training in Worthing with Level 4 qualified trainer Esther Fair. Specialist support for health conditions, cancer rehabilitation, disability and complex needs.",
+  "description": "Private one-to-one personal training in Worthing with Esther Fair, qualified in Cancer and Exercise Rehabilitation and Exercise Referral. Also trained to support health conditions, disability and complex needs.",
   "url": "https://eternal-fitness.co.uk",
   "telephone": "07517658128",
   "email": "esther.fair@eternal-fitness.co.uk",
@@ -33,9 +33,8 @@ const localBusinessSchema = {
     "@type": "OfferCatalog",
     "name": "Personal Training Services",
     "itemListElement": [
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Single Personal Training Session", "description": "60-minute one-to-one personal training session in a private studio in Worthing." }, "price": "45", "priceCurrency": "GBP" },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Block of 12 Personal Training Sessions", "description": "12 x 60-minute personal training sessions with programme review and adjustment." }, "price": "480", "priceCurrency": "GBP" },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Block of 24 Personal Training Sessions", "description": "24 x 60-minute personal training sessions with ongoing programme management and priority scheduling." }, "price": "840", "priceCurrency": "GBP" }
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Block of 12 Personal Training Sessions", "description": "12 x 60-minute one-to-one personal training sessions, in the studio or online, with programme review and adjustment." }, "price": "480", "priceCurrency": "GBP" },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Block of 24 Personal Training Sessions", "description": "24 x 60-minute one-to-one personal training sessions, in the studio or online, with ongoing programme management and priority scheduling." }, "price": "840", "priceCurrency": "GBP" }
     ]
   }
 };
@@ -44,7 +43,7 @@ const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
   "name": "Esther Fair",
-  "jobTitle": "Level 4 Personal Trainer",
+  "jobTitle": "Personal Trainer",
   "url": "https://eternal-fitness.co.uk/about",
   "telephone": "07517658128",
   "email": "esther.fair@eternal-fitness.co.uk",
@@ -52,16 +51,16 @@ const personSchema = {
   "address": { "@type": "PostalAddress", "addressLocality": "Worthing", "addressRegion": "West Sussex", "addressCountry": "GB" },
   "knowsAbout": ["Personal Training", "Cancer Rehabilitation", "Exercise Referral", "Adaptive Fitness", "Chronic Health Conditions", "Disability Fitness", "Injury Recovery", "Strength Training", "Mobility Training"],
   "hasCredential": [
-    { "@type": "EducationalOccupationalCredential", "name": "Level 4 Personal Trainer" },
+    { "@type": "EducationalOccupationalCredential", "name": "Personal Trainer" },
     { "@type": "EducationalOccupationalCredential", "name": "Exercise Referral Specialist" },
-    { "@type": "EducationalOccupationalCredential", "name": "Cancer Rehabilitation Specialist" }
+    { "@type": "EducationalOccupationalCredential", "name": "Level 4 Cancer and Exercise Rehabilitation" }
   ],
   "sameAs": ["https://www.facebook.com/EternalFitnessPersonalTraining/", "https://instagram.com/eternalfitness/", "https://linkedin.com/in/esther-fair/", "https://youtube.com/eternalfitness/"]
 };
 
 export const metadata: Metadata = {
-  title: "Level 4 Personal Trainer for Health Conditions in Worthing",
-  description: "Private one-to-one personal training in Worthing with Level 4 trainer Esther Fair. Specialist for health conditions, cancer rehab, disability and more.",
+  title: "Personal Trainer in Worthing | Eternal Fitness",
+  description: "Private one-to-one personal training in Worthing. A plan that adapts to how you actually feel, every session — with the training to adapt further if your health ever changes.",
   alternates: { canonical: "https://eternal-fitness.co.uk/" },
 };
 

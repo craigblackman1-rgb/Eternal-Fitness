@@ -12,7 +12,7 @@ const faqSchema = {
         "name": "Do I need to be fit or healthy to start personal training?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "No. Most clients start from a point where conventional fitness feels inaccessible. You do not need to have exercised before, be at a particular weight, or be healthy in the conventional sense. The only starting point is where you are right now."
+          "text": "No. Most clients haven't exercised in a while, or don't think of themselves as \"gym people.\" You do not need any experience, and you do not need to be at a particular weight. The only starting point is where you are right now."
         }
       },
       {
@@ -39,7 +39,7 @@ const faqSchema = {
         "name": "I have a chronic health condition. Can personal training help me?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Almost certainly yes. Esther is qualified in exercise referral, which means she is specifically trained to work with people with clinical health conditions including heart conditions, diabetes, autoimmune conditions, fibromyalgia, ME/CFS, and many others."
+          "text": "Almost certainly yes. Esther is qualified in exercise referral, which means she is specifically trained to work with people with clinical health conditions. Every programme is adapted to what your body can manage."
         }
       },
       {
@@ -96,8 +96,8 @@ const faqSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "FAQs: Cancer Rehab, Disability, Health Conditions Training",
-  description: "Common questions about personal training at Eternal Fitness in Worthing. Health conditions, cancer rehab, disability, pricing and what to expect.",
+  title: "Frequently Asked Questions | Eternal Fitness",
+  description: "Common questions about personal training with Eternal Fitness in Worthing — getting started, pricing, and training with a health condition or disability.",
   alternates: { canonical: "https://eternal-fitness.co.uk/faqs" },
 };
 

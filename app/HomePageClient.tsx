@@ -28,13 +28,13 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         <div className="hlp">
           <div className="h-tag" id="htag">{content.hero_tag ?? "Worthing, West Sussex"}</div>
           <h1 style={{ marginBottom: 24 }}>
-            <div className="hw"><span className="hl hl-t" id="hl1">{content.hero_line_1 ?? "Exercise"}</span></div>
-            <div className="hw"><span className="hl hl-b" id="hl2">{content.hero_line_2 ?? "for Health"}</span></div>
-            <div className="hw"><span className="hl hl-t" id="hl3">{content.hero_line_3 ?? "Conditions"}</span></div>
+            <div className="hw"><span className="hl hl-t" id="hl1">{content.hero_line_1 ?? "Personal"}</span></div>
+            <div className="hw"><span className="hl hl-b" id="hl2">{content.hero_line_2 ?? "Training"}</span></div>
+            <div className="hw"><span className="hl hl-t" id="hl3">{content.hero_line_3 ?? "in Worthing"}</span></div>
           </h1>
           <p className="h-loc" id="hloc">{content.hero_loc ?? "Private one-to-one personal training in Worthing"}</p>
           <p className="h-sub" id="hsub">
-            {content.hero_subheading ?? "Specialist training for people with health conditions, complex needs, and anyone the mainstream fitness industry has overlooked. Every session adapts to how you feel that day — because the same plan can be right one week and wrong the next. GP-referred clients welcome."}
+            {content.hero_subheading ?? "Every session starts with a conversation — how's your energy, how did you sleep, what's changed since last week. The plan for the day gets set there, not before you walk in. I'm also qualified to keep training you if your health ever changes."}
           </p>
           <div className="h-btns" id="hbtns">
             <button className="btn btn-dk" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
@@ -54,7 +54,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div className="hbc">4</div>
             <div>
               <div className="hbt">{content.badge_title ?? "Level 4 Qualified"}</div>
-              <div className="hbs">{content.badge_sub ?? "The highest PT qualification in the UK — plus cancer rehab and exercise referral"}</div>
+              <div className="hbs">{content.badge_sub ?? "In Cancer & Exercise Rehabilitation"}</div>
             </div>
           </div>
         </div>
@@ -65,11 +65,11 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         <div className="ttrack">
           {[0, 1].map((dup) => (
             <span key={dup} style={{ display: "flex" }}>
-              <span className="ti">{content.ticker_1 ?? "Level 4 Personal Trainer"}</span><span className="ti ts">✦</span>
-              <span className="ti">{content.ticker_2 ?? "Cancer Rehabilitation Specialist"}</span><span className="ti ts">✦</span>
-              <span className="ti">{content.ticker_3 ?? "Exercise Referral Specialist"}</span><span className="ti ts">✦</span>
-              <span className="ti">{content.ticker_4 ?? "GP-Referred Clients Welcome"}</span><span className="ti ts">✦</span>
-              <span className="ti">{content.ticker_5 ?? "Private One-to-One Studio"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_1 ?? "Private One-to-One Personal Training"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_2 ?? "No Gym Floor"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_3 ?? "Blocks of 12 or 24 Sessions"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_4 ?? "Qualified in Cancer & Exercise Rehabilitation"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_5 ?? "Studio or Online"}</span><span className="ti ts">✦</span>
               <span className="ti">{content.ticker_6 ?? "Based in Worthing"}</span><span className="ti ts">✦</span>
             </span>
           ))}
@@ -90,12 +90,12 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <div className="stag stag-r">{content.why_tag ?? "Why Eternal Fitness"}</div>
               <h2 className="D" style={{ marginBottom: 16 }}>Training That Meets<br />You Where You Are</h2>
               <p className="L">
-                {content.why_body ?? "Esther Fair is a Level 4 personal trainer, Exercise Referral Specialist, and Cancer Rehabilitation Specialist based in Worthing. She specialises in rehabilitation and recovery training for cancer treatment survivors, chronic health conditions, post-surgery recovery, disabilities, and anyone with complex medical needs who has been overlooked by mainstream fitness."}
+                {content.why_body ?? "I'm Esther — a personal trainer based in a private studio in Worthing. Every session starts with a check-in, and the plan adapts to how you actually feel that day. I'm also qualified in exercise referral and cancer and exercise rehabilitation, so if your health ever changes, I don't have to stop training you."}
               </p>
               <div className="wfeats">
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Specialist in complex health conditions"}</div><div className="wfc">{content.why_feat_1_desc ?? "Cancer rehabilitation, chronic illness, neurological conditions, post-surgical recovery, mobility limitations."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Strength and mobility for real life"}</div><div className="wfc">{content.why_feat_2_desc ?? "Building functional strength that improves everyday movement, independence, and confidence."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_3_desc ?? "A private studio with no gym floor, no other clients, no pressure to look or perform."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Strength and mobility for real life"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves everyday movement, independence, and confidence."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "A private studio with no gym floor, no other clients, no pressure to look or perform."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "Qualified in exercise referral and cancer and exercise rehabilitation, so if your health picture shifts, I can adjust rather than you needing to find someone new."}</div></div></div>
               </div>
             </div>
           </div>
@@ -106,24 +106,24 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
       <section id="who" className="sec" style={{ background: "var(--ink)" }}>
         <div className="sin">
           <div className="stag stag-w">{content.who_tag ?? "Who This Is For"}</div>
-          <h2 className="D DL" style={{ maxWidth: 700 }}>If You Have Been Told<br />Fitness Is Not for You — It Is</h2>
+          <h2 className="D DL" style={{ maxWidth: 700 }}>Wherever You're Starting<br />From, There's a Way In</h2>
           <p className="L LL" style={{ marginTop: 16, maxWidth: 540 }}>
-            {content.who_body ?? "I have worked with clients managing cancer, chronic illness, disability, visual impairment, neurological conditions, and complex mobility issues. I am here for the people other trainers cannot help."}
+            {content.who_body ?? "Most of the people I train are just looking for proper one-to-one attention — to get fitter, stronger, and feel more like themselves. Some arrive with more going on: a health condition, recovery from treatment, or something that's made them wonder if training is even for them. If that's you, it almost certainly still is."}
           </p>
           <div className="who-g">
             <div className="wc">
               <div className="wci"><Image src="/images/who-health.jpg" alt="Training with health conditions in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
               <div className="wcb">
-                <h3>{content.who_card_1_title ?? "People managing health conditions, disability, or injury"}</h3>
-                <p>{content.who_card_1_desc ?? "Cancer rehabilitation. Chronic illness. Neurological conditions. Post-surgical recovery. Extreme mobility limitations. Level 4 qualified and exercise referral trained — I know how to work safely and effectively with complex needs."}</p>
-                <Link href="/personal-training" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_1_link ?? "See Specialist Areas"} <Arrow /></Link>
+                <h3>{content.who_card_1_title ?? "If your health picture is more specific"}</h3>
+                <p>{content.who_card_1_desc ?? "High blood pressure, a GP referral, recovery from treatment — I'm trained to work with it safely, and to adjust as things change."}</p>
+                <Link href="/personal-training" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_1_link ?? "See Specialist Training"} <Arrow /></Link>
               </div>
             </div>
             <div className="wc">
               <div className="wci"><Image src="/images/who-mobility.jpg" alt="Inclusive personal training in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
               <div className="wcb">
-                <h3>{content.who_card_2_title ?? "People who have never felt welcome in fitness spaces"}</h3>
-                <p>{content.who_card_2_desc ?? "Whether you are a complete beginner, have had negative experiences elsewhere, or simply find gyms intimidating — the private, one-to-one format at Eternal Fitness is designed to feel completely different. No dress code, no weigh-in, no comparison to anyone else."}</p>
+                <h3>{content.who_card_2_title ?? "New to training, or it's been a while"}</h3>
+                <p>{content.who_card_2_desc ?? "Whether you've never worked with a trainer before or just haven't been consistent in a while, the private one-to-one format means no dress code and no comparison to anyone else — just a plan built around where you're starting from."}</p>
               </div>
             </div>
           </div>
@@ -135,7 +135,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         <div className="sin">
           <div style={{ maxWidth: 640, marginBottom: 12 }}>
             <div className="stag stag-f">{content.approach_tag ?? "The Approach"}</div>
-            <h2 className="D">This Is Not Like<br />Other Personal Training</h2>
+            <h2 className="D">How I Actually<br />Train You</h2>
           </div>
           <p className="L" style={{ maxWidth: 560 }}>
             {content.approach_body ?? "I am always watching and always adapting. Every session starts with a check-in — energy levels, pain, sleep, what's changed since last week. The plan for that day is set then, not before you walk through the door."}
@@ -158,7 +158,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             </div>
           </div>
           <div className="aq-g">
-            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Level 4 qualified — the highest mainstream PT certification in the UK"}</h4><p>{content.approach_box_1_desc ?? "Exercise Referral Specialist and Cancer Rehabilitation Specialist. Trained to work with GP-referred clients, chronic conditions, post-treatment recovery, and complex medical needs. Most PTs are not qualified for this work."}</p></div>
+            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to adapt when things change"}</h4><p>{content.approach_box_1_desc ?? "Trained in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation, alongside my personal training qualification — so if your health picture shifts, I can adjust safely rather than you needing to find someone new."}</p></div>
             <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
           </div>
         </div>
@@ -168,9 +168,9 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
       <section id="specialist" className="sec" style={{ background: "var(--white)" }}>
         <div className="sin">
           <div className="spec-h">
-            <div><div className="stag stag-r">{content.spec_tag ?? "Specialist Areas"}</div><h2 className="D">{content.spec_heading ?? "Who I Work With"}</h2></div>
+            <div><div className="stag stag-r">{content.spec_tag ?? "Specialist Training"}</div><h2 className="D">{content.spec_heading ?? "Who I Work With"}</h2></div>
             <p className="L">
-              {content.spec_body ?? "Cancer rehabilitation (active treatment, in remission, post-surgery). Chronic health conditions (fibromyalgia, ME/CFS, autoimmune, diabetes, heart conditions). Disability and adaptive training. Neurological conditions. GP-referred programmes. If your situation is not listed — please still get in touch. The answer is almost always yes."}
+              {content.spec_body ?? "If your health picture is more specific, here's where to find more detail — heart health and blood pressure, bone and joint health, visual impairment, cancer rehabilitation, and more. If your situation isn't listed, get in touch — the answer is almost always yes."}
             </p>
           </div>
           <div className="spec-g">
@@ -187,13 +187,13 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="twrap">
             <div className="tmark">&ldquo;</div>
             <p className="tquote">
-              {content.testimonial_1 ?? "I was so nervous about starting, but from the first session Esther put me at ease. She listened, adapted everything to my condition, and I have never felt stronger or more confident in my own body."}
+              {content.testimonial_1 ?? "She helps me maintain a level of strength, mobility and fitness that I wouldn't have without her... she also adapts routines and exercises to my needs when necessary. I would highly recommend Esther to anyone, of any age and ability."}
             </p>
-            <div className="tauth"><div className="tav">M</div><div><div className="tnm">Mary C</div><div className="tlo">Worthing</div></div></div>
+            <div className="tauth"><div className="tav">A</div><div><div className="tnm">Amanda M</div><div className="tlo">Training 5 years</div></div></div>
             <div className="tdiv" />
             <div className="tsec">
               <p>{content.testimonial_2 ?? "\u201CAs someone who has dealt with chronic pain for years, I was sceptical that exercise could help. The personalised approach at Eternal Fitness has genuinely changed my quality of life. I cannot recommend it enough.\u201D"}</p>
-              <div className="tsec-a">Angela M · West Sussex</div>
+              <div className="tsec-a">Saffron S · Worthing</div>
             </div>
             <div style={{ marginTop: 52 }}>
               <div className="stag stag-w" style={{ justifyContent: "center", marginBottom: 14 }}>{content.testimonial_heading ?? "Client Stories"}</div>

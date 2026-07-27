@@ -10,7 +10,7 @@ import {
 const faqs = [
   {
     question: "Do I need to be fit or healthy to start?",
-    answer: "No. Most clients start from a point where conventional fitness feels inaccessible. You do not need to have exercised before, be at a particular weight, or be healthy in the conventional sense. The only starting point is where you are right now.",
+    answer: "No. Most clients haven't exercised in a while, or don't think of themselves as \"gym people.\" You do not need any experience — the only starting point is where you are right now.",
   },
   {
     question: "Is this suitable if I have an injury or medical condition?",
@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     question: "Do you offer flexible packages?",
-    answer: "Yes. Options include a single pay-as-you-go session at 45, a block of 12 for 480, or a block of 24 for 840. Every new client starts with a free 30-minute consultation — no commitment required.",
+    answer: "Sessions are booked in blocks of 12 (£480) or 24 (£840), in the studio or online. Every new client starts with a free 30-minute consultation — no commitment required.",
   },
   {
     question: "Where is the studio located?",

@@ -32,27 +32,15 @@ import {
 
 const specialistAreas = [
   {
-    title: "Cancer & cancer rehabilitation",
-    desc: "During active treatment, in remission, or post-surgery. I am qualified in cancer rehabilitation and adapt to wherever you are in your journey.",
-    image: "/images/specialise-1.jpg",
-    href: "/cancer-rehabilitation",
-  },
-  {
-    title: "Chronic health conditions",
-    desc: "Including autoimmune conditions, fibromyalgia, ME/CFS, heart conditions, diabetes, and more. Every session adapts to what your body can manage that day.",
-    image: "/images/specialise-2.jpg",
-    href: "/exercise-for-health",
-  },
-  {
-    title: "Disability & adaptive training",
-    desc: "Physical disabilities, significant mobility limitations, and sensory impairments including visual impairment. Programmes are built around your body, not a template.",
-    image: "/images/specialise-3.jpg",
-    href: "/exercise-for-health/visual-impairment",
-  },
-  {
     title: "GP-referred exercise",
     desc: "I am qualified in exercise referral and experienced in working alongside medical guidance from GPs and healthcare teams.",
     image: "/images/services-training.jpg",
+    href: "/exercise-for-health",
+  },
+  {
+    title: "Chronic health conditions",
+    desc: "A wide range of ongoing conditions — every session adapts to what your body can manage that day.",
+    image: "/images/specialise-2.jpg",
     href: "/exercise-for-health",
   },
   {
@@ -61,9 +49,21 @@ const specialistAreas = [
     image: "/images/mobility-movement.jpg",
   },
   {
+    title: "Disability & adaptive training",
+    desc: "Physical disabilities, significant mobility limitations, and sensory impairments including visual impairment. Programmes are built around your body, not a template.",
+    image: "/images/specialise-3.jpg",
+    href: "/exercise-for-health/visual-impairment",
+  },
+  {
     title: "Neurological conditions",
-    desc: "Including Parkinson's, MS, stroke recovery, and acquired brain injury. Gentle, progressive, and always adapted.",
+    desc: "Conditions affecting balance, coordination, or mobility. Gentle, progressive, and always adapted.",
     image: "/images/mind-body.jpg",
+  },
+  {
+    title: "Cancer & cancer rehabilitation",
+    desc: "During active treatment, in remission, or post-surgery. I am qualified in cancer and exercise rehabilitation and adapt to wherever you are in your journey.",
+    image: "/images/specialise-1.jpg",
+    href: "/cancer-rehabilitation",
   },
 ];
 
@@ -142,13 +142,13 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
 
       <PageHero
         image="/images/pt-hero.jpg"
-        imageAlt="Personal training in Worthing for health conditions and complex needs"
+        imageAlt="Personal training in Worthing"
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
-        heading={content.hero_heading ?? "Cancer Rehabilitation and Recovery Training in Worthing"}
-        subhead={content.hero_subhead ?? "Private one-to-one sessions with a Cancer Rehabilitation Specialist and Exercise Referral Specialist (Level 4 qualified). Whether you are in cancer treatment, post-surgery recovery, managing a chronic condition, living with a disability, or have complex medical needs — there is a specialist programme here for you."}
+        heading={content.hero_heading ?? "Personal Training in Worthing"}
+        subhead={content.hero_subhead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel. Whatever brought you here — wanting to get fitter and stronger, an injury to work around, a health condition to train safely with — sessions are built entirely around you."}
         primaryCta={bookCta}
         secondaryCta={{ label: content.hero_btn_secondary ?? "What Sessions Involve", href: "#what", variant: "ghost-white" }}
-        badge={<StatBadge variant="rose" value="L4" label={content.badge_label ?? "Cancer Rehab & Exercise Referral"} />}
+        badge={<StatBadge variant="rose" value="L4" label={content.badge_label ?? "Qualified in Cancer & Exercise Rehabilitation"} />}
       />
 
       {/* What to Expect */}
@@ -157,14 +157,14 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           <div>
             <SectionHeading
               eyebrow={content.what_eyebrow ?? "What to Expect"}
-              heading={content.what_heading ?? "This Is Not Like Other Personal Training"}
+              heading={content.what_heading ?? "What to Expect"}
             />
             <Reveal y={24}>
               <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>
-                {content.what_p1 ?? "Personal training at Eternal Fitness is not about pushing harder, going faster, or doing more. It is about rehabilitation, recovery, and what your body needs right now — whether managing a health condition, recovering from cancer treatment, or living with a disability — and building a sustainable programme around that. Sessions are private, one-to-one, and held in a small studio in Worthing where there is no gym floor, no other clients watching, and no comparison to anyone else."}
+                {content.what_p1 ?? "Training with me isn't about pushing harder or doing more for its own sake. It's about what your body needs right now, and building a sustainable plan around that. Sessions are private, one-to-one, in a small studio in Worthing — no gym floor, no other clients, no comparison to anyone else."}
               </p>
               <p className="ds-body" style={{ marginBottom: 28 }}>
-                {content.what_p2 ?? "My specialist training in cancer rehabilitation and exercise referral means I am trained to adapt to medical conditions, medication side-effects, fatigue cycles, and variable capacity. I work within your GP's or specialist's guidance. I do not guess — I ask, I listen, and I adjust every session based on your body's actual needs that day."}
+                {content.what_p2 ?? "I'm also trained in exercise referral and cancer rehabilitation, so if your health changes — a new condition, a GP referral, recovery from treatment — I can adapt rather than you having to start again with someone new."}
               </p>
               <CtaButton cta={bookCta} />
             </Reveal>
@@ -175,29 +175,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         </div>
       </Section>
 
-      {/* Specialist Areas */}
-      <Section background="cream" id="specialist-areas">
-        <SectionHeading
-          eyebrow={content.spec_eyebrow ?? "Specialist Areas"}
-          heading={content.spec_heading ?? "Who I Work With"}
-          intro={content.spec_intro ?? "I specialise in working with people who have been underserved by mainstream fitness. If your situation is not listed here, please still get in touch — the answer is almost always yes."}
-        />
-        <Reveal y={40} start="top 80%" style={{ marginTop: 40 }}>
-          <IndexList
-            accent="rose"
-            panelEyebrow={content.spec_panel_eyebrow ?? "Specialist areas"}
-            items={specialistAreas.map((a, i) => ({
-              title: content[`area_${i + 1}_title`] ?? a.title,
-              body: content[`area_${i + 1}_desc`] ?? a.desc,
-              cta: a.href
-                ? { label: content.spec_cta_learn ?? "Learn more", href: a.href }
-                : { label: content.spec_cta_book ?? "Book a consultation", onClick: openDialog },
-            }))}
-          />
-        </Reveal>
-      </Section>
-
-      {/* What I Work On */}
+      {/* What We Work On */}
       <Section background="white">
         <div className="ds-split">
           <Reveal y={40} className="ds-split-img">
@@ -210,8 +188,8 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             <SectionHeading
               eyebrow={content.focus_eyebrow ?? "What I Work On"}
               eyebrowColor="teal"
-              heading={content.focus_heading ?? "Recovery and Rehabilitation for Real Life"}
-              intro={content.focus_intro ?? "The focus is functional rehabilitation — building strength, mobility, endurance, and capability for real life during and after health conditions. Not aesthetics. Not performance metrics. Real outcomes: returning to activities after cancer treatment, climbing stairs without pain, managing fatigue, walking further, recovering independence, sleeping better, regaining confidence in your own body."}
+              heading={content.focus_heading ?? "What We Work On"}
+              intro={content.focus_intro ?? "Strength, mobility, endurance, and capability for real life — not aesthetics, not a number on a scale. Practical things: carrying the shopping, getting up off the floor, climbing stairs without thinking about it, sleeping better, feeling more like yourself."}
             />
             <div className="ds-featlist">
               {focusCards.map((c, i) => (
@@ -226,6 +204,28 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             </div>
           </div>
         </div>
+      </Section>
+
+      {/* Specialist Training */}
+      <Section background="cream" id="specialist-areas">
+        <SectionHeading
+          eyebrow={content.spec_eyebrow ?? "Specialist Training"}
+          heading={content.spec_heading ?? "If Your Health Picture Is More Specific"}
+          intro={content.spec_intro ?? "Some clients need more specific support — a health condition, an injury, adapting for a disability. If your situation is not listed here, please still get in touch — the answer is almost always yes."}
+        />
+        <Reveal y={40} start="top 80%" style={{ marginTop: 40 }}>
+          <IndexList
+            accent="rose"
+            panelEyebrow={content.spec_panel_eyebrow ?? "Specialist areas"}
+            items={specialistAreas.map((a, i) => ({
+              title: content[`area_${i + 1}_title`] ?? a.title,
+              body: content[`area_${i + 1}_desc`] ?? a.desc,
+              cta: a.href
+                ? { label: content.spec_cta_learn ?? "Learn more", href: a.href }
+                : { label: content.spec_cta_book ?? "Book a consultation", onClick: openDialog },
+            }))}
+          />
+        </Reveal>
       </Section>
 
       {/* How It Works */}
@@ -246,10 +246,10 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       <Section background="white">
         <SectionHeading
           align="center"
-          eyebrow={content.pages_eyebrow ?? "Specialist Pages"}
+          eyebrow={content.pages_eyebrow ?? "Specialist Training"}
           eyebrowColor="teal"
-          heading={content.pages_heading ?? "Condition-Specific Training"}
-          intro={content.pages_intro ?? "Each of my specialist areas has a dedicated page with more detail about how I work with specific conditions."}
+          heading={content.pages_heading ?? "More on Specific Conditions"}
+          intro={content.pages_intro ?? "Each specialist area has a dedicated page with more detail about how I work with it."}
         />
         <Reveal y={40} start="top 82%" style={{ marginTop: 40 }}>
           <FeatureBand
@@ -264,7 +264,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         <StatStrip
           background="ink"
           stats={[
-            { icon: IconAward, value: "L4", label: content.stat_1_label ?? "Cancer rehab & exercise referral qualified" },
+            { icon: IconAward, value: "L4", label: content.stat_1_label ?? "Qualified in Cancer & Exercise Rehabilitation" },
             { icon: IconUsers, value: "1:1", label: content.stat_2_label ?? "Private one-to-one sessions only" },
             { icon: IconMessageCircle, value: "30 min", label: content.stat_3_label ?? "Free, no-pressure consultation" },
             { icon: IconClipboardList, value: "Worthing", label: content.stat_4_label ?? "Private studio, West Sussex" },

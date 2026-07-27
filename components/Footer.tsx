@@ -36,7 +36,7 @@ const Footer = () => {
                 <EternalFitnessLogo variant="light" className="h-16 w-auto" />
               </Link>
               <p className="text-[15px] text-white/60 leading-relaxed mt-5 max-w-xs">
-                Private one-to-one training in Worthing for people with complex health needs.
+                Private one-to-one personal training in Worthing.
               </p>
               <div className="mt-6 flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-rose flex items-center justify-center text-white text-sm font-bold shrink-0">
@@ -44,7 +44,7 @@ const Footer = () => {
                 </div>
                 <div>
                   <div className="text-[13px] font-bold text-white/80">Level 4 Qualified</div>
-                  <div className="text-[12px] text-white/40">Highest PT qualification in the UK</div>
+                  <div className="text-[12px] text-white/40">In Cancer &amp; Exercise Rehabilitation</div>
                 </div>
               </div>
             </div>

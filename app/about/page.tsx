@@ -8,21 +8,21 @@ const aboutSchema = {
   "mainEntity": {
     "@type": "Person",
     "name": "Esther Fair",
-    "jobTitle": "Level 4 Personal Trainer",
-    "description": "Level 4 personal trainer, exercise referral specialist, and cancer rehabilitation qualified. Based in a private studio in Worthing, West Sussex.",
+    "jobTitle": "Personal Trainer",
+    "description": "Personal trainer, qualified in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. Based in a private studio in Worthing, West Sussex.",
     "url": "https://eternal-fitness.co.uk/about",
     "worksFor": { "@type": "LocalBusiness", "name": "Eternal Fitness", "@id": "https://eternal-fitness.co.uk/#business" },
     "hasCredential": [
-      { "@type": "EducationalOccupationalCredential", "name": "Level 4 Personal Trainer" },
+      { "@type": "EducationalOccupationalCredential", "name": "Personal Trainer" },
       { "@type": "EducationalOccupationalCredential", "name": "Exercise Referral Specialist" },
-      { "@type": "EducationalOccupationalCredential", "name": "Cancer Rehabilitation Specialist" }
+      { "@type": "EducationalOccupationalCredential", "name": "Level 4 Cancer and Exercise Rehabilitation" }
     ]
   }
 };
 
 export const metadata: Metadata = {
-  title: "Esther Fair: Specialist in Cancer Rehab & Complex Health Needs",
-  description: "Meet Esther Fair: Cancer Rehabilitation & Exercise Referral Specialist. Level 4 qualified trainer for health conditions, disabilities, and complex needs.",
+  title: "About Esther Fair | Eternal Fitness",
+  description: "Esther Fair — personal trainer in Worthing, qualified in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. Private one-to-one studio.",
   alternates: { canonical: "https://eternal-fitness.co.uk/about" },
 };
 

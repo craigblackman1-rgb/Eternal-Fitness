@@ -13,25 +13,8 @@ const pricingSchema = {
       "position": 1,
       "item": {
         "@type": "Product",
-        "name": "Single Personal Training Session",
-        "description": "60-minute one-to-one personal training session in a private studio in Worthing. Full health and mobility assessment on first visit.",
-        "brand": { "@type": "Brand", "name": "Eternal Fitness" },
-        "offers": {
-          "@type": "Offer",
-          "price": "45",
-          "priceCurrency": "GBP",
-          "availability": "https://schema.org/InStock",
-          "seller": { "@type": "LocalBusiness", "name": "Eternal Fitness", "@id": "https://eternal-fitness.co.uk/#business" }
-        }
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "item": {
-        "@type": "Product",
         "name": "Block of 12 Personal Training Sessions",
-        "description": "12 x 60-minute personal training sessions with programme review and adjustment included. Save £5 per session vs pay-as-you-go.",
+        "description": "12 x 60-minute one-to-one personal training sessions, in the studio or online, with programme review and adjustment included.",
         "brand": { "@type": "Brand", "name": "Eternal Fitness" },
         "offers": {
           "@type": "Offer",
@@ -44,11 +27,11 @@ const pricingSchema = {
     },
     {
       "@type": "ListItem",
-      "position": 3,
+      "position": 2,
       "item": {
         "@type": "Product",
         "name": "Block of 24 Personal Training Sessions",
-        "description": "24 x 60-minute personal training sessions with ongoing programme management and priority scheduling. Save £10 per session vs pay-as-you-go.",
+        "description": "24 x 60-minute one-to-one personal training sessions, in the studio or online, with ongoing programme management and priority scheduling. Save £5 per session vs. Block of 12.",
         "brand": { "@type": "Brand", "name": "Eternal Fitness" },
         "offers": {
           "@type": "Offer",
@@ -63,8 +46,8 @@ const pricingSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "Personal Training Prices in Worthing",
-  description: "Specialist personal training pricing in Worthing. Sessions from £45. No contracts, no surprises. Free consultation with all packages.",
+  title: "Personal Training Prices in Worthing | Eternal Fitness",
+  description: "Personal training pricing in Worthing — blocks of 12 or 24 one-to-one sessions, in the studio or online. Free consultation to start.",
   alternates: { canonical: "https://eternal-fitness.co.uk/pricing" },
 };
 

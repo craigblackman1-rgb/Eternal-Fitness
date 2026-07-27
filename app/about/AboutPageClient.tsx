@@ -27,9 +27,9 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
   const { open, setOpen, openDialog } = useConsultationDialog();
 
   const qualifications = [
-    { title: content?.qual_1_title ?? "Level 4 Personal Trainer", desc: content?.qual_1_desc ?? "The highest level of personal training qualification in the UK — above the Level 3 held by most personal trainers. Registered with a recognised UK fitness body." },
+    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "My foundation qualification — private, one-to-one personal training. Everything else builds on this." },
     { title: content?.qual_2_title ?? "Exercise Referral Specialist", desc: content?.qual_2_desc ?? "Qualified to work with GP-referred clients and those with clinical conditions requiring adapted exercise programmes." },
-    { title: content?.qual_3_title ?? "Cancer Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to support people through cancer treatment and recovery, including those currently in active treatment." },
+    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to support people through cancer treatment and recovery, including those currently in active treatment." },
   ];
 
   const studioCards = [
@@ -41,7 +41,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
   const longTermCards = [
     { title: content?.long_card_1_title ?? "The Power of Consistency", desc: content?.long_card_1_desc ?? "Small, steady actions repeated over time create lasting physical and mental change — without extremes.", image: "/images/approach-consistency.jpg", href: undefined },
     { title: content?.long_card_2_title ?? "Adapting When Things Change", desc: content?.long_card_2_desc ?? "Life and health are unpredictable. Your programme adapts with you, so progress never stops — it just looks different.", image: "/images/mobility-movement.jpg", href: undefined },
-    { title: content?.long_card_3_title ?? "Real Outcomes, Not Aesthetics", desc: content?.long_card_3_desc ?? "Stronger, more capable, more comfortable in your body. These are the results that actually matter.", image: "/images/mind-body.jpg", href: undefined },
+    { title: content?.long_card_3_title ?? "Real Outcomes, Not Aesthetics", desc: content?.long_card_3_desc ?? "Stronger, more capable, more comfortable in your body. These are the outcomes that actually matter.", image: "/images/mind-body.jpg", href: undefined },
   ];
 
   const bookCta = { label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true };
@@ -52,13 +52,13 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
 
       <PageHero
         image="/images/about-hero.jpg"
-        imageAlt="Esther Fair, Level 4 personal trainer in Worthing"
+        imageAlt="Esther Fair, personal trainer in Worthing"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
-        heading={content?.hero_heading ?? "About Esther Fair — Cancer Rehabilitation Specialist"}
-        subhead={content?.hero_subhead ?? "Level 4 Personal Trainer. Cancer Rehabilitation Specialist. Exercise Referral Specialist. I know first-hand what it feels like to start from zero."}
+        heading={content?.hero_heading ?? "About Esther Fair"}
+        subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}
         primaryCta={bookCta}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "My Story", href: "#story", variant: "ghost-white" }}
-        badge={<StatBadge value="L4" label={content?.badge_label ?? "Level 4 Qualified"} sublabel={content?.badge_sublabel ?? "Cancer Rehab & Exercise Referral"} />}
+        badge={<StatBadge value="L4" label={content?.badge_label ?? "Level 4 Qualified"} sublabel={content?.badge_sublabel ?? "In Cancer & Exercise Rehabilitation"} />}
       />
 
       {/* Story */}
@@ -74,11 +74,12 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
             </div>
           </Reveal>
           <div>
-            <SectionHeading eyebrow={content?.story_eyebrow ?? "My Story"} heading={content?.story_heading ?? "I Have Been Where You Are"} />
+            <SectionHeading eyebrow={content?.story_eyebrow ?? "My Story"} heading={content?.story_heading ?? "How Eternal Fitness Came to Be"} />
             <Reveal y={24}>
-              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "I did not come to fitness from a place of confidence. There was a time when exercise felt inaccessible, intimidating, and simply not something that was meant for me. When that changed, it changed everything — my health, my recovery, my sense of what my body was capable of."}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "That experience is the reason I became a personal trainer. Not to help people lose weight or achieve an aesthetic ideal — but to help people rehabilitate, recover, and feel stronger, more capable, and more functional in their own bodies, regardless of their health conditions or limitations."}</p>
-              <p className="ds-body" style={{ marginBottom: 28 }}>{content?.story_p3 ?? "I qualified to Level 4 — the highest personal training qualification in the UK — and went further with specialist certifications in Cancer Rehabilitation and Exercise Referral. I specifically sought these qualifications to work with people who have more complex medical needs: cancer treatment survivors, those with chronic health conditions, post-surgical recovery, disabilities, and clients whose health situations have led other trainers to say they cannot help. Those are exactly the clients I am here for."}</p>
+              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "After qualifying, I took a job in a leisure centre first — I wanted the security of employment before doing anything on my own."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "Covid changed that. When leisure centres closed, some of my more vulnerable clients asked if I could keep training them outdoors. Around the same time, I joined a clinical trial delivering online exercise sessions for people going through cancer treatment. I said yes to a few things, and it worked out okay. So I said yes to a few more."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "I didn't want to build a generic weight-loss business. I wanted to work with people who had real physical and mental health needs — people finding their way back to fitness after cancer treatment, older adults, visually impaired clients, athletes — and measure it in confidence, independence and how people actually feel, not just numbers."}</p>
+              <p className="ds-body" style={{ marginBottom: 28 }}>{content?.story_p4 ?? "I train from a converted garage studio now, and I've built my working hours around the life I actually want, not the other way round. My first client stayed with me for around seven years — that's the kind of relationship I'm after. I still get imposter syndrome some days. It hasn't stopped me building something I'm proud of."}</p>
               <CtaButton cta={bookCta} />
             </Reveal>
           </div>
@@ -91,8 +92,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           <div>
             <SectionHeading
               eyebrow={content?.quals_eyebrow ?? "Qualifications"}
-              heading={content?.quals_heading ?? "Qualified to Help Where Others Cannot"}
-              intro={content?.quals_intro ?? "Most personal trainers hold a Level 3 qualification. I hold Level 4 — alongside specialist certifications that are rare in any fitness setting."}
+              heading={content?.quals_heading ?? "What I'm Qualified For"}
+              intro={content?.quals_intro ?? "I trained as a personal trainer first, then went further: Exercise Referral, and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I'm equipped to keep working with you if your health changes — a new diagnosis, a GP referral, recovery from treatment — without you needing to find someone new."}
             />
             <div className="ds-featlist">
               {qualifications.map((q) => (
@@ -121,10 +122,10 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           align="center"
           eyebrow={content?.exp_eyebrow ?? "Experience"}
           eyebrowColor="teal"
-          heading={content?.exp_heading ?? "Experience Across the Full Range of Human Complexity"}
+          heading={content?.exp_heading ?? "A Wide Range of Experience"}
         />
         <Reveal y={24} className="ds-head-center" >
-          <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.exp_p1 ?? "Over the years, I have worked with clients that most personal trainers would not know how to support — cancer treatment survivors and people in recovery, people managing serious chronic health conditions (fibromyalgia, ME/CFS, autoimmune diseases, heart conditions), people in post-surgical or post-fracture rehabilitation, people with physical disabilities and mobility limitations, clients with significant visual impairment, people with neurological conditions (Parkinson's, MS, stroke recovery), and anyone whose health situation doesn't fit into mainstream fitness templates."}</p>
+          <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.exp_p1 ?? "Over the years I've worked with people managing chronic conditions, recovering from surgery, adjusting to a new diagnosis, or living with a disability — alongside the majority of my clients, who are just looking for proper one-to-one training."}</p>
           <p className="ds-body">{content?.exp_p2 ?? "I mention this not to boast, but because you might be wondering whether your situation is too complicated, too medically complex, or too much. It almost certainly is not. My Cancer Rehabilitation and Exercise Referral certifications equip me to work alongside your GP, specialist, and healthcare team. Every programme is built from scratch — with complete medical awareness and respect for whatever your body, health conditions, recovery status, or history looks like."}</p>
         </Reveal>
         <div style={{ maxWidth: 640, margin: "40px auto 0" }}>

@@ -19,7 +19,7 @@ const faqGroups = [
       {
         question: "Do I need to be fit or healthy to start?",
         answer:
-          "No. In fact, most of my clients start from a point where conventional fitness feels inaccessible. You do not need to have exercised before, you do not need to be at a particular weight, and you do not need to be healthy in the conventional sense. The only starting point is where you are right now.",
+          "No. Most of my clients haven't exercised in a while, or don't think of themselves as \"gym people.\" You do not need any experience, and you do not need to be at a particular weight. The only starting point is where you are right now.",
       },
       {
         question: "I have never used a personal trainer before. What can I expect?",
@@ -39,7 +39,32 @@ const faqGroups = [
     ],
   },
   {
-    group: "Health Conditions & Complex Needs",
+    group: "Practicalities",
+    faqs: [
+      {
+        question: "Do you offer short-term programmes?",
+        answer:
+          "Yes. While I believe in the long-term approach, I offer flexible options to suit different needs and budgets. I will recommend what I think is realistic for your goals during the initial consultation.",
+      },
+      {
+        question: "What if my health changes during a programme?",
+        answer:
+          "This is something I am specifically trained to manage. If your health changes — whether that is a new diagnosis, a flare-up, a change in medication, or simply a difficult period — your programme changes with it. You do not lose sessions and you do not fall behind. You just adapt.",
+      },
+      {
+        question: "Can I bring someone with me to sessions?",
+        answer:
+          "If having a carer, family member, or support person present would make you more comfortable, please let me know. I will accommodate wherever possible.",
+      },
+      {
+        question: "My question is not answered here. What should I do?",
+        answer:
+          "Just get in touch. There is no question too small or too complicated. I would always rather speak to someone who is not sure than have them talk themselves out of trying.",
+      },
+    ],
+  },
+  {
+    group: "Training With a Health Condition or Disability",
     faqs: [
       {
         question: "I have cancer or am going through cancer treatment. Can you still work with me?",
@@ -49,7 +74,7 @@ const faqGroups = [
       {
         question: "I have a chronic health condition. Can personal training still help me?",
         answer:
-          "Almost certainly yes. I am qualified in exercise referral, which means I am specifically trained to work with people who have clinical health conditions — including heart conditions, diabetes, autoimmune conditions, fibromyalgia, ME/CFS, and many others. Every programme is adapted to what your body can manage, and adjusted regularly as your health changes.",
+          "Almost certainly yes. I am qualified in exercise referral, which means I am specifically trained to work with people who have clinical health conditions. Every programme is adapted to what your body can manage, and adjusted regularly as your health changes.",
       },
       {
         question: "I have a disability. Can I still do personal training?",
@@ -90,31 +115,6 @@ const faqGroups = [
         question: "I have always felt uncomfortable or unwelcome in fitness spaces. Is this different?",
         answer:
           "This is the most common thing I hear. The private studio, the one-to-one format, and the complete absence of any mirror-and-performance culture is specifically designed to make it different. There is no dress code, no weigh-in, and no expectation of what fitness should look like. Many of my clients come to me having had negative experiences elsewhere. Most of them stay for years.",
-      },
-    ],
-  },
-  {
-    group: "Practicalities",
-    faqs: [
-      {
-        question: "Do you offer short-term programmes?",
-        answer:
-          "Yes. While I believe in the long-term approach, I offer flexible options to suit different needs and budgets. I will recommend what I think is realistic for your goals during the initial consultation.",
-      },
-      {
-        question: "What if my health changes during a programme?",
-        answer:
-          "This is something I am specifically trained to manage. If your health changes — whether that is a new diagnosis, a flare-up, a change in medication, or simply a difficult period — your programme changes with it. You do not lose sessions and you do not fall behind. You just adapt.",
-      },
-      {
-        question: "Can I bring someone with me to sessions?",
-        answer:
-          "If having a carer, family member, or support person present would make you more comfortable, please let me know. I will accommodate wherever possible.",
-      },
-      {
-        question: "My question is not answered here. What should I do?",
-        answer:
-          "Just get in touch. There is no question too small or too complicated. I would always rather speak to someone who is not sure than have them talk themselves out of trying.",
       },
     ],
   },
