@@ -1,6 +1,33 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Marketing site copy rewrite + launch-scope page disabling — DONE + DEPLOYED 2026-07-27.** Two pieces,
+  both from the `eternal-fitness` workspace repo's reference-layer sign-off the same day (see that repo's
+  `.context/decisions.log`, 2026-07-27 entries, for the full "personal trainer first" positioning
+  rationale):
+  1. **Copy rewrite** (`3f50bd8`): Home, About, Personal Training, Pricing, FAQs, Contact rewritten to
+     lead with personal training, not health conditions. Fixed the "Level 4 Personal Trainer / highest in
+     the UK" claim everywhere it appeared, including 3 separate schema.org blocks (jobTitle/hasCredential
+     on Home and About, plus Personal Training's Service schema) — Esther's Level 4 is the CanRehab
+     Cancer and Exercise Rehabilitation qualification specifically. Removed the £45 single-session tier
+     — confirmed not a real offer — from the Pricing cards, 2 schema.org Offer blocks, and a hardcoded
+     FAQ answer that also quoted it. About's fabricated origin story replaced with a real one sourced from
+     Esther's published Storm Fitness Academy interview. Testimonials swapped for real, sourced Google
+     Reviews quotes.
+  2. **Launch-scope page disabling** (`ded1a88`→`63c7875`): Craig asked to disable everything outside the
+     6 launch pages + 3 legal pages for now. Added temporary (`permanent: false`) redirects in
+     `next.config.js` for `/blog`, `/blog/:path*`, `/cancer-rehabilitation`, `/exercise-for-health`, and
+     `/exercise-for-health/:path*` → `/` — code stays in the repo, easy one-block revert once the
+     Specialist Training catalogue restructure and blog-rewrite scope decision are resolved. Stripped the
+     matching links from Navbar (flat 6-item nav now, dropdown removed) and Footer (Services column
+     removed, merged into a 3-column layout), and removed the in-page cross-link sections on Home and
+     Personal Training that pointed at the now-disabled pages. Trimmed `sitemap.ts` to the 9 live URLs
+     and dropped its Supabase `blog_posts` fetch entirely (no longer needed).
+  Both pushed straight to `main` from isolated worktrees (`ef-worktree-launch-copy-2026-07-27`,
+  `ef-worktree-disable-pages-2026-07-27`) per DO-SOP-010, `tsc --noEmit` and full `next build` clean each
+  time, Coolify auto-deploy confirmed via MCP. **Not done:** no live click-through verification in a
+  browser — confirm `staging.eternal-fitness.co.uk` renders correctly and disabled routes actually
+  redirect, next session.
 - **Hub design-alignment Work Order — all 8 lanes (A–H) built, reviewed, merged, DEPLOYED — 2026-07-26/27,
   not click-tested.** `.context/workorder-hub-design-alignment-session-editor-2026-07-26.md`. Lane H
   (session/workout editor, the one genuinely new feature) re-landed correctly in an isolated worktree

@@ -1,5 +1,40 @@
 # Handoff
 
+## Session close — 2026-07-27 — marketing site copy rewrite + launch-scope page disabling
+
+**Focus:** Craig had this session review the staging marketing site's copy against a full voice/
+positioning rewrite done the same day in the `eternal-fitness` workspace repo (personal-trainer-first,
+not clinical-specialist-first — see that repo's `.context/decisions.log` and `references/voice.md`/
+`stats.md`/`stories.md` for the full rationale and sign-off record). Once the reference layer was
+confirmed, asked for the actual site copy updated to match, then to disable everything outside a
+6-page + 3-legal-page launch scope.
+
+**Shipped, both deployed and confirmed healthy via Coolify MCP:**
+1. `3f50bd8` — rewrote Home, About, Personal Training, Pricing, FAQs, Contact. Full detail in
+   `.context/state.md`'s "Current" entry — the short version: personal training leads everywhere,
+   specialist quals are reassurance not the headline, the "Level 4 Personal Trainer / highest in the UK"
+   claim is fixed sitewide (including in schema.org structured data, not just visible copy), the £45
+   single-session tier is gone (was a bug, not a real offer — also fixed in structured data and a
+   hardcoded FAQ answer), About's fabricated origin story is replaced with a real one from Esther's
+   published Storm Fitness Academy interview, testimonials are real Google Reviews quotes now.
+2. `ded1a88`→`63c7875` — disabled (not deleted) Blog and the Exercise for Health/Cancer Rehabilitation
+   pages via temporary `next.config.js` redirects to `/`, stripped their nav/footer/in-page links, and
+   trimmed `sitemap.ts` to the 9 live URLs.
+
+Both built in isolated worktrees per DO-SOP-010 (`ef-worktree-launch-copy-2026-07-27`,
+`ef-worktree-disable-pages-2026-07-27`), `tsc --noEmit` + full `next build` clean before each push. One
+real near-miss caught before it mattered: after the first push, `git fetch` showed `origin/main` had
+moved (a concurrent session's docs-only commit) — rebased cleanly rather than force-pushing over it,
+per the "re-check before every push" rule.
+
+**Not done:** no live click-through on `staging.eternal-fitness.co.uk` — worth confirming next session
+that the redirects actually fire and the rewritten pages render as expected, not just that the build
+compiled. Also still open (tracked in the `eternal-fitness` workspace repo, not here): Esther's sign-off
+on which Google Reviews she's comfortable seeing used publicly, and exact wording confirmation on the
+About page's new story since it's sourced from a third-party-published interview.
+
+---
+
 ## Session close — 2026-07-25 — session logging Work Order (Lanes A-D) shipped, plus scheduling/calendar, bucket editing, and hub auth lockdown
 
 Full detail in `.context/workorder-session-logging-2026-07-25.md` (DONE checklist updated per lane). Summary:
