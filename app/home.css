@@ -40,8 +40,8 @@
 .efhome .hrp { background: var(--cream); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; overflow: hidden; min-height: 100vh; }
 .efhome .h-tag { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--rose); display: flex; align-items: center; gap: 10px; margin-bottom: 36px; }
 .efhome .h-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--rose); }
-.efhome .hw { overflow: hidden; padding-bottom: .04em; }
-.efhome .hl { display: block; font-family: var(--f); line-height: .94; letter-spacing: -.042em; }
+.efhome .hw { overflow: hidden; }
+.efhome .hl { display: block; font-family: var(--f); line-height: .94; letter-spacing: -.042em; padding-bottom: .2em; }
 .efhome .hl-t { font-size: clamp(44px, 5.6vw, 78px); font-weight: 300; color: var(--ink); }
 .efhome .hl-b { font-size: clamp(52px, 6.8vw, 92px); font-weight: 900; color: var(--rose); }
 .efhome .h-loc { font-size: clamp(15px, 1.4vw, 19px); color: var(--body); line-height: 1.5; margin: 22px 0 12px; }
