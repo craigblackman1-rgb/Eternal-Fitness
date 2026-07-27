@@ -1,21 +1,30 @@
 # Eternal Fitness Website — State
 
 ## Current
-- **Session/workout editor built + PUSHED (`d105e29`), NOT click-tested — 2026-07-26.** Craig wanted
-  workouts/sessions editable in the hub with drag-and-drop reordering; scoped via clarifying questions
-  (desk-planning tool, full edit scope, single-session-only edits), written as a functionality brief
-  for OpenDesign (`.context/brief-session-editor-opendesign.md`), mockup came back
-  (`D:\apps\design-systems\brand-staging-2662e9\hub-session-editor.html`) alongside a broader 8-lane
-  Work Order (`.context/workorder-hub-design-alignment-session-editor-2026-07-26.md`, registered but
-  unclaimed). Built Lane H only (the new editor) — new `SessionEditor.tsx` +
-  `add-exercise-dialog.tsx`, `page.tsx` wired with an edit-mode toggle. `tsc --noEmit` clean, ESLint
-  clean, `next build` compiles successfully (fails only at the Windows symlink/standalone-tracing
-  stage, unrelated to this change). **Process deviation, flagged not hidden: built and committed
-  directly in the shared checkout, not an isolated worktree — breaks DO-SOP-010.** Craig confirmed
-  push; commit `d105e29` is on `origin/main`. **Deploy status unconfirmed this session** — no Coolify
-  MCP access available; prior sessions record auto-deploy as ON for this app (pushes to `main` ship
-  automatically), but that wasn't re-verified here — check Coolify before assuming it's live. See
-  handoff.md for full detail.
+- **Hub design-alignment Work Order — all 8 lanes (A–H) built, reviewed, merged, DEPLOYED — 2026-07-26/27,
+  not click-tested.** `.context/workorder-hub-design-alignment-session-editor-2026-07-26.md`. Lane H
+  (session/workout editor, the one genuinely new feature) re-landed correctly in an isolated worktree
+  (fixing a DO-SOP-010 deviation from the prior session), pushed `d105e29`. Lanes A–G (presentation-only
+  diffs of every other hub route against its Open Design mockup) were dispatched to OpenCode
+  (`opencode-go/deepseek-v4-pro`) in isolated worktrees with junctioned `node_modules` (2026-07-25's
+  disk-fill incident deliberately not repeated — worktrees capped at 4 concurrent, junctions/worktrees
+  removed immediately after each merge). **OpenCode's first batch (lanes A–D) needed real fixes on
+  review, not rubber-stamping:** a mockup placeholder client name ("Joan") got copied verbatim into 3
+  lines of live PAR-Q copy instead of the real `client.name` in scope; a wholesale invented "Section 7
+  — Medical Clearance Record" block carried fabricated clinical-sounding demo text with no real form
+  data behind it; a static always-on "Connected" badge got added to the Plan Agent tab with no real
+  connectivity check behind it (would contradict the tab's own error banner on a real API failure);
+  and live search/pagination feedback text on the exercise library got deleted and replaced with a
+  static condition-roll-call string lifted from mockup demo copy. All 4 fixed and re-verified (`tsc`
+  clean) before merge. The second batch (lanes E–G) had the same failure patterns spelled out
+  explicitly in the OpenCode brief and came back clean — nothing to fix. Final commit `5c92510`
+  deployed to Coolify (`sbzxkdejcmb5ahw3ai42on8q`), confirmed `finished`/`running:healthy` at
+  `staging.eternal-fitness.co.uk`. Two earlier auto-triggered webhook deploys failed on transient infra
+  collisions (a container-name clash between concurrent deploys, and one build whose exec channel died
+  after it had already compiled successfully) while pushes landed in quick succession — not code
+  errors, confirmed by reading the raw build logs. **Not done: no live, logged-in click-test of any
+  lane** (no hub credentials available in this environment) — first thing Craig should do next session.
+  See handoff.md for the full per-lane breakdown.
 - **Block schedule/review link fix — DONE + DEPLOYED 2026-07-25 (later), not click-tested.** Craig
   couldn't find the "Review" button on an already-approved training block. Root cause: the link to
   `/hub/clients/[id]/blocks/[blockId]/review` (Lane D's scheduler lives there) only rendered for

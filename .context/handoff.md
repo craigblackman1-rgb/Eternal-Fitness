@@ -1,5 +1,65 @@
 # Handoff
 
+## Session close — 2026-07-27 — hub design-alignment Work Order complete, all 8 lanes deployed
+
+Continuation of the prior session's Lane H work — Craig said "opencode to do the work" for the
+remaining 7 lanes of `.context/workorder-hub-design-alignment-session-editor-2026-07-26.md`.
+
+**First fixed a process problem from the prior session**: Lane H had been built and committed
+directly in the shared checkout (breaking DO-SOP-010). Moved that diff into a proper isolated
+worktree branched fresh off `origin/main`, re-verified `tsc --noEmit` clean there, pushed (`d105e29`),
+removed the worktree. Also fixed the disk-fill risk flagged going into this session (a prior
+`decoded-data-app` Work Order filled a drive to 0 bytes from ~24 uncleaned worktrees each with a full
+`npm install`) — every worktree here reused the shared checkout's `node_modules` via a Windows
+junction instead of installing fresh, capped at 4 concurrent worktrees, junction + worktree removed
+immediately after each lane merged.
+
+**Lanes A–D dispatched to OpenCode (`opencode-go/deepseek-v4-pro`) first, one worktree each.** All 4
+came back `tsc`-clean and looking plausible on a skim — but a closer hand-review (diffing every
+changed file against `origin/main`, not just trusting the self-report) turned up 4 real defects that
+would have shipped silently:
+- **Lane C (PAR-Q edit):** the mockup's placeholder client name "Joan" was copied verbatim into 3
+  lines of live copy instead of using the real `client.name` already in scope — every client's PAR-Q
+  edit page would have shown "Joan" regardless of who was actually being edited.
+- **Lane C (PAR-Q edit), separately:** a wholesale new "Section 7 — Medical Clearance Record" block
+  had been added that doesn't exist in the live app today, copied straight from the mockup's demo
+  content — including a fabricated clinical claim ("Joan has YES answers in Sections 2, 3 and 4 —
+  assess whether GP clearance is required") with no real form data behind it. Would have shown
+  identical, inaccurate clinical-sounding text for every client. Removed rather than wired up — out
+  of scope for a presentation-only pass and a real accuracy risk on a health-screening document.
+- **Lane B (client detail, Plan Agent tab):** a static "Connected" badge got added with no real
+  connectivity check behind it — would keep claiming "Connected" even while the tab's own existing
+  `error` state is showing a real API failure banner right below it. Removed.
+- **Lane D (exercise library):** the live "{filtered.length} match · page X of Y" search/pagination
+  feedback text got deleted and replaced with a static condition-roll-call string lifted from the
+  mockup's demo copy ("adapted for cancer rehab, cardiac, long COVID and fibromyalgia") — a real
+  functional regression (search feedback lost) that also brushes against this project's "no condition
+  roll-calls in copy" hard rule. Restored the original dynamic text.
+
+All 4 fixed directly, re-verified `tsc --noEmit` clean, committed as separate "review fix" commits,
+then each lane rebased onto the previous lane's push and fast-forward pushed to `main` in sequence
+(A→B→C→D), resolving trivial append-only conflicts in `.context/loop-status.md` along the way.
+
+**Lanes E–G dispatched next with the same 4 failure patterns spelled out explicitly in the OpenCode
+brief** ("never copy a mockup's demo data as a literal string — always bind to the real variable in
+scope, or omit it if there's no real source; never add a status badge with no real state driving it").
+Came back clean — hand-review found nothing to fix. One check worth noting: Lane F added a
+`BUCKET_STATUS_MAP` mapping to CSS color tokens (`--status-danger`, `--status-primary`, etc.) —
+verified all 5 actually exist in `globals.css` with matching names before trusting the diff, rather
+than assuming.
+
+**Deploy:** pushing all 8 lanes in quick succession triggered several auto-webhook Coolify deploys
+firing close together (auto-deploy is ON for this app). Two failed — not on code, confirmed by reading
+the raw build logs: one hit a container-name collision from two deploys overlapping, the other had
+its build container's exec channel die *after* the code had already compiled successfully and
+generated all 73 static pages (the same transient class of infra failure logged in the 2026-07-25
+handoff for this app). The deploy of the final commit (`5c92510`, all 8 lanes) succeeded cleanly and
+is confirmed `running:healthy` on `staging.eternal-fitness.co.uk` via Coolify MCP — not self-reported.
+
+**Not done:** no live, logged-in click-test of any of the 8 lanes — this environment has no hub
+credentials, same standing limitation noted throughout this file for prior sessions. That's the first
+thing Craig should do next session, working through the per-lane list above.
+
 ## Session close — 2026-07-26 — session/workout editor built (Lane H of the hub design-alignment Work Order)
 
 Craig wanted workouts/sessions to be editable in the hub, with drag-and-drop to reorder exercises.
