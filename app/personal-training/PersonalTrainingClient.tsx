@@ -28,7 +28,7 @@ import {
 const focusCards = [
   {
     title: "Mobility and joint health",
-    desc: "Improving range of motion, reducing stiffness, and moving with less effort and pain day-to-day.",
+    desc: "Improving range of motion, reducing stiffness, and moving with less effort and pain day to day.",
   },
   {
     title: "Functional strength",
@@ -36,30 +36,30 @@ const focusCards = [
   },
   {
     title: "Balance and stability",
-    desc: "Reducing fall risk and building the physical confidence to move through your environment safely.",
+    desc: "Reducing fall risk and building physical confidence to move through your environment safely.",
   },
   {
     title: "Fatigue management",
-    desc: "Learning how to train effectively when energy levels are variable or unpredictable — a common challenge with many health conditions.",
+    desc: "Training effectively when energy levels are variable or unpredictable.",
   },
 ];
 
 const steps = [
   {
     title: "Free Consultation",
-    desc: "A relaxed 30-minute conversation with me about your goals, health history, and what has and has not worked before. No pressure, no commitment.",
+    desc: "A relaxed 30-minute conversation about your goals, history, and what has and hasn't worked before.",
   },
   {
     title: "Movement Assessment",
-    desc: "I check your current mobility, strength, and any limitations before any programme begins — so training starts safely and clearly.",
+    desc: "Checking your current mobility, strength, and any limitations before we start.",
   },
   {
     title: "Your Programme",
-    desc: "A plan built entirely around your body and your life. Session structure, exercises, and intensity are all tailored specifically to you.",
+    desc: "A plan built around your body and your life.",
   },
   {
     title: "Ongoing Support",
-    desc: "I adjust your programme as your health and capacity change — keeping training sustainable, realistic, and aligned with where you are.",
+    desc: "Adjusted as your health and capacity change.",
   },
 ];
 
@@ -76,7 +76,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         imageAlt="Personal training in Worthing"
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
         heading={content.hero_heading ?? "Personal Training in Worthing"}
-        subhead={content.hero_subhead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel. Whatever brought you here — wanting to get fitter and stronger, an injury to work around, a health condition to train safely with — sessions are built entirely around you."}
+        subhead={content.hero_subhead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel. Whatever brought you here — wanting to get fitter and stronger, an injury to work around, a health condition to train safely with — sessions are built entirely around you. Private studio, one-to-one, no gym floor."}
         primaryCta={bookCta}
         secondaryCta={{ label: content.hero_btn_secondary ?? "What Sessions Involve", href: "#what", variant: "ghost-white" }}
         badge={<StatBadge variant="rose" value="L4" label={content.badge_label ?? "Qualified in Cancer & Exercise Rehabilitation"} />}
@@ -162,6 +162,19 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             { icon: IconClipboardList, value: "Worthing", label: content.stat_4_label ?? "Private studio, West Sussex" },
           ]}
         />
+      </Section>
+
+      {/* Specialist Training */}
+      <Section background="cream" id="specialist">
+        <SectionHeading
+          align="center"
+          eyebrow={content.specialist_eyebrow ?? "Specialist Training"}
+          heading={content.specialist_heading ?? "Specialist Training"}
+          intro={content.specialist_intro ?? "Some clients need more specific support — a health condition, an injury, adapting for a disability. Here's more detail on how I work with particular situations."}
+        />
+        <div style={{ textAlign: "center", marginTop: 8 }}>
+          <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", variant: "outline", arrow: true }} />
+        </div>
       </Section>
 
       <CTABand

@@ -28,35 +28,28 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         <div className="hlp">
           <div className="h-tag" id="htag">{content.hero_tag ?? "Worthing, West Sussex"}</div>
           <h1 style={{ marginBottom: 24 }}>
-            <div className="hw"><span className="hl hl-t" id="hl1">{content.hero_line_1 ?? "Personal"}</span></div>
-            <div className="hw"><span className="hl hl-b" id="hl2">{content.hero_line_2 ?? "Training"}</span></div>
+            <div className="hw"><span className="hl hl-t" id="hl1">{content.hero_line_1 ?? "One-to-One"}</span></div>
+            <div className="hw"><span className="hl hl-b" id="hl2">{content.hero_line_2 ?? "Personal Training"}</span></div>
             <div className="hw"><span className="hl hl-t" id="hl3">{content.hero_line_3 ?? "in Worthing"}</span></div>
           </h1>
-          <p className="h-loc" id="hloc">{content.hero_loc ?? "Private one-to-one personal training in Worthing"}</p>
+          <p className="h-loc" id="hloc">{content.hero_loc ?? "Private studio. No gym floor. No one watching. Just you, and a plan built around how you actually feel today."}</p>
           <p className="h-sub" id="hsub">
-            {content.hero_subheading ?? "Every session starts with a conversation — how's your energy, how did you sleep, what's changed since last week. The plan for the day gets set there, not before you walk in. I'm also qualified to keep training you if your health ever changes."}
+            {content.hero_subheading ?? "I'm Esther — a personal trainer based in a private studio in Worthing. Every session starts with a conversation: how's your energy, how did you sleep, what's changed since last week. The plan for the day gets set there, not before you walk in."}
           </p>
           <div className="h-btns" id="hbtns">
             <button className="btn btn-dk" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
-            <a href="#why" className="btn btn-ol">{content.hero_btn_secondary ?? "Find Out How It Works"}</a>
+            <a href="#why" className="btn btn-ol">{content.hero_btn_secondary ?? "See How It Works"}</a>
           </div>
         </div>
         <div className="hrp" style={{ padding: 0 }}>
           <Image
             src="/images/esther-main.jpg"
-            alt="Esther Fair — Level 4 Personal Trainer, Worthing"
+            alt="Esther Fair, personal trainer in Worthing"
             fill
             priority
             sizes="(max-width: 1000px) 100vw, 45vw"
             style={{ objectFit: "cover", objectPosition: "center top" }}
           />
-          <div className="h-badge" id="hbadge">
-            <div className="hbc">4</div>
-            <div>
-              <div className="hbt">{content.badge_title ?? "Level 4 Qualified"}</div>
-              <div className="hbs">{content.badge_sub ?? "In Cancer & Exercise Rehabilitation"}</div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -82,9 +75,9 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="why-g">
             <div className="wic">
               <div className="wimg">
-                <Image src="/images/esther-training.jpg" alt="Training for complex health conditions in Worthing" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover" }} />
+                <Image src="/images/esther-training.jpg" alt="Esther Fair training a client in Worthing" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover" }} />
               </div>
-              <div className="wbadge"><div className="wbn">GP</div><div className="wbl">Referred Clients Welcome</div></div>
+              <div className="wbadge"><div className="wbn">4</div><div className="wbl">{content.badge_title ?? "Level 4 Qualified"}</div></div>
             </div>
             <div>
               <div className="stag stag-r">{content.why_tag ?? "Why Eternal Fitness"}</div>
@@ -93,9 +86,9 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
                 {content.why_body ?? "I'm Esther — a personal trainer based in a private studio in Worthing. Every session starts with a check-in, and the plan adapts to how you actually feel that day. I'm also qualified in exercise referral and cancer and exercise rehabilitation, so if your health ever changes, I don't have to stop training you."}
               </p>
               <div className="wfeats">
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Strength and mobility for real life"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves everyday movement, independence, and confidence."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "A private studio with no gym floor, no other clients, no pressure to look or perform."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "Qualified in exercise referral and cancer and exercise rehabilitation, so if your health picture shifts, I can adjust rather than you needing to find someone new."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Real, sustainable strength and mobility"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves how you move, day to day."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No gym floor, no other clients, no pressure to perform."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "Qualified in exercise referral and cancer rehabilitation, so if your health picture shifts, I don't have to stop training you."}</div></div></div>
               </div>
             </div>
           </div>
@@ -105,28 +98,39 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
       {/* WHO */}
       <section id="who" className="sec" style={{ background: "var(--ink)" }}>
         <div className="sin">
-          <div className="stag stag-w">{content.who_tag ?? "Who This Is For"}</div>
+          <div className="stag stag-w">{content.who_tag ?? "Who I Work With"}</div>
           <h2 className="D DL" style={{ maxWidth: 700 }}>Wherever You're Starting<br />From, There's a Way In</h2>
           <p className="L LL" style={{ marginTop: 16, maxWidth: 540 }}>
-            {content.who_body ?? "Most of the people I train are just looking for proper one-to-one attention — to get fitter, stronger, and feel more like themselves. Some arrive with more going on: a health condition, recovery from treatment, or something that's made them wonder if training is even for them. If that's you, it almost certainly still is."}
+            {content.who_body ?? "Most of the people I train are just looking for proper one-to-one attention — to get fitter, stronger, feel more like themselves. Some arrive with more going on: a health condition, recovery from treatment, something that makes them wonder if training is even for them. If that's you, it almost certainly still is — get in touch."}
           </p>
           <div className="who-g">
             <div className="wc">
-              <div className="wci"><Image src="/images/who-health.jpg" alt="Training with health conditions in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
+              <div className="wci"><Image src="/images/who-mobility.jpg" alt="Personal training in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
               <div className="wcb">
-                <h3>{content.who_card_1_title ?? "If your health picture is more specific"}</h3>
-                <p>{content.who_card_1_desc ?? "High blood pressure, a GP referral, recovery from treatment — I'm trained to work with it safely, and to adjust as things change."}</p>
-                <Link href="/personal-training" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_1_link ?? "Learn More"} <Arrow /></Link>
+                <h3>{content.who_card_1_title ?? "New to training, or it's been a while"}</h3>
+                <p>{content.who_card_1_desc ?? "Whether you've never worked with a trainer before or just haven't been consistent in a while, the private one-to-one format means no dress code and no comparison to anyone else — just a plan built around where you're starting from."}</p>
               </div>
             </div>
             <div className="wc">
-              <div className="wci"><Image src="/images/who-mobility.jpg" alt="Inclusive personal training in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
+              <div className="wci"><Image src="/images/who-health.jpg" alt="Training with a health condition in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
               <div className="wcb">
-                <h3>{content.who_card_2_title ?? "New to training, or it's been a while"}</h3>
-                <p>{content.who_card_2_desc ?? "Whether you've never worked with a trainer before or just haven't been consistent in a while, the private one-to-one format means no dress code and no comparison to anyone else — just a plan built around where you're starting from."}</p>
+                <h3>{content.who_card_2_title ?? "If your health picture is more specific"}</h3>
+                <p>{content.who_card_2_desc ?? "High blood pressure, a GP referral, recovery from treatment — I'm trained to work with it safely, and to adjust as things change."}</p>
+                <Link href="/personal-training#specialist" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_2_link ?? "Learn More"} <Arrow /></Link>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* SPECIALIST TRAINING */}
+      <section id="specialist" className="sec" style={{ background: "var(--white)" }}>
+        <div className="sin" style={{ maxWidth: 720 }}>
+          <div className="stag stag-r">{content.specialist_tag ?? "Specialist Training"}</div>
+          <p className="L" style={{ marginTop: 16 }}>
+            {content.specialist_body ?? "If your health picture is more specific, here's more detail on how I work with it — heart health and blood pressure, bone and joint health, visual impairment, cancer rehabilitation, and more."}
+          </p>
+          <Link href="/personal-training#specialist" className="btn btn-ol" style={{ marginTop: 20 }}>{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
         </div>
       </section>
 
@@ -138,27 +142,27 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <h2 className="D">How I Actually<br />Train You</h2>
           </div>
           <p className="L" style={{ maxWidth: 560 }}>
-            {content.approach_body ?? "I am always watching and always adapting. Every session starts with a check-in — energy levels, pain, sleep, what's changed since last week. The plan for that day is set then, not before you walk through the door."}
+            {content.approach_body ?? "I'm always watching, and always adapting. Every session starts with a check-in — energy, pain, sleep, what's changed since last week. The plan for that day gets set then, not before you walk through the door."}
           </p>
           <div className="steps">
             <div className="step">
               <div className="sn">01</div>
-              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Fatigue, flares, bad nights, medication changes — I notice and adjust without drawing attention to it. You always leave feeling you've done something worthwhile."}</p></div>
+              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it. You leave having done something worthwhile."}</p></div>
               <div className="si"><Image src="/images/approach-step1.jpg" alt="Esther Fair adapting a training session in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">02</div>
-              <div className="sc"><h3>{content.approach_step_2_title ?? "Private 1-to-1 studio — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients. No performance pressure. No dress code. A calm, private space where the only focus is you and what you need today."}</p></div>
+              <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, no dress code. Just you and what you need today."}</p></div>
               <div className="si"><Image src="/images/studio-2.jpg" alt="Private personal training studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">03</div>
-              <div className="sc"><h3>{content.approach_step_3_title ?? "Functional progress — not transformation"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less pain. Better sleep. More energy. Walking further. These are the outcomes that matter to the people I work with — and they're the ones I build towards."}</p></div>
+              <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That's what I build towards."}</p></div>
               <div className="si"><Image src="/images/approach-step3.jpg" alt="Long-term sustainable training in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
           </div>
           <div className="aq-g">
-            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to adapt when things change"}</h4><p>{content.approach_box_1_desc ?? "Trained in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation, alongside my personal training qualification — so if your health picture shifts, I can adjust safely rather than you needing to find someone new."}</p></div>
+            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h4><p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p></div>
             <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
           </div>
         </div>
@@ -175,8 +179,8 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div className="tauth"><div className="tav">A</div><div><div className="tnm">Amanda M</div><div className="tlo">Training 5 years</div></div></div>
             <div className="tdiv" />
             <div className="tsec">
-              <p>{content.testimonial_2 ?? "\u201CAs someone who has dealt with chronic pain for years, I was sceptical that exercise could help. The personalised approach at Eternal Fitness has genuinely changed my quality of life. I cannot recommend it enough.\u201D"}</p>
-              <div className="tsec-a">Saffron S · Worthing</div>
+              <p>{content.testimonial_2 ?? "\u201CShe adjusts to her clients' restrictions and individual goals, listens always and creates bespoke plans for every situation.\u201D"}</p>
+              <div className="tsec-a">Saffron S</div>
             </div>
             <div style={{ marginTop: 52 }}>
               <div className="stag stag-w" style={{ justifyContent: "center", marginBottom: 14 }}>{content.testimonial_heading ?? "Client Stories"}</div>

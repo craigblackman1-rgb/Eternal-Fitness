@@ -27,20 +27,20 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
   const { open, setOpen, openDialog } = useConsultationDialog();
 
   const qualifications = [
-    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "My foundation qualification — private, one-to-one personal training. Everything else builds on this." },
-    { title: content?.qual_2_title ?? "Exercise Referral Specialist", desc: content?.qual_2_desc ?? "Qualified to work with GP-referred clients and those with clinical conditions requiring adapted exercise programmes." },
-    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to support people through cancer treatment and recovery, including those currently in active treatment." },
+    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "The foundation everything else builds on." },
+    { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Qualified to work with GP-referred clients and clinical conditions requiring adapted programmes." },
+    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to support people during and after cancer treatment." },
   ];
 
   const studioCards = [
-    { title: content?.studio_card_1_title ?? "Designed for All Abilities", desc: content?.studio_card_1_desc ?? "Studio set up for disabilities, mobility limitations, and complex health needs — with equipment chosen for functional recovery, not performance aesthetics.", icon: IconAccessibility },
-    { title: content?.studio_card_2_title ?? "Equipment That Serves You", desc: content?.studio_card_2_desc ?? "Every piece is chosen to support rehabilitation, recovery, and real-life movement. Resistance bands, mobility tools, and adaptive kit — nothing intimidating.", icon: IconDumbbell },
-    { title: content?.studio_card_3_title ?? "A Calm Environment", desc: content?.studio_card_3_desc ?? "No gym floor, no other clients watching, no ambient pressure. Quiet, private, one-to-one sessions — because recovery needs calm, not noise.", icon: IconLeaf },
+    { title: content?.studio_card_1_title ?? "Designed for All Abilities", desc: content?.studio_card_1_desc ?? "Studio set up for disabilities, mobility limitations, and complex health needs — with equipment chosen for real-life movement, not performance aesthetics.", icon: IconAccessibility },
+    { title: content?.studio_card_2_title ?? "Equipment That Serves You", desc: content?.studio_card_2_desc ?? "Resistance bands, mobility tools, adaptive kit. Nothing intimidating.", icon: IconDumbbell },
+    { title: content?.studio_card_3_title ?? "A Calm Environment", desc: content?.studio_card_3_desc ?? "Quiet, private, one-to-one. Because progress needs calm, not noise.", icon: IconLeaf },
   ];
 
   const longTermCards = [
-    { title: content?.long_card_1_title ?? "The Power of Consistency", desc: content?.long_card_1_desc ?? "Small, steady actions repeated over time create lasting physical and mental change — without extremes.", image: "/images/approach-consistency.jpg", href: undefined },
-    { title: content?.long_card_2_title ?? "Adapting When Things Change", desc: content?.long_card_2_desc ?? "Life and health are unpredictable. Your programme adapts with you, so progress never stops — it just looks different.", image: "/images/mobility-movement.jpg", href: undefined },
+    { title: content?.long_card_1_title ?? "The Power of Consistency", desc: content?.long_card_1_desc ?? "Small, steady actions repeated over time create lasting change, without extremes.", image: "/images/approach-consistency.jpg", href: undefined },
+    { title: content?.long_card_2_title ?? "Adapting When Things Change", desc: content?.long_card_2_desc ?? "Your programme adapts with you, so progress never stops, it just looks different.", image: "/images/mobility-movement.jpg", href: undefined },
     { title: content?.long_card_3_title ?? "Real Outcomes, Not Aesthetics", desc: content?.long_card_3_desc ?? "Stronger, more capable, more comfortable in your body. These are the outcomes that actually matter.", image: "/images/mind-body.jpg", href: undefined },
   ];
 
@@ -126,14 +126,14 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         />
         <Reveal y={24} className="ds-head-center" >
           <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.exp_p1 ?? "Over the years I've worked with people managing chronic conditions, recovering from surgery, adjusting to a new diagnosis, or living with a disability — alongside the majority of my clients, who are just looking for proper one-to-one training."}</p>
-          <p className="ds-body">{content?.exp_p2 ?? "I mention this not to boast, but because you might be wondering whether your situation is too complicated, too medically complex, or too much. It almost certainly is not. My Cancer Rehabilitation and Exercise Referral certifications equip me to work alongside your GP, specialist, and healthcare team. Every programme is built from scratch — with complete medical awareness and respect for whatever your body, health conditions, recovery status, or history looks like."}</p>
+          <p className="ds-body">{content?.exp_p2 ?? "If you're wondering whether your situation is too complicated, it almost certainly isn't — get in touch."}</p>
         </Reveal>
         <div style={{ maxWidth: 640, margin: "40px auto 0" }}>
           <Callout
             icon={IconUsers}
             accent="teal"
             title={content?.exp_callout_title ?? "Not sure if you qualify?"}
-            body={<>If you are wondering whether your medical situation, cancer recovery, disability, or complex needs mean you cannot train — <Link href="/contact" className="text-teal hover:underline">please get in touch</Link>. The answer is almost always yes, I can help. That is exactly what I <Link href="/personal-training" className="text-teal hover:underline">specialise in</Link>.</>}
+            body={<>If you're wondering whether your situation means you can't train — <Link href="/contact" className="text-teal hover:underline">please get in touch</Link>. The answer is almost always yes, I can help. That's exactly what I <Link href="/personal-training" className="text-teal hover:underline">specialise in</Link>.</>}
           />
         </div>
       </Section>
@@ -144,13 +144,13 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           <div>
             <SectionHeading eyebrow={content?.phil_eyebrow ?? "Philosophy"} heading={content?.phil_heading ?? "The Philosophy"} />
             <Reveal y={24}>
-              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness is not a weight loss service. It is not about transforming your body into something it is not. It is about rehabilitation and recovery — finding out what your body is capable of right now, with all the health conditions, medications, limitations, and recovery status it is currently dealing with — and building steadily from there."}</p>
-              <p className="ds-body" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "The goal is not a six-week result. It is returning to activities after cancer treatment. Being able to move with less pain. Having better fatigue management. Managing your chronic condition without fear. Recovering full function after injury. Climbing stairs. Walking further. Moving through life with more ease, capability, and confidence than before. That takes time, consistency, and working with someone who genuinely understands medical complexity and adjusts when your health or capacity changes. That is what I do."}</p>
+              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness isn't a weight-loss service. It's not about transforming your body into something it isn't. It's about finding out what your body can do right now, and building steadily from there."}</p>
+              <p className="ds-body" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "The goal isn't a six-week result. It's climbing stairs with less effort. Sleeping better. Moving through life with more ease and confidence than before. That takes time, consistency, and someone who adjusts when things change. That's what I do."}</p>
               <Callout
                 icon={IconHeartHandshake}
                 accent="rose"
                 title={content?.phil_callout_title ?? "More Than a Workout"}
-                body={content?.phil_callout_body ?? "No weigh-ins. No before-and-after photos. No pressure to look a certain way. Just steady, meaningful progress — measured against your own baseline, not anyone else's."}
+                body={content?.phil_callout_body ?? "No weigh-ins. No before-and-after photos. No pressure to look a certain way. Just steady progress, measured against your own baseline."}
               />
               <div style={{ marginTop: 28 }}>
                 <CtaButton cta={bookCta} />
@@ -198,6 +198,12 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         <div className="ds-art-divider"><PulseLine accent="teal" /></div>
         <div style={{ marginTop: 48 }}>
           <ProcessFlow steps={longTermCards.map((c) => ({ title: c.title, body: c.desc }))} />
+        </div>
+        <div style={{ maxWidth: 640, margin: "48px auto 0", textAlign: "center" }}>
+          <p className="ds-body" style={{ fontStyle: "italic" }}>
+            {content?.testimonial_1 ?? "“Esther has really helped me wonderfully over the past 7 years with my fitness and flexibility.”"}
+          </p>
+          <p className="ds-body" style={{ marginTop: 8, fontWeight: 600 }}>{content?.testimonial_1_author ?? "Colin F, training 7 years"}</p>
         </div>
       </Section>
 

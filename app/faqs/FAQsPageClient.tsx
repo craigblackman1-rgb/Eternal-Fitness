@@ -132,7 +132,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         imageAlt="Frequently Asked Questions — Eternal Fitness Worthing"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? "Frequently Asked Questions"}
-        subhead={content?.hero_subhead ?? "If something is stopping you from getting in touch, the answer is probably here. And if it is not — just ask."}
+        subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
         primaryCta={{ label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "Read the FAQs", href: "#faq", variant: "ghost-white" }}
         badge={<StatBadge value="?" label={content?.badge_label ?? "No question too small"} sublabel={content?.badge_sublabel ?? "Just ask — I would rather you did"} />}
@@ -148,7 +148,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
               {content?.sidebar_heading ?? "No question is too complicated"}
             </h2>
             <p className="ds-body" style={{ marginBottom: 16 }}>
-              {content?.sidebar_body ?? "I work with people whose situations are rarely straightforward. If you are wondering whether your health, disability, or circumstances make you a difficult client — they almost certainly do not."}
+              {content?.sidebar_body ?? "Training with me covers a wide range of situations — general fitness, injuries, health conditions, disabilities. If you're wondering whether yours fits, it almost certainly does."}
             </p>
             <nav aria-label="FAQ sections" className="mb-8 mt-7">
               <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">{content?.sidebar_jump_label ?? "Jump to"}</p>
