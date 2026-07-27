@@ -1,5 +1,87 @@
 # Handoff
 
+## Session close — 2026-07-27 (evening) — launch-page copy alignment + 4 follow-up UI fixes
+
+**What happened.** Craig reported that the morning's launch-copy commit (`3f50bd8`) had shipped
+content differing from the agreed source doc, `EF_Launch_Pages_Redraft_Jul2026.docx` (workspace repo).
+It was a real divergence, not a misread: Home and About had each taken the doc's new hero/story copy
+but kept clinical-first sections and elements the doc explicitly replaced. Five commits followed, all
+deployed and live-verified in a real browser:
+
+| Commit | Fix |
+|---|---|
+| `74b2fa9` | All 6 launch pages aligned line-by-line to the doc (Home badge placement, GP-badge removal, Who-card order, Specialist Training band, corrected testimonial; About Experience/Philosophy rewrite + Colin F testimonial; PT Specialist Training section) |
+| `5f4ca6e` | Removed duplicate "I'm Esther — a personal trainer…" intro appearing in both hero and Why section (regression introduced by `74b2fa9`) |
+| `eee2be1` | CTA-band photos cropping Esther's head off on wide screens — added `imagePosition` prop to `CTABand`, top-biased the 5 photos featuring her |
+| `ed51b6f` | Hero heading descenders clipped — `.hw`'s `padding-bottom: .04em` resolved against the inherited 16px body font, not the 78–92px heading; moved onto `.hl` |
+| `97dba83` | Homepage **section order** corrected to the doc's sequence (Who / Specialist Training sat before The Approach instead of after) |
+
+**Process notes worth carrying forward.**
+1. **A DO-SOP-010 violation happened and was caught.** The `loop-status.md` update was first committed
+   directly in the shared checkout. The push was rejected (non-fast-forward — the shared checkout's
+   local `main` was stale), which surfaced it immediately. Reverted, fast-forwarded the shared checkout,
+   redid the same edit in a worktree, pushed cleanly (`d14adf2`). No damage, but it is the exact failure
+   mode the rule exists to prevent, and it was the stale-local-main rejection that caught it, not
+   discipline.
+2. **Auto-deploy is confirmed ON for this app** — every push triggered a Coolify deploy via webhook with
+   no manual API call. Matches the note in the earlier same-day nav-scrim entry. Don't manually trigger
+   a deploy after pushing to this repo.
+3. **One deploy failed transiently and needed a manual retry.** `5f4ca6e`'s first deploy built cleanly
+   (`✓ Compiled successfully`, full route manifest emitted) then failed at the Docker image-export step.
+   The app stayed `running:healthy` on the previous build throughout — no downtime. A manual redeploy of
+   the same commit succeeded unchanged. Treat an image-export-stage failure after a clean compile as
+   infra flake, not a code problem — but confirm the site is still serving before assuming that.
+4. **Verify in a browser, and let the page settle first.** Every fix was confirmed against real rendered
+   page text / computed styles, not deploy status. One descender-fix check returned a false "still
+   clipped" reading because it ran moments after page load, mid-GSAP-animation and before the web font
+   settled; a recheck on the settled page was clean. Re-measure before reporting a failure.
+
+**Not done / carried forward.**
+- **The Specialist Training catalogue pages do not exist yet.** Home and Personal Training now both link
+  to `/personal-training#specialist` as a placeholder anchor. Deliberate (the doc flags the catalogue as
+  a future build per the 2026-07-27 sitemap restructure), but those links currently go nowhere
+  meaningful and should not reach production in this state.
+- **FAQ answer bodies (21 questions) still un-rewritten** — deliberate, per the doc's own instruction
+  not to invent business facts. Needs a pass against `voice.md` with Esther.
+- Two stale, fully-merged worktrees left on disk untouched: `D:\apps\ef-worktree-homepage-copy`
+  (`fix/homepage-copy-reframe`) and `D:\apps\worktrees\eternal-fitness-resend-email`
+  (`task/resend-email`). Safe to remove.
+
+---
+
+## Session close — 2026-07-27 — homepage nav-scrim contrast fix
+
+**Focus:** Craig flagged the homepage nav looking washed out (screenshot showed the logo/nav text
+grey and hard to read over the hero's left panel, fine over the dark hero photo on the right).
+
+**Shipped, deployed, and live-verified:**
+- Root cause: `.efhome #hero::before` (`app/home.css`) is a scrim behind the fixed nav, fading from
+  `rgba(20,16,16,.5)` at the top to fully transparent over 170px. The nav is 72px tall, so by its
+  bottom edge the scrim had already faded to ~29% opacity — fine over the dark hero photo (right,
+  45% column) but washed out over the plain white hero text panel background (left, 55% column, no
+  explicit background so it inherits `.efhome`'s `#fff`).
+- Fix: gradient now holds at `rgba(20,16,16,.6)` from 0–72px (the nav's full height), then fades to
+  transparent by 170px. One-line change, `app/home.css` line 35.
+- **Process note:** first edited directly in the shared `main` checkout by mistake (DO-SOP-010
+  violation) — caught before pushing. Fetched `origin/main`, `git restore`'d the shared checkout back
+  clean, redid the change in a proper worktree (`ef-worktree-nav-scrim-2026-07-27`, branch
+  `fix/nav-scrim-contrast`), committed, fast-forward pushed to `main` (`9c03763`), then fast-forwarded
+  the shared checkout and removed the worktree.
+- Push's GitHub webhook auto-triggered a Coolify deploy — confirmed `finished`/`running:healthy` via
+  MCP. **Learned live: auto-deploy is ON for this app.** A manual API-triggered deploy was also fired
+  before the webhook result was checked — redundant, one attempt even failed (`ibp7wjyp8zmu64l9oced5q4d`)
+  and a second was left running unnecessarily; don't manually trigger a deploy on this app after a push,
+  it's automatic.
+- Verified live with a real Playwright screenshot of `https://staging.eternal-fitness.co.uk` (Playwright
+  browser binaries weren't installed locally — installed chromium via the project's own
+  `node_modules/playwright/cli.js install chromium`, not `npx`, since `npx` resolved a different cached
+  playwright version whose browser revision didn't match the project's pinned `playwright` 1.59.1).
+
+**Not done / carried over:** local dev server was left running mid-session for verification, stopped at
+session close. Nothing else opened by this session.
+
+---
+
 ## Session close — 2026-07-27 — marketing site copy rewrite + launch-scope page disabling
 
 **Focus:** Craig had this session review the staging marketing site's copy against a full voice/

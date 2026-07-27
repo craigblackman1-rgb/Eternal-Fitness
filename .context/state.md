@@ -1,6 +1,57 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Launch-page copy alignment + 4 follow-up UI fixes — DONE + DEPLOYED + LIVE-VERIFIED 2026-07-27
+  (evening).** Craig reported the morning's launch-copy commit (`3f50bd8`) had shipped copy diverging
+  from the source doc (`EF_Launch_Pages_Redraft_Jul2026.docx`, workspace repo). Confirmed real: Home and
+  About had each picked up the doc's new hero/story copy but retained clinical-first sections and
+  elements the doc explicitly replaced. Fixed across five commits, each built in its own isolated
+  worktree per DO-SOP-010, each deploy confirmed healthy via Coolify MCP **and** re-verified live in a
+  real browser (never on deploy-status alone):
+  - `74b2fa9` — all 6 launch pages aligned line-by-line to the doc. Home: qualification badge moved out
+    of the hero, a GP-referred-clients badge removed from the Why section (not in the doc at all —
+    exactly the clinical-first framing the rewrite existed to strip), Who-cards reordered so the
+    general-audience card leads, added the doc's Specialist Training cross-link band, corrected a
+    testimonial quote misattributed to Saffron S. About: Experience/Philosophy/studio-callout rewritten
+    (still carried the old condition-roll-call copy) + added the missing Colin F testimonial. Personal
+    Training: added the doc's Specialist Training section. Pricing/FAQs: minor wording. Contact: clean.
+  - `5f4ca6e` — removed a duplicate self-introduction. Hero and Why section both opened with "I'm Esther
+    — a personal trainer based in a private studio in Worthing"; a regression from `74b2fa9` (hero took
+    the line from the doc, the pre-existing Why paragraph already had it). Dropped the Why paragraph —
+    the doc has no paragraph there, just heading + 3 bullets.
+  - `eee2be1` — CTA-band photos cropped Esther's head off on wide screens. The band is full-width with a
+    fixed min-height, so `object-fit: cover` crops far more vertically as the viewport widens; with the
+    default centred `object-position` and her head in the upper third of every source photo, wide
+    viewports cut into her face. Added an optional `imagePosition` prop to the shared `CTABand`
+    component (default unchanged) and top-biased the 5 CTA photos featuring her. Pricing's CTA image has
+    no person in it — deliberately untouched.
+  - `ed51b6f` — hero heading descenders (the "g" in Training/Worthing) were clipped. `.hw`'s
+    `padding-bottom: .04em` sat on an element with no font-size of its own, so the `em` resolved against
+    the inherited 16px body font (0.64px) rather than the 78–92px heading rendered inside it, while
+    `.hw`'s `overflow: hidden` (needed for the GSAP slide-reveal) clipped the overflow. Moved the
+    padding onto `.hl`, which carries the large `clamp()`'d font-size.
+  - `97dba83` — homepage **section order** was wrong, not just wording: Who I Work With and Specialist
+    Training sat before The Approach instead of after. Reordered to the doc's sequence (Hero → Why →
+    How I Actually Train You → Who I Work With → Specialist Training → testimonials → CTA), no copy
+    changes; every paragraph re-checked word-for-word against the doc at the same time.
+  **Open:** the Specialist Training catalogue pages these now link to don't exist yet (placeholder
+  anchor `/personal-training#specialist`) — must not reach production in that state. FAQ answer bodies
+  (21 questions) still un-rewritten, deliberately.
+- **Homepage nav-scrim contrast fix — DONE + DEPLOYED 2026-07-27.** Craig flagged the homepage nav
+  looking washed out over the hero's white left text panel (fine over the dark hero photo on the right).
+  Root cause: `#hero::before`'s scrim (`app/home.css`) faded from 50% opacity at the top to fully
+  transparent by 170px down, but the nav itself is only 72px tall — by the bottom of the nav the scrim
+  had already faded to ~29% opacity, so the white logo/nav text sat on a near-transparent scrim over a
+  plain white background on the left. Fixed by holding the gradient at 60% opacity through the full 72px
+  nav height, then fading to transparent by 170px. Built in an isolated worktree
+  (`ef-worktree-nav-scrim-2026-07-27`, branch `fix/nav-scrim-contrast`) per DO-SOP-010 — the shared
+  checkout had been edited directly by mistake first, caught before pushing, reverted, redone properly.
+  Pushed `9c03763`, GitHub webhook auto-triggered a Coolify deploy (confirmed `running:healthy` via MCP),
+  verified live on `staging.eternal-fitness.co.uk` with a real Playwright screenshot (not just a
+  self-report) — nav now reads clearly across the full width. **Auto-deploy confirmed ON for this app**
+  (the webhook deploy already finished by the time a manual API-triggered deploy was tried — the manual
+  one was redundant/wasted, one attempt even failed; don't manually trigger a deploy on this app after a
+  push, it's automatic.
 - **Marketing site copy rewrite + launch-scope page disabling — DONE + DEPLOYED 2026-07-27.** Two pieces,
   both from the `eternal-fitness` workspace repo's reference-layer sign-off the same day (see that repo's
   `.context/decisions.log`, 2026-07-27 entries, for the full "personal trainer first" positioning
