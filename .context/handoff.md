@@ -1,5 +1,35 @@
 # Handoff
 
+## Session close — 2026-07-25 — session logging Work Order (Lanes A-D) shipped, plus scheduling/calendar, bucket editing, and hub auth lockdown
+
+Full detail in `.context/workorder-session-logging-2026-07-25.md` (DONE checklist updated per lane). Summary:
+
+**Lanes A-C (Trainerize replacement — session logging/progress):**
+- Lane A: Esther-side per-set logging on the session detail page (`set_logs` table, quick-log UI, phone-friendly). Migrated + deployed (`b67163c`).
+- Lane B: home-training client self-logging in the portal, gated to `clients.delivery_mode='home_training'`, server-verified ownership on every read/write. Deployed (`deed2d4`).
+- Lane C: progress/trend view (hub "Progress" tab + portal dashboard section) plus a 7-day "gone quiet" Esther-facing alert for home-training clients. Deployed (`da21c2c`).
+- `delivery_mode` toggle added to the client edit page (`f6cf896`) so flipping a client to home-training no longer needs SQL.
+
+**Lane D (added same day, Craig-directed) — session scheduling & calendar**, since there was previously zero scheduling data anywhere in this app (booking lived entirely in Outlook):
+- `sessions` gained `scheduled_at`/`cancelled_at`/`cancel_reason`. Migrated + deployed (`1f057d0`).
+- Block review page: apply a repeating pattern (day-of-week + time + start date) to bulk-schedule a whole block, plus per-session reschedule/cancel/un-cancel.
+- New `/hub/schedule` studio-wide day-view calendar across all clients, with pairwise overlap ("gone quiet"-style) conflict warnings — warn only, never blocks. Deployed (`dd15bb3`).
+
+**Also this session, not part of the Work Order:**
+- Hub task-list "buckets" (a parallel feature another session built) gained rename/delete UI — previously create-only (`51afdd8`).
+- Created a real hub login for `craig@decodedops.co.uk` via the (at-the-time-open) Better Auth sign-up endpoint.
+- **Real security finding, fixed same session**: that sign-up endpoint (`/api/auth/sign-up/email`) was completely open on the public internet — anyone could self-register a full staff hub account, no invite/approval step. Closed with `emailAndPassword.disableSignUp: true` (`f25b98c`), live-verified: sign-up now 400s with `EMAIL_PASSWORD_SIGN_UP_DISABLED`, sign-in/existing accounts unaffected. **Side effect**: adding any future staff member now needs a one-off script or a temporary flip of that flag — no self-serve or in-hub invite flow exists yet.
+- A test client (client_number 19, "Test - Home Training", portal login `craig.blackman1@gmail.com`) was created for live click-through testing of the whole session-logging/home-training flow — safe to delete once no longer needed.
+
+**Process note**: two real bugs were caught during verification, not trusted from agent self-reports — Lane A's first migration draft repeated a Supabase-`authenticated`-role RLS bug already found twice before in this repo (fixed before migrating); one OpenCode dispatch (Lane C) stalled after a sandboxed self-test attempt and never finished its own build/commit (finished verification and committed by hand). Also caught mid-session: committed the Work Order doc directly to the shared checkout twice before catching it and moving both onto proper worktrees, per DO-SOP-010.
+
+**Not done / open:**
+- Client-facing "gone quiet" nudge send mechanism — detection is live, but whether it auto-sends or requires Esther's review is still an open decision (flagged in the Work Order's ASK FIRST list).
+- No real client has been assigned to `home_training` or clicked through the flow live by Esther/Craig yet.
+- No in-hub "invite staff" UI — new hub logins require manual provisioning now that self-serve sign-up is closed.
+
+---
+
 ## Session close — 2026-07-27 — hub design-alignment Work Order complete, all 8 lanes deployed
 
 Continuation of the prior session's Lane H work — Craig said "opencode to do the work" for the

@@ -42,6 +42,35 @@
   commits (`51e6a38`, `9542840`, `a3e861e`), each independently verified (`tsc`/`next build` clean) and
   confirmed `running:healthy` on Coolify before the next was built. **Not done:** no live logged-in
   click-test — needs Craig's own session. See handoff.md for full detail.
+- **Session logging Work Order (Lanes A–D) — DONE + DEPLOYED 2026-07-25, click-tested via a dedicated
+  test client, not by Esther/Craig on a real one yet.** `.context/workorder-session-logging-2026-07-25.md`.
+  Replaces Trainerize's session-delivery/logging/progress role: Lane A — Esther per-set live logging on
+  the session detail page (`set_logs` table, quick-log UI); Lane B — home-training client self-logging
+  in the portal, gated to `clients.delivery_mode='home_training'`, server-verified ownership on every
+  read/write; Lane C — progress/trend view (hub "Progress" tab + portal dashboard) plus a 7-day
+  "gone quiet" Esther-facing alert; `delivery_mode` toggle added to the client edit page. **Lane D**
+  (added same day, Craig-directed): `sessions` gained `scheduled_at`/`cancelled_at`/`cancel_reason` —
+  there was zero scheduling data anywhere in this app before this (booking lived entirely in Outlook) —
+  a bulk repeating-pattern scheduler on the block review page, plus a new studio-wide `/hub/schedule`
+  day-view calendar across all clients with overlap warnings (warn only, never blocks). All migrations
+  run against prod and verified; all commits independently verified (`tsc`/build, code read line-by-line,
+  not trusted from agent self-reports) before push. A test client (client_number 19,
+  "Test - Home Training", portal login `craig.blackman1@gmail.com`) exists for click-through testing —
+  safe to delete once done with it. **Not done:** the client-facing "gone quiet" nudge send mechanism
+  (detection is live; auto-send vs. Esther-reviewed is still an open decision); no real client assigned
+  to `home_training` yet.
+- **Hub sign-up endpoint closed — DONE + DEPLOYED + LIVE-VERIFIED 2026-07-25.** Found while creating a
+  new hub login for Craig: `/api/auth/sign-up/email` was completely open on the public internet with no
+  invite/approval gate — anyone who found the URL could self-register a full staff hub account. Fixed
+  with `emailAndPassword.disableSignUp: true` in `lib/auth.ts` (`f25b98c`). Live-verified via curl: the
+  endpoint now returns `400 EMAIL_PASSWORD_SIGN_UP_DISABLED`; sign-in with the newly-created
+  `craig@decodedops.co.uk` account still returns `200` with a valid session. **Side effect:** any future
+  new staff member now needs manual provisioning (a one-off script, or a temporary flip of this flag) —
+  no in-hub "invite staff" UI exists.
+- **Hub task-list buckets gained rename/delete UI — DONE + DEPLOYED 2026-07-25, not click-tested.**
+  The bucket feature (built by a separate concurrent session) was create-only; `PATCH /api/task-buckets/[id]`
+  added for rename, and hover-revealed pencil/trash icons wired to rename/delete on the bucket filter
+  chips (`51afdd8`). Deleting a bucket clears `bucket_id` on its tasks rather than deleting them.
 - **Consent choices surfaced in hub admin portal — DONE + PUSHED 2026-07-24, not click-tested.**
   Craig couldn't see what clients had actually consented to from the hub. Investigated first: the data
   (`client_documents.consent_choices`) was already captured correctly on sign — no schema change
