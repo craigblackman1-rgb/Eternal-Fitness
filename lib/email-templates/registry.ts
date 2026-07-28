@@ -22,6 +22,16 @@ export interface UpdateTemplateKind {
  */
 export const UPDATE_TEMPLATE_KINDS: UpdateTemplateKind[] = [
   {
+    id: "flexible_update",
+    label: "Flexible Update (custom sections)",
+    defaultSubject: "A training update from Esther 🏋️",
+    sections: [],
+    flexible: true,
+    starterPrompts: [
+      "What's this update about, and how many sections does it need?",
+    ],
+  },
+  {
     id: "six_week_update",
     label: "6-Week Update",
     defaultSubject: "Your last 6 weeks with me 🏋️",
@@ -61,16 +71,6 @@ export const UPDATE_TEMPLATE_KINDS: UpdateTemplateKind[] = [
       "What should the client know about lighter/quieter sessions?",
       "Anything to flag for them to keep an eye on?",
       "What's the focus for the next block?",
-    ],
-  },
-  {
-    id: "flexible_update",
-    label: "Flexible Update (custom sections)",
-    defaultSubject: "A training update from Esther 🏋️",
-    sections: [],
-    flexible: true,
-    starterPrompts: [
-      "What's this update about, and how many sections does it need?",
     ],
   },
 ];

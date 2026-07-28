@@ -470,11 +470,11 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="intro">Opening line</Label>
-                  <Input
-                    id="intro"
+                  <RichTextEditor
                     value={introText}
-                    onChange={(e) => setIntroText(e.target.value)}
+                    onChange={setIntroText}
                     placeholder="I'd like to take a moment to look back over your last 6 weeks of training."
+                    minHeight={60}
                   />
                   <p className="text-xs text-muted-foreground">Leave blank to use the standard opener.</p>
                 </div>
