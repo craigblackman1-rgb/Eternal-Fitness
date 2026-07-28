@@ -1,6 +1,28 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Update-composer paste fixes + email send/resend delivery history — DONE + DEPLOYED + LIVE-VERIFIED
+  2026-07-28 (evening).** 6 commits, all confirmed `running:healthy` via Coolify MCP. (1) `5f64b03` —
+  "Paste a draft" option added to the New Update composer, bypassing the AI chat entirely (it was
+  silently rewriting pasted text through a 4000-char conversation-summary). (2) `ff46fe2` — opening line
+  is now WYSIWYG; Flexible Update (custom sections, has add/remove) restored as the default template —
+  it used to be the only template, so add/remove was always visible until 6-Week/4-Week got added ahead
+  of it in the list. (3) `295e7ca` — paste-parser heading detection no longer requires a blank line
+  before a heading (real Word/Docs/Gmail pastes don't have one). (4) `f05aab0` — paste box switched from
+  a plain `<textarea>` (always flattens clipboard content to plain text, per the HTML spec) to a
+  contentEditable rich-text box, so bold/headings/lists survive; new `parsePastedHtmlUpdate()` reads the
+  actual pasted DOM. (5) `bb482bf` — client portal's documents list had no click-through at all (plain
+  `<li>` rows, no `<Link>`) — fixed. (6) `ac47f67` — real feature: append-only `email_send_events` table
+  (migration applied live) tracks every send/resend/delivered/opened/clicked/bounced/complained event per
+  update and document — previously a resend overwrote the only `sent_at` on record, so "did this actually
+  go out" was unanswerable after a resend. New "Delivery history" panel in the hub (per-client updates
+  list + document detail page); portal's update-email list now links through to a real view page.
+  Backfilled 27 historical sends from existing `sent_at` (honestly caveated as last-known-send only, not
+  a true reconstructed history). **Needs Craig:** subscribe `email.delivered`/`bounced`/`complained` on
+  the Resend webhook endpoint (Resend dashboard → Domains → Webhooks) — only `opened`/`clicked` are
+  enabled today, so the new event types won't populate until that's added. Also created a portal login
+  for Ian Healey (client #9), credentials handed to Craig directly (invite email not sent). **Not done:**
+  no live click-test in a real hub session. Full detail in handoff.md.
 - **Launch-page copy alignment + 4 follow-up UI fixes — DONE + DEPLOYED + LIVE-VERIFIED 2026-07-27
   (evening).** Craig reported the morning's launch-copy commit (`3f50bd8`) had shipped copy diverging
   from the source doc (`EF_Launch_Pages_Redraft_Jul2026.docx`, workspace repo). Confirmed real: Home and
@@ -260,6 +282,10 @@
 - 27 blog posts are still unedited legacy WordPress content pending Esther's voice/hard-rule review — content/titles deliberately untouched this session (only the byline field was fixed).
 
 ## Required Actions
+- **Subscribe `email.delivered`/`email.bounced`/`email.complained` on the Resend webhook endpoint**
+  (Resend dashboard → Domains → your sending domain → Webhooks) — only `opened`/`clicked` are enabled
+  today; the webhook code handles all 5 event types now (2026-07-28) but Resend won't fire ones you
+  haven't subscribed to.
 - Set SMTP env vars (or confirm SendGrid is already the live backend)
 - Set ANTHROPIC_API_KEY
 - Verify SPF/DKIM

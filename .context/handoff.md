@@ -1,5 +1,126 @@
 # Handoff
 
+## Session close — 2026-07-28 (evening) — update-composer paste fixes, portal document/update viewing, and a real send/resend delivery-history feature
+
+Six shipped items, all pushed straight to `main` (auto-deploy confirmed ON), each built in its own
+isolated worktree per DO-SOP-010 and confirmed `running:healthy` via Coolify MCP before moving to the
+next. Started from Craig reporting Emma's actual update email came out with different text than what he
+pasted in.
+
+1. **`5f64b03` — bypass-AI paste for the "New Update" composer.** Root cause: the compose screen was
+   always an AI chat — pasting a fully pre-written update sent it as a chat message, and "Create Draft"
+   always ran a fresh AI generation from a 4000-char-truncated conversation summary, silently rewriting
+   Craig's actual wording. Added a "Paste a draft" option that bypasses AI entirely: new
+   `lib/email-templates/parse-pasted-update.ts` splits pasted text into sections by heading detection and
+   maps them onto the current template's fixed section keys (or straight into Flexible's custom
+   sections), loading the content verbatim.
+2. **`ff46fe2` — opening line made WYSIWYG + Flexible Update set back as the default template.** The
+   intro-line field was a plain `<Input>` (no formatting); switched to the same `RichTextEditor` used
+   everywhere else. Separately, the "add/remove sections" controls Craig remembered were still exactly
+   where they'd always been (gated to the Flexible template, untouched by anything today) — but Flexible
+   used to be the *only* template, so it was always the default; once 6-Week/4-Week (fixed sections, no
+   add/remove) were added ahead of it in `UPDATE_TEMPLATE_KINDS`, a new update silently defaulted to a
+   template with no add/remove UI at all. Reordered the array so Flexible is first/default again.
+3. **`295e7ca` — paste parser didn't detect headings without blank lines.** The first paste fix's heading
+   heuristic required a blank line immediately before a heading — but real pastes from Word/Docs/Gmail
+   have one paragraph per line break with **no** blank line between paragraphs, so nothing after the
+   first line ever got recognised and the whole email collapsed into one block. Removed the blank-line
+   dependency; headings are now detected purely by shape (short line, no trailing sentence punctuation).
+   Also added `*`/`-`/`•`-prefixed line grouping into a real `<ul>`.
+4. **`f05aab0` — the paste box itself was plain-text-only, stripping bold/headings before the parser ever
+   ran.** Craig's actual complaint after #3: pasted content still lost all bold/heading formatting,
+   because the "Paste a draft" input was a plain `<textarea>` — the HTML spec always flattens clipboard
+   content to plain text on paste into a textarea, no matter what the source had. Swapped it for the same
+   contentEditable `RichTextEditor`, which preserves native clipboard HTML. Added
+   `parsePastedHtmlUpdate()`, which reads the real DOM structure directly — recursing through the
+   single-wrapper-div pattern Google Docs/Word commonly export (`<b id="docs-internal-guid-…">` /
+   `<div class="WordSection1">`) to find the actual paragraph/heading/list elements, detecting headings
+   via real `<h1-6>` tags or the same short-line heuristic, and keeping inline bold/italic/links and real
+   `<ul>` lists intact in the section HTML instead of re-escaping everything flat. Falls back to the
+   plain-text line parser if the paste carried no real block structure.
+5. **`bb482bf` — client portal documents list had no click-through.** Same root cause pattern as #1's
+   symptom, different feature: both the "Signed documents" and "Outstanding documents" lists on
+   `/portal` rendered each row as a plain `<li>`, no `<Link>` anywhere — the sign/view page itself
+   (`app/documents/[id]/sign`) already worked fine for both states, the list just never linked to it.
+   Wrapped both rows in `<Link href="/documents/{id}/sign">`.
+6. **`ac47f67` — real send/resend delivery-history feature (Craig's own ask, not a bug report) + portal
+   update-email viewing.** Both `sent_updates` and `client_documents` stored one mutable `sent_at`/
+   `sg_message_id`, overwritten on every resend — so once something was resent, there was no way to
+   answer "did the first one actually go out, and when" (Esther's actual problem: clients sometimes claim
+   they never received something, and only Craig could check via Resend's own dashboard). Added an
+   append-only `email_send_events` log (migration `20260728_email_send_events.sql`, applied live —
+   additive only) written on every dispatch across all 4 call sites for updates (create-flow, resend
+   endpoint, cron dispatcher) and the document send-email action; the Resend webhook
+   (`app/api/webhooks/resend/route.ts`) now also handles `email.delivered`/`bounced`/`complained`
+   (previously only `opened`/`clicked`) and matches against both `sent_updates` and `client_documents`
+   (`client_documents` never had a `sg_message_id` column before — added). New
+   `components/hub/EmailDeliveryTimeline.tsx` server component renders that log as a collapsible
+   "Delivery history" panel on the per-client updates list and the document detail page. Separately,
+   portal's "Update email history" list now links sent updates through to a new `/portal/updates/[id]`
+   view page (client-scoped, drafts excluded), mirroring #5.
+   - **Backfilled 27 historical records** (10 sent updates, 17 sent/signed/superseded documents) with one
+     `sent` event each, using their existing `sent_at` as the timestamp, tagged `meta.backfilled: true`.
+     Honest caveat, told to Craig explicitly: `sent_at` only ever held the *last* known send — if anything
+     was resent before today, the true first-send date is already gone and unrecoverable (Resend's API has
+     no bulk "list everything sent" endpoint, dashboard-only, and we never stored per-send message IDs
+     historically). Everything from this deploy onward has complete real history — confirmed live: a real
+     update sent minutes after deploy was correctly captured with both a `sent` and a `delivered` event.
+
+**Not done — needs Craig, not deployable:** the Resend webhook now handles 3 new event types, but Resend
+only fires events you've explicitly subscribed to per-endpoint in their dashboard — currently only
+`opened`/`clicked` are enabled. Add `email.delivered`, `email.bounced`, `email.complained` to the webhook
+subscription (Resend → Domains → your sending domain → Webhooks) or delivery/bounce data won't start
+populating. No live click-test of any of the 6 items in a real logged-in hub session this session
+(standing limitation, no hub credentials in this environment) — worth a real click-through next time
+Craig's in the hub, particularly the Delivery history panels and the portal paste/view flows.
+
+**Also this session, unrelated to the above:** created a real client-portal login for Ian Healey
+(client #9) via the same scrypt/`portal_accounts` mechanism `invitePortalAccount()` uses — deliberately
+did *not* trigger the "your portal login" invite email, so the credentials went straight to Craig for him
+to preview first rather than to Ian unprompted. Credentials are in the chat transcript, not repeated here.
+
+---
+
+## Session — 2026-07-28 (later) — full 6-page design reconciliation Work Order, all AUTO lanes shipped
+
+After the footer-only fix (below), Craig flagged that the whole `brand-staging-2662e9` mockup files were
+the intended design, not just the footer's uncommitted diff. Ran a 6-way parallel Explore-agent audit
+(one per launch page) comparing each mockup section-by-section against its live `*Client.tsx` — found
+two shared components (`PageHero`, `CTABand`) had drifted from the mockup's pattern site-wide, plus
+~15-20 page-specific gaps, several genuine judgment calls. Promoted to a Work Order
+(`.context/workorder-design-reconciliation-2026-07-28.md`, 7 lanes: A = shared components, B-G = one
+page each) and ran it: Lane A dispatched to OpenCode and merged first (`ed129f2`), then Lanes B-G
+dispatched to OpenCode in parallel and merged one at a time as each was hand-reviewed, `tsc`/`next build`
+verified, and browser-checked — not trusted on self-report. Two real defects caught pre-merge: Lane C's
+diff had silently deleted 2 GATE-tagged elements (StatBadge/JourneyPath overlay, AccreditationStrip)
+while its own comment falsely claimed they were kept; Lane D's form validation silently failed on invalid
+submit (no error feedback at all) after the success-state rework. Both fixed before merging. All 7 lanes
+landed on `main`, Coolify auto-deploy confirmed, and a full 6-page browser sweep against
+`staging.eternal-fitness.co.uk` confirmed every change live (one page hit a transient Gateway Timeout on
+first load during the deploy swap, resolved cleanly on retry — not a real bug). ~10 `[GATE]` items left
+deliberately unresolved and code-commented (nothing deleted) for Craig's call — see the Work Order file's
+DONE section for the full per-lane list; the two Specialist Training catalogue items (Personal Training,
+Pricing) are the same root open item already tracked in `state.md`. Full technical detail (every unit,
+every review fix) is in this session's transcript and `.context/loop-status.md`.
+
+## Session — 2026-07-28 (morning) — footer redesign shipped to staging
+
+Craig asked to bring the site's design in line with a footer redesign he'd just made in the
+`brand-staging-2662e9` mockups (about/contact/faqs/homepage-redesign/personal-training/pricing.html —
+all 6 launch pages carried the identical diff). Rebuilt `components/Footer.tsx` to match: 3-column nav
+(Explore/Training/Get in touch), a "Book a free consultation" CTA to `/contact`, a qualifications strip,
+updated Facebook URL, a Cookies legal link, ink background — replacing the old dark-navy layout with
+social icons (FB/IG/LinkedIn/YouTube) and an accreditation-badge strip, per Craig's explicit choice to
+match the mockup exactly rather than merge those back in. Built in an isolated worktree (DO-SOP-010),
+`tsc`/`next build` clean, browser-verified at desktop + mobile widths across all 6 pages before push.
+Caught and fixed a real bug pre-ship: several Tailwind opacity utility classes (`text-white/62` etc.)
+silently generated no CSS because Tailwind's bare `/NN` modifier only matches the theme's 5-step opacity
+scale, not arbitrary numbers — rounded to valid steps. Pushed `9d57c81` to `main`, live-verified via a
+real browser fetch against `staging.eternal-fitness.co.uk` (not just Coolify's status field — a redundant
+manual force-redeploy triggered mid-check happened to fail on a transient build issue, confirmed harmless
+since the site was already serving the new footer from the webhook-triggered deploy that landed first).
+Full detail in `decisions.log`'s 2026-07-28 entry. Worktree removed, branch deleted, fully merged.
+
 ## Session close — 2026-07-27 (evening) — launch-page copy alignment + 4 follow-up UI fixes
 
 **What happened.** Craig reported that the morning's launch-copy commit (`3f50bd8`) had shipped
