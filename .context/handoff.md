@@ -1,6 +1,5 @@
 # Handoff
 
-<<<<<<< Updated upstream
 ## Session close — 2026-07-28 (evening) — update-composer paste fixes, portal document/update viewing, and a real send/resend delivery-history feature
 
 Six shipped items, all pushed straight to `main` (auto-deploy confirmed ON), each built in its own
@@ -121,7 +120,9 @@ real browser fetch against `staging.eternal-fitness.co.uk` (not just Coolify's s
 manual force-redeploy triggered mid-check happened to fail on a transient build issue, confirmed harmless
 since the site was already serving the new footer from the webhook-triggered deploy that landed first).
 Full detail in `decisions.log`'s 2026-07-28 entry. Worktree removed, branch deleted, fully merged.
-=======
+
+---
+
 ## Session close — 2026-07-28 — hub tasks: due-date filtering, sorting, "Due This Week" banner
 
 **What happened.** Craig asked for the `/hub/tasks` board to support filtering/sorting by date, plus a
@@ -159,7 +160,6 @@ before asking git or a recursive delete to touch the worktree directory.
 
 **Not done:** no live, logged-in click-test — same standing limitation as every other hub session (no
 hub credentials in this environment). Worth Craig's own look next time he's in the hub.
->>>>>>> Stashed changes
 
 ## Session close — 2026-07-27 (evening) — launch-page copy alignment + 4 follow-up UI fixes
 
