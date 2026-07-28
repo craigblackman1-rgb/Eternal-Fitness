@@ -12,11 +12,15 @@ import {
   IconPencil,
   IconChevronLeft,
   IconChevronRight,
+  IconChevronDown,
+  IconChevronUp,
   IconCircle,
   IconShieldCheck,
   IconCheckCircle,
   IconCheck,
   IconX,
+  IconCalendar,
+  IconAlertTriangle,
 } from "@/components/icons";
 import { toast } from "sonner";
 import type { Task, TaskBucket, TaskStatus } from "@/types";
@@ -43,6 +47,14 @@ const STATUS_ICON: Record<TaskStatus, React.ReactNode> = {
 
 const ASSIGNEE_OPTIONS = ["Unassigned", "Esther Fair", "Craig Blackman"];
 
+const DUE_FILTER_OPTIONS: { key: DueFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "overdue", label: "Overdue" },
+  { key: "today", label: "Due Today" },
+  { key: "dueSoon", label: "Due This Week" },
+  { key: "none", label: "No Due Date" },
+];
+
 function formatDate(value: string | null) {
   if (!value) return null;
   return new Date(value).toLocaleDateString("en-GB", {
@@ -64,6 +76,55 @@ function getPrevStatus(current: TaskStatus): TaskStatus | null {
   return null;
 }
 
+type DueBucket = "overdue" | "today" | "week" | "later" | "none";
+type DueFilter = "all" | "overdue" | "today" | "dueSoon" | "none";
+type SortKey = "due_date" | "created_at" | "title";
+type SortDir = "asc" | "desc";
+
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function daysUntilDue(dueDate: string) {
+  const due = new Date(`${dueDate}T00:00:00`);
+  return Math.round((due.getTime() - startOfToday().getTime()) / 86_400_000);
+}
+
+function getDueBucket(task: Task): DueBucket {
+  if (!task.due_date) return "none";
+  const diff = daysUntilDue(task.due_date);
+  if (diff < 0) return "overdue";
+  if (diff === 0) return "today";
+  if (diff <= 7) return "week";
+  return "later";
+}
+
+const DUE_SOON_BUCKETS: DueBucket[] = ["overdue", "today", "week"];
+
+function matchesDueFilter(task: Task, filter: DueFilter) {
+  if (filter === "all") return true;
+  const bucket = getDueBucket(task);
+  if (filter === "dueSoon") return DUE_SOON_BUCKETS.includes(bucket);
+  return bucket === filter;
+}
+
+function sortTasks(tasks: Task[], key: SortKey, dir: SortDir) {
+  const sign = dir === "asc" ? 1 : -1;
+  return [...tasks].sort((a, b) => {
+    if (key === "due_date") {
+      // Tasks with no due date always sort last, regardless of direction.
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return sign * a.due_date.localeCompare(b.due_date);
+    }
+    if (key === "title") return sign * a.title.localeCompare(b.title);
+    return sign * a.created_at.localeCompare(b.created_at);
+  });
+}
+
 export function TasksManager({ initialTasks, initialBuckets, currentUserName }: TasksManagerProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [buckets, setBuckets] = useState(initialBuckets);
@@ -71,6 +132,9 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [bucketFilter, setBucketFilter] = useState<string | null>(null);
+  const [dueFilter, setDueFilter] = useState<DueFilter>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("due_date");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [editingBucketId, setEditingBucketId] = useState<string | null>(null);
   const [bucketNameDraft, setBucketNameDraft] = useState("");
   const [bucketBusy, setBucketBusy] = useState(false);
@@ -293,12 +357,23 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
   const assigneeScopedTasks = tasks.filter((t) =>
     showOnlyMine && currentUserName ? t.assignee === currentUserName : true,
   );
-  const filteredTasks = assigneeScopedTasks.filter((t) =>
+  const bucketScopedTasks = assigneeScopedTasks.filter((t) =>
     bucketFilter ? t.bucket_id === bucketFilter : true,
   );
+  const filteredTasks = bucketScopedTasks.filter((t) => matchesDueFilter(t, dueFilter));
+  const sortedTasks = sortTasks(filteredTasks, sortKey, sortDir);
 
   const filterByStatus = (status: TaskStatus) =>
-    filteredTasks.filter((t) => t.status === status);
+    sortedTasks.filter((t) => t.status === status);
+
+  const dueSoonTasks = sortTasks(
+    assigneeScopedTasks.filter(
+      (t) => t.status !== "done" && DUE_SOON_BUCKETS.includes(getDueBucket(t)),
+    ),
+    "due_date",
+    "asc",
+  );
+  const overdueCount = dueSoonTasks.filter((t) => getDueBucket(t) === "overdue").length;
 
   return (
     <div className="space-y-6">
@@ -331,6 +406,55 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
           </div>
         )}
       </div>
+
+      {dueSoonTasks.length > 0 && (
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={
+              overdueCount > 0 ? (
+                <IconAlertTriangle className="w-4 h-4" />
+              ) : (
+                <IconCalendar className="w-4 h-4" />
+              )
+            }
+            title="Due This Week"
+            subtitle={
+              overdueCount > 0
+                ? `${dueSoonTasks.length} task${dueSoonTasks.length !== 1 ? "s" : ""} due soon — ${overdueCount} overdue`
+                : `${dueSoonTasks.length} task${dueSoonTasks.length !== 1 ? "s" : ""} due in the next 7 days`
+            }
+            color={overdueCount > 0 ? "rose" : "amber"}
+            className="px-5 pt-5"
+          />
+          <div className="px-5 pb-5 flex flex-wrap gap-2">
+            {dueSoonTasks.slice(0, 6).map((task) => {
+              const bucket = getDueBucket(task);
+              return (
+                <button
+                  key={task.id}
+                  onClick={() => startEdit(task)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    bucket === "overdue"
+                      ? "border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]"
+                      : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span className="max-w-[16rem] truncate">{task.title}</span>
+                  <span className="opacity-70">{formatDate(task.due_date)}</span>
+                </button>
+              );
+            })}
+            {dueSoonTasks.length > 6 && (
+              <button
+                onClick={() => setDueFilter("dueSoon")}
+                className="inline-flex items-center rounded-full border border-[var(--hub-border)] bg-[var(--hub-canvas)] px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                +{dueSoonTasks.length - 6} more
+              </button>
+            )}
+          </div>
+        </HubCard>
+      )}
 
       {showForm && (
         <HubCard>
@@ -569,6 +693,64 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
           })}
         </div>
       )}
+
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex w-full max-w-full flex-wrap gap-1 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
+          {DUE_FILTER_OPTIONS.map((opt) => {
+            const isActive = dueFilter === opt.key;
+            const count = bucketScopedTasks.filter((t) => matchesDueFilter(t, opt.key)).length;
+            return (
+              <button
+                key={opt.key}
+                onClick={() => setDueFilter(isActive && opt.key !== "all" ? "all" : opt.key)}
+                className={`inline-flex items-center gap-2 rounded-lg border-0 px-3 py-1.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground shadow-none"
+                    : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
+                }`}
+              >
+                {opt.label}
+                <span
+                  className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+                    isActive
+                      ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
+                      : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="inline-flex items-center gap-1.5">
+          <Label className="text-xs text-muted-foreground shrink-0">Sort by</Label>
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="rounded-md border border-[var(--hub-border)] bg-background px-2.5 py-1.5 text-sm"
+          >
+            <option value="due_date">Due date</option>
+            <option value="created_at">Date created</option>
+            <option value="title">Title</option>
+          </select>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8 shrink-0"
+            onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+            aria-label={sortDir === "asc" ? "Sort ascending" : "Sort descending"}
+            title={sortDir === "asc" ? "Ascending" : "Descending"}
+          >
+            {sortDir === "asc" ? (
+              <IconChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <IconChevronDown className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </div>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {STATUS_OPTIONS.map((status) => {
