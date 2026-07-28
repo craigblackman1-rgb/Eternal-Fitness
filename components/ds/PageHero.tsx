@@ -49,12 +49,8 @@ export function PageHero({
           {eyebrow && <p className="ds-eyebrow ds-eyebrow-rose">{eyebrow}</p>}
           <h1>{heading}</h1>
           {subhead && <p className="ds-hero-split-lead">{subhead}</p>}
-          {belowLead && (
-            <>
-              <div className="ds-hero-split-rule" aria-hidden="true" />
-              <div className="ds-hero-split-quote">{belowLead}</div>
-            </>
-          )}
+          {subhead && <div className="ds-hero-split-rule" aria-hidden="true" />}
+          {belowLead && <div className="ds-hero-split-quote">{belowLead}</div>}
           {(primaryCta || secondaryCta) && (
             <div className="ds-hero-split-btns">
               {primaryCta && <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "primary" }} />}
