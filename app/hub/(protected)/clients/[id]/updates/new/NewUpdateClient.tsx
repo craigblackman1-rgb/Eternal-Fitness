@@ -21,7 +21,7 @@ import { buildFourWeekUpdateHtml } from "@/lib/email-templates/four-week-update"
 import type { FourWeekUpdateData } from "@/lib/email-templates/four-week-update";
 import { buildFlexibleUpdateHtml } from "@/lib/email-templates/flexible-update";
 import type { FlexibleSection } from "@/lib/email-templates/flexible-update";
-import { parsePastedUpdate, mapParsedToKindSections } from "@/lib/email-templates/parse-pasted-update";
+import { parsePastedHtmlUpdate, mapParsedToKindSections } from "@/lib/email-templates/parse-pasted-update";
 
 const TEST_RECIPIENTS = [
   { label: "Craig (Decoded Ops)", email: "craig@decodedops.co.uk" },
@@ -124,7 +124,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
   const [scheduledFor, setScheduledFor] = useState(toLocalInput(existing?.scheduledFor ?? null));
   const [showRaw, setShowRaw] = useState(false);
   const [showPaste, setShowPaste] = useState(false);
-  const [pasteText, setPasteText] = useState("");
+  const [pasteHtml, setPasteHtml] = useState("");
 
   const kind = getTemplateKind(templateKind);
 
@@ -177,13 +177,15 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     }
   };
 
-  /** Load a fully pre-written draft straight from pasted text — no AI call, no
-   *  rewriting. Headings on their own line are matched to the template's
-   *  section labels; anything unmatched is folded into the nearest section
-   *  above it, heading included, so nothing pasted goes missing. */
+  /** Load a fully pre-written draft straight from pasted rich text — no AI
+   *  call, no rewriting. Bold/italic/links/lists carry over from the native
+   *  clipboard paste; headings (real heading styles, or a short standalone
+   *  line) are matched to the template's section labels; anything unmatched
+   *  is folded into the nearest section above it, heading included, so
+   *  nothing pasted goes missing. */
   const handleUsePastedDraft = () => {
-    if (!pasteText.trim()) return;
-    const parsed = parsePastedUpdate(pasteText);
+    if (!pasteHtml.trim()) return;
+    const parsed = parsePastedHtmlUpdate(pasteHtml);
 
     if (kind.flexible) {
       setFlexSections(parsed.sections.length > 0 ? parsed.sections : [{ ...EMPTY_FLEX_SECTION }]);
@@ -418,19 +420,19 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
               </div>
               {showPaste && (
                 <div className="space-y-3">
-                  <Textarea
-                    value={pasteText}
-                    onChange={(e) => setPasteText(e.target.value)}
+                  <RichTextEditor
+                    value={pasteHtml}
+                    onChange={setPasteHtml}
                     placeholder={`Hi ${firstName(clientName)},\n\nI'd like to take a moment to look back over your last block of training...`}
-                    rows={14}
-                    className="font-mono text-xs"
+                    minHeight={280}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Section headings on their own line (e.g. &ldquo;Attendance &amp; Consistency&rdquo;) are
-                    matched to the template&apos;s sections automatically. A &ldquo;Hi [name],&rdquo; opening
-                    and a trailing sign-off are recognised and stripped — the branded template adds its own.
+                    Paste directly from Word/Docs/Gmail — bold, headings and bullet lists carry over as-is.
+                    Section headings (short standalone lines, or actual heading styles) are matched to the
+                    template&apos;s sections automatically. A &ldquo;Hi [name],&rdquo; opening and a trailing
+                    sign-off are recognised and stripped — the branded template adds its own.
                   </p>
-                  <Button type="button" onClick={handleUsePastedDraft} disabled={!pasteText.trim()} className="gap-2">
+                  <Button type="button" onClick={handleUsePastedDraft} disabled={!pasteHtml.trim()} className="gap-2">
                     <IconSparkles className="h-4 w-4" />
                     Use this text as the draft
                   </Button>

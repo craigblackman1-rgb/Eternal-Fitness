@@ -125,6 +125,118 @@ export function parsePastedUpdate(raw: string): ParsedUpdate {
   return { greetingName, introText, sections };
 }
 
+const BLOCK_TAGS = new Set(["P", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "UL", "OL", "BLOCKQUOTE"]);
+const NESTED_BLOCK_SELECTOR = "p,div,h1,h2,h3,h4,h5,h6,ul,ol,blockquote";
+
+/** Word/Docs/Gmail clipboard HTML often wraps every paragraph in one outer
+ *  container (Google Docs: a single top-level `<b id="docs-internal-guid-…">`;
+ *  Word: `<div class="WordSection1">`). Recurses through such wrappers so the
+ *  real paragraph/heading/list elements are found regardless of nesting. */
+function collectBlocks(root: Element, out: HTMLElement[]): void {
+  Array.from(root.childNodes).forEach((child) => {
+    if (child.nodeType === Node.TEXT_NODE) {
+      if (child.textContent?.trim()) {
+        const p = document.createElement("p");
+        p.textContent = child.textContent;
+        out.push(p);
+      }
+      return;
+    }
+    if (child.nodeType !== Node.ELEMENT_NODE) return;
+    const el = child as HTMLElement;
+    if (el.tagName === "LI") return; // consumed by its parent UL/OL as a leaf block
+
+    if (el.tagName === "UL" || el.tagName === "OL") {
+      out.push(el);
+      return;
+    }
+
+    const hasNestedBlock = el.querySelector(NESTED_BLOCK_SELECTOR) !== null;
+    if (BLOCK_TAGS.has(el.tagName) && !hasNestedBlock) {
+      out.push(el);
+    } else if (hasNestedBlock) {
+      collectBlocks(el, out); // structural wrapper — descend instead of treating as one block
+    } else if (el.textContent?.trim()) {
+      out.push(el); // lone inline wrapper (e.g. a bare <b>Heading</b>) — treat as its own block
+    }
+  });
+}
+
+/** Parse a pasted **rich-text (HTML)** update — from a contentEditable box that
+ *  received a native clipboard paste — into a greeting, intro, and ordered
+ *  sections, keeping inline formatting (bold/italic/links/lists) intact.
+ *  Falls back to the plain-text line parser if the paste carried no real
+ *  block structure (e.g. the clipboard had no HTML, just raw text). */
+export function parsePastedHtmlUpdate(html: string): ParsedUpdate {
+  if (typeof document === "undefined") return { greetingName: null, introText: null, sections: [] };
+
+  const container = document.createElement("div");
+  container.innerHTML = html;
+
+  const blocks: HTMLElement[] = [];
+  collectBlocks(container, blocks);
+
+  if (blocks.length <= 1) {
+    // No real paragraph/heading structure came through — fall back to the
+    // plain-text heuristic against the rendered text (line breaks intact).
+    return parsePastedUpdate(container.innerText || container.textContent || "");
+  }
+
+  const textOf = (el: HTMLElement) => (el.textContent || "").trim();
+
+  while (blocks.length) {
+    const last = textOf(blocks[blocks.length - 1]);
+    if (SIGNATURE_NAME_RE.test(last) || SIGNOFF_RE.test(last)) blocks.pop();
+    else break;
+  }
+
+  let idx = 0;
+  let greetingName: string | null = null;
+  if (blocks.length) {
+    const greetMatch = textOf(blocks[0]).match(/^hi\s+([a-z][a-z'-]*)\s*,?\s*$/i);
+    if (greetMatch) {
+      greetingName = greetMatch[1];
+      idx = 1;
+    }
+  }
+
+  const isHeadingBlock = (el: HTMLElement): boolean => {
+    if (/^H[1-6]$/.test(el.tagName)) return true;
+    if (el.tagName === "UL" || el.tagName === "OL") return false;
+    const t = textOf(el);
+    if (!t || t.length > 70) return false;
+    if (/[.!?:;,]$/.test(t)) return false;
+    return true;
+  };
+
+  type Block = { heading: string | null; html: string[] };
+  const grouped: Block[] = [];
+  let current: Block = { heading: null, html: [] };
+
+  for (; idx < blocks.length; idx++) {
+    const el = blocks[idx];
+    if (isHeadingBlock(el)) {
+      if (current.heading || current.html.length) grouped.push(current);
+      current = { heading: textOf(el), html: [] };
+    } else if (textOf(el)) {
+      current.html.push(el.outerHTML);
+    }
+  }
+  if (current.heading || current.html.length) grouped.push(current);
+
+  let introText: string | null = null;
+  let sections: ParsedSection[];
+
+  if (grouped.length && !grouped[0].heading) {
+    introText = grouped[0].html.join("") || null;
+    sections = grouped.slice(1).map((b) => ({ heading: b.heading ?? "", html: b.html.join("") }));
+  } else {
+    sections = grouped.map((b) => ({ heading: b.heading ?? "", html: b.html.join("") }));
+  }
+
+  return { greetingName, introText, sections };
+}
+
 function normalizeLabel(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
