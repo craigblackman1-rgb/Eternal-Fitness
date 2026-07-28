@@ -27,18 +27,17 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
       <section id="hero">
         <div className="hlp">
           <div className="h-tag" id="htag">{content.hero_tag ?? "Worthing, West Sussex"}</div>
-          <h1 style={{ marginBottom: 24 }}>
-            <div className="hw"><span className="hl hl-t" id="hl1">{content.hero_line_1 ?? "One-to-One"}</span></div>
-            <div className="hw"><span className="hl hl-b" id="hl2">{content.hero_line_2 ?? "Personal Training"}</span></div>
-            <div className="hw"><span className="hl hl-t" id="hl3">{content.hero_line_3 ?? "in Worthing"}</span></div>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(40px, 4.7vw, 64px)", fontWeight: 400, lineHeight: 1.03, letterSpacing: "-.025em", color: "var(--ink)", marginBottom: 22 }}>
+            {content.hero_line_1 ?? "One-to-One"} {content.hero_line_2 ?? "Personal Training"}<br /><em style={{ fontStyle: "italic", color: "var(--ink)" }}>{content.hero_line_3 ?? "in Worthing"}</em>
           </h1>
           <p className="h-loc" id="hloc">{content.hero_loc ?? "Private studio. No gym floor. No one watching. Just you, and a plan built around how you actually feel today."}</p>
+          <div className="hero-rule" aria-hidden="true" />
           <p className="h-sub" id="hsub">
             {content.hero_subheading ?? "I'm Esther — a personal trainer based in a private studio in Worthing. Every session starts with a conversation: how's your energy, how did you sleep, what's changed since last week. The plan for the day gets set there, not before you walk in."}
           </p>
           <div className="h-btns" id="hbtns">
-            <button className="btn btn-dk" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
-            <a href="#why" className="btn btn-ol">{content.hero_btn_secondary ?? "See How It Works"}</a>
+            <button className="btn btn-rs" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
+            <a href="#approach" className="btn btn-ol">{content.hero_btn_secondary ?? "See How It Works"}</a>
           </div>
         </div>
         <div className="hrp" style={{ padding: 0 }}>
@@ -50,6 +49,13 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             sizes="(max-width: 1000px) 100vw, 45vw"
             style={{ objectFit: "cover", objectPosition: "center top" }}
           />
+          <div className="h-badge">
+            <div className="hbc"><b>L4</b><span className="hbc-s">Qualified</span></div>
+            <div>
+              <div className="hbt">Cancer &amp; Exercise Rehabilitation</div>
+              <div className="hbs">Level 4 qualified, plus Exercise Referral — so training can carry on if your health picture changes.</div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -121,7 +127,16 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             </div>
           </div>
           <div className="aq-g">
-            <div className="aq"><div className="aq-ic"><IconAward className="w-5 h-5" /></div><h4>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h4><p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p></div>
+            <div className="aq">
+              <div className="aq-ic"><IconAward className="w-5 h-5" /></div>
+              <ul className="qual-list">
+                <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Personal Trainer</li>
+                <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Exercise Referral</li>
+                <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Level 4 Cancer and Exercise Rehabilitation</li>
+              </ul>
+              <h4>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h4>
+              <p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p>
+            </div>
             <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
           </div>
         </div>
