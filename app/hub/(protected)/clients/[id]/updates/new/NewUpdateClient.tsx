@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { IconChevronLeft, IconSend, IconAlertTriangle, IconEye, IconEyeOff, IconSave, IconMail, IconClock } from "@/components/icons";
+import { IconChevronLeft, IconSend, IconAlertTriangle, IconEye, IconEyeOff, IconSave, IconMail, IconClock, IconSparkles } from "@/components/icons";
 import Link from "next/link";
 import { toast } from "sonner";
 import { UpdateChatPanel } from "./UpdateChatPanel";
@@ -21,6 +21,7 @@ import { buildFourWeekUpdateHtml } from "@/lib/email-templates/four-week-update"
 import type { FourWeekUpdateData } from "@/lib/email-templates/four-week-update";
 import { buildFlexibleUpdateHtml } from "@/lib/email-templates/flexible-update";
 import type { FlexibleSection } from "@/lib/email-templates/flexible-update";
+import { parsePastedUpdate, mapParsedToKindSections } from "@/lib/email-templates/parse-pasted-update";
 
 const TEST_RECIPIENTS = [
   { label: "Craig (Decoded Ops)", email: "craig@decodedops.co.uk" },
@@ -122,6 +123,8 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
   const [clientEmail, setClientEmail] = useState(existing?.clientEmail ?? defaultEmail);
   const [scheduledFor, setScheduledFor] = useState(toLocalInput(existing?.scheduledFor ?? null));
   const [showRaw, setShowRaw] = useState(false);
+  const [showPaste, setShowPaste] = useState(false);
+  const [pasteText, setPasteText] = useState("");
 
   const kind = getTemplateKind(templateKind);
 
@@ -172,6 +175,35 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     } finally {
       setGenerating(false);
     }
+  };
+
+  /** Load a fully pre-written draft straight from pasted text — no AI call, no
+   *  rewriting. Headings on their own line are matched to the template's
+   *  section labels; anything unmatched is folded into the nearest section
+   *  above it, heading included, so nothing pasted goes missing. */
+  const handleUsePastedDraft = () => {
+    if (!pasteText.trim()) return;
+    const parsed = parsePastedUpdate(pasteText);
+
+    if (kind.flexible) {
+      setFlexSections(parsed.sections.length > 0 ? parsed.sections : [{ ...EMPTY_FLEX_SECTION }]);
+    } else {
+      const mapped = mapParsedToKindSections(parsed.sections, kind.sections);
+      const nextSections: SectionValues = {};
+      const nextLabels: SectionValues = {};
+      for (const s of kind.sections) {
+        nextSections[s.key] = mapped[s.key] ?? "";
+        nextLabels[s.key] = s.label;
+      }
+      setSections(nextSections);
+      setSectionLabels(nextLabels);
+    }
+
+    if (parsed.greetingName) setGreetingName(parsed.greetingName);
+    if (parsed.introText) setIntroText(parsed.introText);
+    setSubject(kind.defaultSubject);
+    setHasDraft(true);
+    toast.success("Draft loaded from your pasted text — edit any section below");
   };
 
   /** POST an action to the create endpoint (compose mode). */
@@ -365,6 +397,42 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                     }}
                   >
                     Start a blank draft
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
+            <CardContent className="pt-6 space-y-3">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Already have the final text?</p>
+                  <p className="text-xs text-muted-foreground">
+                    Paste it below and it goes straight into the draft as written — no AI rewriting.
+                  </p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowPaste((v) => !v)}>
+                  {showPaste ? "Hide" : "Paste a draft"}
+                </Button>
+              </div>
+              {showPaste && (
+                <div className="space-y-3">
+                  <Textarea
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                    placeholder={`Hi ${firstName(clientName)},\n\nI'd like to take a moment to look back over your last block of training...`}
+                    rows={14}
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Section headings on their own line (e.g. &ldquo;Attendance &amp; Consistency&rdquo;) are
+                    matched to the template&apos;s sections automatically. A &ldquo;Hi [name],&rdquo; opening
+                    and a trailing sign-off are recognised and stripped — the branded template adds its own.
+                  </p>
+                  <Button type="button" onClick={handleUsePastedDraft} disabled={!pasteText.trim()} className="gap-2">
+                    <IconSparkles className="h-4 w-4" />
+                    Use this text as the draft
                   </Button>
                 </div>
               )}
