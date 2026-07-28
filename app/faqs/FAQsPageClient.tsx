@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ConsultationDialog from "@/components/ConsultationDialog";
 import { useConsultationDialog } from "@/hooks/useConsultationDialog";
-import { Section, PageHero, StatBadge, CTABand, Eyebrow, CtaButton } from "@/components/ds";
+import { Section, PageHero, CTABand, Eyebrow, CtaButton } from "@/components/ds";
 import {
   Accordion,
   AccordionContent,
@@ -128,14 +128,41 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
+        variant="split"
         image="/images/studio-kettlebell-facing.jpg"
         imageAlt="Frequently Asked Questions — Eternal Fitness Worthing"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
-        heading={content?.hero_heading ?? "Frequently Asked Questions"}
+        heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
         subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
         primaryCta={{ label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
-        secondaryCta={{ label: content?.hero_btn_secondary ?? "Read the FAQs", href: "#faq", variant: "ghost-white" }}
-        badge={<StatBadge value="?" label={content?.badge_label ?? "No question too small"} sublabel={content?.badge_sublabel ?? "Just ask — I would rather you did"} />}
+        secondaryCta={{ label: content?.hero_btn_secondary ?? "Read the FAQs", href: "#faq" }}
+        mediaOverlay={
+          <>
+            <div
+              aria-hidden="true"
+              style={{
+                width: 46, height: 46, borderRadius: "9999px",
+                background: "var(--color-rose)", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
+                <path d="M12 17h.01" />
+                <circle cx="12" cy="12" r="9.2" />
+              </svg>
+            </div>
+            <div>
+              <p style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-.01em", lineHeight: 1.3, margin: 0 }}>
+                {content?.badge_label ?? "No question is too small"}
+              </p>
+              <p style={{ fontSize: "12px", color: "var(--color-muted-text)", lineHeight: 1.45, margin: 0, marginTop: 3 }}>
+                {content?.badge_sublabel ?? "Just ask — I would rather you did than talk yourself out of trying."}
+              </p>
+            </div>
+          </>
+        }
       />
 
       {/* FAQ Section */}
@@ -188,7 +215,14 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                     {group.faqs.length} questions
                   </span>
                 </div>
-                <Accordion type="single" collapsible className="w-full">
+                {/*
+                  GATE: Chevron vs. plus-to-cross accordion icon.
+                  The mockup uses a plus/cross icon; Radix AccordionTrigger
+                  hardcodes ChevronDown at components/ui/accordion.tsx:31.
+                  Swapping requires either modifying the shared component or
+                  rebuilding the trigger, neither is a 5-min change.
+                */}
+                <Accordion type="single" collapsible className="w-full" defaultValue={gi === 0 ? `${group.group}-0` : undefined}>
                   {group.faqs.map((faq, i) => (
                     <AccordionItem key={i} value={`${group.group}-${i}`} className="border-border-warm">
                       <AccordionTrigger className="font-body text-foreground text-left text-[17px] font-medium py-5 hover:no-underline">
@@ -202,6 +236,48 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                 </Accordion>
               </div>
             ))}
+
+          {/* Still not sure? — contact prompt band */}
+          <div
+            style={{
+              background: "var(--color-cream)",
+              border: "1px solid var(--color-border-warm)",
+              borderRadius: 18,
+              padding: "34px 36px",
+              display: "flex",
+              gap: 28,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 260 }}>
+              <h3 style={{
+                fontFamily: "var(--font-serif)",
+                fontWeight: 400,
+                fontSize: "clamp(23px, 2.1vw, 30px)",
+                lineHeight: 1.16,
+                letterSpacing: "-.02em",
+                color: "var(--color-ink)",
+                margin: "0 0 6px",
+              }}>
+                Still not sure?
+              </h3>
+              <p style={{
+                fontSize: "14.5px",
+                lineHeight: 1.6,
+                color: "var(--color-body)",
+                maxWidth: "44ch",
+                margin: 0,
+              }}>
+                There is no question too small or too complicated. Send a message or call — I would always rather speak to someone who is not sure.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <CtaButton cta={{ label: "Get in touch", href: "/contact", variant: "primary" }} />
+              <CtaButton cta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "outline" }} />
+            </div>
+          </div>
+
           </div>
       </Section>
 
