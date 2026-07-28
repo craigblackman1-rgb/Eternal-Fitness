@@ -16,6 +16,8 @@ interface PageHeroProps {
   badge?: ReactNode;
   /** content rendered after the divider, before the buttons — split variant only */
   belowLead?: ReactNode;
+  /** how to render belowLead — quote (serif italic with rose left border) or plain (body copy) */
+  belowLeadVariant?: "quote" | "plain";
   /** glass card positioned bottom-left inside the media column — split variant only */
   mediaOverlay?: ReactNode;
 }
@@ -40,6 +42,7 @@ export function PageHero({
   secondaryCta,
   badge,
   belowLead,
+  belowLeadVariant = "quote",
   mediaOverlay,
 }: PageHeroProps) {
   if (variant === "split") {
@@ -50,7 +53,11 @@ export function PageHero({
           <h1>{heading}</h1>
           {subhead && <p className="ds-hero-split-lead">{subhead}</p>}
           {subhead && <div className="ds-hero-split-rule" aria-hidden="true" />}
-          {belowLead && <div className="ds-hero-split-quote">{belowLead}</div>}
+          {belowLead && belowLeadVariant === "plain" ? (
+            <div className="ds-hero-split-intro">{belowLead}</div>
+          ) : belowLead ? (
+            <div className="ds-hero-split-quote">{belowLead}</div>
+          ) : null}
           {(primaryCta || secondaryCta) && (
             <div className="ds-hero-split-btns">
               {primaryCta && <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "primary" }} />}

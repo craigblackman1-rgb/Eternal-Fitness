@@ -5,6 +5,7 @@ import {
   IconAward,
   IconClipboardList,
   IconMessageCircle,
+  IconRefreshCw,
   IconUsers,
 } from "@/components/icons";
 import Navbar from "@/components/Navbar";
@@ -15,12 +16,12 @@ import {
   Section,
   SectionHeading,
   PageHero,
-  StatBadge,
   CTABand,
   Reveal,
   CtaButton,
   ProcessFlow,
   StatStrip,
+  Callout,
   PulseLine,
   MotionArcs,
 } from "@/components/ds";
@@ -48,10 +49,14 @@ const steps = [
   {
     title: "Free Consultation",
     desc: "A relaxed 30-minute conversation about your goals, history, and what has and hasn't worked before.",
+    image: "/images/esther-training.jpg",
+    imageAlt: "Esther talking with a client at the start of a session",
   },
   {
     title: "Movement Assessment",
     desc: "Checking your current mobility, strength, and any limitations before we start.",
+    image: "/images/studio-kneel-stretch.jpg",
+    imageAlt: "Assessing range of motion in the studio",
   },
   {
     title: "Your Programme",
@@ -72,14 +77,16 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
+        variant="split"
         image="/images/pt-hero.jpg"
         imageAlt="Personal training in Worthing"
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
         heading={content.hero_heading ?? "Personal Training in Worthing"}
-        subhead={content.hero_subhead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel. Whatever brought you here — wanting to get fitter and stronger, an injury to work around, a health condition to train safely with — sessions are built entirely around you. Private studio, one-to-one, no gym floor."}
+        subhead={content.hero_lead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel."}
+        belowLead={<p>{content.hero_intro ?? "Whatever brought you here — wanting to get fitter and stronger, an injury to work around, a health condition to train safely with — sessions are built entirely around you. Private studio, one-to-one, no gym floor."}</p>}
+        belowLeadVariant="plain"
         primaryCta={bookCta}
         secondaryCta={{ label: content.hero_btn_secondary ?? "What Sessions Involve", href: "#what", variant: "ghost-white" }}
-        badge={<StatBadge variant="rose" value="L4" label={content.badge_label ?? "Qualified in Cancer & Exercise Rehabilitation"} />}
       />
 
       {/* What to Expect */}
@@ -91,13 +98,18 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
               heading={content.what_heading ?? "What to Expect"}
             />
             <Reveal y={24}>
-              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>
+              <p className="ds-body" style={{ marginTop: 20, marginBottom: 26 }}>
                 {content.what_p1 ?? "Training with me isn't about pushing harder or doing more for its own sake. It's about what your body needs right now, and building a sustainable plan around that. Sessions are private, one-to-one, in a small studio in Worthing — no gym floor, no other clients, no comparison to anyone else."}
               </p>
-              <p className="ds-body" style={{ marginBottom: 28 }}>
-                {content.what_p2 ?? "I'm also trained in exercise referral and cancer rehabilitation, so if your health changes — a new condition, a GP referral, recovery from treatment — I can adapt rather than you having to start again with someone new."}
-              </p>
-              <CtaButton cta={bookCta} />
+              <Callout
+                icon={IconRefreshCw}
+                title={content.what_callout_title ?? "If your health changes, the plan changes — not the trainer"}
+                body={content.what_p2 ?? "I'm also trained in exercise referral and cancer rehabilitation, so if your health changes — a new condition, a GP referral, recovery from treatment — I can adapt rather than you having to start again with someone new."}
+                accent="teal"
+              />
+              <div style={{ marginTop: 28 }}>
+                <CtaButton cta={bookCta} />
+              </div>
             </Reveal>
           </div>
           <Reveal y={40} className="ds-split-img">
@@ -107,7 +119,8 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       </Section>
 
       {/* What We Work On */}
-      <Section background="white">
+      {/* GATE: mockup uses a 4-card icon grid (.cards-4) instead of the current split-image/dot-list layout — real layout archetype question, don't rebuild without confirmation */}
+      <Section background="cream" id="focus">
         <div className="ds-split">
           <Reveal y={40} className="ds-split-img">
             <Image src="/images/dumbbell-training.jpg" alt="Mobility and functional training" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
@@ -138,13 +151,13 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       </Section>
 
       {/* How It Works */}
-      <Section background="cream">
+      <Section background="white">
         <SectionHeading align="center" eyebrow={content.process_eyebrow ?? "The Process"} heading={content.process_heading ?? "How It Works"} />
         <div className="ds-art-divider">
           <PulseLine accent="rose" />
         </div>
         <div style={{ marginTop: 48 }}>
-          <ProcessFlow steps={steps.map((s, i) => ({ title: content[`step_${i + 1}_title`] ?? s.title, body: content[`step_${i + 1}_desc`] ?? s.desc }))} />
+          <ProcessFlow steps={steps.map((s, i) => ({ title: content[`step_${i + 1}_title`] ?? s.title, body: content[`step_${i + 1}_desc`] ?? s.desc, image: s.image, imageAlt: s.imageAlt }))} />
         </div>
         <div style={{ textAlign: "center", marginTop: 44 }}>
           <CtaButton cta={bookCta} />
@@ -152,6 +165,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       </Section>
 
       {/* Credentials */}
+      {/* GATE: this extra Credentials StatStrip section (4 stats) has no mockup equivalent — don't remove, awaiting decision */}
       <Section background="cream">
         <StatStrip
           background="ink"
@@ -165,6 +179,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       </Section>
 
       {/* Specialist Training */}
+      {/* GATE: mockup is a dark two-CTA section with a condition bullet list and a caveat note linking to /exercise-for-health, with the note that the catalogue isn't built yet; live is a light single-CTA section linking to /contact. The catalogue-not-built decision blocks this unit — do not rebuild. */}
       <Section background="cream" id="specialist">
         <SectionHeading
           align="center"
