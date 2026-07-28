@@ -11,17 +11,14 @@ import {
   SectionHeading,
   PageHero,
   FeatureBand,
-  AccreditationStrip,
-  StatBadge,
   Callout,
   CTABand,
   Reveal,
   CtaButton,
   ProcessFlow,
   PulseLine,
-  JourneyPath,
 } from "@/components/ds";
-import { IconAccessibility, IconDumbbell, IconLeaf, IconHeartHandshake, IconUsers } from "@/components/icons";
+import { IconAccessibility, IconDumbbell, IconLeaf, IconHeartHandshake } from "@/components/icons";
 
 export default function AboutPageClient({ content = {} }: { content?: Record<string, string> }) {
   const { open, setOpen, openDialog } = useConsultationDialog();
@@ -51,27 +48,28 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
+        variant="split"
         image="/images/about-hero.jpg"
         imageAlt="Esther Fair, personal trainer in Worthing"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
         heading={content?.hero_heading ?? "About Esther Fair"}
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}
         primaryCta={bookCta}
-        secondaryCta={{ label: content?.hero_btn_secondary ?? "My Story", href: "#story", variant: "ghost-white" }}
-        badge={<StatBadge value="L4" label={content?.badge_label ?? "Level 4 Qualified"} sublabel={content?.badge_sublabel ?? "In Cancer & Exercise Rehabilitation"} />}
+        secondaryCta={{ label: content?.hero_btn_secondary ?? "My Story", href: "#story", variant: "outline" }}
+        belowLead={<blockquote>&ldquo;I&rsquo;m a personal trainer. I just so happen to be a personal trainer that can work around things that your average personal trainer can&rsquo;t.&rdquo;</blockquote>}
       />
 
       {/* Story */}
       <Section background="white" id="story">
         <div className="ds-split">
-          <Reveal y={40} className="ds-split-img" >
-            <Image src="/images/esther-about.jpg" alt="Esther Fair, personal trainer at Eternal Fitness Worthing" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover" }} />
-            <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 3 }}>
-              <StatBadge variant="rose" value="L4" label="Qualified" />
-            </div>
-            <div className="ds-art-chip">
-              <JourneyPath accent="rose" milestones={3} />
-            </div>
+          <Reveal y={40}>
+            <figure style={{ margin: 0 }}>
+              <div className="ds-split-img">
+                <Image src="/images/esther-about.jpg" alt="Mobility work in the converted-garage studio" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover" }} />
+              </div>
+              <figcaption className="ds-figcaption">The converted-garage studio, Worthing</figcaption>
+            </figure>
+            {/* GATE: StatBadge and JourneyPath/art-chip decorations exist on live with zero mockup equivalent — undecided keepers, not removed */}
           </Reveal>
           <div>
             <SectionHeading eyebrow={content?.story_eyebrow ?? "My Story"} heading={content?.story_heading ?? "How Eternal Fitness Came to Be"} />
@@ -79,66 +77,50 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "After qualifying, I took a job in a leisure centre first — I wanted the security of employment before doing anything on my own."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "Covid changed that. When leisure centres closed, some of my more vulnerable clients asked if I could keep training them outdoors. Around the same time, I joined a clinical trial delivering online exercise sessions for people going through cancer treatment. I said yes to a few things, and it worked out okay. So I said yes to a few more."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "I didn't want to build a generic weight-loss business. I wanted to work with people who had real physical and mental health needs — people finding their way back to fitness after cancer treatment, older adults, visually impaired clients, athletes — and measure it in confidence, independence and how people actually feel, not just numbers."}</p>
-              <p className="ds-body" style={{ marginBottom: 28 }}>{content?.story_p4 ?? "I train from a converted garage studio now, and I've built my working hours around the life I actually want, not the other way round. My first client stayed with me for around seven years — that's the kind of relationship I'm after. I still get imposter syndrome some days. It hasn't stopped me building something I'm proud of."}</p>
-              <CtaButton cta={bookCta} />
+              <p className="ds-body" style={{ marginBottom: 0 }}>{content?.story_p4 ?? "I train from a converted garage studio now, and I've built my working hours around the life I actually want, not the other way round. My first client stayed with me for around seven years — that's the kind of relationship I'm after."}</p>
+              <p className="ds-story-close">{content?.story_close ?? "I still get imposter syndrome some days. It hasn't stopped me building something I'm proud of."}</p>
+              <div style={{ marginTop: 30 }}>
+                <CtaButton cta={bookCta} />
+              </div>
             </Reveal>
           </div>
         </div>
       </Section>
 
-      {/* Qualifications */}
-      <Section background="cream">
-        <div className="ds-split">
+      {/* Qualifications + Experience */}
+      <Section background="cream" id="qualifications">
+        <div className="ds-qual-grid">
           <div>
             <SectionHeading
               eyebrow={content?.quals_eyebrow ?? "Qualifications"}
               heading={content?.quals_heading ?? "What I'm Qualified For"}
               intro={content?.quals_intro ?? "I trained as a personal trainer first, then went further: Exercise Referral, and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I'm equipped to keep working with you if your health changes — a new diagnosis, a GP referral, recovery from treatment — without you needing to find someone new."}
             />
-            <div className="ds-featlist">
-              {qualifications.map((q) => (
-                <div key={q.title} className="ds-feat">
-                  <span className="ds-feat-dot" />
-                  <div>
-                    <div className="ds-feat-t">{q.title}</div>
-                    <div className="ds-feat-c">{q.desc}</div>
-                  </div>
-                </div>
-              ))}
+            <div className="ds-exp">
+              <p className="ds-body" style={{ fontWeight: 600, color: "var(--color-ink)", marginBottom: 12 }}>{content?.exp_heading ?? "A Wide Range of Experience"}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "Over the years I've worked with people managing chronic conditions, recovering from surgery, adjusting to a new diagnosis, or living with a disability — alongside the majority of my clients, who are just looking for proper one-to-one training."}</p>
+              <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you're wondering whether your situation is too complicated, it almost certainly isn't — get in touch."}</p>
+              <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
             </div>
+            {/* GATE: AccreditationStrip exists on live with zero mockup equivalent — undecided keeper, not removed */}
           </div>
-          <Reveal y={40} className="ds-split-img">
-            <Image src="/images/esther-training.jpg" alt="Esther Fair, personal trainer at Eternal Fitness Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-          </Reveal>
-        </div>
-        <Reveal y={24} start="top 88%" style={{ marginTop: 56 }}>
-          <AccreditationStrip />
-        </Reveal>
-      </Section>
-
-      {/* Experience */}
-      <Section background="white">
-        <SectionHeading
-          align="center"
-          eyebrow={content?.exp_eyebrow ?? "Experience"}
-          eyebrowColor="teal"
-          heading={content?.exp_heading ?? "A Wide Range of Experience"}
-        />
-        <Reveal y={24} className="ds-head-center" >
-          <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.exp_p1 ?? "Over the years I've worked with people managing chronic conditions, recovering from surgery, adjusting to a new diagnosis, or living with a disability — alongside the majority of my clients, who are just looking for proper one-to-one training."}</p>
-          <p className="ds-body">{content?.exp_p2 ?? "If you're wondering whether your situation is too complicated, it almost certainly isn't — get in touch."}</p>
-        </Reveal>
-        <div style={{ maxWidth: 640, margin: "40px auto 0" }}>
-          <Callout
-            icon={IconUsers}
-            accent="teal"
-            title={content?.exp_callout_title ?? "Not sure if you qualify?"}
-            body={<>If you're wondering whether your situation means you can't train — <Link href="/contact" className="text-teal hover:underline">please get in touch</Link>. The answer is almost always yes, I can help. That's exactly what I <Link href="/personal-training" className="text-teal hover:underline">specialise in</Link>.</>}
-          />
+          <div className="ds-qual-cards">
+            {qualifications.map((q, i) => (
+              <div key={q.title} className="ds-qual-card">
+                <div className="ds-qual-n">{String(i + 1).padStart(2, "0")}</div>
+                <div>
+                  <div className="ds-qual-t">{q.title}</div>
+                  <div className="ds-qual-d">{q.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </Section>
 
       {/* Philosophy */}
+      {/* GATE: mockup specifies a dark ink band (bg-ink) for the philosophy section instead of cream —
+           a real visual rhythm question; not rebuilt without Craig's confirmation */}
       <Section background="cream" id="philosophy">
         <div className="ds-split">
           <div>
@@ -169,7 +151,11 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           align="center"
           eyebrow={content?.studio_eyebrow ?? "Studio"}
           heading={content?.studio_heading ?? "A Private Space in Worthing"}
-          intro={content?.studio_intro ?? "Sessions take place in a small, private, fully equipped studio. No public gym floor. No other clients watching. No ambient pressure of what anyone else around you is doing."}
+          intro={content?.studio_intro ?? 
+            /* GATE: mockup says "converted-garage studio" — current code says "fully equipped studio".
+               decisions.log has no clarifying entry on whether this was a deliberate correction.
+               Left as-is until confirmed. */
+            "Sessions take place in a small, private, fully equipped studio. No public gym floor. No other clients watching. No ambient pressure of what anyone else around you is doing."}
         />
         <Reveal className="ds-grid-2" stagger={0.12} y={40} start="top 82%" >
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
@@ -199,11 +185,29 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         <div style={{ marginTop: 48 }}>
           <ProcessFlow steps={longTermCards.map((c) => ({ title: c.title, body: c.desc }))} />
         </div>
-        <div style={{ maxWidth: 640, margin: "48px auto 0", textAlign: "center" }}>
-          <p className="ds-body" style={{ fontStyle: "italic" }}>
-            {content?.testimonial_1 ?? "“Esther has really helped me wonderfully over the past 7 years with my fitness and flexibility.”"}
+        <figure className="ds-quote-card">
+          <div className="ds-quote-card-mark" aria-hidden="true">&ldquo;</div>
+          <p className="ds-quote-card-body">
+            {content?.testimonial_1 ?? "Esther has really helped me wonderfully over the past 7 years with my fitness and flexibility."}
           </p>
-          <p className="ds-body" style={{ marginTop: 8, fontWeight: 600 }}>{content?.testimonial_1_author ?? "Colin F, training 7 years"}</p>
+          <figcaption className="ds-quote-card-by">
+            <span className="ds-quote-card-av" aria-hidden="true">CF</span>
+            <span>
+              <span className="ds-quote-card-name" style={{ display: "block" }}>{content?.testimonial_1_name ?? "Colin F"}</span>
+              <span className="ds-quote-card-meta" style={{ display: "block" }}>{content?.testimonial_1_meta ?? "Training 7 years"}</span>
+            </span>
+          </figcaption>
+        </figure>
+        <div className="ds-about-foot">
+          <button
+            type="button"
+            onClick={openDialog}
+            className="ef-btn ef-btn-primary"
+            style={{ gap: 8 }}
+          >
+            Book a Free Consultation
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
         </div>
       </Section>
 
