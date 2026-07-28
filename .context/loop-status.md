@@ -36,3 +36,14 @@
 35: 2026-07-28T09:47Z | Lane A | components/ds/PageHero.tsx, app/design-system.css | Added split variant (two-col grid, white left column, image right column, rose divider, belowLead/mediaOverlay props, overlay variant unchanged)
 36: 2026-07-28T09:47Z | Lane A | components/ds/CTABand.tsx | Added optional eyebrow prop, renders above h2 using ds-eyebrow ds-eyebrow-white
 37: 2026-07-28T09:47Z | Lane A | app/about/AboutPageClient.tsx, app/contact/ContactPageClient.tsx, app/faqs/FAQsPageClient.tsx, app/personal-training/PersonalTrainingClient.tsx, app/pricing/PricingPageClient.tsx, app/HomePageClient.tsx | Updated CTABand default fallback strings: eyebrow=Free Consultation, heading=The first conversation is free with no commitment, body=small number of clients. tsc --noEmit + next build clean.
+38: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 1] Hero switched to variant="split" with mediaOverlay glass card (phone icon + free-conversation copy)
+39: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 2] Form wrapped in card (border-warm border, rounded-2xl, ds-card matching shadow, p-9)
+40: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 3] Added "Direct" eyebrow (teal) + "Or reach me directly" h2 above contact details list
+41: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 4] Restored per-item icon colors: phone=rose, email=teal, location=warm
+42: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 5] Added "Prefer to talk it through?" callout (bg-warm, rounded-2xl) below details list
+43: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 6] Consent copy fixed to mockup text; link /terms -> /privacy-policy (page exists)
+44: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 7] Success state reworked to inline confirmation panel (checkmark + "Thank you — that's with me." + urgency line) replacing toast
+45: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [AUTO 8] CTABand passed explicit eyebrow/heading/body/CTAs matching mockup exactly
+46: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [GATE] Studio section: mockup photo+copy+FAQs button vs live Maps iframe — left map, GATE comment added
+47: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | [GATE] "Not Sure Where to Start?" + "Follow Me" sidebar — partial CTA-band duplicate, GATE comment added
+48: 2026-07-28T10:00Z | Lane D | app/contact/ContactPageClient.tsx | Verified: npx tsc --noEmit clean, npx next build clean (pre-existing jose/BetterAuth/DB warnings only)
