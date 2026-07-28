@@ -1,6 +1,7 @@
 # Eternal Fitness Website — State
 
 ## Current
+<<<<<<< Updated upstream
 - **Update-composer paste fixes + email send/resend delivery history — DONE + DEPLOYED + LIVE-VERIFIED
   2026-07-28 (evening).** 6 commits, all confirmed `running:healthy` via Coolify MCP. (1) `5f64b03` —
   "Paste a draft" option added to the New Update composer, bypassing the AI chat entirely (it was
@@ -23,6 +24,15 @@
   enabled today, so the new event types won't populate until that's added. Also created a portal login
   for Ian Healey (client #9), credentials handed to Craig directly (invite email not sent). **Not done:**
   no live click-test in a real hub session. Full detail in handoff.md.
+=======
+- **Hub tasks — due-date filtering, sorting, "Due This Week" banner — DONE + DEPLOYED 2026-07-28.**
+  `/hub/tasks` now has Overdue/Due Today/Due This Week/No Due Date filter pills, a Due date/Created/Title
+  sort control (direction toggle, no-due-date tasks always last), and a due-soon summary banner (rose if
+  anything's overdue, amber otherwise). Client-side only against the existing `due_date` column, no
+  migration. Built in an isolated worktree, `tsc --noEmit` + full `next build` both clean, pushed
+  `e5347ef..087ae2e` to `main`, Coolify auto-deploy confirmed `running:healthy`. Not click-tested live
+  (no hub credentials in this environment). Full detail in `.context/handoff.md`.
+>>>>>>> Stashed changes
 - **Launch-page copy alignment + 4 follow-up UI fixes — DONE + DEPLOYED + LIVE-VERIFIED 2026-07-27
   (evening).** Craig reported the morning's launch-copy commit (`3f50bd8`) had shipped copy diverging
   from the source doc (`EF_Launch_Pages_Redraft_Jul2026.docx`, workspace repo). Confirmed real: Home and

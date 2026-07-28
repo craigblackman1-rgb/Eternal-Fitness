@@ -1,5 +1,6 @@
 # Handoff
 
+<<<<<<< Updated upstream
 ## Session close — 2026-07-28 (evening) — update-composer paste fixes, portal document/update viewing, and a real send/resend delivery-history feature
 
 Six shipped items, all pushed straight to `main` (auto-deploy confirmed ON), each built in its own
@@ -120,6 +121,45 @@ real browser fetch against `staging.eternal-fitness.co.uk` (not just Coolify's s
 manual force-redeploy triggered mid-check happened to fail on a transient build issue, confirmed harmless
 since the site was already serving the new footer from the webhook-triggered deploy that landed first).
 Full detail in `decisions.log`'s 2026-07-28 entry. Worktree removed, branch deleted, fully merged.
+=======
+## Session close — 2026-07-28 — hub tasks: due-date filtering, sorting, "Due This Week" banner
+
+**What happened.** Craig asked for the `/hub/tasks` board to support filtering/sorting by date, plus a
+"what's due this week" banner. Built entirely client-side against the existing `due_date` column
+(migration `20260725_hub_tasks.sql`) — no schema change, no migration needed.
+
+**Shipped in `app/hub/(protected)/tasks/TasksManager.tsx`:**
+- **Due-date filter pills** — All / Overdue / Due Today / Due This Week / No Due Date, live counts,
+  sitting alongside the existing bucket-filter row.
+- **Sort control** — Due date / Date created / Title, with an ascending/descending toggle. Tasks with
+  no due date always sort last regardless of direction (a plain array reverse would otherwise flip them
+  to the front on descending — handled explicitly with a signed comparator instead).
+- **"Due This Week" banner** — appears above the board whenever any non-done task is due within 7 days
+  (including overdue). Rose/warning styling if anything is overdue, amber otherwise; shows up to 6 tasks
+  as clickable chips (opens the task's edit form) plus a "+N more" chip that applies the Due This Week
+  filter.
+
+**Built in an isolated worktree per DO-SOP-010** (`D:\apps\worktrees\eternal-fitness-website-task-filters`,
+branch `task/hub-tasks-filters-2026-07-28`, off fresh `origin/main` — confirmed unmoved since branching).
+`node_modules` junctioned from the shared checkout (first attempt via `cmd /c mklink /J` inside the Bash
+tool produced a malformed double-drive-prefix symlink target under git-bash's path translation — redone
+via the PowerShell tool instead, which junctions correctly). `tsc --noEmit` clean and a full `next build`
+clean (`/hub/tasks` compiles at 8.05 kB), both run before push. Fast-forward pushed straight to `main`
+(`e5347ef..087ae2e`) — Craig's go-ahead was for the push, and auto-deploy is already ON for this app, so
+no separate deploy trigger was needed. Confirmed `running:healthy` via Coolify MCP post-deploy
+(`last_online_at` matches the deploy timestamp).
+
+**Worktree cleanup hit one snag, resolved cleanly.** `git worktree remove` failed with "Filename too
+long" — the junctioned `node_modules` confused git's own recursive-delete walk. Confirmed the *shared*
+checkout's real `node_modules` was untouched (523 entries, unaffected) before doing anything else, then
+unlinked the junction directly (`cmd /c rmdir` — a plain rmdir on a junction unlinks it without
+recursing into the target, unlike `rm -rf`), which let a plain directory delete finish the cleanup.
+Worth remembering for any future junctioned-`node_modules` worktree: unlink the junction as its own step
+before asking git or a recursive delete to touch the worktree directory.
+
+**Not done:** no live, logged-in click-test — same standing limitation as every other hub session (no
+hub credentials in this environment). Worth Craig's own look next time he's in the hub.
+>>>>>>> Stashed changes
 
 ## Session close — 2026-07-27 (evening) — launch-page copy alignment + 4 follow-up UI fixes
 
