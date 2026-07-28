@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { IconPhone, IconMail, IconFacebook, IconInstagram, IconLinkedin, IconYoutube, IconMapPin } from "@/components/icons";
+import { IconFacebook, IconArrowUpRight } from "@/components/icons";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
-import { AccreditationStrip } from "@/components/ds";
 
 const websiteSchema = {
   "@context": "https://schema.org",
@@ -16,7 +15,9 @@ const websiteSchema = {
   }
 };
 
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose focus-visible:ring-offset-2 focus-visible:ring-offset-dark-navy rounded-sm";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose focus-visible:ring-offset-2 focus-visible:ring-offset-ink rounded-sm";
+
+const footerLinkClasses = `relative inline-block py-2 text-[15px] leading-[1.35] text-white/60 transition-colors hover:text-white ${focusRing}`;
 
 const Footer = () => {
   return (
@@ -26,125 +27,109 @@ const Footer = () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
 
-      <footer className="bg-dark-navy text-white">
-        {/* Main grid */}
-        <div className="px-6 md:px-12 py-16 md:py-20">
-          <div className="max-w-[1320px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1.3fr_1fr] gap-12 lg:gap-16">
-            {/* Brand + Credentials */}
-            <div>
+      <footer className="relative isolate overflow-hidden bg-ink text-white/60">
+        {/* rose eyebrow rule + radial glow, echoing the section-head device used across the marketing pages */}
+        <div className="absolute inset-x-0 top-0 h-px bg-white/10" aria-hidden="true" />
+        <div className="absolute top-0 left-0 h-[3px] w-[148px] bg-rose" aria-hidden="true" />
+        <div
+          className="pointer-events-none absolute -top-[24%] -left-[8%] h-[130%] w-[58%] -z-10"
+          style={{ background: "radial-gradient(closest-side, rgba(193,131,159,0.09), transparent 72%)" }}
+          aria-hidden="true"
+        />
+
+        <div className="relative px-6 md:px-20 pb-[34px]">
+          {/* Top: brand + 3 nav groups */}
+          <div className="max-w-[1320px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.65fr_.82fr_.82fr_1.15fr] gap-10 lg:gap-14 py-14 lg:py-[78px] border-b border-white/10">
+            {/* Brand */}
+            <div className="sm:col-span-2 lg:col-span-1">
               <Link href="/" aria-label="Eternal Fitness home" className={`inline-block ${focusRing}`}>
-                <EternalFitnessLogo variant="light" className="h-16 w-auto" />
+                <EternalFitnessLogo variant="light" className="h-12 w-auto mb-7" />
               </Link>
-              <p className="text-[15px] text-white/60 leading-relaxed mt-5 max-w-xs">
+              <p className="font-serif font-normal text-[clamp(23px,2.1vw,30px)] leading-[1.22] tracking-[-0.022em] text-white max-w-[22ch] mb-4">
                 Private one-to-one personal training in Worthing.
               </p>
-              <div className="mt-6 flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-rose flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  4
-                </div>
-                <div>
-                  <div className="text-[13px] font-bold text-white/80">Level 4 Qualified</div>
-                  <div className="text-[12px] text-white/40">In Cancer &amp; Exercise Rehabilitation</div>
-                </div>
-              </div>
+              <p className="text-[14.5px] leading-[1.62] text-white/60 max-w-[36ch] mb-7">
+                All sessions are 60 minutes, one-to-one — in the private studio in Worthing, or live online.
+              </p>
+              <Link href="/contact" className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
+                Book a free consultation
+                <IconArrowUpRight style={{ width: 13, height: 13 }} />
+              </Link>
             </div>
+
+            {/* Explore */}
+            <nav aria-label="Footer — explore" className="flex flex-col items-start">
+              <h2 className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3.5">Explore</h2>
+              <Link href="/" className={footerLinkClasses}>Home</Link>
+              <Link href="/about" className={footerLinkClasses}>About</Link>
+              <Link href="/personal-training" className={footerLinkClasses}>Personal Training</Link>
+              <Link href="/pricing" className={footerLinkClasses}>Pricing</Link>
+            </nav>
+
+            {/* Training */}
+            <nav aria-label="Footer — training" className="flex flex-col items-start">
+              <h2 className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3.5">Training</h2>
+              <Link href="/exercise-for-health" className={footerLinkClasses}>Specialist Training</Link>
+              <Link href="/faqs" className={footerLinkClasses}>FAQs</Link>
+              <Link href="/contact" className={footerLinkClasses}>Contact</Link>
+            </nav>
 
             {/* Contact */}
-            <div>
-              <h2 className="text-[13px] font-bold text-white/40 tracking-widest uppercase mb-6">Get in Touch</h2>
-              <ul className="space-y-3.5">
-                <li>
-                  <a
-                    href="tel:07517658128"
-                    className={`inline-flex items-center gap-3 text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}
-                  >
-                    <IconPhone className="w-4 h-4 text-rose shrink-0" aria-hidden="true" />
-                    07517 658 128
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:esther.fair@eternal-fitness.co.uk"
-                    className={`flex items-start gap-3 text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}
-                  >
-                    <IconMail className="w-4 h-4 text-rose shrink-0 mt-0.5" aria-hidden="true" />
-                    <span className="break-words">esther.fair@eternal-fitness.co.uk</span>
-                  </a>
-                </li>
-                <li className="inline-flex items-center gap-3 text-[15px] text-white/45">
-                  <IconMapPin className="w-4 h-4 text-rose shrink-0" aria-hidden="true" />
-                  Worthing, West Sussex
-                </li>
-              </ul>
-            </div>
-
-            {/* Information + Social */}
-            <div>
-              <h2 className="text-[13px] font-bold text-white/40 tracking-widest uppercase mb-6">More</h2>
-              <ul className="space-y-3.5 mb-8">
-                <li><Link href="/personal-training" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Personal Training</Link></li>
-                <li><Link href="/about" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>About Me</Link></li>
-                <li><Link href="/pricing" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Pricing</Link></li>
-                <li><Link href="/faqs" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>FAQs</Link></li>
-                <li><Link href="/contact" className={`text-[15px] text-white/65 hover:text-rose transition-colors ${focusRing}`}>Contact</Link></li>
-              </ul>
-              <div className="flex gap-3">
+            <div className="flex flex-col items-stretch">
+              <h2 className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3.5">Get in touch</h2>
+              <a
+                href="tel:07517658128"
+                className={`font-serif font-normal text-[clamp(25px,2.2vw,31px)] leading-[1.1] tracking-[-0.025em] text-white transition-colors hover:text-rose ${focusRing}`}
+              >
+                07517 658 128
+              </a>
+              <a
+                href="mailto:esther.fair@eternal-fitness.co.uk"
+                className={`block mt-4 pt-[15px] border-t border-white/10 text-[14.5px] leading-[1.4] text-white/60 break-words transition-colors hover:text-white ${focusRing}`}
+              >
+                esther.fair@eternal-fitness.co.uk
+              </a>
+              <p className="mt-4 pt-[15px] border-t border-white/10 text-[14.5px] leading-[1.45] text-white/60">
+                Worthing, West Sussex
+                <span className="block text-[12.5px] text-white/45 mt-1">Exact address shared after booking.</span>
+              </p>
+              <div className="mt-[18px] pt-[17px] border-t border-white/10">
+                <span className="block text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3">Follow</span>
                 <a
-                  href="https://www.facebook.com/EternalFitnessPersonalTraining/"
+                  href="https://www.facebook.com/profile.php?id=61576413498498"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Facebook"
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-rose hover:bg-rose/10 transition-all ${focusRing}`}
+                  aria-label="Eternal Fitness on Facebook"
+                  className={`inline-flex w-11 h-11 rounded-full items-center justify-center border border-white/10 text-rose transition-all hover:bg-rose hover:text-white hover:border-rose hover:-translate-y-0.5 ${focusRing}`}
                 >
-                  <IconFacebook className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://instagram.com/eternalfitness/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-rose hover:bg-rose/10 transition-all ${focusRing}`}
-                >
-                  <IconInstagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://linkedin.com/in/esther-fair/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="LinkedIn"
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-rose hover:bg-rose/10 transition-all ${focusRing}`}
-                >
-                  <IconLinkedin className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://youtube.com/eternalfitness/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="YouTube"
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white/40 hover:text-rose hover:bg-rose/10 transition-all ${focusRing}`}
-                >
-                  <IconYoutube className="w-4 h-4" />
+                  <IconFacebook style={{ width: 17, height: 17 }} />
                 </a>
               </div>
             </div>
           </div>
 
-          {/* Accreditations */}
-          <div className="max-w-[1320px] mx-auto mt-14 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
-            <span className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/30 shrink-0">Registered &amp; accredited</span>
-            <AccreditationStrip variant="footer" />
-          </div>
-
-          {/* Rose divider */}
-          <div className="max-w-[1320px] mx-auto mt-8 mb-6 h-px bg-rose/20" />
+          {/* Qualifications strip */}
+          <ul className="max-w-[1320px] mx-auto flex flex-wrap items-center gap-2.5 py-[26px] border-b border-white/10 list-none">
+            <li className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mr-2">Qualified in</li>
+            {["Personal Training", "Exercise Referral", "Level 4 Cancer and Exercise Rehabilitation"].map((q) => (
+              <li
+                key={q}
+                className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-[12.5px] font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/5"
+              >
+                <span className="w-[5px] h-[5px] rounded-full bg-rose shrink-0" aria-hidden="true" />
+                {q}
+              </li>
+            ))}
+          </ul>
 
           {/* Bottom bar */}
-          <div className="max-w-[1320px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-white/35">
-            <span>&copy; {new Date().getFullYear()} Eternal Fitness &middot; Esther Fair</span>
-            <div className="flex gap-6">
-              <Link href="/privacy-policy" className={`hover:text-white/55 transition-colors ${focusRing}`}>Privacy Policy</Link>
-              <Link href="/terms" className={`hover:text-white/55 transition-colors ${focusRing}`}>Terms &amp; Conditions</Link>
-            </div>
+          <div className="max-w-[1320px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 pt-[26px] text-[12.5px] text-white/45">
+            <span>&copy; {new Date().getFullYear()} Eternal Fitness &middot; Worthing, West Sussex</span>
+            <nav aria-label="Legal" className="flex gap-[22px]">
+              <Link href="/privacy-policy" className={`transition-colors hover:text-white ${focusRing}`}>Privacy</Link>
+              <Link href="/terms" className={`transition-colors hover:text-white ${focusRing}`}>Terms</Link>
+              <Link href="/cookies-policy" className={`transition-colors hover:text-white ${focusRing}`}>Cookies</Link>
+            </nav>
           </div>
         </div>
       </footer>
