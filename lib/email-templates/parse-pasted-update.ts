@@ -2,7 +2,13 @@
  * Turns a fully pre-written update (plain text, pasted verbatim) into section
  * data — no AI rewriting. Detects the greeting line, strips a trailing
  * sign-off, and splits the body into sections at standalone heading lines
- * (a short line with no trailing sentence punctuation, on its own paragraph).
+ * (a short line with no trailing sentence punctuation).
+ *
+ * Pasted text from Word/Docs/Gmail commonly has ONE paragraph per line break
+ * with no blank line between paragraphs (a "hard return" per paragraph, not
+ * per visual line) — so heading detection must not require a preceding blank
+ * line. Every non-empty line is treated as its own paragraph/heading
+ * candidate on that basis.
  */
 
 export interface ParsedSection {
@@ -20,13 +26,32 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function paragraphsToHtml(text: string): string {
-  return text
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p style="margin:0 0 12px;">${escapeHtml(p).replace(/\n/g, "<br />")}</p>`)
-    .join("");
+const BULLET_RE = /^[*\-•]\s+/;
+
+/** Renders a block's paragraph lines to HTML, grouping consecutive
+ *  "* "/"- "/"• "-prefixed lines into a real bullet list. */
+function linesToHtml(lines: string[]): string {
+  const trimmed = lines.map((l) => l.trim()).filter(Boolean);
+  const parts: string[] = [];
+  let i = 0;
+  while (i < trimmed.length) {
+    if (BULLET_RE.test(trimmed[i])) {
+      const items: string[] = [];
+      while (i < trimmed.length && BULLET_RE.test(trimmed[i])) {
+        items.push(trimmed[i].replace(BULLET_RE, ""));
+        i++;
+      }
+      parts.push(
+        `<ul style="margin:0 0 12px;padding-left:20px;">${items
+          .map((it) => `<li style="margin:0 0 6px;">${escapeHtml(it)}</li>`)
+          .join("")}</ul>`,
+      );
+    } else {
+      parts.push(`<p style="margin:0 0 12px;">${escapeHtml(trimmed[i])}</p>`);
+      i++;
+    }
+  }
+  return parts.join("");
 }
 
 const SIGNOFF_RE = /^(speak soon|see you soon|talk soon|speak to you soon|best|regards|thanks|thank you|cheers|take care|warmly|love)[,!.\s]*$/i;
@@ -62,10 +87,11 @@ export function parsePastedUpdate(raw: string): ParsedUpdate {
     }
   }
 
-  const isHeading = (line: string, prevBlank: boolean): boolean => {
+  const isHeading = (line: string): boolean => {
     const t = line.trim();
-    if (!t || !prevBlank) return false;
+    if (!t) return false;
     if (t.length > 70) return false;
+    if (BULLET_RE.test(t)) return false;
     if (/[.!?:;,]$/.test(t)) return false;
     return true;
   };
@@ -73,22 +99,16 @@ export function parsePastedUpdate(raw: string): ParsedUpdate {
   type Block = { heading: string | null; lines: string[] };
   const blocks: Block[] = [];
   let current: Block = { heading: null, lines: [] };
-  let prevBlank = true;
 
   for (; i < lines.length; i++) {
-    const line = lines[i];
-    const t = line.trim();
-    if (!t) {
-      prevBlank = true;
-      continue;
-    }
-    if (isHeading(line, prevBlank)) {
+    const t = lines[i].trim();
+    if (!t) continue;
+    if (isHeading(lines[i])) {
       if (current.heading || current.lines.length) blocks.push(current);
       current = { heading: t, lines: [] };
     } else {
-      current.lines.push(line);
+      current.lines.push(lines[i]);
     }
-    prevBlank = false;
   }
   if (current.heading || current.lines.length) blocks.push(current);
 
@@ -96,10 +116,10 @@ export function parsePastedUpdate(raw: string): ParsedUpdate {
   let sections: ParsedSection[];
 
   if (blocks.length && !blocks[0].heading) {
-    introText = blocks[0].lines.join(" ").trim() || null;
-    sections = blocks.slice(1).map((b) => ({ heading: b.heading ?? "", html: paragraphsToHtml(b.lines.join("\n")) }));
+    introText = linesToHtml(blocks[0].lines) || null;
+    sections = blocks.slice(1).map((b) => ({ heading: b.heading ?? "", html: linesToHtml(b.lines) }));
   } else {
-    sections = blocks.map((b) => ({ heading: b.heading ?? "", html: paragraphsToHtml(b.lines.join("\n")) }));
+    sections = blocks.map((b) => ({ heading: b.heading ?? "", html: linesToHtml(b.lines) }));
   }
 
   return { greetingName, introText, sections };
