@@ -11,12 +11,15 @@ import {
   SectionHeading,
   PageHero,
   FeatureBand,
+  AccreditationStrip,
+  StatBadge,
   Callout,
   CTABand,
   Reveal,
   CtaButton,
   ProcessFlow,
   PulseLine,
+  JourneyPath,
 } from "@/components/ds";
 import { IconAccessibility, IconDumbbell, IconLeaf, IconHeartHandshake } from "@/components/icons";
 
@@ -63,13 +66,19 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
       <Section background="white" id="story">
         <div className="ds-split">
           <Reveal y={40}>
-            <figure style={{ margin: 0 }}>
+            {/* GATE: StatBadge and JourneyPath/art-chip decorations exist on live with zero mockup equivalent — undecided keeper, kept pending Craig's call */}
+            <figure style={{ margin: 0, position: "relative" }}>
               <div className="ds-split-img">
                 <Image src="/images/esther-about.jpg" alt="Mobility work in the converted-garage studio" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover" }} />
+                <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 3 }}>
+                  <StatBadge variant="rose" value="L4" label="Qualified" />
+                </div>
+                <div className="ds-art-chip">
+                  <JourneyPath accent="rose" milestones={3} />
+                </div>
               </div>
               <figcaption className="ds-figcaption">The converted-garage studio, Worthing</figcaption>
             </figure>
-            {/* GATE: StatBadge and JourneyPath/art-chip decorations exist on live with zero mockup equivalent — undecided keepers, not removed */}
           </Reveal>
           <div>
             <SectionHeading eyebrow={content?.story_eyebrow ?? "My Story"} heading={content?.story_heading ?? "How Eternal Fitness Came to Be"} />
@@ -102,7 +111,6 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you're wondering whether your situation is too complicated, it almost certainly isn't — get in touch."}</p>
               <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
             </div>
-            {/* GATE: AccreditationStrip exists on live with zero mockup equivalent — undecided keeper, not removed */}
           </div>
           <div className="ds-qual-cards">
             {qualifications.map((q, i) => (
@@ -116,6 +124,10 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
             ))}
           </div>
         </div>
+        {/* GATE: AccreditationStrip exists on live with zero mockup equivalent — undecided keeper, kept pending Craig's call */}
+        <Reveal y={24} start="top 88%" style={{ marginTop: 56 }}>
+          <AccreditationStrip />
+        </Reveal>
       </Section>
 
       {/* Philosophy */}
