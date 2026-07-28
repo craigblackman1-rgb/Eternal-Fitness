@@ -13,7 +13,6 @@ import {
   SectionHeading,
   PageHero,
   Callout,
-  StatBadge,
   CTABand,
   Reveal,
 } from "@/components/ds";
@@ -69,9 +68,8 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       features: [
         content.plan_3_feat_1 ?? "24 x 60-minute one-to-one sessions",
         content.plan_3_feat_2 ?? "Save £5 per session vs. Block of 12",
-        content.plan_3_feat_3 ?? "Ongoing programme management",
-        content.plan_3_feat_4 ?? "Priority scheduling",
-        content.plan_3_feat_5 ?? "Private studio in Worthing, or live online",
+        content.plan_3_feat_3 ?? "Ongoing programme management, priority scheduling",
+        content.plan_3_feat_4 ?? "Private studio in Worthing, or live online",
       ],
       cta: content.plan_3_cta ?? "Book a Free Consultation",
     },
@@ -82,16 +80,17 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
+        variant="split"
         image="/images/pricing-hero.jpg"
         imageAlt="Personal training pricing Worthing"
         eyebrow={content.hero_eyebrow ?? "Pricing"}
         heading={content.hero_heading ?? "Simple, Straightforward Pricing"}
         subhead={content.hero_subhead ?? "One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}
         primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
-        secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing", variant: "ghost-white" }}
-        badge={<StatBadge value="1:1" label={content.badge_label ?? "Private Training"} sublabel={content.badge_sublabel ?? "60-minute sessions, studio or online"} />}
+        secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing" }}
       />
 
+      {/* GATE: "What You're Investing In" — mockup is a short statement + CTA button in a 2-col layout; live is a 3-callout-card + photo layout. Real layout question, not rebuilt. */}
       {/* What You Are Investing In */}
       <Section background="white">
         <div className="ds-split">
@@ -116,7 +115,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         <SectionHeading
           eyebrow={content.pricing_eyebrow ?? "Pricing"}
           heading={content.pricing_heading ?? "Choose what works for you"}
-          intro={content.pricing_intro ?? "All sessions are 60 minutes, one-to-one, in a private studio in Worthing."}
+          intro={content.pricing_intro ?? "All sessions are 60 minutes, one-to-one — in the private studio in Worthing, or live online."}
         />
         <Reveal className="ds-grid-2" stagger={0.13} y={48} start="top 82%" style={{ maxWidth: 760, margin: "0 auto" }}>
           {plans.map((plan) => (
@@ -126,7 +125,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               style={{ display: "flex", flexDirection: "column", position: "relative", ...(plan.popular ? { border: "2px solid var(--color-rose)" } : {}) }}
             >
               {plan.popular && (
-                <span style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", background: "var(--color-rose)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "4px 16px", borderRadius: 999, whiteSpace: "nowrap", letterSpacing: "0.03em" }}>
+                <span style={{ position: "absolute", top: -13, left: 34, background: "var(--color-rose)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "4px 16px", borderRadius: 999, whiteSpace: "nowrap", letterSpacing: "0.03em" }}>
                   {content.plan_2_popular ?? "Most Popular"}
                 </span>
               )}
@@ -148,11 +147,13 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               </ul>
               <button onClick={openDialog} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
                 {plan.cta}
+                <IconArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </div>
           ))}
         </Reveal>
 
+{/* GATE: "Not Sure Which to Choose?" dark band — mockup is a standalone dark band with CTA button + specialist/FAQ links; live is a small cream callout with no CTA button. Real layout question, not rebuilt. */}
         <div className="ds-callout" style={{ marginTop: 32, maxWidth: 720, marginLeft: "auto", marginRight: "auto" }}>
           <div className="ds-callout-ic ds-callout-ic-rose">
             <IconHeart className="w-5 h-5" />

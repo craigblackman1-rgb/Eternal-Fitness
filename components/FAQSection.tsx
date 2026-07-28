@@ -14,15 +14,15 @@ const faqs = [
   },
   {
     question: "Is this suitable if I have an injury or medical condition?",
-    answer: "Almost certainly yes. Esther is qualified in exercise referral and cancer rehabilitation, specifically trained to work with people who have clinical health conditions. Every programme is adapted to what your body can manage and adjusted as your health changes.",
+    answer: "Almost certainly yes. I am qualified in exercise referral and cancer rehabilitation, specifically trained to work with people who have clinical health conditions. Every programme is adapted to what your body can manage and adjusted as your health changes.",
   },
   {
     question: "How often should I train?",
-    answer: "For most clients, two sessions per week is a good starting point. For those managing health conditions or recovering from illness, one session per week may be more appropriate initially. Esther will recommend a frequency that is sustainable and effective for your specific situation.",
+    answer: "For most clients, two sessions per week is a good starting point. For those managing health conditions or recovering from illness, one session per week may be more appropriate initially. I will recommend a frequency that is sustainable and effective for your specific situation.",
   },
   {
     question: "Do you offer flexible packages?",
-    answer: "Sessions are booked in blocks of 12 (£480) or 24 (£840), in the studio or online. Every new client starts with a free 30-minute consultation — no commitment required.",
+    answer: "Yes. While I believe in the long-term approach, I offer flexible options to suit different needs and budgets. I will recommend what I think is realistic for your goals during the initial consultation.",
   },
   {
     question: "Where is the studio located?",
@@ -36,7 +36,7 @@ const FAQSection = () => {
       <div className="max-w-[1320px] mx-auto grid md:grid-cols-2 gap-12 md:gap-20 items-start">
         <div>
           <div className="ef-eyebrow ef-eyebrow-rose mb-5">Questions</div>
-          <h2 className="text-3xl md:text-4xl text-foreground ef-h2 mb-4">Common questions</h2>
+          <h2 className="text-3xl md:text-4xl text-foreground ef-h2 mb-4">Before you book</h2>
           <p className="ef-body text-lg mb-8">
             Here are the questions I get asked most often. For the full list, visit the FAQs page.
           </p>
