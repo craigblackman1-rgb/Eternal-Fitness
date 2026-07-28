@@ -1,9 +1,10 @@
+import Link from "next/link";
 import { getPortalSessionFromCookies } from "@/lib/portal-session";
 import { createPortalDataClient } from "@/lib/portal-data";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { IconFileText, IconClock, IconMail, IconCheckCircle, IconAlertTriangle, IconBarChart3 } from "@/components/icons";
+import { IconFileText, IconClock, IconMail, IconCheckCircle, IconAlertTriangle, IconBarChart3, IconChevronRight } from "@/components/icons";
 import { formatUpdateTime } from "@/lib/updates/status";
 import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
 import { buildExerciseTrends } from "@/lib/progress";
@@ -91,16 +92,24 @@ export default async function PortalDashboardPage() {
           ) : (
             <ul className="divide-y divide-border/60">
               {signed.map((doc) => (
-                <li key={doc.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-                  <div>
-                    <p className="font-medium">{doc.title || kindLabel(doc.kind)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {kindLabel(doc.kind)}
-                      {doc.version > 1 ? ` · v${doc.version}` : ""} · Signed{" "}
-                      {formatDate(doc.client_signed_date || doc.signed_at)}
-                    </p>
-                  </div>
-                  <StatusBadge status={doc.status} />
+                <li key={doc.id}>
+                  <Link
+                    href={`/documents/${doc.id}/sign`}
+                    className="flex flex-wrap items-center justify-between gap-3 py-4 hover:bg-off-white/60 rounded-lg px-2 -mx-2 transition-colors"
+                  >
+                    <div>
+                      <p className="font-medium">{doc.title || kindLabel(doc.kind)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {kindLabel(doc.kind)}
+                        {doc.version > 1 ? ` · v${doc.version}` : ""} · Signed{" "}
+                        {formatDate(doc.client_signed_date || doc.signed_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={doc.status} />
+                      <IconChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -126,16 +135,24 @@ export default async function PortalDashboardPage() {
           ) : (
             <ul className="divide-y divide-border/60">
               {outstanding.map((doc) => (
-                <li key={doc.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-                  <div>
-                    <p className="font-medium">{doc.title || kindLabel(doc.kind)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {kindLabel(doc.kind)}
-                      {doc.version > 1 ? ` · v${doc.version}` : ""}
-                      {doc.sent_at ? ` · Sent ${formatDate(doc.sent_at)}` : ""}
-                    </p>
-                  </div>
-                  <StatusBadge status={doc.status} />
+                <li key={doc.id}>
+                  <Link
+                    href={`/documents/${doc.id}/sign`}
+                    className="flex flex-wrap items-center justify-between gap-3 py-4 hover:bg-off-white/60 rounded-lg px-2 -mx-2 transition-colors"
+                  >
+                    <div>
+                      <p className="font-medium">{doc.title || kindLabel(doc.kind)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {kindLabel(doc.kind)}
+                        {doc.version > 1 ? ` · v${doc.version}` : ""}
+                        {doc.sent_at ? ` · Sent ${formatDate(doc.sent_at)}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={doc.status} />
+                      <IconChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>
