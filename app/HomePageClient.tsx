@@ -198,8 +198,8 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         <div className="ctabg"><Image src="/images/studio-1.jpg" alt="Eternal Fitness private studio in Worthing" fill sizes="100vw" style={{ objectFit: "cover" }} /></div>
         <div className="ctac">
           <div className="stag stag-w" style={{ marginBottom: 16 }}>{content.cta_tag ?? "Free Consultation"}</div>
-          <h2>{content.cta_heading ?? "Ready to find out if this is right for you?"}</h2>
-          <p>{content.cta_body ?? "The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."}</p>
+          <h2>{content.cta_heading ?? "The first conversation is free, with no commitment."}</h2>
+          <p>{content.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}</p>
           <div className="ctabtns">
             <button className="btn btn-wh" onClick={openDialog}>{content.cta_btn_primary ?? "Book a Free Consultation"}</button>
             <a href="tel:07517658128" className="btn btn-ow">{content.cta_btn_secondary ?? "Call: 07517 658 128"}</a>

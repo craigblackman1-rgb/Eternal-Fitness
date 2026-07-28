@@ -10,6 +10,7 @@ interface CTABandProps {
   body: string;
   primaryCta: CTA;
   secondaryCta?: CTA;
+  eyebrow?: string;
 }
 
 /**
@@ -23,13 +24,14 @@ interface CTABandProps {
  * sits in the source photo — pass e.g. "center 20%" for a portrait shot where the
  * person's head is in the upper third, so wide viewports don't crop into their face.
  */
-export function CTABand({ image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta }: CTABandProps) {
+export function CTABand({ image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow }: CTABandProps) {
   return (
     <section className="ds-cta">
       <div className="ds-cta-bg">
         <Image src={image} alt={imageAlt ?? ""} fill sizes="100vw" style={{ objectFit: "cover", objectPosition: imagePosition ?? "center" }} />
       </div>
       <div className="ds-cta-inner">
+        {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
         <h2>{heading}</h2>
         <p>{body}</p>
         <div className="ds-cta-btns">
