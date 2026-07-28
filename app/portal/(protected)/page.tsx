@@ -177,19 +177,39 @@ export default async function PortalDashboardPage() {
             />
           ) : (
             <ul className="divide-y divide-border/60">
-              {updates.map((u) => (
-                <li key={u.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-                  <div>
-                    <p className="font-medium">{u.subject}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {u.block_number > 0 ? `Block ${u.block_number} · ` : ""}
-                      {formatUpdateTime(u.sent_at)}
-                      {u.opened_at ? " · Opened" : " · Not opened"}
-                    </p>
-                  </div>
-                  <StatusBadge status={u.status} />
-                </li>
-              ))}
+              {updates.map((u) => {
+                const viewable = u.status === "sent";
+                const row = (
+                  <>
+                    <div>
+                      <p className="font-medium">{u.subject}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {u.block_number > 0 ? `Block ${u.block_number} · ` : ""}
+                        {formatUpdateTime(u.sent_at)}
+                        {u.opened_at ? " · Opened" : " · Not opened"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={u.status} />
+                      {viewable && <IconChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />}
+                    </div>
+                  </>
+                );
+                return (
+                  <li key={u.id}>
+                    {viewable ? (
+                      <Link
+                        href={`/portal/updates/${u.id}`}
+                        className="flex flex-wrap items-center justify-between gap-3 py-4 hover:bg-off-white/60 rounded-lg px-2 -mx-2 transition-colors"
+                      >
+                        {row}
+                      </Link>
+                    ) : (
+                      <div className="flex flex-wrap items-center justify-between gap-3 py-4">{row}</div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </HubCard>

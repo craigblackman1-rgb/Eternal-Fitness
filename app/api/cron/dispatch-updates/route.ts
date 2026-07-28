@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { dispatchUpdateEmail } from "@/lib/updates/send";
+import { hasPriorSend, recordEmailEvent } from "@/lib/email-send-events";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +71,22 @@ async function handle(request: Request) {
       continue;
     }
 
+    const alreadySent = await hasPriorSend("update", update.id);
     const res = await dispatchUpdateEmail({
       to: update.client_email,
       subject: update.subject,
       html: update.body_html,
     });
+
+    if (res.emailed) {
+      await recordEmailEvent({
+        entityType: "update",
+        entityId: update.id,
+        event: alreadySent ? "resent" : "sent",
+        recipient: update.client_email,
+        sgMessageId: res.messageId,
+      });
+    }
 
     const patch: Record<string, unknown> = {
       status: res.error ? "failed" : "sent",

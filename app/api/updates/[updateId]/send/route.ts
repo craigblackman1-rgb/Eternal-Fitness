@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { dispatchUpdateEmail } from "@/lib/updates/send";
+import { hasPriorSend, recordEmailEvent } from "@/lib/email-send-events";
 
 /**
  * Send a saved draft/scheduled update right now (the "send it now instead of
@@ -43,7 +44,18 @@ export async function POST(request: Request, { params }: { params: { updateId: s
     return NextResponse.json({ error: sendingErr.message }, { status: 500 });
   }
 
+  const alreadySent = await hasPriorSend("update", update.id);
   const result = await dispatchUpdateEmail({ to, subject: update.subject, html: update.body_html });
+
+  if (result.emailed) {
+    await recordEmailEvent({
+      entityType: "update",
+      entityId: update.id,
+      event: alreadySent ? "resent" : "sent",
+      recipient: to,
+      sgMessageId: result.messageId,
+    });
+  }
 
   // Resolve to final status.
   const patch: Record<string, unknown> = {

@@ -8,6 +8,7 @@ import { TokenPill } from "@/components/hub/StatusBadge";
 import { IconChevronLeft, IconMail, IconPlus, IconCalendar, IconClock, IconEye } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { UpdateRowActions } from "@/components/hub/UpdateRowActions";
+import { EmailDeliveryTimeline } from "@/components/hub/EmailDeliveryTimeline";
 import { getTemplateKind } from "@/lib/email-templates/registry";
 import { updateStatusMeta, formatUpdateTime } from "@/lib/updates/status";
 import type { SentUpdate } from "@/types";
@@ -115,6 +116,16 @@ export default async function UpdatesHistoryPage({ params }: { params: { id: str
                       </span>
                     )}
                   </div>
+                  {update.status !== "draft" && (
+                    <details className="mt-3 group">
+                      <summary className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none">
+                        Delivery history
+                      </summary>
+                      <div className="mt-2 pl-1">
+                        <EmailDeliveryTimeline entityType="update" entityId={update.id} />
+                      </div>
+                    </details>
+                  )}
                 </div>
               </HubCard>
             );

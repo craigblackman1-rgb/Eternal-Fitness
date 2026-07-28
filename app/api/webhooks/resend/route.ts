@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { recordEmailEvent, type EmailEntityType, type EmailEventType } from "@/lib/email-send-events";
 
 /**
- * Resend Webhook receiver — tracks opens/clicks the same way the SendGrid
- * webhook did, writing into the same `sent_updates` table/columns.
+ * Resend Webhook receiver — tracks opens/clicks/delivery the same way the
+ * SendGrid webhook did, writing into `sent_updates`/`client_documents`, and
+ * also logs every event to the append-only `email_send_events` table so
+ * Esther can see full delivery history (not just the latest open/click).
  *
  * Register this URL in the Resend dashboard (Webhooks → Add Endpoint):
  *   https://<hub-domain>/api/webhooks/resend
  *
- * Subscribe to: email.opened, email.clicked (delivered/bounced/complained
- * are accepted but currently ignored, same as the SendGrid handler).
+ * Subscribe to: email.opened, email.clicked, email.delivered, email.bounced,
+ * email.complained.
  *
  * Also enable Open Tracking and Click Tracking on the sending domain in
  * Resend (Domains → your domain) — events won't fire otherwise.
@@ -57,6 +60,87 @@ interface ResendWebhookEvent {
   };
 }
 
+const EVENT_MAP: Record<string, EmailEventType> = {
+  "email.delivered": "delivered",
+  "email.opened": "opened",
+  "email.clicked": "clicked",
+  "email.bounced": "bounced",
+  "email.complained": "complained",
+};
+
+/** A message id belongs to exactly one of these two tables — find which. */
+async function findEntity(
+  supabase: ReturnType<typeof createAdminClient>,
+  emailId: string,
+): Promise<{ type: EmailEntityType; id: string } | null> {
+  const { data: update } = await supabase
+    .from("sent_updates")
+    .select("id")
+    .eq("sg_message_id", emailId)
+    .limit(1)
+    .maybeSingle();
+  if (update) return { type: "update", id: update.id };
+
+  const { data: doc } = await supabase
+    .from("client_documents")
+    .select("id")
+    .eq("sg_message_id", emailId)
+    .limit(1)
+    .maybeSingle();
+  if (doc) return { type: "document", id: doc.id };
+
+  return null;
+}
+
+async function handleEvent(evt: ResendWebhookEvent): Promise<void> {
+  const supabase = createAdminClient();
+  const emailId = evt.data.email_id;
+  const eventTs = evt.created_at ? new Date(evt.created_at).toISOString() : new Date().toISOString();
+  const mapped = EVENT_MAP[evt.type];
+  if (!mapped) return; // "sent" and anything unrecognised — nothing to record here
+
+  const entity = await findEntity(supabase, emailId);
+  if (!entity) return;
+
+  await recordEmailEvent({
+    entityType: entity.type,
+    entityId: entity.id,
+    event: mapped,
+    sgMessageId: emailId,
+    occurredAt: eventTs,
+  });
+
+  // Keep sent_updates' own opened_at/open_count/clicked_at/click_count columns
+  // in sync — existing portal/hub UI reads those directly, not the event log.
+  if (entity.type === "update") {
+    if (evt.type === "email.opened") {
+      const { data: row } = await supabase
+        .from("sent_updates")
+        .select("id, opened_at, open_count")
+        .eq("id", entity.id)
+        .maybeSingle();
+      if (row) {
+        await supabase
+          .from("sent_updates")
+          .update({ opened_at: row.opened_at || eventTs, open_count: (row.open_count || 0) + 1 })
+          .eq("id", row.id);
+      }
+    } else if (evt.type === "email.clicked") {
+      const { data: row } = await supabase
+        .from("sent_updates")
+        .select("id, clicked_at, click_count")
+        .eq("id", entity.id)
+        .maybeSingle();
+      if (row) {
+        await supabase
+          .from("sent_updates")
+          .update({ clicked_at: row.clicked_at || eventTs, click_count: (row.click_count || 0) + 1 })
+          .eq("id", row.id);
+      }
+    }
+  }
+}
+
 export async function POST(request: Request) {
   const body = await request.text();
 
@@ -94,46 +178,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  const supabase = createAdminClient();
-  const emailId = evt.data.email_id;
-  const eventTs = evt.created_at ? new Date(evt.created_at).toISOString() : new Date().toISOString();
-
-  if (evt.type === "email.opened") {
-    const { data: row } = await supabase
-      .from("sent_updates")
-      .select("id, opened_at, open_count")
-      .eq("sg_message_id", emailId)
-      .limit(1)
-      .maybeSingle();
-
-    if (row) {
-      await supabase
-        .from("sent_updates")
-        .update({
-          opened_at: row.opened_at || eventTs,
-          open_count: (row.open_count || 0) + 1,
-        })
-        .eq("id", row.id);
-    }
-  } else if (evt.type === "email.clicked") {
-    const { data: row } = await supabase
-      .from("sent_updates")
-      .select("id, clicked_at, click_count")
-      .eq("sg_message_id", emailId)
-      .limit(1)
-      .maybeSingle();
-
-    if (row) {
-      await supabase
-        .from("sent_updates")
-        .update({
-          clicked_at: row.clicked_at || eventTs,
-          click_count: (row.click_count || 0) + 1,
-        })
-        .eq("id", row.id);
-    }
-  }
-  // Other events (sent, delivered, bounced, complained) — silently skip.
+  await handleEvent(evt);
 
   return NextResponse.json({ ok: true });
 }

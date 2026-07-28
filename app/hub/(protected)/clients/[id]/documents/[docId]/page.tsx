@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import { DocumentDetailClient } from "./DocumentDetailClient";
+import { EmailDeliveryTimeline } from "@/components/hub/EmailDeliveryTimeline";
 import type { ClientDocument } from "@/lib/documents/types";
 
 export default async function DocumentDetailPage({ params }: { params: { id: string; docId: string } }) {
@@ -24,6 +25,7 @@ export default async function DocumentDetailPage({ params }: { params: { id: str
       doc={doc as ClientDocument}
       clientName={client?.name ?? null}
       clientEmail={client?.email ?? null}
+      deliveryHistory={doc.status !== "draft" ? <EmailDeliveryTimeline entityType="document" entityId={doc.id} /> : null}
     />
   );
 }

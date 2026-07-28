@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { getEmailSender } from "@/lib/email";
 import { buildDocumentReadyEmail } from "@/lib/email-templates/document-ready";
+import { hasPriorSend, recordEmailEvent } from "@/lib/email-send-events";
 
 const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || "https://eternal-fitness.co.uk";
 
@@ -94,6 +95,8 @@ async function sendDocumentEmail(docId: string): Promise<NextResponse> {
     signUrl,
   });
 
+  const alreadySent = await hasPriorSend("document", docId);
+
   const sender = getEmailSender();
   const result = await sender.send({
     to: recipient,
@@ -104,12 +107,23 @@ async function sendDocumentEmail(docId: string): Promise<NextResponse> {
   const { error: updError } = await admin.from("client_documents").update({
     status: "sent",
     sent_at: new Date().toISOString(),
+    sg_message_id: result.messageId || null,
     updated_at: new Date().toISOString(),
     // Distinct from status — status "sent" just means a send was attempted;
     // this is whether a real email backend actually dispatched it.
     emailed: !result.dryRun,
   }).eq("id", docId);
   if (updError) return NextResponse.json({ error: updError.message }, { status: 500 });
+
+  if (!result.dryRun) {
+    await recordEmailEvent({
+      entityType: "document",
+      entityId: docId,
+      event: alreadySent ? "resent" : "sent",
+      recipient,
+      sgMessageId: result.messageId,
+    });
+  }
 
   return NextResponse.json({ success: true, dryRun: Boolean(result.dryRun) });
 }

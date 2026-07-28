@@ -290,6 +290,21 @@ export class PortalDataClient {
       .order("sent_at", { ascending: false });
     return (data ?? []) as PortalUpdate[];
   }
+
+  /** One sent update, with its full HTML — scoped to this client so a
+   *  guessed/other client's update id can never be read. Only ever-sent
+   *  updates are viewable (drafts aren't something the client should see). */
+  async getUpdateById(id: string): Promise<(PortalUpdate & { body_html: string }) | null> {
+    const pg = createPgClient();
+    const { data } = await pg
+      .from("sent_updates")
+      .select("id, subject, block_number, sent_at, status, opened_at, body_html")
+      .eq("id", id)
+      .eq("client_id", this.clientId)
+      .neq("status", "draft")
+      .maybeSingle();
+    return (data as (PortalUpdate & { body_html: string }) | null) ?? null;
+  }
 }
 
 export function createPortalDataClient(clientId: string): PortalDataClient {

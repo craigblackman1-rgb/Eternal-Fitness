@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,19 @@ import type { ClientDocument, DocumentBody } from "@/lib/documents/types";
 
 const readOnlyStatuses = ["signed", "superseded"];
 
-export function DocumentDetailClient({ clientNumber, doc, clientName, clientEmail }: { clientNumber: number; doc: ClientDocument; clientName: string | null; clientEmail: string | null }) {
+export function DocumentDetailClient({
+  clientNumber,
+  doc,
+  clientName,
+  clientEmail,
+  deliveryHistory,
+}: {
+  clientNumber: number;
+  doc: ClientDocument;
+  clientName: string | null;
+  clientEmail: string | null;
+  deliveryHistory?: ReactNode;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState(doc.title);
   const [body, setBody] = useState<DocumentBody>(doc.body);
@@ -321,6 +333,13 @@ export function DocumentDetailClient({ clientNumber, doc, clientName, clientEmai
               <Input readOnly value={signUrl} className="font-mono text-xs" />
             </div>
           </CardContent>
+        </Card>
+      )}
+
+      {deliveryHistory && (
+        <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
+          <CardHeader><CardTitle>Delivery history</CardTitle></CardHeader>
+          <CardContent>{deliveryHistory}</CardContent>
         </Card>
       )}
     </div>

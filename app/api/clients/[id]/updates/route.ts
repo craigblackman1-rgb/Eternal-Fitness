@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { dispatchUpdateEmail, DEFAULT_UPDATE_SUBJECT } from "@/lib/updates/send";
+import { recordEmailEvent } from "@/lib/email-send-events";
 
 type Action = "test" | "send" | "log" | "draft" | "schedule";
 
@@ -176,6 +177,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
+
+    // Brand-new row — this is always the first send for this entity.
+    await recordEmailEvent({
+      entityType: "update",
+      entityId: pendingRow.id,
+      event: "sent",
+      recipient: clientEmail,
+      sgMessageId: result.messageId,
+    });
+
     return NextResponse.json({ success: true, emailed: true, messageId: result.messageId });
   }
 
