@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IconArrowUpRight, IconPhone, IconMail, IconMapPin, IconMessageCircle, IconCheckCircle } from "@/components/icons";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SocialIcon from "@/components/SocialIcons";
@@ -40,8 +41,26 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.firstName.trim() || !form.email.trim() || !form.message.trim() || !form.agree) return;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return;
+    if (!form.firstName.trim()) {
+      toast.error("Please enter your first name.");
+      return;
+    }
+    if (!form.email.trim()) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (!form.message.trim()) {
+      toast.error("Please enter a message.");
+      return;
+    }
+    if (!form.agree) {
+      toast.error("Please agree before submitting.");
+      return;
+    }
 
     setSent(true);
   };
