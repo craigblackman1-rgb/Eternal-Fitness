@@ -129,7 +129,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
 
       <PageHero
         variant="split"
-        image="/images/studio-kettlebell-facing.jpg"
+        image="/images/coaching-plank-client.jpg"
         imageAlt="Frequently Asked Questions — Eternal Fitness Worthing"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
@@ -282,7 +282,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
       </Section>
 
       <CTABand
-        image="/images/studio-bench-pose.jpg"
+        image="/images/studio-lunge-pair.jpg"
         imagePosition="center 15%"
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}
