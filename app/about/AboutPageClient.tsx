@@ -51,15 +51,16 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
-        variant="split"
-        image="/images/about-hero.jpg"
-        imageAlt="Esther Fair, personal trainer in Worthing"
+        image="/images/studio-kneel-stretch.jpg"
+        imageAlt="Esther Fair and a client stretching together on the mats in her private studio in Worthing"
+        imagePan="108%"
+        imageObjectPosition="50% 46%"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
         heading={content?.hero_heading ?? "About Esther Fair"}
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}
         primaryCta={bookCta}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "My Story", href: "#story", variant: "outline" }}
-        belowLead={<blockquote>&ldquo;I&rsquo;m a personal trainer. I just so happen to be a personal trainer that can work around things that your average personal trainer can&rsquo;t.&rdquo;</blockquote>}
+        belowLead={<>&ldquo;I&rsquo;m a personal trainer. I just so happen to be a personal trainer that can work around things that your average personal trainer can&rsquo;t.&rdquo;</>}
       />
 
       {/* Story */}

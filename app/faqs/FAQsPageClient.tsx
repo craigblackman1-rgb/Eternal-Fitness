@@ -128,16 +128,17 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
-        variant="split"
         image="/images/coaching-plank-client.jpg"
-        imageAlt="Frequently Asked Questions — Eternal Fitness Worthing"
+        imageAlt="Esther coaching a client through a floor exercise in the private studio"
+        imagePan="126%"
+        imageObjectPosition="50% 43%"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
         subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
         primaryCta={{ label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "Read the FAQs", href: "#faq" }}
-        mediaOverlay={
-          <>
+        badge={
+          <div className="flex gap-3.5 items-start max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-md shadow-lg p-5">
             <div
               aria-hidden="true"
               style={{
@@ -161,7 +162,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                 {content?.badge_sublabel ?? "Just ask — I would rather you did than talk yourself out of trying."}
               </p>
             </div>
-          </>
+          </div>
         }
       />
 

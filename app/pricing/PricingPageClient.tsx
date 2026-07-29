@@ -80,11 +80,12 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
-        variant="split"
-        image="/images/pricing-hero.jpg"
-        imageAlt="Personal training pricing Worthing"
+        image="/images/who-mobility.jpg"
+        imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
+        imagePan="122%"
+        imageObjectPosition="50% 47%"
         eyebrow={content.hero_eyebrow ?? "Pricing"}
-        heading={content.hero_heading ?? "Simple, Straightforward Pricing"}
+        heading={content.hero_heading ?? <>Simple, <em>Straightforward</em> Pricing</>}
         subhead={content.hero_subhead ?? "One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}
         primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
         secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing" }}

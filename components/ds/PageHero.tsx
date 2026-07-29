@@ -4,37 +4,39 @@ import { CtaButton } from "./CtaButton";
 import type { CTA } from "./types";
 
 interface PageHeroProps {
+  /** kept only so any not-yet-migrated caller doesn't crash — "split" is retired, renders as overlay */
   variant?: "overlay" | "split";
   image: string;
   imageAlt: string;
+  /** widens+left-anchors the photo so the subject clears the copy column (mockup's --pan) */
+  imagePan?: string;
+  imageObjectPosition?: string;
   eyebrow?: string;
   heading: ReactNode;
   subhead?: ReactNode;
   primaryCta?: CTA;
   secondaryCta?: CTA;
-  /** floating badge, typically a <StatBadge /> — overlay variant only */
+  /** floating credential card, bottom-right over the photo — hidden below 1180px (mockup rule: copy column collides) */
   badge?: ReactNode;
-  /** content rendered after the divider, before the buttons — split variant only */
+  /** content rendered after the divider, before the buttons — a pull-quote or a plain intro paragraph */
   belowLead?: ReactNode;
   /** how to render belowLead — quote (serif italic with rose left border) or plain (body copy) */
   belowLeadVariant?: "quote" | "plain";
-  /** glass card positioned bottom-left inside the media column — split variant only */
+  /** @deprecated use `badge` — kept for not-yet-migrated callers */
   mediaOverlay?: ReactNode;
 }
 
 /**
- * Premium inner-page hero. Two variants:
- *
- * - **overlay** (default): full-bleed image, dark gradient, eyebrow + serif H1,
- *   subhead, dual CTAs and an optional floating badge.
- * - **split**: two-column layout (55/45). Left: white bg, eyebrow, heading, lead,
- *   rose divider, optional belowLead content, CTAs. Right: full-bleed image with
- *   subtle top/bottom gradient, optional mediaOverlay glass card.
+ * Full-bleed editorial page hero: one photograph across the full width, ink
+ * scrims rising from the bottom and left, copy set low over it, nav floating
+ * white above it until scrolled. Matches brand-staging-2662e9's `.phero`/`.hero`
+ * pattern (2026-07-29) — the earlier two-column "split" layout is retired.
  */
 export function PageHero({
-  variant = "overlay",
   image,
   imageAlt,
+  imagePan,
+  imageObjectPosition,
   eyebrow,
   heading,
   subhead,
@@ -45,44 +47,43 @@ export function PageHero({
   belowLeadVariant = "quote",
   mediaOverlay,
 }: PageHeroProps) {
-  if (variant === "split") {
-    return (
-      <section className="ds-hero-split">
-        <div className="ds-hero-split-copy">
-          {eyebrow && <p className="ds-eyebrow ds-eyebrow-rose">{eyebrow}</p>}
-          <h1>{heading}</h1>
-          {subhead && <p className="ds-hero-split-lead">{subhead}</p>}
-          {subhead && <div className="ds-hero-split-rule" aria-hidden="true" />}
-          {belowLead && belowLeadVariant === "plain" ? (
-            <div className="ds-hero-split-intro">{belowLead}</div>
-          ) : belowLead ? (
-            <div className="ds-hero-split-quote">{belowLead}</div>
-          ) : null}
-          {(primaryCta || secondaryCta) && (
-            <div className="ds-hero-split-btns">
-              {primaryCta && <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "primary" }} />}
-              {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "outline" }} />}
-            </div>
-          )}
-        </div>
-        <div className="ds-hero-split-media">
-          <Image src={image} alt={imageAlt} fill priority sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-          {mediaOverlay && <div className="ds-hero-split-media-card">{mediaOverlay}</div>}
-        </div>
-      </section>
-    );
-  }
+  const card = badge ?? mediaOverlay;
 
   return (
     <section className="ds-hero">
       <div className="ds-hero-bg">
-        <Image src={image} alt={imageAlt} fill priority sizes="100vw" style={{ objectFit: "cover" }} />
+        <Image
+          src={image}
+          alt={imageAlt}
+          fill
+          priority
+          sizes="100vw"
+          style={{
+            objectFit: "cover",
+            objectPosition: imageObjectPosition,
+            width: imagePan,
+            left: 0,
+            // Next's `fill` mode also sets `right:0`; left+right+width all
+            // set over-constrains the box and the browser drops our width.
+            // Freeing `right` lets the explicit pan width actually apply.
+            right: imagePan ? "auto" : undefined,
+            // Tailwind's preflight `img{max-width:100%}` otherwise clamps
+            // the pan width straight back down to the container's width.
+            maxWidth: imagePan ? "none" : undefined,
+          }}
+        />
       </div>
       <div className="ds-hero-inner">
         <div className="ds-hero-content">
           {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
           <h1>{heading}</h1>
           {subhead && <p className="ds-hero-sub">{subhead}</p>}
+          {subhead && <div className="ds-hero-rule" aria-hidden="true" />}
+          {belowLead && belowLeadVariant === "plain" ? (
+            <div className="ds-hero-intro">{belowLead}</div>
+          ) : belowLead ? (
+            <blockquote className="ds-hero-quote">{belowLead}</blockquote>
+          ) : null}
           {(primaryCta || secondaryCta) && (
             <div className="ds-hero-btns">
               {primaryCta && <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "primary" }} />}
@@ -91,7 +92,7 @@ export function PageHero({
           )}
         </div>
       </div>
-      {badge && <div className="ds-hero-badge">{badge}</div>}
+      {card && <div className="ds-hero-badge">{card}</div>}
     </section>
   );
 }

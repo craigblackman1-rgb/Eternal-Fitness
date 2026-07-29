@@ -25,10 +25,20 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
 
       {/* HERO */}
       <section id="hero">
-        <div className="hlp">
+        <div className="hero-media">
+          <Image
+            src="/images/studio-lunge-pair.jpg"
+            alt="Esther Fair, laughing on the mats in her private studio in Worthing"
+            fill
+            priority
+            sizes="100vw"
+            style={{ objectFit: "cover", objectPosition: "50% 36%" }}
+          />
+        </div>
+        <div className="hero-copy">
           <div className="h-tag" id="htag">{content.hero_tag ?? "Worthing, West Sussex"}</div>
-          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(40px, 4.7vw, 64px)", fontWeight: 400, lineHeight: 1.03, letterSpacing: "-.025em", color: "var(--ink)", marginBottom: 22 }}>
-            {content.hero_line_1 ?? "One-to-One"} {content.hero_line_2 ?? "Personal Training"}<br /><em style={{ fontStyle: "italic", color: "var(--ink)" }}>{content.hero_line_3 ?? "in Worthing"}</em>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(40px, 4.7vw, 64px)", fontWeight: 400, lineHeight: 1.03, letterSpacing: "-.025em", color: "#fff", marginBottom: 22 }}>
+            {content.hero_line_1 ?? "One-to-One"} {content.hero_line_2 ?? "Personal Training"}<br /><em style={{ fontStyle: "italic", color: "#fff" }}>{content.hero_line_3 ?? "in Worthing"}</em>
           </h1>
           <p className="h-loc" id="hloc">{content.hero_loc ?? "Private studio. No gym floor. No one watching. Just you, and a plan built around how you actually feel today."}</p>
           <div className="hero-rule" aria-hidden="true" />
@@ -40,21 +50,11 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <a href="#approach" className="btn btn-ol">{content.hero_btn_secondary ?? "See How It Works"}</a>
           </div>
         </div>
-        <div className="hrp" style={{ padding: 0 }}>
-          <Image
-            src="/images/esther-main.jpg"
-            alt="Esther Fair, personal trainer in Worthing"
-            fill
-            priority
-            sizes="(max-width: 1000px) 100vw, 45vw"
-            style={{ objectFit: "cover", objectPosition: "center top" }}
-          />
-          <div className="h-badge">
-            <div className="hbc"><b>L4</b><span className="hbc-s">Qualified</span></div>
-            <div>
-              <div className="hbt">Cancer &amp; Exercise Rehabilitation</div>
-              <div className="hbs">Level 4 qualified, plus Exercise Referral — so training can carry on if your health picture changes.</div>
-            </div>
+        <div className="h-badge">
+          <div className="hbc"><b>L4</b><span className="hbc-s">Qualified</span></div>
+          <div>
+            <div className="hbt">Cancer &amp; Exercise Rehabilitation</div>
+            <div className="hbs">Level 4 qualified, plus Exercise Referral — so training can carry on if your health picture changes.</div>
           </div>
         </div>
       </section>

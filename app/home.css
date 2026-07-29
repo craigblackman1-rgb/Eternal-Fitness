@@ -25,34 +25,41 @@
 .efhome a:not(nav *) { text-decoration: none; color: inherit; }
 .efhome button { cursor: pointer; font-family: var(--f); border: none; }
 
-/* ── Hero ─────────────────────────── */
-.efhome #hero { position: relative; min-height: 100vh; display: grid; grid-template-columns: 55fr 45fr; }
-.efhome #hero::before {
+/* ── Hero — editorial full-bleed ───────────────────────────────────
+   One photograph across the full width, ink scrims rising from the
+   bottom and the left, copy set low over it. Matches brand-staging-
+   2662e9's `.hero` (2026-07-29) — replaces the old two-column white-
+   panel-left/photo-right layout and its flat nav-scrim hack, both of
+   which Craig flagged as looking wrong.
+   ───────────────────────────────────────────────────────────────── */
+.efhome #hero { position: relative; display: flex; align-items: flex-end; min-height: min(94vh, 880px); background: var(--ink); overflow: hidden; }
+.efhome .hero-media { position: absolute; inset: 0; background: var(--ink); overflow: hidden; }
+.efhome .hero-media img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; }
+.efhome .hero-media::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 170px;
-  background: linear-gradient(to bottom, rgba(20,16,16,.6) 0px, rgba(20,16,16,.6) 72px, rgba(20,16,16,0) 170px);
-  z-index: 20;
-  pointer-events: none;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(19,19,19,.52) 0%, rgba(19,19,19,.22) 9%, transparent 20%),
+    linear-gradient(to top, rgba(19,19,19,.93) 0%, rgba(19,19,19,.76) 30%, rgba(19,19,19,.22) 68%, transparent 100%),
+    linear-gradient(to right, rgba(19,19,19,.62) 0%, rgba(19,19,19,.16) 54%, transparent 82%);
 }
-.efhome .hlp { padding: 110px 80px 80px; display: flex; flex-direction: column; justify-content: center; }
-.efhome .hrp { background: var(--cream); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; overflow: hidden; min-height: 100vh; }
-.efhome .h-tag { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--rose); display: flex; align-items: center; gap: 10px; margin-bottom: 36px; }
+.efhome .hero-copy { position: relative; z-index: 3; width: 100%; max-width: var(--max); margin: 0 auto; padding: 192px 80px 78px; display: flex; flex-direction: column; align-items: flex-start; }
+.efhome .hero-copy > * { max-width: 660px; }
+.efhome .h-tag { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.78); display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
 .efhome .h-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--rose); }
-.efhome .hw { overflow: hidden; }
-.efhome .hl { display: block; font-family: var(--f); line-height: .94; letter-spacing: -.042em; padding-bottom: .2em; }
-.efhome .hl-t { font-size: clamp(44px, 5.6vw, 78px); font-weight: 300; color: var(--ink); }
-.efhome .hl-b { font-size: clamp(52px, 6.8vw, 92px); font-weight: 900; color: var(--rose); }
-.efhome .h-loc { font-size: clamp(15px, 1.4vw, 19px); color: var(--body); line-height: 1.5; margin: 22px 0 12px; }
-.efhome .h-sub { font-size: 15px; color: var(--muted); line-height: 1.65; max-width: 480px; margin-bottom: 36px; }
+.efhome .h-loc { font-size: clamp(15px, 1.4vw, 19px); color: rgba(255,255,255,.86); font-weight: 400; line-height: 1.5; margin: 0 0 22px; }
+.efhome .h-sub { font-size: 15.5px; color: rgba(255,255,255,.68); line-height: 1.7; max-width: 540px; margin-bottom: 32px; }
 .efhome .h-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-.efhome .hero-rule { width: 56px; height: 2px; background: var(--rose); border-radius: 2px; margin-bottom: 24px; }
-.efhome .h-badge { position: absolute; bottom: 36px; left: 36px; background: #fff; border-radius: 16px; padding: 16px 20px; box-shadow: 0 8px 32px rgba(0,0,0,.09); display: flex; align-items: center; gap: 12px; max-width: 260px; }
+.efhome .hero-rule { width: 56px; height: 2px; background: var(--rose); border-radius: 2px; margin-bottom: 22px; }
+.efhome .h-badge { position: absolute; z-index: 4; bottom: 78px; right: max(24px, calc((100% - var(--max)) / 2 + 80px)); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); border-radius: 16px; padding: 18px 20px; box-shadow: 0 8px 32px rgba(19,19,19,.18); display: flex; align-items: flex-start; gap: 14px; max-width: 340px; }
 .efhome .hbc { width: 44px; height: 44px; border-radius: 50%; background: var(--rose); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; font-size: 17px; font-weight: 800; letter-spacing: -.02em; flex-shrink: 0; }
 .efhome .hbc-s { font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; margin-top: 1px; display: block; }
 .efhome .hbt { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
 .efhome .hbs { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+@media (max-width: 1180px) {
+  .efhome .h-badge { display: none; }
+}
 .efhome #hcanvas { display: block; }
 
 /* ── Buttons — alias to shared .ef-btn-* system ──────────────── */
@@ -61,6 +68,9 @@
 .efhome .btn-dk:hover { background: var(--rose); }
 .efhome .btn-ol { background: transparent; color: var(--ink); border: 1.5px solid var(--hborder); }
 .efhome .btn-ol:hover { border-color: var(--ink); }
+/* over the dark hero photo, the outline button inverts to white */
+.efhome .hero-copy .btn-ol { color: #fff; border-color: rgba(255,255,255,.42); }
+.efhome .hero-copy .btn-ol:hover { background: rgba(255,255,255,.14); border-color: #fff; }
 .efhome .btn-rs { background: var(--rose); color: #fff; }
 .efhome .btn-rs:hover { opacity: .88; }
 .efhome .btn-wh { background: #fff; color: var(--teal); }
@@ -183,9 +193,9 @@
 
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
-  .efhome #hero { grid-template-columns: 1fr; }
-  .efhome .hrp { min-height: 60vh; order: -1; }
-  .efhome .hlp { padding: 100px 28px 60px; }
+  .efhome #hero { min-height: min(88vh, 680px); }
+  .efhome .hero-copy { padding: 140px 24px 58px; max-width: none; }
+  .efhome .hero-copy > * { max-width: none; }
   .efhome .sec { padding: 72px 28px; }
   .efhome .why-g { grid-template-columns: 1fr; gap: 56px; }
   .efhome .who-g { grid-template-columns: 1fr; }

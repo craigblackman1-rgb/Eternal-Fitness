@@ -77,9 +77,10 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       <Navbar onBookConsultation={openDialog} />
 
       <PageHero
-        variant="split"
-        image="/images/pt-hero.jpg"
-        imageAlt="Personal training in Worthing"
+        image="/images/coaching-plank-client.jpg"
+        imageAlt="Esther coaching a client through a supported plank, adjusting the movement as they go"
+        imagePan="126%"
+        imageObjectPosition="50% 43%"
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
         heading={content.hero_heading ?? "Personal Training in Worthing"}
         subhead={content.hero_lead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel."}

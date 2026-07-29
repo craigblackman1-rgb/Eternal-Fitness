@@ -70,16 +70,17 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
       <Navbar />
 
       <PageHero
-        variant="split"
-        image="/images/contact-hero.jpg"
-        imageAlt="Contact Eternal Fitness in Worthing"
+        image="/images/who-mobility.jpg"
+        imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
+        imagePan="122%"
+        imageObjectPosition="50% 47%"
         eyebrow={content.hero_eyebrow ?? "Contact"}
         heading={content.hero_heading ?? <>Get in <em>Touch</em></>}
         subhead={content.hero_subhead ?? "Whether you have a question, want to learn more, or are ready to book your free consultation — I would love to hear from you."}
         primaryCta={{ label: content.hero_btn_primary ?? "Send a Message", href: "#form", arrow: true }}
-        secondaryCta={{ label: content.hero_btn_secondary ?? "Find the Studio", href: "#map", variant: "outline" }}
-        mediaOverlay={
-          <>
+        secondaryCta={{ label: content.hero_btn_secondary ?? "Find the Studio", href: "#studio", variant: "outline" }}
+        badge={
+          <div className="flex gap-3.5 items-start max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-md shadow-lg p-5">
             <div className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center shrink-0">
               <IconPhone className="w-5 h-5 text-rose" />
             </div>
@@ -87,7 +88,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
               <p className="text-sm font-bold text-ink tracking-tight">The first conversation is free</p>
               <p className="text-[13px] text-slate leading-relaxed mt-0.5">No pressure, no commitment — call, email, or send a message.</p>
             </div>
-          </>
+          </div>
         }
       />
 
