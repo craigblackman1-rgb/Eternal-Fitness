@@ -1,5 +1,21 @@
 # Handoff
 
+## Session close — 2026-07-29, later — hub sidebar sign-out unreachable on tall pages
+
+Craig reported "can't log out of the profile, no logout option" in the Trainer Hub. The sign-out
+control was never missing from the code (HubSidebar.tsx bottom footer, "Esther Fair" + icon button) —
+the `<aside>` had no height/position rule, so as a flex sibling it stretched to match main content
+height. On any hub page taller than one screen (client list, a long client detail page), that pushed
+the sign-out footer down to the very bottom of the whole page instead of the viewport, making it
+effectively unreachable without scrolling the entire page to its end. Fixed by pinning the sidebar
+(`sticky top-0 h-screen`) so it now stays in view regardless of main-content scroll position. Built in
+an isolated worktree (`fix/hub-sidebar-logout-scroll`), `tsc --noEmit` clean, fast-forward pushed to
+main (`64872ac`), Coolify auto-deploy confirmed finished and `running:healthy` via MCP. **Not yet
+click-tested in a real hub session** — Craig has the only hub login, so a real click-test on his end is
+still outstanding.
+
+---
+
 ## Session close — 2026-07-29 — template deployment audit: calorie calculator, portal pages, FAQ update
 
 Work Order: `.context/workorder-template-deployment-audit-2026-07-29.md`. **DONE + DEPLOYED + LIVE-VERIFIED.**
