@@ -142,68 +142,70 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
         </div>
       </section>
 
-      {/* WHO */}
-      <section id="who" className="sec" style={{ background: "var(--ink)" }}>
+      {/* WHO + SPECIALIST TRAINING (single dark band, per mockup — replaces
+          the old separate dark "who" image-card section and light
+          "specialist" text-only section). The mockup's Specialist column
+          lists named conditions (heart/blood pressure, bone/joint, visual
+          impairment, cancer rehab) — deliberately not ported, since that's
+          a direct roll-call the project's own hard rules ban on general
+          pages ("No condition roll-calls in copy — generalise"). Flagged
+          to Craig, not silently decided. */}
+      <section id="specialist" className="sec" style={{ background: "var(--ink)" }}>
         <div className="sin">
-          <div className="stag stag-w">{content.who_tag ?? "Who I Work With"}</div>
-          <h2 className="D DL" style={{ maxWidth: 700 }}>Wherever You're Starting<br />From, There's a Way In</h2>
-          <p className="L LL" style={{ marginTop: 16, maxWidth: 540 }}>
-            {content.who_body ?? "Most of the people I train are just looking for proper one-to-one attention — to get fitter, stronger, feel more like themselves. Some arrive with more going on: a health condition, recovery from treatment, something that makes them wonder if training is even for them. If that's you, it almost certainly still is — get in touch."}
-          </p>
-          <div className="who-g">
-            <div className="wc">
-              <div className="wci"><Image src="/images/who-mobility.jpg" alt="Personal training in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
-              <div className="wcb">
-                <h3>{content.who_card_1_title ?? "New to training, or it's been a while"}</h3>
-                <p>{content.who_card_1_desc ?? "Whether you've never worked with a trainer before or just haven't been consistent in a while, the private one-to-one format means no dress code and no comparison to anyone else — just a plan built around where you're starting from."}</p>
+          <div className="aq-g" style={{ gap: 56 }}>
+            <div>
+              <div className="stag stag-w">{content.who_tag ?? "Who I Work With"}</div>
+              <p className="L LL" style={{ marginTop: 16, maxWidth: 480, fontFamily: "var(--font-serif)", fontSize: "clamp(19px,1.8vw,23px)", fontWeight: 400, color: "#fff", lineHeight: 1.35 }}>
+                {content.who_body_lede ?? "Most of the people I train are just looking for proper one-to-one attention — to get fitter, stronger, feel more like themselves."}
+              </p>
+              <p className="L LL" style={{ marginTop: 16, maxWidth: 480 }}>
+                {content.who_body ?? "Some arrive with more going on: a health condition, recovery from treatment, something that makes them wonder if training is even for them. If that's you, it almost certainly still is — get in touch."}
+              </p>
+              <div style={{ marginTop: 28 }}>
+                <button className="btn btn-ow" onClick={openDialog}>{content.who_cta ?? "Book a Free Consultation"} <Arrow /></button>
               </div>
             </div>
-            <div className="wc">
-              <div className="wci"><Image src="/images/who-health.jpg" alt="Training with a health condition in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>
-              <div className="wcb">
-                <h3>{content.who_card_2_title ?? "If your health picture is more specific"}</h3>
-                <p>{content.who_card_2_desc ?? "High blood pressure, a GP referral, recovery from treatment — I'm trained to work with it safely, and to adjust as things change."}</p>
-                <Link href="/personal-training#specialist" className="btn btn-rs" style={{ fontSize: "13.5px", padding: "11px 20px" }}>{content.who_card_2_link ?? "Learn More"} <Arrow /></Link>
-              </div>
+            <div>
+              <div className="stag stag-w">{content.specialist_tag ?? "Specialist Training"}</div>
+              <p className="L LL" style={{ marginTop: 16, maxWidth: 480 }}>
+                {content.specialist_body ?? "If your health picture is more specific, here's more detail on how I work with it."}
+              </p>
+              <Link href="/personal-training#specialist" className="btn btn-ow" style={{ marginTop: 20 }}>{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SPECIALIST TRAINING */}
-      <section id="specialist" className="sec" style={{ background: "var(--white)" }}>
-        <div className="sin" style={{ maxWidth: 720 }}>
-          <div className="stag stag-r">{content.specialist_tag ?? "Specialist Training"}</div>
-          <p className="L" style={{ marginTop: 16 }}>
-            {content.specialist_body ?? "If your health picture is more specific, here's more detail on how I work with it — heart health and blood pressure, bone and joint health, visual impairment, cancer rehabilitation, and more."}
-          </p>
-          <Link href="/personal-training#specialist" className="btn btn-ol" style={{ marginTop: 20 }}>{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section id="testimonials" className="sec" style={{ background: "var(--teal)" }}>
+      {/* TESTIMONIALS (two equal-weight cards on white, per mockup — replaces
+          the single-spotlight teal layout) */}
+      <section id="testimonials" className="sec" style={{ background: "var(--white)" }}>
         <div className="sin">
-          <div className="twrap">
-            <div className="tmark">&ldquo;</div>
-            <p className="tquote">
-              {content.testimonial_1 ?? "She helps me maintain a level of strength, mobility and fitness that I wouldn't have without her... she also adapts routines and exercises to my needs when necessary. I would highly recommend Esther to anyone, of any age and ability."}
-            </p>
-            <div className="tauth"><div className="tav">A</div><div><div className="tnm">Amanda M</div><div className="tlo">Training 5 years</div></div></div>
-            <div className="tdiv" />
-            <div className="tsec">
-              <p>{content.testimonial_2 ?? "\u201CShe adjusts to her clients' restrictions and individual goals, listens always and creates bespoke plans for every situation.\u201D"}</p>
-              <div className="tsec-a">Saffron S</div>
-            </div>
-            <div style={{ marginTop: 52 }}>
-              <div className="stag stag-w" style={{ justifyContent: "center", marginBottom: 14 }}>{content.testimonial_heading ?? "Client Stories"}</div>
-              <p className="L LL" style={{ maxWidth: 520, margin: "0 auto 26px", textAlign: "center" }}>
-                {content.testimonial_body ?? "Progress looks different for everyone. For some it is lifting more, for others it is walking without pain, sleeping better, or simply feeling at home in their own body."}
+          <div className="stag stag-r">{content.testimonial_heading ?? "Client Stories"}</div>
+          <h2 className="D" style={{ marginBottom: 16 }}>What Clients Say</h2>
+          <div className="aq-g" style={{ marginTop: 40 }}>
+            <figure style={{ margin: 0 }}>
+              <div className="tmark" aria-hidden="true">&ldquo;</div>
+              <p className="L" style={{ marginBottom: 0 }}>
+                {content.testimonial_1 ?? "She helps me maintain a level of strength, mobility and fitness that I wouldn't have without her... she also adapts routines and exercises to my needs when necessary. I would highly recommend Esther to anyone, of any age and ability."}
               </p>
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <Link href="/faqs" className="btn btn-ow">{content.testimonial_link ?? "Read the FAQs"} <Arrow /></Link>
-              </div>
-            </div>
+              <figcaption className="tauth" style={{ marginTop: 20 }}>
+                <div className="tav">A</div>
+                <div><div className="tnm">Amanda M</div><div className="tlo">Training 5 years</div></div>
+              </figcaption>
+            </figure>
+            <figure style={{ margin: 0 }}>
+              <div className="tmark" aria-hidden="true">&ldquo;</div>
+              <p className="L" style={{ marginBottom: 0 }}>
+                {content.testimonial_2 ?? "She adjusts to her clients' restrictions and individual goals, listens always and creates bespoke plans for every situation."}
+              </p>
+              <figcaption className="tauth" style={{ marginTop: 20 }}>
+                <div className="tav">S</div>
+                <div><div className="tnm">Saffron S</div><div className="tlo">Client</div></div>
+              </figcaption>
+            </figure>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 44 }}>
+            <Link href="/faqs" className="btn btn-ol">{content.testimonial_link ?? "Read the FAQs"} <Arrow /></Link>
           </div>
         </div>
       </section>

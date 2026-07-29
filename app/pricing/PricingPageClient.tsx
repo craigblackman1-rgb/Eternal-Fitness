@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { IconArrowUpRight, IconCheck, IconHeart, IconDumbbell, IconTarget } from "@/components/icons";
+import { IconArrowUpRight, IconCheck } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
@@ -12,37 +11,12 @@ import {
   Section,
   SectionHeading,
   PageHero,
-  Callout,
   CTABand,
   Reveal,
 } from "@/components/ds";
 
 export default function PricingPageClient({ content = {} }: { content?: Record<string, string> }) {
   const { open, setOpen, openDialog } = useConsultationDialog();
-
-  const valueProps = [
-    {
-      icon: IconHeart,
-      title: content.vp_1_title ?? "One person. One trainer. One focus.",
-      description:
-        content.vp_1_desc ?? "Your health is not a short-term purchase — it is a long-term investment in your energy, confidence, and overall quality of life.",
-      accent: "rose" as const,
-    },
-    {
-      icon: IconDumbbell,
-      title: content.vp_2_title ?? "Built around real, sustainable change",
-      description:
-        content.vp_2_desc ?? "My pricing reflects private one-to-one sessions and a programme built around your goals — not a quick fix.",
-      accent: "teal" as const,
-    },
-    {
-      icon: IconTarget,
-      title: content.vp_3_title ?? "The first conversation is always free",
-      description:
-        content.vp_3_desc ?? "Most importantly, you are investing in a process that develops strength, consistency, and lasting habits. After your consultation, I will recommend the right level of support to help you progress safely and effectively.",
-      accent: "rose" as const,
-    },
-  ];
 
   const plans = [
     {
@@ -91,23 +65,23 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing" }}
       />
 
-      {/* GATE: "What You're Investing In" — mockup is a short statement + CTA button in a 2-col layout; live is a 3-callout-card + photo layout. Real layout question, not rebuilt. */}
-      {/* What You Are Investing In */}
-      <Section background="white">
+      {/* What You're Investing In (per mockup — short statement + CTA, not a card grid) */}
+      <Section background="cream" id="investing">
         <div className="ds-split">
           <div>
-            <SectionHeading eyebrow={content.value_eyebrow ?? "What You Are Investing In"} heading={content.value_heading ?? "This is not a gym membership"} />
-            <Reveal y={24}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 24 }}>
-                {valueProps.map((prop) => (
-                  <Callout key={prop.title} icon={prop.icon} accent={prop.accent} title={prop.title} body={prop.description} />
-                ))}
-              </div>
-            </Reveal>
+            <p className="ds-eyebrow ds-eyebrow-teal">{content.value_eyebrow ?? "What You're Investing In"}</p>
+            <p className="ds-body" style={{ fontSize: 19, fontWeight: 600, color: "var(--color-ink)", lineHeight: 1.4 }}>
+              {content.value_heading ?? "One person. One trainer. Full attention, every session. Your programme is built around you and adjusted as things change — not a fixed template."}
+            </p>
           </div>
-          <Reveal y={40} className="ds-split-img" >
-            <Image src="/images/pricing-value.jpg" alt="One-to-one personal training session Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-          </Reveal>
+          <div>
+            <p className="ds-body">
+              {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
+            </p>
+            <div style={{ marginTop: 24 }}>
+              <button type="button" onClick={openDialog} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
+            </div>
+          </div>
         </div>
       </Section>
 
@@ -153,20 +127,27 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
             </div>
           ))}
         </Reveal>
+      </Section>
 
-{/* GATE: "Not Sure Which to Choose?" dark band — mockup is a standalone dark band with CTA button + specialist/FAQ links; live is a small cream callout with no CTA button. Real layout question, not rebuilt. */}
-        <div className="ds-callout" style={{ marginTop: 32, maxWidth: 720, marginLeft: "auto", marginRight: "auto" }}>
-          <div className="ds-callout-ic ds-callout-ic-rose">
-            <IconHeart className="w-5 h-5" />
-          </div>
+      {/* Not Sure Which to Choose? (standalone dark band, per mockup) —
+          linking to /personal-training rather than the mockup's
+          /exercise-for-health, which currently redirects to Home
+          (disabled per the 2026-07-27 launch-scope decision); flagged,
+          not silently decided. */}
+      <Section background="ink">
+        <div className="ds-split">
           <div>
-            <p style={{ fontSize: 14.5, color: "var(--color-body)", lineHeight: 1.6 }}>
-              <strong style={{ color: "var(--color-ink)" }}>{content.pricing_note_bold ?? "Not sure which to choose?"}</strong>{content.pricing_note_body ?? " Start with the free consultation. I will give you an honest recommendation based on your situation — not the most expensive option."}
+            <p className="ds-eyebrow ds-eyebrow-white">Not Sure Which to Choose?</p>
+            <p className="ds-body ds-body-light" style={{ fontSize: 19, fontWeight: 600, color: "#fff", lineHeight: 1.4, marginBottom: 16 }}>
+              {content.pricing_note_body ?? "Start with the free consultation. I'll give you an honest recommendation based on your situation — not the most expensive option."}
             </p>
-            <div style={{ marginTop: 12, display: "flex", gap: 16, fontSize: 14 }}>
-              <Link href="/personal-training" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_areas ?? "Learn About Personal Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
-              <Link href="/faqs" style={{ color: "var(--color-rose)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
-            </div>
+            <button type="button" onClick={openDialog} className="ef-btn ef-btn-primary">
+              Book a Free Consultation <IconArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, justifyContent: "center" }}>
+            <Link href="/personal-training" style={{ color: "#fff", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
+            <Link href="/faqs" style={{ color: "#fff", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
           </div>
         </div>
       </Section>

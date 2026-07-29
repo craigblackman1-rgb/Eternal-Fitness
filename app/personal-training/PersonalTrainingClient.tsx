@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import {
-  IconAward,
-  IconClipboardList,
-  IconMessageCircle,
   IconRefreshCw,
-  IconUsers,
+  IconMove,
+  IconDumbbell,
+  IconTarget,
+  IconClock,
 } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -20,28 +20,30 @@ import {
   Reveal,
   CtaButton,
   ProcessFlow,
-  StatStrip,
   Callout,
   PulseLine,
-  MotionArcs,
 } from "@/components/ds";
 
 const focusCards = [
   {
     title: "Mobility and joint health",
     desc: "Improving range of motion, reducing stiffness, and moving with less effort and pain day to day.",
+    icon: IconMove,
   },
   {
     title: "Functional strength",
     desc: "Building practical strength for real life — carrying shopping, climbing stairs, getting up from the floor.",
+    icon: IconDumbbell,
   },
   {
     title: "Balance and stability",
     desc: "Reducing fall risk and building physical confidence to move through your environment safely.",
+    icon: IconTarget,
   },
   {
     title: "Fatigue management",
     desc: "Training effectively when energy levels are variable or unpredictable.",
+    icon: IconClock,
   },
 ];
 
@@ -119,36 +121,26 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         </div>
       </Section>
 
-      {/* What We Work On */}
-      {/* GATE: mockup uses a 4-card icon grid (.cards-4) instead of the current split-image/dot-list layout — real layout archetype question, don't rebuild without confirmation */}
+      {/* What We Work On (4-card icon grid, per mockup) */}
       <Section background="cream" id="focus">
-        <div className="ds-split">
-          <Reveal y={40} className="ds-split-img">
-            <Image src="/images/dumbbell-training.jpg" alt="Mobility and functional training" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-            <div className="ds-art-chip">
-              <MotionArcs accent="teal" />
+        <SectionHeading
+          align="center"
+          eyebrow={content.focus_eyebrow ?? "What I Work On"}
+          eyebrowColor="teal"
+          heading={content.focus_heading ?? "What We Work On"}
+          intro={content.focus_intro ?? "Strength, mobility, endurance, and capability for real life — not aesthetics, not a number on a scale. Practical things: carrying the shopping, getting up off the floor, climbing stairs without thinking about it, sleeping better, feeling more like yourself."}
+        />
+        <Reveal className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" stagger={0.1} y={30} start="top 85%" style={{ marginTop: 40 }}>
+          {focusCards.map((c, i) => (
+            <div key={c.title} className="bg-white border border-border-warm rounded-2xl p-6">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${i % 2 === 0 ? "bg-rose/12 text-rose" : "bg-teal/12 text-teal"}`}>
+                <c.icon className="w-5 h-5" />
+              </div>
+              <div className="text-[15px] font-bold text-ink tracking-tight mb-2">{content[`focus_${i + 1}_title`] ?? c.title}</div>
+              <div className="text-[13.5px] text-slate leading-relaxed">{content[`focus_${i + 1}_desc`] ?? c.desc}</div>
             </div>
-          </Reveal>
-          <div>
-            <SectionHeading
-              eyebrow={content.focus_eyebrow ?? "What I Work On"}
-              eyebrowColor="teal"
-              heading={content.focus_heading ?? "What We Work On"}
-              intro={content.focus_intro ?? "Strength, mobility, endurance, and capability for real life — not aesthetics, not a number on a scale. Practical things: carrying the shopping, getting up off the floor, climbing stairs without thinking about it, sleeping better, feeling more like yourself."}
-            />
-            <div className="ds-featlist">
-              {focusCards.map((c, i) => (
-                <div key={c.title} className="ds-feat">
-                  <span className="ds-feat-dot" />
-                  <div>
-                    <div className="ds-feat-t">{content[`focus_${i + 1}_title`] ?? c.title}</div>
-                    <div className="ds-feat-c">{content[`focus_${i + 1}_desc`] ?? c.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          ))}
+        </Reveal>
       </Section>
 
       {/* How It Works */}
@@ -165,31 +157,34 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         </div>
       </Section>
 
-      {/* Credentials */}
-      {/* GATE: this extra Credentials StatStrip section (4 stats) has no mockup equivalent — don't remove, awaiting decision */}
-      <Section background="cream">
-        <StatStrip
-          background="ink"
-          stats={[
-            { icon: IconAward, value: "L4", label: content.stat_1_label ?? "Qualified in Cancer & Exercise Rehabilitation" },
-            { icon: IconUsers, value: "1:1", label: content.stat_2_label ?? "Private one-to-one sessions only" },
-            { icon: IconMessageCircle, value: "30 min", label: content.stat_3_label ?? "Free, no-pressure consultation" },
-            { icon: IconClipboardList, value: "Worthing", label: content.stat_4_label ?? "Private studio, West Sussex" },
-          ]}
-        />
-      </Section>
-
-      {/* Specialist Training */}
-      {/* GATE: mockup is a dark two-CTA section with a condition bullet list and a caveat note linking to /exercise-for-health, with the note that the catalogue isn't built yet; live is a light single-CTA section linking to /contact. The catalogue-not-built decision blocks this unit — do not rebuild. */}
-      <Section background="cream" id="specialist">
-        <SectionHeading
-          align="center"
-          eyebrow={content.specialist_eyebrow ?? "Specialist Training"}
-          heading={content.specialist_heading ?? "Specialist Training"}
-          intro={content.specialist_intro ?? "Some clients need more specific support — a health condition, an injury, adapting for a disability. Here's more detail on how I work with particular situations."}
-        />
-        <div style={{ textAlign: "center", marginTop: 8 }}>
-          <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", variant: "outline", arrow: true }} />
+      {/* Specialist Training (dark band, per mockup) — condition bullet list
+          deliberately NOT ported: the mockup lists named conditions
+          (heart/blood pressure, bone/joint, visual impairment, cancer
+          rehab), which is a direct roll-call the project's own hard rules
+          ban on general pages ("No condition roll-calls in copy —
+          generalise"). Also linking to /contact rather than the mockup's
+          /exercise-for-health — that page currently redirects to Home
+          (disabled per the 2026-07-27 launch-scope decision), so the
+          mockup's own literal link would send a visitor straight back to
+          the homepage. Both flagged to Craig, not silently decided. */}
+      <Section background="ink" id="specialist">
+        <div className="ds-split">
+          <div>
+            <SectionHeading
+              eyebrow={content.specialist_eyebrow ?? "Specialist Training"}
+              heading={content.specialist_heading ?? "Some clients need more specific support"}
+              light
+            />
+            <Reveal y={24}>
+              <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 28, maxWidth: "52ch" }}>
+                {content.specialist_intro ?? "A health condition, an injury, adapting for a disability. Here's more detail on how I work with particular situations."}
+              </p>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", arrow: true }} />
+                <CtaButton cta={{ label: "Read the FAQs", href: "/faqs", variant: "ghost-white" }} />
+              </div>
+            </Reveal>
+          </div>
         </div>
       </Section>
 

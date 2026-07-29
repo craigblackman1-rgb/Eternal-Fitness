@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { IconArrowUpRight, IconPhone, IconMail, IconMapPin, IconMessageCircle, IconCheckCircle } from "@/components/icons";
+import Image from "next/image";
+import { IconArrowUpRight, IconPhone, IconMail, IconMapPin, IconCheckCircle } from "@/components/icons";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import SocialIcon from "@/components/SocialIcons";
 import { Section, SectionHeading, PageHero, CTABand } from "@/components/ds";
 
 interface FormData {
@@ -266,90 +266,33 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
               <p className="mt-[26px] p-5 rounded-2xl bg-warm text-[14px] leading-relaxed text-slate">
                 Prefer to talk it through? Call and we can have an informal chat — no pressure, no commitment.
               </p>
-
-              {/* GATE: "Not Sure Where to Start?" sidebar card — partially duplicates the closing CTA band; no mockup equivalent for the sidebar version. */}
-              {/* GATE: "Follow Me" social row — no mockup equivalent. Keep both while decision is pending. */}
-
-              <div className="bg-cream rounded-2xl p-6 border border-warm/60 mt-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center shrink-0 mt-0.5">
-                    <IconMessageCircle className="w-5 h-5 text-rose" />
-                  </div>
-                  <div>
-                    <h3 className="text-foreground text-base font-bold tracking-tight mb-1">{content.help_heading ?? "Not Sure Where to Start?"}</h3>
-                    <p className="text-[14.5px] text-slate leading-relaxed mb-4">
-                      {content.help_body ?? "That is completely normal. Send me a message or give me a call and we can have an informal chat — no pressure, no commitment. I will help you figure out whether personal training is the right next step."}
-                    </p>
-                    <a
-                      href="tel:07517658128"
-                      className="inline-flex items-center gap-2 text-rose font-semibold text-sm hover:underline"
-                    >
-                      {content.help_cta ?? "Call me now"} <IconArrowUpRight className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="text-foreground text-sm font-bold tracking-tight mb-3">{content.social_heading ?? "Follow Me"}</h3>
-                <div className="flex items-center gap-3">
-                  <a
-                    href="https://www.facebook.com/profile.php?id=61576413498498"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-rose/10 flex items-center justify-center text-rose hover:bg-rose hover:text-white transition-colors"
-                    aria-label="Facebook"
-                  >
-                    <SocialIcon name="facebook" />
-                  </a>
-                  <span
-                    className="w-10 h-10 rounded-full bg-border-warm/50 flex items-center justify-center text-muted-foreground/40 cursor-default"
-                    title="Instagram — coming soon"
-                    aria-label="Instagram — coming soon"
-                  >
-                    <SocialIcon name="instagram" />
-                  </span>
-                  <span
-                    className="w-10 h-10 rounded-full bg-border-warm/50 flex items-center justify-center text-muted-foreground/40 cursor-default"
-                    title="YouTube — coming soon"
-                    aria-label="YouTube — coming soon"
-                  >
-                    <SocialIcon name="youtube" />
-                  </span>
-                  <span
-                    className="w-10 h-10 rounded-full bg-border-warm/50 flex items-center justify-center text-muted-foreground/40 cursor-default"
-                    title="TikTok — coming soon"
-                    aria-label="TikTok — coming soon"
-                  >
-                    <SocialIcon name="tiktok" />
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
       </Section>
 
-      {/* GATE: Studio/Location section — mockup has a studio photo + "no public gym floor" copy + "Read the FAQs" button; live has a Google Maps iframe instead. Real functionality trade-off — do not delete the map, just leave a GATE comment on whether to add the mockup's content alongside it or replace it. */}
-      <Section background="cream" id="map">
-          <SectionHeading
-            align="center"
-            eyebrow={content.map_eyebrow ?? "Location"}
-            eyebrowColor="teal"
-            heading={content.map_heading ?? "Find the Studio"}
-            intro={content.map_intro ?? "Based in Worthing, West Sussex. The private studio is easily accessible by car and public transport."}
-          />
-          <div className="rounded-3xl overflow-hidden border border-border-warm shadow-sm" style={{ marginTop: 48 }}>
-            <iframe
-              title="Eternal Fitness location in Worthing, West Sussex"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d40625.88654390968!2d-0.4005!3d50.8148!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4875a3a3a3a3a3a3%3A0x0!2sWorthing%2C+West+Sussex!5e0!3m2!1sen!2suk!4v1700000000000!5m2!1sen!2suk"
-              width="100%"
-              height="450"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
+      {/* Studio (per mockup — replaces the Maps embed; the studio address is
+          deliberately never shown, confirmed at booking only) */}
+      <Section background="cream" id="studio">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <figure className="m-0">
+            <div className="rounded-3xl overflow-hidden aspect-[4/3] relative">
+              <Image src="/images/studio-kneel-stretch.jpg" alt="Inside the private converted-garage studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+            </div>
+            <figcaption className="ds-figcaption">Private studio, Worthing — one client at a time</figcaption>
+          </figure>
+          <div>
+            <SectionHeading
+              eyebrow={content.map_eyebrow ?? "Location"}
+              eyebrowColor="teal"
+              heading={content.map_heading ?? "Find the Studio"}
+              intro={content.map_intro ?? "Sessions take place in a private studio in Worthing, West Sussex. The studio is used exclusively for one-to-one training — there is no public gym floor, no other clients present, and no waiting around. The address is confirmed at the point of booking."}
             />
+            <div className="flex gap-3 flex-wrap" style={{ marginTop: 28 }}>
+              <a href="#form" className="ef-btn ef-btn-primary">Send a Message</a>
+              <a href="/faqs" className="ef-btn ef-btn-outline">Read the FAQs</a>
+            </div>
           </div>
+        </div>
       </Section>
 
       <CTABand

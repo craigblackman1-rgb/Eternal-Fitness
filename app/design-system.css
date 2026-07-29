@@ -146,6 +146,9 @@ a.ds-card { display: block; }
 .ds-callout h4 { font-size: 16px; font-weight: 700; color: var(--color-ink); margin-bottom: 4px; letter-spacing: -.01em; }
 .ds-callout p { font-size: 14.5px; color: var(--color-body); line-height: 1.6; }
 .ds-callout-teal { background: rgba(8,126,139,.11); border-color: rgba(8,126,139,.20); }
+.ds-callout-dark { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.14); }
+.ds-callout-dark h4 { color: #fff; }
+.ds-callout-dark p { color: rgba(255,255,255,.7); }
 
 /* ── Feature list (.wf) ───────────── */
 .ds-featlist { margin-top: 36px; }

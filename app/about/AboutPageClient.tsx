@@ -11,15 +11,12 @@ import {
   SectionHeading,
   PageHero,
   FeatureBand,
-  AccreditationStrip,
-  StatBadge,
   Callout,
   CTABand,
   Reveal,
   CtaButton,
   ProcessFlow,
   PulseLine,
-  JourneyPath,
 } from "@/components/ds";
 import { IconAccessibility, IconDumbbell, IconLeaf, IconHeartHandshake } from "@/components/icons";
 
@@ -67,16 +64,9 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
       <Section background="white" id="story">
         <div className="ds-split">
           <Reveal y={40}>
-            {/* GATE: StatBadge and JourneyPath/art-chip decorations exist on live with zero mockup equivalent — undecided keeper, kept pending Craig's call */}
             <figure style={{ margin: 0, position: "relative" }}>
               <div className="ds-split-img">
-                <Image src="/images/esther-about.jpg" alt="Mobility work in the converted-garage studio" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover" }} />
-                <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 3 }}>
-                  <StatBadge variant="rose" value="L4" label="Qualified" />
-                </div>
-                <div className="ds-art-chip">
-                  <JourneyPath accent="rose" milestones={3} />
-                </div>
+                <Image src="/images/esther-training.jpg" alt="Esther Fair in her converted-garage studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 20%" }} />
               </div>
               <figcaption className="ds-figcaption">The converted-garage studio, Worthing</figcaption>
             </figure>
@@ -125,35 +115,33 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
             ))}
           </div>
         </div>
-        {/* GATE: AccreditationStrip exists on live with zero mockup equivalent — undecided keeper, kept pending Craig's call */}
-        <Reveal y={24} start="top 88%" style={{ marginTop: 56 }}>
-          <AccreditationStrip />
-        </Reveal>
       </Section>
 
-      {/* Philosophy */}
-      {/* GATE: mockup specifies a dark ink band (bg-ink) for the philosophy section instead of cream —
-           a real visual rhythm question; not rebuilt without Craig's confirmation */}
-      <Section background="cream" id="philosophy">
+      {/* Philosophy (dark band, per mockup) */}
+      <Section background="ink" id="philosophy">
         <div className="ds-split">
           <div>
-            <SectionHeading eyebrow={content?.phil_eyebrow ?? "Philosophy"} heading={content?.phil_heading ?? "The Philosophy"} />
+            <SectionHeading
+              eyebrow={content?.phil_eyebrow ?? "Philosophy"}
+              heading={content?.phil_heading ?? "The Philosophy"}
+              light
+            />
             <Reveal y={24}>
-              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness isn't a weight-loss service. It's not about transforming your body into something it isn't. It's about finding out what your body can do right now, and building steadily from there."}</p>
-              <p className="ds-body" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "The goal isn't a six-week result. It's climbing stairs with less effort. Sleeping better. Moving through life with more ease and confidence than before. That takes time, consistency, and someone who adjusts when things change. That's what I do."}</p>
-              <Callout
-                icon={IconHeartHandshake}
-                accent="rose"
-                title={content?.phil_callout_title ?? "More Than a Workout"}
-                body={content?.phil_callout_body ?? "No weigh-ins. No before-and-after photos. No pressure to look a certain way. Just steady progress, measured against your own baseline."}
-              />
+              <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness isn't a weight-loss service. It's not about transforming your body into something it isn't. It's about finding out what your body can do right now, and building steadily from there."}</p>
+              <p className="ds-body ds-body-light" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "The goal isn't a six-week result. It's climbing stairs with less effort. Sleeping better. Moving through life with more ease and confidence than before. That takes time, consistency, and someone who adjusts when things change. That's what I do."}</p>
               <div style={{ marginTop: 28 }}>
                 <CtaButton cta={bookCta} />
               </div>
             </Reveal>
           </div>
-          <Reveal y={40} className="ds-split-img">
-            <Image src="/images/about-philosophy.jpg" alt="Personal training philosophy at Eternal Fitness Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+          <Reveal y={40}>
+            <Callout
+              icon={IconHeartHandshake}
+              accent="rose"
+              title={content?.phil_callout_title ?? "More Than a Workout"}
+              body={content?.phil_callout_body ?? "No weigh-ins. No before-and-after photos. No pressure to look a certain way. Just steady progress, measured against your own baseline."}
+              className="ds-callout-dark"
+            />
           </Reveal>
         </div>
       </Section>
@@ -164,11 +152,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           align="center"
           eyebrow={content?.studio_eyebrow ?? "Studio"}
           heading={content?.studio_heading ?? "A Private Space in Worthing"}
-          intro={content?.studio_intro ?? 
-            /* GATE: mockup says "converted-garage studio" — current code says "fully equipped studio".
-               decisions.log has no clarifying entry on whether this was a deliberate correction.
-               Left as-is until confirmed. */
-            "Sessions take place in a small, private, fully equipped studio. No public gym floor. No other clients watching. No ambient pressure of what anyone else around you is doing."}
+          intro={content?.studio_intro ??
+            "Sessions take place in a small, private, converted-garage studio. No public gym floor. No other clients watching. No ambient pressure of what anyone else around you is doing."}
         />
         <Reveal className="ds-grid-2" stagger={0.12} y={40} start="top 82%" >
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
