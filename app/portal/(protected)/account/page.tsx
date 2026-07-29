@@ -22,14 +22,27 @@ export default async function PortalAccountPage() {
   const data = createPortalDataClient(session.clientId);
   const client = await data.getClient();
 
+  // phone/address/emergency-contact/GP fields don't live on `clients` — they're
+  // captured on the client's PAR-Q, so pull the latest submission (same pattern
+  // used by app/hub/(protected)/clients/[id]/parq/page.tsx).
   const admin = createAdminClient();
-  const { data: fullClient } = await admin
-    .from("clients")
-    .select("name, email, phone, address, emergency_contact_name, emergency_contact_phone, gp_surgery")
-    .eq("id", session.clientId)
-    .single();
+  const { data: latestParq } = await admin
+    .from("signed_parq")
+    .select("email, phone, address, emergency_contact_name, emergency_contact_phone, gp_surgery")
+    .eq("client_id", session.clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const details: ClientDetail = fullClient ?? { name: client?.name ?? "", email: client?.email ?? null, phone: null, address: null, emergency_contact_name: null, emergency_contact_phone: null, gp_surgery: null };
+  const details: ClientDetail = {
+    name: client?.name ?? "",
+    email: client?.email ?? latestParq?.email ?? null,
+    phone: latestParq?.phone ?? null,
+    address: latestParq?.address ?? null,
+    emergency_contact_name: latestParq?.emergency_contact_name ?? null,
+    emergency_contact_phone: latestParq?.emergency_contact_phone ?? null,
+    gp_surgery: latestParq?.gp_surgery ?? null,
+  };
 
   return (
     <div className="space-y-8">
