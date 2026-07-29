@@ -1,5 +1,81 @@
 # Handoff
 
+## Session close — 2026-07-29 — template deployment audit: calorie calculator, portal pages, FAQ update
+
+Work Order: `.context/workorder-template-deployment-audit-2026-07-29.md`. **DONE + DEPLOYED + LIVE-VERIFIED.**
+
+Craig split `D:\apps\design-systems\brand-staging-2662e9\template-index.html`'s 32 "current" templates
+into individually reviewable pieces and asked what's still undeployed. Audited every one against its
+live route: all 7 marketing + 17 Hub templates already existed (Hub's "SOPs" merges into Process &
+Quality — checked, no real gap, richer than the mockup). The client portal was the actual gap — 4 of 8
+templates missing outright, 2 more information-architecture judgment calls.
+
+**Craig's calls, both baked into the build:** Documents gets its own dedicated `/portal/documents` page,
+not folded into the dashboard. Document signing supports both paths — the existing no-login magic-link
+route (`app/documents/[id]/sign/page.tsx`) stays untouched, and a new portal-wrapped signing page was
+added for already-logged-in clients — both call the same `POST /api/documents/[id]/sign`.
+
+**Built via OpenCode** (`opencode-go/deepseek-v4-pro`, explicit `--model` per
+`D:\apps\infrastructure\scripts\launch-opencode-lane.ps1`'s own warning about the silent free-tier
+fallback), each lane in its own worktree, none trusted on self-report:
+
+1. **`5decb98` — Lane A, calorie calculator.** New `app/calorie-calculator/page.tsx` (public) and
+   `app/portal/(protected)/calorie-guide/page.tsx` (portal-wrapped, personalised where client data
+   exists). Ported from the Claude Artifact + the two mockup files, not invented. Shared calc logic in
+   `lib/calorie-calculator.ts` (Mifflin-St Jeor BMR, TDEE, macro splits, unit converters). Nav/footer
+   links added.
+2. **Lane B — Hub SOPs parity check.** Read-only, no code. Verdict: no real gap, live is functionally
+   richer than the static mockup (real CRUD vs. decorative buttons). Closed without a build unit.
+3. **`d6462fa` + `478a255` + `92b5b33` — Lane C, portal pages.** 5 new routes: Account, Documents list,
+   Document viewer, Document edit, Document sign (portal-wrapped). **Real bug caught before merge**: the
+   new Account page queried `phone`/`address`/`emergency_contact_name`/`emergency_contact_phone`/
+   `gp_surgery` straight off the `clients` table — those columns don't exist there (confirmed against
+   every migration). Would have silently shown blank dashes for every real client forever. Fixed
+   (`478a255`) to pull the latest `signed_parq` submission by `client_id` instead, matching the pattern
+   `app/hub/(protected)/clients/[id]/parq/page.tsx` already uses. Document viewer specifically checked
+   for IDOR (correctly scoped by `client_id` — a sibling repo had exactly this bug before) — clean.
+4. **`4400365` — Lane D, FAQs update.** Re-diffed against the current mockup; only real difference was 2
+   stale images (hero, CTA band), both swapped to already-existing assets. Originally scoped
+   build-only-hold-for-review; **Craig explicitly approved publishing it alongside A/C**, overriding that
+   default.
+
+**Merge:** all 3 lanes rebased onto a shared `main` tip in sequence (A → C → D). One real conflict —
+Lane A's new "Quick tools" card and Lane C's document-summary-card restructure both touched
+`app/portal/(protected)/page.tsx` — resolved by hand, kept both. Final combined `tsc --noEmit` + `next
+build` clean. Pushed `c77a726`.
+
+**Deploy took 3 attempts, not a code issue.** Coolify auto-deploy (already ON) picked up the push. First
+attempt stalled with the build log frozen for several minutes — cancelled. Second attempt **actually
+compiled successfully end to end** (`✓ Compiled successfully`, all 78 pages generated, collecting build
+traces) and only failed at Coolify's own post-build finalize step (`sudo docker exec ... bash
+/artifacts/build.sh` exit code 255) — this matches a documented transient infra pattern already seen on
+this app (`workorder-eternal-fitness-hub-consolidation-2026-07-20.md`: "build's exec channel dying after
+it had already compiled successfully"). Third attempt cleared cleanly; Craig confirmed live. The
+previous container stayed `running:healthy` throughout — zero downtime at any point.
+
+**Live-verified via real browser** (not deploy-status alone): `/calorie-calculator` renders fully,
+calculates correctly (tested: 1,918 kcal maintenance for the default inputs), nav/footer links present,
+no console errors. `/faqs` loads clean. `/portal/documents` correctly redirects an unauthenticated
+visitor to sign-in (can't click-test past login — standing rule, no credentials entered into any form).
+
+**Not done / carried forward:**
+- Portal auth-live GATE (from the 2026-07-20 hub-consolidation WO) is still not flipped — no real client
+  has been invited to sign in. This session only added pages behind that gate, didn't open it.
+- Weight/height pre-fill on the portal calorie guide isn't implemented — `clients` has no
+  `weight_kg`/`height_cm` columns yet. Manual entry works as designed in the meantime.
+- **Flagged, not fixed:** the homepage `<title>` still reads "Level 4 Personal Trainer in Worthing",
+  spotted during live verification — this directly violates the hard rule resolved 2026-07-27 (the
+  approved wording is "Level 4 qualified in Cancer and Exercise Rehabilitation," never "Level 4 Personal
+  Trainer" standalone). Spun off as a separate task (`task_450b6958`) rather than fixed inline, since it
+  was outside this Work Order's scope.
+- Specialist Training catalogue and Blog rewrite both stay explicitly deferred to post-launch per
+  Craig's direct instruction this session — neither has a lane, nothing was touched.
+
+Worktrees removed, branches deleted, `node_modules` junctions unlinked cleanly (the known "Filename too
+long" gotcha — unlink via `cmd /c rmdir` on the junction before `git worktree remove`, not after).
+
+---
+
 ## Session close — 2026-07-28 (evening) — update-composer paste fixes, portal document/update viewing, and a real send/resend delivery-history feature
 
 Six shipped items, all pushed straight to `main` (auto-deploy confirmed ON), each built in its own
