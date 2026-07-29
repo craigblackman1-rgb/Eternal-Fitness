@@ -1,0 +1,587 @@
+/* Portal calorie guide — card-level composition on top of globals.css.
+   All colours come from existing brand tokens. */
+
+/* ── Card number chip ──────────────── */
+.cg-num {
+  width: 2.2rem;
+  height: 2.2rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-rose);
+  color: var(--color-ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* ── Card head ─────────────────────── */
+.cg-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  margin-bottom: 0.75rem;
+}
+.cg-card-head h2 {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+/* ── Section sub ───────────────────── */
+.cg-sub {
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--color-body);
+  margin: 0 0 1.5rem;
+  max-width: 60ch;
+}
+
+/* ── Field row ─────────────────────── */
+.cg-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ── Form fields ───────────────────── */
+.cg-field {
+  margin-bottom: 1.25rem;
+}
+.cg-field input[type="number"] {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border-warm);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-dm-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.cg-field input[type="number"]:focus {
+  outline: none;
+  border-color: var(--color-rose);
+  box-shadow: 0 0 0 3px rgba(193, 131, 159, 0.15);
+}
+.cg-field label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 0.35rem;
+}
+
+/* ── Fieldset ──────────────────────── */
+.cg-fs {
+  border: 0;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.cg-fs legend {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 0.5rem;
+  padding: 0;
+}
+.cg-hint {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--color-muted-text);
+  margin: 0 0 0.75rem;
+}
+
+/* ── Choices — radio rows ──────────── */
+.cg-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cg-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1.5px solid var(--color-border-warm);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.cg-choice:hover {
+  border-color: rgba(193, 131, 159, 0.5);
+}
+.cg-choice:has(input:checked) {
+  border-color: var(--color-rose);
+  background: rgba(193, 131, 159, 0.06);
+}
+.cg-choice input[type="radio"] {
+  accent-color: var(--color-rose);
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+.cg-choice-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+.cg-choice-desc {
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--color-body);
+  margin-top: 0.25rem;
+}
+.cg-choice-eg {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-muted-text);
+  margin-top: 0.4rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--color-border-warm);
+}
+.cg-choice-x {
+  font-weight: 400;
+  color: var(--color-body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Row choices ───────────────────── */
+.cg-choices-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.cg-choices-row .cg-choice {
+  flex: 1;
+  min-width: 8rem;
+  align-items: center;
+}
+
+/* ── Maintenance figure ────────────── */
+.cg-figure {
+  background: var(--color-ink);
+  color: #fff;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.cg-figure-k {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
+  flex: 1 1 12rem;
+}
+.cg-figure-v {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 1.6rem + 3vw, 3rem);
+  line-height: 1;
+  color: #fff;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.cg-figure-v i {
+  font-family: var(--font-dm-sans);
+  font-style: normal;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-left: 0.4rem;
+}
+
+/* ── Target choices ────────────────── */
+.cg-target .cg-choice-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cg-t-kcal {
+  margin-left: auto;
+  text-align: right;
+  flex-shrink: 0;
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.cg-t-kcal i {
+  display: block;
+  font-family: var(--font-dm-sans);
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-body);
+}
+.cg-t-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  background: rgba(8, 126, 139, 0.1);
+  border: 1px solid var(--color-teal);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  vertical-align: 0.1rem;
+}
+
+/* ── Macro split ───────────────────── */
+.cg-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.cg-preset {
+  border: 1.5px solid var(--color-border-warm);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.cg-preset:hover {
+  border-color: var(--color-ink);
+  background: var(--color-warm);
+}
+.cg-preset[aria-pressed="true"] {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: #fff;
+}
+.cg-mbar {
+  display: flex;
+  height: 1.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-warm);
+  background: var(--color-warm);
+  margin-bottom: 1.25rem;
+}
+.cg-mbar span {
+  transition: width 0.25s ease;
+}
+.cg-m-pro {
+  background: var(--color-rose);
+}
+.cg-m-car {
+  background: var(--color-teal);
+}
+.cg-m-fat {
+  background: var(--color-ink);
+}
+.cg-mrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border-warm);
+}
+.cg-mrow:last-of-type {
+  border-bottom: 1px solid var(--color-border-warm);
+}
+.cg-mkey {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 11rem;
+}
+.cg-mswatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+  border: 1px solid var(--color-ink);
+}
+.cg-mname {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cg-mgrams {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 5rem;
+  text-align: right;
+}
+.cg-mgrams small {
+  display: block;
+  font-family: var(--font-dm-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-body);
+}
+.cg-mpct {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.cg-mpct input {
+  width: 4rem;
+  min-height: 2.5rem;
+  text-align: center;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border-warm);
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-dm-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cg-mpct input:focus {
+  outline: none;
+  border-color: var(--color-rose);
+  box-shadow: 0 0 0 3px rgba(193, 131, 159, 0.15);
+}
+.cg-mpct span {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cg-msum {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-body);
+}
+.cg-msum b {
+  color: var(--color-ink);
+}
+.cg-msum-warn {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--color-rose);
+  font-weight: 700;
+}
+
+/* ── Protein per kg ────────────────── */
+.cg-gkg {
+  margin-top: 1.5rem;
+  background: var(--color-warm);
+  border: 1px solid var(--color-border-warm);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+.cg-gkg-v {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.cg-gkg-t {
+  flex: 1 1 16rem;
+  font-size: 0.9rem;
+  color: var(--color-body);
+  margin: 0;
+}
+
+/* ── Caveats card ──────────────────── */
+.cg-caveats {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: rgba(255, 255, 255, 0.84);
+}
+.cg-caveats h2 {
+  font-size: 1.35rem;
+  margin: 0 0 0.75rem;
+  color: #fff;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.cg-caveats h3 {
+  font-family: var(--font-dm-sans);
+  font-size: 1.05rem;
+  color: #fff;
+  margin: 0 0 0.4rem;
+}
+.cg-caveats .cg-sub {
+  color: rgba(255, 255, 255, 0.82);
+}
+.cg-caveat-list {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+.cg-caveat-list > div {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding-top: 1.25rem;
+}
+.cg-caveat-list p {
+  font-size: 0.94rem;
+  line-height: 1.6;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ── Alert ─────────────────────────── */
+.cg-alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem 1.125rem;
+  border-radius: 0.75rem;
+  margin-top: 1.5rem;
+  background: rgba(193, 131, 159, 0.1);
+  border: 1px solid var(--color-rose);
+}
+.cg-alert svg {
+  flex: none;
+  margin-top: 0.1rem;
+  color: var(--color-rose);
+}
+.cg-alert h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0 0 0.25rem;
+}
+.cg-alert p {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--color-body);
+  margin: 0;
+}
+
+/* ── Sticky total ──────────────────── */
+.cg-total {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: #fff;
+  border-top: 1px solid var(--color-border-warm);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.cg-total-k {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-body);
+  margin: 0;
+}
+.cg-total-v {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  line-height: 1.15;
+  color: var(--color-ink);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.cg-total-v i {
+  font-family: var(--font-dm-sans);
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 0.35rem;
+}
+.cg-total-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 34rem) {
+  .cg-target {
+    align-items: flex-start;
+  }
+  .cg-t-kcal {
+    text-align: left;
+    margin-left: 0;
+    width: 100%;
+  }
+  .cg-t-kcal i {
+    display: inline;
+    margin-left: 0.35rem;
+  }
+  .cg-figure {
+    padding: 1rem 1.125rem;
+  }
+  .cg-mrow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cg-mgrams {
+    text-align: left;
+  }
+}
+
+@media print {
+  .cg-presets,
+  .cg-total-actions button,
+  .cg-total-actions .ef-btn {
+    display: none !important;
+  }
+  .cg-total {
+    position: static;
+    box-shadow: none;
+    border-top: 2px solid #131313;
+    padding: 1rem 0 0;
+  }
+  .cg-figure {
+    background: #fff !important;
+    color: #131313 !important;
+    border: 2px solid #131313;
+  }
+  .cg-figure-k,
+  .cg-figure-v {
+    color: #131313 !important;
+  }
+  .cg-caveats {
+    background: #fff !important;
+    color: #131313 !important;
+    border: 2px solid #131313;
+  }
+  .cg-caveats h2,
+  .cg-caveats h3,
+  .cg-caveats .cg-sub {
+    color: #131313 !important;
+  }
+  .cg-caveat-list > div {
+    border-top-color: #131313;
+  }
+  .cg-caveat-list p {
+    color: #131313 !important;
+  }
+  .cg-choice:not(:has(input:checked)) {
+    display: none;
+  }
+}

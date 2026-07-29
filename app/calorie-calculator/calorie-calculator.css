@@ -1,0 +1,1026 @@
+/* Calorie calculator — page-specific styles.
+   Colours use the existing brand tokens from globals.css. */
+
+:root {
+  --cc-max: 1320px;
+  --cc-r: 18px;
+}
+
+/* ── Hero ───────────────────────────── */
+.cc-hero {
+  background: var(--color-warm);
+  padding: 136px 80px 72px;
+}
+.cc-hero-in {
+  max-width: var(--cc-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 64px;
+  align-items: end;
+}
+.cc-hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(34px, 3.4vw, 50px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  margin-bottom: 20px;
+}
+.cc-hero h1 em {
+  font-style: italic;
+}
+.cc-hero-lead {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--color-body);
+  max-width: 52ch;
+  margin-bottom: 22px;
+  font-weight: 500;
+}
+.cc-hero-rule {
+  width: 56px;
+  height: 2px;
+  background: var(--color-rose);
+  border-radius: 2px;
+  margin-bottom: 22px;
+}
+.cc-hero-sub {
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--color-body);
+  max-width: 54ch;
+}
+
+/* ── Trust aside ────────────────────── */
+.cc-trust {
+  background: #fff;
+  border: 1px solid var(--color-border-warm);
+  border-radius: var(--cc-r);
+  padding: 26px 26px 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+.cc-trust h2 {
+  font-family: var(--font-dm-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted-text);
+  margin-bottom: 16px;
+}
+.cc-trust ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.cc-trust li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-body);
+}
+.cc-trust li b {
+  display: block;
+  color: var(--color-ink);
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.cc-tick {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  flex: none;
+  background: rgba(8, 126, 139, 0.1);
+  color: var(--color-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+/* ── Section wrapper ────────────────── */
+.cc-sec {
+  padding: 72px 24px;
+}
+.cc-sec-tight {
+  padding: 52px 24px;
+}
+.cc-inner {
+  max-width: var(--cc-max);
+  margin: 0 auto;
+}
+.cc-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+.cc-head {
+  max-width: 700px;
+}
+.cc-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 2.8vw, 42px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+  margin-bottom: 18px;
+}
+.cc-bd {
+  font-size: 16px;
+  line-height: 1.68;
+  color: var(--color-body);
+}
+.cc-bd + .cc-bd {
+  margin-top: 14px;
+}
+.cc-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-rose);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cc-eyebrow::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 1px;
+  background: var(--color-rose);
+}
+.cc-eyebrow-l {
+  color: rgba(255, 255, 255, 0.65);
+}
+.cc-eyebrow-l::before {
+  background: rgba(255, 255, 255, 0.45);
+}
+.cc-eyebrow-teal {
+  color: var(--color-teal);
+}
+.cc-eyebrow-teal::before {
+  background: var(--color-teal);
+}
+
+/* ── Calculator grid ────────────────── */
+.cc-calc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 396px;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── Question cards ─────────────────── */
+.cc-qcard {
+  background: #fff;
+  border: 1px solid var(--color-border-warm);
+  border-radius: var(--cc-r);
+  padding: 30px 30px 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+.cc-qcard + .cc-qcard {
+  margin-top: 24px;
+}
+.cc-qhead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.cc-qn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  flex: none;
+  background: var(--color-rose);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.cc-qhead h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+.cc-qsub {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-body);
+  margin: 0 0 24px;
+  padding-left: 40px;
+  max-width: 60ch;
+}
+
+/* ── Row pair ───────────────────────── */
+.cc-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.cc-field {
+  margin-bottom: 18px;
+}
+.cc-field label,
+.cc-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted-text);
+  margin-bottom: 6px;
+}
+.cc-hint {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-muted-text);
+  margin-top: 7px;
+}
+.cc-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.cc-label-row .cc-lbl {
+  margin-bottom: 0;
+}
+
+/* ── Inputs ─────────────────────────── */
+.cc-field input[type="number"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-warm);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-dm-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+.cc-field input[type="number"]:focus {
+  border-color: var(--color-rose);
+  box-shadow: 0 0 0 3px rgba(193, 131, 159, 0.15);
+}
+
+/* ── Segmented radio ────────────────── */
+.cc-seg {
+  display: flex;
+  gap: 8px;
+}
+.cc-seg-o {
+  flex: 1;
+  position: relative;
+}
+.cc-seg-o input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.cc-seg-o span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border-warm);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.cc-seg-o:hover span {
+  border-color: rgba(19, 19, 19, 0.34);
+}
+.cc-seg-o input:checked + span {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: #fff;
+}
+
+/* ── Unit switch pills ──────────────── */
+.cc-units {
+  display: inline-flex;
+  border: 1px solid var(--color-border-warm);
+  border-radius: 999px;
+  padding: 2px;
+  background: #fff;
+}
+.cc-units label {
+  position: relative;
+}
+.cc-units input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.cc-units span {
+  display: block;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-muted-text);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.cc-units input:checked + span {
+  background: var(--color-rose);
+  color: #fff;
+}
+
+/* ── Activity radio cards ───────────── */
+.cc-acts {
+  display: grid;
+  gap: 12px;
+}
+.cc-act {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 14px;
+  align-items: start;
+  border: 1.5px solid var(--color-border-warm);
+  border-radius: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+.cc-act:hover {
+  border-color: rgba(193, 131, 159, 0.6);
+}
+.cc-act input {
+  width: 19px;
+  height: 19px;
+  margin: 2px 0 0;
+  accent-color: var(--color-rose);
+  flex: none;
+}
+.cc-act:has(input:checked) {
+  border-color: var(--color-rose);
+  background: rgba(193, 131, 159, 0.08);
+  box-shadow: 0 2px 10px rgba(193, 131, 159, 0.16);
+}
+.cc-act-t {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  line-height: 1.3;
+}
+.cc-act-x {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-teal);
+  background: rgba(8, 126, 139, 0.1);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.cc-act-d {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-body);
+  margin-top: 6px;
+}
+.cc-act-e {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-muted-text);
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--color-border-warm);
+}
+.cc-act:has(input:checked) .cc-act-e {
+  border-top-color: rgba(193, 131, 159, 0.34);
+}
+
+/* ── Results panel ──────────────────── */
+.cc-panel {
+  position: sticky;
+  top: 96px;
+}
+.cc-res {
+  background: var(--color-ink);
+  color: rgba(255, 255, 255, 0.82);
+  border-radius: var(--cc-r);
+  padding: 28px 26px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+.cc-res-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cc-res-eyebrow::before {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.45);
+}
+.cc-res-main {
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.cc-res-num {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 58px;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.cc-res-unit {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 10px;
+}
+.cc-res-say {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  margin-top: 12px;
+}
+.cc-res-h {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 22px 0 12px;
+}
+
+/* ── Target pace buttons ────────────── */
+.cc-paces {
+  display: grid;
+  gap: 8px;
+}
+.cc-pace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.cc-pace:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+}
+.cc-pace[aria-pressed="true"] {
+  background: rgba(193, 131, 159, 0.26);
+  border-color: var(--color-rose);
+}
+.cc-pace-n {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cc-pace-r {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 3px;
+}
+.cc-pace-k {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cc-pace-k i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  margin-left: 3px;
+}
+.cc-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+/* ── Low-intake flag ────────────────── */
+.cc-flag {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: rgba(193, 131, 159, 0.22);
+  border: 1px solid var(--color-rose);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #fff;
+}
+.cc-flag svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* ── Print/save buttons ─────────────── */
+.cc-res-foot {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.cc-res-foot .ef-btn {
+  min-height: 44px;
+  padding: 11px 20px;
+  font-size: 13.5px;
+  flex: 1;
+}
+
+/* ── Macros section ─────────────────── */
+.cc-macro-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 56px;
+  align-items: start;
+}
+.cc-mbar {
+  display: flex;
+  height: 22px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-warm);
+  margin: 4px 0 16px;
+}
+.cc-mbar span {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+.cc-m-pro {
+  background: var(--color-rose);
+}
+.cc-m-car {
+  background: var(--color-teal);
+}
+.cc-m-fat {
+  background: rgba(19, 19, 19, 0.62);
+}
+.cc-mrows {
+  display: grid;
+  gap: 12px;
+}
+.cc-mrow {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border-warm);
+}
+.cc-mrow:first-child {
+  border-top: 1px solid var(--color-border-warm);
+}
+.cc-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+.cc-mname {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.015em;
+}
+.cc-mwhy {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-muted-text);
+  margin-top: 2px;
+}
+.cc-mgrams {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.cc-mgrams small {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted-text);
+  letter-spacing: 0.03em;
+  margin-top: 1px;
+}
+.cc-mpct {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cc-mpct input {
+  width: 62px;
+  text-align: center;
+  padding: 9px 6px;
+  font-size: 14px;
+  font-family: var(--font-dm-sans);
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-border-warm);
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+}
+.cc-mpct input:focus {
+  border-color: var(--color-rose);
+  box-shadow: 0 0 0 4px rgba(193, 131, 159, 0.18);
+}
+.cc-mpct span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-muted-text);
+}
+.cc-mtot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--color-body);
+}
+.cc-mtot b {
+  color: var(--color-ink);
+}
+
+/* ── Macro presets ──────────────────── */
+.cc-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.cc-preset {
+  border: 1.5px solid var(--color-border-warm);
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.cc-preset:hover {
+  border-color: var(--color-ink);
+  background: var(--color-warm);
+}
+.cc-preset[aria-pressed="true"] {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: #fff;
+}
+
+/* ── Macro sidebar ──────────────────── */
+.cc-mside {
+  background: var(--color-warm);
+  border-radius: var(--cc-r);
+  padding: 26px 26px 24px;
+}
+.cc-mside h3 {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin-bottom: 10px;
+}
+.cc-mside p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-body);
+}
+.cc-mside p + p {
+  margin-top: 14px;
+}
+.cc-prot {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border-warm);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cc-prot b {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  line-height: 1;
+}
+.cc-prot span {
+  font-size: 13px;
+  color: var(--color-body);
+}
+
+/* ── Feature dots ───────────────────── */
+.cc-feats {
+  display: grid;
+  gap: 26px;
+}
+.cc-feat {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.cc-feat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex: none;
+  background: var(--color-rose);
+  margin-top: 7px;
+}
+.cc-feat-t {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.015em;
+  margin-bottom: 4px;
+}
+.cc-feat-d {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--color-body);
+}
+
+/* ── Limits band ────────────────────── */
+.cc-limits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 44px;
+}
+.cc-limit {
+  border-top: 2px solid var(--color-rose);
+  padding-top: 20px;
+}
+.cc-limit h3 {
+  font-family: var(--font-dm-sans);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.cc-limit p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ── Image frame ────────────────────── */
+.cc-frame {
+  border-radius: var(--cc-r);
+  overflow: hidden;
+}
+.cc-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  aspect-ratio: 4/3;
+}
+
+/* ── Mobile running total ───────────── */
+.cc-mini {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--color-ink);
+  color: #fff;
+  padding: 12px 20px;
+  box-shadow: 0 -8px 28px rgba(19, 19, 19, 0.24);
+}
+.cc-mini-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.cc-mini-k {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.cc-mini-v {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.cc-mini-v i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  margin-left: 3px;
+}
+.cc-mini a {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.44);
+  padding-bottom: 1px;
+  text-decoration: none;
+}
+
+/* ── Responsive ─────────────────────── */
+@media (max-width: 1180px) {
+  .cc-calc {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 24px;
+  }
+  .cc-macro-wrap {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 36px;
+  }
+}
+@media (max-width: 1000px) {
+  .cc-hero {
+    padding: 96px 24px 56px;
+  }
+  .cc-hero-in {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .cc-calc {
+    grid-template-columns: 1fr;
+  }
+  .cc-panel {
+    position: static;
+  }
+  .cc-macro-wrap {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .cc-limits {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .cc-split {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .cc-qcard {
+    padding: 26px 22px 28px;
+  }
+  .cc-qsub {
+    padding-left: 0;
+  }
+  .cc-mini {
+    display: block;
+  }
+  .cc-sec {
+    padding: 56px 24px;
+  }
+  .cc-sec-tight {
+    padding: 40px 24px;
+  }
+}
+@media (max-width: 560px) {
+  .cc-mrow {
+    grid-template-columns: 14px 1fr;
+    gap: 10px 12px;
+  }
+  .cc-mgrams {
+    grid-column: 2;
+    text-align: left;
+  }
+  .cc-mpct {
+    grid-column: 2;
+  }
+  .cc-res-num {
+    font-size: 48px;
+  }
+  .cc-row2 {
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  .cc-mini,
+  .cc-res-foot,
+  .cc-sec:last-child {
+    display: none !important;
+  }
+  .cc-panel {
+    position: static;
+  }
+  .cc-res {
+    background: #fff;
+    color: var(--color-body);
+    border: 1px solid var(--color-border-warm);
+    box-shadow: none;
+  }
+  .cc-res-num,
+  .cc-pace,
+  .cc-pace-k,
+  .cc-pace-n {
+    color: var(--color-ink);
+  }
+  .cc-res-unit,
+  .cc-res-h,
+  .cc-res-say,
+  .cc-pace-r,
+  .cc-pace-k i,
+  .cc-res-eyebrow {
+    color: var(--color-muted-text);
+  }
+  .cc-pace {
+    border-color: var(--color-border-warm);
+    background: #fff;
+  }
+  .cc-pace[aria-pressed="true"] {
+    border-color: var(--color-rose);
+    background: rgba(193, 131, 159, 0.08);
+  }
+  .cc-tag {
+    background: var(--color-rose);
+    color: #fff;
+  }
+  .cc-flag {
+    background: rgba(193, 131, 159, 0.08);
+    color: var(--color-ink);
+  }
+  .cc-sec {
+    padding: 24px 0;
+  }
+  .cc-sec-tight {
+    padding: 24px 0;
+  }
+}

@@ -56,6 +56,25 @@ export default async function PortalDashboardPage() {
         </p>
       </section>
 
+      {/* Quick tools --------------------------------------------- */}
+      <section aria-labelledby="portal-tools">
+        <div className="rounded-2xl border border-[var(--color-border-warm)] bg-white p-5 shadow-sm">
+          <h2 id="portal-tools" className="font-serif text-lg font-bold tracking-[-0.015em] text-ink mb-2">
+            Quick tools
+          </h2>
+          <p className="text-sm text-body mb-4">
+            Work out your daily calorie needs and get a personalised macro split.
+          </p>
+          <Link
+            href="/portal/calorie-guide"
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
+          >
+            Open your calorie guide
+            <IconChevronRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+
       {/* Your progress ---------------------------------------------------- */}
       <section aria-labelledby="portal-progress">
         <HubCard>

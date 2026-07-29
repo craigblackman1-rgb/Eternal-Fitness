@@ -71,6 +71,7 @@ const Footer = () => {
               <h2 className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3.5">Training</h2>
               <Link href="/exercise-for-health" className={footerLinkClasses}>Specialist Training</Link>
               <Link href="/faqs" className={footerLinkClasses}>FAQs</Link>
+              <Link href="/calorie-calculator" className={footerLinkClasses}>Calorie Calculator</Link>
               <Link href="/contact" className={footerLinkClasses}>Contact</Link>
             </nav>
 
