@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeMotion from "@/components/home/HomeMotion";
 import { useConsultationDialog } from "@/hooks/useConsultationDialog";
-import { IconAward, IconHeartHandshake } from "@/components/icons";
+import { IconAward } from "@/components/icons";
 import "./home.css";
 
 const Arrow = () => (
@@ -126,19 +126,20 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <div className="si"><Image src="/images/esther-training.jpg" alt="Esther Fair in the studio between sets" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover", objectPosition: "50% 14%" }} /></div>
             </div>
           </div>
-          <div className="aq-g">
-            <div className="aq">
-              <div className="aq-ic"><IconAward className="w-5 h-5" /></div>
+          <aside className="cred-band">
+            <div>
+              <div className="cred-ic"><IconAward className="w-5 h-5" /></div>
               <ul className="qual-list">
                 <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Personal Trainer</li>
                 <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Exercise Referral</li>
                 <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Level 4 Cancer and Exercise Rehabilitation</li>
               </ul>
-              <h4>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h4>
+            </div>
+            <div>
+              <h3>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h3>
               <p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p>
             </div>
-            <div className="aq"><div className="aq-ic"><IconHeartHandshake className="w-5 h-5" /></div><h4>{content.approach_box_2_title ?? "No weigh-ins. No judgement. No agenda."}</h4><p>{content.approach_box_2_desc ?? "No before-and-after framing, no expectations about what fitness should look like. The goal is what matters to you — whether that's managing pain, regaining independence, or simply moving with more confidence."}</p></div>
-          </div>
+          </aside>
         </div>
       </section>
 
@@ -189,24 +190,24 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="stag stag-r">{content.testimonial_heading ?? "Client Stories"}</div>
           <h2 className="D" style={{ marginBottom: 16 }}>What Clients Say</h2>
           <div className="aq-g" style={{ marginTop: 40 }}>
-            <figure style={{ margin: 0 }}>
-              <div className="tmark" aria-hidden="true">&ldquo;</div>
-              <p className="L" style={{ marginBottom: 0 }}>
+            <figure className="quote" style={{ margin: 0 }}>
+              <div className="quote-mark" aria-hidden="true">&ldquo;</div>
+              <p className="quote-p">
                 {content.testimonial_1 ?? "She helps me maintain a level of strength, mobility and fitness that I wouldn't have without her... she also adapts routines and exercises to my needs when necessary. I would highly recommend Esther to anyone, of any age and ability."}
               </p>
-              <figcaption className="tauth" style={{ marginTop: 20 }}>
-                <div className="tav">A</div>
-                <div><div className="tnm">Amanda M</div><div className="tlo">Training 5 years</div></div>
+              <figcaption className="quote-by">
+                <div className="avatar">A</div>
+                <div><div className="quote-n">Amanda M</div><div className="quote-m">Training 5 years</div></div>
               </figcaption>
             </figure>
-            <figure style={{ margin: 0 }}>
-              <div className="tmark" aria-hidden="true">&ldquo;</div>
-              <p className="L" style={{ marginBottom: 0 }}>
+            <figure className="quote" style={{ margin: 0 }}>
+              <div className="quote-mark" aria-hidden="true">&ldquo;</div>
+              <p className="quote-p">
                 {content.testimonial_2 ?? "She adjusts to her clients' restrictions and individual goals, listens always and creates bespoke plans for every situation."}
               </p>
-              <figcaption className="tauth" style={{ marginTop: 20 }}>
-                <div className="tav">S</div>
-                <div><div className="tnm">Saffron S</div><div className="tlo">Client</div></div>
+              <figcaption className="quote-by">
+                <div className="avatar">S</div>
+                <div><div className="quote-n">Saffron S</div><div className="quote-m">Client</div></div>
               </figcaption>
             </figure>
           </div>
