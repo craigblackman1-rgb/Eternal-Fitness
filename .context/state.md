@@ -1,17 +1,20 @@
 # Eternal Fitness Website — State
 
 ## Current
-- **Full mockup reconciliation round 2 — DONE + DEPLOYED 2026-07-29 (later).** Craig resolved every
-  `[GATE]` item from the 2026-07-28 design-reconciliation Work Order in one instruction: match the
-  updated `brand-staging-2662e9` mockups exactly, remove anything on staging with no mockup equivalent.
-  Also fixed the hero gradient he called "awful" — a new full-bleed 3-layer scrim replacing the old flat
-  gradient, and the two-column "split" hero retired everywhere in favour of one unified pattern.
-  Shared hero rework (`b6515b7`) + all 6 launch pages' section cleanup (`fdca133`), both `tsc`/`next
-  build` clean, browser-verified, Coolify-confirmed `running:healthy`. Full detail:
+- **Full mockup reconciliation round 2 — CLOSED 2026-07-29.** Craig resolved every `[GATE]` item from
+  the 2026-07-28 design-reconciliation Work Order in one instruction: match the updated
+  `brand-staging-2662e9` mockups exactly, remove anything on staging with no mockup equivalent. Also
+  fixed the hero gradient he called "awful" — a new full-bleed 3-layer scrim replacing the old flat
+  gradient, and the two-column "split" hero retired everywhere in favour of one unified pattern. Shared
+  hero rework (`b6515b7`) + all 6 launch pages' section cleanup (`fdca133`). Craig's own click-through
+  (via direct screenshots, not description) then caught two real remaining gaps: Home's Approach section
+  step images were never actually reconciled against the mockup (`8860624`, same commit also restored the
+  Specialist Training condition list on Craig's explicit reversal), and a leftover extra "No weigh-ins"
+  card plus an invisible white-on-white testimonial text bug (`40ec639`). All four commits `tsc`/`next
+  build` clean, Coolify-confirmed `running:healthy` via MCP. Full detail:
   `.context/workorder-mockup-reconciliation-2026-07-29.md` and the `decisions.log` 2026-07-29 entries.
-  Two items deliberately not ported (condition roll-call copy; links to the still-disabled
-  `/exercise-for-health` catalogue) — flagged inline in the code, not silently applied. **Not yet
-  click-tested by Craig** — the one remaining item.
+  One item still flagged, not reversed: the mockup's "See Specialist Training" links point at the
+  still-disabled `/exercise-for-health` catalogue — kept pointing at live pages instead.
 - **Update-composer paste fixes + email send/resend delivery history — DONE + DEPLOYED + LIVE-VERIFIED
   2026-07-28 (evening).** 6 commits, all confirmed `running:healthy` via Coolify MCP. (1) `5f64b03` —
   "Paste a draft" option added to the New Update composer, bypassing the AI chat entirely (it was

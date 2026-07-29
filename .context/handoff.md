@@ -1,5 +1,38 @@
 # Handoff
 
+## Session close — 2026-07-29, final — two real gaps Craig caught via screenshots, both fixed
+
+After the round-2 reconciliation below, Craig sent screenshots of the actual live site (not descriptions)
+pointing at two remaining problems the earlier pass had missed or introduced:
+
+1. **Home's Approach section still had an extra card** — "No weigh-ins. No judgement. No agenda." next
+   to the qualifications card. Re-checked the mockup: it has only ONE credential band (`.cred-band`, a
+   single aside), not a 2-card grid. The second card had zero mockup equivalent — should have been
+   removed in the first pass, not just left restyled. Removed it; rebuilt the qualifications block as
+   the mockup's actual single-card layout (icon+checklist left, heading+paragraph right). Commit `8860624`
+   also fixed a separate miss from the same pass: the Approach section's 3 step images were still on old
+   placeholder filenames instead of the mockup's real client photos — never audited in the original pass
+   since Approach wasn't on the original GATE list.
+2. **"Testimonials styling is wrong"** — investigated rather than guessed. The two-card testimonial
+   rebuild from the earlier pass reused CSS classes (`.tmark`/`.tquote`/`.tnm`/`.tlo`) written for the
+   *old* dark-teal single-spotlight background — white text, translucent white accents. Moved onto a
+   white card background, that text rendered white-on-white: invisible. Confirmed via
+   `getComputedStyle().color` checks before and after (not a visual guess) — replaced with new
+   `.quote`/`.quote-mark`/`.quote-by`/`.avatar` classes matching the mockup's actual card CSS.
+
+Both fixed in isolated worktrees (`8860624`, `40ec639`), `tsc`/`next build` clean, Coolify-confirmed
+`running:healthy` via MCP both times (not just deploy-status self-report).
+
+**Process note, worth carrying forward**: caught and corrected a third mid-session slip of editing
+directly in the shared checkout instead of a worktree (recovered via `git stash`, no work lost — see the
+two earlier instances in this same session's history). Also: two of the three real gaps in this whole
+reconciliation effort were only caught because Craig looked at the actual rendered page and sent
+screenshots with element selectors — "the code matches what I intended to build" is not the same claim
+as "the code matches the mockup." A full section-by-section screenshot diff against every mockup file
+should have been the default on the first pass, not a follow-up triggered by Craig's frustration.
+
+---
+
 ## Session close — 2026-07-29, later still — full mockup reconciliation round 2 (hero gradient + page-section cleanup)
 
 Work Order: `.context/workorder-mockup-reconciliation-2026-07-29.md`. **DONE + DEPLOYED**, pending only
