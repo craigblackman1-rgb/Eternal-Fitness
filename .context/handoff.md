@@ -1,5 +1,55 @@
 # Handoff
 
+## Session close — 2026-07-29, later still — full mockup reconciliation round 2 (hero gradient + page-section cleanup)
+
+Work Order: `.context/workorder-mockup-reconciliation-2026-07-29.md`. **DONE + DEPLOYED**, pending only
+Craig's own click-through (never this session's to do).
+
+Direct continuation of `workorder-design-reconciliation-2026-07-28.md`, which shipped all 7 lanes but left
+~10 `[GATE]` items open pending Craig's call. Craig resolved every one of them in a single instruction:
+"update each page to match the open designs I gave you and remove the sections not required... only
+follow the open-design." He'd also updated the `brand-staging-2662e9` mockup files again same-day —
+found and fixed the actual gradient he called "awful": the old flat single-layer hero scrim was replaced
+across all 6 launch pages with a richer 3-layer (bottom/top/left) scrim, and the old two-column "split"
+hero pattern was dropped entirely in favour of one unified full-bleed treatment.
+
+**Lane A (shared hero) — merged `b6515b7`:** reworked `PageHero.tsx`'s "overlay" variant and
+`design-system.css`'s `.ds-hero`/`.ds-hero-bg`, plus `HomePageClient`'s own bespoke hero + `home.css`,
+to the new full-bleed pattern; retired the "split" variant everywhere (About/Contact/FAQs/Personal
+Training/Pricing all moved off it). **Real bug caught during verification**: Next's `fill` image mode
+sets `right:0` and Tailwind's `img{max-width:100%}` preflight reset both silently overrode the mockup's
+per-image `--pan` width framing (e.g. About's hero photo should render at 108% width, panned left) — it
+kept computing back down to exactly the container width until an explicit `right:auto`/`maxWidth:none`
+override was added and confirmed via computed-style checks in a real browser (not just visual guessing).
+
+**Lanes B–G (page sections) — merged `fdca133`:** every `[GATE]` item from the prior WO resolved to
+"match mockup, remove the rest" — About lost its AccreditationStrip/StatBadge/JourneyPath decorations
+and got its Philosophy section rebuilt as a dark ink band; Contact's Google Maps embed was replaced with
+the mockup's studio photo section, and a duplicate "Not Sure Where to Start?"/"Follow Me" sidebar block
+(already covered by the closing CTA band) was removed; Personal Training lost its extra Credentials
+StatStrip and got a 4-card "What We Work On" grid plus a dark Specialist Training band; Pricing's
+"What You're Investing In" was simplified to the mockup's statement + CTA and "Not Sure Which to
+Choose?" was restored as its own standalone dark band; Home's Who + Specialist Training sections merged
+into one dark band and Testimonials became two equal-weight cards on white instead of a single-spotlight
+teal layout. FAQs needed no page-section work — its default-open accordion and "Still not sure?" band
+were already shipped in the 2026-07-28 pass.
+
+**Two things deliberately not ported from the mockup, flagged inline rather than silently applied:**
+the mockup's Specialist Training copy (Home, Personal Training, Pricing) lists named conditions
+(heart/blood pressure, bone/joint, visual impairment, cancer rehab) — a direct roll-call this project's
+own hard rules ban on general pages ("No condition roll-calls in copy — generalise"); kept the
+generalised copy instead. And the mockup's "See Specialist Training" links point at
+`/exercise-for-health`, which currently redirects to Home (disabled per the 2026-07-27 launch-scope
+decision) — kept those links pointing at `/contact`/`/personal-training` instead so they go somewhere live.
+
+Both commits built in isolated worktrees per DO-SOP-010 (after catching and correcting two direct-edit-
+on-shared-checkout mistakes mid-session — recovered via `git stash`, no work lost), `tsc --noEmit` +
+full `next build` clean, browser-verified via computed-style checks across all 6 pages before pushing.
+Fast-forward pushed to `main`, Coolify auto-deploy confirmed via MCP. **Not yet click-tested by Craig** —
+that's the one remaining item on the Work Order.
+
+---
+
 ## Session close — 2026-07-29, later — hub sidebar sign-out unreachable on tall pages
 
 Craig reported "can't log out of the profile, no logout option" in the Trainer Hub. The sign-out
