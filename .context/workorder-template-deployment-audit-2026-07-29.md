@@ -73,6 +73,12 @@ All 17 Hub templates have a live route (16 direct + 1 merged). The 2026-07-26 de
 
 Portal is the real gap area — of 8 templates, 4 are flat-out missing and 2 more are structural judgment calls (fold-into-dashboard vs. dedicated page). This matches the standing open item from the 2026-07-20 WO ("client portal magic-link auth + read-only view — code built, not deployed as a live auth surface").
 
+## DONE
+- [x] Lane A (public + portal Calorie Calculator) — built by OpenCode on `task/calorie-calculator-2026-07-29` (`5decb98`), independently verified: `tsc --noEmit` clean, `next build` clean, both routes (`/calorie-calculator`, `/portal/calorie-guide`) present in output. Not pushed — pending Craig's go-ahead per ASK FIRST.
+- [x] Lane B (Hub SOPs parity check) — done, no gap found, see Lane B note above.
+- [x] Lane C (portal Account/Documents/viewer/edit/sign) — built by OpenCode on `task/portal-pages-2026-07-29` (`d6462fa`), hand-reviewed before trusting the self-report per standing rule. **Real bug caught and fixed pre-merge, not shipped**: the new Account page queried `phone`/`address`/`emergency_contact_name`/`emergency_contact_phone`/`gp_surgery` straight off the `clients` table — those columns don't exist there (confirmed against every migration file), so the query would silently fail and show em-dashes for every real client, forever. Fixed to pull the latest `signed_parq` submission by `client_id` instead (same pattern already used by the hub's own PAR-Q history page) — commit `a4124fc`. Document viewer correctly scopes by `client_id` (no IDOR — checked specifically, since a sibling repo had exactly this bug before). `dangerouslySetInnerHTML` on document body sections matches the existing pattern already used in `DocumentDetailClient.tsx`, not a new risk. Both signing paths (standalone magic-link + new portal-wrapped) confirmed to hit the same `POST /api/documents/[id]/sign` endpoint. `tsc --noEmit` + `next build` both clean after the fix, all 5 new routes present in output. Not pushed — pending Craig's go-ahead.
+- [x] Lane D (FAQs update) — built by OpenCode on `task/faqs-update-2026-07-29` (`4400365`), verified: only real difference found was 2 stale images (hero + CTA band) vs. the current mockup, both swapped to already-existing assets in `public/images/`. `tsc --noEmit` + `next build` clean. **Held for review as instructed — not merged, not pushed.**
+
 ## LANES
 - Lane A — Public + portal Calorie Calculator (2 pages, shared calc logic) · depends on: none
 - Lane B — Hub SOPs design-parity check · depends on: none
@@ -89,7 +95,7 @@ Portal is the real gap area — of 8 templates, 4 are flat-out missing and 2 mor
 - [AUTO] Link both from the appropriate nav — public one from the marketing footer/nav where FAQs/Contact live; portal one from `app/portal/(protected)/page.tsx`'s quick links
 
 ### Lane B — Hub SOPs design-parity check
-- [AUTO] Compare the live `ProcessQualityManager.tsx`'s SOPs tab/section against `hub-sop.html` — confirm the merged-into-Process-&-Quality structure isn't losing any content or interaction the standalone mockup implies (e.g. a dedicated SOPs list/search view) — files: `app/hub/(protected)/process-quality/ProcessQualityManager.tsx` — VERIFY: side-by-side read, note any real gap as a follow-up unit rather than guessing a fix
+- [x] **DONE 2026-07-29 — no real gap found.** Explore-agent side-by-side read: the mockup (`hub-sop.html`) is a static layout reference with one fake example SOP and decorative buttons, not a working screen. Live (`ProcessQualityManager.tsx`'s SOPs tab) covers the same conceptual fields (Purpose→`what`, Procedure→`steps`, plus an extra `prompt_template` field the mockup doesn't have) with real add/edit/delete CRUD the mockup never had. Modal-based detail view vs. the mockup's implied full-page nav is a reasonable IA choice, not a loss. Verdict: acceptable structural consolidation with Process Register/Improvement Log — no follow-up unit needed, Lane closed.
 
 ### Lane C — Portal: Account, Documents, Document viewer/edit, Document sign wrap
 - [AUTO] Build `app/portal/(protected)/account/page.tsx` per `portal-account.html` — client's own profile fields, read-only or editable per the mockup (check which) — reuse `HubCard`/existing portal data-fetch pattern from `app/portal/(protected)/page.tsx`
