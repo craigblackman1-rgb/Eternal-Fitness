@@ -81,7 +81,7 @@ export function HubSidebar() {
   };
 
   return (
-    <aside className="flex w-60 flex-col bg-[var(--hub-sidebar)] text-white shrink-0">
+    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-[var(--hub-sidebar)] text-white">
       {/* Brand */}
       <div className="flex flex-col items-start justify-center gap-1 px-5 py-3 border-b border-white/[0.07]">
         <EternalFitnessLogo variant="light" className="h-9 w-auto" />
