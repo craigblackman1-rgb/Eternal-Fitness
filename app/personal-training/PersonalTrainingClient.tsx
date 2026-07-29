@@ -157,16 +157,15 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         </div>
       </Section>
 
-      {/* Specialist Training (dark band, per mockup) — condition bullet list
-          deliberately NOT ported: the mockup lists named conditions
-          (heart/blood pressure, bone/joint, visual impairment, cancer
-          rehab), which is a direct roll-call the project's own hard rules
-          ban on general pages ("No condition roll-calls in copy —
-          generalise"). Also linking to /contact rather than the mockup's
+      {/* Specialist Training (dark band, per mockup). Condition list restored
+          per Craig's explicit go-ahead (2026-07-29) after being flagged as a
+          possible conflict with the "no condition roll-calls" hard rule —
+          worth Esther's confirmation since it's her brand rule, but not
+          blocking on it. Still linking to /contact rather than the mockup's
           /exercise-for-health — that page currently redirects to Home
           (disabled per the 2026-07-27 launch-scope decision), so the
           mockup's own literal link would send a visitor straight back to
-          the homepage. Both flagged to Craig, not silently decided. */}
+          the homepage. */}
       <Section background="ink" id="specialist">
         <div className="ds-split">
           <div>
@@ -185,6 +184,15 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
               </div>
             </Reveal>
           </div>
+          <Reveal y={24}>
+            <ul className="ds-spec-list">
+              <li>Heart health and blood pressure</li>
+              <li>Bone and joint health</li>
+              <li>Visual impairment</li>
+              <li>Cancer rehabilitation</li>
+              <li className="pending">…and more, as the catalogue is built</li>
+            </ul>
+          </Reveal>
         </div>
       </Section>
 

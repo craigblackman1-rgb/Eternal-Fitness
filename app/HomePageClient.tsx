@@ -113,17 +113,17 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div className="step">
               <div className="sn">01</div>
               <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it. You leave having done something worthwhile."}</p></div>
-              <div className="si"><Image src="/images/approach-step1.jpg" alt="Esther Fair adapting a training session in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="si"><Image src="/images/coaching-plank-client.jpg" alt="Esther coaching a client through a plank, adjusting the movement as they go" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">02</div>
               <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, no dress code. Just you and what you need today."}</p></div>
-              <div className="si"><Image src="/images/studio-2.jpg" alt="Private personal training studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="si"><Image src="/images/studio-kneel-stretch.jpg" alt="A relaxed stretch session in the private Eternal Fitness studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">03</div>
               <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That's what I build towards."}</p></div>
-              <div className="si"><Image src="/images/approach-step3.jpg" alt="Long-term sustainable training in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="si"><Image src="/images/esther-training.jpg" alt="Esther Fair in the studio between sets" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover", objectPosition: "50% 14%" }} /></div>
             </div>
           </div>
           <div className="aq-g">
@@ -144,12 +144,11 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
 
       {/* WHO + SPECIALIST TRAINING (single dark band, per mockup — replaces
           the old separate dark "who" image-card section and light
-          "specialist" text-only section). The mockup's Specialist column
-          lists named conditions (heart/blood pressure, bone/joint, visual
-          impairment, cancer rehab) — deliberately not ported, since that's
-          a direct roll-call the project's own hard rules ban on general
-          pages ("No condition roll-calls in copy — generalise"). Flagged
-          to Craig, not silently decided. */}
+          "specialist" text-only section). Condition list restored per
+          Craig's explicit go-ahead (2026-07-29) after being flagged as a
+          possible conflict with the "no condition roll-calls" hard rule —
+          worth Esther's confirmation since it's her brand rule, but not
+          blocking on it. */}
       <section id="specialist" className="sec" style={{ background: "var(--ink)" }}>
         <div className="sin">
           <div className="aq-g" style={{ gap: 56 }}>
@@ -167,10 +166,17 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             </div>
             <div>
               <div className="stag stag-w">{content.specialist_tag ?? "Specialist Training"}</div>
-              <p className="L LL" style={{ marginTop: 16, maxWidth: 480 }}>
+              <p className="L LL" style={{ marginTop: 16, maxWidth: 480, marginBottom: 0 }}>
                 {content.specialist_body ?? "If your health picture is more specific, here's more detail on how I work with it."}
               </p>
-              <Link href="/personal-training#specialist" className="btn btn-ow" style={{ marginTop: 20 }}>{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
+              <ul className="spec-list">
+                <li>Heart health and blood pressure</li>
+                <li>Bone and joint health</li>
+                <li>Visual impairment</li>
+                <li>Cancer rehabilitation</li>
+                <li className="pending">…and more, as the catalogue is built</li>
+              </ul>
+              <Link href="/personal-training#specialist" className="btn btn-ow">{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
             </div>
           </div>
         </div>

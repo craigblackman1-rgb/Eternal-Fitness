@@ -150,6 +150,12 @@ a.ds-card { display: block; }
 .ds-callout-dark h4 { color: #fff; }
 .ds-callout-dark p { color: rgba(255,255,255,.7); }
 
+.ds-spec-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255,255,255,.09); }
+.ds-spec-list li { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.09); font-size: 14.5px; font-weight: 500; color: #fff; letter-spacing: -.01em; }
+.ds-spec-list li::before { content: ''; width: 5px; height: 5px; border-radius: 999px; background: var(--color-rose); flex: none; }
+.ds-spec-list li.pending { color: rgba(255,255,255,.45); font-style: italic; font-weight: 400; }
+.ds-spec-list li.pending::before { background: rgba(255,255,255,.45); }
+
 /* ── Feature list (.wf) ───────────── */
 .ds-featlist { margin-top: 36px; }
 .ds-feat { display: flex; align-items: flex-start; gap: 16px; padding: 18px 0; border-top: 1px solid var(--color-border-warm); }

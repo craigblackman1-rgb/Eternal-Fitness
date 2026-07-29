@@ -167,6 +167,11 @@
 .efhome .spc-n { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--rose); margin-bottom: 7px; }
 .efhome .spc-t { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -.018em; margin-bottom: 8px; line-height: 1.15; }
 .efhome .spc-d { font-size: 14px; color: var(--body); line-height: 1.6; }
+.efhome .spec-list { list-style: none; margin: 26px 0 30px; padding: 0; border-top: 1px solid rgba(255,255,255,.09); }
+.efhome .spec-list li { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.09); font-size: 14.5px; font-weight: 500; color: #fff; letter-spacing: -.01em; }
+.efhome .spec-list li::before { content: ''; width: 5px; height: 5px; border-radius: 999px; background: var(--rose); flex: none; }
+.efhome .spec-list li.pending { color: rgba(255,255,255,.45); font-style: italic; font-weight: 400; }
+.efhome .spec-list li.pending::before { background: rgba(255,255,255,.45); }
 
 /* ── Testimonials ─────────────────── */
 .efhome .twrap { max-width: 840px; margin: 0 auto; text-align: center; }
