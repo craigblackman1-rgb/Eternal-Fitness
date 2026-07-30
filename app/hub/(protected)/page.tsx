@@ -229,7 +229,7 @@ export default async function DashboardPage() {
                         href={`/hub/clients/${client.client_number}`}
                         className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)] transition-colors"
                       >
-                        <div className="w-8 h-8 rounded-full bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
                         </div>
                         <span className="flex-1 min-w-0 text-sm font-medium text-foreground truncate">{client.name}</span>
@@ -263,7 +263,7 @@ export default async function DashboardPage() {
                         href={href}
                         className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
                       >
-                        <div className="w-10 h-10 rounded-full bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -310,7 +310,7 @@ export default async function DashboardPage() {
                         href={`/hub/clients/${client.client_number}`}
                         className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
                       >
-                        <div className="w-9 h-9 rounded-full bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">
