@@ -1,5 +1,83 @@
 # Handoff
 
+## Session close — 2026-07-30 — hub + portal mockup audit (no dispatch yet) + AccreditationStrip fix
+
+Craig asked for the hub-facing and client-portal `brand-staging-2662e9` mockups — everything the
+2026-07-29 marketing-page reconciliation didn't cover — audited against the live app, with real
+deltas turned into new Work Order lanes ready for OpenCode. Full detail, including every lane's
+exact files and VERIFY steps:
+`.context/workorder-hub-portal-mockup-audit-2026-07-30.md`.
+
+**Already aligned, no lane drafted:**
+- All 14 hub-*.html mockups not individually re-diffed this round (hub-dashboard, hub-clients,
+  hub-client-detail, hub-client-edit, hub-parq-edit, hub-exercise-library, hub-process-quality,
+  hub-reports-updates, hub-site-content(-editor), hub-studio-equipment, hub-plan-agent-settings,
+  hub-training-rules, hub-schedule) — the 2026-07-26 hub design-alignment WO already reconciled
+  every one of these, all 8 lanes shipped and merged. Their 2026-07-28 07:48 batch timestamp (after
+  that WO closed) looked like a real-change signal at first, but spot-checking hub-dashboard.html and
+  fully deep-diffing hub-tasks.html (below) found no actual content drift — treated as a bulk
+  copy/export event, not a revision.
+- **hub-tasks.html** — deep-diffed in full against `TasksManager.tsx` despite its own later (20:04)
+  timestamp specifically flagging it as a possible outlier. Structure matches exactly (3-column
+  kanban, bucket chips with rename/delete, My/All Tasks toggle); the live page is actually **ahead**
+  of the mockup (due-date filter pills + sort control, both shipped 2026-07-28, neither in the
+  mockup). Real reassurance that the 07:48 batch timestamp isn't a meaningful signal on its own.
+- **portal-account.html** and **portal-documents.html** — both match their live counterparts closely
+  (section-by-section for Account; filter chips/search/grouping for Documents) — both were built
+  (`481c3cf`) after the mockups' 2026-07-28 18:20–20:14 update, so they already reflect it.
+- **portal-document-sign.html**'s 3-step flow (Check → Sign → Confirm) matches almost exactly —
+  one real gap (missing draw-signature option) called out as a lane below, everything else aligned.
+
+**New lanes drafted (not yet dispatched — need Craig's read first):**
+1. **Portal home restructure** (medium-large, `[AUTO]` with a preservation constraint) — mockup is
+   task-first (personalised greeting, "Needs you" action cards for outstanding signature/PAR-Q, next-
+   session card, recently-shared docs, roadmap); live page is analytics-first (Quick Tools, doc-count
+   tiles, `ExerciseTrendsPanel`, update-email history). Lane rebuilds the top of the page to the
+   mockup's task-card treatment using data already being fetched, but explicitly must NOT drop the
+   Progress panel or Update email history — both are real, wired, DB-backed features the mockup
+   doesn't show at all.
+2. **Document view table-of-contents nav** (small-medium, `[AUTO]`) — mockup has a sticky, numbered
+   "What is in this document" jump-nav that moves focus to the target heading; live page renders
+   sections as a flat list with no jump nav, despite already having `id`/`title` on every section.
+3. **Document sign: add draw-signature option** (medium, `[AUTO]`) — mockup offers Type/Draw as
+   equal choices; live only implements typed. Flagged to check `/api/documents/[id]/sign`'s actual
+   accepted shape before wiring a canvas — it currently only handles a plain-string signature, and a
+   drawn signature will need to carry image data.
+4. **PAR-Q editor: add section-jump sidebar** (small-medium, `[AUTO]`) — mockup shows all 6 sections
+   with done/current/todo state, clickable to jump directly; live editor only has sequential
+   Next/Back, no jump nav, despite already having the section array in scope.
+5. **Portal sign-in auth mechanism** (`[GATE]`, not dispatched) — mockup is a passwordless email +
+   6-digit one-time-code flow with split-screen studio photography; live page is a traditional
+   email+password form. This is an authentication-mechanism change (code generation/send, code
+   verification, session issuance), not a visual pass — parked pending Craig's call between building
+   the real OTP flow, reskinning the existing password form to the mockup's layout, or leaving as-is.
+6. **hub-sop.html — no lane, flagged as ambiguous.** Content is a single example SOP document view,
+   not a documents list; its own sidebar nav doesn't match `HubSidebar.tsx` or any other current hub
+   mockup's grouping. The old brief's mapping to `/hub/documents` doesn't fit the actual content.
+   Needs Craig's steer on what this file is for (a Process & Quality SOP detail view? a stale draft?)
+   before scoping any work against it.
+
+**Not deeply audited this round, flagged rather than assumed aligned:**
+portal-calorie-calculator.html vs `CalorieGuideClient.tsx` (695 lines, built same session as this
+specific mockup per `0426aa0` — likely aligned, worth a quick visual QA pass, no structural delta
+found in the time available).
+
+**Separately, same session — small fix, done and committed:** `components/ds/AccreditationStrip.tsx`
+reduced from 3 badges (SafeFit, REPS, FitPro) to FitPro only, per Craig's 2026-07-30 confirmation.
+Checked every render site first (`grep -rn "AccreditationStrip" app/ components/`) — the component is
+exported via `components/ds/index.ts` but not currently instantiated anywhere in `app/`, so this is
+zero visual-impact today. `tsc --noEmit` and a full `next build` both clean. Left the unused
+SafeFit/REPS PNGs in `public/images/accreditations/` untouched, per instruction (asset cleanup was
+explicitly out of scope).
+
+**Process notes:** built in an isolated worktree (`D:\apps\eternal-fitness-website-wt-hub-portal-audit`,
+branch `chore/hub-portal-mockup-audit`, branched fresh off `origin/main`, `node_modules` junctioned
+from the shared checkout) per DO-SOP-010. Two commits made (WO-file addition, AccreditationStrip fix)
+— **neither pushed**, since the lane list needs a human read before any `[AUTO]` unit goes to
+OpenCode, per the task brief. Worktree left in place for review, not cleaned up yet.
+
+---
+
 ## Session close — 2026-07-29, final — two real gaps Craig caught via screenshots, both fixed
 
 After the round-2 reconciliation below, Craig sent screenshots of the actual live site (not descriptions)

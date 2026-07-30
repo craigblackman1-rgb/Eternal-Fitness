@@ -1,6 +1,28 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Hub + portal mockup audit — DONE (audit only, not yet dispatched) 2026-07-30.** Craig asked for
+  the hub-facing and client-portal `brand-staging-2662e9` mockups to be audited against the live app
+  (everything not covered by the 2026-07-29 marketing-page reconciliation), with real deltas turned
+  into new Work Order lanes for OpenCode. Full detail:
+  `.context/workorder-hub-portal-mockup-audit-2026-07-30.md`. Short version: all 14 remaining
+  hub-*.html mockups already match (the 2026-07-26 hub design-alignment WO covered them; spot-checked
+  hub-dashboard.html and fully deep-diffed hub-tasks.html despite its later mockup timestamp — live
+  is actually ahead of the mockup there, not behind). `hub-sop.html` has no confirmed live
+  counterpart and its own sidebar nav doesn't match any other current hub mockup — flagged for
+  Craig's steer, no lane drafted. Portal: `portal-account.html` and `portal-documents.html` already
+  match closely (both built after the mockup's 07-28 update). Four real gaps got `[AUTO]` lanes —
+  portal-home's task-first restructure (must keep the live page's real progress/update-history
+  panels, which the mockup doesn't show), a missing table-of-contents nav on the document viewer, a
+  missing "draw signature" option on document signing (typed-only today), and a missing section-jump
+  sidebar on the PAR-Q/feedback editor. One real gap is `[GATE]`, not dispatched: portal-sign-in.html
+  is a passwordless email+one-time-code flow, but the live page is traditional email+password —
+  matching the mockup means changing the auth mechanism itself, not just the visuals, so it's parked
+  pending Craig's call. Also fixed in the same session, unrelated: `AccreditationStrip.tsx` reduced
+  from 3 badges (SafeFit/REPS/FitPro) to FitPro only, per Craig's 2026-07-30 confirmation — the
+  component isn't currently rendered anywhere in `app/`, so zero visual impact; `tsc --noEmit` +
+  `next build` both clean. Built in worktree `eternal-fitness-website-wt-hub-portal-audit`
+  (branch `chore/hub-portal-mockup-audit`), not pushed — needs review before dispatching lanes.
 - **Full mockup reconciliation round 2 — CLOSED 2026-07-29.** Craig resolved every `[GATE]` item from
   the 2026-07-28 design-reconciliation Work Order in one instruction: match the updated
   `brand-staging-2662e9` mockups exactly, remove anything on staging with no mockup equivalent. Also
