@@ -1,8 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
 const accreditations = [
-  { src: "/images/accreditations/safefit.png", alt: "SafeFit accredited", h: 34 },
-  { src: "/images/accreditations/reps.png", alt: "REPS — Registered Exercise Professional", h: 56 },
   { src: "/images/accreditations/fitpro.png", alt: "FitPro member", h: 34 },
 ];
 
