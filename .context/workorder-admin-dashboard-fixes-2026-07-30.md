@@ -219,7 +219,60 @@ resolution today.
    and Duplicate action to the modal, or accept the current simpler modal as the intended design and
    treat the mockup as stale (retire it, same pattern as above)?
 
-## LEDGER
+## GATE RESOLUTIONS — 2026-07-30, Craig answered all 6 in one batch
+1. **--hub-border token collapse → restore two distinct tokens**, matching the design spec. Lane G1.
+2. **Dashboard greeting header → build the bespoke design treatment, kept simple/lightweight** — a
+   time-of-day greeting on the dashboard page only, not a new shared component. Lane G2.
+3. **PAR-Q Section 7 → leave as-is for now.** No lane. Closed.
+4. **Exercise Library → rebuild as the mockup's compact list**, explicit constraint: must not lose
+   any current real functionality (all 6 filters, search, bulk-edit, 2500+ row dataset handling).
+   Lane G4.
+5. **Process & Quality → build the onboarding-timeline + pre-session-checklist dashboard to match
+   the design**, as a new tab additive to the existing CRUD tool (Process Register/SOPs/Improvement
+   Log stay exactly as-is). Real data only — `lib/compliance.ts`'s `computeComplianceFlags` (already
+   used on `/hub/tracker`) backs the medical-clearance checks; any tile/row with no genuine backing
+   signal gets dropped, not fabricated, per the Lane 6a precedent. Lane G5.
+6. **hub-sop.html / SopDetailModal → backport the fuller mockup's fields and Duplicate action**,
+   matching the design rather than the current simplified modal. Lane G6 (sequenced after G5 — both
+   touch `ProcessQualityManager.tsx`).
+
+## LANES — GATE RESOLUTIONS (round 2)
+- Lane G1 — Restore split `--hub-border`/`--hub-section-border` tokens · depends on: none
+- Lane G2 — Bespoke dashboard greeting header · depends on: none
+- Lane G4 — Exercise Library compact-list rebuild (functionality-preserving) · depends on: none
+- Lane G5 — Process & Quality new dashboard tab (real data only) · depends on: none
+- Lane G6 — hub-sop.html field/action backport into SopDetailModal · depends on: Lane G5 (same file)
+
+## LEDGER — Round 2 (GATE resolutions)
+**Lanes G1, G2, G4, G5 DONE + merged 2026-07-30**, each independently re-verified (fresh `tsc
+--noEmit`, `next build` for G4/G5) before merge:
+- `539238c` G1 — restored split `--hub-border`/`--hub-section-border` tokens
+- `42b607d` G2 — bespoke time-of-day dashboard greeting
+- `2724ca3` G4 — Exercise Library rebuilt as compact list + detail panel, all 15 pre-existing
+  capabilities (search, 6 filters, bulk-edit, pagination, etc.) confirmed present by hand-reading
+  the diff, not just trusting OpenCode's self-report
+- `f91eb45` G5 — new Process & Quality "Overview" tab (onboarding timeline + real-data quality
+  checks via `computeComplianceFlags`), fully additive, existing 3 tabs untouched. Cross-checked
+  `computeComplianceFlags`' actual signature/return shape against usage before trusting it (real
+  clinical-safety data, worth the extra scrutiny).
+
+**Lane G6 — code complete, BLOCKED on a DB migration, not merged.** `hub-sop.html` field/action
+backport (6-cell meta-grid, Duplicate action) is written and verified (`tsc` + `next build` clean)
+in worktree `g6-sop-backport` (branch `fix/g6-sop-backport`), but its API routes reference 5 new
+`sops` columns (`supabase/migrations/20260730_sops_meta_fields.sql`) that don't exist on prod yet.
+Merging without running the migration first would break SOP create/edit/duplicate in production
+(Postgres rejects the unknown-column INSERT/UPDATE) — caught by hand-reviewing the diff, not by
+OpenCode's self-report, which didn't flag this dependency. Migration is additive/low-risk (nullable
+columns + one defaulted `status`), queued via `wo ask` for Craig's go-ahead to run it. Worktree kept
+alive pending answer — do not delete before merging.
+
+Design trade-off worth noting: the mockup's 6-cell meta-grid doesn't include `area`/`last_updated`
+(the two fields the old 3-cell modal showed), so the new modal doesn't display them either —
+matches Craig's "build to match the design" instruction exactly, and both fields remain fully
+editable in the add/edit form, just not surfaced in the read-only quick-view. Not a regression,
+flagged here for the record.
+
+## LEDGER — Round 1 (original 6 AUTO lanes)
 **All 6 AUTO lanes DONE + merged 2026-07-30.** Dispatched to OpenCode (deepseek-v4-pro) in 6 isolated
 worktrees per DO-SOP-010 (Lane 6 sequenced after Lane 1 since both touch DocumentDetailClient.tsx).
 Every lane independently re-verified before merge — fresh `tsc --noEmit` (+ `next build` for the two
