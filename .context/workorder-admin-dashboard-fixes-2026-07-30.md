@@ -30,14 +30,16 @@ Work Order — see ASK FIRST list in each lane. None of them are code obviously 
 resolution today.
 
 ## DONE (ticks to zero = stop condition)
-- [ ] Lane 1 — cross-cutting token/component fixes (button-shape sweep, EmptyState, amber icon,
-      Reports KPI band → shared component)
-- [ ] Lane 2 — Dashboard avatar-colour consistency fix
-- [ ] Lane 3 — Client-detail page-title hierarchy fix
-- [ ] Lane 4 — PAR-Q hub-mode input styling fix
-- [ ] Lane 6 — DocumentDetailClient → HubCard/HubCardHeader conversion
-- [ ] Lane 9 — Session editor component-consistency fixes (Coaching Notes card, version toggle,
-      superset group tokens, remaining hand-rolled cards)
+- [x] Lane 1 — cross-cutting token/component fixes (button-shape sweep, EmptyState, amber icon,
+      Reports KPI band → shared component) — merged `882ea1f`
+- [x] Lane 2 — Dashboard avatar-colour consistency fix — merged `4ed1d5f`
+- [x] Lane 3 — Client-detail page-title hierarchy fix — merged `856d5b2`
+- [x] Lane 4 — PAR-Q hub-mode input styling fix — merged `9be4870`
+- [x] Lane 6 — DocumentDetailClient → HubCard/HubCardHeader conversion — merged `df81787`
+- [x] Lane 9 — Session editor component-consistency fixes (Coaching Notes card, version toggle,
+      superset group tokens, remaining hand-rolled cards) — merged `9357305`. OpenCode's diff left
+      two Card/CardContent blocks with mismatched closing tags (real JSX parse failure, not caught
+      by its own tsc self-check); hand-fixed and re-verified with `tsc` + `next build` before merge.
 - [ ] All 6 GATE decisions queued and answered (or explicitly still pending, not silently dropped)
 
 ## LANES
@@ -218,6 +220,28 @@ resolution today.
    treat the mockup as stale (retire it, same pattern as above)?
 
 ## LEDGER
+**All 6 AUTO lanes DONE + merged 2026-07-30.** Dispatched to OpenCode (deepseek-v4-pro) in 6 isolated
+worktrees per DO-SOP-010 (Lane 6 sequenced after Lane 1 since both touch DocumentDetailClient.tsx).
+Every lane independently re-verified before merge — fresh `tsc --noEmit` (+ `next build` for the two
+riskiest, Lane 6 and Lane 9) re-run myself, not trusted on OpenCode's self-report — then fast-forward
+pushed to `main` in order: `882ea1f` (Lane 1) · `4ed1d5f` (Lane 2) · `856d5b2` (Lane 3) · `9be4870`
+(Lane 4) · `9357305` (Lane 9) · `df81787` (Lane 6). Coolify auto-deploy will pick these up.
+
+**Lane 9 caught a real bug before merge, not on self-report:** OpenCode's diff left two unrelated
+Card/CardContent blocks (the session's "client intro" banner and the "Session Log" card) with
+mismatched closing tags — `</div>`/`</HubCard>` instead of `</CardContent>`/`</Card>` — a genuine
+JSX parse failure that `tsc --noEmit` caught immediately. OpenCode's own process partially
+self-corrected one instance mid-run; the second was hand-fixed directly before re-verifying with a
+full `tsc` + `next build` pass. This is exactly the "OpenCode diffs must be hand-reviewed, never
+trusted on self-report" pattern already documented in CLAUDE.md — logged here as another instance.
+
+**One item found during Lane 1 verification, out of original scope:** `NewUpdateClient.tsx:633`
+("Test to X" secondary button) is still `rounded-full` — same anti-pattern as the rest of the sweep,
+missed by the original audit's file list, not an OpenCode error. Deferred (`wo defer`), low severity.
+
+Lanes 5, 7, 8 have no build units — GATE-only, queued via `wo ask` against this Work Order (6
+questions, unanswered as of merge). No further `[AUTO]` work remains until Craig resolves those.
+
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
 Live status: eternal-fitness-website/.context/loop-status.md
 
