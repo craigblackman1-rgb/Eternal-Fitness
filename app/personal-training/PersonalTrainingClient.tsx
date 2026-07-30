@@ -133,7 +133,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         <Reveal className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" stagger={0.1} y={30} start="top 85%" style={{ marginTop: 40 }}>
           {focusCards.map((c, i) => (
             <div key={c.title} className="bg-white border border-border-warm rounded-2xl p-6">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${i % 2 === 0 ? "bg-rose/12 text-rose" : "bg-teal/12 text-teal"}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 ${i % 2 === 0 ? "ds-card-ic-rose" : "ds-card-ic-teal"}`}>
                 <c.icon className="w-5 h-5" />
               </div>
               <div className="text-[15px] font-bold text-ink tracking-tight mb-2">{content[`focus_${i + 1}_title`] ?? c.title}</div>

@@ -11,6 +11,6 @@ export interface CTA {
   arrow?: boolean;
 }
 
-export type Accent = "rose" | "teal";
+export type Accent = "rose" | "teal" | "warm";
 export type SectionBg = "white" | "cream" | "ink" | "teal";
 export type IconComponent = (props: { className?: string; style?: React.CSSProperties }) => ReactNode;

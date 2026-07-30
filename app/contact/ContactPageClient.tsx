@@ -224,8 +224,8 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
               <ul className="border-t border-border-warm list-none p-0 m-0">
                 {/* Phone */}
                 <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
-                  <div className="w-[42px] h-[42px] rounded-full bg-rose/10 flex items-center justify-center shrink-0">
-                    <IconPhone className="w-[18px] h-[18px] text-rose" />
+                  <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-rose">
+                    <IconPhone className="w-[18px] h-[18px]" />
                   </div>
                   <div>
                     <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Phone</p>
@@ -237,8 +237,8 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
 
                 {/* Email */}
                 <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
-                  <div className="w-[42px] h-[42px] rounded-full bg-teal/10 flex items-center justify-center shrink-0">
-                    <IconMail className="w-[18px] h-[18px] text-teal" />
+                  <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-teal">
+                    <IconMail className="w-[18px] h-[18px]" />
                   </div>
                   <div>
                     <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Email</p>
@@ -250,8 +250,8 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
 
                 {/* Location */}
                 <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
-                  <div className="w-[42px] h-[42px] rounded-full bg-warm flex items-center justify-center shrink-0">
-                    <IconMapPin className="w-[18px] h-[18px] text-ink/60" />
+                  <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-warm">
+                    <IconMapPin className="w-[18px] h-[18px]" />
                   </div>
                   <div>
                     <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">{content.info_location_heading ?? "Studio location"}</p>
