@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
-import { IconSend, IconClock, IconEye, IconUsers } from "@/components/icons";
+import { IconSend, IconClock, IconEye, IconUsers, IconPlus, IconDownload } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { UpdatesReport } from "./UpdatesReport";
 import type { UpdateWithClient } from "@/types";
 
@@ -10,7 +12,7 @@ export default async function UpdatesReportPage() {
 
   const { data, error } = await supabase
     .from("sent_updates")
-    .select("*, client:clients(name, client_number)")
+    .select("*, client:clients(name, client_number, package_type)")
     .order("created_at", { ascending: false })
     .limit(500);
 
@@ -101,9 +103,25 @@ export default async function UpdatesReportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Email updates</h1>
-        <p className="text-sm text-muted-foreground mt-1">6-week progress emails sent to clients and, with consent, their referrers.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Email updates</h1>
+          <p className="text-sm text-muted-foreground mt-1">6-week progress emails sent to clients and, with consent, their referrers.</p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Link href="/hub/clients">
+            <Button variant="outline" size="sm" className="rounded-lg gap-1.5">
+              <IconDownload className="h-3.5 w-3.5" />
+              Export
+            </Button>
+          </Link>
+          <Link href="/hub/clients">
+            <Button size="sm" className="rounded-lg gap-1.5">
+              <IconPlus className="h-3.5 w-3.5" />
+              New update
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">

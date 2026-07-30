@@ -355,7 +355,7 @@ export interface SentUpdate {
 
 /** A sent_update row joined with its client, for the global report. */
 export interface UpdateWithClient extends SentUpdate {
-  client: { name: string; client_number: number } | null;
+  client: { name: string; client_number: number; package_type?: string | null } | null;
 }
 
 export interface DBBlock {
