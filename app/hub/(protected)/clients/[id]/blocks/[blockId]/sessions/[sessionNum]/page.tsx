@@ -4,9 +4,9 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconPencil, IconSearch, IconX, IconEdit3 } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconFileText, IconPencil, IconSearch, IconX, IconEdit3 } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
+import { HubCard } from "@/components/hub/HubCard";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -218,16 +218,31 @@ export default function SessionViewPage({
         </Card>
       )}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => !editingVersion && setActiveTab(v as "studio" | "home")}
-        className="space-y-4"
-      >
+      <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <TabsList>
-            <TabsTrigger value="studio" disabled={editingVersion !== null && editingVersion !== "studio"}>Studio Version</TabsTrigger>
-            <TabsTrigger value="home" disabled={editingVersion !== null && editingVersion !== "home"}>Home Version</TabsTrigger>
-          </TabsList>
+          <div className="flex rounded-lg border border-[var(--color-muted-text)] bg-[var(--hub-canvas)] p-0.5 gap-0.5">
+            {(["studio", "home"] as const).map((v) => {
+              const active = v === activeTab;
+              const disabled = editingVersion !== null && editingVersion !== v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => !editingVersion && setActiveTab(v)}
+                  className={`flex min-h-[30px] flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-center text-sm font-semibold transition-colors ${
+                    disabled ? "opacity-40 cursor-not-allowed" : ""
+                  } ${
+                    active
+                      ? "bg-[var(--hub-sidebar-active)] text-rose shadow-sm"
+                      : "text-[var(--color-body)] hover:text-foreground"
+                  }`}
+                >
+                  {v === "studio" ? "Studio Version" : "Home Version"}
+                </button>
+              );
+            })}
+          </div>
           {editingVersion && (
             <p className="text-xs text-muted-foreground">
               Locked to {editingVersion === "studio" ? "Studio" : "Home"} while editing — the other version is independent and won&rsquo;t change.
@@ -235,56 +250,58 @@ export default function SessionViewPage({
           )}
         </div>
 
-        {(["studio", "home"] as const).map((version) => (
-          <TabsContent key={version} value={version} className="space-y-6">
-            {editingVersion === version ? (
-              <SessionEditor
-                version={version}
-                data={
-                  session.data?.versions?.[version] || { warm_up: [], main_block: [], cooldown: [] }
-                }
-                onSaved={(updated) => saveSessionEdit(version, updated)}
-                onCancel={() => setEditingVersion(null)}
-              />
-            ) : (
-              <>
-                <SessionSection
-                  title="Warm-up"
-                  exercises={session.data?.versions?.[version]?.warm_up || []}
-                  versionKey={version}
-                  sectionKey="warm_up"
-                  session={session}
-                  onUpdateSession={setSession}
-                  setLogs={setLogs}
-                  onSaveSetLog={saveSetLog}
+        {(["studio", "home"] as const).map((version) =>
+          activeTab === version ? (
+            <div key={version} className="space-y-6">
+              {editingVersion === version ? (
+                <SessionEditor
+                  version={version}
+                  data={
+                    session.data?.versions?.[version] || { warm_up: [], main_block: [], cooldown: [] }
+                  }
+                  onSaved={(updated) => saveSessionEdit(version, updated)}
+                  onCancel={() => setEditingVersion(null)}
                 />
-                <SessionSection
-                  title="Main Block"
-                  exercises={session.data?.versions?.[version]?.main_block || []}
-                  versionKey={version}
-                  sectionKey="main_block"
-                  session={session}
-                  onUpdateSession={setSession}
-                  setLogs={setLogs}
-                  onSaveSetLog={saveSetLog}
-                />
-                <SessionSection
-                  title="Cool-down"
-                  exercises={session.data?.versions?.[version]?.cooldown || []}
-                  versionKey={version}
-                  sectionKey="cooldown"
-                  session={session}
-                  onUpdateSession={setSession}
-                  setLogs={setLogs}
-                  onSaveSetLog={saveSetLog}
-                />
-              </>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+              ) : (
+                <>
+                  <SessionSection
+                    title="Warm-up"
+                    exercises={session.data?.versions?.[version]?.warm_up || []}
+                    versionKey={version}
+                    sectionKey="warm_up"
+                    session={session}
+                    onUpdateSession={setSession}
+                    setLogs={setLogs}
+                    onSaveSetLog={saveSetLog}
+                  />
+                  <SessionSection
+                    title="Main Block"
+                    exercises={session.data?.versions?.[version]?.main_block || []}
+                    versionKey={version}
+                    sectionKey="main_block"
+                    session={session}
+                    onUpdateSession={setSession}
+                    setLogs={setLogs}
+                    onSaveSetLog={saveSetLog}
+                  />
+                  <SessionSection
+                    title="Cool-down"
+                    exercises={session.data?.versions?.[version]?.cooldown || []}
+                    versionKey={version}
+                    sectionKey="cooldown"
+                    session={session}
+                    onUpdateSession={setSession}
+                    setLogs={setLogs}
+                    onSaveSetLog={saveSetLog}
+                  />
+                </>
+              )}
+            </div>
+          ) : null
+        )}
+      </div>
 
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
+      <HubCard>
         <HubCardHeader
           icon={<IconActivity className="w-4 h-4" />}
           title="Session Log"
@@ -296,7 +313,7 @@ export default function SessionViewPage({
             </Badge>
           ) : undefined}
         />
-        <CardContent className="space-y-3">
+        <div className="space-y-3">
           {editingLog ? (
             <>
               <div className="grid grid-cols-2 gap-3">
@@ -352,14 +369,15 @@ export default function SessionViewPage({
               </Button>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </HubCard>
 
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-        <CardHeader>
-          <CardTitle className="text-lg">Coaching Notes</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <HubCard>
+        <HubCardHeader
+          icon={<IconFileText className="w-4 h-4" />}
+          title="Coaching Notes"
+        />
+        <div className="space-y-3">
           {editingNotes ? (
             <>
               <Textarea value={coachingNotes} onChange={(e) => setCoachingNotes(e.target.value)} rows={4} />
@@ -374,8 +392,8 @@ export default function SessionViewPage({
               <Button variant="outline" size="sm" onClick={() => setEditingNotes(true)} className="rounded-lg">Edit Notes</Button>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </HubCard>
     </div>
   );
 }

@@ -37,6 +37,7 @@ import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 import { SwapExerciseDialog } from "../swap-exercise-dialog";
 import { AddExerciseDialog, type InsertPositionOption } from "../add-exercise-dialog";
 import { toast } from "sonner";
+import { HubCard } from "@/components/hub/HubCard";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -309,7 +310,7 @@ export function SessionEditor({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] px-4 py-3 shadow-sm">
+      <HubCard padded={false} className="flex items-center justify-between px-4 py-3">
         <p className="text-sm text-muted-foreground">Editing the {version === "studio" ? "Studio" : "Home"} prescription — saves to this session only.</p>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={onCancel} disabled={saving} className="rounded-lg gap-1.5">
@@ -321,7 +322,7 @@ export function SessionEditor({
             Save changes
           </Button>
         </div>
-      </div>
+      </HubCard>
 
       {SECTION_DEFS.map((sec) => {
         const list = sections[sec.key];
@@ -339,7 +340,7 @@ export function SessionEditor({
         ];
 
         return (
-          <div key={sec.key} className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm">
+          <HubCard key={sec.key} padded={false}>
             <div className="flex items-center justify-between border-b border-[var(--hub-border)] px-4 py-3">
               <p className="text-sm font-semibold text-foreground">{sec.label}</p>
               <span className="text-xs text-muted-foreground">
@@ -382,7 +383,7 @@ export function SessionEditor({
                       setDragSection(null);
                       setOverBlockKey(null);
                     }}
-                    className={`rounded-xl border-[1.5px] border-rose/30 bg-rose/5 p-2.5 ${
+                    className={`rounded-xl border-[1.5px] border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] p-2.5 ${
                       dragBlockKey === block.key ? "opacity-40" : ""
                     } ${overBlockKey === block.key && dragBlockKey !== block.key ? "ring-2 ring-rose/40" : ""}`}
                   >
@@ -479,7 +480,7 @@ export function SessionEditor({
                 Add exercise to {sec.label}
               </button>
             </div>
-          </div>
+          </HubCard>
         );
       })}
 
