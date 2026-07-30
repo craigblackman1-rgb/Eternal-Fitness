@@ -310,17 +310,21 @@ export default function ParqEditClient({
     }
   };
 
-  const inputClass = (field: string) =>
+  const inputClass = (field: string, hubMode = false) =>
     cn(
-      "w-full rounded-md border border-[#D9D9D9] bg-white px-3 py-2 text-[#1E1E1E] text-sm",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087E8B] focus-visible:ring-offset-2",
+      "w-full rounded-md border bg-white px-3 py-2 text-[#1E1E1E] text-sm",
+      hubMode ? "border-[var(--hub-field-border)]" : "border-[#D9D9D9]",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+      hubMode ? "focus-visible:ring-rose/30" : "focus-visible:ring-[#087E8B]",
       errors[field] && "border-red-500 focus-visible:ring-red-500"
     );
 
-  const textareaClass = (field: string) =>
+  const textareaClass = (field: string, hubMode = false) =>
     cn(
-      "w-full rounded-md border border-[#D9D9D9] bg-white px-3 py-2 text-[#1E1E1E] text-sm min-h-[80px]",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087E8B] focus-visible:ring-offset-2",
+      "w-full rounded-md border bg-white px-3 py-2 text-[#1E1E1E] text-sm min-h-[80px]",
+      hubMode ? "border-[var(--hub-field-border)]" : "border-[#D9D9D9]",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+      hubMode ? "focus-visible:ring-rose/30" : "focus-visible:ring-[#087E8B]",
       errors[field] && "border-red-500 focus-visible:ring-red-500"
     );
 
@@ -442,45 +446,45 @@ export default function ParqEditClient({
               <div className="px-5 pb-5 grid grid-cols-2 gap-x-5 gap-y-4">
                 <div className="col-span-2" data-error-first>
                   <Label htmlFor="fullName" className="text-xs font-semibold text-foreground mb-1.5 block">Full name</Label>
-                  <Input id="fullName" type="text" value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} className={inputClass("fullName")} autoComplete="name" />
+                  <Input id="fullName" type="text" value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} className={inputClass("fullName", true)} autoComplete="name" />
                   {errors.fullName && <p className="text-red-600 text-xs mt-1" role="alert">{errors.fullName}</p>}
                 </div>
                 <div>
                   <Label htmlFor="dateOfBirth" className="text-xs font-semibold text-foreground mb-1.5 block">Date of birth</Label>
-                  <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => handleChange("dateOfBirth", e.target.value)} className={inputClass("dateOfBirth")} autoComplete="bday" />
+                  <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => handleChange("dateOfBirth", e.target.value)} className={inputClass("dateOfBirth", true)} autoComplete="bday" />
                 </div>
                 <div>
                   <Label htmlFor="email" className="text-xs font-semibold text-foreground mb-1.5 block">Email address</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} className={inputClass("email")} autoComplete="email" />
+                  <Input id="email" type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} className={inputClass("email", true)} autoComplete="email" />
                   {errors.email && <p className="text-red-600 text-xs mt-1" role="alert">{errors.email}</p>}
                 </div>
                 <div className="col-span-2">
                   <Label htmlFor="address" className="text-xs font-semibold text-foreground mb-1.5 block">Home address</Label>
-                  <Input id="address" type="text" value={formData.address} onChange={(e) => handleChange("address", e.target.value)} className={inputClass("address")} autoComplete="street-address" />
+                  <Input id="address" type="text" value={formData.address} onChange={(e) => handleChange("address", e.target.value)} className={inputClass("address", true)} autoComplete="street-address" />
                 </div>
                 <div>
                   <Label htmlFor="phone" className="text-xs font-semibold text-foreground mb-1.5 block">Phone number</Label>
-                  <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} className={inputClass("phone")} autoComplete="tel" />
+                  <Input id="phone" type="tel" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} className={inputClass("phone", true)} autoComplete="tel" />
                 </div>
                 <div>
                   <Label htmlFor="emergencyContactName" className="text-xs font-semibold text-foreground mb-1.5 block">Emergency contact name</Label>
-                  <Input id="emergencyContactName" type="text" value={formData.emergencyContactName} onChange={(e) => handleChange("emergencyContactName", e.target.value)} className={inputClass("emergencyContactName")} />
+                  <Input id="emergencyContactName" type="text" value={formData.emergencyContactName} onChange={(e) => handleChange("emergencyContactName", e.target.value)} className={inputClass("emergencyContactName", true)} />
                 </div>
                 <div>
                   <Label htmlFor="emergencyContactPhone" className="text-xs font-semibold text-foreground mb-1.5 block">Emergency contact phone</Label>
-                  <Input id="emergencyContactPhone" type="tel" value={formData.emergencyContactPhone} onChange={(e) => handleChange("emergencyContactPhone", e.target.value)} className={inputClass("emergencyContactPhone")} />
+                  <Input id="emergencyContactPhone" type="tel" value={formData.emergencyContactPhone} onChange={(e) => handleChange("emergencyContactPhone", e.target.value)} className={inputClass("emergencyContactPhone", true)} />
                 </div>
                 <div>
                   <Label htmlFor="gpName" className="text-xs font-semibold text-foreground mb-1.5 block">GP name</Label>
-                  <Input id="gpName" type="text" value={formData.gpName} onChange={(e) => handleChange("gpName", e.target.value)} className={inputClass("gpName")} />
+                  <Input id="gpName" type="text" value={formData.gpName} onChange={(e) => handleChange("gpName", e.target.value)} className={inputClass("gpName", true)} />
                 </div>
                 <div>
                   <Label htmlFor="gpSurgery" className="text-xs font-semibold text-foreground mb-1.5 block">GP surgery — name &amp; address</Label>
-                  <Input id="gpSurgery" type="text" value={formData.gpSurgery} onChange={(e) => handleChange("gpSurgery", e.target.value)} className={inputClass("gpSurgery")} />
+                  <Input id="gpSurgery" type="text" value={formData.gpSurgery} onChange={(e) => handleChange("gpSurgery", e.target.value)} className={inputClass("gpSurgery", true)} />
                 </div>
                 <div>
                   <Label htmlFor="gpPhone" className="text-xs font-semibold text-foreground mb-1.5 block">GP phone number <span className="font-medium text-muted-foreground">(optional)</span></Label>
-                  <Input id="gpPhone" type="tel" value={formData.gpPhone} onChange={(e) => handleChange("gpPhone", e.target.value)} className={inputClass("gpPhone")} />
+                  <Input id="gpPhone" type="tel" value={formData.gpPhone} onChange={(e) => handleChange("gpPhone", e.target.value)} className={inputClass("gpPhone", true)} />
                 </div>
               </div>
             </HubCard>
@@ -527,29 +531,29 @@ export default function ParqEditClient({
               <div className="px-5 pb-5 grid gap-4">
                 <div data-error-first>
                   <Label htmlFor="conditions" className="text-xs font-semibold text-foreground mb-1.5 block">Diagnosed medical conditions <span className="font-medium text-muted-foreground">(condition, date of diagnosis, treating doctor)</span></Label>
-                  <Textarea id="conditions" value={formData.conditions} onChange={(e) => handleChange("conditions", e.target.value)} className={textareaClass("conditions")} placeholder="E.g. Type 2 Diabetes — diagnosed March 2023 — Dr. Smith, Worthing Hospital" />
+                  <Textarea id="conditions" value={formData.conditions} onChange={(e) => handleChange("conditions", e.target.value)} className={textareaClass("conditions", true)} placeholder="E.g. Type 2 Diabetes — diagnosed March 2023 — Dr. Smith, Worthing Hospital" />
                   {errors.conditions && <p className="text-red-600 text-xs mt-1" role="alert">{errors.conditions}</p>}
                 </div>
                 <div>
                   <Label htmlFor="medications" className="text-xs font-semibold text-foreground mb-1.5 block">Current prescription medications <span className="font-medium text-muted-foreground">(medication, dosage, what it's for)</span></Label>
-                  <Textarea id="medications" value={formData.medications} onChange={(e) => handleChange("medications", e.target.value)} className={textareaClass("medications")} />
+                  <Textarea id="medications" value={formData.medications} onChange={(e) => handleChange("medications", e.target.value)} className={textareaClass("medications", true)} />
                   {errors.medications && <p className="text-red-600 text-xs mt-1" role="alert">{errors.medications}</p>}
                 </div>
                 <div>
                   <Label htmlFor="devices" className="text-xs font-semibold text-foreground mb-1.5 block">Implanted medical devices</Label>
-                  <Textarea id="devices" value={formData.devices} onChange={(e) => handleChange("devices", e.target.value)} className={textareaClass("devices")} placeholder="E.g. None" />
+                  <Textarea id="devices" value={formData.devices} onChange={(e) => handleChange("devices", e.target.value)} className={textareaClass("devices", true)} placeholder="E.g. None" />
                 </div>
                 <div>
                   <Label htmlFor="exerciseRestrictions" className="text-xs font-semibold text-foreground mb-1.5 block">Exercise restrictions <span className="font-medium text-muted-foreground">(who gave them)</span></Label>
-                  <Textarea id="exerciseRestrictions" value={formData.exerciseRestrictions} onChange={(e) => handleChange("exerciseRestrictions", e.target.value)} className={textareaClass("exerciseRestrictions")} />
+                  <Textarea id="exerciseRestrictions" value={formData.exerciseRestrictions} onChange={(e) => handleChange("exerciseRestrictions", e.target.value)} className={textareaClass("exerciseRestrictions", true)} />
                 </div>
                 <div>
                   <Label htmlFor="surgeries" className="text-xs font-semibold text-foreground mb-1.5 block">Surgeries / hospital admissions in the last 5 years</Label>
-                  <Textarea id="surgeries" value={formData.surgeries} onChange={(e) => handleChange("surgeries", e.target.value)} className={textareaClass("surgeries")} />
+                  <Textarea id="surgeries" value={formData.surgeries} onChange={(e) => handleChange("surgeries", e.target.value)} className={textareaClass("surgeries", true)} />
                 </div>
                 <div>
                   <Label htmlFor="otherInfo" className="text-xs font-semibold text-foreground mb-1.5 block">Any other information</Label>
-                  <Textarea id="otherInfo" value={formData.otherInfo} onChange={(e) => handleChange("otherInfo", e.target.value)} className={textareaClass("otherInfo")} placeholder="E.g. None" />
+                  <Textarea id="otherInfo" value={formData.otherInfo} onChange={(e) => handleChange("otherInfo", e.target.value)} className={textareaClass("otherInfo", true)} placeholder="E.g. None" />
                 </div>
               </div>
             </HubCard>
@@ -560,11 +564,11 @@ export default function ParqEditClient({
               <div className="px-5 pb-5 grid gap-4">
                 <div>
                   <Label htmlFor="currentExercise" className="text-xs font-semibold text-foreground mb-1.5 block">Current exercise or sport <span className="font-medium text-muted-foreground">(frequency &amp; duration)</span></Label>
-                  <Textarea id="currentExercise" value={formData.currentExercise} onChange={(e) => handleChange("currentExercise", e.target.value)} className={textareaClass("currentExercise")} />
+                  <Textarea id="currentExercise" value={formData.currentExercise} onChange={(e) => handleChange("currentExercise", e.target.value)} className={textareaClass("currentExercise", true)} />
                 </div>
                 <div>
                   <Label htmlFor="trainingGoals" className="text-xs font-semibold text-foreground mb-1.5 block">Goals for working with a personal trainer</Label>
-                  <Textarea id="trainingGoals" value={formData.trainingGoals} onChange={(e) => handleChange("trainingGoals", e.target.value)} className={textareaClass("trainingGoals")} />
+                  <Textarea id="trainingGoals" value={formData.trainingGoals} onChange={(e) => handleChange("trainingGoals", e.target.value)} className={textareaClass("trainingGoals", true)} />
                 </div>
                 <div className="flex flex-col mt-1">
                   {section6bQuestions.map(({ q, text, note }) => (
