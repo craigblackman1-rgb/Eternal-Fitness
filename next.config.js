@@ -99,7 +99,6 @@ const nextConfig = {
       { source: "/whats-on-offer", destination: "/personal-training", permanent: true },
       { source: "/elementor-hf/whats-on-offer", destination: "/personal-training", permanent: true },
       { source: "/cancer-rehabilitation-and-exercise", destination: "/cancer-rehabilitation", permanent: true },
-      { source: "/testimonials", destination: "/about", permanent: true },
       { source: "/exercising-with-a-medical-condition", destination: "/exercise-for-health", permanent: true },
       { source: "/terms-conditions", destination: "/terms", permanent: true },
 

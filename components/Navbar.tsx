@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { label: "About", to: "/about" },
   { label: "Personal Training", to: "/personal-training" },
   { label: "Pricing", to: "/pricing" },
+  { label: "Client Stories", to: "/testimonials" },
   { label: "FAQs", to: "/faqs" },
   { label: "Contact", to: "/contact" },
 ];
@@ -29,6 +30,7 @@ const pageTitles: Record<string, string> = {
   "/about": "About",
   "/personal-training": "Personal Training",
   "/pricing": "Pricing",
+  "/testimonials": "Client Stories",
   "/faqs": "FAQs",
   "/contact": "Contact",
 };

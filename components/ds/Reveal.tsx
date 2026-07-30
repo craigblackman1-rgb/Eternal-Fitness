@@ -63,6 +63,7 @@ export function Reveal({
           duration,
           delay,
           ease: "power3.out",
+          clearProps: "transform",
           ...(stagger != null ? { stagger } : {}),
         });
       }, ref);

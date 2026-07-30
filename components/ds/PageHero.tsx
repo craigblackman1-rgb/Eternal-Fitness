@@ -59,7 +59,24 @@ export function PageHero({
 
   return (
     <section className="ds-hero">
-      <div className="ds-hero-bg">
+      <div
+        className="ds-hero-bg"
+        style={
+          imagePan
+            ? {
+                // The pan width has to live on this plain wrapper div, not on the
+                // <Image>: Next.js (14.2.35) hard-errors if a `fill` image also gets
+                // an inline `style.width` — "Images with fill always use width 100%".
+                // Widening the wrapper and letting the fill image cover *it* gets the
+                // same pan effect without touching the image's own style.
+                width: imagePan,
+                left: 0,
+                right: "auto",
+                maxWidth: "none",
+              }
+            : undefined
+        }
+      >
         <Image
           src={image}
           alt={imageAlt}
@@ -68,15 +85,6 @@ export function PageHero({
           sizes="100vw"
           style={{
             objectFit: "cover",
-            width: imagePan,
-            left: 0,
-            // Next's `fill` mode also sets `right:0`; left+right+width all
-            // set over-constrains the box and the browser drops our width.
-            // Freeing `right` lets the explicit pan width actually apply.
-            right: imagePan ? "auto" : undefined,
-            // Tailwind's preflight `img{max-width:100%}` otherwise clamps
-            // the pan width straight back down to the container's width.
-            maxWidth: imagePan ? "none" : undefined,
             // object-position itself is set in design-system.css from these two custom
             // properties, not inline — an inline style can't be conditioned on viewport
             // width, so the `@media (min-width: 1600px)` override there needs a CSS-side

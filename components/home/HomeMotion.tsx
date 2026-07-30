@@ -34,7 +34,7 @@ const HomeMotion = () => {
           gsap.utils.toArray<HTMLElement>(sel).forEach((el) => {
             gsap.from(el, {
               scrollTrigger: { trigger: el, start: "top 87%", once: true },
-              y, opacity: 0, duration: dur, ease: "power3.out", delay,
+              y, opacity: 0, duration: dur, ease: "power3.out", delay, clearProps: "transform",
             });
           });
         };
@@ -46,20 +46,20 @@ const HomeMotion = () => {
         sr(".ctabtns", 16, 0.65, 0.2);
 
         gsap.utils.toArray<HTMLElement>(".wic").forEach((el) => {
-          gsap.from(el, { scrollTrigger: { trigger: el, start: "top 82%", once: true }, x: -60, opacity: 0, duration: 1.0, ease: "power3.out" });
+          gsap.from(el, { scrollTrigger: { trigger: el, start: "top 82%", once: true }, x: -60, opacity: 0, duration: 1.0, ease: "power3.out", clearProps: "transform" });
         });
         gsap.utils.toArray<HTMLElement>(".wf").forEach((el, i) => {
-          gsap.from(el, { scrollTrigger: { trigger: el, start: "top 90%", once: true }, x: 28, opacity: 0, duration: 0.7, delay: i * 0.07, ease: "power2.out" });
+          gsap.from(el, { scrollTrigger: { trigger: el, start: "top 90%", once: true }, x: 28, opacity: 0, duration: 0.7, delay: i * 0.07, ease: "power2.out", clearProps: "transform" });
         });
 
         [".who-g", ".aq-g", ".spec-g"].forEach((s) => {
           gsap.utils.toArray<HTMLElement>(s).forEach((g) => {
-            gsap.from(g.children, { scrollTrigger: { trigger: g, start: "top 82%", once: true }, y: 58, opacity: 0, stagger: 0.13, duration: 0.9, ease: "power3.out" });
+            gsap.from(g.children, { scrollTrigger: { trigger: g, start: "top 82%", once: true }, y: 58, opacity: 0, stagger: 0.13, duration: 0.9, ease: "power3.out", clearProps: "transform" });
           });
         });
 
         gsap.utils.toArray<HTMLElement>(".step").forEach((el, i) => {
-          gsap.from(el, { scrollTrigger: { trigger: el, start: "top 84%", once: true }, y: 48, opacity: 0, duration: 0.85, delay: i * 0.06, ease: "power3.out" });
+          gsap.from(el, { scrollTrigger: { trigger: el, start: "top 84%", once: true }, y: 48, opacity: 0, duration: 0.85, delay: i * 0.06, ease: "power3.out", clearProps: "transform" });
         });
 
         sr(".tmark", 28, 0.9);
