@@ -305,6 +305,38 @@ export class PortalDataClient {
       .maybeSingle();
     return (data as (PortalUpdate & { body_html: string }) | null) ?? null;
   }
+
+  async getUpcomingSession(): Promise<PortalUpcomingSession | null> {
+    const pool = getPool();
+    const res = await pool.query(
+      `SELECT s.id, s.session_number, s.week, s.phase,
+              (s.data->>'focus_label') AS focus_label,
+              (s.data->>'archetype') AS archetype,
+              s.scheduled_at, b.block_number
+         FROM sessions s
+         JOIN blocks b ON b.id = s.block_id
+        WHERE b.client_id = $1
+          AND s.scheduled_at IS NOT NULL
+          AND s.cancelled_at IS NULL
+          AND s.scheduled_at > NOW()
+        ORDER BY s.scheduled_at ASC
+        LIMIT 1`,
+      [this.clientId],
+    );
+    if (res.rows.length === 0) return null;
+    return res.rows[0] as PortalUpcomingSession;
+  }
+}
+
+export interface PortalUpcomingSession {
+  id: string;
+  session_number: number;
+  week: number;
+  phase: string;
+  focus_label: string;
+  archetype: string;
+  scheduled_at: string;
+  block_number: number;
 }
 
 export function createPortalDataClient(clientId: string): PortalDataClient {
