@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IconChevronDown, IconChevronLeft, IconChevronRight, IconChevronUp, IconDumbbell, IconMenu, IconPlus, IconSearch, IconVideo, IconEdit3 } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconDumbbell, IconMenu, IconPlus, IconSearch, IconVideo, IconEdit3, IconX } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import type { Archetype } from "@/types";
 import type { ExerciseEntry } from "./page";
@@ -89,7 +88,7 @@ export function ExerciseBrowser({
   const [equipmentFilter, setEquipmentFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState<ExerciseEntry["source"] | "all">("all");
   const [difficultyFilter, setDifficultyFilter] = useState<number>(0);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingExercise, setEditingExercise] = useState<ExerciseEntry | null>(null);
@@ -114,11 +113,14 @@ export function ExerciseBrowser({
     }).sort((a, b) => a.name.localeCompare(b.name));
   }, [exercises, search, archetypeFilter, movementFilter, muscleFilter, equipmentFilter, sourceFilter, difficultyFilter]);
 
-  const filteredIds = useMemo(() => new Set(filtered.map((e) => e.id)), [filtered]);
-
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const paginated = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+
+  const selectedExercise = useMemo(
+    () => (selectedId ? exercises.find((e) => e.id === selectedId) ?? null : null),
+    [selectedId, exercises]
+  );
 
   const resetAndSet = <T,>(setter: (v: T) => void) => (v: T) => {
     setter(v);
@@ -190,14 +192,13 @@ export function ExerciseBrowser({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── Page header ── */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Exercise library</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {exercises.length} exercises &middot; {filtered.length} match
-            {filtered.length > 0 && ` · page ${safePage + 1} of ${pageCount}`}
           </p>
         </div>
         <ExerciseFormDialog
@@ -304,7 +305,7 @@ export function ExerciseBrowser({
         </HubCard>
       )}
 
-      {/* ── Main card: filters + table ── */}
+      {/* ── Filters toolbar ── */}
       <HubCard padded={false}>
         <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-[var(--hub-border)]">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--status-success-bg)] text-teal shrink-0">
@@ -326,8 +327,7 @@ export function ExerciseBrowser({
           </div>
         </div>
 
-        {/* Toolbar: search + filters */}
-        <div className="flex flex-wrap items-center gap-2 px-5 pt-4">
+        <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-3">
           <div className="relative">
             <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -338,7 +338,6 @@ export function ExerciseBrowser({
             />
           </div>
 
-          {/* Archetype pill group — restyled chips */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {(["all", "A", "B", "C"] as const).map((a) => {
               const on = archetypeFilter === a;
@@ -431,249 +430,341 @@ export function ExerciseBrowser({
             {filtered.length} {filtered.length === 1 ? "exercise" : "exercises"}
           </span>
         </div>
+      </HubCard>
 
-        {/* Table */}
-        {filtered.length === 0 ? (
-          <div className="px-5 pb-5 pt-4">
-            <EmptyState
-              icon={<IconDumbbell className="h-8 w-8" />}
-              title="No exercises match your filters"
-              description="Try adjusting or clearing your search filters."
-              cta={{ label: "Clear filters", onClick: clearFilters }}
-            />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                  <th className="w-10 text-left px-5 py-2.5"></th>
-                  <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2.5">Movement</th>
-                  <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2.5">Type</th>
-                  <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2.5">Level</th>
-                  <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2.5">Source</th>
-                  <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2.5">Muscles</th>
-                  <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2.5">Equipment</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.map((ex) => {
-                  const isOpen = expanded === ex.id;
-                  return (
-                    <Fragment key={ex.id}>
-                      <tr
-                        key={ex.id}
-                        className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors"
-                      >
-                        <td className="px-5 py-3 align-middle">
-                          <Checkbox
-                            checked={selectedIds.has(ex.id)}
-                            onCheckedChange={() => toggleSelect(ex.id)}
-                            aria-label={`Select ${ex.name}`}
-                          />
-                        </td>
-                        <td className="px-3 py-3 align-middle">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {ex.image_url ? (
-                              <img
-                                src={ex.image_url}
-                                alt={ex.name}
-                                className="w-8 h-8 rounded-lg object-cover shrink-0"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
-                                <IconDumbbell className="w-4 h-4" />
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <button
-                                onClick={() => setExpanded(isOpen ? null : ex.id)}
-                                className="flex items-center gap-1.5 text-left"
-                              >
-                                <span className="font-semibold text-[var(--color-ink)] truncate">{ex.name}</span>
-                                {isOpen ? (
-                                  <IconChevronUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                ) : (
-                                  <IconChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                )}
-                              </button>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {ex.archetypes.map((a) => (
-                                  <span
-                                    key={a}
-                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold"
-                                  >
-                                    {a}
-                                  </span>
-                                ))}
-                                <span className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success-border)] px-1.5 py-0 text-[10px] font-semibold">
-                                  {sourceLabel(ex.source)}
-                                </span>
-                                {ex.source === "trainerize" && ex.trainerize_custom === true && (
-                                  <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold">
-                                    Esther&apos;s Custom
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 align-middle text-[var(--color-body)]">
-                          {ex.movement_type ? movementTypeLabels[ex.movement_type] || ex.movement_type : "—"}
-                        </td>
-                        <td className="px-3 py-3 align-middle">
-                          {ex.difficulty != null ? (
-                            <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-xs font-medium text-[var(--color-body)]">
-                              {difficultyLabel(ex.difficulty)}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 align-middle">
-                          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                            {sourceLabel(ex.source)}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 align-middle">
-                          <div className="flex flex-wrap gap-1">
-                            {ex.muscle_groups.length > 0 ? (
-                              ex.muscle_groups.map((mg) => (
-                                <span
-                                  key={mg}
-                                  className="inline-flex rounded-full bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
-                                >
-                                  {mg}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 align-middle">
-                          <div className="flex flex-wrap gap-1">
-                            {ex.equipment.length > 0 ? (
-                              ex.equipment.map((eq) => (
-                                <span
-                                  key={eq}
-                                  className="inline-flex rounded-full bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
-                                >
-                                  {equipmentLabels[eq] || eq}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                      {isOpen && (
-                        <tr key={`${ex.id}-detail`} className="bg-[var(--hub-canvas)] border-b border-[var(--hub-border)] last:border-0">
-                          <td></td>
-                          <td colSpan={6} className="px-5 py-4">
-                            <div className="flex items-start justify-between gap-4 flex-wrap">
-                              <div className="space-y-3 text-xs max-w-2xl min-w-0">
-                                {ex.image_url ? (
-                                  <img
-                                    src={ex.image_url}
-                                    alt={ex.name}
-                                    className="w-40 rounded-lg object-cover"
-                                  />
-                                ) : ex.video_url ? (
-                                  <a
-                                    href={ex.video_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-rose hover:underline w-fit"
-                                  >
-                                    <IconVideo className="h-3 w-3" />
-                                    Watch demo video
-                                  </a>
-                                ) : (
-                                  <ExerciseMediaPlaceholder exerciseName={ex.name} />
-                                )}
-                                {ex.video_url && (
-                                  <a
-                                    href={ex.video_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-rose hover:underline w-fit"
-                                  >
-                                    <IconVideo className="h-3 w-3" />
-                                    Watch demo video
-                                  </a>
-                                )}
-                                {ex.intensity_tiers && (
-                                  <div className="flex gap-2">
-                                    {(["compact", "standard", "extended"] as const).map((tier) => (
-                                      <span
-                                        key={tier}
-                                        className={`text-[10px] font-medium rounded-full px-2 py-0.5 border ${
-                                          ex.intensity_tiers.includes(tier)
-                                            ? "bg-[var(--status-primary-bg)] text-[var(--status-primary)] border-[var(--status-primary-border)]"
-                                            : "bg-[var(--hub-hover)] text-muted-foreground/40 border-[var(--hub-border)]"
-                                        }`}
-                                      >
-                                        {tier === "compact" ? "~45m" : tier === "standard" ? "~60m" : "~75m"}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                                <div>
-                                  <span className="font-semibold text-muted-foreground">Coaching: </span>
-                                  <p className="mt-0.5 text-[var(--color-body)]">{ex.coaching_cue ?? "—"}</p>
+      {/* ── Two-panel grid: compact list + detail ── */}
+      <div className="grid grid-cols-[1.45fr_1fr] gap-5 items-start max-[1100px]:grid-cols-1">
+        {/* Left: Compact list */}
+        <HubCard padded={false}>
+          {filtered.length === 0 ? (
+            <div className="px-5 pb-5 pt-4">
+              <EmptyState
+                icon={<IconDumbbell className="h-8 w-8" />}
+                title="No exercises match your filters"
+                description="Try adjusting or clearing your search filters."
+                cta={{ label: "Clear filters", onClick: clearFilters }}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                      <th className="w-10 text-left px-4 py-2"></th>
+                      <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Movement</th>
+                      <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Type</th>
+                      <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Level</th>
+                      <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Source</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginated.map((ex) => {
+                      const isSelected = selectedId === ex.id;
+                      return (
+                        <tr
+                          key={ex.id}
+                          className={`border-b border-[var(--hub-border)] transition-colors cursor-pointer ${
+                            isSelected
+                              ? "bg-[var(--status-primary-bg)] hover:bg-[var(--status-primary-bg)]"
+                              : "hover:bg-[var(--hub-hover)]"
+                          }`}
+                          onClick={() => setSelectedId(isSelected ? null : ex.id)}
+                        >
+                          <td className="px-4 py-2.5 align-middle" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.has(ex.id)}
+                              onCheckedChange={() => toggleSelect(ex.id)}
+                              aria-label={`Select ${ex.name}`}
+                            />
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {ex.image_url ? (
+                                <img
+                                  src={ex.image_url}
+                                  alt={ex.name}
+                                  className="w-7 h-7 rounded-md object-cover shrink-0"
+                                />
+                              ) : (
+                                <div className="w-7 h-7 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                                  <IconDumbbell className="w-3.5 h-3.5" />
                                 </div>
-                                <div>
-                                  <span className="font-semibold text-muted-foreground">Modification: </span>
-                                  <p className="mt-0.5 text-[var(--color-amber)]">{ex.default_mod ?? "—"}</p>
+                              )}
+                              <div className="min-w-0">
+                                <span className="font-semibold text-[var(--color-ink)] text-[13px] truncate block">{ex.name}</span>
+                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                  {ex.archetypes.map((a) => (
+                                    <span
+                                      key={a}
+                                      className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none"
+                                    >
+                                      {a}
+                                    </span>
+                                  ))}
+                                  {ex.source === "trainerize" && ex.trainerize_custom === true && (
+                                    <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">
+                                      Custom
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                              <button
-                                onClick={() => setEditingExercise(ex)}
-                                className="inline-flex items-center gap-1.5 h-8 rounded-lg px-3 text-xs font-semibold border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-[var(--color-ink)] hover:border-[var(--hub-field-border-hover)] transition-colors shrink-0"
-                              >
-                                <IconEdit3 className="h-3.5 w-3.5" />
-                                Edit exercise
-                              </button>
                             </div>
                           </td>
+                          <td className="px-3 py-2.5 align-middle text-[13px] text-[var(--color-body)]">
+                            {ex.movement_type ? movementTypeLabels[ex.movement_type] || ex.movement_type : "—"}
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            {ex.difficulty != null ? (
+                              <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
+                                {difficultyLabel(ex.difficulty)}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-[13px]">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                              {sourceLabel(ex.source)}
+                            </span>
+                          </td>
                         </tr>
-                      )}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-        {pageCount > 1 && (
-          <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
-            <p className="text-xs text-muted-foreground tabular-nums">
-              Page {safePage + 1} of {pageCount}
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={safePage === 0}
-                className="inline-flex items-center gap-1 h-8 rounded-lg px-3 text-xs font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] disabled:opacity-40 hover:bg-[var(--hub-hover)] transition-colors"
-              >
-                <IconChevronLeft className="h-4 w-4" />
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                disabled={safePage >= pageCount - 1}
-                className="inline-flex items-center gap-1 h-8 rounded-lg px-3 text-xs font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] disabled:opacity-40 hover:bg-[var(--hub-hover)] transition-colors"
-              >
-                Next
-                <IconChevronRight className="h-4 w-4" />
-              </button>
+              {pageCount > 1 && (
+                <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                  <p className="text-xs text-muted-foreground tabular-nums">
+                    Page {safePage + 1} of {pageCount}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      disabled={safePage === 0}
+                      className="inline-flex items-center gap-1 h-8 rounded-lg px-3 text-xs font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] disabled:opacity-40 hover:bg-[var(--hub-hover)] transition-colors"
+                    >
+                      <IconChevronLeft className="h-4 w-4" />
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                      disabled={safePage >= pageCount - 1}
+                      className="inline-flex items-center gap-1 h-8 rounded-lg px-3 text-xs font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] disabled:opacity-40 hover:bg-[var(--hub-hover)] transition-colors"
+                    >
+                      Next
+                      <IconChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </HubCard>
+
+        {/* Right: Detail panel */}
+        <div className="sticky top-6">
+          <HubCard padded={false}>
+            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-[var(--hub-border)]">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--status-success-bg)] text-teal shrink-0">
+                <IconDumbbell className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13px] font-semibold text-[var(--color-ink)] truncate">
+                  {selectedExercise ? selectedExercise.name : "Detail"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {selectedExercise ? "Exercise information" : "Select a movement from the list"}
+                </div>
+              </div>
+              {selectedExercise && (
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="w-7 h-7 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:text-[var(--color-ink)] flex items-center justify-center shrink-0 transition-colors"
+                  aria-label="Close detail"
+                >
+                  <IconX className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
-          </div>
-        )}
-      </HubCard>
+
+            <div className="px-5 py-4">
+              {!selectedExercise ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Pick an exercise from the list to see its coaching cues, modifications and details.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {/* Media */}
+                  {selectedExercise.image_url ? (
+                    <img
+                      src={selectedExercise.image_url}
+                      alt={selectedExercise.name}
+                      className="w-full h-40 rounded-xl object-cover"
+                    />
+                  ) : selectedExercise.video_url ? (
+                    <a
+                      href={selectedExercise.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 h-40 rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] text-teal hover:opacity-90 transition-opacity"
+                    >
+                      <IconVideo className="h-8 w-8" />
+                      <span className="text-sm font-semibold">Watch demo video</span>
+                    </a>
+                  ) : (
+                    <div className="h-32 rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] flex items-center justify-center">
+                      <IconDumbbell className="h-10 w-10 text-teal/40" />
+                    </div>
+                  )}
+
+                  {selectedExercise.video_url && selectedExercise.image_url && (
+                    <a
+                      href={selectedExercise.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-rose hover:underline text-xs font-medium w-fit"
+                    >
+                      <IconVideo className="h-3.5 w-3.5" />
+                      Watch demo video
+                    </a>
+                  )}
+
+                  {/* Tags */}
+                  <div className="flex gap-2 flex-wrap">
+                    {selectedExercise.archetypes.map((a) => (
+                      <span
+                        key={a}
+                        className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-2.5 py-0.5 text-[11px] font-semibold"
+                      >
+                        Type {a}
+                      </span>
+                    ))}
+                    <span className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success-border)] px-2.5 py-0.5 text-[11px] font-semibold">
+                      {sourceLabel(selectedExercise.source)}
+                    </span>
+                    {selectedExercise.source === "trainerize" && selectedExercise.trainerize_custom === true && (
+                      <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-semibold">
+                        Esther&apos;s Custom
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Category & level */}
+                  <div>
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                      Category &amp; level
+                    </h4>
+                    <p className="text-sm text-[var(--color-body)]">
+                      {selectedExercise.movement_type
+                        ? movementTypeLabels[selectedExercise.movement_type] || selectedExercise.movement_type
+                        : "Untagged"}
+                      {" · "}
+                      {selectedExercise.difficulty != null
+                        ? difficultyLabel(selectedExercise.difficulty)
+                        : "Unrated"}
+                    </p>
+                  </div>
+
+                  {/* Intensity tiers */}
+                  {selectedExercise.intensity_tiers && selectedExercise.intensity_tiers.length > 0 && (
+                    <div>
+                      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Intensity
+                      </h4>
+                      <div className="flex gap-2">
+                        {(["compact", "standard", "extended"] as const).map((tier) => (
+                          <span
+                            key={tier}
+                            className={`text-[10px] font-medium rounded-full px-2 py-0.5 border ${
+                              selectedExercise.intensity_tiers.includes(tier)
+                                ? "bg-[var(--status-primary-bg)] text-[var(--status-primary)] border-[var(--status-primary-border)]"
+                                : "bg-[var(--hub-hover)] text-muted-foreground/40 border-[var(--hub-border)]"
+                            }`}
+                          >
+                            {tier === "compact" ? "~45m" : tier === "standard" ? "~60m" : "~75m"}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Coaching cues */}
+                  <div>
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                      Coaching cues
+                    </h4>
+                    <p className="text-sm text-[var(--color-body)] leading-relaxed">
+                      {selectedExercise.coaching_cue || "—"}
+                    </p>
+                  </div>
+
+                  {/* Modifications */}
+                  <div>
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                      Modifications
+                    </h4>
+                    <p className="text-sm text-[var(--color-amber)] leading-relaxed">
+                      {selectedExercise.default_mod || "—"}
+                    </p>
+                  </div>
+
+                  {/* Muscle groups */}
+                  {selectedExercise.muscle_groups.length > 0 && (
+                    <div>
+                      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Muscles
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedExercise.muscle_groups.map((mg) => (
+                          <span
+                            key={mg}
+                            className="inline-flex rounded-full bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
+                          >
+                            {mg}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Equipment */}
+                  {selectedExercise.equipment.length > 0 && (
+                    <div>
+                      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Equipment
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedExercise.equipment.map((eq) => (
+                          <span
+                            key={eq}
+                            className="inline-flex rounded-full bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
+                          >
+                            {equipmentLabels[eq] || eq}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Edit button */}
+                  <div className="pt-1">
+                    <button
+                      onClick={() => setEditingExercise(selectedExercise)}
+                      className="inline-flex items-center gap-1.5 h-8 rounded-lg px-3 text-xs font-semibold border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-[var(--color-ink)] hover:border-[var(--hub-field-border-hover)] transition-colors"
+                    >
+                      <IconEdit3 className="h-3.5 w-3.5" />
+                      Edit exercise
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </HubCard>
+        </div>
+      </div>
 
       <ExerciseFormDialog
         exercise={editingExercise}
