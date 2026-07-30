@@ -211,7 +211,6 @@
   .hub-shell {
     --input: 220 14% 80%;
     --border: 220 14% 83%;
-    --hub-border: var(--hub-section-border);
   }
 
   .hub-shell input,
