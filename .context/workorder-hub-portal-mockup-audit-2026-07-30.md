@@ -207,8 +207,31 @@ OpenCode in parallel. hub-dashboard.html and hub-sop.html (ASK FIRST #3) are the
 items; hub-sop.html still needs Craig's steer before it's scoped at all.
 
 ## LEDGER
-Not yet dispatched. Progress will be written to `eternal-fitness-website/.context/state.md` +
-`handoff.md` as each lane lands, per this repo's standing convention.
+**CLOSED 2026-07-30.** All 7 lanes dispatched to OpenCode (deepseek-v4-pro) in isolated worktrees
+under `D:\apps\ef-lanes\`, independently verified before merge (not on self-report — a review agent
+re-ran `tsc --noEmit`/`next build` and hand-checked each lane against its spec and preservation
+constraints), then merged to main in dependency-safe order:
+`fbcf4b5` Lane 1 · `8a0045c` Lane 2 · `08a9c15` Lane 3 · `45e8926` Lane 4 · `71de12c` Lane 5 ·
+`d3fea6b` Lane 6a · `d1c95f2` Lane 6b. Notes from verification:
+- Lane 3 confirmed `client_signature` is a `TEXT` column before wiring up the drawn-signature data
+  URL — no truncation risk, no schema change needed.
+- Lane 4's premise was already partly stale (a jump-nav sidebar already existed) — the lane's actual
+  diff was narrower than spec: a real completion-detection bug fix plus a time estimate, not a full
+  sidebar build. Still correct, just smaller than expected.
+- Lane 6a never auto-committed — its diff was reviewed, confirmed correct (real derived metrics, not
+  fabricated), and committed manually before merge.
+- Lane 6a and 6b both touched `app/hub/(protected)/reports/updates/page.tsx` (KPI tiles vs. header
+  buttons) — a real merge conflict, resolved by hand (combined icon imports, kept both changes) and
+  re-verified with `tsc --noEmit` before pushing — the WO's claim that all 7 lanes were file-
+  independent was wrong for this pair.
+- Lane 6b's new "Export"/"New update" header buttons are cosmetic placeholders linking to
+  `/hub/clients`, not real export/new-update actions — present per the mockup's letter, not
+  functional. Flag for a follow-up if Craig wants them real.
+- Bulk-send (Lane 6b) confirmed to reuse the exact same `/api/updates/[id]/send` endpoint as the
+  existing single "Send now" button, with the same client-email fallback — no new, less-tested send
+  path introduced.
+All worktrees removed post-merge. Coolify auto-deploy will pick up the final push
+(`d1c95f2`) — not yet confirmed `running:healthy`, check next session.
 
 ## CONTEXT
 - Prior hub audit: `.context/workorder-hub-design-alignment-session-editor-2026-07-26.md` (closed,
