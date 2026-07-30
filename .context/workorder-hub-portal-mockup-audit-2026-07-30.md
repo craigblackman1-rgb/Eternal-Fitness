@@ -41,7 +41,21 @@ ASK FIRST — real open questions found during this audit, not yet resolved:
    fields, or (c) leave as-is. **Tagged `[GATE]` below regardless of answer** — this is exactly the
    kind of "would change existing client-facing auth behaviour" item the 2026-07-26 WO's ASK FIRST
    list already carved out as out-of-scope for a visual pass.
-2. **hub-sop.html has no confirmed live counterpart.** Content is a single example SOP document
+2. **hub-dashboard.html vs `app/hub/(protected)/page.tsx` — two genuinely competing dashboard
+   concepts, not a restyle.** The mockup is a re-imagined "trainer's morning" layout: Sessions this
+   week / Check-ins logged / Reviews due / Active clients KPI band, alert copy ("2 clients need a
+   review", "Cardiac clearance expired"), and a "This week's plan" card. The live page uses a
+   completely different data model: Total Clients / Draft Blocks / Active-Approved / Total Blocks
+   KPIs, plus Recent Check-ins, Needs Attention, Active Blocks, Recent Clients, Recent Blocks, and
+   Quick Actions cards. `page.tsx` was last touched 2026-07-26 — the same day as the prior hub WO —
+   so unlike Process & Quality or the exercise library, **there is no documented decision that the
+   live model was deliberately chosen over the mockup's.** This looks like an unresolved gap, not a
+   settled divergence. Need a call: (a) keep the live data/cards as-is and just treat
+   hub-dashboard.html as a stale concept to discard, (b) rebuild the dashboard around the mockup's
+   simpler KPI/alert framing (would drop Recent Clients/Recent Blocks/Quick Actions/Needs Attention —
+   real navigation with no mockup equivalent), or (c) merge — keep the real KPIs and cards, adopt the
+   mockup's alert-copy tone. **Tagged `[GATE]`, size large — not dispatched.**
+3. **hub-sop.html has no confirmed live counterpart.** Content is a single example SOP document
    view ("SOP — Weekly check-in review", Purpose/Scope/Procedure/Checks/Notes sections, a
    Duplicate button) — not a list of documents. The old brief (`opencode-brief-hub-redesign.md`)
    mapped it to `/hub/documents` ("All documents"), but that mapping doesn't match this file's
@@ -63,10 +77,18 @@ lanes shipped and merged. All hub-*.html files carry a 2026-07-28 07:48 batch ti
 that WO closed — but on spot-check (hub-dashboard.html, and a full deep-diff of hub-tasks.html
 against `TasksManager.tsx`, below) the content is unchanged from what was already reconciled; the
 timestamp looks like a bulk copy/export event, not a content revision. Treating the following as
-**ALIGNED, no lane**: hub-dashboard.html, hub-clients.html, hub-client-detail.html,
+**ALIGNED, no lane**: hub-clients.html, hub-client-detail.html,
 hub-client-edit.html, hub-parq-edit.html, hub-exercise-library.html, hub-process-quality.html,
-hub-reports-updates.html, hub-site-content.html, hub-site-content-editor.html,
+hub-site-content.html, hub-site-content-editor.html,
 hub-studio-equipment.html, hub-plan-agent-settings.html, hub-training-rules.html, hub-schedule.html.
+
+**Correction (2026-07-30, later same day):** an earlier pass of this audit had also filed
+hub-dashboard.html and hub-reports-updates.html under "aligned, no lane" — that was wrong. Both have
+genuine unresolved deltas from their sub-audits; see ASK FIRST #2 (dashboard, GATE) and Lane 5
+(reports-updates, below) for what they actually found. hub-exercise-library.html and
+hub-process-quality.html correctly stay "no lane" — both have a *documented* 2026-07-26 decision that
+the real, richer live feature deliberately supersedes the mockup's simpler concept; hub-dashboard.html
+and hub-reports-updates.html have no such prior decision on record.
 
 - **hub-tasks.html** — deep-diffed in full against `app/hub/(protected)/tasks/{page.tsx,TasksManager.tsx}`
   despite its later (20:04) timestamp flagging it as a possible outlier. Structure matches: 3-column
@@ -165,15 +187,35 @@ validation in a way that lets an incomplete required question through silently.
 See ASK FIRST #1 above. No lane drafted until Craig picks (a)/(b)/(c) — building the wrong one is
 real backend work to undo.
 
+### Lane 6 — hub-reports-updates.html vs `app/hub/(protected)/reports/updates/page.tsx` + `UpdatesReport.tsx`
+Two separate deltas found, split by risk:
+- **6a — KPI band re-skin (small) · `[AUTO]`.** Mockup shows "Sent this month" (with a month-over-
+  month delta), "Draft/queued", "Open rate %", "Clients covered" tiles. Live shows plain status
+  counts (Sent/Scheduled/Drafts/Failed) with no month-scoping, no open-rate percentage, no
+  clients-covered tile. Presentation/metric-choice only — no functionality removed either way.
+  **Verify:** confirm the open-rate and month-scoped figures are actually derivable from
+  `sent_updates`/`email_send_events` before building the tiles — don't fabricate a metric that isn't
+  backed by real tracked data.
+- **6b — Bulk-send toolbar + programme filter (medium) · `[GATE]`.** Mockup adds a row-checkbox
+  multi-select with a "Send selected" bulk-send action, a programme-specific filter dropdown, and
+  "New update"/"Export" header buttons — none exist live (live has per-row Preview/Edit/Delete +
+  single "Send now" only). This is net-new client-facing bulk email-sending capability, not a visual
+  gap — needs Craig's go-ahead before it's built, same class of decision as the portal draw-signature
+  API check in Lane 3.
+
 ## LANES SUMMARY
 - Lane 1 — Portal home restructure · depends on: none · medium-large
 - Lane 2 — Document view TOC nav · depends on: none · small-medium
 - Lane 3 — Document sign draw option · depends on: none (but confirm API/schema first) · medium
 - Lane 4 — PAR-Q editor section nav · depends on: none · small-medium
 - Lane 5 — Portal sign-in auth mechanism · `[GATE]` · blocked on Craig's decision
+- Lane 6a — Reports/Updates KPI band re-skin · depends on: none · small · `[AUTO]`
+- Lane 6b — Reports/Updates bulk-send toolbar · `[GATE]` · blocked on Craig's decision
+- GATE (ASK FIRST #2) — hub-dashboard.html concept conflict · blocked on Craig's decision · large
 
-All four `[AUTO]` lanes are independent of each other and of the hub side (no shared files) — can
-run in parallel once Craig has reviewed this lane list.
+Lanes 1–4 and 6a are independent of each other and of the hub side (no shared files) — can run in
+parallel once Craig has reviewed this lane list. Lanes 5, 6b, and the dashboard GATE are blocked on
+Craig's decisions and should not be dispatched to OpenCode yet.
 
 ## LEDGER
 Not yet dispatched. Progress will be written to `eternal-fitness-website/.context/state.md` +
