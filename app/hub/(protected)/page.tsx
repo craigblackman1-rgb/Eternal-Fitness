@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
-import { HubCard, HubCardHeader, HubPageHeader, HubQuickActions } from "@/components/hub";
+import { HubCard, HubCardHeader, HubQuickActions } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
@@ -18,6 +18,11 @@ interface RecentCheckIn {
 
 export default async function DashboardPage() {
   const supabase = createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const trainerFirstName = user?.name?.split(" ")[0] ?? null;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   const { data: clients } = await supabase
     .from("clients")
@@ -101,11 +106,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <HubPageHeader
-        title="Dashboard"
-        subtitle="Welcome back, Esther — here's what's happening today."
-      />
+      {/* Dashboard greeting — bespoke time-of-day header per hub-dashboard.html mockup */}
+      <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]" style={{ fontFamily: "var(--font-body)" }}>
+        {greeting}{trainerFirstName ? `, ${trainerFirstName}` : ""}
+      </h1>
 
       {/* KPI band */}
       <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
