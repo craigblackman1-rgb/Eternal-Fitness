@@ -191,7 +191,7 @@ const Navbar = ({ onBookConsultation }: NavbarProps) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isLit = scrolled || open;
+  const isLit = pathname !== "/" || scrolled || open;
 
   const breadcrumbItems: Array<{ "@type": string; position: number; name: string; item: string }> = [
     { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
