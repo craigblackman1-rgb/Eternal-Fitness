@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3 } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubPageHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions } from "@/components/hub";
+import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
 import { lookupStatus } from "@/lib/hubStatus";
@@ -237,32 +237,30 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <HubPageHeader
-              title={
-                <span className="inline-flex items-center gap-2.5 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div>
+                <h1 className="text-[26px] font-bold tracking-tight text-foreground inline-flex items-center gap-2.5 flex-wrap">
                   {client.name}
                   <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-md px-1.5 py-0.5">
                     #{client.client_number}
                   </span>
                   {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
-                </span>
-              }
-              subtitle={metaParts.slice(1).join(" · ") || undefined}
-              actions={
-                <div className="flex items-center gap-2">
-                  <Link href={`/hub/clients/${client.client_number}/edit`}>
-                    <Button variant="outline" className="border border-[var(--color-muted-text)] rounded-lg px-3.5 py-1.5 h-auto text-sm font-medium hover:bg-[var(--hub-hover)] gap-1.5">
-                      <IconPencil className="h-4 w-4" /> Edit
-                    </Button>
-                  </Link>
-                  <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`}>
-                    <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-                      <IconPlus className="h-4 w-4" /> Plan Block
-                    </Button>
-                  </Link>
-                </div>
-              }
-            />
+                </h1>
+                {metaParts.slice(1).length > 0 && <p className="text-sm text-muted-foreground mt-0.5">{metaParts.slice(1).join(" · ")}</p>}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link href={`/hub/clients/${client.client_number}/edit`}>
+                  <Button variant="outline" className="border border-[var(--color-muted-text)] rounded-lg px-3.5 py-1.5 h-auto text-sm font-medium hover:bg-[var(--hub-hover)] gap-1.5">
+                    <IconPencil className="h-4 w-4" /> Edit
+                  </Button>
+                </Link>
+                <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`}>
+                  <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+                    <IconPlus className="h-4 w-4" /> Plan Block
+                  </Button>
+                </Link>
+              </div>
+            </div>
             {/* Key facts — label + value chips (matches reference chip-kv) */}
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               {client.group_type && (
