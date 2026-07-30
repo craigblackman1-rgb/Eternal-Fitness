@@ -35,6 +35,8 @@ export function DocumentEditorClient({ doc }: { doc: ClientDocument }) {
   }).length;
 
   const progressPercent = Math.round((doneCount / Math.max(sections.length, 1)) * 100);
+  const remainingSections = sections.length - doneCount;
+  const minutesLeft = Math.max(1, remainingSections * 2);
 
   const currentSectionData = sections[currentSection - 1];
 
@@ -165,7 +167,7 @@ export function DocumentEditorClient({ doc }: { doc: ClientDocument }) {
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs font-semibold text-foreground">{doneCount} of {sections.length} sections complete</span>
-          <span className="text-xs text-muted-foreground">Section {currentSection} of {sections.length}</span>
+          <span className="text-xs text-muted-foreground">{remainingSections > 0 ? `About ${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""} left` : "All sections complete"}</span>
         </div>
         <div className="h-2 rounded-full bg-off-white border border-border/60 overflow-hidden">
           <div className="h-full rounded-full bg-teal transition-all duration-300" style={{ width: `${progressPercent}%` }} />
@@ -181,7 +183,11 @@ export function DocumentEditorClient({ doc }: { doc: ClientDocument }) {
             {sections.map((section, i) => {
               const secNum = i + 1;
               const isCurrent = secNum === currentSection;
-              const isDone = doneCount > i || (secNum < currentSection);
+              const sectionQuestions = sections[i]?.questions ?? [];
+              const isDone = sectionQuestions.length > 0 && sectionQuestions.every((q) => {
+                if (q.type === "choice") return !!answers[q.id];
+                return true;
+              });
               return (
                 <li key={section.id}>
                   <button
@@ -205,6 +211,7 @@ export function DocumentEditorClient({ doc }: { doc: ClientDocument }) {
                     </span>
                     {section.title}
                     {isDone && <span className="sr-only">— complete</span>}
+                    {!isCurrent && !isDone && <span className="sr-only">— not started</span>}
                   </button>
                 </li>
               );
