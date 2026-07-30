@@ -15,7 +15,6 @@ const navItems: NavItem[] = [
   { label: "Personal Training", to: "/personal-training" },
   { label: "Pricing", to: "/pricing" },
   { label: "FAQs", to: "/faqs" },
-  { label: "Calorie Calculator", to: "/calorie-calculator" },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -31,7 +30,6 @@ const pageTitles: Record<string, string> = {
   "/personal-training": "Personal Training",
   "/pricing": "Pricing",
   "/faqs": "FAQs",
-  "/calorie-calculator": "Calorie Calculator",
   "/contact": "Contact",
 };
 

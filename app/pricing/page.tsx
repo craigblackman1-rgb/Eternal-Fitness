@@ -46,7 +46,7 @@ const pricingSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "Personal Training Prices in Worthing | Eternal Fitness",
+  title: "Personal Training Prices in Worthing",
   description: "Personal training pricing in Worthing — blocks of 12 or 24 one-to-one sessions, in the studio or online. Free consultation to start.",
   alternates: { canonical: "https://eternal-fitness.co.uk/pricing" },
 };

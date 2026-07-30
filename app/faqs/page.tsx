@@ -96,7 +96,7 @@ const faqSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions | Eternal Fitness",
+  title: "Frequently Asked Questions",
   description: "Common questions about personal training with Eternal Fitness in Worthing — getting started, pricing, and training with a health condition or disability.",
   alternates: { canonical: "https://eternal-fitness.co.uk/faqs" },
 };

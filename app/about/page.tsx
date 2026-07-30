@@ -21,7 +21,7 @@ const aboutSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "About Esther Fair | Eternal Fitness",
+  title: "About Esther Fair",
   description: "Esther Fair — personal trainer in Worthing, qualified in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. Private one-to-one studio.",
   alternates: { canonical: "https://eternal-fitness.co.uk/about" },
 };
