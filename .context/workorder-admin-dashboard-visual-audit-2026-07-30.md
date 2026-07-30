@@ -1,6 +1,10 @@
 # Work Order: Trainer Hub — full design-fidelity re-audit — 2026-07-30
 
-OWNER: (empty until claimed — see Ownership, SOP-008)
+OWNER: claude — claimed 2026-07-30, worktree `admin-dashboard-design-review-9fde06`
+(branch `claude/admin-dashboard-design-review-9fde06`). No hub login credentials available in this
+environment (standing limitation throughout `.context/handoff.md`) — proceeding via rigorous static
+code/CSS diff against `ef-control-hub` mockups + `admin-design-system.html` tokens rather than a
+live authenticated click-through; flagged explicitly wherever that distinction matters.
 SCOPE: eternal-fitness-website (app/hub/**, components/hub/**, components/ds/HubSidebar or equivalent shell). No portal/, no marketing pages, no supabase/ migrations.
 
 GOAL: Craig sees a considerable gap between `D:\apps\design-systems\ef-control-hub\*` and the live
@@ -118,8 +122,26 @@ inside the fix-lane WO this audit produces, not decided here.
   silently dropped
 
 ## LEDGER
-Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
-Live status: eternal-fitness-website/.context/loop-status.md
+**CLOSED 2026-07-30.** All 4 lanes run in parallel via 5 subagents (Dashboard+Clients,
+Documents/PARQ/Exercise, Process/Content/Studio/PlanAgent/TrainingRules/SOP,
+Schedule/SessionEditor/Tasks/Reports, and a dedicated component/token audit). Every Phase 1 + Phase 2
+DONE item above got an explicit ALIGNED or DELTA-FOUND verdict — nothing silently skipped.
+`hub-schedule.html` and `hub-tasks.html` reconfirmed ALIGNED (agreeing with the earlier
+structural-only audit). `hub-reports-updates.html`'s structural conclusion reconfirmed correct, but
+real visual-fidelity gaps found in the ground that audit's scope excluded. `hub-sop.html` resolved
+definitively: maps to `SopDetailModal`, diverged on 4 specific points (queued as GATE #6). Genuine
+structural mismatch found in Process & Quality (mockup = read-only dashboard, live = CRUD tool — not
+caught by the earlier audit at all, since it wasn't structurally "missing" content, just a different
+concept). New visual/component-fidelity deltas found across nearly every route: a hub-wide
+`--hub-border` token collapse, a widespread `rounded-full` marketing-pill leak (12+ files), an
+`EmptyState` component that violates its own documented button-shape and icon-colour rules, a washed
+amber icon colour on `HubCardHeader`, and several instances of hand-rolled cards bypassing
+`HubCard`/`HubCardHeader`. Full findings synthesized into
+`.context/workorder-admin-dashboard-fixes-2026-07-30.md` (8 AUTO fix lanes, 6 GATE decisions queued
+via `wo ask` against `wo-admin-dashboard-fixes-2026-07-30`). No hub login credentials were available
+in this environment (standing limitation) — every finding is from static code/CSS diff, not a live
+click-through; flagged explicitly wherever that distinction mattered (see the client-edit
+field-border item, marked `[BLOCKED]` in the fix WO pending a real rendered check).
 
 CONTEXT: Craig asked directly (2026-07-30, ~16:15) for a deep-dive review of the admin dashboard
 against `D:\apps\design-systems\ef-control-hub` — he sees a considerable gap between design and
