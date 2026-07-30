@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { ClientDocument } from "@/lib/documents/types";
 import { HubCard, HubCardHeader } from "@/components/hub";
@@ -30,8 +30,9 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
   const [typedError, setTypedError] = useState(false);
   const [drawError, setDrawError] = useState(false);
   const [hasDrawing, setHasDrawing] = useState(false);
-  // Canvas ref
-  const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
+  // Canvas — useRef so we always have the current DOM element
+  const canvasElRef = useRef<HTMLCanvasElement | null>(null);
+  const drawingRef = useRef(false);
   // Step 3: final agree
   const [confirmedAgree, setConfirmedAgree] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
@@ -40,17 +41,105 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Canvas sizing (device-pixel-ratio) ──────────────────────────────────
+  const sizeCanvas = useCallback(() => {
+    const canvas = canvasElRef.current;
+    if (!canvas) return;
+    const ratio = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width) return;
+    // Preserve existing drawing across resize
+    const data = hasDrawing ? canvas.toDataURL() : null;
+    canvas.width = Math.round(rect.width * ratio);
+    canvas.height = Math.round(rect.height * ratio);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#131313";
+    if (data) {
+      const img = new Image();
+      img.onload = () => { ctx.drawImage(img, 0, 0, rect.width, rect.height); };
+      img.src = data;
+    }
+  }, [hasDrawing]);
+
+  // Initial size + resize listener
+  useEffect(() => {
+    if (sigMethod !== "draw") return;
+    // Defer so the DOM has laid out after the pane becomes visible
+    const t = setTimeout(sizeCanvas, 0);
+    const onResize = () => { if (sigMethod === "draw") sizeCanvas(); };
+    window.addEventListener("resize", onResize);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [sigMethod, sizeCanvas]);
+
+  // ── Pointer event helpers ───────────────────────────────────────────────
+  const pos = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasElRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }, []);
+
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasElRef.current;
+    if (!canvas) return;
+    drawingRef.current = true;
+    canvas.setPointerCapture(e.pointerId);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    e.preventDefault();
+  }, [pos]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawingRef.current) return;
+    const canvas = canvasElRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    if (!hasDrawing) { setHasDrawing(true); setDrawError(false); }
+    e.preventDefault();
+  }, [pos, hasDrawing]);
+
+  const stopDrawing = useCallback(() => { drawingRef.current = false; }, []);
+
+  const clearCanvas = useCallback(() => {
+    const canvas = canvasElRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawing(false);
+  }, []);
+
+  // ── Submit ──────────────────────────────────────────────────────────────
   const submitSignature = useCallback(async () => {
     setSubmitting(true);
     setError(null);
     try {
+      const signatureValue =
+        sigMethod === "draw" && canvasElRef.current
+          ? canvasElRef.current.toDataURL()
+          : typedName.trim() || doc.client_name || "";
       const res = await fetch(`/api/documents/${doc.id}/sign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           role: "client",
           name: typedName.trim() || doc.client_name || "",
-          signature: typedName.trim() || doc.client_name || "",
+          signature: signatureValue,
           date: new Date().toISOString().slice(0, 10),
         }),
       });
@@ -62,7 +151,7 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
     } finally {
       setSubmitting(false);
     }
-  }, [doc.id, typedName, doc.client_name]);
+  }, [doc.id, typedName, doc.client_name, sigMethod]);
 
   const goToStep = (n: number) => {
     if (step === 1 && n > 1) {
@@ -73,6 +162,9 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
       if (sigMethod === "type") {
         if (!typedName.trim()) { setTypedError(true); return; }
         setTypedError(false);
+      } else {
+        if (!hasDrawing) { setDrawError(true); return; }
+        setDrawError(false);
       }
     }
     setStep(n);
@@ -259,8 +351,8 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
             Both ways below are equally valid in law. Typing is usually easier, and it is the only one that works with a keyboard alone or a screen reader.
           </p>
 
-          <div className="mb-6">
-            <p className="text-sm font-semibold text-foreground mb-3">How would you like to sign?</p>
+          <fieldset className="mb-6">
+            <legend className="text-sm font-semibold text-foreground mb-3">How would you like to sign?</legend>
             <div className="flex flex-wrap gap-3">
               <label className={`flex items-start gap-2.5 rounded-xl border p-4 cursor-pointer ${sigMethod === "type" ? "border-teal bg-teal/5" : "border-border/60 hover:bg-off-white"}`}>
                 <input type="radio" name="sigmethod" value="type" checked={sigMethod === "type"} onChange={() => setSigMethod("type")} className="mt-0.5 h-4 w-4 text-teal shrink-0" />
@@ -269,39 +361,96 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
                   <span className="block text-xs text-muted-foreground mt-0.5">Recommended — works with any device</span>
                 </span>
               </label>
+              <label className={`flex items-start gap-2.5 rounded-xl border p-4 cursor-pointer ${sigMethod === "draw" ? "border-teal bg-teal/5" : "border-border/60 hover:bg-off-white"}`}>
+                <input type="radio" name="sigmethod" value="draw" checked={sigMethod === "draw"} onChange={() => setSigMethod("draw")} className="mt-0.5 h-4 w-4 text-teal shrink-0" />
+                <span className="text-sm">
+                  <span className="font-medium text-foreground">Draw my signature</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">Needs a mouse, finger or stylus</span>
+                </span>
+              </label>
             </div>
-          </div>
+          </fieldset>
 
-          <div>
-            <div className="mb-5">
-              <label htmlFor="typed-name" className="block text-sm font-semibold text-foreground mb-1">Type your full name</label>
-              <p className="text-xs text-muted-foreground mb-2">Type it as it appears on your records.</p>
-              <input
-                id="typed-name"
-                type="text"
-                autoComplete="name"
-                value={typedName}
-                onChange={(e) => { setTypedName(e.target.value); if (e.target.value.trim()) setTypedError(false); }}
-                placeholder="Type your full name"
-                className="w-full rounded-lg border border-input bg-white px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal"
-              />
-              {typedError && (
-                <p className="text-xs text-red-600 mt-2 flex items-center gap-1.5">
+          {/* ── Typed signature pane ─────────────────────────────────────── */}
+          {sigMethod === "type" && (
+            <div>
+              <div className="mb-5">
+                <label htmlFor="typed-name" className="block text-sm font-semibold text-foreground mb-1">Type your full name</label>
+                <p className="text-xs text-muted-foreground mb-2">Type it as it appears on your records.</p>
+                <input
+                  id="typed-name"
+                  type="text"
+                  autoComplete="name"
+                  value={typedName}
+                  onChange={(e) => { setTypedName(e.target.value); if (e.target.value.trim()) setTypedError(false); }}
+                  placeholder="Type your full name"
+                  className="w-full rounded-lg border border-input bg-white px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-teal"
+                />
+                {typedError && (
+                  <p className="text-xs text-red-600 mt-2 flex items-center gap-1.5">
+                    <IconAlertCircle className="w-3.5 h-3.5" />
+                    Type your full name to sign.
+                  </p>
+                )}
+              </div>
+
+              {typedName.trim() && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Your signature will look like this</p>
+                  <div className="rounded-lg border border-border/60 bg-white p-5 min-h-[4rem] flex items-center justify-center">
+                    <span className="font-serif italic text-2xl text-foreground">{typedName.trim()}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Drawn signature pane ─────────────────────────────────────── */}
+          {sigMethod === "draw" && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-1">Draw your signature in the box</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Use a finger on a phone or tablet, or hold the mouse button down. If it goes wrong, clear it and start again — as many times as you like.
+              </p>
+              <div className="border-2 border-dashed rounded-lg bg-cream p-4 mb-3">
+                <canvas
+                  ref={canvasElRef}
+                  className="w-full h-44 block bg-white rounded border border-border touch-none cursor-crosshair"
+                  aria-label="Draw your signature in the box"
+                  role="img"
+                  onPointerDown={onPointerDown}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={stopDrawing}
+                  onPointerCancel={stopDrawing}
+                  onPointerLeave={stopDrawing}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={clearCanvas}
+                className="inline-flex min-h-9 items-center rounded-full border border-input px-4 text-xs font-medium hover:bg-accent"
+              >
+                Clear and start again
+              </button>
+              <p className="text-xs text-muted-foreground mt-4">
+                Drawing needs a pointing device. If that is difficult,{" "}
+                <button
+                  type="button"
+                  onClick={() => setSigMethod("type")}
+                  className="text-teal font-medium hover:underline"
+                >
+                  switch to typing your name instead
+                </button>
+                .
+              </p>
+              {drawError && (
+                <p className="text-xs text-red-600 mt-3 flex items-center gap-1.5">
                   <IconAlertCircle className="w-3.5 h-3.5" />
-                  Type your full name to sign.
+                  The box is empty. Draw your signature, or switch to typing.
                 </p>
               )}
             </div>
-
-            {typedName.trim() && (
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Your signature will look like this</p>
-                <div className="rounded-lg border border-border/60 bg-white p-5 min-h-[4rem] flex items-center justify-center">
-                  <span className="font-serif italic text-2xl text-foreground">{typedName.trim()}</span>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
 
           <div className="flex flex-wrap gap-3 mt-6">
             <button type="button" onClick={() => goToStep(3)} className="inline-flex min-h-10 items-center rounded-full bg-teal text-white px-5 text-sm font-semibold hover:bg-teal/90">
@@ -321,17 +470,36 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
           <p className="text-sm text-muted-foreground mb-6">Last look. Nothing has been sent yet.</p>
 
           <div className="rounded-xl border border-border/60 divide-y divide-border/60 mb-6">
-            {[
-              { k: "Document", v: doc.title || "—" },
-              { k: "Signed by", v: typedName.trim() || doc.client_name || "—" },
-              { k: "Date", v: formatDate(new Date().toISOString()) },
-              { k: "Your signature", v: typedName.trim() || "—" },
-            ].map((row) => (
-              <div key={row.k} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 px-4">
-                <span className="w-36 shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{row.k}</span>
-                <span className={`text-sm font-semibold text-foreground ${row.k === "Your signature" ? "font-serif italic text-lg" : ""}`}>{row.v}</span>
-              </div>
-            ))}
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 px-4">
+              <span className="w-36 shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Document</span>
+              <span className="text-sm font-semibold text-foreground">{doc.title || "—"}</span>
+            </div>
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 px-4">
+              <span className="w-36 shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Signed by</span>
+              <span className="text-sm font-semibold text-foreground">{typedName.trim() || doc.client_name || "—"}</span>
+            </div>
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 px-4">
+              <span className="w-36 shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Date</span>
+              <span className="text-sm font-semibold text-foreground">{formatDate(new Date().toISOString())}</span>
+            </div>
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 px-4">
+              <span className="w-36 shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Your signature</span>
+              <span className="text-sm font-semibold text-foreground">
+                {sigMethod === "draw" ? (
+                  hasDrawing && canvasElRef.current ? (
+                    <img
+                      src={canvasElRef.current.toDataURL()}
+                      alt="Your drawn signature"
+                      className="max-h-20"
+                    />
+                  ) : (
+                    "—"
+                  )
+                ) : (
+                  <span className="font-serif italic text-lg">{typedName.trim() || "—"}</span>
+                )}
+              </span>
+            </div>
           </div>
 
           <div className="rounded-xl border border-border/60 bg-off-white p-4 mb-5">
