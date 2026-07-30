@@ -58,6 +58,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
         imagePan="122%"
         imageObjectPosition="50% 47%"
+        imageObjectPositionWide="50% 44%"
         eyebrow={content.hero_eyebrow ?? "Pricing"}
         heading={content.hero_heading ?? <>Simple, <em>Straightforward</em> Pricing</>}
         subhead={content.hero_subhead ?? "One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}

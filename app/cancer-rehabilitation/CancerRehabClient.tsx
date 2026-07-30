@@ -60,6 +60,8 @@ export default function CancerRehabClient({ content = {} }: { content?: Record<s
       <PageHero
         image="/images/studio-lunge-pair.jpg"
         imageAlt="Esther Fair — Cancer Rehabilitation Specialist in Worthing"
+        imageObjectPosition="50% 36%"
+        imageObjectPositionWide="50% 6%"
         eyebrow={content.hero_eyebrow ?? "Cancer Rehabilitation"}
         heading={<>Personal Training for<br />Cancer Rehabilitation</>}
         subhead={content.hero_subhead ?? "Specialist one-to-one support during treatment, in remission, and post-surgery. Exercise is now strongly evidenced as beneficial throughout the cancer journey — with the right guidance, at the right intensity, from someone qualified to provide it."}

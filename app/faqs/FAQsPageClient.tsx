@@ -132,6 +132,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         imageAlt="Esther coaching a client through a floor exercise in the private studio"
         imagePan="126%"
         imageObjectPosition="50% 43%"
+        imageObjectPositionWide="50% 24%"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
         subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}

@@ -32,7 +32,11 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             fill
             priority
             sizes="100vw"
-            style={{ objectFit: "cover", objectPosition: "50% 36%" }}
+            // object-position itself lives in home.css (`--hero-pos`/`--hero-pos-wide`) —
+            // the fixed-height hero crops much further into Esther's head at 4K/ultrawide
+            // than at a normal desktop width, so the crop point has to change above
+            // 1600px, which an inline style can't be conditioned on.
+            style={{ objectFit: "cover" }}
           />
         </div>
         <div className="hero-copy">

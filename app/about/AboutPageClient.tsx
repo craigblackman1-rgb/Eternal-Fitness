@@ -52,6 +52,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         imageAlt="Esther Fair and a client stretching together on the mats in her private studio in Worthing"
         imagePan="108%"
         imageObjectPosition="50% 46%"
+        imageObjectPositionWide="50% 34%"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
         heading={content?.hero_heading ?? "About Esther Fair"}
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}

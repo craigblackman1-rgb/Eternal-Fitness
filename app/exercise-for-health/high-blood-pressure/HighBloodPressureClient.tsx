@@ -83,6 +83,8 @@ export default function HighBloodPressureClient() {
       <PageHero
         image="/images/studio-kettlebell-rack.jpg"
         imageAlt="Exercise for high blood pressure in Worthing"
+        imageObjectPosition="50% 30%"
+        imageObjectPositionWide="50% 22%"
         eyebrow="High Blood Pressure"
         heading={<>Exercise for High Blood<br />Pressure in Worthing</>}
         subhead="Exercise is clinically recommended for managing hypertension — but doing it safely requires specialist knowledge. As a Level 4 Exercise Referral Specialist, I programme around your blood pressure, your medications, and your capacity, with monitoring built into every session."

@@ -180,7 +180,15 @@ a.ds-card { display: block; }
    ───────────────────────────────────────────────────────────────── */
 .ds-hero { position: relative; display: flex; align-items: flex-end; min-height: min(88vh, 780px); background: var(--color-ink); overflow: hidden; }
 .ds-hero-bg { position: absolute; inset: 0; background: var(--color-ink); overflow: hidden; }
-.ds-hero-bg img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; }
+.ds-hero-bg img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; object-position: var(--hero-pos, 50% 50%); }
+/* .ds-hero holds a fixed pixel height while width keeps growing with the viewport,
+   so object-fit:cover crops proportionally more off the top/bottom the wider the
+   screen — a position tuned to look right at 1440/1920 crops straight through the
+   subject's head by 4K/ultrawide. `--hero-pos-wide` (set inline per-photo by
+   PageHero) takes over above 1600px; falls back to the normal-width position. */
+@media (min-width: 1600px) {
+  .ds-hero-bg img { object-position: var(--hero-pos-wide, var(--hero-pos, 50% 50%)); }
+}
 .ds-hero-bg::after {
   content: '';
   position: absolute;

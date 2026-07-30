@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { CtaButton } from "./CtaButton";
 import type { CTA } from "./types";
 
@@ -11,6 +11,13 @@ interface PageHeroProps {
   /** widens+left-anchors the photo so the subject clears the copy column (mockup's --pan) */
   imagePan?: string;
   imageObjectPosition?: string;
+  /** object-position from ~1600px viewport width up — the hero keeps a fixed pixel
+   * height while width keeps growing, so object-fit:cover crops more and more off
+   * the top/bottom the wider the screen. At 4K/ultrawide the default (or a position
+   * tuned for a normal desktop) crops straight through the subject's head. Pass a
+   * more top-biased position here for any photo with a person in it; falls back to
+   * `imageObjectPosition` if not given. */
+  imageObjectPositionWide?: string;
   eyebrow?: string;
   heading: ReactNode;
   subhead?: ReactNode;
@@ -37,6 +44,7 @@ export function PageHero({
   imageAlt,
   imagePan,
   imageObjectPosition,
+  imageObjectPositionWide,
   eyebrow,
   heading,
   subhead,
@@ -60,7 +68,6 @@ export function PageHero({
           sizes="100vw"
           style={{
             objectFit: "cover",
-            objectPosition: imageObjectPosition,
             width: imagePan,
             left: 0,
             // Next's `fill` mode also sets `right:0`; left+right+width all
@@ -70,7 +77,14 @@ export function PageHero({
             // Tailwind's preflight `img{max-width:100%}` otherwise clamps
             // the pan width straight back down to the container's width.
             maxWidth: imagePan ? "none" : undefined,
-          }}
+            // object-position itself is set in design-system.css from these two custom
+            // properties, not inline — an inline style can't be conditioned on viewport
+            // width, so the `@media (min-width: 1600px)` override there needs a CSS-side
+            // hook to switch `--hero-pos` for `--hero-pos-wide` once the fixed-height hero
+            // gets wide enough that object-fit:cover crops into the subject's head.
+            ["--hero-pos" as string]: imageObjectPosition,
+            ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
+          } as CSSProperties}
         />
       </div>
       <div className="ds-hero-inner">

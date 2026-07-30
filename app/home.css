@@ -34,7 +34,15 @@
    ───────────────────────────────────────────────────────────────── */
 .efhome #hero { position: relative; display: flex; align-items: flex-end; min-height: min(94vh, 880px); background: var(--ink); overflow: hidden; }
 .efhome .hero-media { position: absolute; inset: 0; background: var(--ink); overflow: hidden; }
-.efhome .hero-media img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; }
+.efhome .hero-media img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; object-position: var(--hero-pos, 50% 36%); }
+/* #hero holds a fixed pixel height while width keeps growing with the viewport, so
+   object-fit:cover crops proportionally more off the top/bottom the wider the screen
+   — 36% (tuned for a normal desktop) crops straight through Esther's head by 4K/
+   ultrawide. `--hero-pos-wide` (set inline in HomePageClient.tsx) takes over above
+   1600px. */
+@media (min-width: 1600px) {
+  .efhome .hero-media img { object-position: var(--hero-pos-wide, 50% 6%); }
+}
 .efhome .hero-media::after {
   content: '';
   position: absolute;

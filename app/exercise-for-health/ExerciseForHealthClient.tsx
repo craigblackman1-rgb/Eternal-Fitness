@@ -134,6 +134,8 @@ export default function ExerciseForHealthClient({ content = {} }: { content?: Re
       <PageHero
         image="/images/who-health.jpg"
         imageAlt="Personal training for health conditions in Worthing"
+        imageObjectPosition="50% 38%"
+        imageObjectPositionWide="50% 35%"
         eyebrow={content.hero_eyebrow ?? "Exercise for Health"}
         heading={<>Personal Training for<br />Health Conditions</>}
         subhead={content.hero_subhead ?? "Exercise is one of the most evidence-based interventions for managing a wide range of health conditions. The key is having a qualified specialist who understands your condition and programmes safely around it — not a standard PT working outside their training."}

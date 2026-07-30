@@ -74,6 +74,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
         imagePan="122%"
         imageObjectPosition="50% 47%"
+        imageObjectPositionWide="50% 44%"
         eyebrow={content.hero_eyebrow ?? "Contact"}
         heading={content.hero_heading ?? <>Get in <em>Touch</em></>}
         subhead={content.hero_subhead ?? "Whether you have a question, want to learn more, or are ready to book your free consultation — I would love to hear from you."}
