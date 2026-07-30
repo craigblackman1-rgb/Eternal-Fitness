@@ -22,6 +22,7 @@ import {
   IconCheckCircle,
   IconCheck,
   IconUsers,
+  IconCopy,
 } from "@/components/icons";
 import { toast } from "sonner";
 import type {
@@ -406,6 +407,11 @@ function SopsSection({ initial }: { initial: Sop[] }) {
     good_looks_like: "",
     steps: [],
     prompt_template: null,
+    applies_to: null,
+    review_date: null,
+    linked_client: null,
+    source: null,
+    status: "active",
   };
   const [form, setForm] = useState(blank);
 
@@ -427,6 +433,11 @@ function SopsSection({ initial }: { initial: Sop[] }) {
       good_looks_like: item.good_looks_like,
       steps: item.steps,
       prompt_template: item.prompt_template,
+      applies_to: item.applies_to,
+      review_date: item.review_date,
+      linked_client: item.linked_client,
+      source: item.source,
+      status: item.status,
     });
     setShowForm(true);
   }
@@ -480,6 +491,51 @@ function SopsSection({ initial }: { initial: Sop[] }) {
     }
   }
 
+  async function handleDuplicate(original: Sop) {
+    const nextRef = (() => {
+      const nums = items
+        .map((i) => i.ref)
+        .filter((r) => /^SOP-\d+$/.test(r))
+        .map((r) => parseInt(r.replace("SOP-", ""), 10))
+        .filter((n) => !isNaN(n));
+      const max = nums.length ? Math.max(...nums) : 0;
+      return `SOP-${String(max + 1).padStart(3, "0")}`;
+    })();
+
+    const payload = {
+      ref: nextRef,
+      title: `${original.title} (copy)`,
+      area: original.area,
+      trigger: original.trigger,
+      owner: original.owner,
+      last_updated: null,
+      what: original.what,
+      good_looks_like: original.good_looks_like,
+      steps: original.steps,
+      prompt_template: original.prompt_template,
+      applies_to: original.applies_to,
+      review_date: null,
+      linked_client: original.linked_client,
+      source: original.source,
+      status: "draft",
+    };
+
+    try {
+      const res = await fetch("/api/sops", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to duplicate");
+      const created = await res.json();
+      setItems((prev) => [...prev, created].sort((a, b) => a.ref.localeCompare(b.ref)));
+      toast.success(`Duplicated as ${created.ref}`);
+      setViewing(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to duplicate");
+    }
+  }
+
   return (
     <HubCard padded={false}>
       <HubCardHeader
@@ -525,6 +581,40 @@ function SopsSection({ initial }: { initial: Sop[] }) {
                 <Label>Trigger</Label>
                 <Input value={form.trigger} onChange={(e) => setForm({ ...form, trigger: e.target.value })} placeholder="What starts this process" />
               </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Applies to</Label>
+                <Input value={form.applies_to ?? ""} onChange={(e) => setForm({ ...form, applies_to: e.target.value || null })} placeholder="All active clients" />
+              </div>
+              <div className="space-y-2">
+                <Label>Review date</Label>
+                <Input value={form.review_date ?? ""} onChange={(e) => setForm({ ...form, review_date: e.target.value || null })} placeholder="01 Sep 2026" />
+              </div>
+              <div className="space-y-2">
+                <Label>Linked client</Label>
+                <Input value={form.linked_client ?? ""} onChange={(e) => setForm({ ...form, linked_client: e.target.value || null })} placeholder="Optional" />
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Source</Label>
+                <Input value={form.source ?? ""} onChange={(e) => setForm({ ...form, source: e.target.value || null })} placeholder="e.g. Medical tracker" />
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="review">Review</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+              <div />
             </div>
             <div className="space-y-2">
               <Label>What this process does</Label>
@@ -587,14 +677,20 @@ function SopsSection({ initial }: { initial: Sop[] }) {
         </div>
       )}
 
-      {viewing && <SopDetailModal sop={viewing} onClose={() => setViewing(null)} />}
+      {viewing && (
+        <SopDetailModal
+          sop={viewing}
+          onClose={() => setViewing(null)}
+          onDuplicate={handleDuplicate}
+        />
+      )}
     </HubCard>
   );
 }
 
 // ─── SOP detail (read-only) ──────────────────────────────────────────────────
 
-function SopDetailModal({ sop, onClose }: { sop: Sop; onClose: () => void }) {
+function SopDetailModal({ sop, onClose, onDuplicate }: { sop: Sop; onClose: () => void; onDuplicate: (sop: Sop) => void }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(16,24,40,.45)] p-4 sm:p-6"
@@ -612,9 +708,14 @@ function SopDetailModal({ sop, onClose }: { sop: Sop; onClose: () => void }) {
             <span className="font-mono text-xs text-teal">{sop.ref}</span>
             <h2 className="truncate text-lg font-bold tracking-tight text-foreground">{sop.title}</h2>
           </div>
-          <Button size="icon" variant="ghost" onClick={onClose} aria-label="Close" className="shrink-0">
-            <IconX className="h-4 w-4" />
-          </Button>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={() => onDuplicate(sop)}>
+              <IconCopy className="h-3.5 w-3.5" /> Duplicate
+            </Button>
+            <Button size="icon" variant="ghost" onClick={onClose} aria-label="Close">
+              <IconX className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-px bg-[var(--hub-border)] sm:grid-cols-3">
@@ -623,12 +724,24 @@ function SopDetailModal({ sop, onClose }: { sop: Sop; onClose: () => void }) {
             <p className="mt-1 text-sm font-semibold text-foreground">{sop.owner}</p>
           </div>
           <div className="bg-[var(--hub-card)] px-5 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Area</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{sop.area}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Applies to</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{sop.applies_to ?? "—"}</p>
           </div>
           <div className="bg-[var(--hub-card)] px-5 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Last updated</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{sop.last_updated ?? "—"}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Review date</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{sop.review_date ?? "—"}</p>
+          </div>
+          <div className="bg-[var(--hub-card)] px-5 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Linked client</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{sop.linked_client ?? "—"}</p>
+          </div>
+          <div className="bg-[var(--hub-card)] px-5 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Source</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{sop.source ?? "—"}</p>
+          </div>
+          <div className="bg-[var(--hub-card)] px-5 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
+            <p className="mt-1"><StatusBadge status={sop.status} /></p>
           </div>
         </div>
 

@@ -38,6 +38,11 @@ export async function POST(request: Request) {
     good_looks_like: string;
     steps: string[];
     prompt_template: string;
+    applies_to: string;
+    review_date: string;
+    linked_client: string;
+    source: string;
+    status: string;
   }>;
 
   if (!body.ref || !body.title || !body.trigger || !body.what || !body.good_looks_like) {
@@ -60,6 +65,11 @@ export async function POST(request: Request) {
       good_looks_like: body.good_looks_like,
       steps: body.steps ?? [],
       prompt_template: body.prompt_template ?? null,
+      applies_to: body.applies_to ?? null,
+      review_date: body.review_date ?? null,
+      linked_client: body.linked_client ?? null,
+      source: body.source ?? null,
+      status: body.status ?? "active",
     })
     .select()
     .single();

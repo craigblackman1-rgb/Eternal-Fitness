@@ -50,6 +50,8 @@ const blockStatusMap: Record<string, StatusLookup> = {
   active:   { token: "primary", label: "Active" },
   approved: { token: "success", label: "Approved" },
   complete: { token: "success", label: "Complete" },
+  review:   { token: "warning", label: "Review" },
+  archived: { token: "neutral", label: "Archived" },
 };
 
 const complianceStatusMap: Record<DBClientComplianceStatus, StatusLookup> = {

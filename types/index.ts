@@ -79,6 +79,11 @@ export interface Sop {
   good_looks_like: string;
   steps: string[];
   prompt_template: string | null;
+  applies_to: string | null;
+  review_date: string | null;
+  linked_client: string | null;
+  source: string | null;
+  status: string;
   created_at: string;
 }
 

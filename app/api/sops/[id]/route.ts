@@ -22,6 +22,11 @@ export async function PATCH(
     good_looks_like: string;
     steps: string[];
     prompt_template: string;
+    applies_to: string;
+    review_date: string;
+    linked_client: string;
+    source: string;
+    status: string;
   }>;
 
   const { data, error } = await supabase
