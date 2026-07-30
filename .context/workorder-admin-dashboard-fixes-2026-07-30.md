@@ -40,7 +40,10 @@ resolution today.
       superset group tokens, remaining hand-rolled cards) — merged `9357305`. OpenCode's diff left
       two Card/CardContent blocks with mismatched closing tags (real JSX parse failure, not caught
       by its own tsc self-check); hand-fixed and re-verified with `tsc` + `next build` before merge.
-- [ ] All 6 GATE decisions queued and answered (or explicitly still pending, not silently dropped)
+- [x] All 6 GATE decisions queued, answered by Craig 2026-07-30, and built:
+      G1 (border tokens) `539238c` · G2 (dashboard greeting) `42b607d` ·
+      G3/PARQ Section 7 — closed, left as-is, no lane · G4 (Exercise Library) `2724ca3` ·
+      G5 (Process & Quality Overview) `f91eb45` · G6 (SOP backport + migration) `53bfff7`
 
 ## LANES
 - Lane 1 — Cross-cutting token/component fixes · depends on: none · touches many files, do first
@@ -256,15 +259,12 @@ resolution today.
   `computeComplianceFlags`' actual signature/return shape against usage before trusting it (real
   clinical-safety data, worth the extra scrutiny).
 
-**Lane G6 — code complete, BLOCKED on a DB migration, not merged.** `hub-sop.html` field/action
-backport (6-cell meta-grid, Duplicate action) is written and verified (`tsc` + `next build` clean)
-in worktree `g6-sop-backport` (branch `fix/g6-sop-backport`), but its API routes reference 5 new
-`sops` columns (`supabase/migrations/20260730_sops_meta_fields.sql`) that don't exist on prod yet.
-Merging without running the migration first would break SOP create/edit/duplicate in production
-(Postgres rejects the unknown-column INSERT/UPDATE) — caught by hand-reviewing the diff, not by
-OpenCode's self-report, which didn't flag this dependency. Migration is additive/low-risk (nullable
-columns + one defaulted `status`), queued via `wo ask` for Craig's go-ahead to run it. Worktree kept
-alive pending answer — do not delete before merging.
+**Lane G6 — DONE + merged + deployed `53bfff7`.** `hub-sop.html` field/action backport (6-cell
+meta-grid, Duplicate action). Migration blocker (its API routes reference 5 new `sops` columns that
+didn't exist on prod) caught by hand-reviewing the diff, not OpenCode's self-report — flagged via
+`wo ask`, Craig approved 2026-07-30, migration run against prod via the tunnel and independently
+verified (`information_schema.columns` confirms all 5 columns: `applies_to`/`review_date`/
+`linked_client`/`source` nullable text, `status` text default `'active'`) before merging the code.
 
 Design trade-off worth noting: the mockup's 6-cell meta-grid doesn't include `area`/`last_updated`
 (the two fields the old 3-cell modal showed), so the new modal doesn't display them either —
