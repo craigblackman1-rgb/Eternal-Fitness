@@ -6,6 +6,7 @@ import type { ClientDocument } from "@/lib/documents/types";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { IconChevronLeft, IconPrinter, IconDownload } from "@/components/icons";
+import { DocumentViewerClient } from "@/components/portal/DocumentViewerClient";
 
 const KIND_LABELS: Record<string, string> = {
   terms: "Training agreement & studio terms",
@@ -98,61 +99,65 @@ export default async function PortalDocumentViewPage({ params }: { params: { id:
         )}
       </div>
 
-      {/* Document body */}
-      <HubCard>
-        <div className="prose prose-sm max-w-none">
-          {typed.body.intro && (
-            <p>{typed.body.intro}</p>
-          )}
+      {/* Document body + contents nav */}
+      <div className="grid lg:grid-cols-[15rem_1fr] gap-8 items-start">
+        <DocumentViewerClient sections={typed.body.sections} />
 
-          {typed.body.sections.map((section) => (
-            <section key={section.id} className="mb-6">
-              <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>
-              <div dangerouslySetInnerHTML={{ __html: section.html }} />
-            </section>
-          ))}
+        <HubCard>
+          <div className="prose prose-sm max-w-none">
+            {typed.body.intro && (
+              <p>{typed.body.intro}</p>
+            )}
 
-          {typed.body.consentGroups && typed.body.consentGroups.length > 0 && (
-            <section className="mb-6">
-              {typed.body.consentGroups.map((group) => (
-                <div key={group.id} className="mb-4">
-                  <h3 className="text-base font-semibold text-foreground mb-2">{group.legend}</h3>
-                  <ul className="space-y-1.5">
-                    {group.options.map((opt) => (
-                      <li key={opt.key} className="flex items-start gap-2 text-sm">
-                        <span className="text-teal mt-0.5">—</span>
-                        <span>{opt.label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </section>
-          )}
+            {typed.body.sections.map((section) => (
+              <section key={section.id} className="mb-6">
+                <h2 id={section.id} tabIndex={-1} className="text-lg font-semibold text-foreground">{section.title}</h2>
+                <div dangerouslySetInnerHTML={{ __html: section.html }} />
+              </section>
+            ))}
 
-          {typed.body.feedbackSections && typed.body.feedbackSections.length > 0 && (
-            <section className="mb-6">
-              {typed.body.feedbackSections.map((fs) => (
-                <div key={fs.id} className="mb-5">
-                  <h3 className="text-base font-semibold text-foreground mb-2">{fs.num}. {fs.title}</h3>
-                  {fs.intro && <p className="text-sm text-muted-foreground mb-3">{fs.intro}</p>}
-                  <div className="space-y-3">
-                    {fs.questions.map((q) => (
-                      <div key={q.id} className="text-sm">
-                        <p className="font-medium text-foreground">{q.label}</p>
-                        {q.note && <p className="text-xs text-muted-foreground mt-0.5 italic">{q.note}</p>}
-                        {typed.feedback_responses && typeof typed.feedback_responses === "object" && typed.feedback_responses.answers && typeof typed.feedback_responses.answers === "object" && (typed.feedback_responses.answers as Record<string, string>)[q.id] && (
-                          <p className="mt-1 text-teal font-medium">Answered: {(typed.feedback_responses.answers as Record<string, string>)[q.id]}</p>
-                        )}
-                      </div>
-                    ))}
+            {typed.body.consentGroups && typed.body.consentGroups.length > 0 && (
+              <section className="mb-6">
+                {typed.body.consentGroups.map((group) => (
+                  <div key={group.id} className="mb-4">
+                    <h3 className="text-base font-semibold text-foreground mb-2">{group.legend}</h3>
+                    <ul className="space-y-1.5">
+                      {group.options.map((opt) => (
+                        <li key={opt.key} className="flex items-start gap-2 text-sm">
+                          <span className="text-teal mt-0.5">—</span>
+                          <span>{opt.label}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-              ))}
-            </section>
-          )}
-        </div>
-      </HubCard>
+                ))}
+              </section>
+            )}
+
+            {typed.body.feedbackSections && typed.body.feedbackSections.length > 0 && (
+              <section className="mb-6">
+                {typed.body.feedbackSections.map((fs) => (
+                  <div key={fs.id} className="mb-5">
+                    <h3 className="text-base font-semibold text-foreground mb-2">{fs.num}. {fs.title}</h3>
+                    {fs.intro && <p className="text-sm text-muted-foreground mb-3">{fs.intro}</p>}
+                    <div className="space-y-3">
+                      {fs.questions.map((q) => (
+                        <div key={q.id} className="text-sm">
+                          <p className="font-medium text-foreground">{q.label}</p>
+                          {q.note && <p className="text-xs text-muted-foreground mt-0.5 italic">{q.note}</p>}
+                          {typed.feedback_responses && typeof typed.feedback_responses === "object" && typed.feedback_responses.answers && typeof typed.feedback_responses.answers === "object" && (typed.feedback_responses.answers as Record<string, string>)[q.id] && (
+                            <p className="mt-1 text-teal font-medium">Answered: {(typed.feedback_responses.answers as Record<string, string>)[q.id]}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            )}
+          </div>
+        </HubCard>
+      </div>
 
       {/* Signed block */}
       {isSigned && (
