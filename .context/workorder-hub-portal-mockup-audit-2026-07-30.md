@@ -30,31 +30,15 @@ patterns (`HubCard`, `HubCardHeader`, `StatusBadge`, `EmptyState`, portal's own 
 whatever the real portal layout uses); which existing icon/component to reuse.
 
 ASK FIRST — real open questions found during this audit, not yet resolved:
-1. **portal-sign-in.html vs `app/portal/login/page.tsx` — authentication mechanism, not just a
-   restyle.** The mockup is a passwordless two-step flow (email → 6-digit one-time code, no
-   password, split-screen studio photography). The live page is a traditional email+password form
-   (`PortalLoginForm`, centred card, "Forgot password?" link, posts to
-   `/api/portal/auth/login`). Matching the mockup means replacing the auth mechanism itself (code
-   generation/email send, code verification, session issuance) — real backend work, not a visual
-   pass. Need a call: (a) build the passwordless OTP flow for real, (b) keep password auth and just
-   reskin the page to the mockup's split-screen photo layout with the existing email/password
-   fields, or (c) leave as-is. **Tagged `[GATE]` below regardless of answer** — this is exactly the
-   kind of "would change existing client-facing auth behaviour" item the 2026-07-26 WO's ASK FIRST
-   list already carved out as out-of-scope for a visual pass.
-2. **hub-dashboard.html vs `app/hub/(protected)/page.tsx` — two genuinely competing dashboard
-   concepts, not a restyle.** The mockup is a re-imagined "trainer's morning" layout: Sessions this
-   week / Check-ins logged / Reviews due / Active clients KPI band, alert copy ("2 clients need a
-   review", "Cardiac clearance expired"), and a "This week's plan" card. The live page uses a
-   completely different data model: Total Clients / Draft Blocks / Active-Approved / Total Blocks
-   KPIs, plus Recent Check-ins, Needs Attention, Active Blocks, Recent Clients, Recent Blocks, and
-   Quick Actions cards. `page.tsx` was last touched 2026-07-26 — the same day as the prior hub WO —
-   so unlike Process & Quality or the exercise library, **there is no documented decision that the
-   live model was deliberately chosen over the mockup's.** This looks like an unresolved gap, not a
-   settled divergence. Need a call: (a) keep the live data/cards as-is and just treat
-   hub-dashboard.html as a stale concept to discard, (b) rebuild the dashboard around the mockup's
-   simpler KPI/alert framing (would drop Recent Clients/Recent Blocks/Quick Actions/Needs Attention —
-   real navigation with no mockup equivalent), or (c) merge — keep the real KPIs and cards, adopt the
-   mockup's alert-copy tone. **Tagged `[GATE]`, size large — not dispatched.**
+1. **✅ RESOLVED 2026-07-30 (Craig): portal-sign-in — keep password auth, reskin only.** Option (b) —
+   keep the existing email+password fields and `/api/portal/auth/login` flow exactly as-is; only the
+   visual layout changes to the mockup's split-screen studio-photography treatment. No auth-mechanism
+   work, no OTP. Converted to Lane 5 (`[AUTO]`) below.
+2. **✅ RESOLVED 2026-07-30 (Craig): hub-dashboard — live is the intended, updated design.** Craig
+   confirmed the current Recent Clients/Recent Blocks/Quick Actions/Needs Attention data-card
+   dashboard *is* the updated design and matches what's wanted — hub-dashboard.html's "trainer's
+   morning" KPI/alert concept is the stale one. **No lane — dashboard stays as-is, mockup discarded
+   for this route.**
 3. **hub-sop.html has no confirmed live counterpart.** Content is a single example SOP document
    view ("SOP — Weekly check-in review", Purpose/Scope/Procedure/Checks/Notes sections, a
    Duplicate button) — not a list of documents. The old brief (`opencode-brief-hub-redesign.md`)
@@ -83,12 +67,11 @@ hub-site-content.html, hub-site-content-editor.html,
 hub-studio-equipment.html, hub-plan-agent-settings.html, hub-training-rules.html, hub-schedule.html.
 
 **Correction (2026-07-30, later same day):** an earlier pass of this audit had also filed
-hub-dashboard.html and hub-reports-updates.html under "aligned, no lane" — that was wrong. Both have
-genuine unresolved deltas from their sub-audits; see ASK FIRST #2 (dashboard, GATE) and Lane 5
-(reports-updates, below) for what they actually found. hub-exercise-library.html and
-hub-process-quality.html correctly stay "no lane" — both have a *documented* 2026-07-26 decision that
-the real, richer live feature deliberately supersedes the mockup's simpler concept; hub-dashboard.html
-and hub-reports-updates.html have no such prior decision on record.
+hub-dashboard.html and hub-reports-updates.html under "aligned, no lane" — that was wrong at the time
+(both had genuine unresolved deltas), but Craig has since resolved hub-dashboard.html directly (see
+ASK FIRST #2 above) — it now correctly belongs in this "no lane" list too, on the record this time:
+**hub-dashboard.html — no lane, live design confirmed as the intended one, mockup concept discarded.**
+hub-reports-updates.html still has real work — see Lane 6 below (both 6a and 6b approved by Craig).
 
 - **hub-tasks.html** — deep-diffed in full against `app/hub/(protected)/tasks/{page.tsx,TasksManager.tsx}`
   despite its later (20:04) timestamp flagging it as a possible outlier. Structure matches: 3-column
@@ -183,39 +166,45 @@ per-section-before-advancing, and final-submit behaviour untouched.
 logic confirmed unchanged; jumping via the sidebar doesn't bypass the existing per-section
 validation in a way that lets an incomplete required question through silently.
 
-### Lane 5 (`[GATE]`, not dispatched) — Portal sign-in auth mechanism
-See ASK FIRST #1 above. No lane drafted until Craig picks (a)/(b)/(c) — building the wrong one is
-real backend work to undo.
+### Lane 5 — Portal sign-in: reskin only, keep password auth (small-medium) · `[AUTO]` — approved 2026-07-30
+**Files:** `app/portal/login/page.tsx` (+ `PortalLoginForm` and whatever layout component wraps it).
+**Goal:** per Craig's resolution of ASK FIRST #1 — visual layout only, no auth-mechanism change.
+Rebuild the page to the mockup's split-screen treatment (studio photography on one side, form on the
+other) while keeping the exact same email/password fields, "Forgot password?" link, and
+`/api/portal/auth/login` POST behaviour untouched. Do not add OTP/passwordless anything.
+**Verify:** `tsc --noEmit` + `next build` clean; existing login POST, error states, and
+forgot-password link all behave identically to today — only the surrounding layout/imagery changes.
 
-### Lane 6 — hub-reports-updates.html vs `app/hub/(protected)/reports/updates/page.tsx` + `UpdatesReport.tsx`
-Two separate deltas found, split by risk:
+### Lane 6 — hub-reports-updates.html vs `app/hub/(protected)/reports/updates/page.tsx` + `UpdatesReport.tsx` — both approved 2026-07-30
+Two separate deltas, both approved by Craig:
 - **6a — KPI band re-skin (small) · `[AUTO]`.** Mockup shows "Sent this month" (with a month-over-
   month delta), "Draft/queued", "Open rate %", "Clients covered" tiles. Live shows plain status
   counts (Sent/Scheduled/Drafts/Failed) with no month-scoping, no open-rate percentage, no
-  clients-covered tile. Presentation/metric-choice only — no functionality removed either way.
-  **Verify:** confirm the open-rate and month-scoped figures are actually derivable from
-  `sent_updates`/`email_send_events` before building the tiles — don't fabricate a metric that isn't
-  backed by real tracked data.
-- **6b — Bulk-send toolbar + programme filter (medium) · `[GATE]`.** Mockup adds a row-checkbox
+  clients-covered tile. **Verify:** confirm the open-rate and month-scoped figures are actually
+  derivable from `sent_updates`/`email_send_events` before building the tiles — don't fabricate a
+  metric that isn't backed by real tracked data; if a figure genuinely isn't derivable, flag it and
+  drop that one tile rather than inventing a number.
+- **6b — Bulk-send toolbar + programme filter (medium) · `[AUTO]`.** Add the mockup's row-checkbox
   multi-select with a "Send selected" bulk-send action, a programme-specific filter dropdown, and
-  "New update"/"Export" header buttons — none exist live (live has per-row Preview/Edit/Delete +
-  single "Send now" only). This is net-new client-facing bulk email-sending capability, not a visual
-  gap — needs Craig's go-ahead before it's built, same class of decision as the portal draw-signature
-  API check in Lane 3.
+  "New update"/"Export" header buttons, alongside the existing per-row Preview/Edit/Delete/Send now
+  actions (additive, don't remove the per-row single-send path). This is new client-facing bulk
+  email-sending capability — approved, but hand-review this diff especially closely before merge
+  (accidental multi-send to the wrong client list is a real, visible mistake) and confirm the bulk
+  action reuses the same send path as the existing single "Send now" button rather than a new
+  untested code path.
 
 ## LANES SUMMARY
-- Lane 1 — Portal home restructure · depends on: none · medium-large
-- Lane 2 — Document view TOC nav · depends on: none · small-medium
-- Lane 3 — Document sign draw option · depends on: none (but confirm API/schema first) · medium
-- Lane 4 — PAR-Q editor section nav · depends on: none · small-medium
-- Lane 5 — Portal sign-in auth mechanism · `[GATE]` · blocked on Craig's decision
+- Lane 1 — Portal home restructure · depends on: none · medium-large · `[AUTO]`
+- Lane 2 — Document view TOC nav · depends on: none · small-medium · `[AUTO]`
+- Lane 3 — Document sign draw option · depends on: none (but confirm API/schema first) · medium · `[AUTO]`
+- Lane 4 — PAR-Q editor section nav · depends on: none · small-medium · `[AUTO]`
+- Lane 5 — Portal sign-in reskin (password auth kept) · depends on: none · small-medium · `[AUTO]`
 - Lane 6a — Reports/Updates KPI band re-skin · depends on: none · small · `[AUTO]`
-- Lane 6b — Reports/Updates bulk-send toolbar · `[GATE]` · blocked on Craig's decision
-- GATE (ASK FIRST #2) — hub-dashboard.html concept conflict · blocked on Craig's decision · large
+- Lane 6b — Reports/Updates bulk-send toolbar · depends on: none · medium · `[AUTO]` (hand-review closely)
 
-Lanes 1–4 and 6a are independent of each other and of the hub side (no shared files) — can run in
-parallel once Craig has reviewed this lane list. Lanes 5, 6b, and the dashboard GATE are blocked on
-Craig's decisions and should not be dispatched to OpenCode yet.
+All 7 lanes are now approved and independent of each other (no shared files) — ready to dispatch to
+OpenCode in parallel. hub-dashboard.html and hub-sop.html (ASK FIRST #3) are the only remaining open
+items; hub-sop.html still needs Craig's steer before it's scoped at all.
 
 ## LEDGER
 Not yet dispatched. Progress will be written to `eternal-fitness-website/.context/state.md` +
