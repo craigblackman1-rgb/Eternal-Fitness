@@ -4,7 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { HubCard, HubCardHeader } from "@/components/hub";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -152,15 +153,16 @@ export function DocumentDetailClient({
       )}
 
       {/* Edit */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{locked ? "Document" : "Edit document"}</CardTitle>
-          {!locked && (
+      <HubCard padded={false}>
+        <HubCardHeader
+          title={locked ? "Document" : "Edit document"}
+          action={!locked ? (
             <Button variant="outline" size="sm" onClick={save} disabled={saving} className="rounded-lg gap-1.5">
               <IconSave className="h-4 w-4" />{saving ? "Saving…" : "Save"}
             </Button>
-          )}
-        </CardHeader>
+          ) : undefined}
+          className="px-5 pt-5"
+        />
         <CardContent className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
@@ -183,14 +185,14 @@ export function DocumentDetailClient({
             </div>
           ))}
         </CardContent>
-      </Card>
+      </HubCard>
 
       {/* Consent choices — the client's actual ticked/unticked answers per option,
           not just the overall document status. A box the client never touched
           has no key in consent_choices at all, so it's treated as not granted. */}
       {!!doc.body.consentGroups?.length && (
-        <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-          <CardHeader><CardTitle>Consent choices</CardTitle></CardHeader>
+        <HubCard padded={false}>
+          <HubCardHeader title="Consent choices" className="px-5 pt-5" />
           <CardContent className="space-y-4">
             {doc.client_signature ? (
               doc.body.consentGroups.map((group) => (
@@ -210,15 +212,15 @@ export function DocumentDetailClient({
               <p className="text-sm text-muted-foreground">Awaiting client signature — consent choices aren&apos;t recorded until then.</p>
             )}
           </CardContent>
-        </Card>
+        </HubCard>
       )}
 
       {/* Questionnaire responses — any kind built on the feedbackSections schema
           (feedback, parq) has no other place for Esther to read what the client
           answered, so this is generic on body shape, not hardcoded to one kind. */}
       {!!doc.body.feedbackSections?.length && doc.feedback_responses && (
-        <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-          <CardHeader><CardTitle>Responses</CardTitle></CardHeader>
+        <HubCard padded={false}>
+          <HubCardHeader title="Responses" className="px-5 pt-5" />
           <CardContent className="space-y-5">
             {(doc.body.feedbackSections ?? []).map((s) => (
               <div key={s.id} className="space-y-3">
@@ -249,12 +251,12 @@ export function DocumentDetailClient({
               </div>
             )}
           </CardContent>
-        </Card>
+        </HubCard>
       )}
 
       {/* Signatures */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-        <CardHeader><CardTitle>Signatures</CardTitle></CardHeader>
+      <HubCard padded={false}>
+        <HubCardHeader title="Signatures" className="px-5 pt-5" />
         <CardContent className="space-y-4">
           <div className="text-sm">
             <span className="text-muted-foreground">Client: </span>
@@ -284,12 +286,12 @@ export function DocumentDetailClient({
             </div>
           )}
         </CardContent>
-      </Card>
+      </HubCard>
 
       {/* Send */}
       {!locked && (
-        <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-          <CardHeader><CardTitle>Send to client</CardTitle></CardHeader>
+        <HubCard padded={false}>
+          <HubCardHeader title="Send to client" className="px-5 pt-5" />
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Email the client their signing link, or copy it to send manually (text, WhatsApp, etc.).
@@ -332,15 +334,15 @@ export function DocumentDetailClient({
             <div className="flex items-center gap-2">
               <Input readOnly value={signUrl} className="font-mono text-xs" />
             </div>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </HubCard>
       )}
 
       {deliveryHistory && (
-        <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-          <CardHeader><CardTitle>Delivery history</CardTitle></CardHeader>
+        <HubCard padded={false}>
+          <HubCardHeader title="Delivery history" className="px-5 pt-5" />
           <CardContent>{deliveryHistory}</CardContent>
-        </Card>
+        </HubCard>
       )}
     </div>
   );

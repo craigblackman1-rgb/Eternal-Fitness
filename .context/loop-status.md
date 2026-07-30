@@ -51,4 +51,5 @@
 2026-07-30T15:41Z | lane1-token-fixes | Unit 2: EmptyState icon circle restyle — 64px bg-rose/10→48px bg-[var(--hub-hover)] text-rose/50→text-[var(--color-muted-text)] | PASS (tsc clean)
 2026-07-30T15:41Z | lane1-token-fixes | Unit 3: HubCardHeader amber icon colour — added --color-amber-text: #B0713A token in app/globals.css, updated HubCardHeader amber variant to use text-[var(--color-amber-text)] (11 call sites auto-pickup, base --color-amber/marketing site untouched) | PASS (tsc clean)
 2026-07-30T15:41Z | lane1-token-fixes | Unit 4: Reports/Updates KPI band — replaced hand-rolled iconTone/deltaToneStyles render with 4x KpiTile (statusToken primary/warning/success/neutral), data calculations untouched | PASS (tsc clean)
+2026-07-30T15:54Z | lane6-document-detail | DocumentDetailClient.tsx | PASS (tsc clean + next build clean) — 6 Card/CardHeader/CardTitle call sites swapped to HubCard/HubCardHeader (Edit doc, Consent choices, Responses, Signatures, Send to client, Delivery history). CardContent retained. All 6 actions still present and wired: Save, Delete, New version, Sign as trainer, Send/Resend email, Copy link.
 
