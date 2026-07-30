@@ -18,6 +18,10 @@ import {
   IconClock,
   IconEye,
   IconX,
+  IconShieldCheck,
+  IconCheckCircle,
+  IconCheck,
+  IconUsers,
 } from "@/components/icons";
 import { toast } from "sonner";
 import type {
@@ -27,9 +31,10 @@ import type {
   ImprovementEntry,
 } from "@/types";
 
-type TabId = "register" | "sops" | "log";
+type TabId = "overview" | "register" | "sops" | "log";
 
 const TABS: { id: TabId; label: string }[] = [
+  { id: "overview", label: "Overview" },
   { id: "register", label: "Process Register" },
   { id: "sops", label: "SOPs" },
   { id: "log", label: "Improvement Log" },
@@ -37,10 +42,23 @@ const TABS: { id: TabId; label: string }[] = [
 
 const STATUS_OPTIONS: ProcessStatus[] = ["active", "draft", "review", "archived"];
 
+export interface OverviewData {
+  totalClients: number;
+  clearClients: number;
+  medicalClearanceValid: number;
+  clearanceAtRiskClients: { name: string; reason: string; status: string }[];
+  overdueReviewClients: { name: string; dueDate: string }[];
+  activeEquipment: number;
+  totalEquipment: number;
+  reviewsDue: number;
+  sopCount: number;
+}
+
 interface ProcessQualityManagerProps {
   initialProcessEntries: ProcessEntry[];
   initialSops: Sop[];
   initialImprovementLog: ImprovementEntry[];
+  overviewData?: OverviewData;
 }
 
 /** Map a register status to a hub status token for the shared badge tokens. */
@@ -74,8 +92,9 @@ export function ProcessQualityManager({
   initialProcessEntries,
   initialSops,
   initialImprovementLog,
+  overviewData,
 }: ProcessQualityManagerProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("register");
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   const processCount = initialProcessEntries.length;
   const sopCount = initialSops.length;
@@ -147,6 +166,9 @@ export function ProcessQualityManager({
         })}
       </div>
 
+      {activeTab === "overview" && overviewData && (
+        <OverviewSection data={overviewData} />
+      )}
       {activeTab === "register" && (
         <RegisterSection initial={initialProcessEntries} />
       )}
@@ -843,5 +865,141 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
         </div>
       )}
     </HubCard>
+  );
+}
+
+// ─── Overview ─────────────────────────────────────────────────────────────────
+
+function OverviewSection({ data }: { data: OverviewData }) {
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+        <KpiTile
+          statusToken="primary"
+          icon={<IconUsers className="w-5 h-5" />}
+          label="Onboarding complete"
+          value={`${data.clearClients} / ${data.totalClients}`}
+        />
+        <KpiTile
+          statusToken="success"
+          icon={<IconCheckCircle className="w-5 h-5" />}
+          label="Medical clearance valid"
+          value={`${data.medicalClearanceValid} / ${data.totalClients}`}
+        />
+        <KpiTile
+          statusToken={data.reviewsDue > 0 ? "warning" : "success"}
+          icon={<IconClock className="w-5 h-5" />}
+          label="Reviews due"
+          value={data.reviewsDue}
+        />
+        <KpiTile
+          statusToken="neutral"
+          icon={<IconFileText className="w-5 h-5" />}
+          label="SOPs current"
+          value={data.sopCount}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconClipboardCheck className="w-4 h-4" />}
+            title="Client onboarding process"
+            subtitle="How every new client is set up"
+            color="rose"
+            divider
+            className="px-5 pt-5"
+          />
+          <div className="divide-y divide-[var(--hub-border)]">
+            <ProcessStep n={1} title="Consultation &amp; goals" desc="Initial call to capture medical history, goals and any referral letters." meta="Owner: Esther · forms: intake, PAR-Q" />
+            <ProcessStep n={2} title="Medical screening" desc="Review GP referral or clearance; flag any red-flag conditions before programming." meta="Owner: Esther · source: Medical tracker" />
+            <ProcessStep n={3} title="Baseline &amp; plan" desc="First session: movement screen, then the Plan Agent builds week 1." meta="Owner: Plan Agent (rules) → Esther sign-off" />
+            <ProcessStep n={4} title="Weekly check-ins" desc="Client logs fatigue/pain; Esther reviews and adapts before the next session." meta="Owner: Client + Esther" />
+            <ProcessStep n={5} title="Review every 6 weeks" desc="Progress review, programme refresh, and re-collect any expiring clearance." meta="Owner: Esther" isLast />
+          </div>
+        </HubCard>
+
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconShieldCheck className="w-4 h-4" />}
+            title="Pre-session quality checks"
+            subtitle="Safeguarding &amp; readiness"
+            color="teal"
+            divider
+            className="px-5 pt-5"
+          />
+          <div className="divide-y divide-[var(--hub-border)]">
+            <ChecklistRow
+              checked={data.medicalClearanceValid === data.totalClients && data.totalClients > 0}
+              title="Medical clearance valid"
+              desc="GP letter on file and in date for cardiac / GP-referral clients."
+              count={`${data.medicalClearanceValid} of ${data.totalClients}`}
+            />
+            <ChecklistRow
+              checked={data.activeEquipment === data.totalEquipment && data.totalEquipment > 0}
+              title="Equipment available"
+              desc="Items are active and not flagged for maintenance."
+              count={data.totalEquipment > 0 ? `${data.activeEquipment} of ${data.totalEquipment}` : "—"}
+            />
+            {data.clearanceAtRiskClients.map((c, i) => (
+              <ChecklistRow
+                key={`clearance-${i}`}
+                checked={false}
+                title={`${c.name} — clearance renewal`}
+                desc={c.reason}
+                count="Open"
+                urgent={c.status === "do_not_train"}
+              />
+            ))}
+            {data.overdueReviewClients.map((c, i) => (
+              <ChecklistRow
+                key={`overdue-${i}`}
+                checked={false}
+                title={`${c.name} — overdue review`}
+                desc={`Annual review was due ${new Date(c.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.`}
+                count="Open"
+                urgent
+              />
+            ))}
+            {data.totalClients === 0 && data.totalEquipment === 0 && data.clearanceAtRiskClients.length === 0 && data.overdueReviewClients.length === 0 && (
+              <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+                No client or equipment data loaded.
+              </div>
+            )}
+          </div>
+        </HubCard>
+      </div>
+    </div>
+  );
+}
+
+function ProcessStep({ n, title, desc, meta, isLast }: { n: number; title: string; desc: string; meta: string; isLast?: boolean }) {
+  return (
+    <div className="flex gap-3.5 px-5 py-3.5 relative">
+      <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold bg-[var(--status-primary-bg)] text-[var(--status-primary)] z-[1]">
+        {n}
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-[13px] text-muted-foreground">{desc}</p>
+        <p className="text-xs text-muted-foreground mt-1">{meta}</p>
+      </div>
+      {!isLast && <div className="absolute left-[20px] top-[42px] bottom-0 w-px bg-[var(--hub-section-border)]" />}
+    </div>
+  );
+}
+
+function ChecklistRow({ checked, title, desc, count, urgent }: { checked: boolean; title: string; desc: string; count: string; urgent?: boolean }) {
+  return (
+    <div className="flex items-start gap-3 px-5 py-3">
+      <div className={`w-5 h-5 rounded-md border shrink-0 flex items-center justify-center mt-px ${checked ? "bg-[var(--status-success)] border-[var(--status-success)] text-white" : "border-[var(--hub-field-border)]"}`}>
+        {checked && <IconCheck className="w-3 h-3" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[13.5px] font-medium text-foreground">{title}</p>
+        <p className="text-[13px] text-muted-foreground">{desc}</p>
+      </div>
+      <span className={`shrink-0 text-xs font-semibold ml-auto ${urgent ? "text-[var(--status-danger)]" : "text-muted-foreground"}`}>{count}</span>
+    </div>
   );
 }
