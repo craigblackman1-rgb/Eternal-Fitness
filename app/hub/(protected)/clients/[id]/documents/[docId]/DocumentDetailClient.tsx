@@ -129,7 +129,7 @@ export function DocumentDetailClient({
           </div>
         </div>
         {locked && (
-          <Button variant="outline" onClick={newVersion} disabled={busy !== null} className="rounded-full gap-1.5">
+          <Button variant="outline" onClick={newVersion} disabled={busy !== null} className="rounded-lg gap-1.5">
             <IconFileText className="h-4 w-4" />
             {busy === "version" ? "…" : "New version"}
           </Button>
@@ -138,7 +138,7 @@ export function DocumentDetailClient({
           variant="outline"
           onClick={deleteDoc}
           disabled={busy !== null}
-          className="rounded-full gap-1.5 text-muted-foreground hover:text-destructive"
+          className="rounded-lg gap-1.5 text-muted-foreground hover:text-destructive"
         >
           <IconTrash2 className="h-4 w-4" />
           {busy === "delete" ? "…" : "Delete"}
@@ -156,7 +156,7 @@ export function DocumentDetailClient({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{locked ? "Document" : "Edit document"}</CardTitle>
           {!locked && (
-            <Button variant="outline" size="sm" onClick={save} disabled={saving} className="rounded-full gap-1.5">
+            <Button variant="outline" size="sm" onClick={save} disabled={saving} className="rounded-lg gap-1.5">
               <IconSave className="h-4 w-4" />{saving ? "Saving…" : "Save"}
             </Button>
           )}
@@ -276,7 +276,7 @@ export function DocumentDetailClient({
                     <Label className="text-xs">Type your signature</Label>
                     <Input value={trainerSig} onChange={(e) => setTrainerSig(e.target.value)} placeholder={trainerName} className="w-64" />
                   </div>
-                  <Button onClick={signAsTrainer} disabled={busy !== null} className="bg-teal hover:bg-teal/90 text-white rounded-full">
+                  <Button onClick={signAsTrainer} disabled={busy !== null} className="bg-teal hover:bg-teal/90 text-white rounded-lg">
                     {busy === "trainer-sign" ? "…" : "Sign as trainer"}
                   </Button>
                 </div>
@@ -306,7 +306,7 @@ export function DocumentDetailClient({
                 <Button
                   onClick={sendEmail}
                   disabled={busy !== null}
-                  className="rounded-full gap-1.5 bg-rose hover:bg-rose/90 text-white shrink-0"
+                  className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white shrink-0"
                 >
                   {busy === "send-email" ? "…" : (
                     <>
@@ -316,11 +316,11 @@ export function DocumentDetailClient({
                   )}
                 </Button>
               ) : (
-                <Button disabled className="rounded-full gap-1.5 bg-rose/60 text-white shrink-0 cursor-not-allowed">
+                <Button disabled className="rounded-lg gap-1.5 bg-rose/60 text-white shrink-0 cursor-not-allowed">
                   <IconMail className="h-4 w-4" />Send email to client
                 </Button>
               )}
-              <Button onClick={copyLink} disabled={busy !== null} variant="outline" className="rounded-full gap-1.5 shrink-0">
+              <Button onClick={copyLink} disabled={busy !== null} variant="outline" className="rounded-lg gap-1.5 shrink-0">
                 <IconCopy className="h-4 w-4" />Copy link
               </Button>
             </div>

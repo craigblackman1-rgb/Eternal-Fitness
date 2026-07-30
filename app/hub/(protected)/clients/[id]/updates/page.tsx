@@ -53,7 +53,7 @@ export default async function UpdatesHistoryPage({ params }: { params: { id: str
           <p className="text-muted-foreground">{client.name}</p>
         </div>
         <Link href={`/hub/clients/${params.id}/updates/new`}>
-          <Button className="rounded-full gap-1.5 bg-rose hover:bg-rose/90 text-white">
+          <Button className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
             <IconPlus className="h-4 w-4" />
             New Update
           </Button>

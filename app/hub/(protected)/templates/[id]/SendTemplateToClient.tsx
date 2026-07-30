@@ -60,7 +60,7 @@ export function SendTemplateToClient({ kind, clients }: { kind: DocumentKind; cl
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={create} disabled={busy} className="rounded-full gap-1.5 bg-rose hover:bg-rose/90 text-white">
+        <Button onClick={create} disabled={busy} className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
           <IconSend className="h-4 w-4" />
           {busy ? "Creating…" : "Create document"}
         </Button>

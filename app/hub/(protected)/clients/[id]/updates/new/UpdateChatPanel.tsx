@@ -118,7 +118,7 @@ export function UpdateChatPanel({
         <Button
           onClick={handleCreateDraft}
           disabled={generating || streaming}
-          className="rounded-full gap-1.5 bg-rose hover:bg-rose/90 text-white"
+          className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white"
         >
           {generating ? <IconLoader2 className="h-4 w-4 animate-spin" /> : <IconSparkles className="h-4 w-4" />}
           Create Draft

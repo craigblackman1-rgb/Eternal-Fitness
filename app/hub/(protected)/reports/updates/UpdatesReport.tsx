@@ -353,13 +353,13 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
                       </td>
                       <td className="py-3 px-3 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="outline" size="sm" className="rounded-full gap-1.5 h-8" onClick={() => setPreview(u)}>
+                          <Button variant="outline" size="sm" className="rounded-lg gap-1.5 h-8" onClick={() => setPreview(u)}>
                             <IconEye className="h-3.5 w-3.5" />
                             Preview
                           </Button>
                           {editable(u.status) && u.client && (
                             <Link href={`/hub/clients/${u.client.client_number}/updates/${u.id}/edit`}>
-                              <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0" title="Edit">
+                              <Button variant="ghost" size="sm" className="rounded-lg h-8 w-8 p-0" title="Edit">
                                 <IconEdit3 className="h-3.5 w-3.5" />
                               </Button>
                             </Link>
@@ -367,7 +367,7 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="rounded-full h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                            className="rounded-lg h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                             title="Delete"
                             onClick={() => handleDelete(u)}
                             disabled={deleting === u.id}
@@ -412,13 +412,13 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
               {editable(preview.status) && preview.client && (
                 <div className="flex items-center justify-end gap-2">
                   <Link href={`/hub/clients/${preview.client.client_number}/updates/${preview.id}/edit`}>
-                    <Button variant="outline" size="sm" className="rounded-full gap-1.5">
+                    <Button variant="outline" size="sm" className="rounded-lg gap-1.5">
                       <IconEdit3 className="h-3.5 w-3.5" />
                       Edit
                     </Button>
                   </Link>
                   <Link href={`/hub/clients/${preview.client.client_number}/updates/${preview.id}/edit`}>
-                    <Button size="sm" className="rounded-full gap-1.5">
+                    <Button size="sm" className="rounded-lg gap-1.5">
                       <IconSend className="h-3.5 w-3.5" />
                       Send now
                     </Button>

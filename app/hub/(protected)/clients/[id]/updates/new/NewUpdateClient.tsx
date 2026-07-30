@@ -548,7 +548,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
           <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Preview</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => setShowRaw(!showRaw)} className="rounded-full gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => setShowRaw(!showRaw)} className="rounded-lg gap-1.5">
                 {showRaw ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
                 {showRaw ? "Hide HTML" : "View HTML"}
               </Button>
@@ -607,10 +607,10 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                     variant="outline"
                     onClick={handleSchedule}
                     disabled={busy !== null || !scheduledFor}
-                    className="gap-2 rounded-full"
-                  >
-                    <IconClock className="h-4 w-4" />
-                    {busy === "schedule" ? "Scheduling…" : isEdit && existing?.status === "scheduled" ? "Reschedule" : "Schedule send"}
+                  className="gap-2 rounded-lg"
+                    >
+                      <IconClock className="h-4 w-4" />
+                      {busy === "schedule" ? "Scheduling…" : isEdit && existing?.status === "scheduled" ? "Reschedule" : "Schedule send"}
                   </Button>
                 </div>
               </div>

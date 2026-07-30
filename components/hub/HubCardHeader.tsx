@@ -19,7 +19,7 @@ const badgeColors: Record<string, { bg: string; text: string }> = {
   teal: { bg: "bg-teal/10", text: "text-teal" },
   navy: { bg: "bg-dark-navy/10", text: "text-dark-navy" },
   slate: { bg: "bg-slate/10", text: "text-slate" },
-  amber: { bg: "bg-amber/10", text: "text-amber" },
+  amber: { bg: "bg-amber/10", text: "text-[var(--color-amber-text)]" },
 };
 
 /**

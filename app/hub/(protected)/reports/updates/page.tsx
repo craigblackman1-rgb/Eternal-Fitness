@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { IconSend, IconClock, IconEye, IconUsers, IconPlus, IconDownload } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { KpiTile } from "@/components/hub/KpiTile";
 import { UpdatesReport } from "./UpdatesReport";
 import type { UpdateWithClient } from "@/types";
 
@@ -58,48 +59,7 @@ export default async function UpdatesReportPage() {
 
   // ── Tiles ─────────────────────────────────────────────────
 
-  const tiles = [
-    {
-      label: "Sent this month",
-      value: sentThisMonth,
-      icon: IconSend,
-      tone: "rose" as const,
-      delta: monthDelta !== 0 ? (monthDelta > 0 ? `↑${monthDelta}` : `↓${Math.abs(monthDelta)}`) : null,
-      deltaTone: "teal" as const,
-    },
-    {
-      label: "Draft / queued",
-      value: draftQueued,
-      icon: IconClock,
-      tone: "amber" as const,
-      delta: null,
-    },
-    {
-      label: "Open rate",
-      value: `${openRate}%`,
-      icon: IconEye,
-      tone: "teal" as const,
-      delta: null,
-    },
-    {
-      label: "Clients covered",
-      value: clientsCovered,
-      icon: IconUsers,
-      tone: "neutral" as const,
-      delta: null,
-    },
-  ];
-
-  const iconTone: Record<string, string> = {
-    rose: "bg-[var(--status-primary-bg)] text-[var(--status-primary)]",
-    teal: "bg-[var(--status-success-bg)] text-[var(--status-success)]",
-    amber: "bg-[var(--status-warning-bg)] text-[var(--status-warning)]",
-    neutral: "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]",
-  };
-
-  const deltaToneStyles: Record<string, string> = {
-    teal: "bg-[var(--status-success-bg)] text-[var(--status-success)]",
-  };
+  const monthDeltaAbs = Math.abs(monthDelta);
 
   return (
     <div className="space-y-6">
@@ -125,25 +85,32 @@ export default async function UpdatesReportPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {tiles.map((t) => {
-          const Icon = t.icon;
-          return (
-            <div key={t.label} className="bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] shadow-sm p-4 flex items-center gap-3.5">
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${iconTone[t.tone]}`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-muted-foreground leading-none">{t.label}</p>
-                <p className="text-2xl font-bold leading-tight text-foreground mt-1.5 tabular-nums">{t.value}</p>
-              </div>
-              {t.delta && (
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold leading-none ${deltaToneStyles[t.deltaTone ?? "teal"]}`}>
-                  {t.delta}
-                </span>
-              )}
-            </div>
-          );
-        })}
+        <KpiTile
+          icon={<IconSend className="h-5 w-5" />}
+          label="Sent this month"
+          value={sentThisMonth}
+          trend={monthDelta !== 0 ? String(monthDeltaAbs) : undefined}
+          trendUp={monthDelta > 0 ? true : monthDelta < 0 ? false : undefined}
+          statusToken="primary"
+        />
+        <KpiTile
+          icon={<IconClock className="h-5 w-5" />}
+          label="Draft / queued"
+          value={draftQueued}
+          statusToken="warning"
+        />
+        <KpiTile
+          icon={<IconEye className="h-5 w-5" />}
+          label="Open rate"
+          value={`${openRate}%`}
+          statusToken="success"
+        />
+        <KpiTile
+          icon={<IconUsers className="h-5 w-5" />}
+          label="Clients covered"
+          value={clientsCovered}
+          statusToken="neutral"
+        />
       </div>
 
       <UpdatesReport updates={updates} />
