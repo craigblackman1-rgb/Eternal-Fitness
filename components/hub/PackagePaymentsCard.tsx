@@ -88,7 +88,7 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
   };
 
   return (
-    <Card className="bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] shadow-sm">
+    <Card className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm">
       <div className="flex items-center justify-between pr-4">
         <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Package & Payments" color="amber" />
         {!editing && (

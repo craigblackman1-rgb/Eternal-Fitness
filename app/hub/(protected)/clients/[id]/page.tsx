@@ -312,7 +312,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
       {/* ── Tabs ── */}
       <ClientDetailTabs>
-        <TabsList className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
+        <TabsList className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
           <TabsTrigger value="overview" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
             <IconLayoutDashboard className="w-3.5 h-3.5 text-muted-foreground" /> Overview
           </TabsTrigger>

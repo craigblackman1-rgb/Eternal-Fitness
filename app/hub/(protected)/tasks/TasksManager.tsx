@@ -401,10 +401,10 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
           <IconPlus className="h-4 w-4" /> New Task
         </Button>
         {currentUserName && ASSIGNEE_OPTIONS.includes(currentUserName) && (
-          <div className="inline-flex gap-1 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm">
+          <div className="inline-flex gap-0.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[3px] shadow-sm">
             <button
               onClick={() => setShowOnlyMine(true)}
-              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-[7px] px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 showOnlyMine
                   ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground"
                   : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
@@ -414,7 +414,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
             </button>
             <button
               onClick={() => setShowOnlyMine(false)}
-              className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-[7px] px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 !showOnlyMine
                   ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground"
                   : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
@@ -623,7 +623,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       )}
 
       {buckets.length > 0 && (
-        <div className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
+        <div className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
           <button
             onClick={() => setBucketFilter(null)}
             className={`inline-flex items-center gap-2 rounded-lg border-0 px-3.5 py-2 text-sm font-medium transition-colors ${
@@ -714,7 +714,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       )}
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex w-full max-w-full flex-wrap gap-1 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
+        <div className="inline-flex w-full max-w-full flex-wrap gap-1 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
           {DUE_FILTER_OPTIONS.map((opt) => {
             const isActive = dueFilter === opt.key;
             const count = bucketScopedTasks.filter((t) => matchesDueFilter(t, opt.key)).length;
@@ -792,7 +792,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                   columnTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-3.5 hover:border-[var(--hub-field-border-hover)] transition-colors"
+                      className="rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] p-3.5 hover:border-[var(--hub-field-border-hover)] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-bold text-[13.5px] leading-snug text-foreground min-w-0 break-words">

@@ -212,7 +212,7 @@ export default function SiteReviewPage() {
       </div>
 
       <Tabs defaultValue="tasks" className="w-full">
-        <div className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm mb-6">
+        <div className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm mb-6">
           <TabsTrigger value="tasks" className="rounded-lg border-0 px-3.5 py-2 text-sm font-medium data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-[var(--hub-hover)] hover:data-[state=inactive]:text-foreground">
             Tasks ({filteredTasks.length})
           </TabsTrigger>

@@ -257,7 +257,7 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
 
       {/* Day list */}
       <HubCard padded={false}>
-        <div className="p-5">
+        <div className="px-5 pt-4 pb-3">
           <HubCardHeader
             icon={<IconCalendar className="h-4 w-4" />}
             title="Sessions"
@@ -317,7 +317,7 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-[3px]">
                           {entry.blockNumber != null && `Block ${entry.blockNumber} · `}
                           Session {entry.sessionNumber}
                           {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
@@ -341,7 +341,7 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
                           size="sm"
                           variant="ghost"
                           onClick={() => startCancel(entry)}
-                          className="gap-1.5 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="gap-1.5 rounded-lg text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] hover:text-[var(--status-danger)]"
                         >
                           <IconX className="h-3.5 w-3.5" />
                           Cancel
@@ -393,7 +393,7 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
                         size="sm"
                         disabled={busy}
                         onClick={() => saveCancel(entry)}
-                        className="rounded-lg bg-destructive text-white hover:bg-destructive/90"
+                        className="rounded-lg bg-[var(--status-danger)] text-white hover:opacity-90"
                       >
                         Confirm cancel
                       </Button>

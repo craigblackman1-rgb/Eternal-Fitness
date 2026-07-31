@@ -127,7 +127,7 @@ export function HubTable<T>({
           </p>
         )
       ) : (
-        <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+        <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-[var(--hub-border)] hover:bg-transparent">
