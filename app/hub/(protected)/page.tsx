@@ -333,7 +333,7 @@ export default async function DashboardPage() {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground py-2">No check-ins logged yet.</p>
+              <p className="text-sm text-muted-foreground pt-5 pb-1">No check-ins logged yet.</p>
             )}
           </div>
         </HubCard>
@@ -372,7 +372,7 @@ export default async function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground py-2 pb-5">No sessions scheduled this week yet.</p>
+              <p className="text-sm text-muted-foreground pt-5 pb-5">No sessions scheduled this week yet.</p>
             )}
           </div>
         </HubCard>
