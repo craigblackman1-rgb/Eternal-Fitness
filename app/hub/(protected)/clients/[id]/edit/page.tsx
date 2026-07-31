@@ -440,7 +440,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   onChange={(e) => updateProfile("health", { gp_clearance: e.target.checked })}
                   className="sr-only"
                 />
-                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--field-fill)] border-[var(--color-muted-text)]"}`}>
+                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                   {profile.health.gp_clearance && <IconCheck className="w-3.5 h-3.5 text-white" />}
                 </span>
               </span>
@@ -459,7 +459,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                     onChange={(e) => updateProfile("health", { parq_trainer_override: e.target.checked })}
                     className="sr-only"
                   />
-                  <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--field-fill)] border-[var(--color-muted-text)]"}`}>
+                  <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                     {(profile.health.parq_trainer_override ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
                   </span>
                 </span>

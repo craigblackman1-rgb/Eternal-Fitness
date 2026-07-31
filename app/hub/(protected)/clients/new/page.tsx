@@ -231,7 +231,7 @@ export default function NewClientPage() {
                 { value: "both", label: "Both" },
               ]}
             />
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <SegmentedControl
                 legend="Sessions / week"
                 name="sessions_per_week"
@@ -244,17 +244,6 @@ export default function NewClientPage() {
                 ]}
               />
               <div className="space-y-2">
-                <Label>Time Tier</Label>
-                <Select value={profile.logistics.time_tier} onValueChange={(v: "compact" | "standard" | "extended") => updateProfile("logistics", { time_tier: v })}>
-                  <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="compact">Compact (~45m)</SelectItem>
-                    <SelectItem value="standard">Standard (~60m)</SelectItem>
-                    <SelectItem value="extended">Extended (~75-90m)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
                 <Label>Package</Label>
                 <Select value={profile.logistics.package} onValueChange={(v: "12-week" | "24-week" | "ongoing") => updateProfile("logistics", { package: v })}>
                   <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
@@ -266,6 +255,17 @@ export default function NewClientPage() {
                 </Select>
               </div>
             </div>
+            <SegmentedControl
+              legend="Time tier"
+              name="time_tier"
+              value={profile.logistics.time_tier}
+              onChange={(v) => updateProfile("logistics", { time_tier: v })}
+              options={[
+                { value: "compact", label: "Compact", sub: "~45m" },
+                { value: "standard", label: "Standard", sub: "~60m" },
+                { value: "extended", label: "Extended", sub: "~75–90m" },
+              ]}
+            />
           </div>
         </HubCard>
 
