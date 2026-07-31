@@ -24,7 +24,7 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-muted-foreground truncate">{label}</p>
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
         <p className="text-2xl font-bold tabular-nums text-foreground leading-tight">{value}</p>
       </div>
       {trend && (
