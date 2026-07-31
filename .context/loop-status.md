@@ -58,3 +58,21 @@
 2026-07-30T16:20Z | g5-process-quality-dashboard | ProcessQualityManager.tsx + page.tsx | PASS (tsc clean + next build Compiled successfully). Overview tab added as first tab before Process Register. KPI band: 4 tiles — (1) Onboarding complete (clear/total clients), (2) Medical clearance valid (gp_clearance-met/total), (3) Reviews due (process review status + overdue annual_review_due_date), (4) SOPs current. Static Onboarding Process card (5 steps, matching mockup copy). Pre-session Quality Checks card with real data: Medical clearance valid (compliance flags), Equipment available (studio_equipment active flags), named at-risk clients (clearance+overdue review). DROPPED: (1) "Checks passed" KPI tile replaced with "Medical clearance valid" — mockup's composite 11/12 depends on "Plan signed off" which has no real signal in codebase. (2) "Plan signed off" checklist row dropped — same reason. (3) "Sam H. — overdue review" mockup row — replaced with real overdueReviewClients from annual_review_due_date. All data from real sources: computeComplianceFlags, studio_equipment.active, process_entries status, client annual_review_due_date. Existing tabs (Process Register, SOPs, Improvement Log) untouched. Not committed, not pushed.
 
 2026-07-30T16:31Z | g6-sop-backport | ProcessQualityManager.tsx | PASS — SopDetailModal backport: 6-cell meta-grid (Owner/Applies-to/Review-date/Linked-client/Source/Status all backed by new DB columns via migration 20260730_sops_meta_fields.sql, not yet run), Duplicate action button in modal header, sections 4/5 (What good looks like / Prompt template) untouched. Register/SOPs list/Improvement Log/Overview tabs untouched. DB migration written (5 nullable text cols + status), npx tsc clean, next build passed. Ready for migration run + merge.
+
+2026-07-31T11:40Z | LANE C: hub-parity-c-content | BRANCH: claude/hub-parity-c-content | 3 pages brought to template parity in 3 commits. All tsc clean, no undefined CSS vars, no raw hex introduced, no icon-only buttons without accessible names, no data/logic/route changes.
+
+PAGES DONE:
+- hub-site-content.html → site-content/page.tsx + site-content-table.tsx (36063bd)
+- hub-site-content-editor.html → site-content/[slug]/page.tsx + site-content-editor.tsx (8b5c4d4)
+- hub-reports-updates.html → reports/updates/page.tsx + UpdatesReport.tsx (2b43783)
+
+TEMPLATE FIXES NEEDED:
+- hub-site-content.html — Page heading uses 24px/700; HubPageHeader shared component renders 20px/600. Shared component wins per §5 rule 3.
+
+FEATURES AHEAD OF TEMPLATE:
+- reports-updates — Extra "Failed" status filter tab not in the template; table columns show Subject instead of Week+Sent split; "Logged only" badge on sent-but-not-emailed rows; open-rate tracking display. All kept per §5 rule 4.
+- reports-updates — Preview panel is shadcn Dialog (app) vs slide-in drawer (template). Structural difference — not restyled, recorded to avoid a full component rewrite that would violate §9.
+
+BLOCKERS: none
+
+TYPECHECK: clean
