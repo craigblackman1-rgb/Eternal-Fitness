@@ -274,11 +274,11 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
                       aria-label="Select all"
                     />
                   </th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wide px-5 h-10">Client</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wide px-5 h-10">Programme</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wide px-5 h-10">Subject</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wide px-5 h-10">When</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wide px-5 h-10">Status</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Client</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Programme</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Subject</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">When</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Status</th>
                   <th className="px-5 h-10"></th>
                 </tr>
               </thead>
