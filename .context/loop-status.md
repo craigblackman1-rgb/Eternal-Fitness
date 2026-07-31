@@ -58,3 +58,23 @@
 2026-07-30T16:20Z | g5-process-quality-dashboard | ProcessQualityManager.tsx + page.tsx | PASS (tsc clean + next build Compiled successfully). Overview tab added as first tab before Process Register. KPI band: 4 tiles — (1) Onboarding complete (clear/total clients), (2) Medical clearance valid (gp_clearance-met/total), (3) Reviews due (process review status + overdue annual_review_due_date), (4) SOPs current. Static Onboarding Process card (5 steps, matching mockup copy). Pre-session Quality Checks card with real data: Medical clearance valid (compliance flags), Equipment available (studio_equipment active flags), named at-risk clients (clearance+overdue review). DROPPED: (1) "Checks passed" KPI tile replaced with "Medical clearance valid" — mockup's composite 11/12 depends on "Plan signed off" which has no real signal in codebase. (2) "Plan signed off" checklist row dropped — same reason. (3) "Sam H. — overdue review" mockup row — replaced with real overdueReviewClients from annual_review_due_date. All data from real sources: computeComplianceFlags, studio_equipment.active, process_entries status, client annual_review_due_date. Existing tabs (Process Register, SOPs, Improvement Log) untouched. Not committed, not pushed.
 
 2026-07-30T16:31Z | g6-sop-backport | ProcessQualityManager.tsx | PASS — SopDetailModal backport: 6-cell meta-grid (Owner/Applies-to/Review-date/Linked-client/Source/Status all backed by new DB columns via migration 20260730_sops_meta_fields.sql, not yet run), Duplicate action button in modal header, sections 4/5 (What good looks like / Prompt template) untouched. Register/SOPs list/Improvement Log/Overview tabs untouched. DB migration written (5 nullable text cols + status), npx tsc clean, next build passed. Ready for migration run + merge.
+
+2026-07-31T~12:00Z | LANE D | branch claude/hub-parity-d-settings
+PAGES DONE:
+  process-quality/ProcessQualityManager.tsx (d09ed2b),
+  settings/plan-agent/PlanAgentSettingsManager.tsx (2ba15b7),
+  settings/studio-equipment/EquipmentManager.tsx (278b42b),
+  settings/training-rules/TrainingRuleTypesManager.tsx — at parity (no changes needed),
+  hub-sop.html → SopDetailModal — confirmed mapping, at parity after prior backport (53bfff7)
+TEMPLATE FIXES NEEDED: none
+FEATURES AHEAD OF TEMPLATE:
+  process-quality — tabbed layout (Overview/Register/SOPs/Log), real-data quality checks, SOP detail sections 4/5 ("What good looks like"/"Prompt template") deliberately kept instead of template's generic "Checks & acceptance"/"Notes"
+  plan-agent-settings — template note confirms built from app; four editor shapes (pace-mode table, keyed phase fields, free-text deload criteria, one-per-line principles) all live in PlanAgentSettingsManager.tsx
+BLOCKERS: none
+TYPECHECK: clean
+PER-PAGE DELTAS:
+  ProcessQualityManager.tsx: 1) "Add process/Add SOP/Log improvement" buttons were variant="outline" — changed to rose-filled primary (§4.1). 2) Save buttons in all 3 forms used default shadcn styling — changed to rose-filled (§4.1). 3) Native <select> in process + SOP forms used weaker border tokens — matched hub field tokens per tasks-page precedent (§4.3). 4) Delete buttons used permanent text-destructive — changed to muted, red on hover (§4.5). 5) All icon-only edit/delete/view buttons lacked aria-label — added (§4.6). 6) KPI "Onboarding complete" tile now shows 100% trend badge when all clients cleared (template parity).
+  PlanAgentSettingsManager.tsx: 1) ListEditor (core_principles, section "General") used amber/IconClipboardCheck — corrected to slate/IconBot per SECTION_COLORS map. 2) KeyedTextEditor used hardcoded slate/IconBot for both Block Planning and Archetypes — changed to resolve from setting.section via SECTION_COLORS/SECTION_ICONS maps. 3) Pace-modes table headers now match hub-wide convention (text-[11px] font-semibold uppercase tracking-wide h-10).
+  EquipmentManager.tsx: delete <button> lacked aria-label — added (§4.6). All other checks passed (rose-filled primary, muted→danger-on-hover delete, hub field tokens on inputs, no undefined vars, no raw hex).
+  TrainingRuleTypesManager.tsx: verified all 8 known-drift checks pass — rose-filled primary buttons, correct badge status tokens, no undefined vars, no raw hex, no permanently-red destructive actions, no icon-only buttons without labels. At parity. No changes.
+  hub-sop.html → SopDetailModal: backport commit 53bfff7 already expanded meta-grid to 6 cells, added Duplicate button, added StatusBadge. Sections 4/5 ("What good looks like"/"Prompt template") are real Plan Agent features kept over template's generic "Checks & acceptance"/"Notes" per §5.4. Modal matches template structure 1:1. No remaining deltas.
