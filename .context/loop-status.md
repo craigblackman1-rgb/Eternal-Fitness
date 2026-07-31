@@ -133,4 +133,24 @@ BLOCKERS: none
 
 TYPECHECK: clean
 
+---
+
+2026-07-31T~12:00Z | LANE D | branch claude/hub-parity-d-settings
+PAGES DONE:
+  process-quality/ProcessQualityManager.tsx (d09ed2b),
+  settings/plan-agent/PlanAgentSettingsManager.tsx (2ba15b7),
+  settings/studio-equipment/EquipmentManager.tsx (278b42b),
+  settings/training-rules/TrainingRuleTypesManager.tsx — at parity (no changes needed),
+  hub-sop.html → SopDetailModal — confirmed mapping, at parity after prior backport (53bfff7)
+TEMPLATE FIXES NEEDED: none
+FEATURES AHEAD OF TEMPLATE:
+  process-quality — tabbed layout (Overview/Register/SOPs/Log), real-data quality checks, SOP detail sections 4/5 ("What good looks like"/"Prompt template") deliberately kept instead of template's generic "Checks & acceptance"/"Notes"
+  plan-agent-settings — template note confirms built from app; four editor shapes (pace-mode table, keyed phase fields, free-text deload criteria, one-per-line principles) all live in PlanAgentSettingsManager.tsx
+BLOCKERS: none
 TYPECHECK: clean
+PER-PAGE DELTAS:
+  ProcessQualityManager.tsx: 1) "Add process/Add SOP/Log improvement" buttons were variant="outline" — changed to rose-filled primary (§4.1). 2) Save buttons in all 3 forms used default shadcn styling — changed to rose-filled (§4.1). 3) Native <select> in process + SOP forms used weaker border tokens — matched hub field tokens per tasks-page precedent (§4.3). 4) Delete buttons used permanent text-destructive — changed to muted, red on hover (§4.5). 5) All icon-only edit/delete/view buttons lacked aria-label — added (§4.6). 6) KPI "Onboarding complete" tile now shows 100% trend badge when all clients cleared (template parity).
+  PlanAgentSettingsManager.tsx: 1) ListEditor (core_principles, section "General") used amber/IconClipboardCheck — corrected to slate/IconBot per SECTION_COLORS map. 2) KeyedTextEditor used hardcoded slate/IconBot for both Block Planning and Archetypes — changed to resolve from setting.section via SECTION_COLORS/SECTION_ICONS maps. 3) Pace-modes table headers now match hub-wide convention (text-[11px] font-semibold uppercase tracking-wide h-10).
+  EquipmentManager.tsx: delete <button> lacked aria-label — added (§4.6). All other checks passed (rose-filled primary, muted→danger-on-hover delete, hub field tokens on inputs, no undefined vars, no raw hex).
+  TrainingRuleTypesManager.tsx: verified all 8 known-drift checks pass — rose-filled primary buttons, correct badge status tokens, no undefined vars, no raw hex, no permanently-red destructive actions, no icon-only buttons without labels. At parity. No changes.
+  hub-sop.html → SopDetailModal: backport commit 53bfff7 already expanded meta-grid to 6 cells, added Duplicate button, added StatusBadge. Sections 4/5 ("What good looks like"/"Prompt template") are real Plan Agent features kept over template's generic "Checks & acceptance"/"Notes" per §5.4. Modal matches template structure 1:1. No remaining deltas.

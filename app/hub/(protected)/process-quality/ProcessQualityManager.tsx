@@ -276,7 +276,11 @@ function RegisterSection({ initial }: { initial: ProcessEntry[] }) {
         subtitle="Every core process, owned and dated. Plain English, one page per process."
         color="rose"
         action={
-          <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={startAdd}>
+          <Button
+            size="sm"
+            className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold"
+            onClick={startAdd}
+          >
             <IconPlus className="h-4 w-4" /> Add process
           </Button>
         }
@@ -314,7 +318,7 @@ function RegisterSection({ initial }: { initial: ProcessEntry[] }) {
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value as ProcessStatus })}
-                  className="w-full rounded-md border border-[var(--hub-border)] bg-background px-3 py-2 text-sm"
+                  className="h-9 w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
                 >
                   {STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -334,7 +338,7 @@ function RegisterSection({ initial }: { initial: ProcessEntry[] }) {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => { setShowForm(false); setEditing(null); }}>Cancel</Button>
-              <Button onClick={save} disabled={saving}>{editing ? "Save changes" : "Add process"}</Button>
+              <Button className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={save} disabled={saving}>{editing ? "Save changes" : "Add process"}</Button>
             </div>
           </div>
         </div>
@@ -373,8 +377,8 @@ function RegisterSection({ initial }: { initial: ProcessEntry[] }) {
                   <td className="px-5 py-2.5 font-mono text-xs text-muted-foreground">{item.sop_ref ?? "—"}</td>
                   <td className="px-5 py-2.5">
                     <div className="flex justify-end gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => startEdit(item)}><IconPencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" className="text-destructive" onClick={() => remove(item)}><IconTrash2 className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => startEdit(item)} aria-label={`Edit ${item.ref}`}><IconPencil className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-[var(--status-danger)]" onClick={() => remove(item)} aria-label={`Delete ${item.ref}`}><IconTrash2 className="h-4 w-4" /></Button>
                     </div>
                   </td>
                 </tr>
@@ -544,7 +548,11 @@ function SopsSection({ initial }: { initial: Sop[] }) {
         subtitle="What it does · Trigger · Steps · Owner · What good looks like — one page per process."
         color="teal"
         action={
-          <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={startAdd}>
+          <Button
+            size="sm"
+            className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold"
+            onClick={startAdd}
+          >
             <IconPlus className="h-4 w-4" /> Add SOP
           </Button>
         }
@@ -606,7 +614,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="h-9 w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
                 >
                   <option value="active">Active</option>
                   <option value="draft">Draft</option>
@@ -639,7 +647,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => { setShowForm(false); setEditing(null); }}>Cancel</Button>
-              <Button onClick={save} disabled={saving}>{editing ? "Save changes" : "Add SOP"}</Button>
+              <Button className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={save} disabled={saving}>{editing ? "Save changes" : "Add SOP"}</Button>
             </div>
           </div>
         </div>
@@ -665,8 +673,8 @@ function SopsSection({ initial }: { initial: Sop[] }) {
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <Button size="icon" variant="ghost" onClick={() => setViewing(item)} aria-label={`View ${item.ref}`}><IconEye className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => startEdit(item)}><IconPencil className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => remove(item)}><IconTrash2 className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" onClick={() => startEdit(item)} aria-label={`Edit ${item.ref}`}><IconPencil className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-[var(--status-danger)]" onClick={() => remove(item)} aria-label={`Delete ${item.ref}`}><IconTrash2 className="h-4 w-4" /></Button>
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{item.what}</p>
@@ -892,7 +900,11 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
         subtitle="What broke · What changed · What the result was — the Kaizen loop without the ceremony."
         color="amber"
         action={
-          <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={startAdd}>
+          <Button
+            size="sm"
+            className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold"
+            onClick={startAdd}
+          >
             <IconPlus className="h-4 w-4" /> Log improvement
           </Button>
         }
@@ -932,7 +944,7 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => { setShowForm(false); setEditing(null); }}>Cancel</Button>
-              <Button onClick={save} disabled={saving}>{editing ? "Save changes" : "Log improvement"}</Button>
+              <Button className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={save} disabled={saving}>{editing ? "Save changes" : "Log improvement"}</Button>
             </div>
           </div>
         </div>
@@ -955,8 +967,8 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
                 <span className="font-semibold text-foreground flex-1 truncate">{item.title}</span>
                 {item.process_ref && <span className="font-mono text-xs text-muted-foreground">→ {item.process_ref}</span>}
                 <div className="flex gap-1 shrink-0">
-                  <Button size="icon" variant="ghost" onClick={() => startEdit(item)}><IconPencil className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" className="text-destructive" onClick={() => remove(item)}><IconTrash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => startEdit(item)} aria-label={`Edit ${item.ref}`}><IconPencil className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-[var(--status-danger)]" onClick={() => remove(item)} aria-label={`Delete ${item.ref}`}><IconTrash2 className="h-4 w-4" /></Button>
                 </div>
               </div>
               <div className="mt-3 grid gap-3 md:grid-cols-3">
@@ -992,6 +1004,7 @@ function OverviewSection({ data }: { data: OverviewData }) {
           icon={<IconUsers className="w-5 h-5" />}
           label="Onboarding complete"
           value={`${data.clearClients} / ${data.totalClients}`}
+          trend={data.totalClients > 0 && data.clearClients === data.totalClients ? "100%" : undefined}
         />
         <KpiTile
           statusToken="success"
