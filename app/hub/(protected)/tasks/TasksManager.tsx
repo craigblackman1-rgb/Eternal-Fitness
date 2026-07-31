@@ -45,7 +45,22 @@ const STATUS_ICON: Record<TaskStatus, React.ReactNode> = {
   done: <IconCheckCircle className="w-4 h-4" />,
 };
 
+// DESIGN.md §2: neutral = not started, rose = primary/in-flight, teal =
+// success/complete. Amber is reserved for warnings (see the due-soon card).
+const STATUS_COLOR: Record<TaskStatus, "slate" | "rose" | "teal"> = {
+  todo: "slate",
+  in_progress: "rose",
+  done: "teal",
+};
+
 const ASSIGNEE_OPTIONS = ["Unassigned", "Esther Fair", "Craig Blackman"];
+
+// The .hub-shell field-border rule in globals.css covers input/textarea/combobox
+// but not native <select>, so these were rendering a shade lighter than the
+// <Input> sitting next to them in the same row. Set explicitly to match.
+const SELECT_CLASS =
+  "h-9 w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground " +
+  "hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30";
 
 const DUE_FILTER_OPTIONS: { key: DueFilter; label: string }[] = [
   { key: "all", label: "All" },
@@ -378,7 +393,11 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Button size="sm" variant="outline" className="gap-1.5 rounded-lg" onClick={startAdd}>
+        <Button
+          size="sm"
+          className="gap-1.5 rounded-lg bg-rose text-white hover:bg-rose/90"
+          onClick={startAdd}
+        >
           <IconPlus className="h-4 w-4" /> New Task
         </Button>
         {currentUserName && ASSIGNEE_OPTIONS.includes(currentUserName) && (
@@ -435,8 +454,8 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                   onClick={() => startEdit(task)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     bucket === "overdue"
-                      ? "border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]"
-                      : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground hover:text-foreground"
+                      ? "border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger)] hover:border-[var(--status-danger)]"
+                      : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground hover:border-[var(--hub-field-border-hover)] hover:text-foreground"
                   }`}
                 >
                   <span className="max-w-[16rem] truncate">{task.title}</span>
@@ -474,7 +493,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                 <select
                   value={form.assignee}
                   onChange={(e) => setForm({ ...form, assignee: e.target.value })}
-                  className="w-full rounded-md border border-[var(--hub-border)] bg-background px-3 py-2 text-sm"
+                  className={SELECT_CLASS}
                 >
                   {ASSIGNEE_OPTIONS.map((a) => (
                     <option key={a} value={a}>
@@ -498,7 +517,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                       setForm({ ...form, bucket_id: e.target.value });
                     }
                   }}
-                  className="w-full rounded-md border border-[var(--hub-border)] bg-background px-3 py-2 text-sm"
+                  className={SELECT_CLASS}
                 >
                   <option value="">No bucket</option>
                   {buckets.map((b) => (
@@ -572,7 +591,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                   onChange={(e) =>
                     setForm({ ...form, status: e.target.value as TaskStatus })
                   }
-                  className="w-full rounded-md border border-[var(--hub-border)] bg-background px-3 py-2 text-sm"
+                  className={SELECT_CLASS}
                 >
                   {STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>
@@ -729,7 +748,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
           <select
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="rounded-md border border-[var(--hub-border)] bg-background px-2.5 py-1.5 text-sm"
+            className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
           >
             <option value="due_date">Due date</option>
             <option value="created_at">Date created</option>
@@ -761,13 +780,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                 icon={STATUS_ICON[status]}
                 title={STATUS_LABELS[status]}
                 subtitle={`${columnTasks.length} task${columnTasks.length !== 1 ? "s" : ""}`}
-                color={
-                  status === "todo"
-                    ? "amber"
-                    : status === "in_progress"
-                      ? "teal"
-                      : "rose"
-                }
+                color={STATUS_COLOR[status]}
                 className="px-5 pt-5"
               />
               <div className="px-5 pb-5 space-y-3">
@@ -782,7 +795,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                       className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-3.5 hover:border-[var(--hub-field-border-hover)] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-semibold text-sm text-foreground min-w-0 break-words">
+                        <p className="font-bold text-[13.5px] leading-snug text-foreground min-w-0 break-words">
                           {task.title}
                         </p>
                         <div className="flex gap-0.5 shrink-0">
@@ -817,14 +830,16 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                             variant="ghost"
                             className="h-7 w-7"
                             onClick={() => startEdit(task)}
+                            aria-label={`Edit "${task.title}"`}
                           >
                             <IconPencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7 text-destructive"
+                            className="h-7 w-7 text-muted-foreground hover:text-[var(--status-danger)]"
                             onClick={() => remove(task)}
+                            aria-label={`Delete "${task.title}"`}
                           >
                             <IconTrash2 className="h-3.5 w-3.5" />
                           </Button>
