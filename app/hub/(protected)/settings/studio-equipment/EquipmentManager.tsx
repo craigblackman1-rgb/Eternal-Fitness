@@ -161,11 +161,12 @@ export function EquipmentManager({ initialEquipment }: EquipmentManagerProps) {
                   </button>
                 </td>
                 <td className="py-3 px-5 text-right">
-                  <button
-                    type="button"
-                    title="Remove"
-                    onClick={() => deleteEquipment(item)}
-                    className="w-[30px] h-[30px] rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground grid place-items-center hover:text-[var(--status-danger)] hover:border-[var(--status-danger-border)] transition-colors"
+                    <button
+                      type="button"
+                      title="Remove"
+                      aria-label={`Delete ${item.name}`}
+                      onClick={() => deleteEquipment(item)}
+                      className="w-[30px] h-[30px] rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground grid place-items-center hover:text-[var(--status-danger)] hover:border-[var(--status-danger-border)] transition-colors"
                   >
                     <IconTrash2 className="w-4 h-4" />
                   </button>
