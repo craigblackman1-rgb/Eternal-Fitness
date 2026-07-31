@@ -119,8 +119,6 @@ const nextConfig = {
       { source: "/cancer-rehabilitation", destination: "/", permanent: false },
       { source: "/exercise-for-health", destination: "/", permanent: false },
       { source: "/exercise-for-health/:path*", destination: "/", permanent: false },
-      // Calorie Calculator pulled from the public site 2026-07-30 — disabled, not deleted.
-      { source: "/calorie-calculator", destination: "/", permanent: false },
     ];
   },
 };
