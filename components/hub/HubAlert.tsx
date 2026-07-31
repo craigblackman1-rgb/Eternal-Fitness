@@ -46,7 +46,7 @@ export function HubAlert({ severity, title, children, action, className }: HubAl
   const { bg, icon, border, Icon } = styles[severity];
 
   return (
-    <div role="status" className={cn("rounded-xl border px-4 py-3", bg, border, className)}>
+    <div role="status" className={cn("rounded-lg border px-4 py-3.5", bg, border, className)}>
       <div className="flex items-start gap-2.5">
         <Icon className={cn("w-[18px] h-[18px] shrink-0 mt-0.5", icon)} />
         <div className="flex-1 min-w-0">

@@ -13,7 +13,7 @@ interface HubCardProps {
  */
 export function HubCard({ children, className, padded = true }: HubCardProps) {
   return (
-    <div className={cn("bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] shadow-sm", className)}>
+    <div className={cn("bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm", className)}>
       {padded ? <div className="p-5">{children}</div> : children}
     </div>
   );
