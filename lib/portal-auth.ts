@@ -85,9 +85,23 @@ export interface PortalSession {
 
 export interface InviteResult {
   email: string;
-  devPasswordNote?: string;
+  password: string;
+  loginUrl: string;
 }
 
+export interface PortalAccountStatus {
+  exists: boolean;
+  email: string | null;
+  disabled: boolean;
+  lastLoginAt: string | null;
+  createdAt: string | null;
+}
+
+/**
+ * Generates (or regenerates) a portal account with a fresh plaintext password
+ * for staff to hand to the client directly. Does not send any email — the
+ * password is only ever surfaced here, once, in the API response.
+ */
 export async function invitePortalAccount(clientId: string): Promise<InviteResult> {
   const pool = getPool();
   const clientRes = await pool.query(
@@ -102,7 +116,7 @@ export async function invitePortalAccount(clientId: string): Promise<InviteResul
   const password = generatePassword();
   const pwHash = hashPassword(password);
 
-  const upsertRes = await pool.query(
+  await pool.query(
     `INSERT INTO portal_accounts (client_id, email, password_hash, disabled_at)
      VALUES ($1, $2, $3, NULL)
      ON CONFLICT (client_id) DO UPDATE
@@ -113,33 +127,29 @@ export async function invitePortalAccount(clientId: string): Promise<InviteResul
      RETURNING id, email`,
     [clientId, email, pwHash],
   );
-  const account = upsertRes.rows[0];
-
-  const { getEmailSender } = await import("@/lib/email");
-  const sender = getEmailSender();
-  const status = (await import("@/lib/email")).getEmailStatus();
-  const dryRun = !status.configured;
-
-  const loginUrl = `${PORTAL_BASE_URL}/portal/login`;
-
-  if (!dryRun) {
-    await sender.send({
-      to: email,
-      subject: "Your Eternal Fitness portal login",
-      html: `
-        <p>Hi ${client.name},</p>
-        <p>Esther has set up your Eternal Fitness client portal account. Here are your login details:</p>
-        <p><strong>Email:</strong> ${email}<br/>
-        <strong>Temporary password:</strong> ${password}</p>
-        <p><a href="${loginUrl}">Sign in to your portal</a></p>
-        <p>Please change your password after your first login for security.</p>
-      `,
-    });
-  }
 
   return {
     email,
-    devPasswordNote: dryRun ? `Dry run — password is: ${password}` : undefined,
+    password,
+    loginUrl: `${PORTAL_BASE_URL}/portal/login`,
+  };
+}
+
+export async function getPortalAccountStatus(clientId: string): Promise<PortalAccountStatus> {
+  const pool = getPool();
+  const res = await pool.query(
+    `SELECT email, disabled_at, last_login_at, created_at
+       FROM portal_accounts WHERE client_id = $1 LIMIT 1`,
+    [clientId],
+  );
+  const row = res.rows[0];
+  if (!row) return { exists: false, email: null, disabled: false, lastLoginAt: null, createdAt: null };
+  return {
+    exists: true,
+    email: row.email,
+    disabled: !!row.disabled_at,
+    lastLoginAt: row.last_login_at,
+    createdAt: row.created_at,
   };
 }
 
