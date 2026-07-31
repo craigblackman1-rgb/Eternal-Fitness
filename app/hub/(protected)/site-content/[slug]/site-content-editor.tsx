@@ -184,14 +184,14 @@ export function SiteContentEditor({
       <div>
         <Link
           href="/hub/site-content"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-2"
+          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted-foreground hover:text-foreground mb-3"
         >
           <IconArrowLeft className="h-4 w-4" />
           Back to site content
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               {keyword.page_title}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -221,7 +221,7 @@ export function SiteContentEditor({
                   handleKeywordChange("primary_keyword", e.target.value || null)
                 }
                 placeholder="e.g. personal training Worthing"
-                className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
               />
             </div>
             <div className="space-y-1.5">
@@ -230,7 +230,7 @@ export function SiteContentEditor({
                 value={keyword.status}
                 onValueChange={(val) => handleKeywordChange("status", val)}
               >
-                <SelectTrigger id="status" className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30">
+                <SelectTrigger id="status" className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus:border-rose focus:ring-rose/30">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -251,7 +251,7 @@ export function SiteContentEditor({
               value={clusterString}
               onChange={(e) => setClusterFromString(e.target.value)}
               placeholder="Comma-separated keywords"
-              className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+              className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
             />
           </div>
           <div className="space-y-1.5">
@@ -264,7 +264,7 @@ export function SiteContentEditor({
               }
               placeholder="Internal notes about this page's SEO strategy..."
               rows={3}
-              className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+              className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
             />
           </div>
           <div className="flex justify-end">
@@ -288,7 +288,7 @@ export function SiteContentEditor({
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">Content blocks</h2>
+            <h2 className="text-[15px] font-bold">Content blocks</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Each block saves independently — edit one at a time.
             </p>
@@ -316,7 +316,7 @@ export function SiteContentEditor({
                     value={newBlockKey}
                     onChange={(e) => setNewBlockKey(e.target.value)}
                     placeholder="e.g. hero_heading"
-                    className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -326,7 +326,7 @@ export function SiteContentEditor({
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     placeholder="e.g. Hero Heading"
-                    className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
                   />
                 </div>
               </div>
@@ -338,7 +338,7 @@ export function SiteContentEditor({
                   onChange={(e) => setNewContent(e.target.value)}
                   rows={3}
                   placeholder="Content..."
-                  className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                  className="border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
                 />
               </div>
               <div className="flex justify-end gap-2">
@@ -393,7 +393,7 @@ export function SiteContentEditor({
                 <HubCard key={block.id}>
                   <div className="flex flex-row items-start justify-between gap-3 pb-3 border-b border-[var(--hub-border)]">
                     <div>
-                      <h3 className="text-base font-semibold text-foreground">{block.label}</h3>
+                      <h3 className="text-sm font-semibold text-foreground">{block.label}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         <span className="font-mono">{block.block_key}</span> &middot; v{block.version}
                         {block.updated_by && (
@@ -431,7 +431,7 @@ export function SiteContentEditor({
                         });
                       }}
                       rows={4}
-                      className="font-mono text-sm border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                      className="font-mono text-sm border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus-visible:border-rose focus-visible:ring-rose/30"
                     />
                   </div>
                 </HubCard>

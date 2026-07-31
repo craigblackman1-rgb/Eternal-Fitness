@@ -112,3 +112,25 @@ BLOCKERS:
   none
 
 TYPECHECK: clean
+
+---
+
+2026-07-31T11:40Z | LANE C: hub-parity-c-content | BRANCH: claude/hub-parity-c-content | 3 pages brought to template parity in 3 commits. All tsc clean, no undefined CSS vars, no raw hex introduced, no icon-only buttons without accessible names, no data/logic/route changes.
+
+PAGES DONE:
+- hub-site-content.html → site-content/page.tsx + site-content-table.tsx (36063bd)
+- hub-site-content-editor.html → site-content/[slug]/page.tsx + site-content-editor.tsx (8b5c4d4)
+- hub-reports-updates.html → reports/updates/page.tsx + UpdatesReport.tsx (2b43783)
+
+TEMPLATE FIXES NEEDED:
+- hub-site-content.html — Page heading uses 24px/700; HubPageHeader shared component renders 20px/600. Shared component wins per §5 rule 3.
+
+FEATURES AHEAD OF TEMPLATE:
+- reports-updates — Extra "Failed" status filter tab not in the template; table columns show Subject instead of Week+Sent split; "Logged only" badge on sent-but-not-emailed rows; open-rate tracking display. All kept per §5 rule 4.
+- reports-updates — Preview panel is shadcn Dialog (app) vs slide-in drawer (template). Structural difference — not restyled, recorded to avoid a full component rewrite that would violate §9.
+
+BLOCKERS: none
+
+TYPECHECK: clean
+
+TYPECHECK: clean
