@@ -170,12 +170,12 @@ function PaceModesEditor({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Mode</th>
-                <th className="text-center py-2 px-3 font-medium text-muted-foreground">Superset A</th>
-                <th className="text-center py-2 px-3 font-medium text-muted-foreground">Superset B</th>
-                <th className="text-center py-2 px-3 font-medium text-muted-foreground">Arms + core</th>
-                <th className="text-center py-2 px-3 font-medium text-muted-foreground">Total</th>
-                <th className="text-center py-2 pl-3 font-medium text-muted-foreground">Finisher</th>
+                <th className="text-left font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-4">Mode</th>
+                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Superset A</th>
+                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Superset B</th>
+                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Arms + core</th>
+                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Total</th>
+                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 pl-3 pr-4">Finisher</th>
               </tr>
             </thead>
             <tbody>
@@ -297,7 +297,7 @@ function ListEditor({
 
   return (
     <HubCard>
-      <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color="amber" />
+      <HubCardHeader icon={SECTION_ICONS[setting.section] ?? <IconBot className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color={SECTION_COLORS[setting.section] ?? "slate"} />
       <div className="space-y-3">
         <Label className="text-xs text-muted-foreground">One item per line</Label>
         <Textarea
@@ -345,7 +345,7 @@ function KeyedTextEditor({
 
   return (
     <HubCard>
-      <HubCardHeader icon={<IconBot className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color="slate" />
+      <HubCardHeader icon={SECTION_ICONS[setting.section] ?? <IconBot className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color={SECTION_COLORS[setting.section] ?? "slate"} />
       <div className="space-y-3">
         {Object.keys(draft).map((k) => (
           <div key={k} className="space-y-1">
