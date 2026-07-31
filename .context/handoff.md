@@ -1,5 +1,30 @@
 # Handoff
 
+## Session close — 2026-07-31 — Odul portal-login diagnosis + calorie calculator verbatim swap
+
+**Odul portal login ("doesn't allow me to login"):** Queried `portal_accounts`/`clients` directly
+against prod via the standing tunnel. Account existed, not disabled, and the stored scrypt hash
+matched the password Craig gave verbatim — `last_login_at` even showed a successful login already
+recorded a few minutes after the account was created. Backend/DB were never the problem; Craig
+confirmed afterwards it was working. No code changes.
+
+**Calorie Calculator — replaced with Esther's verbatim HTML:** `/calorie-calculator` was already
+unlinked from nav/footer and hard-redirected to `/` (disabled 2026-07-30, commit 350e586). Esther
+now wants the page kept but its content replaced entirely with her own
+`client-tools/calorie-calculator.html` (from Craig's OneDrive), byte-for-byte, still hidden from
+nav/footer as a "temporary fix." Deleted the old React build
+(`CalorieCalculatorPageClient.tsx`/`page.tsx`/`calorie-calculator.css`); added
+`app/calorie-calculator/calculator-source.html` (the verbatim file) plus
+`app/calorie-calculator/route.ts`, a raw `Response` handler (not routed through React) so the
+file's inline `<script>` executes unmodified, exactly as it would if opened directly — a
+dangerouslySetInnerHTML approach would NOT have run that script. Removed the next.config.js
+redirect that was fully blocking the route; added a `noindex` meta tag since it's still meant to
+be unlisted. Verified live in the browser preview — calculator computed real numbers (1,918 kcal
+maintenance on defaults), confirming the script runs. tsc clean. Committed
+(8867df7) and fast-forward pushed straight to `main` (2 commits behind first, fast-forwarded from
+origin/main, no divergence) — Coolify auto-deploy will pick it up. Not yet re-verified against the
+live prod URL post-deploy.
+
 ## Session close — 2026-07-30 — hub + portal mockup audit (no dispatch yet) + AccreditationStrip fix
 
 Craig asked for the hub-facing and client-portal `brand-staging-2662e9` mockups — everything the
