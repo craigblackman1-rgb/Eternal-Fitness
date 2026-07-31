@@ -312,7 +312,8 @@ export default function ParqEditClient({
 
   const inputClass = (field: string, hubMode = false) =>
     cn(
-      "w-full rounded-md border bg-white px-3 py-2 text-[#1E1E1E] text-sm",
+      "w-full rounded-md border bg-white px-3 py-2 text-sm",
+      hubMode ? "text-foreground" : "text-[#1E1E1E]",
       hubMode ? "border-[var(--hub-field-border)]" : "border-[#D9D9D9]",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       hubMode ? "focus-visible:ring-rose/30" : "focus-visible:ring-[#087E8B]",
@@ -321,7 +322,8 @@ export default function ParqEditClient({
 
   const textareaClass = (field: string, hubMode = false) =>
     cn(
-      "w-full rounded-md border bg-white px-3 py-2 text-[#1E1E1E] text-sm min-h-[80px]",
+      "w-full rounded-md border bg-white px-3 py-2 text-sm min-h-[80px]",
+      hubMode ? "text-foreground" : "text-[#1E1E1E]",
       hubMode ? "border-[var(--hub-field-border)]" : "border-[#D9D9D9]",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       hubMode ? "focus-visible:ring-rose/30" : "focus-visible:ring-[#087E8B]",
