@@ -58,3 +58,44 @@
 2026-07-30T16:20Z | g5-process-quality-dashboard | ProcessQualityManager.tsx + page.tsx | PASS (tsc clean + next build Compiled successfully). Overview tab added as first tab before Process Register. KPI band: 4 tiles — (1) Onboarding complete (clear/total clients), (2) Medical clearance valid (gp_clearance-met/total), (3) Reviews due (process review status + overdue annual_review_due_date), (4) SOPs current. Static Onboarding Process card (5 steps, matching mockup copy). Pre-session Quality Checks card with real data: Medical clearance valid (compliance flags), Equipment available (studio_equipment active flags), named at-risk clients (clearance+overdue review). DROPPED: (1) "Checks passed" KPI tile replaced with "Medical clearance valid" — mockup's composite 11/12 depends on "Plan signed off" which has no real signal in codebase. (2) "Plan signed off" checklist row dropped — same reason. (3) "Sam H. — overdue review" mockup row — replaced with real overdueReviewClients from annual_review_due_date. All data from real sources: computeComplianceFlags, studio_equipment.active, process_entries status, client annual_review_due_date. Existing tabs (Process Register, SOPs, Improvement Log) untouched. Not committed, not pushed.
 
 2026-07-30T16:31Z | g6-sop-backport | ProcessQualityManager.tsx | PASS — SopDetailModal backport: 6-cell meta-grid (Owner/Applies-to/Review-date/Linked-client/Source/Status all backed by new DB columns via migration 20260730_sops_meta_fields.sql, not yet run), Duplicate action button in modal header, sections 4/5 (What good looks like / Prompt template) untouched. Register/SOPs list/Improvement Log/Overview tabs untouched. DB migration written (5 nullable text cols + status), npx tsc clean, next build passed. Ready for migration run + merge.
+
+2026-07-31T | LANE B | hub-parity-b-training · BRANCH: claude/hub-parity-b-training
+
+PAGES DONE:
+  hub/session-editor (29cdc34) — fixed undefined CSS var --s-warning-bd -> --status-warning-border on modification badge in SessionEditor.tsx; replaced non-EF Tailwind tokens bg-amber-50/text-amber-700 with bg-[var(--status-warning-bg)]/text-[var(--status-warning-text)]; added missing aria-label to video icon-only button
+
+TEMPLATE FIXES NEEDED:
+  none
+
+FEATURES AHEAD OF TEMPLATE:
+  exercise-library — bulk-edit bar (multi-select + apply archetypes/equipment/muscles/tags/active), 6 filter types vs template's 3, pagination
+  session-editor — desk-planning editor (SessionEditor component with drag-and-drop reordering, superset support, swap exercise dialog, add-exercise drawer), per-set logging with reps/weight/duration inputs
+  schedule — inline reschedule/cancel with real API persistence, client links
+
+BLOCKERS:
+  none
+
+TYPECHECK: clean
+
+---
+
+2026-07-31 | LANE B (continued) | hub-parity-b-training · BRANCH: claude/hub-parity-b-training
+
+PAGES DONE:
+  hub/exercise-library (4aef9a9) — detail panel media height aligned to template (h-40/h-32 → h-[168px]); "Modifications" section text color fixed from amber (warning semantic misuse) to body gray
+  hub/schedule (664d342) — conflict-row background opacity bug fixed: bg-[var(--status-warning-bg)]/40 silently no-op'd (hex var can't carry Tailwind /opacity modifier), replaced with inline style rgba(247,239,221,0.5) matching template
+  hub/parq-edit — no changes needed; hub wrapper pages (edit/page.tsx, parq/page.tsx) already at parity with template shell/header/rail structure
+
+TEMPLATE FIXES NEEDED:
+  hub-schedule.html — HubPageHeader renders text-xl (20px) for page title; template's .hs-ph h1 uses 24px. Shared component wins per spec.
+
+FEATURES AHEAD OF TEMPLATE:
+  exercise-library — bulk-edit bar, pagination, 6 filter types (vs template's 2 selects + category chips), intensity tiers display, muscles/equipment tag lists
+  schedule — inline reschedule/cancel with real API persistence, client detail links
+  parq-edit — hub wrapper delegates to ParqEditClient with save bar (template's save bar is inline CSS only)
+
+BLOCKERS:
+  none
+
+TYPECHECK: clean
+
