@@ -282,32 +282,45 @@ export function DocumentSignClientWrapper({ doc }: { doc: ClientDocument }) {
           </p>
 
           {doc.body.intro && (
-            <p className="text-sm text-muted-foreground mb-5">{doc.body.intro}</p>
+            <div className="text-sm text-muted-foreground mb-5" dangerouslySetInnerHTML={{ __html: doc.body.intro }} />
           )}
 
-          <ul className="space-y-3 mb-6">
-            {doc.body.sections.slice(0, 4).map((section) => (
-              <li key={section.id} className="flex items-start gap-3 text-sm">
-                <IconCheckCircle className="w-4 h-4 text-teal shrink-0 mt-0.5" />
-                <span className="text-foreground">{section.title}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="rounded-xl border border-teal/30 bg-teal/5 p-4 mb-5">
-            <div className="flex gap-2.5">
-              <div className="w-6 h-6 rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0">
-                <IconAlertCircle className="w-3.5 h-3.5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">This summary is not the full document</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  It is here to help, but the full wording is what you are signing.{" "}
-                  <a href={`/portal/documents/${doc.id}`} className="text-teal font-medium hover:underline">Read the full document</a> before you continue.
-                </p>
+          {doc.body.sections.length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-off-white max-h-[28rem] overflow-y-auto p-5 mb-5">
+              <div className="prose prose-sm max-w-none">
+                {doc.body.sections.map((section) => (
+                  <section key={section.id} className="mb-6 last:mb-0">
+                    <h2 className="text-base font-semibold text-foreground">{section.title}</h2>
+                    <div dangerouslySetInnerHTML={{ __html: section.html }} />
+                  </section>
+                ))}
               </div>
             </div>
-          </div>
+          )}
+
+          {doc.body.consentGroups && doc.body.consentGroups.length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-off-white p-5 mb-5">
+              {doc.body.consentGroups.map((group) => (
+                <div key={group.id} className="mb-4 last:mb-0">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">{group.legend}</h3>
+                  <ul className="space-y-1.5">
+                    {group.options.map((opt) => (
+                      <li key={opt.key} className="flex items-start gap-2 text-sm">
+                        <span className="text-teal mt-0.5">—</span>
+                        <span>{opt.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground mb-5">
+            <a href={`/portal/documents/${doc.id}`} target="_blank" rel="noopener noreferrer" className="text-teal font-medium hover:underline">
+              Open in a new tab to print or download
+            </a>
+          </p>
 
           <div className="rounded-xl border border-border/60 bg-off-white p-4 mb-5">
             <label className="flex items-start gap-3 cursor-pointer">

@@ -39,15 +39,22 @@ function docGroupLabel(doc: PortalDocument, isSigned: boolean): "action" | "sign
   return "shared";
 }
 
+/** parq and feedback are the two document kinds built from feedbackSections
+ * (questions to fill in) rather than prose sections — both need the /edit
+ * question flow, not the /sign read-and-sign flow. */
+function isFillOutKind(kind: string): boolean {
+  return kind === "parq" || kind === "feedback";
+}
+
 function docLinkHref(doc: PortalDocument, isSigned: boolean): string {
   if (isSigned) return `/portal/documents/${doc.id}`;
-  if (doc.kind === "parq") return `/portal/documents/${doc.id}/edit`;
+  if (isFillOutKind(doc.kind)) return `/portal/documents/${doc.id}/edit`;
   return `/portal/documents/${doc.id}/sign`;
 }
 
 function docActionLabel(doc: PortalDocument, isSigned: boolean): string {
   if (isSigned) return "View signed copy";
-  if (doc.kind === "parq") return "Carry on";
+  if (isFillOutKind(doc.kind)) return "Carry on";
   return "Read and sign";
 }
 
@@ -201,7 +208,7 @@ export function DocumentsFilterClient({
                     ) : doc.sent_at ? (
                       <span>Sent <b className="font-semibold text-foreground">{formatDate(doc.sent_at)}</b></span>
                     ) : null}
-                    {doc.kind === "parq" && doc.status !== "signed" && (
+                    {isFillOutKind(doc.kind) && doc.status !== "signed" && (
                       <span><b className="font-semibold text-foreground">Partially complete</b></span>
                     )}
                     {doc.version > 1 && <span>Version {doc.version}</span>}
