@@ -46,10 +46,10 @@ function isFillOutKind(kind: string): boolean {
   return kind === "parq" || kind === "feedback";
 }
 
-function docLinkHref(doc: PortalDocument, isSigned: boolean): string {
-  if (isSigned) return `/portal/documents/${doc.id}`;
-  if (isFillOutKind(doc.kind)) return `/portal/documents/${doc.id}/edit`;
-  return `/portal/documents/${doc.id}/sign`;
+// One page handles every state (view, fill-in questions, and sign) — the
+// same renderer used by the hub-generated email/copied link.
+function docLinkHref(doc: PortalDocument): string {
+  return `/portal/documents/${doc.id}`;
 }
 
 function docActionLabel(doc: PortalDocument, isSigned: boolean): string {
@@ -179,7 +179,7 @@ export function DocumentsFilterClient({
             const isSigned = signedIds.has(doc.id);
             const group = docGroupLabel(doc, isSigned);
             const badge = docBadge(doc, isSigned);
-            const href = docLinkHref(doc, isSigned);
+            const href = docLinkHref(doc);
 
             return (
               <li key={doc.id} className="rounded-2xl border border-border/60 bg-white p-5 flex flex-wrap items-start gap-4 hover:border-border transition-colors">

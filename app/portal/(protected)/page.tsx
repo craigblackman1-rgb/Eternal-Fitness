@@ -182,7 +182,7 @@ export default async function PortalDashboardPage() {
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         {needsSig
-                          ? `Read it, then sign by typing or drawing your name.`
+                          ? `Read it, then sign by typing your name.`
                           : `Read, download or print whenever you want.`}
                       </p>
                     </div>
@@ -190,14 +190,14 @@ export default async function PortalDashboardPage() {
                   <div className="mt-auto pt-4 flex flex-wrap gap-2">
                     {needsSig ? (
                       <Link
-                        href={`/portal/documents/${doc.id}/sign`}
+                        href={`/portal/documents/${doc.id}`}
                         className="inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
                       >
                         Read and sign
                       </Link>
                     ) : hasFeedbackSections ? (
                       <Link
-                        href={`/portal/documents/${doc.id}/edit`}
+                        href={`/portal/documents/${doc.id}`}
                         className="inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
                       >
                         Carry on filling it in
