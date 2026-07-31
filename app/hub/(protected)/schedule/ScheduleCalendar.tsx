@@ -283,9 +283,10 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
               return (
                 <li
                   key={entry.id}
+                  style={conflicted ? { backgroundColor: "rgba(247, 239, 221, 0.5)" } : undefined}
                   className={cn(
                     "px-5 py-4",
-                    conflicted && "border-l-4 border-l-[var(--status-warning-border)] bg-[var(--status-warning-bg)]/40",
+                    conflicted && "border-l-4 border-l-[var(--status-warning-border)]",
                   )}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">

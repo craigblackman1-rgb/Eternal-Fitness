@@ -70,3 +70,45 @@ FEATURES AHEAD OF TEMPLATE:
   client-edit -- Computed status rail card (GP clearance / PAR-Q override / outstanding count from real data), Record rail card, Delivery mode segmented control -- all features the template doesn't have
 BLOCKERS: none
 TYPECHECK: clean
+
+---
+
+2026-07-31T | LANE B | hub-parity-b-training · BRANCH: claude/hub-parity-b-training
+
+PAGES DONE:
+  hub/session-editor (29cdc34) — fixed undefined CSS var --s-warning-bd -> --status-warning-border on modification badge in SessionEditor.tsx; replaced non-EF Tailwind tokens bg-amber-50/text-amber-700 with bg-[var(--status-warning-bg)]/text-[var(--status-warning-text)]; added missing aria-label to video icon-only button
+
+TEMPLATE FIXES NEEDED:
+  none
+
+FEATURES AHEAD OF TEMPLATE:
+  exercise-library — bulk-edit bar (multi-select + apply archetypes/equipment/muscles/tags/active), 6 filter types vs template's 3, pagination
+  session-editor — desk-planning editor (SessionEditor component with drag-and-drop reordering, superset support, swap exercise dialog, add-exercise drawer), per-set logging with reps/weight/duration inputs
+  schedule — inline reschedule/cancel with real API persistence, client links
+
+BLOCKERS:
+  none
+
+TYPECHECK: clean
+
+---
+
+2026-07-31 | LANE B (continued) | hub-parity-b-training · BRANCH: claude/hub-parity-b-training
+
+PAGES DONE:
+  hub/exercise-library (4aef9a9) — detail panel media height aligned to template (h-40/h-32 → h-[168px]); "Modifications" section text color fixed from amber (warning semantic misuse) to body gray
+  hub/schedule (664d342) — conflict-row background opacity bug fixed: bg-[var(--status-warning-bg)]/40 silently no-op'd (hex var can't carry Tailwind /opacity modifier), replaced with inline style rgba(247,239,221,0.5) matching template
+  hub/parq-edit — no changes needed; hub wrapper pages (edit/page.tsx, parq/page.tsx) already at parity with template shell/header/rail structure
+
+TEMPLATE FIXES NEEDED:
+  hub-schedule.html — HubPageHeader renders text-xl (20px) for page title; template's .hs-ph h1 uses 24px. Shared component wins per spec.
+
+FEATURES AHEAD OF TEMPLATE:
+  exercise-library — bulk-edit bar, pagination, 6 filter types (vs template's 2 selects + category chips), intensity tiers display, muscles/equipment tag lists
+  schedule — inline reschedule/cancel with real API persistence, client detail links
+  parq-edit — hub wrapper delegates to ParqEditClient with save bar (template's save bar is inline CSS only)
+
+BLOCKERS:
+  none
+
+TYPECHECK: clean

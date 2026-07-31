@@ -598,27 +598,27 @@ export function ExerciseBrowser({
               ) : (
                 <div className="space-y-4">
                   {/* Media */}
-                  {selectedExercise.image_url ? (
-                    <img
-                      src={selectedExercise.image_url}
-                      alt={selectedExercise.name}
-                      className="w-full h-40 rounded-xl object-cover"
-                    />
-                  ) : selectedExercise.video_url ? (
-                    <a
-                      href={selectedExercise.video_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 h-40 rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] text-teal hover:opacity-90 transition-opacity"
-                    >
-                      <IconVideo className="h-8 w-8" />
-                      <span className="text-sm font-semibold">Watch demo video</span>
-                    </a>
-                  ) : (
-                    <div className="h-32 rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] flex items-center justify-center">
-                      <IconDumbbell className="h-10 w-10 text-teal/40" />
-                    </div>
-                  )}
+                    {selectedExercise.image_url ? (
+                      <img
+                        src={selectedExercise.image_url}
+                        alt={selectedExercise.name}
+                        className="w-full h-[168px] rounded-xl object-cover"
+                      />
+                    ) : selectedExercise.video_url ? (
+                      <a
+                        href={selectedExercise.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 h-[168px] rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] text-teal hover:opacity-90 transition-opacity"
+                      >
+                        <IconVideo className="h-8 w-8" />
+                        <span className="text-sm font-semibold">Watch demo video</span>
+                      </a>
+                    ) : (
+                      <div className="h-[168px] rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] flex items-center justify-center">
+                        <IconDumbbell className="h-10 w-10 text-teal/40" />
+                      </div>
+                    )}
 
                   {selectedExercise.video_url && selectedExercise.image_url && (
                     <a
@@ -706,7 +706,7 @@ export function ExerciseBrowser({
                     <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                       Modifications
                     </h4>
-                    <p className="text-sm text-[var(--color-amber)] leading-relaxed">
+                    <p className="text-sm text-[var(--color-body)] leading-relaxed">
                       {selectedExercise.default_mod || "—"}
                     </p>
                   </div>

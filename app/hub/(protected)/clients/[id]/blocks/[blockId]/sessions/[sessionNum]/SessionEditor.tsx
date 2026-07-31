@@ -587,7 +587,7 @@ function ExerciseRow({
         <p className="text-sm font-semibold text-foreground">{ex.exercise_name}</p>
         {ex.coaching_cue && <p className="mt-0.5 text-xs text-muted-foreground">{ex.coaching_cue}</p>}
         {ex.modification && (
-          <span className="mt-1 inline-flex rounded-md border border-[var(--s-warning-bd,transparent)] bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">
+          <span className="mt-1 inline-flex rounded-md border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
             {ex.modification}
           </span>
         )}
@@ -619,6 +619,7 @@ function ExerciseRow({
       <div className="flex shrink-0 items-center gap-0.5">
         <button
           title={ex.media?.video_url ? "Video link attached" : "Add video link"}
+          aria-label={ex.media?.video_url ? "Video link attached" : "Add video link"}
           onClick={() => {
             setVideoDraft(ex.media?.video_url || "");
             setVideoOpenUid(videoOpen ? null : ex._uid);
