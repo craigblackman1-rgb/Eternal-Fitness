@@ -156,3 +156,55 @@ PER-PAGE DELTAS:
   hub-sop.html → SopDetailModal: backport commit 53bfff7 already expanded meta-grid to 6 cells, added Duplicate button, added StatusBadge. Sections 4/5 ("What good looks like"/"Prompt template") are real Plan Agent features kept over template's generic "Checks & acceptance"/"Notes" per §5.4. Modal matches template structure 1:1. No remaining deltas.
 
 2026-07-31T~10:00-10:15 | Verification + merge + deploy | All 4 lanes verified independently before touching anything further (not on self-report): every CSS token checked against app/globals.css (none invented), tsc --noEmit re-run clean in all 4 worktrees, no raw hex/undefined vars in any changed file, Lane A's Time-tier Select->SegmentedControl restructure double-checked against hub-client-edit.html (mockup genuinely renders it as a segmented fieldset). Real integration issue found+fixed: origin/main had advanced by 1 unrelated commit (fd1e83b, portal-invite feature merged from a different worktree while these lanes ran) -- confirmed zero lane commits touched those files (two-dot diff artifact only), rebased all 4 lane branches cleanly onto latest origin/main, tsc re-verified clean post-rebase. Applied the 2 TEMPLATE FIXES NEEDED corrections to ef-control-hub per spec §5.3 (shared component wins): hub-schedule.html and hub-site-content.html .hs-ph h1 corrected 24px/700 -> 20px/600 to match the real HubPageHeader component. Merged all 4 rebased lane branches into one integration; 2 real conflicts, both confined to this file (append-only, both sides appended) -- resolved keeping both. One resolution mistake caught and fixed before pushing: a stray unresolved "<<<<<<< HEAD" marker got committed in the first pass -- caught by an explicit post-commit grep sweep across every commit's committed blob (not just the working tree), fixed via amend, re-swept clean across all commits. Craig approved ("Commit and push updates"). Pushed as fast-forward origin/main fd1e83b -> bbbcb5d. Coolify webhook auto-deploy triggered (g4e618sr5fegwbcb8dm4qvh9). Cleanup: node_modules junctions unlinked, all 4 lane worktrees force-removed (only dirty file was tsconfig.tsbuildinfo churn), all 4 local lane branches deleted (content fully on main). wo-ef-visual-feedback-2026-07-31 marked done in registry. Craig's original 2 visual-feedback items (dashboard "Total Clients" truncation, schedule breadcrumb/date-input/h1 mismatch) addressed within Lane A (KpiTile truncate class removed, commit e0b9e4b) and the hub-schedule.html template correction above.
+
+## 2026-07-31 ~10:15-11:00 — real structural audit (Craig: "this looks nothing like the design"), 2 real fixes
+Craig pushed back hard on the parity work above: pointed out the hub still looked nothing like
+ef-control-hub. He was right. Did a genuine page-by-page structural audit this time (mockup read
+in full, live route checked in the logged-in browser -- Craig logged the hub in for this) instead
+of the drift-checklist approach used by today's earlier lanes. Findings:
+- **Dashboard (/hub): wrong page, not wrong styling.** Mockup is a trainer's daily-work view
+  (sessions this week / check-ins logged / reviews due / active clients KPIs, thin alert strips,
+  two-col Recent-check-ins-table + Plan-Agent-generated weekly plan). Live page was a client-roster
+  CRM view (Total Clients/Draft Blocks/Active-Approved/Total Blocks, big alert blocks, Needs
+  Attention/Recent Clients/Recent Blocks/Quick Actions). No shared DNA beyond both being page one.
+- **PAR-Q edit page** genuinely still had 21 raw hex color values live, exactly matching the
+  mockup's own "redesign target" note -- today's Lane B "no changes needed" claim was wrong because
+  nobody had actually loaded the page.
+- One self-correction made mid-audit and stated plainly to Craig: an initial "sidebar missing on
+  every edit/create page" finding was WRONG -- a bad JS selector (nav[aria-label]) gave a false
+  negative; the sidebar was there the whole time (HubLayout wraps every child unconditionally).
+  Re-verified all 4 pages with the correct check (.hub-shell class) before saying anything further.
+- Every other hub page (clients list, client detail x7 tabs, schedule, site content + editor,
+  studio equipment, training rules, tasks) checked out as genuine structural matches. Exercise
+  library, reports/updates, and plan-agent settings are legitimate supersets, not divergent pages.
+  Process & Quality's mockup is a flatter single page than the live 4-tab version -- flagged as
+  likely legitimate feature growth, not broken.
+
+Craig said "fix these and then I will review." Built both fixes in worktree hub-fix-round1
+(off origin/main @ 675683e):
+- Dashboard (app/hub/(protected)/page.tsx) rebuilt: real KPIs (sessions this week/check-ins
+  logged/reviews due/active clients, reusing the same annual_review_due_date signal as
+  Process&Quality's own "Reviews due" tile -- not a new definition), two-col Recent Check-ins
+  table + This Week's Plan (Plan Agent) section driven by real scheduled `sessions` rows (no
+  fabricated content -- the only "meta" line ever shown is a real compliance_status=do_not_train
+  flag, matching the mockup's Alan B. "blocked until clearance renewed" example almost exactly
+  because it happens to be genuinely true). Existing client-management sections (Needs Attention,
+  Active Blocks, Recent Clients/Blocks, Quick Actions) kept below, unchanged -- never delete a
+  feature to reach parity. Caught and fixed a real bug in my own draft before it went anywhere:
+  `sessions` has no created_at/updated_at column, so an early draft's `.order("session_number")
+  .limit(200)` for "check-ins logged" was meaningless ordering that could silently drop genuine
+  recent data -- removed the limit/order, fetch-all-and-sort-in-JS instead (table is small, this
+  business's whole client base is ~19 rows).
+- ParqEditClient.tsx: inputClass/textareaClass hardcoded text-[#1E1E1E] unconditionally -- only
+  border and focus-ring were branched on hubMode. Fixed to text-foreground under hubMode; public
+  /parq/edit/[id] path untouched. (The other 19 "raw hex" hits were the actual brand-logo SVG,
+  not a bug -- left alone.)
+tsc --noEmit clean on both. Wanted to verify live via local `pnpm dev` (tunnel gives real prod
+data) before showing Craig anything, but had no hub login for localhost (separate Better Auth
+session from the staging cookie) -- asked Craig to log in there; he said "just push and
+merge/commit" instead, so pushed on tsc-clean + code-review confidence only, explicitly not on a
+browser-verified basis. Committed as 2 commits (0d17f67 dashboard, bb8f8af parq fix), pushed
+fast-forward origin/main 675683e -> bb8f8af. Coolify deploy njjlcr29tm370neh5hkvrhoh confirmed
+finished + app running:healthy (last_online_at 10:51:59). Worktree hub-fix-round1 removed
+(junction unlinked first), branch deleted. NOT yet browser-verified against the live dashboard/
+PAR-Q pages post-deploy -- do that first if this thread reopens.
