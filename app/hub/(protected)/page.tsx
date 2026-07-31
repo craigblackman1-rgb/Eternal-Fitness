@@ -4,7 +4,10 @@ import { HubCard, HubCardHeader, HubQuickActions } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
-import { IconActivity, IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText, IconTriangleAlert, IconUserPlus, IconUsers, IconPencil, IconPlus, IconMail } from "@/components/icons";
+import {
+  IconActivity, IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText,
+  IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot,
+} from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
 import { getQuietHomeTrainingClients } from "@/lib/progress-db";
 import { HOME_TRAINING_QUIET_DAYS } from "@/lib/progress";
@@ -14,6 +17,36 @@ interface RecentCheckIn {
   clientNumber: string | number;
   programme: string;
   loggedLabel: string;
+  complianceStatus: DBClientComplianceStatus | null;
+}
+
+interface WeekPlanEntry {
+  id: string;
+  dayLabel: string;
+  clientName: string;
+  clientNumber: number | null;
+  blockNumber: number | null;
+  sessionNumber: number;
+  focusLabel: string | null;
+  meta: string | null;
+  metaDanger: boolean;
+}
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Monday-start week boundary — matches the studio schedule's own week convention. */
+function startOfWeek(d: Date) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+function addDays(d: Date, n: number) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
 }
 
 export default async function DashboardPage() {
@@ -21,74 +54,126 @@ export default async function DashboardPage() {
 
   const { data: { user } } = await supabase.auth.getUser();
   const trainerFirstName = user?.name?.split(" ")[0] ?? null;
-  const hour = new Date().getHours();
+  const now = new Date();
+  const hour = now.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const weekStart = startOfWeek(now);
+  const weekEnd = addDays(weekStart, 7);
+  const lastWeekStart = addDays(weekStart, -7);
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = addDays(todayStart, 1);
 
   const { data: clients } = await supabase
     .from("clients")
-    .select("id, name, profile, created_at, client_number, compliance_status")
+    .select("id, name, profile, created_at, client_number, compliance_status, annual_review_due_date")
     .order("created_at", { ascending: false });
 
   const { data: blocks } = await supabase
     .from("blocks")
-    .select("id, client_id, block_number, status, created_at, clients!inner(client_number)")
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  const { data: activeBlocks } = await supabase
-    .from("blocks")
-    .select("id, block_number, client_id, clients!inner(client_number, name)")
-    .eq("status", "active")
+    .select("id, client_id, block_number, status, created_at, clients!inner(client_number, name)")
     .order("created_at", { ascending: false });
 
-  const activeBlockIds = (activeBlocks ?? []).map((b) => b.id);
+  const activeBlocks = (blocks ?? []).filter((b) => b.status === "active");
+  const activeBlockIds = activeBlocks.map((b) => b.id);
+
   const { data: activeSessions } = activeBlockIds.length > 0
     ? await supabase
         .from("sessions")
-        .select("id, block_id, session_number, data, blocks!inner(block_number, client_id, clients!inner(client_number, name, profile))")
+        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id, clients!inner(client_number, name, profile, compliance_status))")
         .in("block_id", activeBlockIds)
         .order("session_number", { ascending: false })
     : { data: [] as any[] };
 
-  const nextUpByBlock = (activeBlocks ?? []).map((block) => {
+  const nextUpByBlock = activeBlocks.map((block) => {
     const blockSessions = (activeSessions ?? []).filter((s) => s.block_id === block.id);
     const nextSession = blockSessions.find((s) => !s.data?.session_log?.completed_at);
     const completedCount = blockSessions.filter((s) => s.data?.session_log?.completed_at).length;
     return { block, nextSession, completedCount, totalCount: blockSessions.length };
   });
 
-  const totalClients = clients?.length ?? 0;
-  const draftBlocks = blocks?.filter((b) => b.status === "draft").length ?? 0;
-  const approvedBlocks = blocks?.filter((b) => b.status === "approved" || b.status === "active").length ?? 0;
-
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const newClientsLast30Days = (clients ?? []).filter((c) => new Date(c.created_at) >= thirtyDaysAgo).length;
+  const activeClientCount = new Set(activeBlocks.map((b) => b.client_id)).size;
 
   const needsAttention = (clients ?? []).filter(
     (c) => c.compliance_status && (c.compliance_status as DBClientComplianceStatus) !== "clear",
   );
-
-  // Lane C — home-training clients with no self-logged sets in the last N days
-  // (detection only, Esther-facing; no client-facing nudge is sent from here).
   const quietClients = await getQuietHomeTrainingClients();
-
   const doNotTrain = needsAttention.filter((c) => c.compliance_status === "do_not_train");
   const pendingReview = needsAttention.filter(
     (c) => c.compliance_status === "pending_medical" || c.compliance_status === "action_needed",
   );
 
-  // Recent check-ins — real logged sessions only (no fabricated trends)
-  const recentCheckIns: RecentCheckIn[] = (activeSessions ?? [])
-    .filter((s) => s.data?.session_log?.completed_at)
+  // Reviews due — same real signal as the Process & Quality "Reviews due" tile
+  // (annual_review_due_date elapsed), not a separately-invented definition.
+  const reviewsDueClients = (clients ?? []).filter(
+    (c) => c.annual_review_due_date && new Date(c.annual_review_due_date) < now,
+  );
+
+  // Studio-wide scheduled sessions this week (and last week, for a real trend) —
+  // same "scheduled_at set, not cancelled" convention as /hub/schedule.
+  const { data: weekSessionRows } = await supabase
+    .from("sessions")
+    .select("id, block_id, session_number, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id, clients!inner(client_number, name, compliance_status))")
+    .not("scheduled_at", "is", null)
+    .is("cancelled_at", null)
+    .gte("scheduled_at", lastWeekStart.toISOString())
+    .lt("scheduled_at", weekEnd.toISOString())
+    .order("scheduled_at", { ascending: true });
+
+  const allWeekSessions = weekSessionRows ?? [];
+  const thisWeekSessions = allWeekSessions.filter((s) => {
+    const t = new Date(s.scheduled_at as string);
+    return t >= weekStart && t < weekEnd;
+  });
+  const lastWeekSessionCount = allWeekSessions.filter((s) => {
+    const t = new Date(s.scheduled_at as string);
+    return t >= lastWeekStart && t < weekStart;
+  }).length;
+
+  const sessionsThisWeek = thisWeekSessions.length;
+  const sessionsTrend = sessionsThisWeek - lastWeekSessionCount;
+
+  const sessionsToday = thisWeekSessions.filter((s) => {
+    const t = new Date(s.scheduled_at as string);
+    return t >= todayStart && t < todayEnd;
+  }).length;
+  const checkInsToLogToday = thisWeekSessions.filter((s) => {
+    const t = new Date(s.scheduled_at as string);
+    return t >= todayStart && t < todayEnd && !s.data?.session_log?.completed_at;
+  }).length;
+
+  // Check-ins logged — real completed session_log entries this week vs last week.
+  // `sessions` has no created_at/updated_at column, so there is no server-side
+  // recency order to fetch by — pull every session (this business's total row
+  // count is small) and sort/filter by session_log.completed_at in JS below.
+  const { data: allSessionRows } = await supabase
+    .from("sessions")
+    .select("id, block_id, session_number, data, blocks!inner(block_number, client_id, clients!inner(client_number, name, profile, compliance_status))");
+
+  const loggedRows = (allSessionRows ?? []).filter((s) => s.data?.session_log?.completed_at);
+  const checkInsThisWeek = loggedRows.filter((s) => {
+    const t = new Date(s.data.session_log.completed_at as string);
+    return t >= weekStart && t < weekEnd;
+  }).length;
+  const checkInsLastWeek = loggedRows.filter((s) => {
+    const t = new Date(s.data.session_log.completed_at as string);
+    return t >= lastWeekStart && t < weekStart;
+  }).length;
+  const checkInsTrend = checkInsThisWeek - checkInsLastWeek;
+
+  // Recent check-ins table — real logged sessions only, status reused directly
+  // from the client's own compliance_status (the same signal "Needs Attention"
+  // uses below), not a separately-invented time-based classification.
+  const recentCheckIns: RecentCheckIn[] = loggedRows
+    .slice()
+    .sort((a, b) => new Date(b.data.session_log.completed_at).getTime() - new Date(a.data.session_log.completed_at).getTime())
     .slice(0, 5)
     .map((session) => {
       const log = session.data.session_log;
       const client = (session.blocks as any)?.clients;
       const profile = client?.profile;
-      const primaryGoal = profile?.goals?.primary
-        ? profile.goals.primary.replace("_", " ")
-        : null;
+      const primaryGoal = profile?.goals?.primary ? profile.goals.primary.replace("_", " ") : null;
       const completedAt = new Date(log.completed_at);
       const daysAgo = Math.floor((Date.now() - completedAt.getTime()) / 86_400_000);
       const loggedLabel =
@@ -101,29 +186,78 @@ export default async function DashboardPage() {
         clientNumber: client?.client_number ?? "#?",
         programme: primaryGoal ? `Block ${(session.blocks as any)?.block_number} · ${primaryGoal}` : `Block ${(session.blocks as any)?.block_number}`,
         loggedLabel,
+        complianceStatus: (client?.compliance_status as DBClientComplianceStatus) ?? null,
       };
     });
 
+  // This week's plan — real scheduled sessions, day by day. The "blocked" meta
+  // note only appears when the client's own compliance_status is do_not_train
+  // (a real, already-computed signal) — never an invented editorial comment.
+  const weekPlan: WeekPlanEntry[] = thisWeekSessions
+    .map((s) => {
+      const client = (s.blocks as any)?.clients;
+      const blocked = client?.compliance_status === "do_not_train";
+      const completed = !!s.data?.session_log?.completed_at;
+      return {
+        id: s.id,
+        dayLabel: DAY_LABELS[new Date(s.scheduled_at as string).getDay()],
+        clientName: client?.name ?? "Unknown client",
+        clientNumber: client?.client_number ?? null,
+        blockNumber: (s.blocks as any)?.block_number ?? null,
+        sessionNumber: s.session_number,
+        focusLabel: s.data?.focus_label ?? null,
+        meta: blocked
+          ? "Blocked until clearance renewed"
+          : completed
+          ? "Logged"
+          : null,
+        metaDanger: blocked,
+      };
+    })
+    .slice(0, 8);
+
   return (
     <div className="space-y-6">
-      {/* Dashboard greeting — bespoke time-of-day header per hub-dashboard.html mockup */}
-      <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]" style={{ fontFamily: "var(--font-body)" }}>
-        {greeting}{trainerFirstName ? `, ${trainerFirstName}` : ""}
-      </h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]" style={{ fontFamily: "var(--font-body)" }}>
+          {greeting}{trainerFirstName ? `, ${trainerFirstName}` : ""}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {now.toLocaleDateString("en-GB", { weekday: "long" })} · {sessionsToday} session{sessionsToday === 1 ? "" : "s"} today
+          {checkInsToLogToday > 0 && `, ${checkInsToLogToday} check-in${checkInsToLogToday === 1 ? "" : "s"} to log`}
+        </p>
+      </div>
 
-      {/* KPI band */}
+      {/* KPI band — sessions/check-ins/reviews/active-clients, per hub-dashboard.html */}
       <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
         <KpiTile
-          icon={<IconUsers className="w-5 h-5" />}
-          label="Total Clients"
-          value={totalClients}
+          icon={<IconCalendar className="w-5 h-5" />}
+          label="Sessions this week"
+          value={sessionsThisWeek}
           statusToken="primary"
-          trend={newClientsLast30Days > 0 ? `${newClientsLast30Days} this month` : undefined}
-          trendUp={newClientsLast30Days > 0 ? true : undefined}
+          trend={sessionsTrend !== 0 ? `${Math.abs(sessionsTrend)}` : undefined}
+          trendUp={sessionsTrend >= 0}
         />
-        <KpiTile icon={<IconFileText className="w-5 h-5" />} label="Draft Blocks" value={draftBlocks} statusToken="neutral" />
-        <KpiTile icon={<IconCheckCircle className="w-5 h-5" />} label="Active / Approved" value={approvedBlocks} statusToken="success" />
-        <KpiTile icon={<IconActivity className="w-5 h-5" />} label="Total Blocks" value={blocks?.length ?? 0} statusToken="primary" />
+        <KpiTile
+          icon={<IconCheckCircle className="w-5 h-5" />}
+          label="Check-ins logged"
+          value={checkInsThisWeek}
+          statusToken="success"
+          trend={checkInsTrend !== 0 ? `${Math.abs(checkInsTrend)}` : undefined}
+          trendUp={checkInsTrend >= 0}
+        />
+        <KpiTile
+          icon={<IconClock className="w-5 h-5" />}
+          label="Reviews due"
+          value={reviewsDueClients.length}
+          statusToken={reviewsDueClients.length > 0 ? "warning" : "success"}
+        />
+        <KpiTile
+          icon={<IconUsers className="w-5 h-5" />}
+          label="Active clients"
+          value={activeClientCount}
+          statusToken="neutral"
+        />
       </div>
 
       {doNotTrain.length > 0 && (
@@ -154,60 +288,100 @@ export default async function DashboardPage() {
         </HubAlert>
       )}
 
-      {/* Main grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Recent check-ins */}
-          <HubCard padded={false}>
-            <HubCardHeader
-              icon={<IconCheckCircle className="w-4 h-4" />}
-              title="Recent Check-ins"
-              color="teal"
-              subtitle="Logged sessions across active blocks"
-              noBottomPadding
-              divider
-              className="px-5 pt-5"
-            />
-            <div className="px-5 pb-5">
-              {recentCheckIns.length > 0 ? (
-                <div className="overflow-x-auto -mx-5">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
-                        <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Client</th>
-                        <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Programme</th>
-                        <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Logged</th>
-                        <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentCheckIns.map((row, i) => {
-                        const initials = row.clientName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                        return (
-                          <tr key={i} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
-                            <td className="px-5 py-3">
-                              <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
-                                <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
-                                <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.clientName}</span>
-                              </Link>
-                            </td>
-                            <td className="px-5 py-3 text-muted-foreground">{row.programme}</td>
-                            <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.loggedLabel}</td>
-                            <td className="px-5 py-3"><StatusBadge status="on_track" /></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">No check-ins logged yet.</p>
-              )}
-            </div>
-          </HubCard>
+      {/* Recent check-ins + this week's plan — the two-column layout hub-dashboard.html specifies */}
+      <div className="grid gap-6 lg:grid-cols-2 items-start">
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconCheckCircle className="w-4 h-4" />}
+            title="Recent Check-ins"
+            color="teal"
+            subtitle="Logged sessions across active blocks"
+            noBottomPadding
+            divider
+            className="px-5 pt-5"
+          />
+          <div className="px-5 pb-5">
+            {recentCheckIns.length > 0 ? (
+              <div className="overflow-x-auto -mx-5">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Client</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Programme</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Logged</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentCheckIns.map((row, i) => {
+                      const initials = row.clientName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                      return (
+                        <tr key={i} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
+                          <td className="px-5 py-3">
+                            <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
+                              <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
+                              <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.clientName}</span>
+                            </Link>
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground">{row.programme}</td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.loggedLabel}</td>
+                          <td className="px-5 py-3">{row.complianceStatus && <StatusBadge status={row.complianceStatus} />}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-2">No check-ins logged yet.</p>
+            )}
+          </div>
+        </HubCard>
 
-          {/* Needs Attention */}
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconBot className="w-4 h-4" />}
+            title="This Week's Plan"
+            color="navy"
+            subtitle="Generated by the Plan Agent"
+            noBottomPadding
+            divider
+            className="px-5 pt-5"
+          />
+          <div className="px-5 pb-2">
+            {weekPlan.length > 0 ? (
+              <div>
+                {weekPlan.map((entry, i) => (
+                  <div key={entry.id} className={`flex gap-3.5 py-3.5 ${i > 0 ? "border-t border-[var(--hub-border)]" : ""}`}>
+                    <div className="w-[26px] h-[26px] rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                      {i + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Link href={entry.clientNumber ? `/hub/clients/${entry.clientNumber}` : "#"} className="text-[13.5px] font-semibold text-foreground hover:text-rose transition-colors">
+                        {entry.dayLabel} · {entry.clientName}
+                        {entry.blockNumber !== null && ` — Block ${entry.blockNumber}, Session ${entry.sessionNumber}`}
+                      </Link>
+                      {entry.focusLabel && <p className="text-[13px] text-muted-foreground mt-0.5">{entry.focusLabel}</p>}
+                      {entry.meta && (
+                        <p className={`text-xs mt-1 ${entry.metaDanger ? "text-[var(--status-danger)] font-medium" : "text-muted-foreground"}`}>
+                          {entry.meta}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-2 pb-5">No sessions scheduled this week yet.</p>
+            )}
+          </div>
+        </HubCard>
+      </div>
+
+      {/* Additional client-management views — real functionality beyond the mockup's
+          daily-work view, kept per spec's "never delete a feature to reach parity". */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
           <HubCard>
             <HubCardHeader
               icon={<IconTriangleAlert className="w-4 h-4" />}
@@ -248,7 +422,6 @@ export default async function DashboardPage() {
             </div>
           </HubCard>
 
-          {/* Active Blocks — next session widget */}
           <HubCard>
             <HubCardHeader icon={<IconCalendar className="w-4 h-4" />} title="Active Blocks — Next Session" noBottomPadding />
             <div className="px-5 pb-5">
@@ -293,7 +466,6 @@ export default async function DashboardPage() {
             </div>
           </HubCard>
 
-          {/* Recent Clients */}
           <HubCard>
             <HubCardHeader
               icon={<IconUsers className="w-4 h-4" />}
@@ -338,9 +510,7 @@ export default async function DashboardPage() {
           </HubCard>
         </div>
 
-        {/* Right column */}
         <div className="space-y-6">
-          {/* Recent Blocks */}
           <HubCard>
             <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Recent Blocks" noBottomPadding />
             <div className="px-5 pb-5">
@@ -364,7 +534,6 @@ export default async function DashboardPage() {
             </div>
           </HubCard>
 
-          {/* Quick Actions */}
           <HubCard>
             <HubCardHeader icon={<IconActivity className="w-4 h-4" />} title="Quick Actions" color="navy" noBottomPadding />
             <div className="px-5 pb-5">
