@@ -179,7 +179,7 @@ export function SiteContentTable({ keywords }: { keywords: PageKeyword[] }) {
       </div>
 
       <HubCard padded={false}>
-        <HubCardHeader title="Page inventory" subtitle="Filter by status or type, then edit copy on any static page" />
+        <HubCardHeader icon={<IconCheckCircle className="w-4 h-4" />} color="teal" title="Page inventory" subtitle="Filter by status or type, then edit copy on any static page" />
         <div className="px-5 py-4 border-b border-[var(--hub-border)] flex flex-wrap gap-4">
           <SelectField label="Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} />
           <SelectField label="Type" value={typeFilter} onChange={setTypeFilter} options={typeOptions} />
