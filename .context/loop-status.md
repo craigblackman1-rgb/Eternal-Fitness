@@ -58,3 +58,15 @@
 2026-07-30T16:20Z | g5-process-quality-dashboard | ProcessQualityManager.tsx + page.tsx | PASS (tsc clean + next build Compiled successfully). Overview tab added as first tab before Process Register. KPI band: 4 tiles — (1) Onboarding complete (clear/total clients), (2) Medical clearance valid (gp_clearance-met/total), (3) Reviews due (process review status + overdue annual_review_due_date), (4) SOPs current. Static Onboarding Process card (5 steps, matching mockup copy). Pre-session Quality Checks card with real data: Medical clearance valid (compliance flags), Equipment available (studio_equipment active flags), named at-risk clients (clearance+overdue review). DROPPED: (1) "Checks passed" KPI tile replaced with "Medical clearance valid" — mockup's composite 11/12 depends on "Plan signed off" which has no real signal in codebase. (2) "Plan signed off" checklist row dropped — same reason. (3) "Sam H. — overdue review" mockup row — replaced with real overdueReviewClients from annual_review_due_date. All data from real sources: computeComplianceFlags, studio_equipment.active, process_entries status, client annual_review_due_date. Existing tabs (Process Register, SOPs, Improvement Log) untouched. Not committed, not pushed.
 
 2026-07-30T16:31Z | g6-sop-backport | ProcessQualityManager.tsx | PASS — SopDetailModal backport: 6-cell meta-grid (Owner/Applies-to/Review-date/Linked-client/Source/Status all backed by new DB columns via migration 20260730_sops_meta_fields.sql, not yet run), Duplicate action button in modal header, sections 4/5 (What good looks like / Prompt template) untouched. Register/SOPs list/Improvement Log/Overview tabs untouched. DB migration written (5 nullable text cols + status), npx tsc clean, next build passed. Ready for migration run + merge.
+
+2026-07-31T09:50Z | LANE A hub-parity | hub-parity-spec.md LANE A (clients) | 4 pages audited against ef-control-hub templates, 2 commits, tsc clean.
+
+LANE: A · BRANCH: claude/hub-parity-a-clients
+PAGES DONE: dashboard (e0b9e4b), clients-list (no deltas), client-detail (no deltas -- already aligned in 2026-07-30 Work Order), client-edit+new (7fbac48)
+TEMPLATE FIXES NEEDED: none
+FEATURES AHEAD OF TEMPLATE:
+  dashboard -- dynamic greeting (time-of-day + trainer name from session), 6 live data cards (needs attention, active blocks next-session widget, recent clients, recent blocks, quick actions) all beyond template's 2-card placeholder layout; check-in status hardcoded "on_track" (no per-row status signal available from session_log data model)
+  client-detail -- Client Portal card with invite button in Profile tab, expanded Notes card (Observations/Motivation/Watch For), training rules in Profile tab, injury history table inline; Format key-fact chip label maps group_type (Individual Journey/Calendar Block) vs template's "One-to-one"
+  client-edit -- Computed status rail card (GP clearance / PAR-Q override / outstanding count from real data), Record rail card, Delivery mode segmented control -- all features the template doesn't have
+BLOCKERS: none
+TYPECHECK: clean
