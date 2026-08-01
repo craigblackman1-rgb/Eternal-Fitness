@@ -2,35 +2,12 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HubCard, HubCardHeader } from "@/components/hub";
-import { KpiTile } from "@/components/hub/KpiTile";
 import { StatusBadge } from "@/components/hub/StatusBadge";
-import {
-  IconChevronLeft,
-  IconClipboardList,
-  IconCheckCircle,
-  IconCalendar,
-  IconDumbbell,
-} from "@/components/icons";
+import { IconChevronLeft } from "@/components/icons";
 import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { HideExerciseTableButton } from "./HideExerciseTableButton";
 import type { Session } from "@/types";
-
-const phaseColors: Record<string, string> = {
-  foundation: "bg-teal/10 text-teal",
-  build: "bg-rose/10 text-rose",
-  develop: "bg-dark-navy/10 text-dark-navy",
-  peak: "bg-rose text-white",
-  deload: "bg-slate/10 text-slate",
-};
-
-const phaseTimeline = [
-  { label: "Foundation", weeks: "Wk 1-2", phase: "foundation" },
-  { label: "Build", weeks: "Wk 3", phase: "build" },
-  { label: "Develop", weeks: "Wk 4", phase: "develop" },
-  { label: "Peak", weeks: "Wk 5", phase: "peak" },
-  { label: "Deload", weeks: "Wk 6", phase: "deload" },
-];
 
 const archetypeInfo: Record<string, { name: string; tint: string }> = {
   A: { name: "Mobility & Movement", tint: "bg-teal/10 text-teal" },
@@ -81,14 +58,6 @@ export default async function BlockViewPage({
 
   const totalSessions = sessions.length;
   const completedSessions = sessions.filter((s) => s.data?.session_log?.completed_at).length;
-  const archetypeCounts = sessions.reduce<Record<string, number>>((acc, s) => {
-    acc[s.archetype] = (acc[s.archetype] || 0) + 1;
-    return acc;
-  }, {});
-  const archetypeMix = ["A", "B", "C"]
-    .filter((a) => archetypeCounts[a])
-    .map((a) => `${a} ${archetypeCounts[a]}`)
-    .join(" · ");
 
   const weeks = Array.from(new Set(sessions.map((s) => s.week))).sort((a, b) => a - b);
   const sessionsByWeek = weeks.map((week) => ({
@@ -107,6 +76,23 @@ export default async function BlockViewPage({
     }
     return `Day ${dayIndex + 1}`;
   };
+
+  const formatShortDate = (iso: string): string =>
+    new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+  const formatWeekRange = (weekSessions: SessionRow[]): string | null => {
+    const dates = weekSessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort();
+    if (dates.length === 0) return null;
+    const first = formatShortDate(dates[0]);
+    const last = formatShortDate(dates[dates.length - 1]);
+    return first === last ? first : `${first} – ${last}`;
+  };
+
+  const nextSessionLabel = firstIncomplete
+    ? firstIncomplete.scheduled_at
+      ? `${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · S${firstIncomplete.session_number}`
+      : `S${firstIncomplete.session_number}`
+    : "All sessions logged";
 
   const blockForClient = {
     id: block.id,
@@ -141,50 +127,32 @@ export default async function BlockViewPage({
         blockId={params.blockId}
         clientName={client?.name || "Client"}
       >
-        <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
-          <KpiTile
-            icon={<IconClipboardList className="h-5 w-5" />}
-            label="Sessions"
-            value={totalSessions}
-            statusToken="primary"
-          />
-          <KpiTile
-            icon={<IconCheckCircle className="h-5 w-5" />}
-            label="Completed"
-            value={`${completedSessions}/${totalSessions}`}
-            statusToken="success"
-          />
-          <KpiTile
-            icon={<IconCalendar className="h-5 w-5" />}
-            label="Weeks"
-            value={weeks.length}
-            statusToken="neutral"
-          />
-          <KpiTile
-            icon={<IconDumbbell className="h-5 w-5" />}
-            label="Archetype Mix"
-            value={archetypeMix || "—"}
-            statusToken="primary"
-          />
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          {phaseTimeline.map((p) => (
-            <div
-              key={p.phase}
-              className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold text-center ${phaseColors[p.phase] || "bg-muted text-muted-foreground"}`}
-            >
-              {p.label} {p.weeks}
-            </div>
-          ))}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--hub-border)] rounded-2xl overflow-hidden border border-[var(--hub-border)]">
+          <div className="bg-[var(--hub-card)] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sessions</p>
+            <p className="text-sm font-semibold text-foreground mt-0.5">{completedSessions} of {totalSessions} logged</p>
+          </div>
+          <div className="bg-[var(--hub-card)] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Started</p>
+            <p className="text-sm font-semibold text-foreground mt-0.5">
+              {new Date(block.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            </p>
+          </div>
+          <div className="bg-[var(--hub-card)] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
+            <div className="mt-0.5"><StatusBadge status={block.status} /></div>
+          </div>
+          <div className="bg-[var(--hub-card)] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next session</p>
+            <p className="text-sm font-semibold text-foreground mt-0.5">{nextSessionLabel}</p>
+          </div>
         </div>
       </BlockOverviewClient>
 
       <div className="space-y-3.5">
         {sessionsByWeek.map(({ week, sessions: weekSessions }) => {
-          const weekPhase = weekSessions[0]?.phase || "foundation";
           const weekOpen = week === targetWeek;
-          const weekCompleted = weekSessions.every((s) => s.data?.session_log?.completed_at);
+          const weekRange = formatWeekRange(weekSessions);
 
           return (
             <details
@@ -197,12 +165,7 @@ export default async function BlockViewPage({
                   {week}
                 </span>
                 <span className="text-sm font-bold text-foreground">Week {week}</span>
-                <span className="text-xs text-muted-foreground ml-0.5">
-                  {weekSessions.length} session{weekSessions.length === 1 ? "" : "s"}
-                </span>
-                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${phaseColors[weekPhase] || "bg-muted text-muted-foreground"}`}>
-                  {weekPhase}
-                </span>
+                {weekRange && <span className="text-xs text-muted-foreground ml-0.5">{weekRange}</span>}
                 <span className="ml-auto text-xs text-muted-foreground">
                   {weekSessions.filter((s) => s.data?.session_log?.completed_at).length}/{weekSessions.length} logged
                 </span>

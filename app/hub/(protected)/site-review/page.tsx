@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { HubCard, HubCardHeader, KpiTile } from "@/components/hub";
+import { HubCard, HubCardHeader, KpiTile, HubTabsList, HubTabsTrigger } from "@/components/hub";
 import { IconAlertCircle, IconCheck, IconCheckSquare, IconClock, IconZap, IconClipboardList, IconFileText } from "@/components/icons";
 
 interface Task {
@@ -212,14 +212,14 @@ export default function SiteReviewPage() {
       </div>
 
       <Tabs defaultValue="tasks" className="w-full">
-        <div className="inline-flex w-full max-w-full justify-start gap-0.5 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm mb-6">
-          <TabsTrigger value="tasks" className="rounded-lg border-0 px-3.5 py-2 text-sm font-medium data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-[var(--hub-hover)] hover:data-[state=inactive]:text-foreground">
+        <HubTabsList className="mb-6">
+          <HubTabsTrigger value="tasks">
             Tasks ({filteredTasks.length})
-          </TabsTrigger>
-          <TabsTrigger value="sitemap" className="rounded-lg border-0 px-3.5 py-2 text-sm font-medium data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:shadow-none data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-[var(--hub-hover)] hover:data-[state=inactive]:text-foreground">
+          </HubTabsTrigger>
+          <HubTabsTrigger value="sitemap">
             Sitemap ({sitemap.length})
-          </TabsTrigger>
-        </div>
+          </HubTabsTrigger>
+        </HubTabsList>
 
         {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-4">
