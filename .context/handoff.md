@@ -1,5 +1,50 @@
 # Handoff
 
+## Session close — 2026-08-01 (evening) — Tasks overdue-count bug, compliance/document-engine gap, GP clearance made manual
+
+**Tasks board "Overdue" count was wrong** — Craig reported it showing 8 when only 1 To Do card was
+actually overdue. Root cause: `matchesDueFilter` in `TasksManager.tsx` didn't exclude `done` tasks,
+so 7 completed tasks with a past due date counted toward Overdue/Due Today/Due This Week, even though
+the "X overdue" banner just below it already excluded done tasks via the same pattern. Fixed by
+applying the same exclusion in `matchesDueFilter` — also fixes the filtered board itself, not just the
+tab badge.
+
+**Compliance status wasn't reading the document engine.** Nathan Wadey's Compliance tab showed
+"Action Needed" / "No PAR-Q on file" / "No signed agreement on file" despite both showing "Signed" in
+the document register. `lib/compliance.ts::computeComplianceFlags` only ever checked the legacy
+`signed_parq`/`signed_agreements` tables — never `client_documents`, which is where every PAR-Q and
+Agreement has actually landed since the document-engine migration (`.context` already flagged this as
+a known gap: "legacy tables still read by tracker/compliance-tab code — not retired yet"). Also
+confirmed Craig's suspicion that uploaded historical PDF scans (`source_type: 'scan'`) land in
+`client_documents` with `status: 'signed'` too, so they were equally invisible to compliance. Added
+`hasSignedParqDocument`/`hasSignedAgreementDocument` params, wired through the three callers (client
+detail, tracker, process & quality) via a `client_documents` query filtered to `status = 'signed'`.
+
+**Known remaining gap, not fixed this session:** GP-clearance high-risk detection (see next item) used
+to read structured PAR-Q answers (q1, q2, etc.) that only exist on the legacy `signed_parq` row — a
+PAR-Q completed purely through the document engine has no equivalent yet. Moot now that the rule is
+manual (below), but worth knowing if it's ever automated again.
+
+**GP clearance requirement changed from an automated rule to a manual flag**, per Craig's explicit
+ask — it's a clinical judgement call, not something PAR-Q answers should decide. Removed the
+`HIGH_RISK_PARQ_QUESTIONS` auto-derivation entirely; added `profile.health.gp_clearance_required`
+(trainer-ticked, Edit client → Health and clearance card, next to the existing "GP clearance
+obtained" checkbox). Before flipping this over, queried prod directly to check who the old rule was
+currently flagging — 8 clients had a high-risk PAR-Q answer (Colin Farley, Monique Weardon, Becky
+Price, Ellie Wallwork, Ian Healey, Odul Bozkurt, Saffron Somerset, Sam Gibbons), 7 of them without
+`gp_clearance` obtained and therefore currently `pending_medical` (blocking Plan Agent block
+generation). Flagged this to Craig before shipping — an unbackfilled deploy would have silently
+flipped all 7 to `clear` and unblocked planning for people who may genuinely need a GP letter. Craig
+confirmed the backfill; ran
+`supabase/migrations/20260801_gp_clearance_required_manual_backfill.sql` directly against prod
+(`profile.health.gp_clearance_required = true` for those 8), confirmed via a follow-up query. Esther
+now owns the flag from here and can un-tick any of the 8 if she disagrees with the old rule's call.
+
+Pushed straight to `main` (fast-forward from the worktree, commit `43d81d3`) — Coolify auto-deploy is
+on for this project, no manual trigger needed. `tsc --noEmit` clean throughout; no UI smoke test done
+this session (no browser/login access) — worth a quick look at Nathan Wadey's Compliance tab and the
+Tasks board Overdue filter next session to visually confirm.
+
 ## Session close — 2026-08-01 (afternoon) — Training block module redesign shipped; Design Parity Gate added as a global rule after a real miss
 
 **Training block module redesigned against a new OpenDesign mockup, in 4 commits, all deployed and log-verified.**
