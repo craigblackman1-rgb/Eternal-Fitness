@@ -244,9 +244,12 @@ export default async function BlockViewPage({
                           <span className="text-xs text-muted-foreground shrink-0">Not logged</span>
                         )}
                       </summary>
-                      <div className="px-4 pt-2 text-right">
+                      <div className="px-4 pt-2 flex items-center justify-end gap-4">
+                        <Link href={`/hub/log/${session.id}`} className="text-xs text-rose hover:underline">
+                          Log this session
+                        </Link>
                         <Link href={sessionUrl} className="text-xs text-rose hover:underline">
-                          Open full session (log, swap, home version)
+                          Edit session (exercises, swap, home version)
                         </Link>
                       </div>
                       <div className="px-4 pb-4 pt-2 overflow-x-auto">
