@@ -587,7 +587,16 @@ function SessionSection({
                   <Fragment key={i}>
                     <tr className={hasDetail || editingUrl === i || loggingOpen === i ? "" : "border-b border-[var(--hub-border)]"}>
                       <td className={`px-4 py-2 align-top${superset ? " border-l-2 border-rose/30" : ""}`}>
-                        <p className="text-sm font-medium text-foreground">{ex.exercise_name}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-sm font-medium text-foreground">{ex.exercise_name}</p>
+                          <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                            isTimeBasedReps(ex.reps, ex.log_type)
+                              ? "border-teal/20 bg-teal/10 text-teal"
+                              : "border-rose/20 bg-rose/5 text-rose"
+                          }`}>
+                            {isTimeBasedReps(ex.reps, ex.log_type) ? "Time" : "Reps & wt"}
+                          </span>
+                        </div>
                         {ex.equipment?.length > 0 && (
                           <p className="text-[11px] text-muted-foreground">{ex.equipment.join(", ")}</p>
                         )}
@@ -732,9 +741,12 @@ function SessionSection({
   );
 }
 
-/** True when the prescription is time-based rather than rep-based — inferred from the
- * reps string carrying a duration unit (e.g. "30s", "45 sec each side", "1 min"). */
-function isTimeBasedReps(reps: string): boolean {
+/** True when the prescription is time-based rather than rep-based — checks the
+ * explicit log_type field first; falls back to a regex heuristic on the reps string
+ * for legacy sessions that predate the field (e.g. "30s", "45 sec each side", "1 min"). */
+function isTimeBasedReps(reps: string, logType?: "reps" | "time"): boolean {
+  if (logType === "time") return true;
+  if (logType === "reps") return false;
   return /\d\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i.test(reps || "");
 }
 
@@ -767,7 +779,7 @@ function ExerciseSetLogger({
   onSave: (payload: SetLogSavePayload) => Promise<boolean>;
 }) {
   const totalSets = Math.max(1, exercise.sets || 1);
-  const timeBased = isTimeBasedReps(exercise.reps);
+  const timeBased = isTimeBasedReps(exercise.reps, exercise.log_type);
   const prescribedSeconds = parsePrescribedSeconds(exercise.reps);
   const prescribedReps = parsePrescribedReps(exercise.reps);
 

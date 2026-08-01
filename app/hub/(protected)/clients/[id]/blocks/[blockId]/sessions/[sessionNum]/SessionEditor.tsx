@@ -151,6 +151,15 @@ export function SessionEditor({
     }));
   };
 
+  const setLogType = (sectionKey: SectionKey, uid: string, logType: "reps" | "time") => {
+    setSections((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((e) =>
+        e._uid === uid ? { ...e, log_type: logType } : e
+      ),
+    }));
+  };
+
   const moveWithinSection = (sectionKey: SectionKey, uid: string, dir: 1 | -1) => {
     setSections((prev) => {
       const list = [...prev[sectionKey]];
@@ -406,6 +415,7 @@ export function SessionEditor({
                           isFirst={i === 0}
                           isLast={i === block.items.length - 1}
                           onField={updateField}
+                          onSetLogType={setLogType}
                           onMoveWithin={moveWithinSection}
                           onMoveTo={moveToSection}
                           onRemove={removeExercise}
@@ -459,6 +469,7 @@ export function SessionEditor({
                       isFirst={list.findIndex((e) => e._uid === block.items[0]._uid) === 0}
                       isLast={list.findIndex((e) => e._uid === block.items[0]._uid) === list.length - 1}
                       onField={updateField}
+                      onSetLogType={setLogType}
                       onMoveWithin={moveWithinSection}
                       onMoveTo={moveToSection}
                       onRemove={removeExercise}
@@ -526,6 +537,7 @@ function ExerciseRow({
   isFirst,
   isLast,
   onField,
+  onSetLogType,
   onMoveWithin,
   onMoveTo,
   onRemove,
@@ -543,6 +555,7 @@ function ExerciseRow({
   isFirst: boolean;
   isLast: boolean;
   onField: (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => void;
+  onSetLogType: (sectionKey: SectionKey, uid: string, logType: "reps" | "time") => void;
   onMoveWithin: (sectionKey: SectionKey, uid: string, dir: 1 | -1) => void;
   onMoveTo: (fromSection: SectionKey, uid: string, toSection: SectionKey) => void;
   onRemove: (sectionKey: SectionKey, uid: string) => void;
@@ -553,6 +566,7 @@ function ExerciseRow({
   setVideoDraft: (v: string) => void;
   onSaveVideo: (sectionKey: SectionKey, uid: string) => void;
 }) {
+  const logType = (ex as Exercise & { log_type?: "reps" | "time" }).log_type || "reps";
   const otherSections = SECTION_DEFS.filter((s) => s.key !== sectionKey);
   const videoOpen = videoOpenUid === ex._uid;
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -584,7 +598,29 @@ function ExerciseRow({
       </div>
 
       <div className="min-w-[160px] flex-1">
-        <p className="text-sm font-semibold text-foreground">{ex.exercise_name}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-semibold text-foreground">{ex.exercise_name}</p>
+          <div className="inline-flex gap-0.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-hover)] p-0.5">
+            <button
+              type="button"
+              onClick={() => onSetLogType(sectionKey, ex._uid, "reps")}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
+                logType !== "time" ? "bg-[var(--hub-card)] text-rose shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Reps &amp; wt
+            </button>
+            <button
+              type="button"
+              onClick={() => onSetLogType(sectionKey, ex._uid, "time")}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
+                logType === "time" ? "bg-[var(--hub-card)] text-teal shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Time
+            </button>
+          </div>
+        </div>
         {ex.coaching_cue && <p className="mt-0.5 text-xs text-muted-foreground">{ex.coaching_cue}</p>}
         {ex.modification && (
           <span className="mt-1 inline-flex rounded-md border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
