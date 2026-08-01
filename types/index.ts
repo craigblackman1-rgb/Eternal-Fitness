@@ -154,6 +154,10 @@ export interface ClientProfile {
   };
   health: {
     gp_clearance: boolean;
+    /** Trainer-set flag — Esther decides whether this client needs a GP clearance
+     *  letter before training, based on her own clinical judgement. Replaces the
+     *  earlier automated rule that inferred this from PAR-Q answers. */
+    gp_clearance_required?: boolean;
     conditions: string[];
     contraindications: string[];
     medications_relevant: string[];

@@ -156,7 +156,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   if (p?.logistics?.sessions_per_week) metaParts.push(`${p.logistics.sessions_per_week}x/week`);
   if (p?.logistics?.package) metaParts.push(p.logistics.package);
 
-  const flags = computeComplianceFlags({ client, latestParq: latestParq ?? null, latestAgreement: latestAgreement ?? null });
+  const hasSignedParqDocument = (clientDocuments ?? []).some((d) => d.kind === "parq" && d.status === "signed");
+  const hasSignedAgreementDocument = (clientDocuments ?? []).some((d) => d.kind === "terms" && d.status === "signed");
+  const flags = computeComplianceFlags({
+    client,
+    latestParq: latestParq ?? null,
+    latestAgreement: latestAgreement ?? null,
+    hasSignedParqDocument,
+    hasSignedAgreementDocument,
+  });
   const complianceLookup = lookupStatus(flags.effectiveStatus);
   const gpClearance = p?.health?.gp_clearance;
   const manualActions = client.outstanding_actions ?? [];

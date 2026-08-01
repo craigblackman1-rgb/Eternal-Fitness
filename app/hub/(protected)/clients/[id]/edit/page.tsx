@@ -86,7 +86,7 @@ function SegmentedControl<T extends string | number>({
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
   logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", package: "12-week", block_number: 1 },
-  health: { gp_clearance: false, conditions: [], contraindications: [], medications_relevant: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
+  health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
   goals: { primary: "general_fitness", secondary: [], milestones: [] },
@@ -432,6 +432,24 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
           <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health and clearance" subtitle="What has to be adapted around, and what unblocks planning" color="rose" noBottomPadding />
           <div className="px-5 pb-5 pt-4 space-y-4">
             <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
+              <span className="relative shrink-0 w-5 h-5 mt-px">
+                <input
+                  type="checkbox"
+                  id="gp_clearance_required"
+                  checked={profile.health.gp_clearance_required ?? false}
+                  onChange={(e) => updateProfile("health", { gp_clearance_required: e.target.checked })}
+                  className="sr-only"
+                />
+                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.gp_clearance_required ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                  {(profile.health.gp_clearance_required ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                </span>
+              </span>
+              <div className="min-w-0">
+                <Label htmlFor="gp_clearance_required" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance required</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Your call — tick if this client needs written GP clearance before training. Drives the "pending medical" status below until it's obtained.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)]">
               <span className="relative shrink-0 w-5 h-5 mt-px">
                 <input
                   type="checkbox"
