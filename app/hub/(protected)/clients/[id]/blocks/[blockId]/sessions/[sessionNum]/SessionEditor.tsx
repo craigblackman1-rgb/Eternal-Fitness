@@ -226,6 +226,42 @@ export function SessionEditor({
     });
   };
 
+  const moveBlockAcrossSections = (fromSection: SectionKey, draggedKey: string, toSection: SectionKey, targetKey: string, pos: "before" | "after") => {
+    setSections((prev) => {
+      const fromAllow = fromSection === "main_block";
+      const fromBlocks = computeBlocks(prev[fromSection], fromAllow);
+      const fromIdx = fromBlocks.findIndex((b) => b.key === draggedKey);
+      if (fromIdx < 0) return prev;
+
+      const toAllow = toSection === "main_block";
+      const toBlocks = computeBlocks(prev[toSection], toAllow);
+      const toIdx = toBlocks.findIndex((b) => b.key === targetKey);
+      if (toIdx < 0) return prev;
+
+      const block = fromBlocks[fromIdx];
+      const wasGroup = block.type === "group";
+      const movedItems = block.items.map((e) => ({ ...e, group_label: undefined as string | undefined }));
+
+      const uidSet = new Set(block.items.map((e) => e._uid));
+      const fromList = prev[fromSection].filter((e) => !uidSet.has(e._uid));
+
+      const targetBlock = toBlocks[toIdx];
+      const lastUid = targetBlock.items[targetBlock.items.length - 1]._uid;
+      const toList = [...prev[toSection]];
+      const afterIdx = toList.findIndex((e) => e._uid === lastUid);
+      const insertIdx = pos === "before" ? afterIdx - (targetBlock.items.length - 1) : afterIdx + 1;
+      toList.splice(insertIdx, 0, ...movedItems);
+
+      let next: SectionsState = { ...prev, [fromSection]: fromList, [toSection]: toList };
+      const norm = normalizeGroupsList(next.main_block);
+      next = { ...next, main_block: norm.list };
+
+      const label = wasGroup ? `${block.items.length} exercises` : `"${block.items[0].exercise_name}"`;
+      toast.message(`Moved ${label} to ${SECTION_LABEL[toSection]}.${wasGroup ? " The superset was resolved." : ""}`);
+      return next;
+    });
+  };
+
   const removeExercise = (sectionKey: SectionKey, uid: string) => {
     setSections((prev) => {
       const list = [...prev[sectionKey]];
@@ -356,7 +392,38 @@ export function SessionEditor({
                 {list.length} exercise{list.length === 1 ? "" : "s"}
               </span>
             </div>
-            <div className="space-y-2 p-3">
+            <div
+              className={`space-y-2 p-3 rounded-xl transition-colors ${dragSection && dragSection !== sec.key ? "bg-[var(--hub-sidebar-active)] outline outline-2 outline-dashed outline-rose/20" : ""}`}
+              onDragOver={(e) => {
+                if (dragSection && dragSection !== sec.key) e.preventDefault();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragBlockKey && dragSection && dragSection !== sec.key && blocks.length === 0) {
+                  setSections((prev) => {
+                    const fromAllow = dragSection === "main_block";
+                    const fromBlocks = computeBlocks(prev[dragSection], fromAllow);
+                    const fromIdx = fromBlocks.findIndex((b) => b.key === dragBlockKey);
+                    if (fromIdx < 0) return prev;
+                    const block = fromBlocks[fromIdx];
+                    const wasGroup = block.type === "group";
+                    const movedItems = block.items.map((e) => ({ ...e, group_label: undefined as string | undefined }));
+                    const uidSet = new Set(block.items.map((e) => e._uid));
+                    const fromList = prev[dragSection].filter((e) => !uidSet.has(e._uid));
+                    const toList = [...prev[sec.key], ...movedItems];
+                    let next: SectionsState = { ...prev, [dragSection]: fromList, [sec.key]: toList };
+                    const norm = normalizeGroupsList(next.main_block);
+                    next = { ...next, main_block: norm.list };
+                    const label = wasGroup ? `${block.items.length} exercises` : `"${block.items[0].exercise_name}"`;
+                    toast.message(`Moved ${label} to ${SECTION_LABEL[sec.key]}.${wasGroup ? " The superset was resolved." : ""}`);
+                    return next;
+                  });
+                  setDragBlockKey(null);
+                  setDragSection(null);
+                  setOverBlockKey(null);
+                }
+              }}
+            >
               {blocks.length === 0 && (
                 <p className="rounded-xl border border-dashed border-[var(--hub-border)] py-4 text-center text-sm text-muted-foreground">
                   No exercises in {sec.label.toLowerCase()} yet.
@@ -377,16 +444,19 @@ export function SessionEditor({
                       setOverBlockKey(null);
                     }}
                     onDragOver={(e) => {
-                      if (dragSection !== sec.key) return;
                       e.preventDefault();
                       setOverBlockKey(block.key);
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (dragBlockKey && dragSection === sec.key) {
+                      if (dragBlockKey) {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const pos = e.clientY - rect.top < rect.height / 2 ? "before" : "after";
-                        reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        if (dragSection && dragSection !== sec.key) {
+                          moveBlockAcrossSections(dragSection, dragBlockKey, sec.key, block.key, pos);
+                        } else {
+                          reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        }
                       }
                       setDragBlockKey(null);
                       setDragSection(null);
@@ -443,16 +513,19 @@ export function SessionEditor({
                       setOverBlockKey(null);
                     }}
                     onDragOver={(e) => {
-                      if (dragSection !== sec.key) return;
                       e.preventDefault();
                       setOverBlockKey(block.key);
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (dragBlockKey && dragSection === sec.key) {
+                      if (dragBlockKey) {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const pos = e.clientY - rect.top < rect.height / 2 ? "before" : "after";
-                        reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        if (dragSection && dragSection !== sec.key) {
+                          moveBlockAcrossSections(dragSection, dragBlockKey, sec.key, block.key, pos);
+                        } else {
+                          reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        }
                       }
                       setDragBlockKey(null);
                       setDragSection(null);
