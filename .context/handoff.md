@@ -1,5 +1,74 @@
 # Handoff
 
+## Session close — 2026-08-01 (afternoon) — Training block module redesign shipped; Design Parity Gate added as a global rule after a real miss
+
+**Training block module redesigned against a new OpenDesign mockup, in 4 commits, all deployed and log-verified.**
+Craig asked to scope a redesign of the block overview/edit/schedule flow (accordion always fully
+expanded, no way to edit a block's own note/summary/status, "Edit session" took two clicks). Wrote
+`.context/brief-block-module-opendesign.md`, OpenDesign produced `hub-block-module.html`
+(3 screens: block overview, Edit Block drawer, session-edit entry) in
+`D:\apps\design-systems\ef-control-hub\`. Dispatched one OpenCode lane
+(`.context/lane-brief-block-module-2026-08-01.md`) — first launch attempt used
+`openrouter/anthropic/claude-sonnet-5` with no real justification (Craig had already removed his
+OpenRouter key after prior sessions burned through shared credit; now a standing rule — see below).
+Relaunched on the script's actual default, `opencode-go/deepseek-v4-pro`. Lane delivered: `PATCH
+/api/blocks/[id]`, new `EditBlockDrawer.tsx`/`BlockActions.tsx`/`BlockOverviewClient.tsx`, collapsed-
+by-default week/session accordion (auto-opens only the next incomplete session), `?edit=1` deep link
+into the session editor's edit mode. Commit `f10daa9`.
+
+**That first deploy crashed in production** — `page.tsx` is an async Server Component but the lane
+left an inline `onClick` on a "Hide exercise table" button, which Next.js forbids across the RSC
+boundary ("Event handlers cannot be passed to Client Component props"). `tsc --noEmit` was clean
+throughout — this class of bug is a runtime-only failure, not a type error, so the build gate never
+caught it. Found via Coolify logs, fixed by extracting `HideExerciseTableButton.tsx` as a real
+client component, commit `ea68e70`, confirmed clean logs after redeploy.
+
+**Then Craig caught real mockup-parity gaps by eye that I'd never actually checked for.** I had
+verified the lane's diff only against my own written brief's checklist (right files touched, PATCH
+route exists, `tsc` clean) and reported it done — never against the actual mockup file, because I
+don't hold hub login credentials and treated that as a reason to skip visual verification rather
+than substitute an element-by-element source comparison. Craig found three real mismatches: the old
+KPI-tile band + phase-timeline strip kept instead of the mockup's 4-cell meta-grid (a deliberate but
+unflagged scope cut in my own brief), week-row header content differing (extra session-count text +
+phase pill the mockup doesn't have), and the exercise table's column count differing (mockup
+simplifies to 3 columns; live kept the real 5-column `PrescriptionTable` with Tempo/Rest — a
+judgment call, since those are real fields Esther uses, not mockup filler). Fixed the first two for
+real via an actual section-by-section comparison against `hub-block-module.html` (commit `9e96f64`,
+deployed, logs clean). Craig explicitly said "leave as is" on the table-columns one — that's now a
+confirmed, intentional deviation, not an open gap.
+
+**New standing rule: Design Parity Gate**, added to the global `CLAUDE.md` (not just this repo) —
+`tsc`/build passing and a diff matching a written brief are not evidence a page matches its mockup.
+Before calling mockup-driven UI work done: enumerate every element in the mockup, cross-check each
+against the implementation (screenshot diff when browser/login access exists, element-by-element
+source diff when it doesn't — no-login is never a reason to skip the check), and proactively surface
+any deliberate deviation in the same message that reports completion. Full incident detail and the
+process itself live in `CLAUDE.md`'s "Non-negotiable rules" section and the
+`feedback-design-parity-gate` memory. Also added `feedback-no-openrouter-default` memory from the
+OpenRouter mis-dispatch earlier in this session.
+
+**Separately, fixed a real bug in shared infra**: `D:\apps\infrastructure\scripts\launch-opencode-lane.ps1`
+wrapped the `-Prompt` argument in double quotes inside the generated temp `.ps1` file, which gets
+re-parsed by PowerShell when that file executes — so any backtick or `$` in a prompt (this session's
+brief had `` `useSearchParams` ``) was misread as an escape sequence, breaking the lane launch outright.
+Fixed by switching to single-quoted (matching how `-Dir`/`-Model` were already escaped). This was a
+latent bug affecting any future lane prompt containing markdown code spans or template-literal syntax
+in code samples — not scoped to this session, worth knowing about repo-wide.
+
+**Also fixed, smaller and unrelated**: the client-detail page's tab bar was already correct against
+the design-system spec, but `site-review`'s tab bar had drifted (different padding/font-size, no
+icons, and wasn't even using the real `TabsList` Radix primitive — a plain styled `div`, silently
+dropping tablist accessibility semantics). Extracted `components/hub/HubTabsList`/`HubTabsTrigger` as
+the one shared source of truth for both pages, commit `011ca1d`, deployed, logs clean.
+
+**Deployed, in order**: `f10daa9` → `ea68e70` (hotfix) → `9e96f64` (parity fixes) → `011ca1d` (tab-bar
+consolidation). All four confirmed `finished` + clean startup logs via Coolify MCP, no manual deploy
+triggers (auto-deploy on push, per repo convention).
+
+**Not done / worth knowing**: the exercise-table 5-vs-3-column deviation is confirmed intentional,
+not a gap. No other pages were audited for the tab-bar drift pattern beyond the two that actually use
+`TabsList`/`TabsTrigger` (grepped, confirmed exhaustive for this codebase as of today).
+
 ## Session close — 2026-08-01 — Session editor live-logging shipped + new standing rules applied to this repo
 
 **Session editor + live logging screen, shipped and live-verified.** Built against real Open Design
