@@ -205,6 +205,10 @@ export interface Exercise {
    *  "Skill Block"). Consecutive exercises sharing a label perform together as that
    *  format. Absent on legacy data. */
   group_label?: string;
+  /** How this exercise is logged — 'reps' measures reps & weight per set,
+   *  'time' measures a single duration. Absent on legacy data; the reader
+   *  falls back to a regex guess on the `reps` string for old sessions. */
+  log_type?: 'reps' | 'time';
 }
 
 export interface SessionVersion {

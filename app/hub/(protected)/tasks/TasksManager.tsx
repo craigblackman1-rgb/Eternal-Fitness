@@ -623,7 +623,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       )}
 
       {buckets.length > 0 && (
-        <div className="inline-flex w-full max-w-full justify-start gap-1 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
+        <div className="inline-flex w-full max-w-full justify-start gap-0.5 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
           <button
             onClick={() => setBucketFilter(null)}
             className={`inline-flex items-center gap-2 rounded-lg border-0 px-3.5 py-2 text-sm font-medium transition-colors ${
@@ -714,7 +714,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       )}
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex w-full max-w-full flex-wrap gap-1 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
+        <div className="inline-flex w-full max-w-full flex-wrap gap-0.5 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
           {DUE_FILTER_OPTIONS.map((opt) => {
             const isActive = dueFilter === opt.key;
             const count = bucketScopedTasks.filter((t) => matchesDueFilter(t, opt.key)).length;

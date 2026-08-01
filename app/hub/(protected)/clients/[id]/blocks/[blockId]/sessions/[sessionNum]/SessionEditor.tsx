@@ -151,6 +151,15 @@ export function SessionEditor({
     }));
   };
 
+  const setLogType = (sectionKey: SectionKey, uid: string, logType: "reps" | "time") => {
+    setSections((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((e) =>
+        e._uid === uid ? { ...e, log_type: logType } : e
+      ),
+    }));
+  };
+
   const moveWithinSection = (sectionKey: SectionKey, uid: string, dir: 1 | -1) => {
     setSections((prev) => {
       const list = [...prev[sectionKey]];
@@ -213,6 +222,42 @@ export function SessionEditor({
       } else {
         toast.message(`Moved "${moved.exercise_name}" to ${SECTION_LABEL[toSection]}.`);
       }
+      return next;
+    });
+  };
+
+  const moveBlockAcrossSections = (fromSection: SectionKey, draggedKey: string, toSection: SectionKey, targetKey: string, pos: "before" | "after") => {
+    setSections((prev) => {
+      const fromAllow = fromSection === "main_block";
+      const fromBlocks = computeBlocks(prev[fromSection], fromAllow);
+      const fromIdx = fromBlocks.findIndex((b) => b.key === draggedKey);
+      if (fromIdx < 0) return prev;
+
+      const toAllow = toSection === "main_block";
+      const toBlocks = computeBlocks(prev[toSection], toAllow);
+      const toIdx = toBlocks.findIndex((b) => b.key === targetKey);
+      if (toIdx < 0) return prev;
+
+      const block = fromBlocks[fromIdx];
+      const wasGroup = block.type === "group";
+      const movedItems = block.items.map((e) => ({ ...e, group_label: undefined as string | undefined }));
+
+      const uidSet = new Set(block.items.map((e) => e._uid));
+      const fromList = prev[fromSection].filter((e) => !uidSet.has(e._uid));
+
+      const targetBlock = toBlocks[toIdx];
+      const lastUid = targetBlock.items[targetBlock.items.length - 1]._uid;
+      const toList = [...prev[toSection]];
+      const afterIdx = toList.findIndex((e) => e._uid === lastUid);
+      const insertIdx = pos === "before" ? afterIdx - (targetBlock.items.length - 1) : afterIdx + 1;
+      toList.splice(insertIdx, 0, ...movedItems);
+
+      let next: SectionsState = { ...prev, [fromSection]: fromList, [toSection]: toList };
+      const norm = normalizeGroupsList(next.main_block);
+      next = { ...next, main_block: norm.list };
+
+      const label = wasGroup ? `${block.items.length} exercises` : `"${block.items[0].exercise_name}"`;
+      toast.message(`Moved ${label} to ${SECTION_LABEL[toSection]}.${wasGroup ? " The superset was resolved." : ""}`);
       return next;
     });
   };
@@ -347,7 +392,38 @@ export function SessionEditor({
                 {list.length} exercise{list.length === 1 ? "" : "s"}
               </span>
             </div>
-            <div className="space-y-2 p-3">
+            <div
+              className={`space-y-2 p-3 rounded-xl transition-colors ${dragSection && dragSection !== sec.key ? "bg-[var(--hub-sidebar-active)] outline outline-2 outline-dashed outline-rose/20" : ""}`}
+              onDragOver={(e) => {
+                if (dragSection && dragSection !== sec.key) e.preventDefault();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragBlockKey && dragSection && dragSection !== sec.key && blocks.length === 0) {
+                  setSections((prev) => {
+                    const fromAllow = dragSection === "main_block";
+                    const fromBlocks = computeBlocks(prev[dragSection], fromAllow);
+                    const fromIdx = fromBlocks.findIndex((b) => b.key === dragBlockKey);
+                    if (fromIdx < 0) return prev;
+                    const block = fromBlocks[fromIdx];
+                    const wasGroup = block.type === "group";
+                    const movedItems = block.items.map((e) => ({ ...e, group_label: undefined as string | undefined }));
+                    const uidSet = new Set(block.items.map((e) => e._uid));
+                    const fromList = prev[dragSection].filter((e) => !uidSet.has(e._uid));
+                    const toList = [...prev[sec.key], ...movedItems];
+                    let next: SectionsState = { ...prev, [dragSection]: fromList, [sec.key]: toList };
+                    const norm = normalizeGroupsList(next.main_block);
+                    next = { ...next, main_block: norm.list };
+                    const label = wasGroup ? `${block.items.length} exercises` : `"${block.items[0].exercise_name}"`;
+                    toast.message(`Moved ${label} to ${SECTION_LABEL[sec.key]}.${wasGroup ? " The superset was resolved." : ""}`);
+                    return next;
+                  });
+                  setDragBlockKey(null);
+                  setDragSection(null);
+                  setOverBlockKey(null);
+                }
+              }}
+            >
               {blocks.length === 0 && (
                 <p className="rounded-xl border border-dashed border-[var(--hub-border)] py-4 text-center text-sm text-muted-foreground">
                   No exercises in {sec.label.toLowerCase()} yet.
@@ -368,16 +444,19 @@ export function SessionEditor({
                       setOverBlockKey(null);
                     }}
                     onDragOver={(e) => {
-                      if (dragSection !== sec.key) return;
                       e.preventDefault();
                       setOverBlockKey(block.key);
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (dragBlockKey && dragSection === sec.key) {
+                      if (dragBlockKey) {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const pos = e.clientY - rect.top < rect.height / 2 ? "before" : "after";
-                        reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        if (dragSection && dragSection !== sec.key) {
+                          moveBlockAcrossSections(dragSection, dragBlockKey, sec.key, block.key, pos);
+                        } else {
+                          reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        }
                       }
                       setDragBlockKey(null);
                       setDragSection(null);
@@ -406,6 +485,7 @@ export function SessionEditor({
                           isFirst={i === 0}
                           isLast={i === block.items.length - 1}
                           onField={updateField}
+                          onSetLogType={setLogType}
                           onMoveWithin={moveWithinSection}
                           onMoveTo={moveToSection}
                           onRemove={removeExercise}
@@ -433,16 +513,19 @@ export function SessionEditor({
                       setOverBlockKey(null);
                     }}
                     onDragOver={(e) => {
-                      if (dragSection !== sec.key) return;
                       e.preventDefault();
                       setOverBlockKey(block.key);
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (dragBlockKey && dragSection === sec.key) {
+                      if (dragBlockKey) {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const pos = e.clientY - rect.top < rect.height / 2 ? "before" : "after";
-                        reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        if (dragSection && dragSection !== sec.key) {
+                          moveBlockAcrossSections(dragSection, dragBlockKey, sec.key, block.key, pos);
+                        } else {
+                          reorderSection(sec.key, dragBlockKey, block.key, pos);
+                        }
                       }
                       setDragBlockKey(null);
                       setDragSection(null);
@@ -459,6 +542,7 @@ export function SessionEditor({
                       isFirst={list.findIndex((e) => e._uid === block.items[0]._uid) === 0}
                       isLast={list.findIndex((e) => e._uid === block.items[0]._uid) === list.length - 1}
                       onField={updateField}
+                      onSetLogType={setLogType}
                       onMoveWithin={moveWithinSection}
                       onMoveTo={moveToSection}
                       onRemove={removeExercise}
@@ -526,6 +610,7 @@ function ExerciseRow({
   isFirst,
   isLast,
   onField,
+  onSetLogType,
   onMoveWithin,
   onMoveTo,
   onRemove,
@@ -543,6 +628,7 @@ function ExerciseRow({
   isFirst: boolean;
   isLast: boolean;
   onField: (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => void;
+  onSetLogType: (sectionKey: SectionKey, uid: string, logType: "reps" | "time") => void;
   onMoveWithin: (sectionKey: SectionKey, uid: string, dir: 1 | -1) => void;
   onMoveTo: (fromSection: SectionKey, uid: string, toSection: SectionKey) => void;
   onRemove: (sectionKey: SectionKey, uid: string) => void;
@@ -553,6 +639,7 @@ function ExerciseRow({
   setVideoDraft: (v: string) => void;
   onSaveVideo: (sectionKey: SectionKey, uid: string) => void;
 }) {
+  const logType = (ex as Exercise & { log_type?: "reps" | "time" }).log_type || "reps";
   const otherSections = SECTION_DEFS.filter((s) => s.key !== sectionKey);
   const videoOpen = videoOpenUid === ex._uid;
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -584,7 +671,29 @@ function ExerciseRow({
       </div>
 
       <div className="min-w-[160px] flex-1">
-        <p className="text-sm font-semibold text-foreground">{ex.exercise_name}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-semibold text-foreground">{ex.exercise_name}</p>
+          <div className="inline-flex gap-0.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-hover)] p-0.5">
+            <button
+              type="button"
+              onClick={() => onSetLogType(sectionKey, ex._uid, "reps")}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
+                logType !== "time" ? "bg-[var(--hub-card)] text-rose shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Reps &amp; wt
+            </button>
+            <button
+              type="button"
+              onClick={() => onSetLogType(sectionKey, ex._uid, "time")}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
+                logType === "time" ? "bg-[var(--hub-card)] text-teal shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Time
+            </button>
+          </div>
+        </div>
         {ex.coaching_cue && <p className="mt-0.5 text-xs text-muted-foreground">{ex.coaching_cue}</p>}
         {ex.modification && (
           <span className="mt-1 inline-flex rounded-md border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">

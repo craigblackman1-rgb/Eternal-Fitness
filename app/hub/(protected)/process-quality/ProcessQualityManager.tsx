@@ -133,7 +133,7 @@ export function ProcessQualityManager({
       </div>
 
       {/* ── Tab strip ── */}
-      <div className="inline-flex w-full max-w-full justify-start gap-1 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
+      <div className="inline-flex w-full max-w-full justify-start gap-0.5 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
         {TABS.map((tab) => {
           const count =
             tab.id === "register"
