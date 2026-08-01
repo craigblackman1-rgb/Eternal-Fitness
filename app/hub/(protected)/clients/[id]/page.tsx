@@ -61,8 +61,17 @@ function TabCountBadge({ count, tone }: { count: number; tone: "danger" | "warni
     ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]"
     : "bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning-border)]";
   return (
-    <span className={`inline-grid place-items-center min-w-[18px] h-[18px] px-1 rounded-full border text-[11px] font-bold leading-none tabular-nums ${classes}`}>
+    <span className={`inline-grid place-items-center min-w-[18px] h-[18px] px-[5px] rounded-full border text-[11px] font-bold leading-none tabular-nums ${classes}`}>
       {count}
+    </span>
+  );
+}
+
+/** Tag chip — matches the mockup's rectangular chip (6px radius, canvas fill). */
+function TagChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-md bg-[var(--hub-canvas)] border border-[var(--hub-border)] px-2 py-0.5 text-xs text-[var(--color-body)]">
+      {children}
     </span>
   );
 }
@@ -151,7 +160,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <span className="text-muted-foreground">Compliance</span>
             {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="text-muted-foreground">—</span>}
           </div>
-          <div className="flex items-center justify-between py-2 text-sm">
+          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
             <span className="text-muted-foreground">GP Clearance</span>
             {p?.health ? (
               <YesNoPill yes={gpClearance} />
@@ -159,7 +168,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               <span className="text-muted-foreground">—</span>
             )}
           </div>
-          <div className="flex items-center justify-between py-2 text-sm">
+          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
             <span className="text-muted-foreground">Outstanding actions</span>
             <span className="font-medium text-foreground">{outstandingCount}</span>
           </div>
@@ -191,7 +200,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       <HubCard>
         <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Quick Actions" color="amber" noBottomPadding />
         <div className="pb-5">
-          <HubQuickActions actions={[
+          <HubQuickActions divider actions={[
             { href: `/hub/clients/${client.client_number}/edit`, label: "Edit client", icon: <IconPencil className="w-4 h-4" /> },
             { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan a block", icon: <IconPlus className="w-4 h-4" /> },
             { href: `/hub/clients/${client.client_number}/updates`, label: "Updates", icon: <IconMail className="w-4 h-4" /> },
@@ -211,11 +220,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <span className="text-muted-foreground">Client number</span>
             <span className="font-medium text-foreground">#{client.client_number}</span>
           </div>
-          <div className="flex items-center justify-between py-2 text-sm">
+          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
             <span className="text-muted-foreground">Created</span>
             <span className="font-medium text-foreground">{new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
           </div>
-          <div className="flex items-center justify-between py-2 text-sm">
+          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
             <span className="text-muted-foreground">Last edited</span>
             <span className="font-medium text-foreground">{(client as any).updated_at ? new Date((client as any).updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</span>
           </div>
@@ -246,7 +255,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </span>
                   {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
                 </h1>
-                {metaParts.slice(1).length > 0 && <p className="text-sm text-muted-foreground mt-0.5">{metaParts.slice(1).join(" · ")}</p>}
+                {metaParts.slice(1).length > 0 && <p className="text-sm text-muted-foreground mt-[3px]">{metaParts.slice(1).join(" · ")}</p>}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Link href={`/hub/clients/${client.client_number}/edit`}>
@@ -262,7 +271,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </div>
             </div>
             {/* Key facts — label + value chips (matches reference chip-kv) */}
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
+            <div className="flex items-center gap-2 mt-3.5 flex-wrap">
               {client.group_type && (
                 <KeyFactChip label="Format"><GroupTypeLabel groupType={client.group_type} /></KeyFactChip>
               )}
@@ -312,7 +321,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
       {/* ── Tabs ── */}
       <ClientDetailTabs>
-        <TabsList className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
+        <TabsList className="inline-flex w-full max-w-full justify-start gap-1 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
           <TabsTrigger value="overview" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
             <IconLayoutDashboard className="w-3.5 h-3.5 text-muted-foreground" /> Overview
           </TabsTrigger>
@@ -425,7 +434,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               {/* Health — spans both columns; carries the most content and matters most on a clinical record */}
               {p?.health && (
                 <HubCard className="sm:col-span-2">
-                  <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health" color="rose" noBottomPadding />
+                  <HubCardHeader
+                    icon={<IconHeart className="w-4 h-4" />}
+                    title="Health"
+                    color="rose"
+                    action={complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : undefined}
+                    noBottomPadding
+                  />
                   <div className="pb-5 space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground text-xs">GP Clearance</span>
@@ -440,22 +455,22 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <HubDataGrid cols={2}>
                       {p.health.conditions?.length > 0 && (
                         <HubDataField label="Conditions">
-                          <div className="flex flex-wrap gap-1.5">{p.health.conditions.map((item, i) => <Badge key={i} variant="secondary" className="rounded-full font-normal text-xs">{item}</Badge>)}</div>
+                          <div className="flex flex-wrap gap-1.5">{p.health.conditions.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
                         </HubDataField>
                       )}
                       {p.health.medications_relevant?.length > 0 && (
                         <HubDataField label="Relevant Medications">
-                          <div className="flex flex-wrap gap-1.5">{p.health.medications_relevant.map((item, i) => <Badge key={i} variant="secondary" className="rounded-full font-normal text-xs">{item}</Badge>)}</div>
+                          <div className="flex flex-wrap gap-1.5">{p.health.medications_relevant.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
                         </HubDataField>
                       )}
                       {p.health.pain_points?.length > 0 && (
                         <HubDataField label="Pain Points" span>
-                          <div className="flex flex-wrap gap-1.5">{p.health.pain_points.map((item, i) => <Badge key={i} variant="secondary" className="rounded-full font-normal text-xs">{item}</Badge>)}</div>
+                          <div className="flex flex-wrap gap-1.5">{p.health.pain_points.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
                         </HubDataField>
                       )}
                       {p.health.contraindications?.length > 0 && (
                         <HubDataField label="Contraindications" span>
-                          <div className="flex flex-wrap gap-1.5">{p.health.contraindications.map((item, i) => <Badge key={i} variant="secondary" className="rounded-full font-normal text-xs">{item}</Badge>)}</div>
+                          <div className="flex flex-wrap gap-1.5">{p.health.contraindications.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
                         </HubDataField>
                       )}
                     </HubDataGrid>
@@ -465,7 +480,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         <div className="overflow-x-auto rounded-lg border border-[var(--hub-border)]">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-canvas)] text-xs text-muted-foreground">
+                              <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                                 <th className="px-3 py-1.5 text-left font-medium">Date</th>
                                 <th className="px-3 py-1.5 text-left font-medium">Description</th>
                                 <th className="px-3 py-1.5 text-left font-medium">Body Area</th>
@@ -546,7 +561,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       <HubDataField label="Primary"><span className="capitalize">{p.goals.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
                       {p.goals.secondary?.length > 0 && (
                         <HubDataField label="Secondary">
-                          <div className="flex flex-wrap gap-1.5">{p.goals.secondary.map((item, i) => <Badge key={i} variant="secondary" className="rounded-full font-normal text-xs">{item}</Badge>)}</div>
+                          <div className="flex flex-wrap gap-1.5">{p.goals.secondary.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
                         </HubDataField>
                       )}
                     </HubDataGrid>
@@ -614,14 +629,20 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               {/* Training Rules */}
               {p?.programming_adaptations && p.programming_adaptations.length > 0 && (
                 <HubCard className="sm:col-span-2">
-                  <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Training Rules" color="amber" noBottomPadding />
+                  <HubCardHeader
+                    icon={<IconAlertCircle className="w-4 h-4" />}
+                    title="Active Training Rules"
+                    color="amber"
+                    action={<span className="text-xs text-muted-foreground">Applied to every generated block</span>}
+                    noBottomPadding
+                  />
                   <div className="pb-5">
-                    <ul className="list-none space-y-2">
+                    <ul className="list-none divide-y divide-[var(--hub-border)]">
                       {p.programming_adaptations.map((rule) => {
                         const ruleType = ruleTypesById.get(rule.rule_type_id);
                         return (
-                          <li key={rule.id} className="flex items-start gap-2 text-sm">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber mt-2 shrink-0" />
+                          <li key={rule.id} className="flex items-start gap-2 text-sm py-[9px]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber mt-[7px] shrink-0" />
                             <span className="text-foreground">
                               <span className={rule.severity === "hard" ? "font-semibold" : "text-muted-foreground"}>
                                 {rule.severity === "hard" ? "[HARD]" : "[soft]"}
@@ -750,12 +771,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-canvas)]">
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Block</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Started</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Note</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Status</th>
-                      <th className="px-5 py-2.5"></th>
+                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Block</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Started</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Status</th>
+                      <th className="h-10 px-5 py-0"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -785,21 +806,19 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             )}
           </HubCard>
 
-          <div className="my-4" />
-
-          <HubCard padded={false}>
+          <HubCard padded={false} className="mt-5">
             <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Session Log" color="slate" className="px-5 pt-5" />
             {sessions && sessions.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-canvas)]">
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Block</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Session #</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Date</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">RPE</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Fatigue</th>
-                      <th className="text-left font-medium text-muted-foreground text-xs px-5 py-2.5">Notes</th>
+                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Block</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Session #</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Date</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">RPE</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Fatigue</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Notes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -866,25 +885,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
         {/* ── Tab: Updates ── */}
         <TabsContent value="updates" className="mt-6">
-          <HubCard>
-            <HubCardHeader
-              icon={<IconMail className="w-4 h-4" />}
-              title="6-Week Updates"
-              color="rose"
-              action={
-                <Link href={`/hub/clients/${client.client_number}/updates`} className="text-xs font-medium text-teal hover:underline">
-                  Full history &amp; report
-                </Link>
-              }
-              noBottomPadding
-            />
-            <div className="px-5 pb-5">
-              <ClientUpdatesPanel
-                clientNumber={client.client_number}
-                updates={(clientUpdates || []) as SentUpdate[]}
-              />
-            </div>
-          </HubCard>
+          <ClientUpdatesPanel
+            clientNumber={client.client_number}
+            updates={(clientUpdates || []) as SentUpdate[]}
+            reportHref={`/hub/clients/${client.client_number}/updates`}
+          />
         </TabsContent>
       </ClientDetailTabs>
     </div>

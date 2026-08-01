@@ -133,7 +133,7 @@ export function ProcessQualityManager({
       </div>
 
       {/* ── Tab strip ── */}
-      <div className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
+      <div className="inline-flex w-full max-w-full justify-start gap-1 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
         {TABS.map((tab) => {
           const count =
             tab.id === "register"
@@ -154,7 +154,7 @@ export function ProcessQualityManager({
             >
               {tab.label}
               <span
-                className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+                className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-[5px] text-[11px] font-bold leading-none tabular-nums ${
                   isActive
                     ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
                     : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"

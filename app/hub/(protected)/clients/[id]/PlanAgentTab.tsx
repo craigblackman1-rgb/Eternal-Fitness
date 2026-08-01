@@ -12,6 +12,7 @@ import remarkGfm from "remark-gfm";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  time?: string;
 }
 
 interface PlanAgentTabProps {
@@ -44,14 +45,15 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
   async function sendMessage(content: string) {
     if (!content.trim() || streaming) return;
 
-    const userMessage: Message = { role: "user", content: content.trim() };
+    const time = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const userMessage: Message = { role: "user", content: content.trim(), time };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
     setError(null);
     setStreaming(true);
 
-    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+    setMessages((prev) => [...prev, { role: "assistant", content: "", time }]);
 
     try {
       const response = await fetch("/api/claude/plan-chat", {
@@ -135,27 +137,22 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
 
   const hasConversation = messages.length > 0;
   const lastMessageIsAssistant = messages[messages.length - 1]?.role === "assistant";
+  const paceLabel = paceMode.charAt(0).toUpperCase() + paceMode.slice(1);
 
   return (
-    <div className="space-y-4 mt-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center">
-            <IconBot className="w-4 h-4 text-teal" />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">Plan Agent</p>
-            <p className="text-xs text-muted-foreground">
-              {clientName} &middot; {paceMode.charAt(0).toUpperCase() + paceMode.slice(1)} pace
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasConversation && lastMessageIsAssistant && !streaming && (
+    <HubCard padded={false} className="overflow-hidden">
+      <HubCardHeader
+        icon={<IconBot className="w-4 h-4" />}
+        title="Plan Agent"
+        subtitle={`Drafting for ${clientName} · ${paceLabel} pace`}
+        color="teal"
+        divider
+        action={
+          hasConversation && lastMessageIsAssistant && !streaming ? (
             <Button
               onClick={generateBlock}
               disabled={generatingBlock}
-              className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white"
+              className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white h-9 px-3.5 text-sm"
             >
               {generatingBlock ? (
                 <IconLoader2 className="h-4 w-4 animate-spin" />
@@ -164,47 +161,46 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
               )}
               Create Block
             </Button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
-      {!hasConversation && (
-        <div className="grid grid-cols-2 gap-2">
-          {STARTER_PROMPTS.map((prompt) => (
-            <button
-              key={prompt}
-              onClick={() => sendMessage(prompt)}
-              className="text-left p-3 rounded-xl border border-border/60 text-sm text-muted-foreground hover:border-rose/20 hover:text-foreground hover:bg-off-white transition-all"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {hasConversation && (
-        <HubCard>
-          <HubCardHeader icon={<IconBot className="w-4 h-4" />} title="Conversation" color="teal" noBottomPadding />
-          <div className="px-5 pb-5 space-y-4 max-h-[520px] overflow-y-auto">
-            {messages.map((message, i) => (
-              <div
-                key={i}
-                className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+      <div className="px-5 py-5 flex flex-col gap-[18px] max-h-[420px] overflow-y-auto">
+        {!hasConversation && (
+          <div className="grid grid-cols-2 gap-2">
+            {STARTER_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => sendMessage(prompt)}
+                className="text-left p-3 rounded-xl border border-[var(--hub-border)] text-sm text-muted-foreground hover:border-rose/30 hover:text-foreground hover:bg-[var(--hub-hover)] transition-colors"
               >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {hasConversation &&
+          messages.map((message, i) => (
+            <div
+              key={i}
+              className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+            >
+              <div
+                className={`w-7 h-7 rounded-full grid place-items-center shrink-0 text-[11px] font-bold ${
+                  message.role === "user"
+                    ? "bg-[var(--status-primary-bg)] text-rose"
+                    : "bg-[var(--status-success-bg)] text-teal"
+                }`}
+              >
+                {message.role === "user" ? "E" : <IconBot className="w-3.5 h-3.5" />}
+              </div>
+              <div className={`max-w-[78%] min-w-0 ${message.role === "user" ? "text-right" : ""}`}>
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                  className={`inline-block text-left rounded-[14px] px-4 py-3 text-sm leading-relaxed ${
                     message.role === "user"
-                      ? "bg-rose/15 text-rose"
-                      : "bg-teal/10 text-teal"
-                  }`}
-                >
-                  {message.role === "user" ? "E" : <IconBot className="w-3.5 h-3.5" />}
-                </div>
-                <div
-                  className={`flex-1 rounded-xl px-4 py-3 text-sm ${
-                    message.role === "user"
-                      ? "bg-rose/8 text-foreground max-w-[80%] ml-auto"
-                      : "bg-off-white/60 text-foreground"
+                      ? "bg-rose text-white"
+                      : "bg-[var(--hub-hover)] border border-[var(--hub-border)] text-foreground"
                   }`}
                 >
                   {message.content === "" && streaming ? (
@@ -218,24 +214,26 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
                     </div>
                   ) : (
-                    <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                    <div className="whitespace-pre-wrap">{message.content}</div>
                   )}
                 </div>
+                {message.time && (
+                  <div className="text-[11px] text-muted-foreground mt-[5px]">{message.time}</div>
+                )}
               </div>
-            ))}
-            <div ref={bottomRef} />
-          </div>
-        </HubCard>
-      )}
+            </div>
+          ))}
+        <div ref={bottomRef} />
+      </div>
 
       {error && (
-        <div className="p-3 rounded-lg bg-rose/8 border border-rose/20 text-sm text-rose">
+        <div className="mx-5 mb-5 p-3 rounded-lg bg-[var(--status-danger-bg)] border border-[var(--status-danger-border)] text-sm text-[var(--status-danger)]">
           {error}
         </div>
       )}
 
       {hasConversation && lastMessageIsAssistant && !streaming && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground px-5 pb-4">
           <Badge variant="outline" className="rounded-full text-xs">
             {messages.filter((m) => m.role === "user").length} messages
           </Badge>
@@ -243,7 +241,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
         </div>
       )}
 
-      <div className="flex gap-2 items-end">
+      <div className="flex gap-2.5 items-end border-t border-[var(--hub-border)] px-5 pt-5 pb-2">
         <textarea
           ref={textareaRef}
           value={input}
@@ -252,7 +250,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
           placeholder="Ask about this client's programme, or describe what you want to build..."
           rows={2}
           disabled={streaming}
-          className="flex-1 resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:border-rose/40 disabled:opacity-50 transition-colors"
+          className="flex-1 resize-none rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:border-rose/40 disabled:opacity-50 transition-colors"
         />
         <Button
           onClick={() => sendMessage(input)}
@@ -266,7 +264,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
           )}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground px-1">Enter to send &middot; Shift+Enter for new line</p>
-    </div>
+      <p className="text-xs text-muted-foreground px-6 pb-4">Enter to send &middot; Shift+Enter for new line</p>
+    </HubCard>
   );
 }

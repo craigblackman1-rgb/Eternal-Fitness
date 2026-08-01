@@ -37,9 +37,9 @@ export function HubAlert({ severity, title, children, action, className }: HubAl
       Icon: IconCheckCircle,
     },
     info: {
-      bg: "bg-[var(--hub-hover)]",
-      icon: "text-slate",
-      border: "border-[var(--hub-border)]",
+      bg: "bg-[var(--status-primary-bg)]",
+      icon: "text-[var(--status-primary)]",
+      border: "border-[var(--status-primary-border)]",
       Icon: IconAlertCircle,
     },
   };

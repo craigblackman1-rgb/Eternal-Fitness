@@ -623,7 +623,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       )}
 
       {buckets.length > 0 && (
-        <div className="inline-flex w-full max-w-full justify-start gap-1 overflow-x-auto rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
+        <div className="inline-flex w-full max-w-full justify-start gap-1 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
           <button
             onClick={() => setBucketFilter(null)}
             className={`inline-flex items-center gap-2 rounded-lg border-0 px-3.5 py-2 text-sm font-medium transition-colors ${

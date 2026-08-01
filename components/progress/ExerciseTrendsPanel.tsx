@@ -6,17 +6,17 @@
  * data from a server component — no data fetching here.
  *
  * Built on the existing recharts wrapper (components/ui/chart.tsx) — no new
- * charting dependency. No colour-only signalling: the two lines differ by
- * dash pattern as well as colour, and the change-since-first summary pairs
- * colour with a direction icon and a signed number.
+ * charting dependency. Single y-axis only, matching the design-system mockup:
+ * reps-at-that-weight are shown as a direct label on each point rather than
+ * a second axis, which is the classic way to mislead a reader about how two
+ * lines relate. Change-since-first is a direction icon + signed number, never
+ * colour alone.
  */
 
 import { useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, LabelList, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -134,6 +134,7 @@ export function ExerciseTrendsPanel({
     reps: trend.metric === "weight" ? p.repsAtTopWeight : p.maxReps,
     duration: p.maxDurationSeconds,
     sets: `${p.completedSets}/${p.totalSets}`,
+    pointLabel: trend.metric === "weight" ? `${p.repsAtTopWeight} reps` : undefined,
   }));
 
   const primaryKey = trend.metric === "weight" ? "weight" : trend.metric === "duration" ? "duration" : "reps";
@@ -169,29 +170,17 @@ export function ExerciseTrendsPanel({
 
       <p className="text-xs text-muted-foreground">{METRIC_DESCRIPTION[trend.metric]}</p>
 
-      <ChartContainer config={chartConfig} className="aspect-auto h-[280px] w-full">
+      <ChartContainer config={chartConfig} className="aspect-auto h-[260px] w-full">
         <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
           <YAxis
-            yAxisId="primary"
             tickLine={false}
             axisLine={false}
             width={36}
             fontSize={12}
             domain={["auto", "auto"]}
           />
-          {trend.metric === "weight" && (
-            <YAxis
-              yAxisId="secondary"
-              orientation="right"
-              tickLine={false}
-              axisLine={false}
-              width={30}
-              fontSize={12}
-              domain={["auto", "auto"]}
-            />
-          )}
           <ChartTooltip
             content={
               <ChartTooltipContent
@@ -204,27 +193,16 @@ export function ExerciseTrendsPanel({
             }
           />
           <Line
-            yAxisId="primary"
             dataKey={primaryKey}
             type="monotone"
             stroke={`var(--color-${primaryKey})`}
             strokeWidth={2}
-            dot={{ r: 3 }}
+            dot={{ r: 4, fill: "#fff", stroke: `var(--color-${primaryKey})`, strokeWidth: 2 }}
             connectNulls
           />
           {trend.metric === "weight" && (
-            <Line
-              yAxisId="secondary"
-              dataKey="reps"
-              type="monotone"
-              stroke="var(--color-reps)"
-              strokeWidth={2}
-              strokeDasharray="5 4"
-              dot={{ r: 3 }}
-              connectNulls
-            />
+            <LabelList dataKey="pointLabel" position="top" offset={8} fill="var(--color-ink)" fontSize={11} />
           )}
-          <ChartLegend content={<ChartLegendContent />} />
         </LineChart>
       </ChartContainer>
     </div>
