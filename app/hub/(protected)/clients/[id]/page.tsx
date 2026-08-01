@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3 } from "@/components/icons";
+import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare } from "@/components/icons";
+import { computeUpdateDue } from "@/lib/updates-due";
+import { UpdateIntervalControl } from "./UpdateIntervalControl";
+import { ClientTasksPanel } from "./ClientTasksPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
@@ -128,6 +131,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
+
+  const lastSentAt =
+    (clientUpdates ?? [])
+      .filter((u) => u.status === "sent" && u.sent_at)
+      .sort((a, b) => new Date(b.sent_at!).getTime() - new Date(a.sent_at!).getTime())[0]
+      ?.sent_at ?? null;
+  const dueInfo = computeUpdateDue(
+    (client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null,
+    lastSentAt,
+  );
   const { data: ruleTypes } = await supabase.from("training_rule_types").select("id, label, bucket");
   const ruleTypesById = new Map((ruleTypes ?? []).map((rt) => [rt.id, rt]));
 
@@ -345,6 +358,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <IconMail className="w-[15px] h-[15px] text-muted-foreground" /> Updates
             {draftUpdatesCount > 0 && <TabCountBadge count={draftUpdatesCount} tone="warning" />}
           </TabsTrigger>
+          <TabsTrigger value="tasks" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconCheckSquare className="w-[15px] h-[15px] text-muted-foreground" /> Tasks
+          </TabsTrigger>
         </TabsList>
 
         {/* ── Tab: Overview ── */}
@@ -366,6 +382,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     )}
                     <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
                   </HubDataGrid>
+                  <UpdateIntervalControl
+                    clientNumber={client.client_number}
+                    updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
+                    dueInfo={dueInfo}
+                  />
                 </div>
               </HubCard>
 
@@ -594,10 +615,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       <HubDataField label="Package">{p.logistics.package ?? "—"}</HubDataField>
                       <HubDataField label="Pace mode"><PaceModeDisplay paceMode={client.pace_mode} /></HubDataField>
                       <HubDataField label="Group type"><GroupTypeLabel groupType={client.group_type} /></HubDataField>
-                    </HubDataGrid>
-                  </div>
+                  </HubDataGrid>
+                </div>
                 </HubCard>
               )}
+
 
               {/* Notes */}
               {(p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
@@ -889,6 +911,17 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             clientNumber={client.client_number}
             updates={(clientUpdates || []) as SentUpdate[]}
             reportHref={`/hub/clients/${client.client_number}/updates`}
+          />
+        </TabsContent>
+
+        {/* ── Tab: Tasks ── */}
+        <TabsContent value="tasks" className="mt-6">
+          <ClientTasksPanel
+            clientId={client.id}
+            clientNumber={client.client_number}
+            updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
+            dueInfo={dueInfo}
+            lastSentAt={lastSentAt}
           />
         </TabsContent>
       </ClientDetailTabs>
