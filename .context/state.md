@@ -1,6 +1,20 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Session editor cross-section drag + log-type toggle + standalone live-logging screen — DONE +
+  DEPLOYED + LIVE-VERIFIED 2026-08-01.** Corrected two prior WOs' inaccurate "done" checkmarks first
+  (live code grep showed the claimed functionality didn't exist). Shipped via one OpenCode lane
+  (`174b5dc`), code-reviewed line-by-line, then genuinely live-verified via a disposable staff
+  account — a real "Done" click confirmed to write a real `set_logs` row, not just render. Craig
+  caught one real gap (block page's session list missing the new logging deep-link, `7e3e8f7`).
+  Full detail in `handoff.md`'s 2026-08-01 entry.
+- **New standing rules (derived verification vs. an external source; `git diff --stat` scope review)
+  applied and refined, then proven out on this repo — 2026-08-01.** Built
+  `.context/tools/verify-hub-pages.js`, run live, found a genuinely real drift: `hub-documents.html`
+  appeared today, contradicting a 2026-07-26 WO's "not mocked" claim for `/hub/documents`. Also found
+  a real, unrelated `HTTP 500` on `/hub/site-review`, not yet investigated. See `handoff.md`.
+- **Consolidated outstanding-items list** now lives at `.context/outstanding-items-2026-08-01.md` —
+  supersedes scattered notes across individual `workorder-*.md` files as the first place to check.
 - **Hub + portal mockup audit — DONE (audit only, not yet dispatched) 2026-07-30.** Craig asked for
   the hub-facing and client-portal `brand-staging-2662e9` mockups to be audited against the live app
   (everything not covered by the 2026-07-29 marketing-page reconciliation), with real deltas turned

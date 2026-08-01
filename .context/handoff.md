@@ -1,5 +1,78 @@
 # Handoff
 
+## Session close — 2026-08-01 — Session editor live-logging shipped + new standing rules applied to this repo
+
+**Session editor + live logging screen, shipped and live-verified.** Built against real Open Design
+templates (`hub-session-editor.html`, `hub-session-log.html`, `hub-schedule.html` in
+`D:\apps\design-systems\ef-control-hub`) that had already landed but weren't yet built. Found first
+that two prior Work Orders (2026-07-25, 2026-07-26) had checked off "cross-section drag" and
+"log-type toggle" as done+deployed — verified directly against the live code and that was false;
+neither had ever been click-tested. Dispatched one OpenCode lane (`opencode-go/deepseek-v4-pro`,
+restarted after an earlier mis-dispatch on `openrouter/sonnet-5` that skipped the standard escalation
+ladder — no work was lost, the run had exited with zero commits) covering three units: an explicit
+per-exercise `log_type` field (`reps`/`time`, replacing a regex guess on the prescription text — no
+migration, just a new `Exercise` key), real cross-section drag-and-drop (previously same-section
+only), and a new standalone `/hub/log/[sessionId]` screen reachable from the calendar. Code-reviewed
+line-by-line before merge (not trusted on tsc-clean alone) — no fabrication, no undefined CSS vars,
+all writes reuse the existing `set_logs`/`session_log` API routes, the new route is genuinely covered
+by the `/hub/:path*` auth middleware. Pushed `174b5dc`, Coolify `running:healthy`.
+
+**Then actually live-verified it**, not just merged-and-hoped. Craig pointed out the standing
+disposable-verify-account rule applied and I hadn't used it. Created a disposable staff hub login
+directly in Postgres (`better-auth` user+account rows, hashed via `better-auth/crypto`), logged into
+`staging.eternal-fitness.co.uk/hub`, confirmed live: the new logging screen renders real superset
+groups/reps-vs-time badges/prescribed targets correctly, a real "Done" click wrote a genuine
+`set_logs` row end-to-end (checked via direct DB query, not the UI), the editor's log-type toggle
+renders and is clickable. Cross-section drag was code-reviewed but not physically drag-tested — the
+browser tool's drag simulation proved unreliable. All test artifacts (the `set_logs` row, the
+disposable account) deleted immediately after.
+
+**Found a real gap Craig caught, not me:** the block page's own session list
+(`.../blocks/[blockId]`) never got the "Log this session" deep-link — only the calendar and the
+session editor header did. Fixed (`7e3e8f7`), one-line addition reusing `session.id` that was
+already in scope, `tsc` clean, deployed.
+
+**Two of Craig's new standing rules (derived verification against an external source; `git
+diff --stat` scope review over a green build) got applied and refined, then run against this
+repo.** Reviewed the rules as written in CLAUDE.md/SKILL.md/memory, found and fixed 4 real gaps
+(the two checks catch different failure modes and the original phrasing conflated them; no
+proportionality guard for small fixed sources; no explicit `FORBIDDEN:` field so the diff-stat
+check had prose to re-derive instead of a real list; the incident retelling had already started
+drifting across the three copies). Then built `.context/tools/verify-hub-pages.js` — derives hub
+routes via `git ls-tree` and mockups via `readdir` at run time, reports mismatches in **both**
+directions, run live via another disposable account. Found and fixed two false-positive classes in
+the check itself before trusting any output (an SVG-region-detection bug that reported all 13
+pages' logo fills as violations; embedded email-template previews on `/hub/reports/updates`
+correctly using inline hex, reported as 573 "violations"). Real findings that survived: **a
+`hub-documents.html` mockup appeared today**, contradicting a 2026-07-26 Work Order's documented
+"real, not mocked" claim for `/hub/documents` — exactly the drift the new rule exists to catch, on
+this project, the same day the rule landed. Also found a genuine, unrelated **HTTP 500 on
+`/hub/site-review`**, and two routes missing from the join table (added). Tool committed and
+pushed (`ffb623d`).
+
+**Housekeeping:** three fully-merged stale worktrees removed (`admin-dashboard-design-review-9fde06`,
+`design-changes-0c4d4c`, `tasks-template-parity`, all verified ancestors of `origin/main` first,
+node_modules junctions unlinked cleanly). 12 already-orphaned leftover directories in
+`.claude/worktrees/` (no `.git`, ~860K total) identified but not removed — bulk-delete kept getting
+blocked by the session's permission classifier; the exact command to run is in the session log if
+this needs picking up. One benign stray merge commit (`34d5922`, an "emdash" tool session's local
+branch that got pushed straight to `main`) found and checked — no content lost, all files verified
+byte-identical across it.
+
+**Not done / worth knowing:**
+- No hub credentials exist by default in this environment — every live-verification pass this
+  session needed a disposable account created fresh via direct Postgres access. That's now the
+  established pattern (see `[[feedback-disposable-verify-accounts]]`), not a one-off.
+- Cross-section drag-and-drop itself: code-reviewed thoroughly, not physically drag-tested.
+- `/hub/site-review` HTTP 500 — found, not investigated further.
+- `hub-documents.html`'s relationship to the same-day `9107985` commit (which redesigned that exact
+  page 12 minutes after the mockup appeared) — not confirmed whether that commit was actually built
+  against the new mockup or is coincidental. Worth checking before assuming it's covered.
+- `hub-sop.html` still has no confirmed live counterpart (re-confirmed via the new tool, not stale).
+- Full consolidated outstanding-items list (superseding scattered notes across all `workorder-*.md`
+  files) now lives at `.context/outstanding-items-2026-08-01.md` — check there first, not each WO
+  file individually.
+
 ## Session close — 2026-07-31 — Odul portal-login diagnosis + calorie calculator verbatim swap
 
 **Odul portal login ("doesn't allow me to login"):** Queried `portal_accounts`/`clients` directly
