@@ -301,7 +301,7 @@ export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
                         <div className="flex items-center gap-2">
                           {entry.clientNumber != null ? (
                             <Link
-                              href={`/hub/clients/${entry.clientNumber}`}
+                              href={`/hub/log/${entry.id}`}
                               className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-rose"
                             >
                               {entry.clientName}
