@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
-import { IconSend, IconClock, IconEye, IconUsers, IconPlus, IconDownload } from "@/components/icons";
+import { IconSend, IconClock, IconEye, IconUsers, IconPlus, IconDownload, IconMail } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { KpiTile } from "@/components/hub/KpiTile";
+import { HubCard, HubCardHeader } from "@/components/hub";
+import { TokenPill } from "@/components/hub/StatusBadge";
 import { UpdatesReport } from "./UpdatesReport";
 import type { UpdateWithClient } from "@/types";
+import { getClientsWithUpdateDue } from "@/lib/updates-due-db";
+import { UPDATE_INTERVAL_LABELS, type UpdateDueStatus } from "@/lib/updates-due";
+import type { StatusToken } from "@/lib/hubStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +61,14 @@ export default async function UpdatesReportPage() {
     emailedSent.map((u) => u.client_id),
   );
   const clientsCovered = distinctClientIds.size;
+
+  const updatesDueClients = await getClientsWithUpdateDue();
+
+  const STATUS_COLORS: Record<UpdateDueStatus, { token: StatusToken; label: string }> = {
+    overdue: { token: "danger", label: "Overdue" },
+    due_soon: { token: "warning", label: "Due soon" },
+    upcoming: { token: "primary", label: "Upcoming" },
+  };
 
   // ── Tiles ─────────────────────────────────────────────────
 
@@ -112,6 +125,61 @@ export default async function UpdatesReportPage() {
           statusToken="neutral"
         />
       </div>
+
+      {updatesDueClients.length > 0 && (
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconMail className="w-4 h-4" />}
+            title="Updates due"
+            subtitle="Clients approaching or past their next periodic update — derived from each client's interval schedule"
+            color="amber"
+            divider
+            className="px-5 pt-5 pb-3.5"
+          />
+          <div className="px-5 pb-5">
+            <div className="overflow-x-auto -mx-5">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Client</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Interval</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Last sent</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Next due</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">Days</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {updatesDueClients.map((row) => {
+                    const initials = row.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                    const sc = STATUS_COLORS[row.status!];
+                    const daysClass = row.status === "overdue" ? "text-[var(--status-danger)]" : row.status === "due_soon" ? "text-[var(--status-warning)]" : "text-foreground";
+                    return (
+                      <tr key={row.clientId} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
+                        <td className="px-5 py-3">
+                          <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
+                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
+                            <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.name}</span>
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground">{UPDATE_INTERVAL_LABELS[row.interval]}</td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.lastSentAt ? new Date(row.lastSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.nextDueDate ? new Date(row.nextDueDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                        <td className={`px-5 py-3 text-right font-semibold tabular-nums ${daysClass}`}>
+                          {row.daysUntilDue != null ? (row.daysUntilDue < 0 ? `+${Math.abs(row.daysUntilDue)}` : row.daysUntilDue) : "—"}
+                        </td>
+                        <td className="px-5 py-3">
+                          <TokenPill token={sc.token} label={sc.label} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </HubCard>
+      )}
 
       <UpdatesReport updates={updates} />
     </div>
