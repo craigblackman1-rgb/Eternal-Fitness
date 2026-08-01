@@ -28,6 +28,15 @@ export async function POST(request: Request, { params }: { params: { id: string 
       ? { client_name: name.trim(), client_signature: signature.trim(), client_signed_date: signedDate }
       : { trainer_name: name.trim(), trainer_signature: signature.trim(), trainer_signed_date: signedDate };
 
+  // Trainer signature is applied automatically by Esther Fair upon client submission
+  // (same convention as the legacy standalone /agreement and /parq pages), so a client
+  // signing a document that requires a trainer signature doesn't sit waiting on Esther.
+  if (role === "client" && doc.requires_trainer_signature && !doc.trainer_signature) {
+    update.trainer_name = "Esther Fair";
+    update.trainer_signature = "Esther Fair";
+    update.trainer_signed_date = signedDate;
+  }
+
   if (role === "client" && consent_choices && typeof consent_choices === "object") {
     update.consent_choices = consent_choices;
   }
