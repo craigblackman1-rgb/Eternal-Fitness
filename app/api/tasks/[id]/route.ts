@@ -18,6 +18,7 @@ export async function PATCH(
     assignee: string | null;
     bucket_id: string | null;
     due_date: string | null;
+    client_id: string | null;
   }>;
 
   const { data, error } = await supabase

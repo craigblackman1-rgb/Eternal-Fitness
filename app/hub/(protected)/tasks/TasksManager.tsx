@@ -29,6 +29,7 @@ interface TasksManagerProps {
   initialTasks: Task[];
   initialBuckets: TaskBucket[];
   currentUserName: string | null;
+  clients: { id: string; name: string }[];
 }
 
 const STATUS_OPTIONS: TaskStatus[] = ["todo", "in_progress", "done"];
@@ -140,7 +141,7 @@ function sortTasks(tasks: Task[], key: SortKey, dir: SortDir) {
   });
 }
 
-export function TasksManager({ initialTasks, initialBuckets, currentUserName }: TasksManagerProps) {
+export function TasksManager({ initialTasks, initialBuckets, currentUserName, clients }: TasksManagerProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [buckets, setBuckets] = useState(initialBuckets);
   const [saving, setSaving] = useState(false);
@@ -148,6 +149,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
   const [editing, setEditing] = useState<Task | null>(null);
   const [bucketFilter, setBucketFilter] = useState<string | null>(null);
   const [dueFilter, setDueFilter] = useState<DueFilter>("all");
+  const [clientFilter, setClientFilter] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("due_date");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [editingBucketId, setEditingBucketId] = useState<string | null>(null);
@@ -165,6 +167,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
     assignee: "Unassigned" as string,
     bucket_id: "" as string,
     due_date: "",
+    client_id: "" as string,
     status: "todo" as TaskStatus,
   };
   const [form, setForm] = useState(blankForm);
@@ -189,6 +192,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       assignee: task.assignee ?? "Unassigned",
       bucket_id: task.bucket_id ?? "",
       due_date: task.due_date ?? "",
+      client_id: task.client_id ?? "",
       status: task.status,
     });
     setShowNewBucketInput(false);
@@ -213,6 +217,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
         assignee: form.assignee === "Unassigned" ? null : form.assignee,
         bucket_id: form.bucket_id || null,
         due_date: form.due_date || null,
+        client_id: form.client_id || null,
         status: form.status,
       };
 
@@ -369,13 +374,21 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
     return buckets.find((b) => b.id === bucketId)?.name ?? null;
   }
 
+  function getClientName(task: Task) {
+    if (task.client_name) return task.client_name;
+    if (task.client_id) return clients.find((c) => c.id === task.client_id)?.name ?? null;
+    return null;
+  }
+
   const assigneeScopedTasks = tasks.filter((t) =>
     showOnlyMine && currentUserName ? t.assignee === currentUserName : true,
   );
   const bucketScopedTasks = assigneeScopedTasks.filter((t) =>
     bucketFilter ? t.bucket_id === bucketFilter : true,
   );
-  const filteredTasks = bucketScopedTasks.filter((t) => matchesDueFilter(t, dueFilter));
+  const filteredTasks = bucketScopedTasks.filter(
+    (t) => matchesDueFilter(t, dueFilter) && (clientFilter ? t.client_id === clientFilter : true),
+  );
   const sortedTasks = sortTasks(filteredTasks, sortKey, sortDir);
 
   const filterByStatus = (status: TaskStatus) =>
@@ -585,6 +598,23 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                 />
               </div>
               <div className="space-y-2">
+                <Label>Linked to client</Label>
+                <select
+                  value={form.client_id}
+                  onChange={(e) => setForm({ ...form, client_id: e.target.value })}
+                  className={SELECT_CLASS}
+                >
+                  <option value="">No client</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
                 <Label>Status</Label>
                 <select
                   value={form.status}
@@ -714,33 +744,55 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
       )}
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex w-full max-w-full flex-wrap gap-0.5 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
-          {DUE_FILTER_OPTIONS.map((opt) => {
-            const isActive = dueFilter === opt.key;
-            const count = bucketScopedTasks.filter((t) => matchesDueFilter(t, opt.key)).length;
-            return (
-              <button
-                key={opt.key}
-                onClick={() => setDueFilter(isActive && opt.key !== "all" ? "all" : opt.key)}
-                className={`inline-flex items-center gap-2 rounded-lg border-0 px-3 py-1.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground shadow-none"
-                    : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
-                }`}
-              >
-                {opt.label}
-                <span
-                  className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+        <div className="inline-flex items-center gap-3 flex-wrap">
+          <div className="inline-flex w-full max-w-full flex-wrap gap-0.5 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
+            {DUE_FILTER_OPTIONS.map((opt) => {
+              const isActive = dueFilter === opt.key;
+              const count = bucketScopedTasks.filter((t) => matchesDueFilter(t, opt.key)).length;
+              return (
+                <button
+                  key={opt.key}
+                  onClick={() => setDueFilter(isActive && opt.key !== "all" ? "all" : opt.key)}
+                  className={`inline-flex items-center gap-2 rounded-lg border-0 px-3 py-1.5 text-sm font-medium transition-colors ${
                     isActive
-                      ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
-                      : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
+                      ? "bg-[var(--hub-sidebar-active)] font-semibold text-foreground shadow-none"
+                      : "bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
                   }`}
                 >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+                  {opt.label}
+                  <span
+                    className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+                      isActive
+                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
+                        : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {clients.length > 0 && (
+            <div className="inline-flex items-center gap-1.5">
+              <Label className="text-xs text-muted-foreground shrink-0">Client</Label>
+              <select
+                value={clientFilter ?? ""}
+                onChange={(e) => setClientFilter(e.target.value || null)}
+                className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+              >
+                <option value="">All clients</option>
+                {clients.map((c) => {
+                  const count = bucketScopedTasks.filter((t) => t.client_id === c.id).length;
+                  return (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="inline-flex items-center gap-1.5">
@@ -858,6 +910,11 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName }: 
                         ) : (
                           <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-neutral)]">
                             Unassigned
+                          </span>
+                        )}
+                        {getClientName(task) && (
+                          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold" style={{ background: "rgba(8,126,139,.08)", borderColor: "rgba(8,126,139,.18)", color: "var(--color-teal, #087E8B)" }}>
+                            {getClientName(task)}
                           </span>
                         )}
                         {task.bucket_id && getBucketName(task.bucket_id) && (
