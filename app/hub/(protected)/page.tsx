@@ -2,15 +2,19 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { HubCard, HubCardHeader, HubQuickActions } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
+import { TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
 import {
   IconActivity, IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText,
-  IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot,
+  IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
 import { getQuietHomeTrainingClients } from "@/lib/progress-db";
 import { HOME_TRAINING_QUIET_DAYS } from "@/lib/progress";
+import { getClientsWithUpdateDue, getClientsUpdateDueSoon } from "@/lib/updates-due-db";
+import { UPDATE_INTERVAL_LABELS, type UpdateDueStatus } from "@/lib/updates-due";
+import type { StatusToken } from "@/lib/hubStatus";
 
 interface RecentCheckIn {
   clientName: string;
@@ -99,6 +103,17 @@ export default async function DashboardPage() {
     (c) => c.compliance_status && (c.compliance_status as DBClientComplianceStatus) !== "clear",
   );
   const quietClients = await getQuietHomeTrainingClients();
+
+  const updatesDueClients = await getClientsWithUpdateDue();
+  const updatesDueSoon = await getClientsUpdateDueSoon(7);
+  const updatesOverdueCount = updatesDueClients.filter((c) => c.status === "overdue").length;
+
+  const STATUS_COLORS: Record<UpdateDueStatus, { token: StatusToken; label: string }> = {
+    overdue: { token: "danger", label: "Overdue" },
+    due_soon: { token: "warning", label: "Due soon" },
+    upcoming: { token: "primary", label: "Upcoming" },
+  };
+
   const doNotTrain = needsAttention.filter((c) => c.compliance_status === "do_not_train");
   const pendingReview = needsAttention.filter(
     (c) => c.compliance_status === "pending_medical" || c.compliance_status === "action_needed",
@@ -229,7 +244,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* KPI band — sessions/check-ins/reviews/active-clients, per hub-dashboard.html */}
-      <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 xl:grid-cols-5">
         <KpiTile
           icon={<IconCalendar className="w-5 h-5" />}
           label="Sessions this week"
@@ -258,6 +273,22 @@ export default async function DashboardPage() {
           value={activeClientCount}
           statusToken="neutral"
         />
+        <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning)]">
+            <IconMail className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-muted-foreground">Updates due</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold tabular-nums text-foreground leading-tight">{updatesDueSoon.length}</p>
+              {updatesOverdueCount > 0 && (
+                <span className="inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold leading-none bg-[var(--status-danger-bg)] text-[var(--status-danger)]">
+                  {updatesOverdueCount} overdue
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {doNotTrain.length > 0 && (
@@ -284,6 +315,21 @@ export default async function DashboardPage() {
               </span>
             ))}{" "}
             {quietClients.length === 1 ? "has" : "have"} not logged any sets in the last {HOME_TRAINING_QUIET_DAYS} days — worth checking in.
+          </span>
+        </HubAlert>
+      )}
+      {updatesDueSoon.length > 0 && (
+        <HubAlert severity="warning" title={`${updatesDueSoon.length} update${updatesDueSoon.length === 1 ? "" : "s"} due in the next 7 days`}>
+          <span>
+            {updatesDueSoon.map((c, i) => (
+              <span key={c.clientId}>
+                {i > 0 && ", "}
+                <Link href={`/hub/clients/${c.clientNumber}`} className="font-medium underline underline-offset-2 hover:no-underline">
+                  {c.name}
+                </Link>
+              </span>
+            ))}{" "}
+            {updatesDueSoon.length === 1 ? "is" : "are"} approaching {updatesDueSoon.length === 1 ? "their" : ""} next update deadline. Updates are derived from each client's interval schedule — send the update to advance the due date.
           </span>
         </HubAlert>
       )}
@@ -375,6 +421,66 @@ export default async function DashboardPage() {
           </div>
         </HubCard>
       </div>
+
+      {updatesDueClients.length > 0 && (
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconMail className="w-4 h-4" />}
+            title="Updates due"
+            subtitle="Clients approaching or past their next update deadline — most urgent first"
+            color="amber"
+            action={
+              <Link href="/hub/reports/updates" className="text-sm text-rose hover:underline">
+                View all {updatesDueClients.length}
+              </Link>
+            }
+            divider
+            className="px-5 pt-5 pb-3.5"
+          />
+          <div className="px-5 pb-5">
+            <div className="overflow-x-auto -mx-5">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Client</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Interval</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Last sent</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Next due</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">Days</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {updatesDueClients.slice(0, 8).map((row) => {
+                    const initials = row.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                    const sc = STATUS_COLORS[row.status!];
+                    const daysClass = row.status === "overdue" ? "text-[var(--status-danger)]" : row.status === "due_soon" ? "text-[var(--status-warning)]" : "text-foreground";
+                    return (
+                      <tr key={row.clientId} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
+                        <td className="px-5 py-3">
+                          <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
+                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
+                            <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.name}</span>
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground">{UPDATE_INTERVAL_LABELS[row.interval]}</td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.lastSentAt ? new Date(row.lastSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.nextDueDate ? new Date(row.nextDueDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                        <td className={`px-5 py-3 text-right font-semibold tabular-nums ${daysClass}`}>
+                          {row.daysUntilDue != null ? (row.daysUntilDue < 0 ? `+${Math.abs(row.daysUntilDue)}` : row.daysUntilDue) : "—"}
+                        </td>
+                        <td className="px-5 py-3">
+                          <TokenPill token={sc.token} label={sc.label} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </HubCard>
+      )}
 
       {/* Additional client-management views — real functionality beyond the mockup's
           daily-work view, kept per spec's "never delete a feature to reach parity". */}
