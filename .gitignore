@@ -29,3 +29,4 @@ dist-ssr
 # Next.js build output
 .next/
 .next2/
+.context/tools/verify_hub_results.json
