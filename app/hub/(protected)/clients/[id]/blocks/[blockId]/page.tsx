@@ -1,26 +1,21 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import {
   IconChevronLeft,
-  IconPrinter,
-  IconFileText,
   IconClipboardList,
   IconCheckCircle,
   IconCalendar,
   IconDumbbell,
 } from "@/components/icons";
-import { DeleteBlockButton } from "./delete-block-button";
-import { ExportSpreadsheetButton } from "./export-spreadsheet";
 import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
+import { BlockOverviewClient } from "./BlockOverviewClient";
+import { HideExerciseTableButton } from "./HideExerciseTableButton";
 import type { Session } from "@/types";
 
-// Phase colors — brand-consistent (rose, teal, slate, navy, off-white)
 const phaseColors: Record<string, string> = {
   foundation: "bg-teal/10 text-teal",
   build: "bg-rose/10 text-rose",
@@ -51,6 +46,7 @@ interface SessionRow {
   week: number;
   phase: string;
   data: Session;
+  scheduled_at: string | null;
 }
 
 export default async function BlockViewPage({
@@ -100,159 +96,195 @@ export default async function BlockViewPage({
     sessions: sessions.filter((s) => s.week === week),
   }));
 
+  const firstIncomplete = sessions.find((s) => !s.data?.session_log?.completed_at);
+  const targetWeek = firstIncomplete?.week ?? null;
+  const targetSessionNum = firstIncomplete?.session_number ?? null;
+
+  const formatDayLabel = (session: SessionRow, dayIndex: number): string => {
+    if (session.scheduled_at) {
+      const d = new Date(session.scheduled_at);
+      return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+    }
+    return `Day ${dayIndex + 1}`;
+  };
+
+  const blockForClient = {
+    id: block.id,
+    block_number: block.block_number,
+    block_note: block.block_note as string | null,
+    summary: block.summary as string | null,
+    status: block.status as "draft" | "approved" | "active" | "complete",
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link href={`/hub/clients/${clientId}`} className="text-muted-foreground hover:text-foreground transition-colors">
           <IconChevronLeft className="h-5 w-5" />
         </Link>
-        <div className="flex items-center gap-4 flex-1">
-          <div className="w-12 h-12 rounded-xl bg-rose/10 flex items-center justify-center">
-            <IconFileText className="w-6 h-6 text-rose" />
-          </div>
-          <div>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
             <h1 className="text-xl font-semibold tracking-tight">
               Block {block.block_number}
             </h1>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span>{client?.name || "Client"}</span>
-              <span>·</span>
-              <span>Created {new Date(block.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-              <StatusBadge status={block.status} />
-            </div>
+            <StatusBadge status={block.status} />
           </div>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {client?.name || "Client"} · {totalSessions} sessions · {weeks.length} week{weeks.length === 1 ? "" : "s"}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href={`/hub/clients/${clientId}/blocks/${params.blockId}/print`}>
-            <Button variant="outline" className="rounded-lg gap-1.5 border-border/60">
-              <IconPrinter className="h-4 w-4" />
-              Print
-            </Button>
-          </Link>
-          <Link href={`/hub/clients/${clientId}/blocks/${params.blockId}/review`}>
-            {block.status === "draft" ? (
-              <Button className="rounded-lg bg-rose hover:bg-rose/90 text-white">Review & Approve</Button>
-            ) : (
-              <Button variant="outline" className="rounded-lg gap-1.5 border-border/60">
-                <IconCalendar className="h-4 w-4" />
-                Schedule
-              </Button>
-            )}
-          </Link>
-          <ExportSpreadsheetButton
-            blockId={params.blockId}
-            blockNumber={block.block_number}
-            clientName={client?.name || "Client"}
+      </div>
+
+      <BlockOverviewClient
+        block={blockForClient}
+        clientId={String(clientId)}
+        blockId={params.blockId}
+        clientName={client?.name || "Client"}
+      >
+        <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+          <KpiTile
+            icon={<IconClipboardList className="h-5 w-5" />}
+            label="Sessions"
+            value={totalSessions}
+            statusToken="primary"
           />
-          <DeleteBlockButton clientId={clientId} blockId={params.blockId} />
+          <KpiTile
+            icon={<IconCheckCircle className="h-5 w-5" />}
+            label="Completed"
+            value={`${completedSessions}/${totalSessions}`}
+            statusToken="success"
+          />
+          <KpiTile
+            icon={<IconCalendar className="h-5 w-5" />}
+            label="Weeks"
+            value={weeks.length}
+            statusToken="neutral"
+          />
+          <KpiTile
+            icon={<IconDumbbell className="h-5 w-5" />}
+            label="Archetype Mix"
+            value={archetypeMix || "—"}
+            statusToken="primary"
+          />
         </div>
-      </div>
 
-      {/* Summary band */}
-      <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
-        <KpiTile
-          icon={<IconClipboardList className="h-5 w-5" />}
-          label="Sessions"
-          value={totalSessions}
-          statusToken="primary"
-        />
-        <KpiTile
-          icon={<IconCheckCircle className="h-5 w-5" />}
-          label="Completed"
-          value={`${completedSessions}/${totalSessions}`}
-          statusToken="success"
-        />
-        <KpiTile
-          icon={<IconCalendar className="h-5 w-5" />}
-          label="Weeks"
-          value="6"
-          statusToken="neutral"
-        />
-        <KpiTile
-          icon={<IconDumbbell className="h-5 w-5" />}
-          label="Archetype Mix"
-          value={archetypeMix || "—"}
-          statusToken="primary"
-        />
-      </div>
+        <div className="flex gap-2 mt-6">
+          {phaseTimeline.map((p) => (
+            <div
+              key={p.phase}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold text-center ${phaseColors[p.phase] || "bg-muted text-muted-foreground"}`}
+            >
+              {p.label} {p.weeks}
+            </div>
+          ))}
+        </div>
+      </BlockOverviewClient>
 
-      {/* Phase timeline */}
-      <div className="flex gap-2">
-        {phaseTimeline.map((p) => (
-          <div
-            key={p.phase}
-            className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold text-center ${phaseColors[p.phase] || "bg-muted text-muted-foreground"}`}
-          >
-            {p.label} {p.weeks}
-          </div>
-        ))}
-      </div>
-
-      {/* Block Note */}
-      {block.block_note && (
-        <HubCard>
-          <HubCardHeader icon={<IconFileText className="h-4 w-4" />} title="Block Note" color="slate" />
-          <div className="pb-5">
-            <p className="text-sm text-foreground">{block.block_note}</p>
-          </div>
-        </HubCard>
-      )}
-
-      {/* Sessions grouped by week */}
-      <div className="space-y-6">
+      <div className="space-y-3.5">
         {sessionsByWeek.map(({ week, sessions: weekSessions }) => {
           const weekPhase = weekSessions[0]?.phase || "foundation";
+          const weekOpen = week === targetWeek;
+          const weekCompleted = weekSessions.every((s) => s.data?.session_log?.completed_at);
+
           return (
-            <div key={week} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-foreground">Week {week}</span>
+            <details
+              key={week}
+              open={weekOpen}
+              className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden group"
+            >
+              <summary className="list-none cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-[var(--hub-hover)] transition-colors">
+                <span className="w-[30px] h-[30px] rounded-lg bg-rose/10 text-rose flex items-center justify-center text-[13px] font-extrabold shrink-0">
+                  {week}
+                </span>
+                <span className="text-sm font-bold text-foreground">Week {week}</span>
+                <span className="text-xs text-muted-foreground ml-0.5">
+                  {weekSessions.length} session{weekSessions.length === 1 ? "" : "s"}
+                </span>
                 <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${phaseColors[weekPhase] || "bg-muted text-muted-foreground"}`}>
                   {weekPhase}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {weekSessions.length} session{weekSessions.length === 1 ? "" : "s"}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {weekSessions.filter((s) => s.data?.session_log?.completed_at).length}/{weekSessions.length} logged
                 </span>
-              </div>
-              <div className="space-y-3">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  className="text-muted-foreground transition-transform duration-200 group-open:rotate-90"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </summary>
+              <div className="border-t border-[var(--hub-border)]">
                 {weekSessions.map((session, dayIndex) => {
                   const info = archetypeInfo[session.archetype];
                   const focusLabel = session.data?.focus_label || info?.name || "—";
                   const completedAt = session.data?.session_log?.completed_at;
+                  const sessionOpen = weekOpen && session.session_number === targetSessionNum;
                   const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
                   const studioVersion = session.data?.versions?.studio;
+                  const dayLabel = formatDayLabel(session, dayIndex);
 
                   return (
                     <details
                       key={session.id}
-                      open
-                      className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden"
+                      open={sessionOpen}
+                      className="border-t border-[var(--hub-border)] first:border-t-0 group/sess"
                     >
-                      <summary className="list-none cursor-pointer flex items-center gap-4 px-4 py-3 hover:bg-[var(--hub-hover)] transition-colors">
-                        <span className="w-14 shrink-0 text-xs font-bold text-rose uppercase">
-                          Day {dayIndex + 1}
+                      <summary className="list-none cursor-pointer flex items-center gap-3.5 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
+                        <span className="w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                          {dayLabel}
                         </span>
-                        <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold shrink-0 ${info?.tint || "bg-muted text-muted-foreground"}`}>
-                          {session.archetype} · {info?.name || "Session"}
-                        </span>
-                        <span className="text-sm font-medium flex-1 truncate">{focusLabel}</span>
-                        {completedAt ? (
-                          <span className="bg-[var(--status-success-bg)] text-[var(--status-success)] rounded-full px-2 py-0.5 text-[11px] font-semibold shrink-0">
-                            Done
+                        <div className="flex-1 min-w-0 flex items-center gap-2.5 flex-wrap">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold shrink-0 ${info?.tint || "bg-muted text-muted-foreground"}`}>
+                            {session.archetype} · {info?.name || "Session"}
                           </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground shrink-0">Not logged</span>
-                        )}
+                          <span className="text-sm font-semibold text-foreground truncate">{focusLabel}</span>
+                        </div>
+                        <span className="w-[150px] shrink-0 flex justify-end">
+                          {completedAt ? (
+                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success-bd)]">
+                              Logged
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--hub-hover)] text-muted-foreground border-[var(--hub-border)]">
+                              Not logged
+                            </span>
+                          )}
+                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Link
+                            href={`/hub/log/${session.id}`}
+                            className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                          >
+                            Log
+                          </Link>
+                          <Link
+                            href={`${sessionUrl}?edit=1`}
+                            className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                          >
+                            Edit session
+                          </Link>
+                        </div>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          className="text-muted-foreground transition-transform duration-200 group-open/sess:rotate-90 shrink-0"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
                       </summary>
-                      <div className="px-4 pt-2 flex items-center justify-end gap-4">
-                        <Link href={`/hub/log/${session.id}`} className="text-xs text-rose hover:underline">
-                          Log this session
-                        </Link>
-                        <Link href={sessionUrl} className="text-xs text-rose hover:underline">
-                          Edit session (exercises, swap, home version)
-                        </Link>
-                      </div>
-                      <div className="px-4 pb-4 pt-2 overflow-x-auto">
+                      <div className="px-4 pb-4 overflow-x-auto">
+                        <HideExerciseTableButton />
                         {studioVersion ? (
                           <PrescriptionTable version={studioVersion} />
                         ) : (
@@ -263,7 +295,7 @@ export default async function BlockViewPage({
                   );
                 })}
               </div>
-            </div>
+            </details>
           );
         })}
       </div>

@@ -8,6 +8,7 @@ import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircl
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { DBSession, Exercise, SessionLog, SessionVersion, SetLog } from "@/types";
@@ -33,8 +34,10 @@ export default function SessionViewPage({
   // Per-set quick logs, keyed by `${exercise_ref}::${set_number}`.
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
   // Desk-planning session editor — locked to one version (studio/home) while active.
+  const searchParams = useSearchParams();
   const [editingVersion, setEditingVersion] = useState<"studio" | "home" | null>(null);
   const [activeTab, setActiveTab] = useState<"studio" | "home">("studio");
+  const [editInitDone, setEditInitDone] = useState(false);
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -70,6 +73,15 @@ export default function SessionViewPage({
     }
     load();
   }, [params.blockId, sessionNum]);
+
+  useEffect(() => {
+    if (editInitDone || !session) return;
+    const editParam = searchParams.get("edit");
+    if (editParam === "1") {
+      setEditingVersion(activeTab);
+    }
+    setEditInitDone(true);
+  }, [searchParams, editInitDone, session, activeTab]);
 
   const saveNotes = async () => {
     if (!session) return;

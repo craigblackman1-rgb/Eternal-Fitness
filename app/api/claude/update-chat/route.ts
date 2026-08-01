@@ -2,8 +2,10 @@ import { createClient } from "@/lib/supabase-server";
 import { getAiConfig, aiChatStream } from "@/lib/ai-client";
 import { buildParqSection } from "@/lib/parq-summary";
 import { buildRecentUpdatesSection } from "@/lib/recent-updates-summary";
+import { buildSessionLogSection } from "@/lib/session-log-summary";
+import { buildComplianceSection } from "@/lib/compliance-summary";
 import { getTemplateKind } from "@/lib/email-templates/registry";
-import type { BlockSummary, DBBlock, SentUpdate, SignedPARQ } from "@/types";
+import type { BlockSummary, DBBlock, DBClient, DBSession, SentUpdate, SignedPARQ } from "@/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -11,15 +13,16 @@ interface ChatMessage {
 }
 
 function buildSystemPrompt(
-  client: Record<string, unknown>,
+  client: DBClient,
   blocks: DBBlock[],
   summaries: BlockSummary[],
   parq: SignedPARQ | null,
   recentUpdates: SentUpdate[],
+  sessions: DBSession[],
   templateKindId: string,
 ): string {
   const kind = getTemplateKind(templateKindId);
-  const profile = client.profile as Record<string, unknown>;
+  const profile = client.profile;
 
   const blockHistory = blocks.length > 0
     ? blocks.map((b) => `Block ${b.block_number}: ${b.block_note ?? "No note"} [Status: ${b.status}]`).join("\n")
@@ -66,7 +69,17 @@ ${buildParqSection(parq)}
 ---
 
 PREVIOUSLY SENT UPDATES (don't repeat what's already been said — build on it):
-${buildRecentUpdatesSection(recentUpdates)}`;
+${buildRecentUpdatesSection(recentUpdates)}
+
+---
+
+RECENT SESSION LOG:
+${buildSessionLogSection(sessions)}
+
+---
+
+COMPLIANCE STATUS:
+${buildComplianceSection(client)}`;
 }
 
 export async function POST(request: Request) {
@@ -110,6 +123,15 @@ export async function POST(request: Request) {
     .order("block_number", { ascending: false })
     .limit(3);
 
+  const blockIds = (blocks ?? []).map((b) => b.id);
+  const { data: sessions } = blockIds.length > 0
+    ? await supabase
+        .from("sessions")
+        .select("*")
+        .in("block_id", blockIds)
+        .order("session_number", { ascending: true })
+    : { data: null };
+
   const { data: parq } = await supabase
     .from("signed_parq")
     .select("*")
@@ -123,14 +145,15 @@ export async function POST(request: Request) {
     .select("*")
     .eq("client_id", client.id)
     .order("sent_at", { ascending: false })
-    .limit(2);
+    .limit(5);
 
   const systemPrompt = buildSystemPrompt(
-    client,
+    client as DBClient,
     (blocks ?? []) as DBBlock[],
     (client.block_summaries ?? []) as BlockSummary[],
     parq,
     recentUpdates ?? [],
+    (sessions ?? []) as DBSession[],
     templateKind || "six_week_update",
   );
 

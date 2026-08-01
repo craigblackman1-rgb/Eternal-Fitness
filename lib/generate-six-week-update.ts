@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
-import type { DBClient, DBBlock, BlockSummary } from "@/types";
+import type { DBClient, DBBlock, BlockSummary, DBSession } from "@/types";
 import { buildSixWeekUpdateHtml } from "@/lib/email-templates/six-week-update";
 import type { SixWeekUpdateData } from "@/lib/email-templates/six-week-update";
 import { buildFourWeekUpdateHtml } from "@/lib/email-templates/four-week-update";
@@ -7,6 +7,8 @@ import type { FourWeekUpdateData } from "@/lib/email-templates/four-week-update"
 import { buildFlexibleUpdateHtml } from "@/lib/email-templates/flexible-update";
 import type { FlexibleSection } from "@/lib/email-templates/flexible-update";
 import { getAiConfig, aiChat } from "@/lib/ai-client";
+import { buildSessionLogSection } from "@/lib/session-log-summary";
+import { buildComplianceSection } from "@/lib/compliance-summary";
 
 export interface UpdateDraft {
   subject: string;
@@ -41,8 +43,10 @@ function clientContextBlock(
   summaries: BlockSummary[],
   nextBlock: DBBlock | null,
   conversationSummary?: string,
+  sessionLogSection?: string,
+  complianceSection?: string,
 ): string {
-  return `Client: ${clientName}
+  let text = `Client: ${clientName}
 
 Client Profile:
 ${JSON.stringify(profile, null, 2)}
@@ -56,6 +60,14 @@ ${JSON.stringify(summaries, null, 2)}
 Next Block:
 ${JSON.stringify(nextBlock, null, 2)}
 ${conversationSummary ? `\nEsther's notes from a chat about this update — this is the primary source for what to say. It's more current and specific than the stored data above, and it also tells you what this update should actually cover (which sections it needs and what belongs in each):\n${conversationSummary}\n` : ""}`;
+
+  if (sessionLogSection) {
+    text += `\n\nRECENT SESSION LOG:\n${sessionLogSection}\n`;
+  }
+  if (complianceSection) {
+    text += `\n\nCOMPLIANCE STATUS:\n${complianceSection}\n`;
+  }
+  return text;
 }
 
 function parseAiJson(text: string): Record<string, unknown> {
@@ -91,6 +103,15 @@ export async function generateUpdateDraft(
     .order("block_number", { ascending: false })
     .limit(3);
 
+  const blockIds = (completedBlocks ?? []).map((b) => b.id);
+  const { data: sessions } = blockIds.length > 0
+    ? await supabase
+        .from("sessions")
+        .select("*")
+        .in("block_id", blockIds)
+        .order("session_number", { ascending: true })
+    : { data: null };
+
   const { data: latestPlanned } = await supabase
     .from("blocks")
     .select("*")
@@ -105,20 +126,23 @@ export async function generateUpdateDraft(
   const blockNumber = blocks[0]?.block_number ?? 0;
   const aiConfig = getAiConfig();
 
+  const sessionLogSection = buildSessionLogSection((sessions ?? []) as DBSession[]);
+  const complianceSection = buildComplianceSection(dbClient);
+
   if (templateKind === "flexible_update") {
     return aiConfig.provider
-      ? generateFlexibleViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary)
+      ? generateFlexibleViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection)
       : generateFlexibleFallback(dbClient.name, blockNumber);
   }
 
   if (templateKind === "four_week_update") {
     return aiConfig.provider
-      ? generateFourWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary)
+      ? generateFourWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection)
       : generateFourWeekFallback(profile, blocks, summaries, nextBlock, dbClient.name, blockNumber);
   }
 
   return aiConfig.provider
-    ? generateSixWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary)
+    ? generateSixWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection)
     : generateSixWeekFallback(profile, blocks, summaries, nextBlock, dbClient.name, blockNumber);
 }
 
@@ -216,11 +240,13 @@ async function generateSixWeekViaAi(
   clientName: string,
   blockNumber: number,
   conversationSummary?: string,
+  sessionLogSection?: string,
+  complianceSection?: string,
 ): Promise<UpdateDraft> {
   const system = systemPreamble();
   const user = `Write a 6-week update email for ${clientName}. Here is what I know:
 
-${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary)}
+${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
 Return valid JSON with these fields:
 {
   "subject": "string",
@@ -291,11 +317,13 @@ async function generateFourWeekViaAi(
   clientName: string,
   blockNumber: number,
   conversationSummary?: string,
+  sessionLogSection?: string,
+  complianceSection?: string,
 ): Promise<UpdateDraft> {
   const system = systemPreamble();
   const user = `Write a 4-week update email for ${clientName}. Here is what I know:
 
-${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary)}
+${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
 Return valid JSON with these fields:
 {
   "subject": "string",
@@ -363,6 +391,8 @@ async function generateFlexibleViaAi(
   clientName: string,
   blockNumber: number,
   conversationSummary?: string,
+  sessionLogSection?: string,
+  complianceSection?: string,
 ): Promise<UpdateDraft> {
   const system = `${systemPreamble()}
 
@@ -373,7 +403,7 @@ win, a specific exercise, what's next), give each its own section rather than cr
 everything into one block. Don't invent sections she didn't mention.`;
   const user = `Write a training update email for ${clientName}. Here is what I know:
 
-${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary)}
+${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
 Return valid JSON with this shape:
 {
   "subject": "string",
