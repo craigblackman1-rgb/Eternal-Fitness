@@ -116,6 +116,8 @@ export interface Task {
   assignee: string | null;
   bucket_id: string | null;
   due_date: string | null;
+  client_id: string | null;
+  client_name?: string | null;
   created_at: string;
   updated_at: string;
 }
