@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions } from "@/components/hub";
+import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
 import { lookupStatus } from "@/lib/hubStatus";
@@ -334,34 +334,34 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
       {/* ── Tabs ── */}
       <ClientDetailTabs>
-        <TabsList className="inline-flex w-full max-w-full justify-start gap-0.5 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
-          <TabsTrigger value="overview" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconLayoutDashboard className="w-[15px] h-[15px] text-muted-foreground" /> Overview
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconUser className="w-[15px] h-[15px] text-muted-foreground" /> Profile
-          </TabsTrigger>
-          <TabsTrigger value="compliance" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconClipboardCheck className="w-[15px] h-[15px] text-muted-foreground" /> Compliance
+        <HubTabsList>
+          <HubTabsTrigger value="overview">
+            <IconLayoutDashboard /> Overview
+          </HubTabsTrigger>
+          <HubTabsTrigger value="profile">
+            <IconUser /> Profile
+          </HubTabsTrigger>
+          <HubTabsTrigger value="compliance">
+            <IconClipboardCheck /> Compliance
             {outstandingCount > 0 && <TabCountBadge count={outstandingCount} tone={flags.effectiveStatus === "do_not_train" ? "danger" : "warning"} />}
-          </TabsTrigger>
-          <TabsTrigger value="training" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconDumbbell className="w-[15px] h-[15px] text-muted-foreground" /> Training
-          </TabsTrigger>
-          <TabsTrigger value="progress" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconBarChart3 className="w-[15px] h-[15px] text-muted-foreground" /> Progress
-          </TabsTrigger>
-          <TabsTrigger value="plan-agent" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconBot className="w-[15px] h-[15px] text-muted-foreground" /> Plan Agent
-          </TabsTrigger>
-          <TabsTrigger value="updates" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconMail className="w-[15px] h-[15px] text-muted-foreground" /> Updates
+          </HubTabsTrigger>
+          <HubTabsTrigger value="training">
+            <IconDumbbell /> Training
+          </HubTabsTrigger>
+          <HubTabsTrigger value="progress">
+            <IconBarChart3 /> Progress
+          </HubTabsTrigger>
+          <HubTabsTrigger value="plan-agent">
+            <IconBot /> Plan Agent
+          </HubTabsTrigger>
+          <HubTabsTrigger value="updates">
+            <IconMail /> Updates
             {draftUpdatesCount > 0 && <TabCountBadge count={draftUpdatesCount} tone="warning" />}
-          </TabsTrigger>
-          <TabsTrigger value="tasks" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconCheckSquare className="w-[15px] h-[15px] text-muted-foreground" /> Tasks
-          </TabsTrigger>
-        </TabsList>
+          </HubTabsTrigger>
+          <HubTabsTrigger value="tasks">
+            <IconCheckSquare /> Tasks
+          </HubTabsTrigger>
+        </HubTabsList>
 
         {/* ── Tab: Overview ── */}
         <TabsContent value="overview" className="mt-6">

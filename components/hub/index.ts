@@ -9,3 +9,4 @@ export { HubTable, type HubColumn } from "./HubTable";
 export { StatusBadge } from "./StatusBadge";
 export { KpiTile } from "./KpiTile";
 export { EmptyState } from "./EmptyState";
+export { HubTabsList, HubTabsTrigger } from "./HubTabs";
