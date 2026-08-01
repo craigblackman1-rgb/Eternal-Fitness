@@ -1,6 +1,13 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Training block module redesign — DONE + DEPLOYED + LOG-VERIFIED 2026-08-01 (afternoon).** Built
+  against a new mockup (`hub-block-module.html`): collapsed-by-default week/session accordion,
+  new Edit Block drawer (note/summary/status), one-click session-edit entry via `?edit=1`. Shipped in
+  4 commits (`f10daa9` → `ea68e70` hotfix for an RSC boundary crash `tsc` couldn't catch → `9e96f64`
+  mockup-parity fixes → `011ca1d` shared tab-bar component). Exercise table intentionally kept at 5
+  columns (Tempo/Rest) vs. the mockup's simplified 3 — Craig confirmed "leave as is". New global rule
+  (Design Parity Gate, in `CLAUDE.md`) came out of this session after a real miss — see `handoff.md`.
 - **Session editor cross-section drag + log-type toggle + standalone live-logging screen — DONE +
   DEPLOYED + LIVE-VERIFIED 2026-08-01.** Corrected two prior WOs' inaccurate "done" checkmarks first
   (live code grep showed the claimed functionality didn't exist). Shipped via one OpenCode lane
