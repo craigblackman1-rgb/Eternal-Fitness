@@ -47,7 +47,7 @@ function OutstandingActionsInline({ actions }: { actions: string[] | null }) {
     <ul className="mt-1.5 space-y-0.5">
       {actions.map((action, i) => (
         <li key={i} className="flex items-center gap-2 text-sm">
-          <IconTriangleAlert className="w-3.5 h-3.5 shrink-0" />
+          <IconTriangleAlert className="w-[15px] h-[15px] shrink-0" />
           <span>{action}</span>
         </li>
       ))}
@@ -321,28 +321,28 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
       {/* ── Tabs ── */}
       <ClientDetailTabs>
-        <TabsList className="inline-flex w-full max-w-full justify-start gap-1 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[5px] shadow-sm sm:w-auto">
-          <TabsTrigger value="overview" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconLayoutDashboard className="w-3.5 h-3.5 text-muted-foreground" /> Overview
+        <TabsList className="inline-flex w-full max-w-full justify-start gap-0.5 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">
+          <TabsTrigger value="overview" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconLayoutDashboard className="w-[15px] h-[15px] text-muted-foreground" /> Overview
           </TabsTrigger>
-          <TabsTrigger value="profile" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconUser className="w-3.5 h-3.5 text-muted-foreground" /> Profile
+          <TabsTrigger value="profile" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconUser className="w-[15px] h-[15px] text-muted-foreground" /> Profile
           </TabsTrigger>
-          <TabsTrigger value="compliance" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconClipboardCheck className="w-3.5 h-3.5 text-muted-foreground" /> Compliance
+          <TabsTrigger value="compliance" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconClipboardCheck className="w-[15px] h-[15px] text-muted-foreground" /> Compliance
             {outstandingCount > 0 && <TabCountBadge count={outstandingCount} tone={flags.effectiveStatus === "do_not_train" ? "danger" : "warning"} />}
           </TabsTrigger>
-          <TabsTrigger value="training" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconDumbbell className="w-3.5 h-3.5 text-muted-foreground" /> Training
+          <TabsTrigger value="training" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconDumbbell className="w-[15px] h-[15px] text-muted-foreground" /> Training
           </TabsTrigger>
-          <TabsTrigger value="progress" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconBarChart3 className="w-3.5 h-3.5 text-muted-foreground" /> Progress
+          <TabsTrigger value="progress" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconBarChart3 className="w-[15px] h-[15px] text-muted-foreground" /> Progress
           </TabsTrigger>
-          <TabsTrigger value="plan-agent" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconBot className="w-3.5 h-3.5 text-muted-foreground" /> Plan Agent
+          <TabsTrigger value="plan-agent" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconBot className="w-[15px] h-[15px] text-muted-foreground" /> Plan Agent
           </TabsTrigger>
-          <TabsTrigger value="updates" className="gap-2 rounded-lg border-0 bg-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
-            <IconMail className="w-3.5 h-3.5 text-muted-foreground" /> Updates
+          <TabsTrigger value="updates" className="gap-2 rounded-lg border-0 bg-transparent px-[13px] py-2 text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-[var(--hub-hover)] hover:text-foreground data-[state=active]:bg-[var(--hub-sidebar-active)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none [&[data-state=active]_svg]:text-rose">
+            <IconMail className="w-[15px] h-[15px] text-muted-foreground" /> Updates
             {draftUpdatesCount > 0 && <TabCountBadge count={draftUpdatesCount} tone="warning" />}
           </TabsTrigger>
         </TabsList>
@@ -542,7 +542,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       <ul className="list-none space-y-1">
                         {p.physical_baseline.movement_quality_flags.map((flag, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm">
-                            <IconTriangleAlert className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                            <IconTriangleAlert className="w-[15px] h-[15px] text-amber-500 mt-0.5 shrink-0" />
                             <span>{flag}</span>
                           </li>
                         ))}
