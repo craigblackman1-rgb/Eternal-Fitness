@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare, IconClock } from "@/components/icons";
+import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare, IconClock, IconActivity } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger } from "@/components/hub";
+import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
+import type { TrainerizeHistoryData } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
 import { lookupStatus } from "@/lib/hubStatus";
@@ -134,6 +135,40 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
+
+  // Trainerize history data (Lane 1 — historical import)
+  const { data: trainerizeBlocks } = await supabase.from("trainerize_training_blocks").select("*").eq("client_id", client.id).order("start_date", { ascending: false });
+  const blockIds = (trainerizeBlocks ?? []).map((b: any) => b.id);
+  const { data: trainerizeWorkouts } = blockIds.length > 0
+    ? await supabase.from("trainerize_workouts").select("*").in("trainerize_block_id", blockIds).order("workout_index", { ascending: true })
+    : { data: [] };
+  const workoutIds = (trainerizeWorkouts ?? []).map((w: any) => w.id);
+  const { data: trainerizeExercises } = workoutIds.length > 0
+    ? await supabase.from("trainerize_exercises").select("*").in("trainerize_workout_id", workoutIds).order("exercise_order", { ascending: true })
+    : { data: [] };
+  const { data: personalRecords } = await supabase.from("personal_records").select("*").eq("client_id", client.id).order("achieved_at", { ascending: false });
+  const { data: trainerizeNotes } = await supabase.from("trainerize_client_notes").select("*").eq("client_id", client.id).order("source_date", { ascending: false });
+
+  // Compose trainerize history data with nested workouts + exercises
+  const composeHistoryData = (): TrainerizeHistoryData => {
+    const workoutsByBlock: Record<string, any[]> = {};
+    for (const w of (trainerizeWorkouts ?? [])) {
+      const blockId = w.trainerize_block_id;
+      if (!workoutsByBlock[blockId]) workoutsByBlock[blockId] = [];
+      const exs = (trainerizeExercises ?? []).filter((ex: any) => ex.trainerize_workout_id === w.id);
+      workoutsByBlock[blockId].push({ ...w, exercises: exs.map((ex: any) => ({ ...ex, targetDetail: ex.raw_data?.targetDetail })) });
+    }
+    const blocks = (trainerizeBlocks ?? []).map((b: any) => ({
+      ...b,
+      workouts: workoutsByBlock[b.id] || [],
+    }));
+    return {
+      blocks,
+      personalRecords: personalRecords ?? [],
+      notes: trainerizeNotes ?? [],
+    };
+  };
+  const trainerizeHistory = composeHistoryData();
 
   const lastSentAt =
     (clientUpdates ?? [])
@@ -364,6 +399,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
           <HubTabsTrigger value="history">
             <IconClock /> History
+          </HubTabsTrigger>
+          <HubTabsTrigger value="training-history">
+            <IconActivity /> Training History
           </HubTabsTrigger>
           <HubTabsTrigger value="plan-agent">
             <IconBot /> Plan Agent
@@ -957,6 +995,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
             dueInfo={dueInfo}
             lastSentAt={lastSentAt}
+          />
+        </TabsContent>
+
+        {/* ── Tab: Training History (Trainerize import) ── */}
+        <TabsContent value="training-history" className="mt-6">
+          <TrainerizeHistoryPanel
+            data={trainerizeHistory}
+            emptyTitle="No Trainerize history imported yet"
+            emptyDescription="Run the Trainerize import for this client to populate their historical training data, PBs, and notes."
           />
         </TabsContent>
       </ClientDetailTabs>

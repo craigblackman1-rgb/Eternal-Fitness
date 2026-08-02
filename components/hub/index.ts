@@ -10,3 +10,5 @@ export { StatusBadge, TokenPill } from "./StatusBadge";
 export { KpiTile } from "./KpiTile";
 export { EmptyState } from "./EmptyState";
 export { HubTabsList, HubTabsTrigger } from "./HubTabs";
+export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
+export type { TrainerizeHistoryData, TrainerizeBlock, TrainerizeWorkout, TrainerizeExercise, TrainerizePersonalRecord, TrainerizeNote } from "./types";
