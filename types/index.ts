@@ -294,7 +294,7 @@ export type GpLetterStatus = "not_required" | "requested" | "received";
 export type MedicalClearanceStatus = "cleared" | "pending" | "not_required" | "not_yet_requested";
 export type RiskLevel = "low" | "medium" | "high";
 export type PaymentStatus = "paid" | "deposit" | "pending" | "overdue" | "suspended";
-export type ClientStatus = "active" | "inactive" | "completed" | "suspended";
+export type ClientStatus = "active" | "inactive" | "completed" | "suspended" | "archived";
 
 export interface BlockSummary {
   block_number: number;
