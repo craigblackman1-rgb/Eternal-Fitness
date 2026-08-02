@@ -1,11 +1,14 @@
-// Brand tokens — mirror app/globals.css / EF_Brand_Guidelines
+// Brand tokens — match mockups at D:\apps\design-systems\ef-client-portal\email-templates\*.html
 const ROSE = "#C1839F";
 const TEAL = "#087E8B";
-const NAVY = "#282B38";
-const INK = "#3C3C3C";
+const INK = "#131313";
 const BODY_COLOR = "#525A61";
-const OFF_WHITE = "#F5F5F5";
-const HAIRLINE = "#E7E4E6";
+const WARM_CANVAS = "#F5EFEA";
+const CREAM = "#FCF8F4";
+const HAIRLINE = "#E4DDD7";
+
+const BRAND_URL = process.env.PORTAL_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+const LOGO_URL = BRAND_URL ? `${BRAND_URL}/images/ef-logo-horizontal.png` : "";
 
 export interface EmailSection {
   label: string;
@@ -30,10 +33,8 @@ export interface BrandedUpdateEmailInput {
 }
 
 /**
- * Shared branded email chrome for every client update template kind. Redesigned
- * to carry the eternal-fitness.co.uk front-end look: a dark-navy header band with
- * the EF monogram + wordmark, a rose accent rule, tinted section cards, and a
- * warm sign-off. Each template kind only supplies its own section list.
+ * Shared branded email chrome for every client-facing email. Matches the
+ * pixel-accurate HTML mockups in D:\apps\design-systems\ef-client-portal\email-templates\.
  *
  * Email-client constraints honoured: table layout, inline styles, web-safe
  * fallbacks (DM Sans → Helvetica/Arial), no SVG (Gmail strips it), border-radius
@@ -44,41 +45,24 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
   const preview = input.previewText ?? input.subtitle;
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light only" />
   <title>${input.documentTitle}</title>
 </head>
-<body style="margin:0;padding:0;background-color:${OFF_WHITE};font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${OFF_WHITE};font-size:1px;line-height:1px;">${preview}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${OFF_WHITE};">
+<body style="margin:0;padding:0;background-color:${WARM_CANVAS};font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${WARM_CANVAS};font-size:1px;line-height:1px;">${preview}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${WARM_CANVAS};">
     <tr>
-      <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 8px 30px rgba(40,43,56,0.08);">
+      <td align="center" style="padding:40px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#FFFFFF;border:1px solid ${HAIRLINE};border-radius:20px;overflow:hidden;box-shadow:0 12px 32px rgba(19,19,19,0.06);">
 
-          <!-- Brand header (dark navy band) -->
+          <!-- Brand header (warm cream band + logo lockup) -->
           <tr>
-            <td style="background-color:${NAVY};padding:28px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="vertical-align:middle;width:52px;">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td width="48" height="48" align="center" valign="middle" style="width:48px;height:48px;background-color:${ROSE};border-radius:50%;color:#FFFFFF;font-size:18px;font-weight:700;letter-spacing:1px;text-align:center;font-family:'DM Sans',Helvetica,Arial,sans-serif;">EF</td>
-                      </tr>
-                    </table>
-                  </td>
-                  <td style="vertical-align:middle;padding-left:14px;">
-                    <div style="font-size:20px;font-weight:700;letter-spacing:3px;color:#FFFFFF;text-transform:uppercase;line-height:1;">Eternal</div>
-                    <div style="font-size:11px;font-weight:500;letter-spacing:4px;color:${ROSE};text-transform:uppercase;line-height:1;margin-top:5px;">Fitness</div>
-                  </td>
-                  <td style="vertical-align:middle;text-align:right;">
-                    <div style="font-size:10px;font-weight:500;letter-spacing:1.5px;color:rgba(255,255,255,0.55);text-transform:uppercase;">Worthing &middot; West Sussex</div>
-                  </td>
-                </tr>
-              </table>
+            <td style="background-color:${CREAM};border-bottom:1px solid ${HAIRLINE};padding:32px 40px 26px;text-align:center;">
+              <img src="${LOGO_URL}" width="142" height="40" alt="Eternal Fitness" style="display:block;margin:0 auto;width:142px;height:auto;border:0;outline:none;text-decoration:none;" />
             </td>
           </tr>
 
@@ -87,17 +71,19 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
 
           <!-- Title block -->
           <tr>
-            <td style="padding:36px 40px 8px;text-align:center;">
-              <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:0.5px;color:${INK};line-height:1.25;">${input.title}</h1>
-              <p style="margin:8px 0 0;font-size:13px;font-weight:500;letter-spacing:1px;color:${TEAL};text-transform:uppercase;">${input.subtitle}</p>
+            <td style="padding:40px 40px 4px;">
+              <p style="margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${BODY_COLOR};">
+                <span style="display:inline-block;width:24px;height:2px;background-color:${ROSE};vertical-align:middle;margin-right:10px;">&nbsp;</span>${input.subtitle}
+              </p>
+              <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:32px;line-height:1.15;color:${INK};">${input.title}</h1>
             </td>
           </tr>
 
           <!-- Personal greeting -->
           <tr>
-            <td style="padding:24px 40px 0;">
-              <p style="font-size:16px;line-height:1.6;color:${INK};margin:0 0 14px;font-weight:600;">Hi ${input.greetingName},</p>
-              <div style="font-size:15px;line-height:1.7;color:${BODY_COLOR};margin:0;">${input.introHtml}</div>
+            <td style="padding:22px 40px 0;">
+              <p style="font-size:17px;line-height:1.55;color:${INK};margin:0 0 16px;font-weight:600;">Hi ${input.greetingName},</p>
+              <div style="font-size:16px;line-height:1.65;color:${BODY_COLOR};margin:0;">${input.introHtml}</div>
             </td>
           </tr>
 
@@ -106,12 +92,12 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
               (section) => `
           <!-- Section: ${section.label} -->
           <tr>
-            <td style="padding:20px 40px 0;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${OFF_WHITE};border-radius:14px;">
+            <td style="padding:24px 40px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${CREAM};border:1px solid ${HAIRLINE};border-radius:14px;">
                 <tr>
                   <td style="width:4px;background-color:${section.color};border-radius:2px;font-size:0;line-height:0;">&nbsp;</td>
                   <td style="padding:18px 20px;">
-                    <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${section.color};margin:0 0 8px;">${section.label}</div>
+                    <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${BODY_COLOR};margin:0 0 8px;">${section.label}</div>
                     <div style="font-size:15px;line-height:1.7;color:${BODY_COLOR};">
                       ${section.html}
                     </div>
@@ -125,13 +111,13 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
 
           <!-- Sign-off -->
           <tr>
-            <td style="padding:28px 40px 36px;">
-              <div style="border-top:1px solid ${HAIRLINE};padding-top:22px;">
+            <td style="padding:36px 40px 40px;">
+              <div style="border-top:1px solid ${HAIRLINE};padding-top:24px;">
                 <p style="font-size:15px;line-height:1.6;color:${BODY_COLOR};margin:0 0 4px;">Speak soon,</p>
-                <p style="font-size:20px;line-height:1.4;color:${INK};margin:0;font-weight:600;font-style:italic;">Esther x</p>
-                <p style="font-size:12px;line-height:1.6;color:#8A8790;margin:12px 0 0;">
-                  <strong style="color:${INK};font-weight:600;">Esther Fair</strong> &middot; Level 4 Personal Trainer<br />
-                  <span style="color:${ROSE};font-weight:600;">Eternal Fitness</span> &middot; Private studio, Worthing, West Sussex
+                <p style="font-size:24px;line-height:1.4;color:${INK};margin:0;font-weight:400;font-style:italic;font-family:Georgia,'Times New Roman',serif;">Esther x</p>
+                <p style="font-size:12px;line-height:1.7;color:${BODY_COLOR};margin:14px 0 0;">
+                  <strong style="color:${INK};font-weight:700;">Esther Fair</strong> &middot; Level 4 Personal Trainer<br />
+                  <span style="color:${ROSE};font-weight:700;">Eternal Fitness</span> &middot; Private studio, Worthing, West Sussex
                 </p>
               </div>
             </td>
@@ -140,8 +126,8 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
             ? `
           <!-- P.S. -->
           <tr>
-            <td style="padding:0 40px 32px;">
-              <div style="font-size:14px;line-height:1.7;color:${BODY_COLOR};font-style:italic;background-color:${OFF_WHITE};border-radius:12px;padding:16px 18px;">
+            <td style="padding:0 40px 40px;">
+              <div style="font-size:14px;line-height:1.7;color:${BODY_COLOR};font-style:italic;background-color:${CREAM};border:1px solid ${HAIRLINE};border-radius:12px;padding:16px 18px;">
                 ${input.psHtml}
               </div>
             </td>
@@ -150,8 +136,8 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
 
           <!-- Footer -->
           <tr>
-            <td style="padding:22px 40px;background-color:${NAVY};text-align:center;">
-              <p style="font-size:11px;line-height:1.6;color:rgba(255,255,255,0.55);margin:0;">
+            <td style="padding:26px 40px;background-color:${INK};text-align:center;">
+              <p style="font-size:11px;line-height:1.7;color:rgba(255,255,255,0.6);margin:0;">
                 Sent to you because you're a client of Eternal Fitness.<br />
                 ${footerNote}
               </p>

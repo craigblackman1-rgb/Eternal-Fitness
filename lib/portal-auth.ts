@@ -91,6 +91,7 @@ export interface InviteResult {
   email: string;
   password: string;
   loginUrl: string;
+  clientName: string;
 }
 
 export interface PortalAccountStatus {
@@ -136,6 +137,7 @@ export async function invitePortalAccount(clientId: string): Promise<InviteResul
     email,
     password,
     loginUrl: `${PORTAL_BASE_URL}/portal/login`,
+    clientName: client.name ?? "",
   };
 }
 
@@ -305,6 +307,125 @@ export interface WelcomeEmailResult {
   devLink?: string;
 }
 
+export function buildPortalWelcomeEmailHtml(opts: {
+  greetingName: string;
+  resetLink: string;
+  loginUrl: string;
+}): string {
+  const { greetingName, resetLink, loginUrl } = opts;
+
+  return `<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
+  <title>Welcome to your Eternal Fitness client portal</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5EFEA;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F5EFEA;font-size:1px;line-height:1px;">Your client portal is ready — set your password to get started.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5EFEA;">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#FFFFFF;border:1px solid #E4DDD7;border-radius:20px;overflow:hidden;box-shadow:0 12px 32px rgba(19,19,19,0.06);">
+
+          <!-- Brand header (warm cream band + logo lockup) -->
+          <tr>
+            <td style="background-color:#FCF8F4;border-bottom:1px solid #E4DDD7;padding:32px 40px 26px;text-align:center;">
+              <img src="${PORTAL_BASE_URL}/images/ef-logo-horizontal.png" width="142" height="40" alt="Eternal Fitness" style="display:block;margin:0 auto;width:142px;height:auto;border:0;outline:none;text-decoration:none;" />
+            </td>
+          </tr>
+
+          <!-- Rose accent rule -->
+          <tr><td style="height:3px;background-color:#C1839F;line-height:3px;font-size:0;">&nbsp;</td></tr>
+
+          <!-- Title block -->
+          <tr>
+            <td style="padding:40px 40px 4px;">
+              <p style="margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#525A61;">
+                <span style="display:inline-block;width:24px;height:2px;background-color:#C1839F;vertical-align:middle;margin-right:10px;">&nbsp;</span>From Eternal Fitness
+              </p>
+              <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:32px;line-height:1.15;color:#131313;">Welcome to your client portal</h1>
+            </td>
+          </tr>
+
+          <!-- Personal greeting -->
+          <tr>
+            <td style="padding:22px 40px 0;">
+              <p style="font-size:17px;line-height:1.55;color:#131313;margin:0 0 16px;font-weight:600;">Hi ${greetingName},</p>
+              <div style="font-size:16px;line-height:1.65;color:#525A61;margin:0;"><p style="margin:0;">I&rsquo;ve set up your Eternal Fitness client portal. You can use it to view training plans, track your progress, and access your documents &mdash; all in one place.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 20px;">
+      <tr>
+        <td align="center" bgcolor="#C1839F" style="border-radius:999px;">
+          <a href="${resetLink}" target="_blank" rel="noopener"
+             style="display:inline-block;padding:15px 36px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#131313;text-decoration:none;border-radius:999px;">
+            Set your password
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#525A61;">Or copy this link: <a href="${resetLink}" style="color:#087E8B;text-decoration:underline;">${resetLink}</a></p></div>
+            </td>
+          </tr>
+
+          <!-- Section: What to do -->
+          <tr>
+            <td style="padding:24px 40px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FCF8F4;border:1px solid #E4DDD7;border-radius:14px;">
+                <tr>
+                  <td style="width:4px;background-color:#C1839F;border-radius:2px;font-size:0;line-height:0;">&nbsp;</td>
+                  <td style="padding:18px 20px;">
+                    <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#525A61;margin:0 0 8px;">What to do</div>
+                    <div style="font-size:15px;line-height:1.7;color:#525A61;">
+                      <p style="margin:0;">Tap the button above to set your password. This link expires in 7 days. Once you&rsquo;ve set a password, you can log in anytime at <a href="${loginUrl}" style="color:#087E8B;text-decoration:underline;">${loginUrl}</a>.</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Sign-off -->
+          <tr>
+            <td style="padding:36px 40px 40px;">
+              <div style="border-top:1px solid #E4DDD7;padding-top:24px;">
+                <p style="font-size:15px;line-height:1.6;color:#525A61;margin:0 0 4px;">Speak soon,</p>
+                <p style="font-size:24px;line-height:1.4;color:#131313;margin:0;font-weight:400;font-style:italic;font-family:Georgia,'Times New Roman',serif;">Esther x</p>
+                <p style="font-size:12px;line-height:1.7;color:#525A61;margin:14px 0 0;">
+                  <strong style="color:#131313;font-weight:700;">Esther Fair</strong> &middot; Level 4 Personal Trainer<br />
+                  <span style="color:#C1839F;font-weight:700;">Eternal Fitness</span> &middot; Private studio, Worthing, West Sussex
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- P.S. -->
+          <tr>
+            <td style="padding:0 40px 40px;">
+              <div style="font-size:14px;line-height:1.7;color:#525A61;font-style:italic;background-color:#FCF8F4;border:1px solid #E4DDD7;border-radius:12px;padding:16px 18px;">
+                <p style="margin:0;">If you have any questions, just reply to this email and I&rsquo;ll get back to you.</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:26px 40px;background-color:#131313;text-align:center;">
+              <p style="font-size:11px;line-height:1.7;color:rgba(255,255,255,0.6);margin:0;">
+                Sent to you because you&rsquo;re a client of Eternal Fitness.<br />
+                If you&rsquo;d rather not receive these updates, just let me know.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeEmailResult> {
   const invite = await invitePortalAccount(clientId);
 
@@ -326,7 +447,12 @@ export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeE
   );
 
   const resetLink = `${PORTAL_BASE_URL}/portal/reset-password?token=${token}`;
-  const loginUrl = `${PORTAL_BASE_URL}/portal/login`;
+
+  const html = buildPortalWelcomeEmailHtml({
+    greetingName: invite.clientName,
+    resetLink,
+    loginUrl: invite.loginUrl,
+  });
 
   const { getEmailSender } = await import("@/lib/email");
   const sender = getEmailSender();
@@ -337,13 +463,7 @@ export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeE
     await sender.send({
       to: invite.email,
       subject: "Welcome to your Eternal Fitness client portal",
-      html: `
-        <p>Hi,</p>
-        <p>Esther has set up your Eternal Fitness client portal. You can use it to view your training plans, track your progress, and access your documents.</p>
-        <p><a href="${resetLink}">Set your password to get started</a></p>
-        <p>This link expires in 7 days. Once you&rsquo;ve set a password you can log in anytime at <a href="${loginUrl}">${loginUrl}</a>.</p>
-        <p>If you have any questions just reply to this email.</p>
-      `,
+      html,
     });
   }
 
