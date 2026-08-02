@@ -27,6 +27,10 @@ import { randomBytes, createHash, scryptSync, timingSafeEqual } from "crypto";
 import { getPool } from "@/lib/pg-client";
 
 const RESET_TOKEN_TTL_SECONDS = 15 * 60;
+// Welcome/invite links sit in an inbox until the client gets around to it —
+// unlike a "forgot password" reset, a 15-minute window would expire before
+// most clients ever open the email. Same token mechanism, longer life.
+const WELCOME_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 const PORTAL_COOKIE = "better_auth_portal_session";
@@ -292,6 +296,58 @@ export async function destroyPortalSession(token: string | undefined): Promise<v
   if (!token) return;
   const pool = getPool();
   await pool.query(`DELETE FROM portal_sessions WHERE token = $1`, [token]);
+}
+
+export interface WelcomeEmailResult {
+  email: string;
+  sent: boolean;
+  dryRun: boolean;
+  devLink?: string;
+}
+
+export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeEmailResult> {
+  const invite = await invitePortalAccount(clientId);
+
+  const token = randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date(Date.now() + WELCOME_TOKEN_TTL_SECONDS * 1000);
+
+  const pool = getPool();
+  const acctRes = await pool.query(
+    `SELECT id FROM portal_accounts WHERE client_id = $1 LIMIT 1`,
+    [clientId],
+  );
+  const account = acctRes.rows[0];
+
+  await pool.query(
+    `INSERT INTO portal_reset_tokens (account_id, client_id, token_hash, expires_at)
+     VALUES ($1, $2, $3, $4)`,
+    [account.id, clientId, tokenHash, expiresAt],
+  );
+
+  const resetLink = `${PORTAL_BASE_URL}/portal/reset-password?token=${token}`;
+  const loginUrl = `${PORTAL_BASE_URL}/portal/login`;
+
+  const { getEmailSender } = await import("@/lib/email");
+  const sender = getEmailSender();
+  const status = (await import("@/lib/email")).getEmailStatus();
+  const dryRun = !status.configured;
+
+  if (!dryRun) {
+    await sender.send({
+      to: invite.email,
+      subject: "Welcome to your Eternal Fitness client portal",
+      html: `
+        <p>Hi,</p>
+        <p>Esther has set up your Eternal Fitness client portal. You can use it to view your training plans, track your progress, and access your documents.</p>
+        <p><a href="${resetLink}">Set your password to get started</a></p>
+        <p>This link expires in 7 days. Once you&rsquo;ve set a password you can log in anytime at <a href="${loginUrl}">${loginUrl}</a>.</p>
+        <p>If you have any questions just reply to this email.</p>
+      `,
+    });
+  }
+
+  return { email: invite.email, sent: !dryRun, dryRun, devLink: dryRun ? resetLink : undefined };
 }
 
 export const PORTAL_SESSION_COOKIE = PORTAL_COOKIE;
