@@ -244,7 +244,7 @@ export interface Session {
 
 export interface SessionLog {
   completed_at: string | null;
-  rpe: number | null;
+  rpe?: number | null;
   fatigue: "low" | "moderate" | "high" | null;
   notes: string;
 }

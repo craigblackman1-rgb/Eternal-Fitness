@@ -1,6 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: ((event: Event) => void) | null;
+}
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise } from "@/types";
@@ -163,11 +179,64 @@ export function LiveSessionLog({
   });
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [rpe, setRpe] = useState<number | null>(sessionLog?.rpe ?? null);
   const [fatigue, setFatigue] = useState<SessionLog["fatigue"]>(sessionLog?.fatigue ?? null);
   const [notes, setNotes] = useState(sessionLog?.notes ?? "");
   const [showComplete, setShowComplete] = useState(false);
   const [completing, setCompleting] = useState(false);
+
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const speechSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+
+  const initRecognition = useCallback(() => {
+    if (recognitionRef.current) return recognitionRef.current;
+    const ctor =
+      (window as unknown as Record<string, unknown>).SpeechRecognition ??
+      (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+    if (typeof ctor !== "function") return null;
+    const r = new (ctor as new () => SpeechRecognition)();
+    r.continuous = true;
+    r.interimResults = true;
+    r.lang = "en-GB";
+    r.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          setNotes((prev) => (prev ? prev + " " + t : t));
+        }
+      }
+    };
+    r.onerror = () => {
+      setListening(false);
+      recognitionRef.current = null;
+    };
+    r.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+    };
+    recognitionRef.current = r;
+    return r;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+    };
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      recognitionRef.current = null;
+    } else {
+      const r = initRecognition();
+      if (!r) return;
+      r.start();
+      setListening(true);
+    }
+  }, [listening, initRecognition]);
 
   const allExerciseRefs = useMemo(() => {
     const refs: string[] = [];
@@ -331,7 +400,6 @@ export function LiveSessionLog({
     setCompleting(true);
     const updatedLog: SessionLog = {
       completed_at: new Date().toISOString(),
-      rpe,
       fatigue,
       notes,
     };
@@ -471,25 +539,6 @@ export function LiveSessionLog({
           <p className="text-[12.5px] text-muted-foreground mt-0.5 mb-4">Logged once, at the end — covers how the whole session felt, not one exercise.</p>
 
           <div className="mb-[18px]">
-            <span className="text-xs font-bold text-foreground mb-2 block">
-              RPE <span className="font-normal text-muted-foreground">— rate of perceived exertion, 1 (very light) to 10 (maximal)</span>
-            </span>
-            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="RPE">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setRpe(rpe === v ? null : v)}
-                  className={`w-[44px] h-[44px] rounded-[10px] border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground text-sm font-bold cursor-pointer hover:border-rose/30 ${rpe === v ? "bg-rose border-rose text-white" : ""}`}
-                  aria-pressed={rpe === v}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-[18px]">
             <span className="text-xs font-bold text-foreground mb-2 block">Fatigue level</span>
             <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label="Fatigue">
               {(["low", "moderate", "high"] as const).map((f) => (
@@ -515,7 +564,24 @@ export function LiveSessionLog({
           </div>
 
           <div>
-            <span className="text-xs font-bold text-foreground mb-2 block">Session notes</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-bold text-foreground">Session notes</span>
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  className={`inline-flex items-center gap-1 rounded-[7px] border px-2 py-1 text-[11px] font-bold cursor-pointer transition-colors ${
+                    listening
+                      ? "bg-rose text-white border-rose animate-pulse"
+                      : "border-[var(--hub-field-border)] bg-[var(--hub-card)] text-muted-foreground hover:border-rose/30 hover:text-rose"
+                  }`}
+                  aria-label={listening ? "Stop recording" : "Record voice note"}
+                >
+                  <MicIcon active={listening} />
+                  {listening ? "Listening…" : "Speak"}
+                </button>
+              )}
+            </div>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -533,8 +599,8 @@ export function LiveSessionLog({
           <button
             type="button"
             onClick={() => {
-              if (rpe == null || fatigue == null) {
-                toast("Tip: RPE and fatigue are still blank — you can still complete without them.", { description: "" });
+              if (fatigue == null) {
+                toast("Tip: Fatigue level is still blank — you can still complete without it.", { description: "" });
               }
               setShowComplete(true);
             }}
@@ -856,6 +922,17 @@ function NoteIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function MicIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a2.5 2.5 0 0 0-2.5 2.5v7a2.5 2.5 0 0 0 5 0v-7A2.5 2.5 0 0 0 12 2z" />
+      <path d="M18 10a6 6 0 0 1-12 0" />
+      <line x1="12" x2="12" y1="19" y2="22" />
+      <line x1="8" x2="16" y1="22" y2="22" />
     </svg>
   );
 }
