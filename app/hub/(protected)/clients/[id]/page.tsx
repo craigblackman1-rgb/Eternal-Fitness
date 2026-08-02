@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare } from "@/components/icons";
+import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare, IconClock } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
@@ -25,7 +25,9 @@ import { ClientUpdatesPanel } from "@/components/hub/ClientUpdatesPanel";
 import { PortalAccountCard } from "./PortalAccountCard";
 import type { SentUpdate, SetLog } from "@/types";
 import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
+import { ExerciseHistoryPanel } from "@/components/progress/ExerciseHistoryPanel";
 import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
+import { buildExerciseHistory } from "@/lib/exercise-history";
 import { getLastClientLogAt } from "@/lib/progress-db";
 
 function YesNoPill({ yes }: { yes: boolean }) {
@@ -123,6 +125,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     };
   }
   const exerciseTrends = buildExerciseTrends((setLogs ?? []) as SetLog[], trendSessionMeta);
+  const exerciseHistory = buildExerciseHistory((setLogs ?? []) as SetLog[]);
 
   // Lane C — "gone quiet" detection for home-training clients (Esther-facing only;
   // no client-facing send is wired — gated on the Work Order's ASK FIRST decision).
@@ -358,6 +361,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
           <HubTabsTrigger value="progress">
             <IconBarChart3 /> Progress
+          </HubTabsTrigger>
+          <HubTabsTrigger value="history">
+            <IconClock /> History
           </HubTabsTrigger>
           <HubTabsTrigger value="plan-agent">
             <IconBot /> Plan Agent
@@ -899,6 +905,27 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 emptyTitle="No logged sessions yet"
                 emptyDescription="Log sets from a session page (or a home-training client logs their own) and per-exercise trends will appear here."
                 idPrefix="hub-exercise-trends"
+              />
+            </div>
+          </HubCard>
+        </TabsContent>
+
+        {/* ── Tab: History ── */}
+        <TabsContent value="history" className="mt-6">
+          <HubCard padded={false}>
+            <HubCardHeader
+              icon={<IconClock className="w-4 h-4" />}
+              title="Exercise History"
+              color="teal"
+              subtitle="Personal bests and last-performed weights, from logged sets"
+              className="px-5 pt-5"
+            />
+            <div className="px-5 pb-5">
+              <ExerciseHistoryPanel
+                history={exerciseHistory}
+                emptyTitle="No logged sessions yet"
+                emptyDescription="Log sets from a session and per-exercise personal bests and history will appear here."
+                idPrefix="hub-exercise-history"
               />
             </div>
           </HubCard>
