@@ -37,6 +37,8 @@ function parse(contents) {
 const CLIENT_ID_ARG = process.argv.indexOf("--client");
 const CLIENT_ID = CLIENT_ID_ARG !== -1 ? process.argv[CLIENT_ID_ARG + 1] : "22276427";
 const DRY_RUN = process.argv.includes("--dry-run");
+const DB_CLIENT_ID_ARG = process.argv.indexOf("--db-client-id");
+const DB_CLIENT_ID = DB_CLIENT_ID_ARG !== -1 ? process.argv[DB_CLIENT_ID_ARG + 1] : null;
 
 const OUT_DIR = join(process.cwd(), ".context");
 const JSON_FILE = join(OUT_DIR, `trainerize-import-${CLIENT_ID}.json`);
@@ -76,14 +78,21 @@ async function main() {
     return;
   }
 
-  // 1. Look up the client UUID by client_number or name
-  const { rows: clients } = await pool.query(
-    "SELECT id, name, client_number FROM clients WHERE name ILIKE $1",
-    [`%${data.clientName}%`],
-  );
+  // 1. Look up the client UUID by client_number, name, or an explicit --db-client-id
+  //    override (needed when the Trainerize spelling of a name doesn't match our DB,
+  //    e.g. Trainerize "Monique Wearden" vs our "Monique Weardon").
+  let clients;
+  if (DB_CLIENT_ID) {
+    ({ rows: clients } = await pool.query("SELECT id, name, client_number FROM clients WHERE id = $1", [DB_CLIENT_ID]));
+  } else {
+    ({ rows: clients } = await pool.query(
+      "SELECT id, name, client_number FROM clients WHERE name ILIKE $1",
+      [`%${data.clientName}%`],
+    ));
+  }
 
   if (clients.length === 0) {
-    console.error(`Client "${data.clientName}" not found in DB. Create them first.`);
+    console.error(`Client "${data.clientName}" not found in DB. Create them first, or pass --db-client-id.`);
     await pool.end();
     process.exit(1);
   }
