@@ -225,6 +225,29 @@ async function main() {
   }
   console.log(`  ${noteCount} notes imported.`);
 
+  // 5. Import actual workout results (per-set logged data)
+  const results = data.workoutResults || [];
+  console.log(`\n── Importing ${results.length} logged sets ──`);
+  let resultCount = 0;
+  for (const r of results) {
+    await pool.query(
+      `INSERT INTO trainerize_workout_results
+         (client_id, trainerize_daily_workout_id, workout_name, performed_date, rpe,
+          trainerize_daily_exercise_id, exercise_name, set_number, reps, weight, distance, duration_seconds, raw_data)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+       ON CONFLICT (client_id, trainerize_daily_exercise_id, set_number)
+       DO UPDATE SET reps = EXCLUDED.reps, weight = EXCLUDED.weight, distance = EXCLUDED.distance,
+                     duration_seconds = EXCLUDED.duration_seconds, raw_data = EXCLUDED.raw_data`,
+      [
+        client.id, r.dailyWorkoutId, r.workoutName, r.performedDate || null, r.rpe,
+        r.dailyExerciseId, r.exerciseName, r.setNumber, r.reps, r.weight, r.distance, r.durationSeconds,
+        JSON.stringify(r),
+      ],
+    );
+    resultCount++;
+  }
+  console.log(`  ${resultCount} logged sets upserted.`);
+
   console.log(`\nDone! All data imported for ${data.clientName}.`);
   await pool.end();
 }

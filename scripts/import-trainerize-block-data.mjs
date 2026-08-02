@@ -50,6 +50,13 @@ async function login(page) {
 
   // Set up API response interceptor
   const apiResponses = [];
+  let authToken = null;
+  page.on("request", (req) => {
+    if (!authToken && req.url().includes("/v03/")) {
+      const h = req.headers()["authorization"];
+      if (h) authToken = h;
+    }
+  });
   page.on("response", async (res) => {
     const url = res.url();
     if (!url.includes("/v03/")) return;
@@ -63,6 +70,22 @@ async function login(page) {
       process.stdout.write(`[${endpoint}] `);
     } catch {}
   });
+
+  // Fetches a Trainerize API endpoint directly (bearer token captured from the
+  // browser's own real requests above) rather than via page navigation --
+  // needed here because calendar/getList and dailyWorkout/get take structured
+  // params (date ranges, id batches) that no single page navigation produces.
+  async function apiCall(endpoint, body) {
+    const res = await context.request.post(`https://api.trainerize.com/v03/${endpoint}`, {
+      data: body,
+      headers: { "content-type": "application/json", authorization: authToken },
+    });
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
 
   console.log("Logging in...");
   await login(page);
@@ -79,8 +102,11 @@ async function login(page) {
     accomplishments: [],
     profile: null,
     notes: [],
+    workoutResults: [],
     _completedSteps: [],
   };
+  // Older resumable files won't have this field yet.
+  if (!data.workoutResults) data.workoutResults = [];
 
   const done = (step) => data._completedSteps.includes(step);
   const markDone = (step) => {
@@ -284,6 +310,105 @@ async function login(page) {
       }
     }
     markDone("notes_enrichment");
+    writeFileSync(OUT_FILE, JSON.stringify(data, null, 2));
+  }
+
+  // Step 6: Actual per-set logged results (what was really performed, not the
+  // prescribed program or best-ever PBs). calendar/getList only accepts <1yr
+  // ranges, so chunk from the earliest known training-plan start date to
+  // today; collect every "tracked" (completed) dailyWorkout id; batch-fetch
+  // full set-by-set detail via dailyWorkout/get.
+  if (!done("workout_results")) {
+    console.log("\n── Fetching actual workout results (per-set logged data) ──");
+    if (!authToken) {
+      console.warn("  No auth token captured yet -- revisiting dash to capture one.");
+      await page.goto(`https://eternalfitness8.trainerize.com/app/client/${CLIENT_ID}/dash?ref=switchInto`, {
+        waitUntil: "domcontentloaded", timeout: 30000,
+      }).catch(() => {});
+      await page.waitForTimeout(2500);
+    }
+
+    if (!authToken) {
+      console.warn("  Still no auth token -- skipping workout results for this client.");
+    } else {
+      const earliestPlanDate = data.trainingPlans
+        .map((p) => p.startDate)
+        .filter(Boolean)
+        .sort()[0];
+      const startBoundary = earliestPlanDate
+        ? new Date(new Date(earliestPlanDate).getTime() - 30 * 86400000)
+        : new Date("2023-01-01");
+      const today = new Date();
+
+      // Build <1-year chunks (350 days to leave margin under Trainerize's limit).
+      const chunks = [];
+      let chunkStart = new Date(startBoundary);
+      while (chunkStart < today) {
+        const chunkEnd = new Date(Math.min(chunkStart.getTime() + 350 * 86400000, today.getTime()));
+        chunks.push([chunkStart.toISOString().slice(0, 10), chunkEnd.toISOString().slice(0, 10)]);
+        chunkStart = new Date(chunkEnd.getTime() + 86400000);
+      }
+
+      const trackedIds = new Map(); // id -> { title, date, rpe }
+      for (const [startDate, endDate] of chunks) {
+        const body = await apiCall("calendar/getList", {
+          userid: parseInt(CLIENT_ID, 10),
+          startDate,
+          endDate,
+          unitDistance: "km",
+          unitWeight: "kg",
+          filter: {},
+        });
+        const days = body?.calendar || [];
+        for (const day of days) {
+          for (const item of day.items || []) {
+            if (item.status === "tracked" && item.type?.startsWith("workout")) {
+              trackedIds.set(item.id, { title: item.title, date: day.date, rpe: item.detail?.rpe ?? null });
+            }
+          }
+        }
+      }
+      console.log(`  Found ${trackedIds.size} completed workout instances across ${chunks.length} date-range chunks.`);
+
+      const idList = [...trackedIds.keys()];
+      const BATCH = 25;
+      let fetched = 0;
+      for (let i = 0; i < idList.length; i += BATCH) {
+        const batchIds = idList.slice(i, i + BATCH);
+        const body = await apiCall("dailyWorkout/get", {
+          ids: batchIds,
+          userID: parseInt(CLIENT_ID, 10),
+          unitDistance: "km",
+          unitWeight: "kg",
+        });
+        for (const dw of body?.dailyWorkouts || []) {
+          for (const ex of dw.exercises || []) {
+            for (const stat of ex.stats || []) {
+              // Skip fully-empty set rows (planned-but-not-logged placeholders).
+              if (stat.reps == null && stat.weight == null && stat.distance == null && stat.time == null) continue;
+              data.workoutResults.push({
+                dailyWorkoutId: dw.id,
+                workoutName: dw.name,
+                performedDate: dw.date,
+                rpe: trackedIds.get(dw.id)?.rpe ?? null,
+                dailyExerciseId: ex.dailyExerciseID,
+                exerciseName: ex.def?.name || null,
+                setNumber: stat.setID,
+                reps: stat.reps,
+                weight: stat.weight,
+                distance: stat.distance,
+                durationSeconds: stat.time,
+              });
+            }
+          }
+        }
+        fetched += body?.dailyWorkouts?.length || 0;
+        process.stdout.write(`  fetched ${fetched}/${idList.length} workout details\r`);
+      }
+      console.log(`\n  ${data.workoutResults.length} logged sets captured.`);
+    }
+
+    markDone("workout_results");
     writeFileSync(OUT_FILE, JSON.stringify(data, null, 2));
   }
 

@@ -33,8 +33,10 @@ export function TrainerizeHistoryPanel({
   const hasBlocks = data.blocks && data.blocks.length > 0;
   const hasPBs = data.personalRecords && data.personalRecords.length > 0;
   const hasNotes = data.notes && data.notes.length > 0;
+  const resultsSummary = data.workoutResultsSummary;
+  const hasResults = !!resultsSummary && resultsSummary.totalSessions > 0;
 
-  if (!hasBlocks && !hasPBs && !hasNotes) {
+  if (!hasBlocks && !hasPBs && !hasNotes && !hasResults) {
     return (
       <div className="py-12 text-center">
         <p className="text-sm font-semibold text-foreground">{emptyTitle || "No Trainerize history imported yet"}</p>
@@ -45,6 +47,55 @@ export function TrainerizeHistoryPanel({
 
   return (
     <div className="space-y-6">
+      {/* ── Workout Results Summary ── */}
+      {hasResults && (
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconClock className="w-4 h-4" />}
+            title="Workout Results"
+            color="rose"
+            subtitle="Actual logged performance from Trainerize, not just the prescribed program"
+            className="px-5 pt-5"
+          />
+          <div className="px-5 pb-5">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <div className="text-2xl font-bold text-foreground">{resultsSummary.totalSessions}</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Sessions logged</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">{resultsSummary.totalSets}</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Sets recorded</div>
+              </div>
+            </div>
+            {resultsSummary.recentSessions.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--hub-border)]">
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5 pr-3">Date</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5 pr-3">Workout</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5 pr-3">Sets logged</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5">RPE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {resultsSummary.recentSessions.map((s) => (
+                      <tr key={s.dailyWorkoutId} className="border-b border-[var(--hub-border)]/50 last:border-0">
+                        <td className="py-1.5 pr-3 text-muted-foreground whitespace-nowrap">{formatDate(s.performedDate)}</td>
+                        <td className="py-1.5 pr-3 text-foreground">{s.workoutName || "—"}</td>
+                        <td className="py-1.5 pr-3 text-muted-foreground">{s.setCount}</td>
+                        <td className="py-1.5 text-muted-foreground">{s.rpe ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </HubCard>
+      )}
+
       {/* ── Training Blocks ── */}
       {hasBlocks && (
         <HubCard padded={false}>

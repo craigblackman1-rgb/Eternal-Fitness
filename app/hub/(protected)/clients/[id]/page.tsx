@@ -148,6 +148,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     : { data: [] };
   const { data: personalRecords } = await supabase.from("personal_records").select("*").eq("client_id", client.id).order("achieved_at", { ascending: false });
   const { data: trainerizeNotes } = await supabase.from("trainerize_client_notes").select("*").eq("client_id", client.id).order("source_date", { ascending: false });
+  const { data: workoutResults } = await supabase.from("trainerize_workout_results").select("*").eq("client_id", client.id).order("performed_date", { ascending: false });
 
   // Compose trainerize history data with nested workouts + exercises
   const composeHistoryData = (): TrainerizeHistoryData => {
@@ -162,10 +163,29 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       ...b,
       workouts: workoutsByBlock[b.id] || [],
     }));
+
+    // Group logged sets by session (trainerize_daily_workout_id) for a recent-sessions summary.
+    const sessionsById: Record<string, any> = {};
+    for (const r of (workoutResults ?? [])) {
+      const id = r.trainerize_daily_workout_id;
+      if (!sessionsById[id]) {
+        sessionsById[id] = { dailyWorkoutId: id, workoutName: r.workout_name, performedDate: r.performed_date, rpe: r.rpe, setCount: 0 };
+      }
+      sessionsById[id].setCount += 1;
+    }
+    const recentSessions = Object.values(sessionsById)
+      .sort((a: any, b: any) => (b.performedDate > a.performedDate ? 1 : -1))
+      .slice(0, 10);
+
     return {
       blocks,
       personalRecords: personalRecords ?? [],
       notes: trainerizeNotes ?? [],
+      workoutResultsSummary: {
+        totalSets: workoutResults?.length ?? 0,
+        totalSessions: Object.keys(sessionsById).length,
+        recentSessions,
+      },
     };
   };
   const trainerizeHistory = composeHistoryData();
