@@ -36,6 +36,7 @@ interface SetState {
   weight: string;
   duration: string;
   savedId?: string;
+  isNewPb?: boolean;
 }
 
 interface ExState {
@@ -271,7 +272,7 @@ export function LiveSessionLog({
     setNumber: number,
     fieldValues: { reps: string; weight: string; duration: string },
     completed: boolean,
-  ): Promise<SetLog | null> => {
+  ): Promise<(SetLog & { is_new_pb?: boolean }) | null> => {
     const key = `${exerciseRef}::${setNumber}`;
     const existing = setLogsMap[key];
     const timeBased = fieldValues.duration !== undefined;
@@ -289,7 +290,7 @@ export function LiveSessionLog({
       ),
     });
     if (!res.ok) return null;
-    const saved: SetLog = await res.json();
+    const saved: SetLog & { is_new_pb?: boolean } = await res.json();
     setLogsMap[key] = saved;
     return saved;
   };
@@ -335,6 +336,7 @@ export function LiveSessionLog({
         weight,
         duration,
         savedId: saved.id,
+        isNewPb: saved.is_new_pb === true,
       };
       return { ...prev, [exerciseRef]: { ...st, sets: newSets } };
     });
@@ -776,6 +778,11 @@ function ExerciseCard({
                   {setNum}
                 </span>
                 <span className="text-xs text-muted-foreground">{targetLabel}</span>
+                {setStatus === "done" && sets[idx]?.isNewPb && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-amber)] text-[var(--color-ink)] px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wider flex-shrink-0 ml-auto">
+                    New PB
+                  </span>
+                )}
               </div>
               <div className="flex items-end gap-2 flex-wrap">
                 {timeBased ? (

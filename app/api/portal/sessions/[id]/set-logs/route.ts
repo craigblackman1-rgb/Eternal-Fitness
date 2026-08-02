@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPortalSessionFromCookies } from "@/lib/portal-session";
 import { getPool } from "@/lib/pg-client";
+import { checkAndUpsertPB } from "@/lib/personal-records";
 
 /**
  * Portal set-log routes — the client-authored counterpart to the staff route at
@@ -115,7 +116,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
       body.notes ?? null,
     ],
   );
-  return NextResponse.json(res.rows[0], { status: 201 });
+
+  const saved = res.rows[0];
+  const isNewPb = await checkAndUpsertPB(session.clientId, saved);
+  return NextResponse.json({ ...saved, is_new_pb: isNewPb }, { status: 201 });
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
@@ -178,5 +182,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (res.rows.length === 0) {
     return NextResponse.json({ error: "Set log not found" }, { status: 404 });
   }
-  return NextResponse.json(res.rows[0]);
+
+  const saved = res.rows[0];
+  const isNewPb = await checkAndUpsertPB(session.clientId, saved);
+  return NextResponse.json({ ...saved, is_new_pb: isNewPb });
 }
