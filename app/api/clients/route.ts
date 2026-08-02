@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { sendPortalWelcomeEmail } from "@/lib/portal-auth";
 
 export async function GET(request: Request) {
   const supabase = createClient();
@@ -46,5 +47,10 @@ export async function POST(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (email?.trim()) {
+    sendPortalWelcomeEmail(data.id).catch(() => {});
+  }
+
   return NextResponse.json(data, { status: 201 });
 }
