@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HubCard } from "@/components/hub";
 import { Badge } from "@/components/ui/badge";
-import { IconBot, IconLoader2, IconSparkles, IconSend } from "@/components/icons";
+import { IconBot, IconLoader2, IconSparkles, IconSend, IconAlertTriangle } from "@/components/icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -32,8 +32,11 @@ export function UpdateChatPanel({
 }: UpdateChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const CONVERSATION_SUMMARY_CAP = 20000;
+
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [truncated, setTruncated] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,7 +94,10 @@ export function UpdateChatPanel({
     const conversationSummary = messages
       .map((m) => `${m.role === "user" ? "Esther" : "Agent"}: ${m.content}`)
       .join("\n\n");
-    onCreateDraft(conversationSummary.slice(0, 4000));
+    if (conversationSummary.length > CONVERSATION_SUMMARY_CAP) {
+      setTruncated(true);
+    }
+    onCreateDraft(conversationSummary.slice(0, CONVERSATION_SUMMARY_CAP));
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -178,6 +184,21 @@ export function UpdateChatPanel({
       )}
 
       {error && <div className="p-3 rounded-lg bg-rose/8 border border-rose/20 text-sm text-rose">{error}</div>}
+
+      {truncated && (
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber/12 border border-amber/30 text-sm text-amber">
+          <IconAlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium">Your conversation is longer than the 20,000-character draft limit.</p>
+            <p className="mt-0.5">
+              Only the first 20,000 characters will be sent to the AI for draft generation. If your conversation
+              covered topics after that point, they won&rsquo;t appear in the generated draft and you&rsquo;ll need
+              to fill those sections manually. To avoid this, keep your chat concise or start a new conversation
+              for a second update.
+            </p>
+          </div>
+        </div>
+      )}
 
       {hasConversation && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
