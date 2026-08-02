@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { IconCopy, IconRefreshCw, IconMail } from "@/components/icons";
+import { IconCopy, IconRefreshCw, IconMail, IconEye } from "@/components/icons";
 import { TokenPill } from "@/components/hub/StatusBadge";
 
 interface PortalStatus {
@@ -144,6 +144,17 @@ export function PortalAccountCard({
           >
             <IconMail className="h-4 w-4" />
             {sendingWelcome ? "Sending..." : "Send welcome email"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(`/api/clients/${clientNumber}/portal-welcome/preview`, "_blank")}
+            disabled={!hasEmail || loadingStatus || generating}
+            title={hasEmail ? undefined : "No email address on file for this client"}
+            className="gap-1.5"
+          >
+            <IconEye className="h-4 w-4" />
+            Preview
           </Button>
         </div>
       </div>

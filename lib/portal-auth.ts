@@ -298,6 +298,10 @@ export async function destroyPortalSession(token: string | undefined): Promise<v
   await pool.query(`DELETE FROM portal_sessions WHERE token = $1`, [token]);
 }
 
+import { buildBrandedUpdateEmail } from "@/lib/email-templates/shell";
+
+const ROSE = "#C1839F";
+
 export interface WelcomeEmailResult {
   email: string;
   sent: boolean;
@@ -305,14 +309,62 @@ export interface WelcomeEmailResult {
   devLink?: string;
 }
 
+export interface WelcomeEmailPreviewInput {
+  clientName: string;
+  resetLink: string;
+  loginUrl: string;
+}
+
+export function buildPortalWelcomeEmailHtml(input: WelcomeEmailPreviewInput): string {
+  const resetLink = input.resetLink;
+  const loginUrl = input.loginUrl;
+
+  const ctaButton = `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 16px;">
+      <tr>
+        <td align="center" bgcolor="${ROSE}" style="border-radius:999px;">
+          <a href="${resetLink}" target="_blank" rel="noopener"
+             style="display:inline-block;padding:14px 32px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:999px;">
+            Set your password
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:8px 0 0;font-size:12px;color:#8A8790;">Or copy this link: <a href="${resetLink}" style="color:#087E8B;">${resetLink}</a></p>`;
+
+  return buildBrandedUpdateEmail({
+    documentTitle: "Welcome to your Eternal Fitness client portal",
+    previewText: "Your client portal is ready — set your password to get started.",
+    title: "Welcome to your client portal",
+    subtitle: "From Eternal Fitness",
+    greetingName: input.clientName,
+    introHtml: `<p style="margin:0;">I've set up your Eternal Fitness client portal. You can use it to view training plans, track your progress, and access your documents — all in one place.</p>${ctaButton}`,
+    sections: [
+      {
+        label: "What to do",
+        color: ROSE,
+        html: `<p style="margin:0;">Tap the button above to set your password. This link expires in 7 days. Once you've set a password, you can log in anytime at <a href="${loginUrl}" style="color:#087E8B;">${loginUrl}</a>.</p>`,
+      },
+    ],
+    psHtml: `<p style="margin:0;">If you have any questions, just reply to this email and I'll get back to you.</p>`,
+  });
+}
+
 export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeEmailResult> {
+  const pool = getPool();
+  const clientRes = await pool.query(
+    `SELECT id, name, email FROM clients WHERE id = $1 LIMIT 1`,
+    [clientId],
+  );
+  const client = clientRes.rows[0];
+  if (!client) throw new PortalAuthError("Client not found.");
+
   const invite = await invitePortalAccount(clientId);
 
   const token = randomBytes(32).toString("hex");
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + WELCOME_TOKEN_TTL_SECONDS * 1000);
 
-  const pool = getPool();
   const acctRes = await pool.query(
     `SELECT id FROM portal_accounts WHERE client_id = $1 LIMIT 1`,
     [clientId],
@@ -328,6 +380,12 @@ export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeE
   const resetLink = `${PORTAL_BASE_URL}/portal/reset-password?token=${token}`;
   const loginUrl = `${PORTAL_BASE_URL}/portal/login`;
 
+  const html = buildPortalWelcomeEmailHtml({
+    clientName: client.name,
+    resetLink,
+    loginUrl,
+  });
+
   const { getEmailSender } = await import("@/lib/email");
   const sender = getEmailSender();
   const status = (await import("@/lib/email")).getEmailStatus();
@@ -337,13 +395,7 @@ export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeE
     await sender.send({
       to: invite.email,
       subject: "Welcome to your Eternal Fitness client portal",
-      html: `
-        <p>Hi,</p>
-        <p>Esther has set up your Eternal Fitness client portal. You can use it to view your training plans, track your progress, and access your documents.</p>
-        <p><a href="${resetLink}">Set your password to get started</a></p>
-        <p>This link expires in 7 days. Once you&rsquo;ve set a password you can log in anytime at <a href="${loginUrl}">${loginUrl}</a>.</p>
-        <p>If you have any questions just reply to this email.</p>
-      `,
+      html,
     });
   }
 
