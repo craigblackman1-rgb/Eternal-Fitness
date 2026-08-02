@@ -46,18 +46,28 @@ export interface TrainerizeNote {
   sender_name: string | null;
 }
 
-export interface TrainerizeRecentSession {
+export interface TrainerizeWorkoutResultSet {
+  exerciseName: string | null;
+  setNumber: number | null;
+  reps: number | null;
+  weight: number | null;
+  distance: number | null;
+  durationSeconds: number | null;
+}
+
+export interface TrainerizeSession {
   dailyWorkoutId: number;
   workoutName: string | null;
   performedDate: string | null;
   rpe: number | null;
   setCount: number;
+  sets: TrainerizeWorkoutResultSet[];
 }
 
 export interface TrainerizeWorkoutResultsSummary {
   totalSets: number;
   totalSessions: number;
-  recentSessions: TrainerizeRecentSession[];
+  sessions: TrainerizeSession[];
 }
 
 export interface TrainerizeHistoryData {

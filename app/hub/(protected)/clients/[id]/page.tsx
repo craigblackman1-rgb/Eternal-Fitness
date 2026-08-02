@@ -164,18 +164,40 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       workouts: workoutsByBlock[b.id] || [],
     }));
 
-    // Group logged sets by session (trainerize_daily_workout_id) for a recent-sessions summary.
+    // Group logged sets by session (trainerize_daily_workout_id), each carrying its
+    // own full set-by-set detail so the UI can expand a row without another fetch.
     const sessionsById: Record<string, any> = {};
     for (const r of (workoutResults ?? [])) {
       const id = r.trainerize_daily_workout_id;
       if (!sessionsById[id]) {
-        sessionsById[id] = { dailyWorkoutId: id, workoutName: r.workout_name, performedDate: r.performed_date, rpe: r.rpe, setCount: 0 };
+        sessionsById[id] = {
+          dailyWorkoutId: id,
+          workoutName: r.workout_name,
+          performedDate: r.performed_date,
+          rpe: r.rpe,
+          setCount: 0,
+          sets: [],
+        };
       }
       sessionsById[id].setCount += 1;
+      sessionsById[id].sets.push({
+        exerciseName: r.exercise_name,
+        setNumber: r.set_number,
+        reps: r.reps,
+        weight: r.weight,
+        distance: r.distance,
+        durationSeconds: r.duration_seconds,
+      });
     }
-    const recentSessions = Object.values(sessionsById)
-      .sort((a: any, b: any) => (b.performedDate > a.performedDate ? 1 : -1))
-      .slice(0, 10);
+    for (const s of Object.values(sessionsById) as any[]) {
+      s.sets.sort((a: any, b: any) => {
+        if (a.exerciseName !== b.exerciseName) return (a.exerciseName || "").localeCompare(b.exerciseName || "");
+        return (a.setNumber ?? 0) - (b.setNumber ?? 0);
+      });
+    }
+    const sessions = Object.values(sessionsById).sort((a: any, b: any) =>
+      (b.performedDate || "") > (a.performedDate || "") ? 1 : -1,
+    );
 
     return {
       blocks,
@@ -183,8 +205,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       notes: trainerizeNotes ?? [],
       workoutResultsSummary: {
         totalSets: workoutResults?.length ?? 0,
-        totalSessions: Object.keys(sessionsById).length,
-        recentSessions,
+        totalSessions: sessions.length,
+        sessions,
       },
     };
   };
