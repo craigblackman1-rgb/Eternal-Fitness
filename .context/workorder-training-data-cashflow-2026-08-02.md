@@ -35,13 +35,15 @@ DECIDE YOURSELF:
 - Reconciliation matching heuristic tuning (Group 3) — suggest-and-confirm only, never auto-commit.
 - Whether Group 1's per-block exercise/set detail and notes endpoints (Phase 0b gaps) turn out to need one more API call or a UI-click-triggered one — resolve via recon, don't guess.
 
-ASK FIRST (queued via `wo ask`, not blocking other lanes — see below):
-- **Group 1 roster scope** — all historical/active Trainerize clients, or just currently-active ones?
-- **Group 1 notes visibility** — hub-only, or also portal-visible to the client? (Esther's call — some notes may be clinical shorthand.)
-- **Group 1 sync cadence** — one-time backfill (Trainerize being retired) or ongoing parallel use (import needs to be idempotent/re-runnable)?
-- **Group 1 ToS sanity check** — scraping Esther's own paid Trainerize account for her own client data; low-risk but flagged rather than assumed at full-roster scale.
-- **HSBC CSV/OFX sample** (Group 3) — hard blocker for the parser, not a design decision; need one real export from Esther's HSBC account.
-- **First real invoice send** and **first real Trainerize full-roster run** — both confirmed with Craig/Esther before firing for real, test/draft first.
+RESOLVED (answered by Craig, 2026-08-02):
+- **Group 1 roster scope** — all historical/active Trainerize clients (not just currently-active).
+- **Group 1 notes visibility** — hub-only.
+- **Group 1 sync cadence** — one-time backfill.
+- **Group 1 ToS sanity check** — confirmed OK to scrape at full-roster scale.
+
+ASK FIRST (still open):
+- **HSBC CSV/OFX sample** (Group 3) — hard blocker for the parser. Craig said hold this for now — do not build the Lane 5 parser or chase a sample; Lane 5 stays paused, not pursued further until he brings it back up.
+- **First real invoice send** and **first real Trainerize full-roster run** — roster scope/notes/cadence/ToS are now answered, but the *act* of running the full-roster import against ~15 real clients is still its own confirmation point before firing — check with Craig immediately before kicking it off, not assumed from the scoping answers alone.
 - Standard gates: any new pnpm dependency, any destructive or existing-table-altering migration, deploy/push (already pre-authorized per project convention — auto-deploy is on).
 
 ## DONE
