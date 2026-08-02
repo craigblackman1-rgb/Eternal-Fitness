@@ -20,8 +20,8 @@ export async function GET(
 
   const html = buildPortalWelcomeEmailHtml({
     clientName: client.name,
-    resetLink: "https://eternalfitness.co.uk/portal/reset-password?token=preview-placeholder",
-    loginUrl: "https://eternalfitness.co.uk/portal/login",
+    resetLink: "https://eternal-fitness.co.uk/portal/reset-password?token=preview-placeholder",
+    loginUrl: "https://eternal-fitness.co.uk/portal/login",
   });
 
   return new NextResponse(html, {
