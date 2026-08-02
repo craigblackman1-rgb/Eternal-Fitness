@@ -54,6 +54,12 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     ],
   },
   {
+    label: "Finance",
+    items: [
+      { href: "/hub/cashflow/invoices", label: "Invoices", icon: IconFileText },
+    ],
+  },
+  {
     label: "Resources",
     items: [
       { href: "/hub/exercises", label: "Exercise Library", icon: IconBookText },

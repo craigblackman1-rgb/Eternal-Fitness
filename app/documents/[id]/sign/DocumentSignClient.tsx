@@ -33,7 +33,10 @@ export function DocumentSignClient({ doc }: { doc: ClientDocument }) {
   // Only "feedback" skips a real signature — a survey, not an attestation. PAR-Q
   // uses questions from the same feedbackSections schema but is still a signed
   // clinical declaration, so it stays on the full name+date+signature+agree flow.
+  // "invoice" requires no signatures at all — read-only view, same as print.
   const isFeedback = doc.kind === "feedback";
+  const isInvoice = doc.kind === "invoice";
+  const isReadOnly = !doc.requires_client_signature && !doc.requires_trainer_signature;
   const hasQuestionnaire = !!doc.body.feedbackSections?.length;
   const alreadySigned = doc.client_signature && doc.client_signed_date;
   const hasConsentGroups = !!doc.body.consentGroups?.length;
@@ -101,7 +104,11 @@ export function DocumentSignClient({ doc }: { doc: ClientDocument }) {
     );
   }
 
-  const signSlot = isFeedback ? (
+  const signSlot = isReadOnly ? (
+    <div className="doc-note doc-note--plain">
+      <p>This document does not require a signature — it is for your records.</p>
+    </div>
+  ) : isFeedback ? (
     <div>
       <h2 className="doc-section__title">Your name</h2>
 

@@ -558,3 +558,50 @@ export interface ClientDocumentsSummary {
 export interface ClientWithDocuments extends DBClient {
   documents: ClientDocumentsSummary;
 }
+
+export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue" | "void";
+
+export interface DBInvoice {
+  id: string;
+  client_id: string;
+  invoice_number: string;
+  issue_date: string;
+  due_date: string;
+  status: InvoiceStatus;
+  currency: string;
+  subtotal: number;
+  vat_total: number;
+  total: number;
+  client_document_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBInvoiceLineItem {
+  id: string;
+  invoice_id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  vat_rate: number;
+  line_total: number;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface DBInvoiceTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  line_items: InvoiceTemplateLineItem[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceTemplateLineItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+}
