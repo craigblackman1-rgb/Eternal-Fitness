@@ -1,5 +1,83 @@
 # Handoff
 
+## Session close — 2026-08-02 (later) — Trainerize historical import, live PB/templates, cashflow core, tab consolidation, live block promotion
+
+Full detail: `wo-eternalfitness-training-cashflow-2026-08-02`. Scope docs:
+`.context/scope-trainerize-historical-import-2026-08-02.md`, `.context/scope-cashflow-invoicing-2026-08-02.md`.
+Final push `f6345d4`, deployed, confirmed `running:healthy` (multiple deploys through the session —
+the first one for each code-only commit hit the known transient Coolify exit-255-at-finalize
+pattern once; a manual redeploy of the same commit fixed it, no code issue).
+
+**Trainerize historical import — full roster.** Discovered Trainerize's frontend runs on an
+internal JSON API (`api.trainerize.com/v03/*`) rather than server-rendered pages — auth needs a
+JWT bearer token the SPA holds in memory (captured from a real request, not a cookie). Imported
+training blocks/workouts/exercises, notes, and best-ever PBs for all 15 active clients into new
+`trainerize_*` archive tables (deliberately separate from live `blocks`/`sessions` — different
+status semantics). Also pulled 2 real former clients not previously in the hub (Judy Holmes, Uma
+Assous) by driving Trainerize's "Deactivated" client filter — added a reusable `archived`
+`client_status` value + hub list-view toggle for this going forward.
+
+**Actual per-set workout results, not just prescribed program/PBs.** Craig asked directly whether
+real logged performance (not just the prescription) was being pulled — it wasn't. Found
+`dailyWorkout/get` (fed by `calendar/getList`, chunked <1yr per Trainerize's own range limit)
+returns true per-set reps/weight/distance/time. Built `trainerize_workout_results` — 19,687 real
+logged sets across 883 sessions for the 15 active clients. The 2 archived clients get 0 — confirmed
+via direct API test this is a genuine Trainerize 403 (deactivated accounts lose access to this
+endpoint specifically, tied to the paid-seat model), not a bug.
+
+**Tab consolidation — Progress/History/Training History were 3 tabs computing PBs 3 different,
+disconnected ways.** Investigated the actual code rather than assume: the old History tab
+recomputed PBs from `set_logs` only, completely blind to `personal_records` or Trainerize data;
+Training History's PB card only ever showed Trainerize-imported PBs. Consolidated to 2 tabs —
+**Progress** (unified trend + PB/last-performed, fed by both live `set_logs` and Trainerize's
+per-set results via new `lib/trainerize-adapter.ts`, which converts Trainerize rows into the same
+`SetLog` shape so they flow through the existing `buildExerciseTrends`/`buildExerciseHistory` pure
+functions unchanged) and **Training History** (narrowed to program structure + notes only).
+`?tab=history` redirects to `progress` rather than silently falling back to overview.
+
+**Live PB flagging + workout templates (independent of the Trainerize work).** Wired the existing
+`buildExerciseHistory` PB logic into live session logging (hub `LiveSessionLog.tsx` + portal
+`TrainingClient`) with an inline "New PB" badge, backed by the shared `personal_records` table
+(now the single source for both live-set and Trainerize-imported PBs). Added `workout_templates`
+with auto-derived facet tags (archetype/movement/muscle/equipment computed from the exercises
+inside a template on save) + a small manual `condition_tags` field — solves Esther's "I call
+everything Workout A" problem by making the display name irrelevant to findability.
+
+**Cashflow/invoicing core.** Structured invoicing (`invoices`/`invoice_line_items`/
+`invoice_templates` — real relational line items, not the flat-amount pattern the Decoded Ops hub
+uses) delivered through the existing document engine as a 7th `kind` rather than a parallel send
+pipeline. Esther confirmed not VAT-registered, so no VAT logic anywhere. HSBC statement import
+(the other half of this initiative) is **on hold per Craig** — genuinely blocked on a real CSV/OFX
+sample, not pursued further this session.
+
+**Promoted currently-in-progress Trainerize blocks to real live blocks.** The Training tab was
+empty for every imported client (it reads live `blocks`/`sessions`, not the archive tables).
+`scripts/promote-active-trainerize-blocks.mjs` finds clients whose Trainerize block start/end date
+spans today and creates a real `blocks`(status=`draft`, hub-only, not client-portal-visible)/
+`sessions` row per workout — 12 clients. Caught a real data-shape issue via dry-run *before*
+writing: Odul Bozkurt had separate "GYM"/"HOME" Trainerize workout entries for the same session
+(would have become 6 wrong sequential sessions instead of 3 correct dual-version ones) — built
+`pairGymHomeWorkouts()` to match by workout number and merge correctly.
+
+**Verification discipline throughout:** every UI change was checked with a disposable staff
+account (created via direct Postgres insert matching the real better-auth schema, deleted
+immediately after) against the actual live site (`staging.eternal-fitness.co.uk`), not just
+localhost or a self-report. Caught and fixed 2 real bugs this way that `tsc`/build passing had
+missed: (1) `TrainerizeHistoryPanel`/`types.ts` reading Trainerize's raw API field names
+(`name`/`target`/`restTime`) instead of the real DB column names (`exercise_name`/`target_reps`/
+`rest_time_seconds`) — Personal Records and workout exercise tables rendered blank/placeholder
+values despite correct underlying data; (2) same bug class recurred in the workout/exercise
+render layer after the first fix, caught because Craig looked closely rather than trusting the
+first "done."
+
+### Not done / deferred this session
+- HSBC statement import (Lane 5 of the cashflow WO) — held per Craig, needs a real sample.
+- Reconciliation queue + cashflow dashboard (Lanes 6-7) — depend on Lane 5.
+- Full set-by-set drill-down UI exists on the client-detail Progress tab (paginated, click-to-
+  expand) but there's no cross-client "recent PBs" or "recent sessions" feed yet — not asked for.
+- `clients.payment_status` superseding by invoice-derived state — explicitly out of scope for the
+  cashflow WO, a separate future decision once invoicing has been used for a while.
+
 ## Session close — 2026-08-02 — Hub task backlog cleared, updates-module fix, welcome email redesigned
 
 **Reviewed every hub task assigned to Craig with status `todo` (`tasks` table, EF Hub kanban)** and turned them into two Work Orders, both closed this session: `wo-eternalfitness-hub-tasks-2026-08-02` (Resources area + calorie calculator + Showdown Soundboard, exercise history/PB tracking, session-notes mic input, plan-schedule page, email-timing fix, welcome-aboard email, updates-module fix) and a follow-up `wo-eternalfitness-welcome-email-2026-08-02` / `wo-eternalfitness-email-shell-redesign-2026-08-02` (branded welcome email, manual-send-only, preview capability, then a full visual redesign of the shared email shell from Craig's OpenDesign mockups). All corresponding hub task rows marked `done`. Final state pushed as `e8b44aa`, deployed, confirmed `running:healthy`.

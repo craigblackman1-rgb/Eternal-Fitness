@@ -345,12 +345,16 @@
 - **Process & Quality System** (2026-07-20): `process_entries`/`sops`/`improvement_log` tables + `/hub/process-quality` CRUD UI, DB-backed so Esther can edit without a code deploy. **Now seeded** with 10 real SOPs + 10 matching Process Register entries (published 2026-07-20, background session — see handoff.md for the full list and how it was published). `improvement_log` still empty — no incidents logged yet.
 - **Client portal** (2026-07-20, deployed live 2026-07-21): magic-link auth (`lib/portal-auth.ts`, separate from staff auth) + read-only `/portal/*` view. No real client account exists yet.
 - **Site Content inventory** (2026-07-21): `page_keywords` table now covers all 47 pages (static/condition/legal/blog) with `page_type` column and a published/needs_writing/needs_updating status model; `/hub/site-content` list + `/hub/site-content/[slug]` editor rebuilt to match the OpenDesign mockup.
+- **Trainerize historical import** (2026-08-02): `trainerize_training_blocks`/`workouts`/`exercises`/`client_notes`/`workout_results` tables — full training history, notes, and real per-set logged performance (19,687 sets) imported for all 15 active + 2 archived clients via direct API replay (`api.trainerize.com/v03/*`). "Training History" tab (blocks/notes only) + unified "Progress" tab (trends/PBs across both live and Trainerize eras via `lib/trainerize-adapter.ts`) on the client detail page. `clients.client_status` now supports `archived` (hub-list-hidden by default, toggle to show) — reusable for future former-client backfills.
+- **Live PB flagging + workout templates** (2026-08-02): inline "New PB" badge in hub/portal session logging, backed by shared `personal_records`. `workout_templates` table with auto-derived facet tags (archetype/movement/muscle/equipment computed from contents) + manual `condition_tags`; library page reuses the exercise-browser filter pattern.
+- **Cashflow core** (2026-08-02): `invoices`/`invoice_line_items`/`invoice_templates` — real relational line items, delivered via the document engine as a 7th `kind`. No VAT logic (Esther not VAT-registered). HSBC statement import/reconciliation/dashboard **not built yet** — held pending a real CSV/OFX sample.
+- **12 clients' currently-in-progress Trainerize blocks promoted to real hub blocks** (2026-08-02, status=`draft`, hub-only) via `scripts/promote-active-trainerize-blocks.mjs` — the Training tab is no longer empty for imported clients. Not yet reviewed/approved by Esther.
 
 ## Known Issues
 - Greyed-out "Send email" buttons are correct-by-design when a client has no email on file (`DocumentDetailClient.tsx`/`DocumentRowActions.tsx`) — confirmed via direct DB query 2026-07-21, not a bug.
 - ANTHROPIC_API_KEY empty — Claude generation (blocks + updates) falls back to template
 - **SMTP/SendGrid backend status is still unconfirmed as of 2026-07-21** — real data (a 36ms created→sent gap on a live send) is strong circumstantial evidence it's dry-running in prod, but not proven (didn't reveal/test the raw credentials). `client_documents.emailed`/`sent_updates.emailed` now make this visible in the UI ("Not delivered" indicator) whenever it happens — check `getEmailStatus()` (`lib/email.ts`) or do a real test send to confirm one way or the other.
-- Client data (Trainerize/Outlook/paper) is not yet consolidated into the hub `clients` table — decided to do this by manual entry, not started
+- **RESOLVED 2026-08-02**: Trainerize historical data (training blocks, notes, PBs, actual per-set workout results) now imported for all 15 active + 2 archived clients — see handoff.md "Trainerize historical import" entry. Outlook/paper client data still not consolidated.
 - PAR-Q edit screen inside the hub (`/hub/clients/[id]/parq/[parqId]/edit`) still uses the shared public-facing `ParqEditClient` component's own styling internally — deliberately not restyled, since that component is also live on the public client-signing flow and a deep edit risks breaking it. Now reads/writes only the legacy `signed_parq` table (pre-migration history) — new PAR-Qs go through the document engine instead. Needs a scoped decision (fork vs. leave vs. retire) before touching further.
 - 5 of 8 `exercise-for-health` condition sub-pages still don't exist (`type-2-diabetes`, `copd`, `heart-conditions`, `chronic-pain`, `adaptive-training`) — gated off (`available: false`) on the index page, not dead links. Scope decision needed on how many to build before launch.
 - 27 blog posts are still unedited legacy WordPress content pending Esther's voice/hard-rule review — content/titles deliberately untouched this session (only the byline field was fixed).
@@ -363,3 +367,10 @@
 - Set SMTP env vars (or confirm SendGrid is already the live backend)
 - Set ANTHROPIC_API_KEY
 - Verify SPF/DKIM
+- **Esther should review the 12 draft blocks created 2026-08-02 from currently-in-progress Trainerize
+  programs** (Anne Wareing, Becky Price, Camilla Arnold, Ellie Wallwork, Ian Healey, Odul Bozkurt,
+  Saffron Somerset, Sam Gibbons, Sarah Tyler, Steph White, Amanda Munday, Colin Farley) — each block's
+  note documents what was auto-filled (no coaching cues/modifications/equipment tags, no week-by-week
+  progression, week/phase defaulted) before approving them for real use.
+- **HSBC CSV/OFX sample needed** to unblock the cashflow WO's Lane 5 (statement import) — held per
+  Craig, not chased further this session.
