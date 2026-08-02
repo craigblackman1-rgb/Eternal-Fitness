@@ -48,27 +48,27 @@ ASK FIRST (still open):
 
 ## DONE
 
-### Group 1 — Trainerize import
-- [ ] Phase 0b gaps closed: per-block exercise/set detail endpoint confirmed, real notes endpoint confirmed, `calendar/getList` date-range params confirmed
-- [ ] `trainerize_training_blocks`/`trainerize_sessions`/`trainerize_set_logs`/`trainerize_client_notes` tables migrated
-- [ ] Scraper/API-replay client built, resumable, credentials via env vars only
-- [ ] `personal_records` table populated from imported Trainerize PB data
-- [ ] Import run for at least Amanda as a full end-to-end proof, spot-checked against Trainerize by eye
-- [ ] Training History tab live on client detail page, showing imported blocks/notes/PBs
-- [ ] Full-roster run completed (post roster-scope answer) — [GATE] before firing at scale
+### Group 1 — Trainerize import — DONE 2026-08-02
+- [x] Phase 0b gaps closed: per-block exercise/set detail endpoint confirmed (`trainingPlan/getWorkoutDefList`), real notes endpoint confirmed (`message/getMessages` via View Profile), workout completion history via `Timeline/getList`
+- [x] `trainerize_training_blocks`/`trainerize_workouts`/`trainerize_exercises`/`trainerize_client_notes` tables migrated (named `workouts`/`exercises` not `sessions`/`set_logs` — matches Trainerize's own terminology, a DECIDE-YOURSELF naming call)
+- [x] Scraper/API-replay client built, resumable, credentials via env vars only
+- [x] `personal_records` table populated from imported Trainerize PB data (shared with Group 2)
+- [x] Import run for Amanda as full end-to-end proof, browser-verified against real DB data
+- [x] Training History tab live on client detail page, showing imported blocks/notes/PBs — 2 real bugs found post-ship (personal_records and workout/exercise field-name mismatches, both root-caused to raw-Trainerize-API field names vs real DB column names) and fixed, re-verified live
+- [x] Full-roster run completed 2026-08-02 — 14 remaining clients imported (89 blocks, 405 workouts, 6104 exercises, 106 PBs, 287 notes total across 15 clients incl. Amanda), Nathan Wadey correctly skipped (no Trainerize account). Verified via direct DB query + live browser spot-check.
 
-### Group 2 — Live PB + templates
-- [ ] "New PB" inline flagging wired into `LiveSessionLog.tsx` (hub) and portal `TrainingClient`, backed by shared `personal_records` upserts
-- [ ] `workout_templates` table migrated with auto-derived facet columns + manual `condition_tags`
-- [ ] "Save as template" action from an existing session/block editor
-- [ ] Template library page with facet filtering + full-text search across contained exercises (reusing `exercise-browser.tsx` pattern)
-- [ ] "Apply template" inserts exercises into a new session editor, still freely editable per-client
+### Group 2 — Live PB + templates — DONE 2026-08-02
+- [x] "New PB" inline flagging wired into `LiveSessionLog.tsx` (hub) and portal `TrainingClient`, backed by shared `personal_records` upserts
+- [x] `workout_templates` table migrated with auto-derived facet columns + manual `condition_tags`
+- [x] "Save as template" action from an existing session/block editor
+- [x] Template library page with facet filtering + full-text search across contained exercises (reusing `exercise-browser.tsx` pattern)
+- [x] "Apply template" inserts exercises into a new session editor, still freely editable per-client
 
 ### Group 3 — Cashflow
-- [ ] `invoices`/`invoice_line_items`/`invoice_templates` tables migrated with a defined status lifecycle
-- [ ] `client_documents` extended with `kind = 'invoice'`; verified real test send through the existing pipeline
-- [ ] Hub UI: create invoice from template → editable line items → send/save draft
-- [ ] `bank_statement_imports`/`bank_transactions` tables migrated
+- [x] `invoices`/`invoice_line_items`/`invoice_templates` tables migrated with a defined status lifecycle
+- [x] `client_documents` extended with `kind = 'invoice'`
+- [x] Hub UI: create invoice from template → editable line items → send/save draft
+- [ ] `bank_statement_imports`/`bank_transactions` tables migrated — held, HSBC lane paused
 - [ ] HSBC upload + parse + review screen working against a real sample (blocked on sample)
 - [ ] Reconciliation queue: suggested matches, confirm/dismiss, status updates flow through
 - [ ] Cashflow overview page with real outstanding/overdue totals
