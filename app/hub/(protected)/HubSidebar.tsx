@@ -63,6 +63,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Resources",
     items: [
       { href: "/hub/exercises", label: "Exercise Library", icon: IconBookText },
+      { href: "/hub/workout-templates", label: "Workout Templates", icon: IconDumbbell },
       { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
       { href: "/hub/site-review", label: "Site Review", icon: IconCheckSquare },
       { href: "/hub/site-content", label: "Site Content", icon: IconEdit3 },

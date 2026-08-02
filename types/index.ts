@@ -223,6 +223,23 @@ export interface SessionVersion {
   cooldown: Exercise[];
 }
 
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  data: SessionVersion;
+  archetypes: string[];
+  movement_type: string[];
+  muscle_groups: string[];
+  equipment: string[];
+  difficulty: number | null;
+  condition_tags: string[];
+  source_client_id: string | null;
+  source_session_id: string | null;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Session {
   session_id: string;
   block_id: string;
