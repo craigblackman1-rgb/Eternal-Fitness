@@ -6,7 +6,7 @@ export { HubDataGrid, HubDataField } from "./HubDataGrid";
 export { HubQuickActions } from "./HubQuickActions";
 export { HubAlert } from "./HubAlert";
 export { HubTable, type HubColumn } from "./HubTable";
-export { StatusBadge } from "./StatusBadge";
+export { StatusBadge, TokenPill } from "./StatusBadge";
 export { KpiTile } from "./KpiTile";
 export { EmptyState } from "./EmptyState";
 export { HubTabsList, HubTabsTrigger } from "./HubTabs";

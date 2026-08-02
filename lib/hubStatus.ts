@@ -54,6 +54,13 @@ const blockStatusMap: Record<string, StatusLookup> = {
   archived: { token: "neutral", label: "Archived" },
 };
 
+const scheduleStatusMap: Record<string, StatusLookup> = {
+  draft:    { token: "neutral", label: "To Do" },
+  approved: { token: "primary", label: "Scheduled" },
+  active:   { token: "warning", label: "In Progress" },
+  complete: { token: "success", label: "Done" },
+};
+
 const complianceStatusMap: Record<DBClientComplianceStatus, StatusLookup> = {
   do_not_train:    { token: "danger",  label: "Do Not Train" },
   pending_medical: { token: "warning", label: "Pending Clearance" },
@@ -94,6 +101,10 @@ export function getStatusClasses(token: StatusToken): StatusClasses {
 
 export function getBlockStatus(status: string): StatusLookup | null {
   return blockStatusMap[status] ?? null;
+}
+
+export function getScheduleStatus(status: string): StatusLookup | null {
+  return scheduleStatusMap[status] ?? null;
 }
 
 export function getComplianceStatus(status: DBClientComplianceStatus): StatusLookup {

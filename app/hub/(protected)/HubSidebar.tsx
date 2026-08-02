@@ -11,6 +11,7 @@ import {
   IconCheckSquare,
   IconClipboardCheck,
   IconClipboardList,
+  IconClock,
   IconDumbbell,
   IconBot,
   IconEdit3,
@@ -28,6 +29,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     items: [
       { href: "/hub", label: "Dashboard", icon: IconLayoutDashboard },
       { href: "/hub/schedule", label: "Schedule", icon: IconCalendar },
+      { href: "/hub/plan-schedule", label: "Plan Schedule", icon: IconClock },
       { href: "/hub/tasks", label: "Tasks", icon: IconCheckSquare },
     ],
   },

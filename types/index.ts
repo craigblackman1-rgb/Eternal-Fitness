@@ -382,6 +382,7 @@ export interface DBBlock {
   summary: string | null;
   created_at: string;
   approved_at: string | null;
+  scheduled_start: string | null;
 }
 
 export interface DBSession {
