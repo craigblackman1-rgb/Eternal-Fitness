@@ -112,8 +112,8 @@ export function TrainerizeHistoryPanel({
                   {block.workouts.map((workout: any, wi: number) => (
                     <div key={workout.id || wi} className="py-3">
                       <p className="text-sm font-semibold text-foreground mb-1.5">
-                        {workout.name || `Workout ${wi + 1}`}
-                        {workout.duration && <span className="text-xs text-muted-foreground font-normal ml-2">{Math.round(workout.duration / 60)} min</span>}
+                        {workout.workout_name || `Workout ${wi + 1}`}
+                        {workout.duration_seconds ? <span className="text-xs text-muted-foreground font-normal ml-2">{Math.round(workout.duration_seconds / 60)} min</span> : null}
                       </p>
                       {workout.instruction && (
                         <p className="text-xs text-muted-foreground mb-1.5 italic">{workout.instruction}</p>
@@ -132,10 +132,10 @@ export function TrainerizeHistoryPanel({
                             <tbody>
                               {workout.exercises.map((ex: any, ei: number) => (
                                 <tr key={ei} className="border-b border-[var(--hub-border)]/50 last:border-0">
-                                  <td className="py-1 pr-3 text-foreground">{ex.name || `Exercise ${ei + 1}`}</td>
+                                  <td className="py-1 pr-3 text-foreground">{ex.exercise_name || `Exercise ${ei + 1}`}</td>
                                   <td className="py-1 pr-3 text-muted-foreground">{ex.sets || 1}</td>
-                                  <td className="py-1 pr-3 text-muted-foreground">{ex.target || "—"}</td>
-                                  <td className="py-1 text-muted-foreground">{ex.restTime ? `${ex.restTime}s` : "—"}</td>
+                                  <td className="py-1 pr-3 text-muted-foreground">{ex.target_reps || "—"}</td>
+                                  <td className="py-1 text-muted-foreground">{ex.rest_time_seconds ? `${ex.rest_time_seconds}s` : "—"}</td>
                                 </tr>
                               ))}
                             </tbody>

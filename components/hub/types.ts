@@ -10,21 +10,22 @@ export interface TrainerizeBlock {
 }
 
 export interface TrainerizeWorkout {
-  id: number;
-  name: string | null;
-  duration: number;
+  id: string;
+  workout_name: string | null;
+  workout_index: number;
+  duration_seconds: number | null;
   instruction: string | null;
   exercises?: TrainerizeExercise[];
 }
 
 export interface TrainerizeExercise {
-  id: number;
-  name: string;
+  id: string;
+  exercise_name: string;
+  exercise_order: number;
   sets: number;
-  target: string;
-  targetDetail: { type: number; text: string } | null;
-  restTime: number;
-  recordType: string;
+  target_reps: string | null;
+  rest_time_seconds: number | null;
+  record_type: string | null;
 }
 
 export interface TrainerizePersonalRecord {
