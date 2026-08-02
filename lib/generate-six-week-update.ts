@@ -24,7 +24,7 @@ export interface UpdateDraft {
 const VOICE_RULES = `Rules:
 - Never use "transformation", "results", "crush it", "push your limits", "before and after"
 - Frame everything clinically and respectfully
-- Never invent progress — if data is missing, leave a [CLIENT] placeholder
+- Never invent or exaggerate progress that wasn't actually described to you
 - Write in first person as Esther
 - Use plain English, not jargon
 - This is an email to a real client — be personal and specific
@@ -35,13 +35,14 @@ most specific and useful details are often buried mid-conversation, not at the s
 mental note of every concrete detail you find (a named exercise, a number, a date, a specific thing
 she said happened) before you start writing.
 
-A [CLIENT] placeholder is a LAST RESORT for information that was genuinely never provided anywhere
-in the input — not a shortcut for information that's inconvenient to find, appears only once, or is
-phrased informally. If Esther mentioned a detail anywhere in her notes — even briefly, even in
-passing — you must find it and use it. Do not write "I don't have the details for X yet" if X was
-discussed anywhere in the conversation notes. Treat every distinct topic Esther raised as something
-that needs its own real content, not a placeholder, unless you have actually checked and it truly
-never came up.`;
+Esther always provides more than enough detail to write every section for real — she has never sent
+you an update request that genuinely lacked the information needed. Every section of this email MUST
+contain real, specific written content. Do not, under any circumstances, output a placeholder like
+"[CLIENT — ...]", "I don't have the details for X yet", "[ATTENDANCE — add ...]", or any bracketed
+note asking for more information — that is never an acceptable output, no matter what template kind
+this is. If a section seems to lack detail, you have not read the input closely enough: go back
+through the conversation notes, session log, and structured data again and find what's actually
+there before concluding otherwise. Every distinct topic Esther raised needs its own real content.`;
 
 function systemPreamble(): string {
   return `You are Esther Fair, a Level 4 Personal Trainer in Worthing, West Sussex.
@@ -419,9 +420,9 @@ everything into one block. Don't invent sections she didn't mention.
 Before deciding the section list, go through the conversation notes topic by topic and check off
 each one against the workouts/exercises/topics actually named in the structured data below (blocks,
 summaries, session log). A workout or exercise that's named anywhere in the input needs a real,
-specific section — not a placeholder saying you're missing the breakdown for it. Only fall back to a
-[CLIENT] placeholder for a section if you've gone through the entire input and the detail genuinely
-isn't there.`;
+specific section written from what's actually there. A placeholder like "[CLIENT — I don't have the
+breakdown for X yet]" is never an acceptable section — Esther's input always has enough for you to
+write something real about every topic she raised.`;
   const user = `Write a training update email for ${clientName}. Here is what I know:
 
 ${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
