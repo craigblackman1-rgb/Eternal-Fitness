@@ -28,16 +28,6 @@ export interface TrainerizeExercise {
   record_type: string | null;
 }
 
-export interface TrainerizePersonalRecord {
-  id: string;
-  exercise: string;
-  metric: "weight" | "duration";
-  value: number | null;
-  rep_count: number | null;
-  achieved_at: string | null;
-  source: "live_log" | "trainerize_import";
-}
-
 export interface TrainerizeNote {
   id: string;
   source: string;
@@ -46,33 +36,11 @@ export interface TrainerizeNote {
   sender_name: string | null;
 }
 
-export interface TrainerizeWorkoutResultSet {
-  exerciseName: string | null;
-  setNumber: number | null;
-  reps: number | null;
-  weight: number | null;
-  distance: number | null;
-  durationSeconds: number | null;
-}
-
-export interface TrainerizeSession {
-  dailyWorkoutId: number;
-  workoutName: string | null;
-  performedDate: string | null;
-  rpe: number | null;
-  setCount: number;
-  sets: TrainerizeWorkoutResultSet[];
-}
-
-export interface TrainerizeWorkoutResultsSummary {
-  totalSets: number;
-  totalSessions: number;
-  sessions: TrainerizeSession[];
-}
-
+// PBs and per-set workout results now live on the unified Progress tab
+// (lib/exercise-history.ts + lib/progress.ts, fed by both live set_logs and
+// Trainerize's per-set results via lib/trainerize-adapter.ts) — this data
+// covers program structure and notes only, not performance data.
 export interface TrainerizeHistoryData {
   blocks: TrainerizeBlock[];
-  personalRecords: TrainerizePersonalRecord[];
   notes: TrainerizeNote[];
-  workoutResultsSummary?: TrainerizeWorkoutResultsSummary;
 }

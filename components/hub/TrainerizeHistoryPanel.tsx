@@ -1,20 +1,9 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { HubCard, HubCardHeader } from "@/components/hub";
-import { IconDumbbell, IconClock, IconHeart, IconEdit3, IconChevronLeft, IconChevronRight } from "@/components/icons";
-import type { TrainerizeHistoryData, TrainerizeWorkoutResultSet } from "./types";
-
-const SESSIONS_PAGE_SIZE = 10;
-
-function formatSetValue(set: TrainerizeWorkoutResultSet): string {
-  const parts: string[] = [];
-  if (set.reps != null) parts.push(`${set.reps} reps`);
-  if (set.weight != null) parts.push(`${set.weight} kg`);
-  if (set.distance != null) parts.push(`${set.distance} km`);
-  if (set.durationSeconds != null) parts.push(`${set.durationSeconds}s`);
-  return parts.length > 0 ? parts.join(" @ ") : "—";
-}
+import { IconDumbbell, IconEdit3 } from "@/components/icons";
+import type { TrainerizeHistoryData } from "./types";
 
 function formatDate(d: string | null | undefined): string {
   if (!d) return "—";
@@ -23,11 +12,6 @@ function formatDate(d: string | null | undefined): string {
   } catch {
     return d;
   }
-}
-
-function formatNum(n: number | null | undefined, unit?: string): string {
-  if (n == null) return "—";
-  return unit ? `${n} ${unit}` : String(n);
 }
 
 export function TrainerizeHistoryPanel({
@@ -40,16 +24,11 @@ export function TrainerizeHistoryPanel({
   emptyDescription?: string;
 }) {
   const [expandedBlock, setExpandedBlock] = useState<string | null>(null);
-  const [expandedSession, setExpandedSession] = useState<number | null>(null);
-  const [sessionPage, setSessionPage] = useState(0);
 
   const hasBlocks = data.blocks && data.blocks.length > 0;
-  const hasPBs = data.personalRecords && data.personalRecords.length > 0;
   const hasNotes = data.notes && data.notes.length > 0;
-  const resultsSummary = data.workoutResultsSummary;
-  const hasResults = !!resultsSummary && resultsSummary.totalSessions > 0;
 
-  if (!hasBlocks && !hasPBs && !hasNotes && !hasResults) {
+  if (!hasBlocks && !hasNotes) {
     return (
       <div className="py-12 text-center">
         <p className="text-sm font-semibold text-foreground">{emptyTitle || "No Trainerize history imported yet"}</p>
@@ -60,121 +39,6 @@ export function TrainerizeHistoryPanel({
 
   return (
     <div className="space-y-6">
-      {/* ── Workout Results Summary ── */}
-      {hasResults && (
-        <HubCard padded={false}>
-          <HubCardHeader
-            icon={<IconClock className="w-4 h-4" />}
-            title="Workout Results"
-            color="rose"
-            subtitle="Actual logged performance from Trainerize, not just the prescribed program"
-            className="px-5 pt-5"
-          />
-          <div className="px-5 pb-5">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <div className="text-2xl font-bold text-foreground">{resultsSummary.totalSessions}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider">Sessions logged</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">{resultsSummary.totalSets}</div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider">Sets recorded</div>
-              </div>
-            </div>
-            {(() => {
-              const sessions = resultsSummary.sessions;
-              const pageCount = Math.max(1, Math.ceil(sessions.length / SESSIONS_PAGE_SIZE));
-              const safePage = Math.min(sessionPage, pageCount - 1);
-              const paged = sessions.slice(safePage * SESSIONS_PAGE_SIZE, (safePage + 1) * SESSIONS_PAGE_SIZE);
-
-              return sessions.length > 0 ? (
-                <>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-[var(--hub-border)]">
-                          <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5 pr-3">Date</th>
-                          <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5 pr-3">Workout</th>
-                          <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5 pr-3">Sets logged</th>
-                          <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider py-1.5">RPE</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {paged.map((s) => {
-                          const isExpanded = expandedSession === s.dailyWorkoutId;
-                          return (
-                            <Fragment key={s.dailyWorkoutId}>
-                              <tr
-                                className="border-b border-[var(--hub-border)]/50 last:border-0 cursor-pointer hover:bg-[var(--hub-hover)]"
-                                onClick={() => setExpandedSession(isExpanded ? null : s.dailyWorkoutId)}
-                              >
-                                <td className="py-1.5 pr-3 text-muted-foreground whitespace-nowrap">{formatDate(s.performedDate)}</td>
-                                <td className="py-1.5 pr-3 text-foreground">{s.workoutName || "—"}</td>
-                                <td className="py-1.5 pr-3 text-muted-foreground">{s.setCount}</td>
-                                <td className="py-1.5 text-muted-foreground">{s.rpe ?? "—"}</td>
-                              </tr>
-                              {isExpanded && (
-                                <tr>
-                                  <td colSpan={4} className="bg-[var(--hub-hover)] px-3 py-2.5">
-                                    <table className="w-full text-xs">
-                                      <thead>
-                                        <tr className="border-b border-[var(--hub-border)]">
-                                          <th className="text-left font-medium text-muted-foreground py-1 pr-3">Exercise</th>
-                                          <th className="text-left font-medium text-muted-foreground py-1 pr-3">Set</th>
-                                          <th className="text-left font-medium text-muted-foreground py-1">Logged</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {s.sets.map((set, i) => (
-                                          <tr key={i} className="border-b border-[var(--hub-border)]/40 last:border-0">
-                                            <td className="py-1 pr-3 text-foreground">{set.exerciseName || "—"}</td>
-                                            <td className="py-1 pr-3 text-muted-foreground">{set.setNumber ?? "—"}</td>
-                                            <td className="py-1 text-muted-foreground">{formatSetValue(set)}</td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                  </td>
-                                </tr>
-                              )}
-                            </Fragment>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  {pageCount > 1 && (
-                    <div className="flex items-center justify-between pt-3 mt-1">
-                      <p className="text-xs text-muted-foreground tabular-nums">
-                        Page {safePage + 1} of {pageCount}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setSessionPage((p) => Math.max(0, p - 1))}
-                          disabled={safePage === 0}
-                          className="p-1.5 rounded-lg border border-[var(--hub-border)] bg-white disabled:opacity-40 hover:bg-[var(--hub-hover)] transition-colors"
-                          aria-label="Previous page"
-                        >
-                          <IconChevronLeft className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setSessionPage((p) => Math.min(pageCount - 1, p + 1))}
-                          disabled={safePage >= pageCount - 1}
-                          className="p-1.5 rounded-lg border border-[var(--hub-border)] bg-white disabled:opacity-40 hover:bg-[var(--hub-hover)] transition-colors"
-                          aria-label="Next page"
-                        >
-                          <IconChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : null;
-            })()}
-          </div>
-        </HubCard>
-      )}
-
       {/* ── Training Blocks ── */}
       {hasBlocks && (
         <HubCard padded={false}>
@@ -278,43 +142,6 @@ export function TrainerizeHistoryPanel({
               </div>
             );
           })()}
-        </HubCard>
-      )}
-
-      {/* ── Personal Records ── */}
-      {hasPBs && (
-        <HubCard padded={false}>
-          <HubCardHeader
-            icon={<IconHeart className="w-4 h-4" />}
-            title="Personal Records"
-            color="rose"
-            subtitle={`${data.personalRecords.length} records from Trainerize`}
-            className="px-5 pt-5"
-          />
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                  <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Exercise</th>
-                  <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Record</th>
-                  <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Value</th>
-                  <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Achieved</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.personalRecords.map((pb) => (
-                  <tr key={pb.id} className="border-b border-[var(--hub-border)] last:border-0">
-                    <td className="py-2.5 px-5 font-semibold text-foreground">{pb.exercise}</td>
-                    <td className="py-2.5 px-5 text-muted-foreground">
-                      {pb.metric === "weight" ? (pb.rep_count ? `${pb.rep_count} Rep Max` : "Rep Max") : "Best Duration"}
-                    </td>
-                    <td className="py-2.5 px-5 text-muted-foreground">{formatNum(pb.value, pb.metric === "weight" ? "kg" : "s")}</td>
-                    <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">{formatDate(pb.achieved_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </HubCard>
       )}
 

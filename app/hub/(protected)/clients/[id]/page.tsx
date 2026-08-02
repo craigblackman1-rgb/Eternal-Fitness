@@ -30,6 +30,7 @@ import { ExerciseHistoryPanel } from "@/components/progress/ExerciseHistoryPanel
 import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
 import { buildExerciseHistory } from "@/lib/exercise-history";
 import { getLastClientLogAt } from "@/lib/progress-db";
+import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -113,7 +114,24 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     .order("session_number", { ascending: false })
     .limit(50);
 
-  // Lane C — per-exercise progress from set_logs (empty/sparse-safe: no rows → empty state).
+  // Trainerize history data (Lane 1 — historical import). Fetched here (before the
+  // combined trends/PB computation below) so workoutResults can feed the same
+  // pure functions as live set_logs — one continuous per-exercise timeline
+  // spanning both the Trainerize era and the live app, not two disconnected views.
+  const { data: trainerizeBlocks } = await supabase.from("trainerize_training_blocks").select("*").eq("client_id", client.id).order("start_date", { ascending: false });
+  const blockIds = (trainerizeBlocks ?? []).map((b: any) => b.id);
+  const { data: trainerizeWorkouts } = blockIds.length > 0
+    ? await supabase.from("trainerize_workouts").select("*").in("trainerize_block_id", blockIds).order("workout_index", { ascending: true })
+    : { data: [] };
+  const workoutIds = (trainerizeWorkouts ?? []).map((w: any) => w.id);
+  const { data: trainerizeExercises } = workoutIds.length > 0
+    ? await supabase.from("trainerize_exercises").select("*").in("trainerize_workout_id", workoutIds).order("exercise_order", { ascending: true })
+    : { data: [] };
+  const { data: trainerizeNotes } = await supabase.from("trainerize_client_notes").select("*").eq("client_id", client.id).order("source_date", { ascending: false });
+  const { data: workoutResults } = await supabase.from("trainerize_workout_results").select("*").eq("client_id", client.id).order("performed_date", { ascending: false });
+
+  // Lane C — per-exercise progress from set_logs, unified with Trainerize's
+  // per-set results (empty/sparse-safe: no rows → empty state).
   const sessionIds = (sessions ?? []).map((s) => s.id);
   const { data: setLogs } = sessionIds.length > 0
     ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
@@ -125,8 +143,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       sessionNumber: s.session_number ?? null,
     };
   }
-  const exerciseTrends = buildExerciseTrends((setLogs ?? []) as SetLog[], trendSessionMeta);
-  const exerciseHistory = buildExerciseHistory((setLogs ?? []) as SetLog[]);
+  const combinedSetLogs: SetLog[] = [
+    ...((setLogs ?? []) as SetLog[]),
+    ...trainerizeResultsToSetLogs((workoutResults ?? []) as any),
+  ];
+  const exerciseTrends = buildExerciseTrends(combinedSetLogs, trendSessionMeta);
+  const exerciseHistory = buildExerciseHistory(combinedSetLogs);
 
   // Lane C — "gone quiet" detection for home-training clients (Esther-facing only;
   // no client-facing send is wired — gated on the Work Order's ASK FIRST decision).
@@ -136,21 +158,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
 
-  // Trainerize history data (Lane 1 — historical import)
-  const { data: trainerizeBlocks } = await supabase.from("trainerize_training_blocks").select("*").eq("client_id", client.id).order("start_date", { ascending: false });
-  const blockIds = (trainerizeBlocks ?? []).map((b: any) => b.id);
-  const { data: trainerizeWorkouts } = blockIds.length > 0
-    ? await supabase.from("trainerize_workouts").select("*").in("trainerize_block_id", blockIds).order("workout_index", { ascending: true })
-    : { data: [] };
-  const workoutIds = (trainerizeWorkouts ?? []).map((w: any) => w.id);
-  const { data: trainerizeExercises } = workoutIds.length > 0
-    ? await supabase.from("trainerize_exercises").select("*").in("trainerize_workout_id", workoutIds).order("exercise_order", { ascending: true })
-    : { data: [] };
-  const { data: personalRecords } = await supabase.from("personal_records").select("*").eq("client_id", client.id).order("achieved_at", { ascending: false });
-  const { data: trainerizeNotes } = await supabase.from("trainerize_client_notes").select("*").eq("client_id", client.id).order("source_date", { ascending: false });
-  const { data: workoutResults } = await supabase.from("trainerize_workout_results").select("*").eq("client_id", client.id).order("performed_date", { ascending: false });
-
-  // Compose trainerize history data with nested workouts + exercises
+  // Compose Trainerize history data — program structure + notes only now.
+  // PBs and workout results moved to the unified Progress tab above (they're
+  // performance data, not program/communication data).
   const composeHistoryData = (): TrainerizeHistoryData => {
     const workoutsByBlock: Record<string, any[]> = {};
     for (const w of (trainerizeWorkouts ?? [])) {
@@ -164,50 +174,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       workouts: workoutsByBlock[b.id] || [],
     }));
 
-    // Group logged sets by session (trainerize_daily_workout_id), each carrying its
-    // own full set-by-set detail so the UI can expand a row without another fetch.
-    const sessionsById: Record<string, any> = {};
-    for (const r of (workoutResults ?? [])) {
-      const id = r.trainerize_daily_workout_id;
-      if (!sessionsById[id]) {
-        sessionsById[id] = {
-          dailyWorkoutId: id,
-          workoutName: r.workout_name,
-          performedDate: r.performed_date,
-          rpe: r.rpe,
-          setCount: 0,
-          sets: [],
-        };
-      }
-      sessionsById[id].setCount += 1;
-      sessionsById[id].sets.push({
-        exerciseName: r.exercise_name,
-        setNumber: r.set_number,
-        reps: r.reps,
-        weight: r.weight,
-        distance: r.distance,
-        durationSeconds: r.duration_seconds,
-      });
-    }
-    for (const s of Object.values(sessionsById) as any[]) {
-      s.sets.sort((a: any, b: any) => {
-        if (a.exerciseName !== b.exerciseName) return (a.exerciseName || "").localeCompare(b.exerciseName || "");
-        return (a.setNumber ?? 0) - (b.setNumber ?? 0);
-      });
-    }
-    const sessions = Object.values(sessionsById).sort((a: any, b: any) =>
-      (b.performedDate || "") > (a.performedDate || "") ? 1 : -1,
-    );
-
     return {
       blocks,
-      personalRecords: personalRecords ?? [],
       notes: trainerizeNotes ?? [],
-      workoutResultsSummary: {
-        totalSets: workoutResults?.length ?? 0,
-        totalSessions: sessions.length,
-        sessions,
-      },
     };
   };
   const trainerizeHistory = composeHistoryData();
@@ -438,9 +407,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
           <HubTabsTrigger value="progress">
             <IconBarChart3 /> Progress
-          </HubTabsTrigger>
-          <HubTabsTrigger value="history">
-            <IconClock /> History
           </HubTabsTrigger>
           <HubTabsTrigger value="training-history">
             <IconActivity /> Training History
@@ -969,14 +935,19 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         {/* ── Tab: Progress ── */}
         {/* Workout progress from logged sets — deliberately separate from the
             Compliance tab and the /hub/tracker page, whose "status" is the
-            medical-compliance meaning (PAR-Q / GP letter / risk level). */}
-        <TabsContent value="progress" className="mt-6">
+            medical-compliance meaning (PAR-Q / GP letter / risk level).
+            Unified: trends + PBs cover BOTH the live app's set_logs and
+            Trainerize's imported per-set results (via lib/trainerize-adapter.ts)
+            as one continuous timeline per exercise — was previously split
+            across three tabs (Progress/History/Training History) with PBs
+            computed two different, disconnected ways. */}
+        <TabsContent value="progress" className="mt-6 space-y-6">
           <HubCard padded={false}>
             <HubCardHeader
               icon={<IconBarChart3 className="w-4 h-4" />}
               title="Exercise Progress"
               color="teal"
-              subtitle="Working weight and reps per exercise, from logged sets"
+              subtitle="Working weight and reps per exercise — live sessions and imported Trainerize history combined"
               className="px-5 pt-5"
             />
             <div className="px-5 pb-5">
@@ -988,16 +959,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               />
             </div>
           </HubCard>
-        </TabsContent>
 
-        {/* ── Tab: History ── */}
-        <TabsContent value="history" className="mt-6">
           <HubCard padded={false}>
             <HubCardHeader
               icon={<IconClock className="w-4 h-4" />}
               title="Exercise History"
               color="teal"
-              subtitle="Personal bests and last-performed weights, from logged sets"
+              subtitle="Personal bests and last-performed weights — live sessions and imported Trainerize history combined"
               className="px-5 pt-5"
             />
             <div className="px-5 pb-5">
