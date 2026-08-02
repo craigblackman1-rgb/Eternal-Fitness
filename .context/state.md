@@ -1,6 +1,16 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Hub task backlog cleared + email system redesigned — DONE + DEPLOYED 2026-08-02 (`e8b44aa`).**
+  Client-portal Resources area (calorie calculator, Showdown Soundboard, per-client visibility
+  toggle), Exercise History (PB + last-performed from `set_logs`), session-notes RPE removed +
+  voice-to-text added, Plan Schedule page, email-timing (BST/GMT) fix, welcome-aboard email
+  (manual-send-only, branded, previewable), and every client-facing email (welcome, document-ready,
+  PAR-Q ×2, six/four-week/flexible update) redesigned onto a new warm-palette shared shell matching
+  Craig's mockups at `D:\apps\design-systems\ef-client-portal\email-templates\`. Updates-module
+  AI-generation bug root-caused and fixed (chat-context truncation + `[CLIENT]` placeholder banned
+  outright) but not yet live-verified — see `handoff.md`. Resources module also not yet reviewed live
+  by Craig — deferred `dmsbpoaa37f`.
 - **Training block module redesign — DONE + DEPLOYED + LOG-VERIFIED 2026-08-01 (afternoon).** Built
   against a new mockup (`hub-block-module.html`): collapsed-by-default week/session accordion,
   new Edit Block drawer (note/summary/status), one-click session-edit entry via `?edit=1`. Shipped in
