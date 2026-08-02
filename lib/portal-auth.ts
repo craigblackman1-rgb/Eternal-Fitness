@@ -27,6 +27,10 @@ import { randomBytes, createHash, scryptSync, timingSafeEqual } from "crypto";
 import { getPool } from "@/lib/pg-client";
 
 const RESET_TOKEN_TTL_SECONDS = 15 * 60;
+// Welcome/invite links sit in an inbox until the client gets around to it —
+// unlike a "forgot password" reset, a 15-minute window would expire before
+// most clients ever open the email. Same token mechanism, longer life.
+const WELCOME_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 const PORTAL_COOKIE = "better_auth_portal_session";
@@ -306,7 +310,7 @@ export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeE
 
   const token = randomBytes(32).toString("hex");
   const tokenHash = hashToken(token);
-  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_SECONDS * 1000);
+  const expiresAt = new Date(Date.now() + WELCOME_TOKEN_TTL_SECONDS * 1000);
 
   const pool = getPool();
   const acctRes = await pool.query(
@@ -337,7 +341,7 @@ export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeE
         <p>Hi,</p>
         <p>Esther has set up your Eternal Fitness client portal. You can use it to view your training plans, track your progress, and access your documents.</p>
         <p><a href="${resetLink}">Set your password to get started</a></p>
-        <p>This link expires in 15 minutes. Once you&rsquo;ve set a password you can log in anytime at <a href="${loginUrl}">${loginUrl}</a>.</p>
+        <p>This link expires in 7 days. Once you&rsquo;ve set a password you can log in anytime at <a href="${loginUrl}">${loginUrl}</a>.</p>
         <p>If you have any questions just reply to this email.</p>
       `,
     });
