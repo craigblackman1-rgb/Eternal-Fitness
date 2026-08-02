@@ -27,7 +27,21 @@ const VOICE_RULES = `Rules:
 - Never invent progress — if data is missing, leave a [CLIENT] placeholder
 - Write in first person as Esther
 - Use plain English, not jargon
-- This is an email to a real client — be personal and specific`;
+- This is an email to a real client — be personal and specific
+
+Before you write anything: read the ENTIRE input below end to end — the conversation notes, the
+session log, and the structured data — at least once, fully, before drafting any section. Esther's
+most specific and useful details are often buried mid-conversation, not at the start or end. Build a
+mental note of every concrete detail you find (a named exercise, a number, a date, a specific thing
+she said happened) before you start writing.
+
+A [CLIENT] placeholder is a LAST RESORT for information that was genuinely never provided anywhere
+in the input — not a shortcut for information that's inconvenient to find, appears only once, or is
+phrased informally. If Esther mentioned a detail anywhere in her notes — even briefly, even in
+passing — you must find it and use it. Do not write "I don't have the details for X yet" if X was
+discussed anywhere in the conversation notes. Treat every distinct topic Esther raised as something
+that needs its own real content, not a placeholder, unless you have actually checked and it truly
+never came up.`;
 
 function systemPreamble(): string {
   return `You are Esther Fair, a Level 4 Personal Trainer in Worthing, West Sussex.
@@ -400,7 +414,14 @@ This update doesn't follow a fixed template — you decide how many sections it 
 what each one is called, based entirely on what Esther told you in the conversation.
 Mirror the structure she described: if she talked through several distinct topics (a big
 win, a specific exercise, what's next), give each its own section rather than cramming
-everything into one block. Don't invent sections she didn't mention.`;
+everything into one block. Don't invent sections she didn't mention.
+
+Before deciding the section list, go through the conversation notes topic by topic and check off
+each one against the workouts/exercises/topics actually named in the structured data below (blocks,
+summaries, session log). A workout or exercise that's named anywhere in the input needs a real,
+specific section — not a placeholder saying you're missing the breakdown for it. Only fall back to a
+[CLIENT] placeholder for a section if you've gone through the entire input and the detail genuinely
+isn't there.`;
   const user = `Write a training update email for ${clientName}. Here is what I know:
 
 ${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
