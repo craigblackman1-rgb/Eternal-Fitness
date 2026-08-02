@@ -235,3 +235,8 @@ PAR-Q pages post-deploy -- do that first if this thread reopens.
 2026-08-02T11:13:35Z | lane-2-live-pb | app/hub/log/[sessionId]/LiveSessionLog.tsx | New PB badge in handleSetDone
 2026-08-02T11:13:35Z | lane-2-live-pb | app/portal/(protected)/training/TrainingClient.tsx | New PB badge in set logger
 2026-08-02T11:13:35Z | lane-2-live-pb | npx tsc --noEmit | PASS (independently re-verified post-rebase by orchestrator)
+2026-08-02T12:00Z | lane-4-invoice-core | supabase/migrations/20260802_invoice_core.sql | Created invoices/invoice_line_items/invoice_templates tables + seeded "Standard PT Session Block" template
+2026-08-02T12:05Z | lane-4-invoice-core | lib/documents/types.ts, components/documents/DocumentView.tsx, lib/documents/invoice-body.ts, lib/email-templates/invoice-ready.ts, app/documents/[id]/sign/DocumentSignClient.tsx | Extended document engine with 7th kind='invoice' — DocumentKind type, KIND_EYEBROW/REFERENCE, invoice-body builder, invoice-ready email template, read-only sign page for non-signing documents
+2026-08-02T12:10Z | lane-4-invoice-core | app/api/invoices/*, app/hub/(protected)/cashflow/invoices/*, app/hub/(protected)/HubSidebar.tsx | Hub invoice creation UI — list page with HubTable, new invoice page (client picker → template picker → editable line items → save draft or send), invoice send API reusing document engine pipeline
+2026-08-02T12:15Z | lane-4-invoice-core | supabase/migrations/20260802_invoice_core.sql | Seeded invoice_template "Standard PT Session Block" with default line item (10 × PT 60-min session, £0 unit price for Esther to fill)
+2026-08-02T12:20Z | lane-4-invoice-core | npx tsc --noEmit | PASS (independently re-verified post-rebase by orchestrator)
