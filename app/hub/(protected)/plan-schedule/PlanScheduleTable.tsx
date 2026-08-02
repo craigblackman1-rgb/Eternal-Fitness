@@ -2,8 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { HubTable, HubCard, HubCardHeader, StatusBadge } from "@/components/hub";
+import { HubTable, HubCard, HubCardHeader, TokenPill } from "@/components/hub";
 import { IconCalendar } from "@/components/icons";
+import { getScheduleStatus } from "@/lib/hubStatus";
 import type { BlockWithClient } from "./page";
 
 function formatDate(d: string | null): string {
@@ -129,9 +130,10 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
       sortable: true,
       sortValue: (row: BlockWithClient) => row.status,
       className: "w-[120px]",
-      render: (row: BlockWithClient) => (
-        <StatusBadge status={row.status} />
-      ),
+      render: (row: BlockWithClient) => {
+        const lookup = getScheduleStatus(row.status);
+        return lookup ? <TokenPill token={lookup.token} label={lookup.label} /> : null;
+      },
     },
   ];
 
