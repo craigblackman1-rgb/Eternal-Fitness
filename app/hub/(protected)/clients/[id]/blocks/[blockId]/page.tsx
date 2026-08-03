@@ -198,7 +198,7 @@ export default async function BlockViewPage({
                       open={sessionOpen}
                       className="border-t border-[var(--hub-border)] first:border-t-0 group/sess"
                     >
-                      <summary className="list-none cursor-pointer flex items-center gap-3.5 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
+                      <summary className="list-none cursor-pointer flex flex-wrap items-center gap-x-3.5 gap-y-2 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
                         <span className="w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                           {dayLabel}
                         </span>
@@ -208,43 +208,45 @@ export default async function BlockViewPage({
                           </span>
                           <span className="text-sm font-semibold text-foreground truncate">{focusLabel}</span>
                         </div>
-                        <span className="w-[150px] shrink-0 flex justify-end">
-                          {completedAt ? (
-                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success-bd)]">
-                              Logged
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--hub-hover)] text-muted-foreground border-[var(--hub-border)]">
-                              Not logged
-                            </span>
-                          )}
-                        </span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Link
-                            href={`/hub/log/${session.id}`}
-                            className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                        <div className="flex items-center gap-3.5 w-full justify-end sm:w-auto sm:contents">
+                          <span className="w-[150px] shrink-0 flex justify-end">
+                            {completedAt ? (
+                              <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success-border)]">
+                                Logged
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--hub-hover)] text-muted-foreground border-[var(--hub-border)]">
+                                Not logged
+                              </span>
+                            )}
+                          </span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Link
+                              href={`/hub/log/${session.id}`}
+                              className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                            >
+                              Log
+                            </Link>
+                            <Link
+                              href={`${sessionUrl}?edit=1`}
+                              className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                            >
+                              Edit session
+                            </Link>
+                          </div>
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            className="text-muted-foreground transition-transform duration-200 group-open/sess:rotate-90 shrink-0"
                           >
-                            Log
-                          </Link>
-                          <Link
-                            href={`${sessionUrl}?edit=1`}
-                            className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-                          >
-                            Edit session
-                          </Link>
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
                         </div>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          className="text-muted-foreground transition-transform duration-200 group-open/sess:rotate-90 shrink-0"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
                       </summary>
                       <div className="px-4 pb-4 overflow-x-auto">
                         <HideExerciseTableButton />
