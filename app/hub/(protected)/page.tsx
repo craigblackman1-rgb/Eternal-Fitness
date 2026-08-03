@@ -74,6 +74,15 @@ export default async function DashboardPage() {
     .select("id, name, profile, created_at, client_number, compliance_status, annual_review_due_date")
     .order("created_at", { ascending: false });
 
+  // Looked up by client_id instead of embedding clients inside a second-level
+  // blocks!inner(...clients!inner(...)) select — the query builder's embed
+  // parser only resolves one level of nesting (it naively comma-splits the
+  // embed's own column list, which breaks on a nested "rel!inner(...)" call
+  // and throws, silently dropping the whole query to []). Confirmed live:
+  // this is why the dashboard's Sessions this week / Check-ins logged /
+  // Recent Check-ins / This Week's Plan all showed empty despite real data.
+  const clientsById = new Map((clients ?? []).map((c) => [c.id, c]));
+
   const { data: blocks } = await supabase
     .from("blocks")
     .select("id, client_id, block_number, status, created_at, clients!inner(client_number, name)")
@@ -85,7 +94,7 @@ export default async function DashboardPage() {
   const { data: activeSessions } = activeBlockIds.length > 0
     ? await supabase
         .from("sessions")
-        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id, clients!inner(client_number, name, profile, compliance_status))")
+        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id)")
         .in("block_id", activeBlockIds)
         .order("session_number", { ascending: false })
     : { data: [] as any[] };
@@ -129,7 +138,7 @@ export default async function DashboardPage() {
   // same "scheduled_at set, not cancelled" convention as /hub/schedule.
   const { data: weekSessionRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id, clients!inner(client_number, name, compliance_status))")
+    .select("id, block_id, session_number, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id)")
     .not("scheduled_at", "is", null)
     .is("cancelled_at", null)
     .gte("scheduled_at", lastWeekStart.toISOString())
@@ -164,7 +173,7 @@ export default async function DashboardPage() {
   // count is small) and sort/filter by session_log.completed_at in JS below.
   const { data: allSessionRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, data, blocks!inner(block_number, client_id, clients!inner(client_number, name, profile, compliance_status))");
+    .select("id, block_id, session_number, data, blocks!inner(block_number, client_id)");
 
   const loggedRows = (allSessionRows ?? []).filter((s) => s.data?.session_log?.completed_at);
   const checkInsThisWeek = loggedRows.filter((s) => {
@@ -186,7 +195,7 @@ export default async function DashboardPage() {
     .slice(0, 5)
     .map((session) => {
       const log = session.data.session_log;
-      const client = (session.blocks as any)?.clients;
+      const client = clientsById.get((session.blocks as any)?.client_id);
       const profile = client?.profile;
       const primaryGoal = profile?.goals?.primary ? profile.goals.primary.replace("_", " ") : null;
       const completedAt = new Date(log.completed_at);
@@ -210,7 +219,7 @@ export default async function DashboardPage() {
   // (a real, already-computed signal) — never an invented editorial comment.
   const weekPlan: WeekPlanEntry[] = thisWeekSessions
     .map((s) => {
-      const client = (s.blocks as any)?.clients;
+      const client = clientsById.get((s.blocks as any)?.client_id);
       const blocked = client?.compliance_status === "do_not_train";
       const completed = !!s.data?.session_log?.completed_at;
       return {
