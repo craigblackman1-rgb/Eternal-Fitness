@@ -63,7 +63,7 @@ export function DeleteBlockButton({
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleting}
-            className="bg-[var(--color-rose)] text-white hover:bg-[color-mix(in_oklch,var(--color-rose)_46%,var(--color-ink))]"
+            className="bg-[var(--status-danger-solid)] text-[var(--status-danger-solid-fg)] hover:opacity-90"
           >
             {deleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>
