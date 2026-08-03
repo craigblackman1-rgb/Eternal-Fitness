@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { HubCard, HubCardHeader, KpiTile, StatusBadge, EmptyState } from "@/components/hub";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
   IconCheck,
   IconUsers,
   IconCopy,
+  IconRefreshCw,
 } from "@/components/icons";
 import { toast } from "sonner";
 import type {
@@ -60,6 +62,7 @@ interface ProcessQualityManagerProps {
   initialSops: Sop[];
   initialImprovementLog: ImprovementEntry[];
   overviewData?: OverviewData;
+  initialTab?: TabId;
 }
 
 /** Map a register status to a hub status token for the shared badge tokens. */
@@ -94,8 +97,9 @@ export function ProcessQualityManager({
   initialSops,
   initialImprovementLog,
   overviewData,
+  initialTab,
 }: ProcessQualityManagerProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab ?? "overview");
 
   const processCount = initialProcessEntries.length;
   const sopCount = initialSops.length;
@@ -996,6 +1000,8 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
 // ─── Overview ─────────────────────────────────────────────────────────────────
 
 function OverviewSection({ data }: { data: OverviewData }) {
+  const router = useRouter();
+
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
@@ -1053,6 +1059,16 @@ function OverviewSection({ data }: { data: OverviewData }) {
             color="teal"
             divider
             className="px-5 pt-5"
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 rounded-lg"
+                onClick={() => router.refresh()}
+              >
+                <IconRefreshCw className="h-4 w-4" /> Run all
+              </Button>
+            }
           />
           <div className="divide-y divide-[var(--hub-border)]">
             <ChecklistRow

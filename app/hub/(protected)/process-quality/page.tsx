@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { HubPageHeader } from "@/components/hub";
+import { Button } from "@/components/ui/button";
+import { IconBookText } from "@/components/icons";
 import { computeComplianceFlags } from "@/lib/compliance";
 import { ProcessQualityManager } from "./ProcessQualityManager";
 import type { ProcessEntry, Sop, ImprovementEntry, DBClient, SignedAgreement, SignedPARQ, StudioEquipment } from "@/types";
@@ -9,7 +12,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ProcessQualityPage() {
+export default async function ProcessQualityPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/hub/login");
@@ -112,18 +115,31 @@ export default async function ProcessQualityPage() {
     sopCount,
   };
 
+  const tabParam = searchParams.tab;
+  const initialTab = (typeof tabParam === "string" && ["overview", "register", "sops", "log"].includes(tabParam))
+    ? tabParam as "overview" | "register" | "sops" | "log"
+    : undefined;
+
   return (
     <div>
       <HubPageHeader
         title="Process & Quality"
         subtitle="Plain English. One page per process. Built so Esther can edit it without a deploy."
         className="mb-6"
+        actions={
+          <Button variant="outline" size="sm" className="gap-1.5 rounded-lg" asChild>
+            <Link href="/hub/process-quality?tab=sops">
+              <IconBookText className="h-4 w-4" /> Open SOP
+            </Link>
+          </Button>
+        }
       />
       <ProcessQualityManager
         initialProcessEntries={(processEntries ?? []) as ProcessEntry[]}
         initialSops={(sops ?? []) as Sop[]}
         initialImprovementLog={(improvementLog ?? []) as ImprovementEntry[]}
         overviewData={overviewData}
+        initialTab={initialTab}
       />
     </div>
   );
