@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HubBreadcrumb } from "./HubBreadcrumb";
-import { IconSearch, IconUserPlus } from "@/components/icons";
+import { IconMenu, IconSearch, IconUserPlus } from "@/components/icons";
 
 interface ClientSearchResult {
   client_number: number;
@@ -92,11 +92,22 @@ function ClientSearch() {
   );
 }
 
-export function HubTopbar() {
+export function HubTopbar({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-[var(--hub-border)]">
       <div className="h-14 px-5 lg:px-6 flex items-center justify-between gap-4">
-        <HubBreadcrumb />
+        <div className="flex items-center gap-3">
+          {onMenuOpen && (
+            <button
+              onClick={onMenuOpen}
+              aria-label="Open menu"
+              className="lg:hidden -ml-1 p-2 rounded-lg text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+            >
+              <IconMenu className="h-5 w-5" />
+            </button>
+          )}
+          <HubBreadcrumb />
+        </div>
         <div className="flex items-center gap-3">
           <ClientSearch />
           <Link
