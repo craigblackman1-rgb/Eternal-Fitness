@@ -20,6 +20,7 @@ import {
   IconLayoutDashboard,
   IconLogOut,
   IconMail,
+  IconUpload,
   IconUsers,
 } from "@/components/icons";
 
@@ -57,6 +58,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Finance",
     items: [
       { href: "/hub/cashflow/invoices", label: "Invoices", icon: IconFileText },
+      { href: "/hub/cashflow/transactions", label: "Bank transactions", icon: IconUpload },
     ],
   },
   {

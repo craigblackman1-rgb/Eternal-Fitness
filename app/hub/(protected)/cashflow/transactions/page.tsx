@@ -1,0 +1,309 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase-client";
+import { HubPageHeader, HubCard, EmptyState, StatusBadge } from "@/components/hub";
+import { IconUpload, IconDownload, IconSearch, IconRefreshCw } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import type { ParsedTransaction } from "@/lib/bank-statement-parser";
+
+interface ImportRow {
+  id: string;
+  uploaded_at: string;
+  source_file_name: string;
+  status: string;
+  row_count: number;
+  created_at: string;
+}
+
+interface ParseResult {
+  fileName: string;
+  rowCount: number;
+  transactions: ParsedTransaction[];
+}
+
+function formatAmount(amount: number): string {
+  const abs = Math.abs(amount);
+  const formatted = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(abs);
+  return amount < 0 ? `-${formatted}` : `+${formatted}`;
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+export default function TransactionsPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [imports, setImports] = useState<ImportRow[]>([]);
+  const [loadingImports, setLoadingImports] = useState(true);
+
+  const [parseResult, setParseResult] = useState<ParseResult | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [parsing, setParsing] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [commitError, setCommitError] = useState<string | null>(null);
+
+  const fetchImports = useCallback(async () => {
+    setLoadingImports(true);
+    const { data } = await supabase
+      .from("bank_statement_imports")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setImports(data ?? []);
+    setLoadingImports(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchImports();
+  }, [fetchImports]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setParseError(null);
+    setCommitError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setParsing(true);
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const res = await fetch("/api/cashflow/transactions/parse", { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok) {
+        setParseError(json.error ?? "Parse failed");
+      } else {
+        setParseResult(json);
+      }
+    } catch {
+      setParseError("Failed to upload file for parsing");
+    } finally {
+      setParsing(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleCommit = async () => {
+    if (!parseResult) return;
+    setCommitting(true);
+    setCommitError(null);
+
+    try {
+      const res = await fetch("/api/cashflow/transactions/commit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: parseResult.fileName,
+          transactions: parseResult.transactions,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setCommitError(json.error ?? "Commit failed");
+      } else {
+        setParseResult(null);
+        fetchImports();
+      }
+    } catch {
+      setCommitError("Failed to commit import");
+    } finally {
+      setCommitting(false);
+    }
+  };
+
+  const handleDiscard = () => {
+    setParseResult(null);
+    setParseError(null);
+    setCommitError(null);
+  };
+
+  const handleViewImport = (importId: string) => {
+    router.push(`/hub/cashflow/transactions/${importId}`);
+  };
+
+  return (
+    <div className="space-y-6">
+      <HubPageHeader
+        title="Bank transactions"
+        subtitle="Import bank statements and review transactions"
+        actions={
+          <label className="cursor-pointer">
+            <Button asChild className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
+              <span>
+                <IconUpload className="w-4 h-4" />
+                Import statement
+              </span>
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={parsing || committing}
+            />
+          </label>
+        }
+      />
+
+      {/* Parse error */}
+      {parseError && (
+        <HubCard>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] flex items-center justify-center shrink-0 mt-0.5">
+              <IconSearch className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[var(--status-danger)]">Parse error</p>
+              <p className="text-sm text-[var(--hub-muted)] mt-1">{parseError}</p>
+            </div>
+          </div>
+        </HubCard>
+      )}
+
+      {/* Parsing */}
+      {parsing && (
+        <HubCard>
+          <div className="flex items-center gap-3 py-4">
+            <IconRefreshCw className="w-5 h-5 animate-spin text-[var(--hub-muted)]" />
+            <p className="text-sm text-[var(--hub-muted)]">Parsing file…</p>
+          </div>
+        </HubCard>
+      )}
+
+      {/* Preview table */}
+      {parseResult && (
+        <HubCard padded={false}>
+          <div className="px-5 py-4 border-b border-[var(--hub-border)] flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">{parseResult.fileName}</p>
+              <p className="text-xs text-[var(--hub-muted)] mt-0.5">
+                {parseResult.rowCount} {parseResult.rowCount === 1 ? "transaction" : "transactions"} found
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDiscard}
+                disabled={committing}
+                className="rounded-lg text-xs"
+              >
+                Discard
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCommit}
+                disabled={committing}
+                className="rounded-lg text-xs bg-rose hover:bg-rose/90 text-white"
+              >
+                {committing ? "Committing…" : "Commit import"}
+              </Button>
+            </div>
+          </div>
+          {commitError && (
+            <div className="px-5 py-3 bg-[var(--status-danger-bg)]/50">
+              <p className="text-xs text-[var(--status-danger)]">{commitError}</p>
+            </div>
+          )}
+          <div className="overflow-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[var(--hub-hover)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--hub-muted)]">
+                  <th className="px-5 py-2.5 text-left">Date</th>
+                  <th className="px-5 py-2.5 text-left">Description</th>
+                  <th className="px-5 py-2.5 text-right">Amount</th>
+                  <th className="px-5 py-2.5 text-right">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parseResult.transactions.map((txn, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-[var(--hub-border)] text-sm hover:bg-[var(--hub-hover)]/50 transition-colors"
+                  >
+                    <td className="px-5 py-2.5 whitespace-nowrap text-[var(--hub-muted)]">
+                      {formatDate(txn.date)}
+                    </td>
+                    <td className="px-5 py-2.5">{txn.description}</td>
+                    <td
+                      className={`px-5 py-2.5 text-right tabular-nums font-medium ${
+                        txn.amount < 0 ? "text-[var(--status-danger)]" : "text-[var(--status-success-text)]"
+                      }`}
+                    >
+                      {formatAmount(txn.amount)}
+                    </td>
+                    <td className="px-5 py-2.5 text-right tabular-nums text-[var(--hub-muted)]">
+                      {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(txn.balance)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </HubCard>
+      )}
+
+      {/* Import history */}
+      <HubCard padded={false}>
+        <div className="px-5 py-4 border-b border-[var(--hub-border)]">
+          <p className="text-sm font-semibold">Import history</p>
+        </div>
+        {loadingImports ? (
+          <div className="flex items-center gap-3 px-5 py-10">
+            <IconRefreshCw className="w-5 h-5 animate-spin text-[var(--hub-muted)]" />
+            <p className="text-sm text-[var(--hub-muted)]">Loading imports…</p>
+          </div>
+        ) : imports.length === 0 ? (
+          <div className="px-5 py-12">
+            <EmptyState
+              icon={<IconUpload className="w-9 h-9" />}
+              title="No imports yet"
+              description="Upload a bank statement CSV to get started"
+            />
+          </div>
+        ) : (
+          <div className="overflow-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[var(--hub-hover)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--hub-muted)]">
+                  <th className="px-5 py-2.5 text-left">File</th>
+                  <th className="px-5 py-2.5 text-left">Uploaded</th>
+                  <th className="px-5 py-2.5 text-right">Rows</th>
+                  <th className="px-5 py-2.5 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {imports.map((imp) => (
+                  <tr
+                    key={imp.id}
+                    onClick={() => handleViewImport(imp.id)}
+                    className="border-b border-[var(--hub-border)] text-sm hover:bg-[var(--hub-hover)]/50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-5 py-2.5 font-medium">{imp.source_file_name}</td>
+                    <td className="px-5 py-2.5 whitespace-nowrap text-[var(--hub-muted)]">
+                      {new Date(imp.uploaded_at).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="px-5 py-2.5 text-right tabular-nums">{imp.row_count}</td>
+                    <td className="px-5 py-2.5">
+                      <StatusBadge status={imp.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </HubCard>
+    </div>
+  );
+}

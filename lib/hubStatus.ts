@@ -96,6 +96,12 @@ const invoiceStatusMap: Record<string, StatusLookup> = {
   void:    { token: "neutral", label: "Void" },
 };
 
+const importStatusMap: Record<string, StatusLookup> = {
+  pending_review: { token: "primary", label: "Pending Review" },
+  committed:      { token: "success", label: "Committed" },
+  discarded:      { token: "neutral", label: "Discarded" },
+};
+
 const clearanceStatusMap: Record<ClearanceStatus, StatusLookup> = {
   CLEARED:                { token: "success", label: "Cleared" },
   PENDING:                { token: "warning", label: "Pending" },
@@ -119,12 +125,17 @@ export function getComplianceStatus(status: DBClientComplianceStatus): StatusLoo
   return complianceStatusMap[status];
 }
 
+export function getImportStatus(status: string): StatusLookup | null {
+  return importStatusMap[status] ?? null;
+}
+
 export function lookupStatus(status: string): StatusLookup | null {
   return (
     blockStatusMap[status] ??
     complianceStatusMap[status as DBClientComplianceStatus] ??
     documentStatusMap[status as DocumentStatus] ??
     invoiceStatusMap[status] ??
+    importStatusMap[status] ??
     clearanceStatusMap[status as ClearanceStatus] ??
     keywordStatusMap[status] ??
     null
