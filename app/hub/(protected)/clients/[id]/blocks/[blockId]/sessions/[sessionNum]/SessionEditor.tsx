@@ -685,9 +685,9 @@ export function SessionEditor({
       )}
 
       <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-lg">
           <DialogHeader>
-            <DialogTitle>Apply Workout Template</DialogTitle>
+            <DialogTitle className="text-[var(--color-ink)]">Apply Workout Template</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground -mt-2">
             Choose a template to load into the {version === "studio" ? "Studio" : "Home"} version.
@@ -699,7 +699,7 @@ export function SessionEditor({
               placeholder="Search templates..."
               value={templateSearch}
               onChange={(e) => setTemplateSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus:border-rose focus:ring-2 focus:ring-rose/20 bg-[var(--hub-card)]"
             />
           </div>
           <div className="max-h-64 overflow-y-auto space-y-1">

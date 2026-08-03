@@ -253,7 +253,7 @@ export default function SessionViewPage({
                     value={templateName}
                     onChange={(e) => setTemplateName(e.target.value)}
                     placeholder="Template name..."
-                    className="h-9 w-48 rounded-lg border border-border/60 bg-background px-3 text-sm"
+                    className="h-9 w-48 rounded-lg border border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus:border-rose focus:ring-2 focus:ring-rose/20 bg-[var(--hub-card)] px-3 text-sm outline-none transition-colors"
                     onKeyDown={(e) => e.key === "Enter" && handleSaveAsTemplate()}
                     autoFocus
                   />

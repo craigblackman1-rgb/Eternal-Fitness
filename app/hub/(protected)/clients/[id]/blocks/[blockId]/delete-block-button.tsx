@@ -50,9 +50,9 @@ export function DeleteBlockButton({
           <IconTrash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this block?</AlertDialogTitle>
+          <AlertDialogTitle className="text-[var(--color-ink)]">Delete this block?</AlertDialogTitle>
           <AlertDialogDescription>
             This will permanently delete this block and all sessions inside
             it. This action cannot be undone.
@@ -63,7 +63,7 @@ export function DeleteBlockButton({
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-[var(--status-danger-solid)] text-[var(--status-danger-solid-fg)] hover:opacity-90"
           >
             {deleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>

@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetOverlay, SheetPortal, SheetTitle } from "@/components/ui/sheet";
+import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { IconSearch, IconEye, IconEdit3, IconTrash2, IconMail, IconSend } from "@/components/icons";
 import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
 import { TokenPill } from "@/components/hub/StatusBadge";
@@ -385,50 +386,77 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
         )}
       </HubCard>
 
-      {/* Preview dialog */}
-      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <span className="w-9 h-9 rounded-lg bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center shrink-0">
-                <IconMail className="h-4 w-4" />
-              </span>
-              <span className="min-w-0 truncate">{preview?.subject}</span>
-            </DialogTitle>
-          </DialogHeader>
-          {preview && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground pb-3 border-b border-[var(--hub-border)]">
-                <span><span className="font-semibold uppercase tracking-wide text-muted-foreground text-[10px]">Client</span> <span className="text-foreground font-medium">{preview.client?.name ?? "—"}</span></span>
-                {preview.client_email && <span><span className="font-semibold uppercase tracking-wide text-muted-foreground text-[10px]">To</span> <span className="text-foreground">{preview.client_email}</span></span>}
-                <span><span className="font-semibold uppercase tracking-wide text-muted-foreground text-[10px]">Template</span> <span className="text-foreground">{getTemplateKind(preview.template_kind).label}</span></span>
-                <span className="ml-auto">
-                  <TokenPill token={updateStatusMeta(preview.status).token} label={updateStatusMeta(preview.status).label} />
-                </span>
-              </div>
-              <div className="border border-[var(--hub-border)] rounded-xl overflow-hidden bg-[var(--hub-card)]">
-                <iframe srcDoc={preview.body_html} title="Email preview" className="w-full" style={{ height: "520px", border: "none" }} />
-              </div>
-              {editable(preview.status) && preview.client && (
-                <div className="flex items-center justify-end gap-2">
-                  <Link href={`/hub/clients/${preview.client.client_number}/updates/${preview.id}/edit`}>
-                    <Button variant="outline" size="sm" className="rounded-lg gap-1.5">
-                      <IconEdit3 className="h-3.5 w-3.5" />
-                      Edit
-                    </Button>
-                  </Link>
-                  <Link href={`/hub/clients/${preview.client.client_number}/updates/${preview.id}/edit`}>
-                    <Button size="sm" className="rounded-lg gap-1.5">
-                      <IconSend className="h-3.5 w-3.5" />
-                      Send now
-                    </Button>
-                  </Link>
+      {/* Preview drawer */}
+      <Sheet open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <SheetPortal>
+          <SheetOverlay className="bg-[rgba(40,43,56,0.42)] backdrop-blur-[2px]" />
+          <SheetPrimitive.Content
+            className="fixed z-50 flex flex-col gap-0 inset-y-0 right-0 h-full w-[min(560px,100vw)] bg-[var(--hub-canvas)] border-l border-[var(--hub-border)] shadow-[-12px_0_40px_rgba(16,24,40,0.14)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+            style={{ transitionDuration: "280ms" }}
+          >
+            {preview && (
+              <>
+                <div className="flex items-center gap-3 px-6 py-[18px] border-b border-[var(--hub-border)] bg-[var(--hub-card)] shrink-0">
+                  <span className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center shrink-0">
+                    <IconMail className="h-[18px] w-[18px]" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <SheetTitle className="text-[15px] font-bold text-[var(--color-ink)] truncate">{preview.subject}</SheetTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">{preview.client?.name ?? "—"} &middot; {getTemplateKind(preview.template_kind).label}</p>
+                  </div>
+                  <SheetPrimitive.Close className="ml-auto w-[34px] h-[34px] rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:text-[var(--color-ink)] flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    <span className="sr-only">Close</span>
+                  </SheetPrimitive.Close>
                 </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+                <div className="flex-1 overflow-y-auto px-6 py-6">
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 pb-[18px] mb-[18px] border-b border-[var(--hub-border)]">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground mb-1">Client</p>
+                      <p className="text-sm text-[var(--color-ink)] font-medium">{preview.client?.name ?? "—"}</p>
+                    </div>
+                    {preview.client_email && (
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground mb-1">To</p>
+                        <p className="text-sm text-[var(--color-ink)]">{preview.client_email}</p>
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground mb-1">Template</p>
+                      <p className="text-sm text-[var(--color-ink)]">{getTemplateKind(preview.template_kind).label}</p>
+                    </div>
+                    <div className="min-w-0 ml-auto">
+                      <TokenPill token={updateStatusMeta(preview.status).token} label={updateStatusMeta(preview.status).label} />
+                    </div>
+                  </div>
+                  <div className="border border-[var(--hub-border)] rounded-[14px] overflow-hidden bg-[var(--hub-card)]">
+                    <iframe srcDoc={preview.body_html} title="Email preview" className="w-full" style={{ height: "520px", border: "none" }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-[10px] px-6 py-4 border-t border-[var(--hub-border)] bg-[var(--hub-card)] shrink-0">
+                  {editable(preview.status) && preview.client && (
+                    <>
+                      <Link href={`/hub/clients/${preview.client.client_number}/updates/${preview.id}/edit`}>
+                        <Button variant="outline" size="sm" className="rounded-lg gap-1.5">
+                          <IconEdit3 className="h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                      </Link>
+                      <span className="flex-1" />
+                      <Link href={`/hub/clients/${preview.client.client_number}/updates/${preview.id}/edit`}>
+                        <Button size="sm" className="rounded-lg gap-1.5">
+                          <IconSend className="h-3.5 w-3.5" />
+                          Send now
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </SheetPrimitive.Content>
+        </SheetPortal>
+      </Sheet>
     </div>
   );
 }
