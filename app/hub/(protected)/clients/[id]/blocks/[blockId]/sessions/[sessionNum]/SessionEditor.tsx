@@ -792,7 +792,7 @@ function ExerciseRow({
   const [equipmentInput, setEquipmentInput] = useState("");
 
   return (
-    <div className="flex items-start gap-2.5 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
+    <div className="flex items-start gap-2.5 flex-wrap sm:flex-nowrap rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
       {draggableHandle && (
         <span className="mt-1.5 cursor-grab text-[var(--hub-field-border)]" title="Drag to reorder">
           <IconGripVertical className="h-4 w-4" />
@@ -918,7 +918,7 @@ function ExerciseRow({
         )}
       </div>
 
-      <div className="flex shrink-0 gap-2.5">
+      <div className="flex shrink-0 gap-2.5 basis-full sm:basis-auto">
         <EditField label="Sets" value={String(ex.sets ?? "")} onChange={(v) => onField(sectionKey, ex._uid, "sets", v)} width={56} type="number" />
         <EditField label="Reps" value={ex.reps || ""} onChange={(v) => onField(sectionKey, ex._uid, "reps", v)} width={64} />
         <EditField label="Tempo" value={ex.tempo || ""} onChange={(v) => onField(sectionKey, ex._uid, "tempo", v)} width={80} />
