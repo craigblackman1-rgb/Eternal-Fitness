@@ -214,12 +214,14 @@
   }
 
   .hub-shell input,
+  .hub-shell select,
   .hub-shell textarea,
   .hub-shell button[role="combobox"] {
     border-color: var(--hub-field-border) !important;
   }
 
   .hub-shell input:hover,
+  .hub-shell select:hover,
   .hub-shell textarea:hover,
   .hub-shell button[role="combobox"]:hover {
     border-color: var(--hub-field-border-hover) !important;

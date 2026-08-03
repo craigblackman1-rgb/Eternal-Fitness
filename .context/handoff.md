@@ -1,5 +1,34 @@
 # Handoff
 
+## Session close — 2026-08-01 (evening) — Tom Putnam migrated from Trainerize as Block 1 (test case)
+
+**Full detail: `.context/decisions.log` (top entry, 2026-08-01).** Summary: imported Esther's existing
+Trainerize plan for client Tom Putnam verbatim into the hub as his Block 1 — the first client migrated
+this way, requested by Craig as a test of the Trainerize→hub path. 12 sessions (6-week A/B full-body
+split), `status: 'draft'`, not yet Esther-reviewed. Added Craig's supplied mobility warm-up/cooldown
+circuit to all 12 sessions afterward. Two new one-off scripts:
+`scripts/import-trainerize-migration-tom.mjs`, `scripts/add-warmup-cooldown-tom-block1.mjs` — both
+DB-verified directly (not self-reported), both now guard against accidental execution on import
+(`pathToFileURL` guard, not a raw string comparison — that silently fails on Windows).
+
+**Current state:** Tom's Block 1 (`id 113888f0-d504-4694-a0c1-c2f6049a9c03`) exists with correct
+`main_block` (verbatim from source) and warm-up/cooldown. Still missing before it's client-facing:
+coaching cues, exercise modifications, equipment tags, a real (non-cloned) home version — none of
+these were in the Trainerize export.
+
+**Next steps:**
+1. Esther to review/approve Tom's Block 1 in the hub.
+2. Add coaching cues/modifications/equipment/home version.
+3. Craig asked for a reusable warm-up/cooldown/exercise-block template system (this session used a
+   hand-written one-off script). Logged as deferred (`wo defer` id `dmsagoxpozw`), not scoped or built —
+   do this before a second manual Trainerize migration if the pattern repeats. Note this is a
+   *training-plan* migration path, separate from the existing Lane A *client-record* export research
+   (`.context/lane-a-client-field-map.md`, `.context/lane-a2-trainerize-export-plan.md`) — the two
+   should probably be reconciled into one migration story if more Trainerize clients get migrated.
+4. If the test is judged a success, decide whether/how to migrate other existing Trainerize clients.
+
+---
+
 ## Session close — 2026-08-01 (afternoon) — Training block module redesign shipped; Design Parity Gate added as a global rule after a real miss
 
 **Training block module redesigned against a new OpenDesign mockup, in 4 commits, all deployed and log-verified.**
