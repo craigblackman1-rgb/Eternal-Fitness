@@ -211,7 +211,7 @@ export function SiteContentEditor({
           subtitle="What this page should rank for"
         />
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="primary_keyword">Primary keyword</Label>
               <Input
@@ -308,7 +308,7 @@ export function SiteContentEditor({
           <HubCard className="mb-4 border-dashed border-rose/30">
             <HubCardHeader title="New content block" />
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="new_block_key">Block key</Label>
                   <Input

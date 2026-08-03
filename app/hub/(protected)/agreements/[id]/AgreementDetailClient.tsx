@@ -488,8 +488,8 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
               {/* Section 1 */}
               <div>
                 <h4 className="text-sm font-semibold mb-3 pb-2 border-b">Section 1 — Personal Details</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2"><Label>Full name</Label><Input value={parqForm.full_name || ""} onChange={(e) => handleParqChange("full_name", e.target.value)} className="mt-1" /></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="sm:col-span-2"><Label>Full name</Label><Input value={parqForm.full_name || ""} onChange={(e) => handleParqChange("full_name", e.target.value)} className="mt-1" /></div>
                   <div><Label>Date of birth</Label><Input type="date" value={parqForm.date_of_birth || ""} onChange={(e) => handleParqChange("date_of_birth", e.target.value)} className="mt-1" /></div>
                   <div><Label>Email</Label><Input value={parqForm.email || ""} onChange={(e) => handleParqChange("email", e.target.value)} className="mt-1" /></div>
                   <div className="col-span-2"><Label>Address</Label><Input value={parqForm.address || ""} onChange={(e) => handleParqChange("address", e.target.value)} className="mt-1" /></div>
@@ -554,7 +554,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
               {/* Signature */}
               <div>
                 <h4 className="text-sm font-semibold mb-3 pb-2 border-b">Section 9 — Declaration</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div><Label>Client name (print)</Label><Input value={parqForm.client_name_print || ""} onChange={(e) => handleParqChange("client_name_print", e.target.value)} className="mt-1" /></div>
                   <div><Label>Signature date</Label><Input type="date" value={parqForm.client_signature_date || ""} onChange={(e) => handleParqChange("client_signature_date", e.target.value)} className="mt-1" /></div>
                   <div><Label>Typed signature</Label><Input value={parqForm.client_typed_signature || ""} onChange={(e) => handleParqChange("client_typed_signature", e.target.value)} className="mt-1" /></div>
