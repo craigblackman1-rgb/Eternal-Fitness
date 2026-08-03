@@ -103,6 +103,7 @@ export default function SessionViewPage({
   };
 
   const currentLog: SessionLog | undefined = session?.data?.session_log;
+  const completedAt: string | null = currentLog?.completed_at ?? null;
 
   const saveLog = async (markComplete: boolean) => {
     if (!session) return;
@@ -221,6 +222,15 @@ export default function SessionViewPage({
             <h1 className="text-xl font-semibold tracking-tight">Session {sessionNum}</h1>
             <Badge variant="outline" className="text-sm">{session.archetype}</Badge>
             <span className="text-sm capitalize text-muted-foreground">Week {session.week} · {session.phase}</span>
+            {completedAt ? (
+              <span className="inline-flex items-center rounded-full border border-teal/20 bg-teal/15 px-2.5 py-0.5 text-xs font-semibold text-teal">
+                Completed {new Date(completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">
+                Not yet logged
+              </span>
+            )}
           </div>
           <p className="text-muted-foreground">{archetypeNames[session.archetype]}</p>
         </div>

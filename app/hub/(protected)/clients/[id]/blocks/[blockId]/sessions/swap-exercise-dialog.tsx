@@ -76,7 +76,7 @@ export function SwapExerciseDialog({
   }, [open, exercises.length]);
 
   const filtered = useMemo(() => {
-    if (!search) return [];
+    if (!search) return exercises.slice(0, 24);
     return exercises
       .filter((ex) =>
         ex.name.toLowerCase().includes(search.toLowerCase())
