@@ -79,7 +79,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
   },
 ];
 
-export function HubSidebar() {
+export function HubSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -90,14 +90,12 @@ export function HubSidebar() {
   };
 
   return (
-    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-[var(--hub-sidebar)] text-white">
-      {/* Brand */}
+    <div className="flex h-full w-60 shrink-0 flex-col bg-[var(--hub-sidebar)] text-white">
       <div className="flex flex-col items-start justify-center gap-1 px-5 py-3 border-b border-white/[0.07]">
         <EternalFitnessLogo variant="light" className="h-9 w-auto" />
         <span className="text-[11px] text-white/40 tracking-wide uppercase">Trainer Hub</span>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
         {navGroups.map((group) => (
           <div key={group.label}>
@@ -113,6 +111,7 @@ export function HubSidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={onNavigate}
                     className={cn(
                       "relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-100",
                       isActive
@@ -133,7 +132,6 @@ export function HubSidebar() {
         ))}
       </nav>
 
-      {/* User */}
       <div className="px-3 py-3 border-t border-white/[0.07]">
         <div className="flex items-center gap-2.5 px-2 py-1.5">
           <div className="w-8 h-8 rounded-full bg-rose/20 text-rose flex items-center justify-center text-xs font-bold shrink-0">
@@ -152,6 +150,14 @@ export function HubSidebar() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function HubSidebar() {
+  return (
+    <aside className="hidden lg:flex sticky top-0 h-screen">
+      <HubSidebarNav />
     </aside>
   );
 }
