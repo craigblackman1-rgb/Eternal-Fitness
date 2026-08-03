@@ -8,6 +8,7 @@ import EternalFitnessLogo from "@/components/EternalFitnessLogo";
 import {
   IconBookText,
   IconCalendar,
+  IconCheckCircle,
   IconCheckSquare,
   IconClipboardCheck,
   IconClipboardList,
@@ -58,6 +59,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Finance",
     items: [
       { href: "/hub/cashflow/invoices", label: "Invoices", icon: IconFileText },
+      { href: "/hub/cashflow/reconciliation", label: "Reconciliation", icon: IconCheckCircle },
       { href: "/hub/cashflow/transactions", label: "Bank transactions", icon: IconUpload },
     ],
   },
