@@ -180,6 +180,7 @@ export function LiveSessionLog({
   });
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [rpe, setRpe] = useState<SessionLog["rpe"]>(sessionLog?.rpe ?? null);
   const [fatigue, setFatigue] = useState<SessionLog["fatigue"]>(sessionLog?.fatigue ?? null);
   const [notes, setNotes] = useState(sessionLog?.notes ?? "");
   const [showComplete, setShowComplete] = useState(false);
@@ -402,6 +403,7 @@ export function LiveSessionLog({
     setCompleting(true);
     const updatedLog: SessionLog = {
       completed_at: new Date().toISOString(),
+      rpe,
       fatigue,
       notes,
     };
@@ -541,6 +543,28 @@ export function LiveSessionLog({
           <p className="text-[12.5px] text-muted-foreground mt-0.5 mb-4">Logged once, at the end — covers how the whole session felt, not one exercise.</p>
 
           <div className="mb-[18px]">
+            <span className="text-xs font-bold text-foreground mb-2 block">RPE <span className="font-normal text-muted-foreground">— rate of perceived exertion, 1 (very light) – 10 (maximal)</span></span>
+            <div className="flex gap-1.5 flex-wrap" role="radiogroup" aria-label="RPE">
+              {Array.from({ length: 10 }, (_, i) => {
+                const val = i + 1;
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setRpe(rpe === val ? null : val)}
+                    className={`w-[44px] h-[44px] rounded-[10px] border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground text-[14px] font-bold cursor-pointer ${
+                      rpe === val ? "bg-rose border-rose text-white" : ""
+                    }`}
+                    aria-pressed={rpe === val}
+                  >
+                    {val}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mb-[18px]">
             <span className="text-xs font-bold text-foreground mb-2 block">Fatigue level</span>
             <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label="Fatigue">
               {(["low", "moderate", "high"] as const).map((f) => (
@@ -601,8 +625,8 @@ export function LiveSessionLog({
           <button
             type="button"
             onClick={() => {
-              if (fatigue == null) {
-                toast("Tip: Fatigue level is still blank — you can still complete without it.", { description: "" });
+              if (rpe == null && fatigue == null) {
+                toast("Tip: RPE and fatigue are still blank — you can still complete without them.", { description: "" });
               }
               setShowComplete(true);
             }}

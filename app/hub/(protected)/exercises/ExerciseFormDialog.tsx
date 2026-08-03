@@ -314,7 +314,7 @@ export function ExerciseFormDialog({ trigger, exercise, open: controlledOpen, on
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={saving || !name.trim()}>
+            <Button type="submit" disabled={saving || !name.trim()} className="bg-rose hover:bg-rose/90 text-white font-semibold">
               {saving ? "Saving..." : isEdit ? "Save Changes" : "Save Exercise"}
             </Button>
           </div>
