@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { IconUser, IconHeart, IconBone, IconClipboardCheck, IconFileText, IconActivity, IconFileSignature, IconSave, IconCopy } from "@/components/icons";
+import { IconUser, IconHeart, IconBone, IconClipboardCheck, IconFileText, IconActivity, IconFileSignature, IconSave, IconCopy, IconCheckCircle } from "@/components/icons";
 import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
 import {
   section2Questions, section3Questions, section4Questions, section6bQuestions,
@@ -580,6 +580,26 @@ export default function ParqEditClient({
               </div>
             </HubCard>
 
+            {/* Section 7 — Medical clearance record */}
+            <HubCard padded={false}>
+              <HubCardHeader icon={<IconCheckCircle className="w-4 h-4" />} title="Section 7 — Medical clearance record" subtitle="Completed by the trainer, not the client" color="navy" />
+              <div className="px-5 pb-5">
+                <p className="text-sm text-[var(--color-body)] mb-4 leading-relaxed italic">
+                  {hasAnyYes
+                    ? "The client has answered YES to some questions in Sections 2, 3 or 4 — assess whether written GP or consultant clearance is required before their next block. No sessions should run until that clearance is on file, where it is needed."
+                    : "No YES answers in Sections 2, 3 or 4 — no medical clearance assessment required."}
+                </p>
+                <div className="flex items-baseline justify-between gap-3 py-2.5 border-t border-[var(--hub-border)] text-[13px]">
+                  <span className="text-[var(--color-muted-text)]">Medical clearance required?</span>
+                  <span className="font-semibold text-foreground text-right">{hasAnyYes ? "To be assessed by trainer" : "Not required — no YES answers"}</span>
+                </div>
+                <div className="flex items-baseline justify-between gap-3 py-2.5 border-t border-[var(--hub-border)] text-[13px]">
+                  <span className="text-[var(--color-muted-text)]">GP / consultant letter received?</span>
+                  <span className="font-semibold text-foreground text-right">To be completed by trainer</span>
+                </div>
+              </div>
+            </HubCard>
+
             {/* Section 9 — Declaration (locked) */}
             <HubCard padded={false}>
               <HubCardHeader icon={<IconFileSignature className="w-4 h-4" />} title="Section 9 — Declaration &amp; signature" color="amber" />
@@ -600,6 +620,11 @@ export default function ParqEditClient({
             <div className="sticky bottom-0 z-15 flex items-center gap-3 mt-5 rounded-xl border border-[var(--hub-border)] bg-white/90 backdrop-blur px-5 py-3 shadow-[0_-1px_3px_rgba(16,24,40,0.05)]">
               <p className="m-0 text-xs text-muted-foreground"><b className="text-foreground font-semibold">Admin save — no signature required.</b></p>
               <div className="ml-auto flex gap-2">
+                {clientNumber != null && (
+                  <a href={`/hub/clients/${clientNumber}?tab=profile-compliance`} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-muted-text)] text-foreground hover:bg-[var(--hub-canvas)] px-4 py-2 text-[13px] font-medium no-underline transition-colors">
+                    Cancel
+                  </a>
+                )}
                 <Button type="submit" disabled={isSubmitting} variant="outline" className="rounded-lg border-teal text-teal hover:bg-teal/10">
                   {isSubmitting ? "Saving..." : "Save without signing"}
                 </Button>
