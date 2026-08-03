@@ -148,6 +148,8 @@ export function SessionEditor({
   const [swapTarget, setSwapTarget] = useState<{ section: SectionKey; uid: string } | null>(null);
   const [videoOpenUid, setVideoOpenUid] = useState<string | null>(null);
   const [videoDraft, setVideoDraft] = useState("");
+  const [imageOpenUid, setImageOpenUid] = useState<string | null>(null);
+  const [imageDraft, setImageDraft] = useState("");
   const [dragBlockKey, setDragBlockKey] = useState<string | null>(null);
   const [dragSection, setDragSection] = useState<SectionKey | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
@@ -170,6 +172,15 @@ export function SessionEditor({
       ...prev,
       [sectionKey]: prev[sectionKey].map((e) =>
         e._uid === uid ? { ...e, log_type: logType } : e
+      ),
+    }));
+  };
+
+  const updateEquipment = (sectionKey: SectionKey, uid: string, equipment: string[]) => {
+    setSections((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((e) =>
+        e._uid === uid ? { ...e, equipment } : e
       ),
     }));
   };
@@ -353,6 +364,17 @@ export function SessionEditor({
     }));
     setVideoOpenUid(null);
     setVideoDraft("");
+  };
+
+  const saveImage = (sectionKey: SectionKey, uid: string) => {
+    setSections((prev) => ({
+      ...prev,
+      [sectionKey]: prev[sectionKey].map((e) =>
+        e._uid === uid ? { ...e, media: { ...e.media, image_url: imageDraft.trim() || undefined } } : e
+      ),
+    }));
+    setImageOpenUid(null);
+    setImageDraft("");
   };
 
   const handleSave = async () => {
@@ -541,11 +563,17 @@ export function SessionEditor({
                           onMoveTo={moveToSection}
                           onRemove={removeExercise}
                           onSwap={(section, uid) => setSwapTarget({ section, uid })}
+                          onUpdateEquipment={updateEquipment}
                           videoOpenUid={videoOpenUid}
                           videoDraft={videoDraft}
                           setVideoOpenUid={setVideoOpenUid}
                           setVideoDraft={setVideoDraft}
                           onSaveVideo={saveVideo}
+                          imageOpenUid={imageOpenUid}
+                          imageDraft={imageDraft}
+                          setImageOpenUid={setImageOpenUid}
+                          setImageDraft={setImageDraft}
+                          onSaveImage={saveImage}
                         />
                       ))}
                     </div>
@@ -598,11 +626,17 @@ export function SessionEditor({
                       onMoveTo={moveToSection}
                       onRemove={removeExercise}
                       onSwap={(section, uid) => setSwapTarget({ section, uid })}
+                      onUpdateEquipment={updateEquipment}
                       videoOpenUid={videoOpenUid}
                       videoDraft={videoDraft}
                       setVideoOpenUid={setVideoOpenUid}
                       setVideoDraft={setVideoDraft}
                       onSaveVideo={saveVideo}
+                      imageOpenUid={imageOpenUid}
+                      imageDraft={imageDraft}
+                      setImageOpenUid={setImageOpenUid}
+                      setImageDraft={setImageDraft}
+                      onSaveImage={saveImage}
                     />
                   </div>
                 )
@@ -714,11 +748,17 @@ function ExerciseRow({
   onMoveTo,
   onRemove,
   onSwap,
+  onUpdateEquipment,
   videoOpenUid,
   videoDraft,
   setVideoOpenUid,
   setVideoDraft,
   onSaveVideo,
+  imageOpenUid,
+  imageDraft,
+  setImageOpenUid,
+  setImageDraft,
+  onSaveImage,
 }: {
   ex: EditableExercise;
   sectionKey: SectionKey;
@@ -732,16 +772,24 @@ function ExerciseRow({
   onMoveTo: (fromSection: SectionKey, uid: string, toSection: SectionKey) => void;
   onRemove: (sectionKey: SectionKey, uid: string) => void;
   onSwap: (sectionKey: SectionKey, uid: string) => void;
+  onUpdateEquipment: (sectionKey: SectionKey, uid: string, equipment: string[]) => void;
   videoOpenUid: string | null;
   videoDraft: string;
   setVideoOpenUid: (uid: string | null) => void;
   setVideoDraft: (v: string) => void;
   onSaveVideo: (sectionKey: SectionKey, uid: string) => void;
+  imageOpenUid: string | null;
+  imageDraft: string;
+  setImageOpenUid: (uid: string | null) => void;
+  setImageDraft: (v: string) => void;
+  onSaveImage: (sectionKey: SectionKey, uid: string) => void;
 }) {
   const logType = (ex as Exercise & { log_type?: "reps" | "time" }).log_type || "reps";
   const otherSections = SECTION_DEFS.filter((s) => s.key !== sectionKey);
   const videoOpen = videoOpenUid === ex._uid;
+  const imageOpen = imageOpenUid === ex._uid;
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [equipmentInput, setEquipmentInput] = useState("");
 
   return (
     <div className="flex items-start gap-2.5 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
@@ -799,6 +847,43 @@ function ExerciseRow({
             {ex.modification}
           </span>
         )}
+        {(ex.equipment?.length ?? 0) > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-[5px]">
+            {ex.equipment.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center text-[11px] font-semibold text-muted-foreground bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-full px-[9px] py-[2px]"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => onUpdateEquipment(sectionKey, ex._uid, (ex.equipment || []).filter((t) => t !== tag))}
+                  className="ml-1 -mr-1 inline-flex p-0 text-muted-foreground hover:text-[var(--color-rose)]"
+                  aria-label={`Remove tag ${tag}`}
+                >
+                  <IconX className="h-2 w-2" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <input
+          type="text"
+          value={equipmentInput}
+          onChange={(e) => setEquipmentInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && equipmentInput.trim()) {
+              const trimmed = equipmentInput.trim();
+              const exists = (ex.equipment || []).includes(trimmed);
+              if (!exists) {
+                onUpdateEquipment(sectionKey, ex._uid, [...(ex.equipment || []), trimmed]);
+              }
+              setEquipmentInput("");
+            }
+          }}
+          placeholder="+ Add equipment tag, press Enter"
+          className="mt-1.5 h-7 w-full max-w-[260px] rounded-md border border-dashed border-[var(--hub-field-border)] bg-transparent px-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-rose focus:border-solid focus:outline-none focus:ring-2 focus:ring-rose/30"
+        />
         {videoOpen && (
           <div className="mt-2 flex gap-2 border-t border-dashed border-[var(--hub-border)] pt-2">
             <input
@@ -811,6 +896,22 @@ function ExerciseRow({
               autoFocus
             />
             <button onClick={() => onSaveVideo(sectionKey, ex._uid)} className="rounded-md bg-rose px-2 py-1 text-xs text-white">
+              Save
+            </button>
+          </div>
+        )}
+        {imageOpen && (
+          <div className="mt-2 flex gap-2 border-t border-dashed border-[var(--hub-border)] pt-2">
+            <input
+              type="url"
+              value={imageDraft}
+              onChange={(e) => setImageDraft(e.target.value)}
+              placeholder="Paste image URL..."
+              className="min-w-0 flex-1 rounded-md border px-2 py-1 text-xs"
+              onKeyDown={(e) => e.key === "Enter" && onSaveImage(sectionKey, ex._uid)}
+              autoFocus
+            />
+            <button onClick={() => onSaveImage(sectionKey, ex._uid)} className="rounded-md bg-rose px-2 py-1 text-xs text-white">
               Save
             </button>
           </div>
@@ -835,6 +936,21 @@ function ExerciseRow({
           className={`inline-flex h-7 w-7 items-center justify-center rounded-lg hover:bg-[var(--hub-hover)] ${ex.media?.video_url ? "text-teal" : "text-muted-foreground"}`}
         >
           <IconVideo className="h-3.5 w-3.5" />
+        </button>
+        <button
+          title={ex.media?.image_url ? "Image attached" : "Add image"}
+          aria-label={ex.media?.image_url ? "Image attached" : "Add image"}
+          onClick={() => {
+            setImageDraft(ex.media?.image_url || "");
+            setImageOpenUid(imageOpen ? null : ex._uid);
+          }}
+          className={`inline-flex h-7 w-7 items-center justify-center rounded-lg hover:bg-[var(--hub-hover)] ${ex.media?.image_url ? "text-teal" : "text-muted-foreground"}`}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="m21 15-5-5L5 21"/>
+          </svg>
         </button>
         <button
           title="Swap exercise"
