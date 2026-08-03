@@ -692,6 +692,11 @@ function SessionSection({
                         {ex.equipment?.length > 0 && (
                           <p className="text-[11px] text-muted-foreground">{ex.equipment.join(", ")}</p>
                         )}
+                        {loggedCount > 0 && (
+                          <p className="text-[11px] text-teal mt-0.5">
+                            Logged: {formatLoggedSets(exerciseRef, totalSets, setLogs)}
+                          </p>
+                        )}
                       </td>
                       <td className="px-4 py-2 align-top text-sm tabular-nums whitespace-nowrap">{ex.sets ?? "—"}</td>
                       <td className="px-4 py-2 align-top text-sm tabular-nums whitespace-nowrap">{ex.reps ?? "—"}</td>
@@ -853,6 +858,29 @@ function parsePrescribedSeconds(reps: string): number | null {
 function parsePrescribedReps(reps: string): number | null {
   const m = (reps || "").match(/\d+/);
   return m ? parseInt(m[0], 10) : null;
+}
+
+/** Compact inline "what actually happened" string for an exercise's logged sets,
+ * shown directly on the read-only session view without needing to open the
+ * per-exercise logger — e.g. "8 × 60kg, 8 × 60kg, 8 reps" or "30s, skipped". */
+function formatLoggedSets(exerciseRef: string, totalSets: number, setLogs: Record<string, SetLog>): string {
+  const parts: string[] = [];
+  for (let s = 1; s <= totalSets; s++) {
+    const log = setLogs[`${exerciseRef}::${s}`];
+    if (!log) continue;
+    if (!log.completed) {
+      parts.push("skipped");
+    } else if (log.duration_seconds != null) {
+      parts.push(`${log.duration_seconds}s`);
+    } else if (log.reps != null && log.weight_kg != null) {
+      parts.push(`${log.reps} × ${log.weight_kg}kg`);
+    } else if (log.reps != null) {
+      parts.push(`${log.reps} reps`);
+    } else {
+      parts.push("done");
+    }
+  }
+  return parts.join(", ");
 }
 
 /** Per-set quick-log control — one row per prescribed set, sized for one-handed use
