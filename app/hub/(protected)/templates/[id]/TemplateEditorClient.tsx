@@ -118,8 +118,8 @@ export function TemplateEditorClient({ template, clients }: { template: Document
         <div className="mt-5 space-y-6">
           {body.sections.map((s, idx) => (
             <div key={s.id} className="space-y-2 border-b border-[var(--hub-border)] pb-5 last:border-0 last:pb-0">
-              <div className="flex items-center gap-2">
-                <Input value={s.title} onChange={(e) => setSection(s.id, { title: e.target.value })} className="font-medium" />
+              <div className="flex items-center gap-2 flex-wrap">
+                <Input value={s.title} onChange={(e) => setSection(s.id, { title: e.target.value })} className="font-medium min-w-0 flex-1" />
                 <Button variant="ghost" size="sm" onClick={() => move(idx, -1)} disabled={idx === 0} className="px-2 rounded-lg h-auto text-xs">↑</Button>
                 <Button variant="ghost" size="sm" onClick={() => move(idx, 1)} disabled={idx === body.sections.length - 1} className="px-2 rounded-lg h-auto text-xs">↓</Button>
                 <Button variant="ghost" size="sm" onClick={() => removeSection(s.id)} className="px-2 rounded-lg h-auto text-xs text-red-500 hover:text-red-600">

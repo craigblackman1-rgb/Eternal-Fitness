@@ -445,7 +445,7 @@ export default function ParqEditClient({
             {/* Section 1 — Personal details */}
             <HubCard padded={false}>
               <HubCardHeader icon={<IconUser className="w-4 h-4" />} title="Section 1 — Personal details" subtitle="Who the client is, and who to contact if something happens in a session" color="navy" />
-              <div className="px-5 pb-5 grid grid-cols-2 gap-x-5 gap-y-4">
+              <div className="px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
                 <div className="col-span-2" data-error-first>
                   <Label htmlFor="fullName" className="text-xs font-semibold text-foreground mb-1.5 block">Full name</Label>
                   <Input id="fullName" type="text" value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} className={inputClass("fullName", true)} autoComplete="name" />
