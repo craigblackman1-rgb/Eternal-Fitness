@@ -920,6 +920,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Session</th>
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Check-in</th>
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
+                      <th className="h-10 px-5 py-0"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -932,7 +933,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       const checkinLabel = !log ? "—" : isFlagged ? "Fatigue flagged" : "Good";
                       const checkinToken: StatusToken = !log ? "neutral" : isFlagged ? "warning" : "success";
                       return (
-                        <tr key={session.id} className="border-b border-[var(--hub-border)] last:border-0">
+                        <tr key={session.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
                           <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
                             {log?.completed_at
                               ? new Date(log.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
@@ -945,6 +946,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                             {log ? <TokenPill token={checkinToken} label={checkinLabel} /> : <span className="text-muted-foreground">—</span>}
                           </td>
                           <td className="py-2.5 px-5 text-muted-foreground max-w-[240px] truncate">{log?.notes || "—"}</td>
+                          <td className="py-2.5 px-5 text-right whitespace-nowrap">
+                            <Link
+                              href={`/hub/clients/${client.client_number}/blocks/${session.block_id}/sessions/${session.session_number}`}
+                              className="text-teal font-medium hover:underline"
+                            >
+                              Open
+                            </Link>
+                          </td>
                         </tr>
                       );
                     })}
