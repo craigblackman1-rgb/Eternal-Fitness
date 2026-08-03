@@ -744,7 +744,7 @@ function ExerciseRow({
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   return (
-    <div className="flex items-start gap-2.5 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
+    <div className="flex items-start gap-2.5 flex-wrap rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
       {draggableHandle && (
         <span className="mt-1.5 cursor-grab text-[var(--hub-field-border)]" title="Drag to reorder">
           <IconGripVertical className="h-4 w-4" />
