@@ -112,6 +112,10 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("studio_1to1");
   const [resourceVisibility, setResourceVisibility] = useState<Record<string, boolean>>({});
   const [splitOptions, setSplitOptions] = useState<string[]>(parseSplits(DEFAULT_SPLITS).map((s) => s.label));
+  const [blocksCompleted, setBlocksCompleted] = useState<number>(0);
+  const [sessionsLogged, setSessionsLogged] = useState<number>(0);
+  const [lastSessionDate, setLastSessionDate] = useState<string | null>(null);
+  const [hasSignedAgreementDocument, setHasSignedAgreementDocument] = useState(false);
 
   useEffect(() => {
     // Split options come from the Plan Agent "splits" setting so Esther can add
@@ -165,6 +169,12 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setPaceMode(data.pace_mode ?? "medium");
       setDeliveryMode(data.delivery_mode ?? "studio_1to1");
       setResourceVisibility(data.resource_visibility ?? {});
+      const blocks: any[] = data._blocks ?? [];
+      setBlocksCompleted(blocks.filter((b: any) => b.status === "complete").length);
+      const counts: Record<number, number> = data._sessionsCount ?? {};
+      setSessionsLogged(Object.values(counts).reduce((a, b) => a + b, 0));
+      setLastSessionDate(data._lastSessionDate ?? null);
+      setHasSignedAgreementDocument(data._hasSignedAgreementDocument ?? false);
       setLoading(false);
     }
     load();
@@ -815,6 +825,12 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 }
               </div>
               <div className="flex items-start gap-2.5 py-2.5 border-t border-[var(--hub-border)] text-xs text-[var(--color-body)]">
+                {hasSignedAgreementDocument
+                  ? <><IconCheck className="w-4 h-4 shrink-0 text-teal mt-px" /><span>Training agreement signed</span></>
+                  : <><IconAlertCircle className="w-4 h-4 shrink-0 text-amber mt-px" /><span>Training agreement not signed</span></>
+                }
+              </div>
+              <div className="flex items-start gap-2.5 py-2.5 border-t border-[var(--hub-border)] text-xs text-[var(--color-body)]">
                 {outstandingCount === 0
                   ? <><IconCheck className="w-4 h-4 shrink-0 text-teal mt-px" /><span>No outstanding actions</span></>
                   : <><IconAlertCircle className="w-4 h-4 shrink-0 text-amber mt-px" /><span>{outstandingCount} outstanding action{outstandingCount !== 1 ? "s" : ""}</span></>
@@ -845,6 +861,22 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   </span>
                 </div>
               )}
+              <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
+                <span className="text-muted-foreground">Blocks completed</span>
+                <span className="font-semibold text-foreground text-right">{blocksCompleted}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
+                <span className="text-muted-foreground">Sessions logged</span>
+                <span className="font-semibold text-foreground text-right">{sessionsLogged}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-3 py-2 border-t border-[var(--hub-border)] text-[13px]">
+                <span className="text-muted-foreground">Last session</span>
+                <span className="font-semibold text-foreground text-right">
+                  {lastSessionDate
+                    ? new Date(lastSessionDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                    : "—"}
+                </span>
+              </div>
             </div>
           </HubCard>
         </aside>

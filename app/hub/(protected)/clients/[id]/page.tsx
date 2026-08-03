@@ -13,7 +13,7 @@ import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuick
 import type { TrainerizeHistoryData } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
-import { lookupStatus } from "@/lib/hubStatus";
+import { lookupStatus, type StatusToken } from "@/lib/hubStatus";
 import { computeComplianceFlags } from "@/lib/compliance";
 import type { DBClientGroupType, DBClientPaceMode } from "@/types";
 import { PlanAgentTab } from "./PlanAgentTab";
@@ -199,6 +199,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     ? blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0]
     : null;
   const latestSessionLog = sessions?.[0] ? ((sessions[0] as any).data?.session_log ?? null) : null;
+
+  const blockSessionCounts: Record<number, number> = {};
+  for (const s of sessions ?? []) {
+    const bn = (s as any).blocks?.block_number;
+    if (bn != null) blockSessionCounts[bn] = (blockSessionCounts[bn] ?? 0) + 1;
+  }
 
   const metaParts: string[] = [];
   metaParts.push(`Client #${client.client_number}`);
@@ -441,6 +447,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
                     )}
                     <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
+                    <HubDataField label="Last check-in">
+                      {latestSessionLog?.completed_at
+                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                        : "—"}
+                    </HubDataField>
                   </HubDataGrid>
                   <UpdateIntervalControl
                     clientNumber={client.client_number}
@@ -856,7 +867,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Block</th>
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Started</th>
-                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Sessions</th>
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Status</th>
                       <th className="h-10 px-5 py-0"></th>
                     </tr>
@@ -868,7 +879,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
                           {new Date(block.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                         </td>
-                        <td className="py-2.5 px-5 text-muted-foreground max-w-[280px] truncate">{block.block_note || "—"}</td>
+                        <td className="py-2.5 px-5 text-foreground">{blockSessionCounts[block.block_number] ?? 0}</td>
                         <td className="py-2.5 px-5"><StatusBadge status={block.status} /></td>
                         <td className="py-2.5 px-5 text-right whitespace-nowrap">
                           <Link href={`/hub/clients/${client.client_number}/blocks/${block.id}`} className="text-teal font-medium hover:underline">Open</Link>
@@ -895,28 +906,34 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Block</th>
-                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Session #</th>
                       <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Date</th>
-                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">RPE</th>
-                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Fatigue</th>
-                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Notes</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Session</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Check-in</th>
+                      <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sessions.map((session) => {
                       const log = (session.data as any)?.session_log;
+                      const blockNum = (session?.blocks as any)?.block_number;
+                      const fatigue = log?.fatigue;
+                      const rpe = log?.rpe != null ? Number(log.rpe) : null;
+                      const isFlagged = (fatigue === "high") || (rpe !== null && rpe >= 8);
+                      const checkinLabel = !log ? "—" : isFlagged ? "Fatigue flagged" : "Good";
+                      const checkinToken: StatusToken = !log ? "neutral" : isFlagged ? "warning" : "success";
                       return (
                         <tr key={session.id} className="border-b border-[var(--hub-border)] last:border-0">
-                          <td className="py-2.5 px-5 text-foreground">{(session?.blocks as any)?.block_number || '-'}</td>
-                          <td className="py-2.5 px-5 text-foreground">{session.session_number}</td>
-                          <td className="py-2.5 px-5 text-muted-foreground">
+                          <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
                             {log?.completed_at
                               ? new Date(log.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
                               : "—"}
                           </td>
-                          <td className="py-2.5 px-5 text-muted-foreground">{log?.rpe ?? "—"}</td>
-                          <td className="py-2.5 px-5 text-muted-foreground capitalize">{log?.fatigue ?? "—"}</td>
+                          <td className="py-2.5 px-5 font-semibold text-foreground">
+                            {blockNum != null ? `Block ${blockNum} · S${session.session_number}` : `S${session.session_number}`}
+                          </td>
+                          <td className="py-2.5 px-5">
+                            {log ? <TokenPill token={checkinToken} label={checkinLabel} /> : <span className="text-muted-foreground">—</span>}
+                          </td>
                           <td className="py-2.5 px-5 text-muted-foreground max-w-[240px] truncate">{log?.notes || "—"}</td>
                         </tr>
                       );
