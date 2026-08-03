@@ -2500,3 +2500,56 @@ well before treating this as fully signed off.
   organically as SOP-009 (Incident Response) generates entries.
 - No code changes, no migration, no deploy, no push — this was a data-only publish into tables
   that already existed live.
+
+## Session close — 2026-08-03 — Hub design-parity/mobile Work Orders + live bug hunt
+
+**Design work (12 lanes, 3 Work Orders, all merged and pushed):**
+- `wo-eternalfitness-hub-parity-deepdive-2026-08-03` (7 lanes) — deep-dive review of every hub
+  page/tab/modal against `D:\apps\design-systems\ef-control-hub\*.html` mockups, then fixed every
+  confirmed drift item: exercise dialog colour, live-session-log RPE field, session-editor modals
+  (Sheet drawer, browse-before-typing, equipment tags, image attach), client-detail table columns,
+  PAR-Q hub-mode Section 7, Process & Quality action wiring, documents/agreements onto the Hub
+  component system, updates preview drawer + uncovered-modal restyle.
+- `wo-eternalfitness-cashflow-shell-2026-08-03` — built the missing invoice detail page directly
+  on the existing Hub shell per Craig's "don't wait for OpenDesign, use the shell" instruction.
+- `wo-eternalfitness-hub-mobile-2026-08-03` (4 lanes) — fixed the Hub sidebar (was a static 240px
+  column eating most of the screen on Craig's Samsung A52s, now a `lg:`-gated hamburger/drawer),
+  plus mobile-breakpoint fixes on the block-detail session accordion, session-editor exercise rows,
+  and 7 other pages found by a 4-agent read-only audit.
+- Two real bugs caught and fixed on review before merging (not shipped blind): a delete-button
+  using brand rose instead of the danger token, and a mobile-wrap fix with no breakpoint gate that
+  would have reflowed desktop too.
+- All 12 lanes merged via one integration branch, 2 real file-level overlaps auto-merged cleanly
+  and verified (not just trusted), full combined `tsc --noEmit` clean, pushed as a fast-forward.
+
+**Live bug hunt (4 more fixes, same session, after Craig reported a workout "didn't show as saved"):**
+Root cause was three separate silent-failure bugs in `lib/pg-client.ts` (this app's hand-rolled
+PostgREST-style query shim over raw `pg`) — it only resolves one level of embedded-relation
+selects/filters, and any deeper nesting throws a real Postgres error that gets caught and quietly
+turned into `{data: null}` with zero visible error anywhere. The workout itself was never lost.
+- `75e498a` — dashboard's Sessions-this-week/Check-ins-logged/Recent-Check-ins/This-Week's-Plan
+  all silently showed zero (doubly-nested embed in 3 queries).
+- `5c2ac1e` — client Training tab's Session Log table, Blocks-table session count, and Progress
+  tab trend/PB panels all silently empty (dotted embed-column filter the shim can't resolve).
+- `dc1bd4d` — added inline per-exercise logged results on the session view (Craig had to click
+  into all ~30 exercises individually to see what actually happened; confirmed scope via
+  AskUserQuestion before building).
+- `f97c0e6` — Session Log table rows on the Training tab had no link at all; added one matching
+  the Blocks table's existing pattern.
+
+Confirmed via codebase-wide grep that both embed bugs' exact patterns were isolated to the files
+fixed — not a systemic problem, but the failure mode (silent, no error surfaced anywhere) means
+any other spot doing a doubly-nested `!inner` select or filtering on a dotted embedded-column path
+would fail the same invisible way. Worth a proactive grep sweep if anything else looks emptier
+than it should.
+
+All 4 live fixes verified against real production data (direct DB queries before/after, generated
+SQL reproduced and tested) and confirmed live in Craig's own Chrome session via `claude-in-chrome`
+(he granted direct browser access mid-session) — real screenshots and DOM reads, not deploy-status
+alone.
+
+**Process note for next session:** repeatedly caught myself reading stale files from the shared
+checkout (`D:\apps\eternal-fitness-website`) while investigating — it sits behind by design since
+all real work happens in per-task worktrees, but it's easy to forget mid-investigation. Use
+`git show origin/main:<path>` to read the actual live code, not a plain `Read` on the shared
+checkout path.
