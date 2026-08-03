@@ -1,6 +1,19 @@
 # Eternal Fitness Website — State
 
 ## Current
+- **Cashflow work order CLOSED — Lanes 5-7 (bank import, reconciliation, dashboard) DONE + DEPLOYED
+  2026-08-03 (`3178fee`/`92467cd`/`9ffdc84`).** Bank statement import at `/hub/cashflow/transactions`
+  (parser built against a Monzo CSV Craig supplied as a stand-in for the still-missing real HSBC
+  sample — adapter pattern, no real transactions imported), reconciliation queue at
+  `/hub/cashflow/reconciliation` (suggest-and-confirm matching, never auto-commits), and a cashflow
+  overview dashboard at `/hub/cashflow` (real live KPI queries, no hardcoded numbers). All 3 lanes
+  hand-reviewed line-by-line and independently `tsc`/build re-verified, plus DB-level verification
+  with seeded-then-cleaned-up synthetic data for the two lanes with computed numbers. See
+  `handoff.md`'s 2026-08-03 entry for full detail. **Separately found, not actioned:** a second
+  unclaimed work order (`wo-eternalfitness-consolidated-2026-08-02`, public marketing-page
+  follow-ups — hero badge clipping fix, live verification pass, 5 copy/content decisions) — deferred
+  in the registry, not silently dropped; the badge-clip candidate fix was applied but left
+  uncommitted/unverified since the Browser pane's screenshot tool wouldn't render this session.
 - **Hub task backlog cleared + email system redesigned — DONE + DEPLOYED 2026-08-02 (`e8b44aa`).**
   Client-portal Resources area (calorie calculator, Showdown Soundboard, per-client visibility
   toggle), Exercise History (PB + last-performed from `set_logs`), session-notes RPE removed +

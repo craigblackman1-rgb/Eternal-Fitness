@@ -1,5 +1,63 @@
 # Handoff
 
+## Session close — 2026-08-03 — Cashflow WO closed (Lanes 5-7), marketing follow-ups deferred
+
+Craig asked to pick up "all other work order items" while a separate concurrent session handled
+hub design. Checked the registry (`wo active`): only one real open item on this app outside hub
+design — the tail of `wo-eternalfitness-training-cashflow-2026-08-02` (Lanes 5-7: bank statement
+import, reconciliation, cashflow dashboard). Also surfaced a second, separate, previously-unclaimed
+WO (`wo-eternalfitness-consolidated-2026-08-02`, marketing-page follow-ups) while checking for
+"anything beyond" the cashflow lanes.
+
+**Cashflow WO — CLOSED, all 3 remaining lanes done + deployed:**
+- **Lane 5 — bank statement import.** Craig supplied a Monzo CSV export as a stand-in
+  column-format template (real HSBC sample still not available) — explicit instruction: do not
+  import its transactions. `bank_statement_imports`/`bank_transactions` migration (applied to
+  prod, empty), `lib/bank-statement-parser.ts` built as a swappable adapter
+  (`parseMonzoStyleCsv()`, a future `parseHsbcCsv()` drops in without a rewrite), upload → preview
+  → commit UI at `/hub/cashflow/transactions`. Pushed `3178fee`.
+- **Lane 6 — reconciliation queue.** Suggest-and-confirm matching (amount ±£0.01 + date window +
+  invoice-number text signal), `dismissed_matches` table (applied to prod), confirm action
+  atomically locks both rows and sets the invoice to `paid`. `/hub/cashflow/reconciliation`.
+  Verified end-to-end by seeding a synthetic invoice + transaction in prod and confirming the
+  matching query actually surfaced the pair, then cleaning up. Pushed `92467cd`.
+- **Lane 7 — cashflow overview dashboard.** `/hub/cashflow` — outstanding/overdue/paid-this-month
+  KPI tiles + recent-activity table, all computed live from real queries (overdue computed by
+  date, not the possibly-stale `status` column; paid-this-month explicitly documented as an
+  `updated_at` proxy, no `paid_at` column exists). Matching heuristic extracted into shared
+  `lib/cashflow-matching.ts` so the dashboard and reconciliation route can't drift apart. Verified
+  by seeding 3 synthetic invoices in prod and checking the before/after delta matched the expected
+  £300/£180/£240 exactly, then cleaning up. Pushed `9ffdc84`.
+
+All three lanes dispatched to OpenCode (`launch-opencode-lane.ps1`) but **hand-reviewed
+line-by-line, not trusted on self-report** — read every new file, independently re-ran
+`tsc --noEmit` and `next build` after each (not just accepted the lane's own claim), and did real
+DB-level verification with seeded/cleaned-up synthetic data for the two lanes with computed
+numbers (6 and 7), not just code review. Registry updated (`wo status ... done`) with full detail.
+
+**Marketing follow-ups WO — found, NOT actioned, deferred with next steps:**
+`wo-eternalfitness-consolidated-2026-08-02` (public marketing pages only, no hub/portal/DB).
+- Lane A (hero "L4 QUALIFIED" badge clipping): applied a candidate fix (`white-space: nowrap` on
+  `.hbc-s` in `app/home.css`) but could not visually verify — the Browser pane's screenshot tool
+  wouldn't render in this session ("pane not displayed"), and the WO's own VERIFY step requires a
+  real 1280px/375px screenshot. Also discovered a prior fix for this same bug already shipped
+  2026-07-30 (`0049e9a`, 44px→54px circle) — the WO checklist was never updated to reflect it, so
+  it's unclear whether the badge still actually clips today. My uncommitted CSS tweak got swept
+  away by a later OpenCode lane's own cleanup step (treated as unrelated dirty state) — **not
+  committed, not pushed, nothing to revert.**
+- Lane B (live verification pass — scroll section, Contact form, 7-page mobile recheck): not
+  started, same Browser-pane blocker.
+- Lane C (5 copy/content decisions — condition-roll-call wording, blog launch scope, ~15 FAQ
+  answers, About page sourcing, Google Reviews shortlist): explicitly GATE in the WO's own text,
+  Esther/Craig judgment calls, correctly not touched.
+All three deferred in the registry (`dmsd9zcg0ur`, `dmsd9zckk4i`, `dmsd9zcnv1x`) with next-step
+notes rather than silently dropped.
+
+**Environment note for next session:** this worktree had no `node_modules` (junctioned from the
+shared checkout) and no `.env.local` (copied in temporarily for DB verification steps, deleted
+before each commit/push — never left tracked). A `.claude/launch.json` was created for local
+`next dev` preview and removed again at session close.
+
 ## Session close — 2026-08-02 (later) — Trainerize historical import, live PB/templates, cashflow core, tab consolidation, live block promotion
 
 Full detail: `wo-eternalfitness-training-cashflow-2026-08-02`. Scope docs:
