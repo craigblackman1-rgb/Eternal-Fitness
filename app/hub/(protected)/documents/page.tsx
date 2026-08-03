@@ -11,7 +11,7 @@ export default async function AllDocumentsPage() {
   const { data: docs } = await supabase
     .from("client_documents")
     .select(
-      "id, kind, title, status, version, created_at, emailed, clients(client_number, name, email)",
+      "id, kind, title, status, version, created_at, emailed, signed_at, sent_at, clients(client_number, name, email)",
     )
     .order("created_at", { ascending: false });
 
@@ -24,6 +24,8 @@ export default async function AllDocumentsPage() {
       version: number;
       created_at: string;
       emailed: boolean | null;
+      signed_at: string | null;
+      sent_at: string | null;
       clients: Joined;
     }[]
   ).map((d) => ({
@@ -37,6 +39,8 @@ export default async function AllDocumentsPage() {
     version: d.version,
     created_at: d.created_at,
     emailed: d.emailed,
+    signed_at: d.signed_at ?? null,
+    sent_at: d.sent_at ?? null,
   }));
 
   const signed = rows.filter((r) => r.status === "signed").length;
