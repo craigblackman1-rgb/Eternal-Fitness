@@ -22,6 +22,7 @@ export default async function ProcessQualityPage() {
     { data: allParq },
     { data: allAgreements },
     { data: equipment },
+    { data: signedDocuments },
   ] = await Promise.all([
     supabase.from("process_entries").select("*").order("ref", { ascending: true }),
     supabase.from("sops").select("*").order("ref", { ascending: true }),
@@ -30,6 +31,7 @@ export default async function ProcessQualityPage() {
     supabase.from("signed_parq").select("*").order("created_at", { ascending: false }),
     supabase.from("signed_agreements").select("*").order("created_at", { ascending: false }),
     supabase.from("studio_equipment").select("*").order("sort_order", { ascending: true }),
+    supabase.from("client_documents").select("client_id, kind, status").in("kind", ["parq", "terms"]).eq("status", "signed"),
   ]);
 
   const latestParqByClient = new Map<string, SignedPARQ>();
@@ -40,11 +42,28 @@ export default async function ProcessQualityPage() {
   for (const a of allAgreements ?? []) {
     if (a.client_id && !latestAgreementByClient.has(a.client_id)) latestAgreementByClient.set(a.client_id, a);
   }
+  const signedParqDocClientIds = new Set(
+    (signedDocuments ?? []).filter((d) => d.kind === "parq").map((d) => d.client_id),
+  );
+  const signedAgreementDocClientIds = new Set(
+    (signedDocuments ?? []).filter((d) => d.kind === "terms").map((d) => d.client_id),
+  );
 
   const clientRows = (clients ?? []).map((client: DBClient) => {
     const latestParq = latestParqByClient.get(client.id) ?? null;
     const latestAgreement = latestAgreementByClient.get(client.id) ?? null;
-    return { client, latestParq, latestAgreement, flags: computeComplianceFlags({ client, latestParq, latestAgreement }) };
+    return {
+      client,
+      latestParq,
+      latestAgreement,
+      flags: computeComplianceFlags({
+        client,
+        latestParq,
+        latestAgreement,
+        hasSignedParqDocument: signedParqDocClientIds.has(client.id),
+        hasSignedAgreementDocument: signedAgreementDocClientIds.has(client.id),
+      }),
+    };
   });
 
   const totalClients = clientRows.length;

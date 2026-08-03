@@ -11,6 +11,7 @@ import {
   IconCheckSquare,
   IconClipboardCheck,
   IconClipboardList,
+  IconClock,
   IconDumbbell,
   IconBot,
   IconEdit3,
@@ -28,6 +29,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     items: [
       { href: "/hub", label: "Dashboard", icon: IconLayoutDashboard },
       { href: "/hub/schedule", label: "Schedule", icon: IconCalendar },
+      { href: "/hub/plan-schedule", label: "Plan Schedule", icon: IconClock },
       { href: "/hub/tasks", label: "Tasks", icon: IconCheckSquare },
     ],
   },
@@ -52,9 +54,16 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     ],
   },
   {
+    label: "Finance",
+    items: [
+      { href: "/hub/cashflow/invoices", label: "Invoices", icon: IconFileText },
+    ],
+  },
+  {
     label: "Resources",
     items: [
       { href: "/hub/exercises", label: "Exercise Library", icon: IconBookText },
+      { href: "/hub/workout-templates", label: "Workout Templates", icon: IconDumbbell },
       { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
       { href: "/hub/site-review", label: "Site Review", icon: IconCheckSquare },
       { href: "/hub/site-content", label: "Site Content", icon: IconEdit3 },

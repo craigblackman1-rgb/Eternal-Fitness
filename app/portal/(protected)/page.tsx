@@ -17,6 +17,7 @@ import { formatUpdateTime } from "@/lib/updates/status";
 import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
 import { buildExerciseTrends } from "@/lib/progress";
 import { StatusBadge } from "@/components/hub/StatusBadge";
+import { getEnabledResources } from "@/lib/resources";
 
 const KIND_LABELS: Record<string, string> = {
   terms: "Training agreement & studio terms",
@@ -88,6 +89,10 @@ export default async function PortalDashboardPage() {
   );
   const actionCount = needsSignature.length;
   const hasOutstanding = outstanding.length > 0;
+
+  const visibility = client?.resource_visibility ?? {};
+  const enabledResources = getEnabledResources(visibility);
+  const calorieGuideEnabled = enabledResources.some((r) => r.key === "calorie-calculator");
 
   return (
     <div className="space-y-10">
@@ -342,56 +347,58 @@ export default async function PortalDashboardPage() {
       </section>
 
       {/* Tools ------------------------------------------------- */}
-      <section aria-labelledby="tools">
-        <h2 id="tools" className="text-lg font-semibold tracking-tight mb-1">
-          Tools you can use any time
-        </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Yours to open whenever you want. Nothing you enter is saved or sent to
-          Esther.
-        </p>
+      {calorieGuideEnabled && (
+        <section aria-labelledby="tools">
+          <h2 id="tools" className="text-lg font-semibold tracking-tight mb-1">
+            Tools you can use any time
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Yours to open whenever you want. Nothing you enter is saved or sent to
+            Esther.
+          </p>
 
-        <div className="rounded-2xl border border-border/60 bg-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0 mt-0.5">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 32 32"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-5 h-5"
-                aria-hidden="true"
-              >
-                <rect x="5" y="3" width="22" height="26" rx="2" />
-                <line x1="9" y1="9" x2="15" y2="9" />
-                <line x1="9" y1="14" x2="11" y2="14" />
-                <line x1="16" y1="14" x2="18" y2="14" />
-                <line x1="9" y1="19" x2="11" y2="19" />
-                <line x1="16" y1="19" x2="18" y2="19" />
-              </svg>
+          <div className="rounded-2xl border border-border/60 bg-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0 mt-0.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 32 32"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-5 h-5"
+                  aria-hidden="true"
+                >
+                  <rect x="5" y="3" width="22" height="26" rx="2" />
+                  <line x1="9" y1="9" x2="15" y2="9" />
+                  <line x1="9" y1="14" x2="11" y2="14" />
+                  <line x1="16" y1="14" x2="18" y2="14" />
+                  <line x1="9" y1="19" x2="11" y2="19" />
+                  <line x1="16" y1="19" x2="18" y2="19" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">
+                  Your daily calorie guide
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  A starting estimate of how much you need in a day, and how it
+                  might split across protein, carbohydrate and fat. About 3
+                  minutes.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-foreground">
-                Your daily calorie guide
-              </p>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                A starting estimate of how much you need in a day, and how it
-                might split across protein, carbohydrate and fat. About 3
-                minutes.
-              </p>
-            </div>
+            <Link
+              href="/portal/calorie-guide"
+              className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent shrink-0"
+            >
+              Open
+            </Link>
           </div>
-          <Link
-            href="/portal/calorie-guide"
-            className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent shrink-0"
-          >
-            Open
-          </Link>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Coming to your client area ---------------------------- */}
       <section aria-labelledby="whats-next">

@@ -1,6 +1,9 @@
 import { buildBrandedUpdateEmail } from "./shell";
 
 const ROSE = "#C1839F";
+const INK = "#131313";
+const BODY_COLOR = "#525A61";
+const TEAL = "#087E8B";
 
 export interface ParqRequestEmailInput {
   clientName: string;
@@ -22,17 +25,17 @@ export function buildParqRequestEmail(input: ParqRequestEmailInput): string {
   const { signUrl, isUpdate } = input;
 
   const ctaButton = `
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 16px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 20px;">
       <tr>
         <td align="center" bgcolor="${ROSE}" style="border-radius:999px;">
           <a href="${signUrl}" target="_blank" rel="noopener"
-             style="display:inline-block;padding:14px 32px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:999px;">
-            ${isUpdate ? "Review & update" : "Complete PAR-Q"}
+             style="display:inline-block;padding:15px 36px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:${INK};text-decoration:none;border-radius:999px;">
+            ${isUpdate ? "Review &amp; update" : "Complete PAR-Q"}
           </a>
         </td>
       </tr>
     </table>
-    <p style="margin:8px 0 0;font-size:12px;color:#8A8790;">Or copy this link: <a href="${signUrl}" style="color:#087E8B;">${signUrl}</a></p>`;
+    <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:${BODY_COLOR};">Or copy this link: <a href="${signUrl}" style="color:${TEAL};text-decoration:underline;">${signUrl}</a></p>`;
 
   return buildBrandedUpdateEmail({
     documentTitle: "Your PAR-Q health questionnaire",

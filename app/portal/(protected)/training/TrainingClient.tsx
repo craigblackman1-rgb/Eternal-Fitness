@@ -80,7 +80,7 @@ export default function TrainingClient({
   const saveSetLog = async (
     sessionId: string,
     payload: SetLogSavePayload,
-  ): Promise<boolean> => {
+  ): Promise<{ ok: boolean; isNewPb: boolean }> => {
     const key = logKey(sessionId, payload.exercise_ref, payload.set_number);
     const existing = logs[key];
     const res = await fetch(`/api/portal/sessions/${sessionId}/set-logs`, {
@@ -100,11 +100,11 @@ export default function TrainingClient({
     });
     if (!res.ok) {
       toast.error("That didn't save — check your connection and try again.");
-      return false;
+      return { ok: false, isNewPb: false };
     }
-    const saved: SetLog = await res.json();
+    const saved: SetLog & { is_new_pb?: boolean } = await res.json();
     setLogs((prev) => ({ ...prev, [key]: saved }));
-    return true;
+    return { ok: true, isNewPb: saved.is_new_pb === true };
   };
 
   return (
@@ -199,7 +199,7 @@ function SessionSection({
   exercises: PortalExercise[];
   session: PortalSessionPlan;
   logs: Record<string, SetLog>;
-  onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<boolean>;
+  onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   if (exercises.length === 0) return null;
 
@@ -235,7 +235,7 @@ function ExerciseCard({
   exerciseRef: string;
   session: PortalSessionPlan;
   logs: Record<string, SetLog>;
-  onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<boolean>;
+  onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   const [open, setOpen] = useState(false);
   const totalSets = Math.max(1, exercise.sets || 1);
@@ -330,7 +330,7 @@ function ExerciseSetLogger({
   exerciseRef: string;
   session: PortalSessionPlan;
   logs: Record<string, SetLog>;
-  onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<boolean>;
+  onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   const totalSets = Math.max(1, exercise.sets || 1);
   const timeBased = isTimeBasedReps(exercise.reps);
@@ -353,6 +353,7 @@ function ExerciseSetLogger({
     return init;
   });
   const [savingSet, setSavingSet] = useState<number | null>(null);
+  const [pbSets, setPbSets] = useState<Set<number>>(new Set());
 
   const save = async (setNumber: number, completed: boolean) => {
     const draft = drafts[setNumber] ?? { main: "", weight: "" };
@@ -362,7 +363,7 @@ function ExerciseSetLogger({
     const reps = timeBased ? null : mainVal ?? (completed ? prescribedReps : null);
     const duration = timeBased ? mainVal ?? (completed ? prescribedSeconds : null) : null;
     setSavingSet(setNumber);
-    await onSave(session.id, {
+    const result = await onSave(session.id, {
       exercise_ref: exerciseRef,
       set_number: setNumber,
       reps: reps != null && Number.isFinite(reps) ? Math.round(reps) : null,
@@ -371,6 +372,9 @@ function ExerciseSetLogger({
       completed,
     });
     setSavingSet(null);
+    if (result.isNewPb) {
+      setPbSets((prev) => new Set(prev).add(setNumber));
+    }
   };
 
   return (
@@ -444,6 +448,11 @@ function ExerciseSetLogger({
             <span className="text-[11px] text-muted-foreground" aria-live="polite">
               {log ? (log.completed ? "Done" : "Skipped") : ""}
             </span>
+            {pbSets.has(setNumber) && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-amber)] text-[var(--color-ink)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shrink-0">
+                New PB
+              </span>
+            )}
           </div>
         );
       })}

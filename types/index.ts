@@ -154,6 +154,10 @@ export interface ClientProfile {
   };
   health: {
     gp_clearance: boolean;
+    /** Trainer-set flag — Esther decides whether this client needs a GP clearance
+     *  letter before training, based on her own clinical judgement. Replaces the
+     *  earlier automated rule that inferred this from PAR-Q answers. */
+    gp_clearance_required?: boolean;
     conditions: string[];
     contraindications: string[];
     medications_relevant: string[];
@@ -219,6 +223,23 @@ export interface SessionVersion {
   cooldown: Exercise[];
 }
 
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  data: SessionVersion;
+  archetypes: string[];
+  movement_type: string[];
+  muscle_groups: string[];
+  equipment: string[];
+  difficulty: number | null;
+  condition_tags: string[];
+  source_client_id: string | null;
+  source_session_id: string | null;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Session {
   session_id: string;
   block_id: string;
@@ -240,7 +261,7 @@ export interface Session {
 
 export interface SessionLog {
   completed_at: string | null;
-  rpe: number | null;
+  rpe?: number | null;
   fatigue: "low" | "moderate" | "high" | null;
   notes: string;
 }
@@ -273,7 +294,7 @@ export type GpLetterStatus = "not_required" | "requested" | "received";
 export type MedicalClearanceStatus = "cleared" | "pending" | "not_required" | "not_yet_requested";
 export type RiskLevel = "low" | "medium" | "high";
 export type PaymentStatus = "paid" | "deposit" | "pending" | "overdue" | "suspended";
-export type ClientStatus = "active" | "inactive" | "completed" | "suspended";
+export type ClientStatus = "active" | "inactive" | "completed" | "suspended" | "archived";
 
 export interface BlockSummary {
   block_number: number;
@@ -378,6 +399,7 @@ export interface DBBlock {
   summary: string | null;
   created_at: string;
   approved_at: string | null;
+  scheduled_start: string | null;
 }
 
 export interface DBSession {
@@ -552,4 +574,51 @@ export interface ClientDocumentsSummary {
 
 export interface ClientWithDocuments extends DBClient {
   documents: ClientDocumentsSummary;
+}
+
+export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue" | "void";
+
+export interface DBInvoice {
+  id: string;
+  client_id: string;
+  invoice_number: string;
+  issue_date: string;
+  due_date: string;
+  status: InvoiceStatus;
+  currency: string;
+  subtotal: number;
+  vat_total: number;
+  total: number;
+  client_document_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBInvoiceLineItem {
+  id: string;
+  invoice_id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  vat_rate: number;
+  line_total: number;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface DBInvoiceTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  line_items: InvoiceTemplateLineItem[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceTemplateLineItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
 }

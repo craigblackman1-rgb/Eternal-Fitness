@@ -1,5 +1,83 @@
 # Handoff
 
+## Session close — 2026-08-02 (later) — Trainerize historical import, live PB/templates, cashflow core, tab consolidation, live block promotion
+
+Full detail: `wo-eternalfitness-training-cashflow-2026-08-02`. Scope docs:
+`.context/scope-trainerize-historical-import-2026-08-02.md`, `.context/scope-cashflow-invoicing-2026-08-02.md`.
+Final push `f6345d4`, deployed, confirmed `running:healthy` (multiple deploys through the session —
+the first one for each code-only commit hit the known transient Coolify exit-255-at-finalize
+pattern once; a manual redeploy of the same commit fixed it, no code issue).
+
+**Trainerize historical import — full roster.** Discovered Trainerize's frontend runs on an
+internal JSON API (`api.trainerize.com/v03/*`) rather than server-rendered pages — auth needs a
+JWT bearer token the SPA holds in memory (captured from a real request, not a cookie). Imported
+training blocks/workouts/exercises, notes, and best-ever PBs for all 15 active clients into new
+`trainerize_*` archive tables (deliberately separate from live `blocks`/`sessions` — different
+status semantics). Also pulled 2 real former clients not previously in the hub (Judy Holmes, Uma
+Assous) by driving Trainerize's "Deactivated" client filter — added a reusable `archived`
+`client_status` value + hub list-view toggle for this going forward.
+
+**Actual per-set workout results, not just prescribed program/PBs.** Craig asked directly whether
+real logged performance (not just the prescription) was being pulled — it wasn't. Found
+`dailyWorkout/get` (fed by `calendar/getList`, chunked <1yr per Trainerize's own range limit)
+returns true per-set reps/weight/distance/time. Built `trainerize_workout_results` — 19,687 real
+logged sets across 883 sessions for the 15 active clients. The 2 archived clients get 0 — confirmed
+via direct API test this is a genuine Trainerize 403 (deactivated accounts lose access to this
+endpoint specifically, tied to the paid-seat model), not a bug.
+
+**Tab consolidation — Progress/History/Training History were 3 tabs computing PBs 3 different,
+disconnected ways.** Investigated the actual code rather than assume: the old History tab
+recomputed PBs from `set_logs` only, completely blind to `personal_records` or Trainerize data;
+Training History's PB card only ever showed Trainerize-imported PBs. Consolidated to 2 tabs —
+**Progress** (unified trend + PB/last-performed, fed by both live `set_logs` and Trainerize's
+per-set results via new `lib/trainerize-adapter.ts`, which converts Trainerize rows into the same
+`SetLog` shape so they flow through the existing `buildExerciseTrends`/`buildExerciseHistory` pure
+functions unchanged) and **Training History** (narrowed to program structure + notes only).
+`?tab=history` redirects to `progress` rather than silently falling back to overview.
+
+**Live PB flagging + workout templates (independent of the Trainerize work).** Wired the existing
+`buildExerciseHistory` PB logic into live session logging (hub `LiveSessionLog.tsx` + portal
+`TrainingClient`) with an inline "New PB" badge, backed by the shared `personal_records` table
+(now the single source for both live-set and Trainerize-imported PBs). Added `workout_templates`
+with auto-derived facet tags (archetype/movement/muscle/equipment computed from the exercises
+inside a template on save) + a small manual `condition_tags` field — solves Esther's "I call
+everything Workout A" problem by making the display name irrelevant to findability.
+
+**Cashflow/invoicing core.** Structured invoicing (`invoices`/`invoice_line_items`/
+`invoice_templates` — real relational line items, not the flat-amount pattern the Decoded Ops hub
+uses) delivered through the existing document engine as a 7th `kind` rather than a parallel send
+pipeline. Esther confirmed not VAT-registered, so no VAT logic anywhere. HSBC statement import
+(the other half of this initiative) is **on hold per Craig** — genuinely blocked on a real CSV/OFX
+sample, not pursued further this session.
+
+**Promoted currently-in-progress Trainerize blocks to real live blocks.** The Training tab was
+empty for every imported client (it reads live `blocks`/`sessions`, not the archive tables).
+`scripts/promote-active-trainerize-blocks.mjs` finds clients whose Trainerize block start/end date
+spans today and creates a real `blocks`(status=`draft`, hub-only, not client-portal-visible)/
+`sessions` row per workout — 12 clients. Caught a real data-shape issue via dry-run *before*
+writing: Odul Bozkurt had separate "GYM"/"HOME" Trainerize workout entries for the same session
+(would have become 6 wrong sequential sessions instead of 3 correct dual-version ones) — built
+`pairGymHomeWorkouts()` to match by workout number and merge correctly.
+
+**Verification discipline throughout:** every UI change was checked with a disposable staff
+account (created via direct Postgres insert matching the real better-auth schema, deleted
+immediately after) against the actual live site (`staging.eternal-fitness.co.uk`), not just
+localhost or a self-report. Caught and fixed 2 real bugs this way that `tsc`/build passing had
+missed: (1) `TrainerizeHistoryPanel`/`types.ts` reading Trainerize's raw API field names
+(`name`/`target`/`restTime`) instead of the real DB column names (`exercise_name`/`target_reps`/
+`rest_time_seconds`) — Personal Records and workout exercise tables rendered blank/placeholder
+values despite correct underlying data; (2) same bug class recurred in the workout/exercise
+render layer after the first fix, caught because Craig looked closely rather than trusting the
+first "done."
+
+### Not done / deferred this session
+- HSBC statement import (Lane 5 of the cashflow WO) — held per Craig, needs a real sample.
+- Reconciliation queue + cashflow dashboard (Lanes 6-7) — depend on Lane 5.
+- Full set-by-set drill-down UI exists on the client-detail Progress tab (paginated, click-to-
+  expand) but there's no cross-client "recent PBs" or "recent sessions" feed yet — not asked for.
+- `clients.payment_status` superseding by invoice-derived state — explicitly out of scope for the
+  cashflow WO, a separate future decision once invoicing has been used for a while.
+
 ## Session close — 2026-08-01 (evening) — Tom Putnam migrated from Trainerize as Block 1 (test case)
 
 **Full detail: `.context/decisions.log` (top entry, 2026-08-01).** Summary: imported Esther's existing
@@ -27,7 +105,78 @@ these were in the Trainerize export.
    should probably be reconciled into one migration story if more Trainerize clients get migrated.
 4. If the test is judged a success, decide whether/how to migrate other existing Trainerize clients.
 
----
+## Session close — 2026-08-02 — Hub task backlog cleared, updates-module fix, welcome email redesigned
+
+**Reviewed every hub task assigned to Craig with status `todo` (`tasks` table, EF Hub kanban)** and turned them into two Work Orders, both closed this session: `wo-eternalfitness-hub-tasks-2026-08-02` (Resources area + calorie calculator + Showdown Soundboard, exercise history/PB tracking, session-notes mic input, plan-schedule page, email-timing fix, welcome-aboard email, updates-module fix) and a follow-up `wo-eternalfitness-welcome-email-2026-08-02` / `wo-eternalfitness-email-shell-redesign-2026-08-02` (branded welcome email, manual-send-only, preview capability, then a full visual redesign of the shared email shell from Craig's OpenDesign mockups). All corresponding hub task rows marked `done`. Final state pushed as `e8b44aa`, deployed, confirmed `running:healthy`.
+
+**Updates-module bug, real root cause found (not guessed):** Tom Putnam's AI-generated draft update came back with unfilled `[CLIENT — I don't have X yet]` placeholders for topics Esther had actually discussed. Root cause confirmed by reading the actual `sent_updates` rows: `UpdateChatPanel.tsx` silently truncated the pasted conversation at 4000 characters before it ever reached the AI. Fixed (cap raised to 20,000 with a visible warning), plus per Craig's follow-up instruction the `[CLIENT]` placeholder was removed as an allowed AI output entirely across all three update kinds (six-week/four-week/flexible, all share `systemPreamble()`) — Esther's input always has enough detail, so the model is now told to keep reading rather than bail to a placeholder. A pre-send guard blocks Send/Schedule (not Save Draft) if a placeholder slips through anyway. **Not verifiable by tsc/build** — this is model-behavior, not code-logic; needs a live test against a real detailed conversation before fully trusting it.
+
+**Two real bugs caught during review, not self-reported by the OpenCode lanes that wrote them:**
+1. Welcome-aboard email reused the 15-minute password-*reset* token TTL for what's actually an invite link that can sit unopened for days — most links would have expired before a client ever clicked them. Fixed with a separate 7-day `WELCOME_TOKEN_TTL_SECONDS`.
+2. A `plan-schedule` lane relabeled the *shared* `blockStatusMap` in `lib/hubStatus.ts` site-wide (Draft→To Do etc) instead of using its own already-built `scheduleStatusMap` — `lookupStatus()` checks `blockStatusMap` first in a `??` chain used by `StatusBadge` everywhere in the hub, so this would have silently relabeled every existing block-status badge app-wide. Reverted, wired the isolated map through `TokenPill` instead.
+
+**Email redesign integration issue, also caught in review:** two separate OpenCode lanes independently rewrote `lib/portal-auth.ts`'s welcome-email function from different base commits (one before, one after the email-shell redesign). Merging them left a duplicate `const html` declaration and a reference to an undefined `loginUrl` variable — a build-breaking bug neither lane's own tsc/build check could catch, since it only existed after combining their work. Rewrote the merged function cleanly, composed through `buildBrandedUpdateEmail`/`shell.ts` (matching `document-ready.ts`'s existing pattern) rather than the inline full-HTML duplicate one lane had written. Verified all 7 email templates (welcome, document-ready, PAR-Q ×2, six/four-week/flexible update) against Craig's mockups in `D:\apps\design-systems\ef-client-portal\email-templates\` with an actual diff of every hex colour/font/spacing value — zero mismatches.
+
+**Deploy note:** this app's Coolify webhook auto-deploys on every push to `main`. Firing an explicit API deploy on top of that (to "confirm" it's building) creates a redundant, resource-contending second deployment that can fail outright — happened twice this session. The webhook deploy is the one that matters; check its status via `deployment list_for_app`, don't also trigger one manually.
+
+**Deferred, not yet reviewed live:** the Resources module (client-portal calorie calculator + Showdown Soundboard, per-client visibility toggle) shipped and passed tsc/build, but Craig hasn't logged into the portal to see it working end-to-end yet — flagged as `dmsbpoaa37f` in the WO registry.
+
+## Session close — 2026-08-02 — Imported Emma's Block 1 from a hand-typed programme, linked exercises to the library, refreshed the Trainerize scrape
+
+**Craig sent two fully-specified workouts for Emma Atkinson (Mon 3 Aug "Workout A", Wed 5 Aug "Workout B" — supersets, a single, a band block, exact sets/reps/rest/start weights) and asked for a block.** No UI path exists for this — the Plan Agent tab only creates blocks via AI chat + `generate-block`, and there's no manual "type in your own sessions" screen. Inserted directly against prod: `blocks` (block_number 1, status `draft`, client_id resolved from `clients` by name) and two `sessions` rows (`session_number` 1/2, `scheduled_at` for the two dates, `data` JSONB matching the `Session`/`SessionVersion`/`Exercise` types — `studio` and `home` versions set identical since Emma is `studio_1to1`). Start weights have no dedicated field on `Exercise`, so they went into `equipment` (e.g. `["12kg dumbbells"]`) since that's what renders directly under the exercise name in `PrescriptionTable`. Cross-checked Emma's profile before writing anything: `esther_observations` says "Foot surgery 29 Jul 2026... Upper body only from 3 Aug" — both workouts Craig sent are upper-body/floor/band only, so they're already consistent with that restriction; flagged this to Craig rather than assuming it was already accounted for.
+
+**Then linked prescribed exercises to the `exercises` library so videos resolve** (Craig's separate ask, for Emma's new block plus Tom Putnam's existing block-1 import). The library-by-name fallback in `lib/portal-data.ts` only fires for the client portal's home version at read time — it isn't persisted, and doesn't touch the hub's trainer-facing view at all. Wrote `ex.media = {image_url, video_url}` directly onto matched exercise objects in the stored session JSON instead (matches how `SessionEditor`'s manual swap dialog already persists media), across both `studio` and `home` versions. Applied high-confidence matches only (exact name or unambiguous naming variant e.g. "DB" vs "Dumbbell", "Dead Bugs" vs "Dead Bug"); left equipment-ambiguous ones (e.g. Single-Leg Hip Thrust — Barbell/Bench/Landmine all tied) and true gaps unlinked rather than guessing on live client data. Sent Craig a CSV (`Client, Exercise as prescribed, Status, Suggested/Linked match, Note`) instead of a chat table so it's shareable with Esther directly.
+
+**Craig then asked to re-run the Trainerize scrape to fill the flagged gaps.** Re-ran `scripts/scrape-trainerize-exercises.mjs` (creds already in `.env.local` from the original 9 Jul import) — found 36 new custom exercises Esther's added since then, 2 of which closed real gaps and had actual YouTube videos (not just Trainerize thumbnails): "Seated Dumbbell Hammer Curl" and "Half kneeling Pallof Press Hold". Also caught my own earlier matching miss on a second pass — "Booty Band Clamshells" does match "Mini Band Clamshell", I'd just missed it the first time over a singular/plural mismatch in a naive token-overlap scorer (no stemming). Imported the 36 new rows into `exercises` directly, then wrote `supabase/migrations/20260802_exercises_trainerize_refresh.sql` documenting it — guarded with a per-row `NOT EXISTS` check (no unique constraint on `trainerize_id`) so it's safe to replay; verified by actually running it against prod and confirming 0 rows inserted (already present). Confirmed the remaining flagged gaps (DB Skull Crusher, Sissy Squat, Ankle Rock/Squat Sit, DB Floor Fly, Weighted March on the Spot, two chained circuit rows) are genuinely absent from Trainerize's full catalog, stock and custom — not a scrape gap, Esther would need to add them in Trainerize herself.
+
+**Process note, self-caught mid-session:** ran the scrape and initial DB writes from the shared `main` checkout (`D:\apps\eternal-fitness-website`) instead of this worktree — a DO-SOP-010 violation. Caught it before committing anything there, copied the two changed files (`  .context/trainerize-exercise-export.json`, the new migration) into this worktree, reverted the shared checkout back to clean, and committed/pushed from here instead. No data was lost or duplicated, but worth flagging since it's exactly the failure mode DO-SOP-010 exists to prevent.
+
+**Still open, left for Esther:** Emma's Block 1 is in `draft` — needs her review/approval in the hub before it's active. Four "needs confirmation" exercise links from the CSV are still unresolved (equipment/variant ambiguous, not auto-applied): DB Seated Reverse Flye, Seated DB Shoulder Press "back supported" (Tom — this one already has a real video waiting, worth Esther's 30 seconds to confirm), Single-Leg Hip Thrust, Feet-Up TRX Inverted Row.
+
+## Session close — 2026-08-01 (evening) — Tasks overdue-count bug, compliance/document-engine gap, GP clearance made manual
+
+**Tasks board "Overdue" count was wrong** — Craig reported it showing 8 when only 1 To Do card was
+actually overdue. Root cause: `matchesDueFilter` in `TasksManager.tsx` didn't exclude `done` tasks,
+so 7 completed tasks with a past due date counted toward Overdue/Due Today/Due This Week, even though
+the "X overdue" banner just below it already excluded done tasks via the same pattern. Fixed by
+applying the same exclusion in `matchesDueFilter` — also fixes the filtered board itself, not just the
+tab badge.
+
+**Compliance status wasn't reading the document engine.** Nathan Wadey's Compliance tab showed
+"Action Needed" / "No PAR-Q on file" / "No signed agreement on file" despite both showing "Signed" in
+the document register. `lib/compliance.ts::computeComplianceFlags` only ever checked the legacy
+`signed_parq`/`signed_agreements` tables — never `client_documents`, which is where every PAR-Q and
+Agreement has actually landed since the document-engine migration (`.context` already flagged this as
+a known gap: "legacy tables still read by tracker/compliance-tab code — not retired yet"). Also
+confirmed Craig's suspicion that uploaded historical PDF scans (`source_type: 'scan'`) land in
+`client_documents` with `status: 'signed'` too, so they were equally invisible to compliance. Added
+`hasSignedParqDocument`/`hasSignedAgreementDocument` params, wired through the three callers (client
+detail, tracker, process & quality) via a `client_documents` query filtered to `status = 'signed'`.
+
+**Known remaining gap, not fixed this session:** GP-clearance high-risk detection (see next item) used
+to read structured PAR-Q answers (q1, q2, etc.) that only exist on the legacy `signed_parq` row — a
+PAR-Q completed purely through the document engine has no equivalent yet. Moot now that the rule is
+manual (below), but worth knowing if it's ever automated again.
+
+**GP clearance requirement changed from an automated rule to a manual flag**, per Craig's explicit
+ask — it's a clinical judgement call, not something PAR-Q answers should decide. Removed the
+`HIGH_RISK_PARQ_QUESTIONS` auto-derivation entirely; added `profile.health.gp_clearance_required`
+(trainer-ticked, Edit client → Health and clearance card, next to the existing "GP clearance
+obtained" checkbox). Before flipping this over, queried prod directly to check who the old rule was
+currently flagging — 8 clients had a high-risk PAR-Q answer (Colin Farley, Monique Weardon, Becky
+Price, Ellie Wallwork, Ian Healey, Odul Bozkurt, Saffron Somerset, Sam Gibbons), 7 of them without
+`gp_clearance` obtained and therefore currently `pending_medical` (blocking Plan Agent block
+generation). Flagged this to Craig before shipping — an unbackfilled deploy would have silently
+flipped all 7 to `clear` and unblocked planning for people who may genuinely need a GP letter. Craig
+confirmed the backfill; ran
+`supabase/migrations/20260801_gp_clearance_required_manual_backfill.sql` directly against prod
+(`profile.health.gp_clearance_required = true` for those 8), confirmed via a follow-up query. Esther
+now owns the flag from here and can un-tick any of the 8 if she disagrees with the old rule's call.
+
+Pushed straight to `main` (fast-forward from the worktree, commit `43d81d3`) — Coolify auto-deploy is
+on for this project, no manual trigger needed. `tsc --noEmit` clean throughout; no UI smoke test done
+this session (no browser/login access) — worth a quick look at Nathan Wadey's Compliance tab and the
+Tasks board Overdue filter next session to visually confirm.
 
 ## Session close — 2026-08-01 (afternoon) — Training block module redesign shipped; Design Parity Gate added as a global rule after a real miss
 

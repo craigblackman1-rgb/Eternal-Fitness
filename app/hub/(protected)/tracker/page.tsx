@@ -30,6 +30,11 @@ export default async function TrackerPage() {
     .from("signed_agreements")
     .select("*")
     .order("created_at", { ascending: false });
+  const { data: signedDocuments } = await supabase
+    .from("client_documents")
+    .select("client_id, kind, status")
+    .in("kind", ["parq", "terms"])
+    .eq("status", "signed");
 
   const latestParqByClient = new Map<string, SignedPARQ>();
   for (const p of allParq ?? []) {
@@ -39,11 +44,28 @@ export default async function TrackerPage() {
   for (const a of allAgreements ?? []) {
     if (a.client_id && !latestAgreementByClient.has(a.client_id)) latestAgreementByClient.set(a.client_id, a);
   }
+  const signedParqDocClientIds = new Set(
+    (signedDocuments ?? []).filter((d) => d.kind === "parq").map((d) => d.client_id),
+  );
+  const signedAgreementDocClientIds = new Set(
+    (signedDocuments ?? []).filter((d) => d.kind === "terms").map((d) => d.client_id),
+  );
 
   const rows = (clients ?? []).map((client: DBClient) => {
     const latestParq = latestParqByClient.get(client.id) ?? null;
     const latestAgreement = latestAgreementByClient.get(client.id) ?? null;
-    return { client, latestParq, latestAgreement, flags: computeComplianceFlags({ client, latestParq, latestAgreement }) };
+    return {
+      client,
+      latestParq,
+      latestAgreement,
+      flags: computeComplianceFlags({
+        client,
+        latestParq,
+        latestAgreement,
+        hasSignedParqDocument: signedParqDocClientIds.has(client.id),
+        hasSignedAgreementDocument: signedAgreementDocClientIds.has(client.id),
+      }),
+    };
   });
 
   const needsAction = rows.filter((r) => r.flags.effectiveStatus === "action_needed" || r.flags.effectiveStatus === "pending_medical").length;

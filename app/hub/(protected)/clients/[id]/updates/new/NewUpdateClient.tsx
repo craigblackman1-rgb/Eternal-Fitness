@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,6 +125,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
   const [showRaw, setShowRaw] = useState(false);
   const [showPaste, setShowPaste] = useState(false);
   const [pasteHtml, setPasteHtml] = useState("");
+  const [placeholderError, setPlaceholderError] = useState<string | null>(null);
 
   const kind = getTemplateKind(templateKind);
 
@@ -133,9 +134,38 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     return buildHtmlForKind(templateKind, clientName, greetingName, introText, sections, flexSections, sectionLabels);
   }, [hasDraft, templateKind, clientName, greetingName, introText, sections, flexSections, sectionLabels]);
 
+  // Clear the placeholder warning whenever the draft HTML changes (trainer
+  // may have edited a section to remove a placeholder). Re-checked on send.
+  useEffect(() => {
+    setPlaceholderError(null);
+  }, [html]);
+
   /** Section values plus the greeting/intro, for persisting to the DB. */
   const sectionsForSave = (): SavedSections =>
     kind.flexible ? { greetingName, introText, flexSections } : { ...sections, greetingName, introText, sectionLabels };
+
+  /** Scan the rendered html (and individual sections) for [CLIENT placeholders
+   *  the AI left unfilled. Returns null if clean, or a human-readable message
+   *  listing the affected sections. */
+  const checkForPlaceholders = (): string | null => {
+    if (!html.includes("[CLIENT")) return null;
+    const affected: string[] = [];
+    if (kind.flexible) {
+      flexSections.forEach((s, i) => {
+        if (s.html.includes("[CLIENT")) {
+          affected.push(s.heading || `Section ${i + 1}`);
+        }
+      });
+    } else {
+      for (const s of kind.sections) {
+        if ((sections[s.key] ?? "").includes("[CLIENT")) {
+          affected.push(sectionLabels[s.key] || s.label);
+        }
+      }
+    }
+    if (affected.length === 0) return null;
+    return `This draft still has unfilled [CLIENT] placeholders in: ${affected.join(", ")}. Fill those sections before sending to a real client.`;
+  };
 
   const handleCreateDraft = async (conversationSummary: string) => {
     setGenerating(true);
@@ -241,6 +271,12 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
 
   const handleSendNow = async () => {
     if (!clientEmail.trim()) return toast.error("Enter the client's email address");
+    const ph = checkForPlaceholders();
+    if (ph) {
+      setPlaceholderError(ph);
+      return;
+    }
+    setPlaceholderError(null);
     setBusy("send");
     setError(null);
     try {
@@ -301,6 +337,12 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
   const handleSchedule = async () => {
     if (!scheduledFor) return toast.error("Pick a date and time to send");
     if (!clientEmail.trim()) return toast.error("Enter the client's email address");
+    const ph = checkForPlaceholders();
+    if (ph) {
+      setPlaceholderError(ph);
+      return;
+    }
+    setPlaceholderError(null);
     const iso = new Date(scheduledFor).toISOString();
     setBusy("schedule");
     setError(null);
@@ -567,6 +609,12 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
               <CardTitle>Send or schedule</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
+              {placeholderError && (
+                <Alert variant="destructive">
+                  <IconAlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{placeholderError}</AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Client email address</Label>
                 <Input

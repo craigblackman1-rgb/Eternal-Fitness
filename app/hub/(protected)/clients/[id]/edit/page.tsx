@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { IconChevronLeft, IconCalendar, IconUser, IconHeart, IconRuler, IconTarget, IconShieldCheck, IconBot, IconFileText, IconCheck, IconAlertCircle, IconSave } from "@/components/icons";
+import { IconChevronLeft, IconCalendar, IconUser, IconHeart, IconRuler, IconTarget, IconShieldCheck, IconBot, IconFileText, IconCheck, IconAlertCircle, IconSave, IconLayoutDashboard } from "@/components/icons";
 import Link from "next/link";
 import { HubCard, HubCardHeader, HubAlert, StatusBadge } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
@@ -16,6 +16,7 @@ import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
 import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender } from "@/types";
 import { DEFAULT_SPLITS, parseSplits } from "@/lib/planAgentPrompt";
+import { RESOURCES } from "@/lib/resources";
 
 function calculateAge(dob: string | null): number {
   if (!dob) return 0;
@@ -86,7 +87,7 @@ function SegmentedControl<T extends string | number>({
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
   logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", package: "12-week", block_number: 1 },
-  health: { gp_clearance: false, conditions: [], contraindications: [], medications_relevant: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
+  health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
   goals: { primary: "general_fitness", secondary: [], milestones: [] },
@@ -109,6 +110,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [groupType, setGroupType] = useState<DBClientGroupType>("individual_journey");
   const [paceMode, setPaceMode] = useState<DBClientPaceMode>("medium");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("studio_1to1");
+  const [resourceVisibility, setResourceVisibility] = useState<Record<string, boolean>>({});
   const [splitOptions, setSplitOptions] = useState<string[]>(parseSplits(DEFAULT_SPLITS).map((s) => s.label));
 
   useEffect(() => {
@@ -162,6 +164,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setGroupType(data.group_type ?? "individual_journey");
       setPaceMode(data.pace_mode ?? "medium");
       setDeliveryMode(data.delivery_mode ?? "studio_1to1");
+      setResourceVisibility(data.resource_visibility ?? {});
       setLoading(false);
     }
     load();
@@ -203,6 +206,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         group_type: groupType,
         pace_mode: paceMode,
         delivery_mode: deliveryMode,
+        resource_visibility: resourceVisibility,
       }),
     });
 
@@ -432,6 +436,24 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
           <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health and clearance" subtitle="What has to be adapted around, and what unblocks planning" color="rose" noBottomPadding />
           <div className="px-5 pb-5 pt-4 space-y-4">
             <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
+              <span className="relative shrink-0 w-5 h-5 mt-px">
+                <input
+                  type="checkbox"
+                  id="gp_clearance_required"
+                  checked={profile.health.gp_clearance_required ?? false}
+                  onChange={(e) => updateProfile("health", { gp_clearance_required: e.target.checked })}
+                  className="sr-only"
+                />
+                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.gp_clearance_required ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                  {(profile.health.gp_clearance_required ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                </span>
+              </span>
+              <div className="min-w-0">
+                <Label htmlFor="gp_clearance_required" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance required</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Your call — tick if this client needs written GP clearance before training. Drives the "pending medical" status below until it's obtained.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)]">
               <span className="relative shrink-0 w-5 h-5 mt-px">
                 <input
                   type="checkbox"
@@ -713,6 +735,42 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 <Textarea value={profile.notes.watch_for} onChange={(e) => updateProfile("notes", { watch_for: e.target.value })} rows={2} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
               </div>
             </div>
+          </div>
+        </HubCard>
+
+        <HubCard>
+          <HubCardHeader icon={<IconLayoutDashboard className="w-4 h-4" />} title="Resources" subtitle="Enable or disable client resources for this client's portal" color="teal" noBottomPadding />
+          <div className="px-5 pb-5 pt-4 space-y-0">
+            {RESOURCES.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">No resources available yet. Add them in the resource registry.</p>
+            ) : (
+              RESOURCES.map((r) => {
+                const enabled = resourceVisibility[r.key] === true;
+                return (
+                  <div key={r.key} className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
+                    <span className="relative shrink-0 w-5 h-5 mt-px">
+                      <input
+                        type="checkbox"
+                        id={`res-${r.key}`}
+                        checked={enabled}
+                        onChange={(e) => {
+                          setDirty(true);
+                          setResourceVisibility((prev) => ({ ...prev, [r.key]: e.target.checked }));
+                        }}
+                        className="sr-only"
+                      />
+                      <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${enabled ? "bg-teal border-teal" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                        {enabled && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                      </span>
+                    </span>
+                    <div className="min-w-0">
+                      <Label htmlFor={`res-${r.key}`} className="text-[13px] font-semibold text-foreground cursor-pointer">{r.name}</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </HubCard>
 

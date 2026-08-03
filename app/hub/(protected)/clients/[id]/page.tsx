@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare } from "@/components/icons";
+import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare, IconClock, IconActivity } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger } from "@/components/hub";
+import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
+import type { TrainerizeHistoryData } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
 import { lookupStatus } from "@/lib/hubStatus";
@@ -25,8 +26,11 @@ import { ClientUpdatesPanel } from "@/components/hub/ClientUpdatesPanel";
 import { PortalAccountCard } from "./PortalAccountCard";
 import type { SentUpdate, SetLog } from "@/types";
 import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
+import { ExerciseHistoryPanel } from "@/components/progress/ExerciseHistoryPanel";
 import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
+import { buildExerciseHistory } from "@/lib/exercise-history";
 import { getLastClientLogAt } from "@/lib/progress-db";
+import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -110,7 +114,24 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     .order("session_number", { ascending: false })
     .limit(50);
 
-  // Lane C — per-exercise progress from set_logs (empty/sparse-safe: no rows → empty state).
+  // Trainerize history data (Lane 1 — historical import). Fetched here (before the
+  // combined trends/PB computation below) so workoutResults can feed the same
+  // pure functions as live set_logs — one continuous per-exercise timeline
+  // spanning both the Trainerize era and the live app, not two disconnected views.
+  const { data: trainerizeBlocks } = await supabase.from("trainerize_training_blocks").select("*").eq("client_id", client.id).order("start_date", { ascending: false });
+  const blockIds = (trainerizeBlocks ?? []).map((b: any) => b.id);
+  const { data: trainerizeWorkouts } = blockIds.length > 0
+    ? await supabase.from("trainerize_workouts").select("*").in("trainerize_block_id", blockIds).order("workout_index", { ascending: true })
+    : { data: [] };
+  const workoutIds = (trainerizeWorkouts ?? []).map((w: any) => w.id);
+  const { data: trainerizeExercises } = workoutIds.length > 0
+    ? await supabase.from("trainerize_exercises").select("*").in("trainerize_workout_id", workoutIds).order("exercise_order", { ascending: true })
+    : { data: [] };
+  const { data: trainerizeNotes } = await supabase.from("trainerize_client_notes").select("*").eq("client_id", client.id).order("source_date", { ascending: false });
+  const { data: workoutResults } = await supabase.from("trainerize_workout_results").select("*").eq("client_id", client.id).order("performed_date", { ascending: false });
+
+  // Lane C — per-exercise progress from set_logs, unified with Trainerize's
+  // per-set results (empty/sparse-safe: no rows → empty state).
   const sessionIds = (sessions ?? []).map((s) => s.id);
   const { data: setLogs } = sessionIds.length > 0
     ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
@@ -122,7 +143,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       sessionNumber: s.session_number ?? null,
     };
   }
-  const exerciseTrends = buildExerciseTrends((setLogs ?? []) as SetLog[], trendSessionMeta);
+  const combinedSetLogs: SetLog[] = [
+    ...((setLogs ?? []) as SetLog[]),
+    ...trainerizeResultsToSetLogs((workoutResults ?? []) as any),
+  ];
+  const exerciseTrends = buildExerciseTrends(combinedSetLogs, trendSessionMeta);
+  const exerciseHistory = buildExerciseHistory(combinedSetLogs);
 
   // Lane C — "gone quiet" detection for home-training clients (Esther-facing only;
   // no client-facing send is wired — gated on the Work Order's ASK FIRST decision).
@@ -131,6 +157,29 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
+
+  // Compose Trainerize history data — program structure + notes only now.
+  // PBs and workout results moved to the unified Progress tab above (they're
+  // performance data, not program/communication data).
+  const composeHistoryData = (): TrainerizeHistoryData => {
+    const workoutsByBlock: Record<string, any[]> = {};
+    for (const w of (trainerizeWorkouts ?? [])) {
+      const blockId = w.trainerize_block_id;
+      if (!workoutsByBlock[blockId]) workoutsByBlock[blockId] = [];
+      const exs = (trainerizeExercises ?? []).filter((ex: any) => ex.trainerize_workout_id === w.id);
+      workoutsByBlock[blockId].push({ ...w, exercises: exs.map((ex: any) => ({ ...ex, targetDetail: ex.raw_data?.targetDetail })) });
+    }
+    const blocks = (trainerizeBlocks ?? []).map((b: any) => ({
+      ...b,
+      workouts: workoutsByBlock[b.id] || [],
+    }));
+
+    return {
+      blocks,
+      notes: trainerizeNotes ?? [],
+    };
+  };
+  const trainerizeHistory = composeHistoryData();
 
   const lastSentAt =
     (clientUpdates ?? [])
@@ -156,7 +205,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   if (p?.logistics?.sessions_per_week) metaParts.push(`${p.logistics.sessions_per_week}x/week`);
   if (p?.logistics?.package) metaParts.push(p.logistics.package);
 
-  const flags = computeComplianceFlags({ client, latestParq: latestParq ?? null, latestAgreement: latestAgreement ?? null });
+  const hasSignedParqDocument = (clientDocuments ?? []).some((d) => d.kind === "parq" && d.status === "signed");
+  const hasSignedAgreementDocument = (clientDocuments ?? []).some((d) => d.kind === "terms" && d.status === "signed");
+  const flags = computeComplianceFlags({
+    client,
+    latestParq: latestParq ?? null,
+    latestAgreement: latestAgreement ?? null,
+    hasSignedParqDocument,
+    hasSignedAgreementDocument,
+  });
   const complianceLookup = lookupStatus(flags.effectiveStatus);
   const gpClearance = p?.health?.gp_clearance;
   const manualActions = client.outstanding_actions ?? [];
@@ -350,6 +407,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
           <HubTabsTrigger value="progress">
             <IconBarChart3 /> Progress
+          </HubTabsTrigger>
+          <HubTabsTrigger value="training-history">
+            <IconActivity /> Training History
           </HubTabsTrigger>
           <HubTabsTrigger value="plan-agent">
             <IconBot /> Plan Agent
@@ -875,14 +935,19 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         {/* ── Tab: Progress ── */}
         {/* Workout progress from logged sets — deliberately separate from the
             Compliance tab and the /hub/tracker page, whose "status" is the
-            medical-compliance meaning (PAR-Q / GP letter / risk level). */}
-        <TabsContent value="progress" className="mt-6">
+            medical-compliance meaning (PAR-Q / GP letter / risk level).
+            Unified: trends + PBs cover BOTH the live app's set_logs and
+            Trainerize's imported per-set results (via lib/trainerize-adapter.ts)
+            as one continuous timeline per exercise — was previously split
+            across three tabs (Progress/History/Training History) with PBs
+            computed two different, disconnected ways. */}
+        <TabsContent value="progress" className="mt-6 space-y-6">
           <HubCard padded={false}>
             <HubCardHeader
               icon={<IconBarChart3 className="w-4 h-4" />}
               title="Exercise Progress"
               color="teal"
-              subtitle="Working weight and reps per exercise, from logged sets"
+              subtitle="Working weight and reps per exercise — live sessions and imported Trainerize history combined"
               className="px-5 pt-5"
             />
             <div className="px-5 pb-5">
@@ -891,6 +956,24 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 emptyTitle="No logged sessions yet"
                 emptyDescription="Log sets from a session page (or a home-training client logs their own) and per-exercise trends will appear here."
                 idPrefix="hub-exercise-trends"
+              />
+            </div>
+          </HubCard>
+
+          <HubCard padded={false}>
+            <HubCardHeader
+              icon={<IconClock className="w-4 h-4" />}
+              title="Exercise History"
+              color="teal"
+              subtitle="Personal bests and last-performed weights — live sessions and imported Trainerize history combined"
+              className="px-5 pt-5"
+            />
+            <div className="px-5 pb-5">
+              <ExerciseHistoryPanel
+                history={exerciseHistory}
+                emptyTitle="No logged sessions yet"
+                emptyDescription="Log sets from a session and per-exercise personal bests and history will appear here."
+                idPrefix="hub-exercise-history"
               />
             </div>
           </HubCard>
@@ -922,6 +1005,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
             dueInfo={dueInfo}
             lastSentAt={lastSentAt}
+          />
+        </TabsContent>
+
+        {/* ── Tab: Training History (Trainerize import) ── */}
+        <TabsContent value="training-history" className="mt-6">
+          <TrainerizeHistoryPanel
+            data={trainerizeHistory}
+            emptyTitle="No Trainerize history imported yet"
+            emptyDescription="Run the Trainerize import for this client to populate their historical training data, PBs, and notes."
           />
         </TabsContent>
       </ClientDetailTabs>

@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { getPool } from "@/lib/pg-client";
+import { checkAndUpsertPB } from "@/lib/personal-records";
+
+async function getClientIdForSession(sessionId: string): Promise<string | null> {
+  const pool = getPool();
+  const res = await pool.query(
+    `SELECT b.client_id
+       FROM sessions s
+       JOIN blocks b ON b.id = s.block_id
+      WHERE s.id = $1
+      LIMIT 1`,
+    [sessionId],
+  );
+  return res.rows[0]?.client_id ?? null;
+}
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -65,6 +80,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const clientId = await getClientIdForSession(params.id);
+  if (clientId) {
+    const isNewPb = await checkAndUpsertPB(clientId, data as import("@/types").SetLog);
+    return NextResponse.json({ ...data, is_new_pb: isNewPb }, { status: 201 });
+  }
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -103,5 +124,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const clientId = await getClientIdForSession(params.id);
+  if (clientId) {
+    const isNewPb = await checkAndUpsertPB(clientId, data as import("@/types").SetLog);
+    return NextResponse.json({ ...data, is_new_pb: isNewPb });
+  }
   return NextResponse.json(data);
 }

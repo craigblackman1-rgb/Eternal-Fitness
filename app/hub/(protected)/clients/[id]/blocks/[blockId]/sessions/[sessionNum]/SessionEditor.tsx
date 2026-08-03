@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +38,9 @@ import {
   IconX,
   IconVideo,
   IconRefreshCw,
+  IconCopy,
+  IconSearch,
+  IconDumbbell,
 } from "@/components/icons";
 import type { Exercise, SessionVersion } from "@/types";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
@@ -140,6 +150,10 @@ export function SessionEditor({
   const [videoDraft, setVideoDraft] = useState("");
   const [dragBlockKey, setDragBlockKey] = useState<string | null>(null);
   const [dragSection, setDragSection] = useState<SectionKey | null>(null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [templateList, setTemplateList] = useState<{ id: string; name: string; data: SessionVersion }[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [overBlockKey, setOverBlockKey] = useState<string | null>(null);
 
   const updateField = (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => {
@@ -353,11 +367,48 @@ export function SessionEditor({
     if (!ok) toast.error("Failed to save session");
   };
 
+  const openTemplatePicker = async () => {
+    setLoadingTemplates(true);
+    setShowTemplatePicker(true);
+    setTemplateSearch("");
+    try {
+      const res = await fetch("/api/workout-templates");
+      if (res.ok) {
+        const list = await res.json();
+        setTemplateList(list.map((t: { id: string; name: string; data: SessionVersion }) => ({ id: t.id, name: t.name, data: t.data })));
+      }
+    } catch { /* ignore */ }
+    setLoadingTemplates(false);
+  };
+
+  const applyTemplate = (tmpl: { id: string; name: string; data: SessionVersion }) => {
+    setSections({
+      warm_up: withUids(tmpl.data.warm_up || []),
+      main_block: withUids(tmpl.data.main_block || []),
+      cooldown: withUids(tmpl.data.cooldown || []),
+    });
+    setShowTemplatePicker(false);
+    toast.success(`Applied template "${tmpl.name}"`);
+    fetch(`/api/workout-templates/${tmpl.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "increment_usage" }),
+    });
+  };
+
+  const filteredTemplates = templateSearch
+    ? templateList.filter((t) => t.name.toLowerCase().includes(templateSearch.toLowerCase()))
+    : templateList;
+
   return (
     <div className="space-y-4">
       <HubCard padded={false} className="flex items-center justify-between px-4 py-3">
         <p className="text-sm text-muted-foreground">Editing the {version === "studio" ? "Studio" : "Home"} prescription — saves to this session only.</p>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={openTemplatePicker} disabled={saving} className="rounded-lg gap-1.5">
+            <IconCopy className="h-4 w-4" />
+            Apply template
+          </Button>
           <Button variant="outline" size="sm" onClick={onCancel} disabled={saving} className="rounded-lg gap-1.5">
             <IconX className="h-4 w-4" />
             Discard
@@ -598,6 +649,54 @@ export function SessionEditor({
           onSelect={swapExercise}
         />
       )}
+
+      <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Apply Workout Template</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-2">
+            Choose a template to load into the {version === "studio" ? "Studio" : "Home"} version.
+            This replaces the entire prescription — your unsaved edits will be lost.
+          </p>
+          <div className="relative">
+            <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search templates..."
+              value={templateSearch}
+              onChange={(e) => setTemplateSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="max-h-64 overflow-y-auto space-y-1">
+            {loadingTemplates ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Loading templates...</p>
+            ) : filteredTemplates.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {templateList.length === 0 ? "No templates saved yet. Save one from a session first." : "No templates match your search."}
+              </p>
+            ) : (
+              filteredTemplates.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => applyTemplate(t)}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                    <IconDumbbell className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-[var(--color-ink)] truncate">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(t.data.warm_up?.length ?? 0) + (t.data.main_block?.length ?? 0) + (t.data.cooldown?.length ?? 0)} exercises
+                    </p>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

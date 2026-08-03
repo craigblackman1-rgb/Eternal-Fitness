@@ -122,6 +122,10 @@ const DUE_SOON_BUCKETS: DueBucket[] = ["overdue", "today", "week"];
 function matchesDueFilter(task: Task, filter: DueFilter) {
   if (filter === "all") return true;
   const bucket = getDueBucket(task);
+  if (filter === "none") return bucket === "none";
+  // Completed tasks aren't "overdue"/"due today"/"due this week" — a done
+  // task with a past due date shouldn't inflate those counts.
+  if (task.status === "done") return false;
   if (filter === "dueSoon") return DUE_SOON_BUCKETS.includes(bucket);
   return bucket === filter;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { IconCopy, IconRefreshCw, IconMail } from "@/components/icons";
+import { IconCopy, IconRefreshCw, IconMail, IconEye } from "@/components/icons";
 import { TokenPill } from "@/components/hub/StatusBadge";
 
 interface PortalStatus {
@@ -29,6 +29,7 @@ export function PortalAccountCard({
   const [status, setStatus] = useState<PortalStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [sendingWelcome, setSendingWelcome] = useState(false);
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => {
@@ -70,6 +71,34 @@ export function PortalAccountCard({
     }
   };
 
+  const handleSendWelcome = async () => {
+    setSendingWelcome(true);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}/portal-welcome`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Could not send welcome email.");
+        return;
+      }
+      if (data.dryRun) {
+        toast.success("Welcome email preview ready (no email backend configured). Check devLink in the response.");
+      } else {
+        toast.success(`Welcome email sent to ${data.email}.`);
+      }
+      setStatus((prev) => ({
+        exists: true,
+        email: data.email ?? prev?.email ?? null,
+        disabled: false,
+        lastLoginAt: prev?.lastLoginAt ?? null,
+        createdAt: prev?.createdAt ?? new Date().toISOString(),
+      }));
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setSendingWelcome(false);
+    }
+  };
+
   const copyToClipboard = (label: string, value: string) => {
     navigator.clipboard.writeText(value);
     toast.success(`${label} copied.`);
@@ -93,17 +122,41 @@ export function PortalAccountCard({
                 ? "This client has portal login details. Regenerating creates a new password and invalidates the old one."
                 : "No portal account yet. Generate login details to give this client access to the portal."}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleGenerate}
-          disabled={generating || !hasEmail || loadingStatus}
-          title={hasEmail ? undefined : "No email address on file for this client"}
-          className="gap-1.5 shrink-0"
-        >
-          {status?.exists ? <IconRefreshCw className="h-4 w-4" /> : <IconMail className="h-4 w-4" />}
-          {generating ? "Generating..." : status?.exists ? "Regenerate password" : "Generate login details"}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleGenerate}
+            disabled={generating || !hasEmail || loadingStatus}
+            title={hasEmail ? undefined : "No email address on file for this client"}
+            className="gap-1.5"
+          >
+            {status?.exists ? <IconRefreshCw className="h-4 w-4" /> : <IconMail className="h-4 w-4" />}
+            {generating ? "Generating..." : status?.exists ? "Regenerate password" : "Generate login details"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSendWelcome}
+            disabled={sendingWelcome || !hasEmail || loadingStatus || generating}
+            title={hasEmail ? undefined : "No email address on file for this client"}
+            className="gap-1.5"
+          >
+            <IconMail className="h-4 w-4" />
+            {sendingWelcome ? "Sending..." : "Send welcome email"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(`/api/clients/${clientNumber}/portal-welcome/preview`, "_blank")}
+            disabled={!hasEmail || loadingStatus || generating}
+            title={hasEmail ? undefined : "No email address on file for this client"}
+            className="gap-1.5"
+          >
+            <IconEye className="h-4 w-4" />
+            Preview
+          </Button>
+        </div>
       </div>
 
       {!loadingStatus && status?.exists && !credentials && (

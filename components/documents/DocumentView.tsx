@@ -10,6 +10,7 @@ const KIND_EYEBROW: Record<DocumentKind, string> = {
   consent: "Client document 05",
   feedback: "Client document 06",
   parq: "Client document 04",
+  invoice: "Client document 07",
 };
 
 const KIND_REFERENCE: Record<DocumentKind, string> = {
@@ -19,6 +20,7 @@ const KIND_REFERENCE: Record<DocumentKind, string> = {
   consent: "EF-CONSENT-2026",
   feedback: "EF-FEEDBACK-2026",
   parq: "EF-PARQ-2026",
+  invoice: "EF-INV-2026",
 };
 
 function EfLogo() {

@@ -15,6 +15,7 @@ export interface PortalClient {
   name: string;
   email: string | null;
   delivery_mode: DeliveryMode;
+  resource_visibility: Record<string, boolean> | null;
 }
 
 export interface PortalDocument {
@@ -83,7 +84,7 @@ export class PortalDataClient {
     const pg = createPgClient();
     const { data, error } = await pg
       .from("clients")
-      .select("id, name, email, delivery_mode")
+      .select("id, name, email, delivery_mode, resource_visibility")
       .eq("id", this.clientId)
       .single();
     if (error || !data) return null;

@@ -54,6 +54,13 @@ const blockStatusMap: Record<string, StatusLookup> = {
   archived: { token: "neutral", label: "Archived" },
 };
 
+const scheduleStatusMap: Record<string, StatusLookup> = {
+  draft:    { token: "neutral", label: "To Do" },
+  approved: { token: "primary", label: "Scheduled" },
+  active:   { token: "warning", label: "In Progress" },
+  complete: { token: "success", label: "Done" },
+};
+
 const complianceStatusMap: Record<DBClientComplianceStatus, StatusLookup> = {
   do_not_train:    { token: "danger",  label: "Do Not Train" },
   pending_medical: { token: "warning", label: "Pending Clearance" },
@@ -81,6 +88,14 @@ const keywordStatusMap: Record<string, StatusLookup> = {
   needs_rewrite:   { token: "warning", label: "Needs Rewrite" },
 };
 
+const invoiceStatusMap: Record<string, StatusLookup> = {
+  draft:   { token: "neutral", label: "Draft" },
+  sent:    { token: "warning", label: "Sent" },
+  paid:    { token: "success", label: "Paid" },
+  overdue: { token: "danger",  label: "Overdue" },
+  void:    { token: "neutral", label: "Void" },
+};
+
 const clearanceStatusMap: Record<ClearanceStatus, StatusLookup> = {
   CLEARED:                { token: "success", label: "Cleared" },
   PENDING:                { token: "warning", label: "Pending" },
@@ -96,6 +111,10 @@ export function getBlockStatus(status: string): StatusLookup | null {
   return blockStatusMap[status] ?? null;
 }
 
+export function getScheduleStatus(status: string): StatusLookup | null {
+  return scheduleStatusMap[status] ?? null;
+}
+
 export function getComplianceStatus(status: DBClientComplianceStatus): StatusLookup {
   return complianceStatusMap[status];
 }
@@ -105,6 +124,7 @@ export function lookupStatus(status: string): StatusLookup | null {
     blockStatusMap[status] ??
     complianceStatusMap[status as DBClientComplianceStatus] ??
     documentStatusMap[status as DocumentStatus] ??
+    invoiceStatusMap[status] ??
     clearanceStatusMap[status as ClearanceStatus] ??
     keywordStatusMap[status] ??
     null

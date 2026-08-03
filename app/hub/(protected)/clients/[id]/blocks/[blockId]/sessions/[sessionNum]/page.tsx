@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconFileText, IconPencil, IconSearch, IconX, IconEdit3 } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconVideo, IconCheck, IconCheckCircle, IconActivity, IconFileText, IconPencil, IconSearch, IconX, IconEdit3, IconCopy } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
 import Link from "next/link";
@@ -38,6 +38,9 @@ export default function SessionViewPage({
   const [editingVersion, setEditingVersion] = useState<"studio" | "home" | null>(null);
   const [activeTab, setActiveTab] = useState<"studio" | "home">("studio");
   const [editInitDone, setEditInitDone] = useState(false);
+  const [showTemplateSave, setShowTemplateSave] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -173,6 +176,31 @@ export default function SessionViewPage({
     return true;
   };
 
+  const handleSaveAsTemplate = async () => {
+    if (!session || !templateName.trim()) return;
+    setSavingTemplate(true);
+    const versionData = session.data?.versions?.[activeTab];
+    if (!versionData) { setSavingTemplate(false); return; }
+    const res = await fetch("/api/workout-templates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: templateName.trim(),
+        data: versionData,
+        source_client_id: params.id,
+        source_session_id: session.id,
+      }),
+    });
+    setSavingTemplate(false);
+    if (!res.ok) {
+      toast.error("Failed to save template");
+      return;
+    }
+    toast.success(`Template "${templateName.trim()}" saved`);
+    setTemplateName("");
+    setShowTemplateSave(false);
+  };
+
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   if (!session) return <div className="p-8 text-center text-muted-foreground">Session not found</div>;
 
@@ -198,15 +226,57 @@ export default function SessionViewPage({
         </div>
         <div className="flex gap-2">
           {!editingVersion && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-lg gap-1.5"
-              onClick={() => setEditingVersion(activeTab)}
-            >
-              <IconEdit3 className="h-4 w-4" />
-              Edit session
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg gap-1.5"
+                onClick={() => setEditingVersion(activeTab)}
+              >
+                <IconEdit3 className="h-4 w-4" />
+                Edit session
+              </Button>
+              {showTemplateSave ? (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    placeholder="Template name..."
+                    className="h-9 w-48 rounded-lg border border-border/60 bg-background px-3 text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveAsTemplate()}
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    className="rounded-lg gap-1.5 bg-teal hover:bg-teal/90 text-white"
+                    onClick={handleSaveAsTemplate}
+                    disabled={savingTemplate || !templateName.trim()}
+                  >
+                    <IconCopy className="h-4 w-4" />
+                    Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-lg"
+                    onClick={() => { setShowTemplateSave(false); setTemplateName(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg gap-1.5"
+                  onClick={() => setShowTemplateSave(true)}
+                >
+                  <IconCopy className="h-4 w-4" />
+                  Save as template
+                </Button>
+              )}
+            </>
           )}
           {sessionNum > 1 && (
             <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${sessionNum - 1}`}>

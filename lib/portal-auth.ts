@@ -27,6 +27,10 @@ import { randomBytes, createHash, scryptSync, timingSafeEqual } from "crypto";
 import { getPool } from "@/lib/pg-client";
 
 const RESET_TOKEN_TTL_SECONDS = 15 * 60;
+// Welcome/invite links sit in an inbox until the client gets around to it —
+// unlike a "forgot password" reset, a 15-minute window would expire before
+// most clients ever open the email. Same token mechanism, longer life.
+const WELCOME_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 const PORTAL_COOKIE = "better_auth_portal_session";
@@ -87,6 +91,7 @@ export interface InviteResult {
   email: string;
   password: string;
   loginUrl: string;
+  clientName: string;
 }
 
 export interface PortalAccountStatus {
@@ -132,6 +137,7 @@ export async function invitePortalAccount(clientId: string): Promise<InviteResul
     email,
     password,
     loginUrl: `${PORTAL_BASE_URL}/portal/login`,
+    clientName: client.name ?? "",
   };
 }
 
@@ -292,6 +298,102 @@ export async function destroyPortalSession(token: string | undefined): Promise<v
   if (!token) return;
   const pool = getPool();
   await pool.query(`DELETE FROM portal_sessions WHERE token = $1`, [token]);
+}
+
+import { buildBrandedUpdateEmail } from "@/lib/email-templates/shell";
+
+const ROSE = "#C1839F";
+const TEAL = "#087E8B";
+
+export interface WelcomeEmailResult {
+  email: string;
+  sent: boolean;
+  dryRun: boolean;
+  devLink?: string;
+}
+
+export interface WelcomeEmailPreviewInput {
+  clientName: string;
+  resetLink: string;
+  loginUrl: string;
+}
+
+export function buildPortalWelcomeEmailHtml(input: WelcomeEmailPreviewInput): string {
+  const { resetLink, loginUrl } = input;
+
+  const ctaButton = `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 20px;">
+      <tr>
+        <td align="center" bgcolor="${ROSE}" style="border-radius:999px;">
+          <a href="${resetLink}" target="_blank" rel="noopener"
+             style="display:inline-block;padding:15px 36px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#131313;text-decoration:none;border-radius:999px;">
+            Set your password
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#525A61;">Or copy this link: <a href="${resetLink}" style="color:${TEAL};text-decoration:underline;">${resetLink}</a></p>`;
+
+  return buildBrandedUpdateEmail({
+    documentTitle: "Welcome to your Eternal Fitness client portal",
+    previewText: "Your client portal is ready — set your password to get started.",
+    title: "Welcome to your client portal",
+    subtitle: "From Eternal Fitness",
+    greetingName: input.clientName,
+    introHtml: `<p style="margin:0;">I've set up your Eternal Fitness client portal. You can use it to view training plans, track your progress, and access your documents — all in one place.</p>${ctaButton}`,
+    sections: [
+      {
+        label: "What to do",
+        color: ROSE,
+        html: `<p style="margin:0;">Tap the button above to set your password. This link expires in 7 days. Once you've set a password, you can log in anytime at <a href="${loginUrl}" style="color:${TEAL};text-decoration:underline;">${loginUrl}</a>.</p>`,
+      },
+    ],
+    psHtml: `<p style="margin:0;">If you have any questions, just reply to this email and I'll get back to you.</p>`,
+  });
+}
+
+export async function sendPortalWelcomeEmail(clientId: string): Promise<WelcomeEmailResult> {
+  const invite = await invitePortalAccount(clientId);
+
+  const token = randomBytes(32).toString("hex");
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date(Date.now() + WELCOME_TOKEN_TTL_SECONDS * 1000);
+
+  const pool = getPool();
+  const acctRes = await pool.query(
+    `SELECT id FROM portal_accounts WHERE client_id = $1 LIMIT 1`,
+    [clientId],
+  );
+  const account = acctRes.rows[0];
+
+  await pool.query(
+    `INSERT INTO portal_reset_tokens (account_id, client_id, token_hash, expires_at)
+     VALUES ($1, $2, $3, $4)`,
+    [account.id, clientId, tokenHash, expiresAt],
+  );
+
+  const resetLink = `${PORTAL_BASE_URL}/portal/reset-password?token=${token}`;
+
+  const html = buildPortalWelcomeEmailHtml({
+    clientName: invite.clientName,
+    resetLink,
+    loginUrl: invite.loginUrl,
+  });
+
+  const { getEmailSender } = await import("@/lib/email");
+  const sender = getEmailSender();
+  const status = (await import("@/lib/email")).getEmailStatus();
+  const dryRun = !status.configured;
+
+  if (!dryRun) {
+    await sender.send({
+      to: invite.email,
+      subject: "Welcome to your Eternal Fitness client portal",
+      html,
+    });
+  }
+
+  return { email: invite.email, sent: !dryRun, dryRun, devLink: dryRun ? resetLink : undefined };
 }
 
 export const PORTAL_SESSION_COOKIE = PORTAL_COOKIE;

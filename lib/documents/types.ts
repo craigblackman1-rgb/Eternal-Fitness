@@ -1,4 +1,4 @@
-export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq";
+export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice";
 
 export type DocumentStatus = "draft" | "sent" | "signed" | "superseded";
 
@@ -105,6 +105,7 @@ export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {
   consent: "Consent",
   feedback: "Client Feedback",
   parq: "PAR-Q",
+  invoice: "Invoice",
 };
 
 /** Whether every required signature is present — used to decide "signed" status. */

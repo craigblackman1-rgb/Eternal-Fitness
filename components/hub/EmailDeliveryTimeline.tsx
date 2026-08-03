@@ -35,7 +35,7 @@ const EVENT_COLOR: Record<EmailEventType, string> = {
 function formatEventTime(iso: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return "—";
-  return d.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
 /** Read-only, server-rendered send/delivery timeline for one update or

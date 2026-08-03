@@ -52,6 +52,11 @@ const columns: HubColumn<DBClient>[] = [
       <div className="flex items-center gap-3">
         <InitialsCircle name={client.name} />
         <span className="font-semibold text-foreground truncate">{client.name}</span>
+        {client.client_status === "archived" && (
+          <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-full px-2 py-0.5 shrink-0">
+            Archived
+          </span>
+        )}
       </div>
     ),
   },
@@ -109,14 +114,17 @@ const columns: HubColumn<DBClient>[] = [
 
 export function ClientsTable({ clients }: { clients: DBClient[] }) {
   const [filter, setFilter] = useState<(typeof complianceFilters)[number]["value"]>("all");
+  const [showArchived, setShowArchived] = useState(false);
 
   const filtered = useMemo(() => {
-    if (filter === "all") return clients;
+    let result = showArchived ? clients : clients.filter((c) => c.client_status !== "archived");
     if (filter === "attention") {
-      return clients.filter((c) => c.compliance_status && c.compliance_status !== "clear");
+      result = result.filter((c) => c.compliance_status && c.compliance_status !== "clear");
+    } else if (filter !== "all") {
+      result = result.filter((c) => c.compliance_status === filter);
     }
-    return clients.filter((c) => c.compliance_status === filter);
-  }, [clients, filter]);
+    return result;
+  }, [clients, filter, showArchived]);
 
   return (
     <HubTable
@@ -126,16 +134,27 @@ export function ClientsTable({ clients }: { clients: DBClient[] }) {
       searchPlaceholder="Search clients by name..."
       searchKeys={["name"]}
       toolbar={
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as typeof filter)}
-          className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
-          aria-label="Filter by compliance status"
-        >
-          {complianceFilters.map((f) => (
-            <option key={f.value} value={f.value}>{f.label}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-3">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as typeof filter)}
+            className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+            aria-label="Filter by compliance status"
+          >
+            {complianceFilters.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground whitespace-nowrap cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.target.checked)}
+              className="rounded border-[var(--hub-border)]"
+            />
+            Show archived
+          </label>
+        </div>
       }
       emptyState={
         <EmptyState
