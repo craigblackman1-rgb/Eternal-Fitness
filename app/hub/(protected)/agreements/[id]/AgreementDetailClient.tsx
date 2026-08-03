@@ -3,9 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IconAlertCircle, IconArrowLeft, IconCalendar, IconCheckCircle, IconCopy, IconEdit3, IconFileText, IconMail, IconMapPin, IconPhone, IconPrinter, IconSave, IconSend, IconX } from "@/components/icons";
+import { HubCard } from "@/components/hub/HubCard";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
+import { TokenPill } from "@/components/hub/StatusBadge";
 import AgreementPrintView from "./AgreementPrintView";
 import { parqSections } from "@/lib/parq-data";
 
@@ -305,23 +304,31 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
       {/* Status badges */}
       <div className="flex flex-wrap gap-2">
         {data.parq_completed === "yes" ? (
-          <Badge className="gap-1"><IconCheckCircle className="w-3 h-3" /> PAR-Q filed</Badge>
+          <TokenPill token="success" label="PAR-Q filed" />
         ) : (
-          <Badge variant="secondary" className="gap-1"><IconAlertCircle className="w-3 h-3" /> PAR-Q missing</Badge>
+          <TokenPill token="warning" label="PAR-Q missing" />
         )}
         {data.medical_clearance_status && data.medical_clearance_status !== "not_required" ? (
-          <Badge variant={data.medical_clearance_status === "cleared" ? "default" : data.medical_clearance_status === "pending" ? "secondary" : "outline"}>
-            Clearance: {data.medical_clearance_status.replace("_", " ")}
-          </Badge>
+          <TokenPill
+            token={
+              data.medical_clearance_status === "cleared"
+                ? "success"
+                : data.medical_clearance_status === "pending"
+                  ? "warning"
+                  : "neutral"
+            }
+            label={`Clearance: ${data.medical_clearance_status.replace("_", " ")}`}
+          />
         ) : data.medical_clearance === "yes" ? (
-          <Badge className="gap-1"><IconCheckCircle className="w-3 h-3" /> Medical clearance filed</Badge>
+          <TokenPill token="success" label="Medical clearance filed" />
         ) : data.medical_clearance === "na" ? (
-          <Badge variant="outline">No medical clearance needed</Badge>
+          <TokenPill token="neutral" label="No medical clearance needed" />
         ) : null}
         {data.client_status && (
-          <Badge variant={data.client_status === "active" ? "default" : data.client_status === "inactive" ? "secondary" : "outline"}>
-            {data.client_status}
-          </Badge>
+          <TokenPill
+            token={data.client_status === "active" ? "success" : "neutral"}
+            label={data.client_status}
+          />
         )}
       </div>
 
@@ -344,134 +351,126 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
       )}
 
       {/* Client details */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] transition-shadow hover:shadow-md">
+      <HubCard>
         <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Client Details" />
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Field label="Full name" value={data.client_name} />
-            <Field label="Date of birth" value={formatDate(data.client_dob)} />
-            <Field label="Email" value={data.client_email ? (
-              <span className="flex items-center gap-1">
-                <a href={`mailto:${data.client_email}`} className="text-primary hover:underline">{data.client_email}</a>
-                <button onClick={handleCopyEmail} className="text-muted-foreground hover:text-foreground" title="Copy email">
-                  <IconCopy className="w-3 h-3" />
-                </button>
-              </span>
-            ) : null} />
-            <Field label="Phone" value={data.client_phone ? (
-              <a href={`tel:${data.client_phone}`} className="text-primary hover:underline">{data.client_phone}</a>
-            ) : null} />
-            <Field label="Address" value={data.client_address} />
-            <Field label="Start date" value={formatDate(data.start_date)} />
-          </div>
-        </CardContent>
-      </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Field label="Full name" value={data.client_name} />
+          <Field label="Date of birth" value={formatDate(data.client_dob)} />
+          <Field label="Email" value={data.client_email ? (
+            <span className="flex items-center gap-1">
+              <a href={`mailto:${data.client_email}`} className="text-primary hover:underline">{data.client_email}</a>
+              <button onClick={handleCopyEmail} className="text-muted-foreground hover:text-foreground" title="Copy email">
+                <IconCopy className="w-3 h-3" />
+              </button>
+            </span>
+          ) : null} />
+          <Field label="Phone" value={data.client_phone ? (
+            <a href={`tel:${data.client_phone}`} className="text-primary hover:underline">{data.client_phone}</a>
+          ) : null} />
+          <Field label="Address" value={data.client_address} />
+          <Field label="Start date" value={formatDate(data.start_date)} />
+        </div>
+      </HubCard>
 
       {/* Signatures */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] transition-shadow hover:shadow-md">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            Signatures
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-3 p-4 rounded-lg border border-border/60">
-              <p className="text-sm font-semibold text-foreground">Client</p>
-              <Field label="Name (print)" value={data.client_name_print} />
-              <Field label="Date" value={formatDate(data.client_signature_date)} />
-              {data.client_typed_signature && (
-                <div>
-                  <p className="text-xs text-muted-foreground">Typed signature</p>
-                  <p className="text-sm font-serif italic text-lg text-foreground mt-0.5">{data.client_typed_signature}</p>
+      <HubCard>
+        <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Signatures" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-3 p-4 rounded-lg border border-border/60">
+            <p className="text-sm font-semibold text-foreground">Client</p>
+            <Field label="Name (print)" value={data.client_name_print} />
+            <Field label="Date" value={formatDate(data.client_signature_date)} />
+            {data.client_typed_signature && (
+              <div>
+                <p className="text-xs text-muted-foreground">Typed signature</p>
+                <p className="text-sm font-serif italic text-lg text-foreground mt-0.5">{data.client_typed_signature}</p>
+              </div>
+            )}
+            {data.client_signature_data && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Drawn signature</p>
+                <div className="border border-border/60 rounded bg-white p-2 inline-block">
+                  <img src={data.client_signature_data} alt="Client signature" className="h-12 w-auto" />
                 </div>
-              )}
-              {data.client_signature_data && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Drawn signature</p>
-                  <div className="border border-border/60 rounded bg-white p-2 inline-block">
-                    <img src={data.client_signature_data} alt="Client signature" className="h-12 w-auto" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-3 p-4 rounded-lg border border-border/60 bg-muted/30">
-              <p className="text-sm font-semibold text-foreground">Trainer (auto-signed)</p>
-              <Field label="Name (print)" value={data.trainer_name_print} />
-              <Field label="Date" value={formatDate(data.trainer_signature_date)} />
-              {data.trainer_typed_signature && (
-                <div>
-                  <p className="text-xs text-muted-foreground">Typed signature</p>
-                  <p className="text-sm font-serif italic text-lg text-foreground mt-0.5">{data.trainer_typed_signature}</p>
-                </div>
-              )}
-              {data.trainer_signature_data && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Drawn signature</p>
-                  <div className="border border-border/60 rounded bg-white p-2 inline-block">
-                    <img src={data.trainer_signature_data} alt="Trainer signature" className="h-12 w-auto" />
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="space-y-3 p-4 rounded-lg border border-border/60 bg-muted/30">
+            <p className="text-sm font-semibold text-foreground">Trainer (auto-signed)</p>
+            <Field label="Name (print)" value={data.trainer_name_print} />
+            <Field label="Date" value={formatDate(data.trainer_signature_date)} />
+            {data.trainer_typed_signature && (
+              <div>
+                <p className="text-xs text-muted-foreground">Typed signature</p>
+                <p className="text-sm font-serif italic text-lg text-foreground mt-0.5">{data.trainer_typed_signature}</p>
+              </div>
+            )}
+            {data.trainer_signature_data && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Drawn signature</p>
+                <div className="border border-border/60 rounded bg-white p-2 inline-block">
+                  <img src={data.trainer_signature_data} alt="Trainer signature" className="h-12 w-auto" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </HubCard>
 
       {/* PAR-Q and Medical Clearance */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] transition-shadow hover:shadow-md">
-        <CardHeader className="pb-3 flex flex-row items-start justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            PAR-Q & Medical Clearance
-          </CardTitle>
-          <div className="flex gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 rounded-lg"
-              onClick={handleCopyParqEditLink}
-            >
-              <IconCopy className="w-4 h-4" />
-              {linkCopied ? "Link copied!" : "Send edit link"}
-            </Button>
-            <Button
-              variant={editingParq ? "default" : "outline"}
-              size="sm"
-              className="gap-1.5 rounded-lg"
-              onClick={() => {
-                if (editingParq) {
-                  setEditingParq(false);
-                  setParqSaveError(null);
-                } else {
-                  setEditingParq(true);
-                  setParqLoaded(false);
-                }
-              }}
-            >
-              <IconEdit3 className="w-4 h-4" />
-              {editingParq ? "Cancel" : "Edit PAR-Q"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!editingParq ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-3 p-4 rounded-lg border border-border/60">
-                <p className="text-sm font-semibold text-foreground">PAR-Q</p>
-                <Field label="Completed" value={data.parq_completed === "yes" ? "Yes" : data.parq_completed === "no" ? "No" : "Not specified"} />
-                <Field label="Date" value={formatDate(data.parq_date)} />
-                <Field label="Filed by" value={data.parq_filed_by} />
-              </div>
-
-              <div className="space-y-3 p-4 rounded-lg border border-border/60">
-                <p className="text-sm font-semibold text-foreground">Medical Clearance</p>
-                <Field label="Required" value={data.medical_clearance === "yes" ? "Yes" : data.medical_clearance === "na" ? "N/A" : "Not specified"} />
-                <Field label="Date" value={formatDate(data.medical_clearance_date)} />
-                <Field label="From" value={data.medical_clearance_from} />
-              </div>
+      <HubCard>
+        <HubCardHeader
+          icon={<IconFileText className="w-4 h-4" />}
+          title="PAR-Q & Medical Clearance"
+          action={
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 rounded-lg"
+                onClick={handleCopyParqEditLink}
+              >
+                <IconCopy className="w-4 h-4" />
+                {linkCopied ? "Link copied!" : "Send edit link"}
+              </Button>
+              <Button
+                variant={editingParq ? "default" : "outline"}
+                size="sm"
+                className="gap-1.5 rounded-lg"
+                onClick={() => {
+                  if (editingParq) {
+                    setEditingParq(false);
+                    setParqSaveError(null);
+                  } else {
+                    setEditingParq(true);
+                    setParqLoaded(false);
+                  }
+                }}
+              >
+                <IconEdit3 className="w-4 h-4" />
+                {editingParq ? "Cancel" : "Edit PAR-Q"}
+              </Button>
             </div>
-          ) : (
+          }
+        />
+        {!editingParq ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-3 p-4 rounded-lg border border-border/60">
+              <p className="text-sm font-semibold text-foreground">PAR-Q</p>
+              <Field label="Completed" value={data.parq_completed === "yes" ? "Yes" : data.parq_completed === "no" ? "No" : "Not specified"} />
+              <Field label="Date" value={formatDate(data.parq_date)} />
+              <Field label="Filed by" value={data.parq_filed_by} />
+            </div>
+
+            <div className="space-y-3 p-4 rounded-lg border border-border/60">
+              <p className="text-sm font-semibold text-foreground">Medical Clearance</p>
+              <Field label="Required" value={data.medical_clearance === "yes" ? "Yes" : data.medical_clearance === "na" ? "N/A" : "Not specified"} />
+              <Field label="Date" value={formatDate(data.medical_clearance_date)} />
+              <Field label="From" value={data.medical_clearance_from} />
+            </div>
+          </div>
+        ) : (
             <div className="space-y-6">
               {parqSaveSuccess && (
                 <div className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2">
@@ -572,13 +571,12 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </HubCard>
 
       {/* Client management — now managed on the client profile */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] transition-shadow hover:shadow-md">
+      <HubCard>
         <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Client Management" />
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           <div className="flex items-start gap-3 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-canvas)] p-3">
             <IconAlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
             <div className="text-sm">
@@ -631,29 +629,23 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
               <p className="text-sm text-foreground">{data.trainer_notes}</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </HubCard>
 
       {/* Agreement terms */}
-      <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] transition-shadow hover:shadow-md">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            Agreement
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2">
-            {data.agreed_to_terms ? (
-              <IconCheckCircle className="w-4 h-4 text-green-600" />
-            ) : (
-              <IconAlertCircle className="w-4 h-4 text-red-600" />
-            )}
-            <p className="text-sm text-foreground">
-              Terms accepted: <span className="font-semibold">{data.agreed_to_terms ? "Yes" : "No"}</span>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <HubCard>
+        <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Agreement" />
+        <div className="flex items-center gap-2">
+          {data.agreed_to_terms ? (
+            <IconCheckCircle className="w-4 h-4 text-green-600" />
+          ) : (
+            <IconAlertCircle className="w-4 h-4 text-red-600" />
+          )}
+          <p className="text-sm text-foreground">
+            Terms accepted: <span className="font-semibold">{data.agreed_to_terms ? "Yes" : "No"}</span>
+          </p>
+        </div>
+      </HubCard>
 
       {/* Record metadata */}
       <div className="text-xs text-muted-foreground flex items-center gap-4 pt-2">
