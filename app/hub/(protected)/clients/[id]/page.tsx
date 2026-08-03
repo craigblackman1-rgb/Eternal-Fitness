@@ -107,12 +107,22 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const latestAgreement = agreements?.[0] ?? null;
 
   const { data: blocks } = await supabase.from("blocks").select("*").eq("client_id", client.id).order("block_number", { ascending: false });
-  const { data: sessions } = await supabase
-    .from("sessions")
-    .select(`*, blocks!inner(block_number, client_id)`)
-    .eq("blocks.client_id", client.id)
-    .order("session_number", { ascending: false })
-    .limit(50);
+  // Filtered by block_id (this client's own blocks, already fetched above) rather
+  // than .eq("blocks.client_id", ...) — a filter on an embedded relation's column,
+  // which this app's query-builder shim doesn't resolve (it quotes "blocks.client_id"
+  // as one literal column name, which doesn't exist on `sessions`, throws, and the
+  // caught error silently became an empty [] with no visible error). Same root
+  // cause class as the dashboard fix in 75e498a, confirmed live: Tom Putnam's
+  // Training tab showed "No sessions logged yet" despite a real logged session.
+  const clientBlockIds = (blocks ?? []).map((b) => b.id);
+  const { data: sessions } = clientBlockIds.length > 0
+    ? await supabase
+        .from("sessions")
+        .select(`*, blocks!inner(block_number, client_id)`)
+        .in("block_id", clientBlockIds)
+        .order("session_number", { ascending: false })
+        .limit(50)
+    : { data: [] as any[] };
 
   // Trainerize history data (Lane 1 — historical import). Fetched here (before the
   // combined trends/PB computation below) so workoutResults can feed the same
