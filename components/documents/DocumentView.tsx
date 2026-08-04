@@ -11,6 +11,7 @@ const KIND_EYEBROW: Record<DocumentKind, string> = {
   feedback: "Client document 06",
   parq: "Client document 04",
   invoice: "Client document 07",
+  leg_pain_questionnaire: "Client document 08",
 };
 
 const KIND_REFERENCE: Record<DocumentKind, string> = {
@@ -21,6 +22,7 @@ const KIND_REFERENCE: Record<DocumentKind, string> = {
   feedback: "EF-FEEDBACK-2026",
   parq: "EF-PARQ-2026",
   invoice: "EF-INV-2026",
+  leg_pain_questionnaire: "EF-PAIN-LEG-2026",
 };
 
 function EfLogo() {

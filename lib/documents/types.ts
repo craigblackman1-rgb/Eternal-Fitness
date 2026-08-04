@@ -1,4 +1,4 @@
-export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice";
+export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire";
 
 export type DocumentStatus = "draft" | "sent" | "signed" | "superseded";
 
@@ -16,9 +16,9 @@ export interface ConsentGroup {
 
 export interface FeedbackQuestion {
   id: string;
-  type: "text" | "choice";
+  type: "text" | "choice" | "multi";
   label: string;
-  /** Required for type "choice" — rendered as a radio group. */
+  /** Required for type "choice"/"multi" — rendered as a radio group or checkbox group respectively. */
   options?: { value: string; label: string }[];
   /** Clinical/explanatory note shown under the question (e.g. "If yes, give details in Section 5") — used by PAR-Q. */
   note?: string;
@@ -106,6 +106,7 @@ export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {
   feedback: "Client Feedback",
   parq: "PAR-Q",
   invoice: "Invoice",
+  leg_pain_questionnaire: "Leg Pain Questionnaire",
 };
 
 /** Whether every required signature is present — used to decide "signed" status. */

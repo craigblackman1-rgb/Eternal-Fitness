@@ -111,6 +111,34 @@ function FeedbackSectionsView({
                     onChange={(e) => onAnswerChange(q.id, e.target.value)}
                   />
                 </div>
+              ) : q.type === "multi" ? (
+                <div key={q.id} className="q field--full" role="group" aria-labelledby={`fb-q-${q.id}-t`}>
+                  <p className="q__legend" id={`fb-q-${q.id}-t`}>
+                    {q.label}
+                  </p>
+                  {q.note && <p className="q__note">{q.note}</p>}
+                  <div className="optset">
+                    {q.options?.map((opt) => {
+                      const selected = (answers[q.id] ?? "").split(", ").filter(Boolean);
+                      const checked = selected.includes(opt.value);
+                      return (
+                        <label key={opt.value} className="opt">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...selected, opt.value]
+                                : selected.filter((v) => v !== opt.value);
+                              onAnswerChange(q.id, next.join(", "));
+                            }}
+                          />
+                          <span>{opt.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               ) : (
                 <div key={q.id} className="q field--full" role="radiogroup" aria-labelledby={`fb-q-${q.id}-t`}>
                   <p className="q__legend" id={`fb-q-${q.id}-t`}>

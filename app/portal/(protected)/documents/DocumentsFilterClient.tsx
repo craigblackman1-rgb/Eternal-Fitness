@@ -43,7 +43,7 @@ function docGroupLabel(doc: PortalDocument, isSigned: boolean): "action" | "sign
  * (questions to fill in) rather than prose sections — both need the /edit
  * question flow, not the /sign read-and-sign flow. */
 function isFillOutKind(kind: string): boolean {
-  return kind === "parq" || kind === "feedback";
+  return kind === "parq" || kind === "feedback" || kind === "leg_pain_questionnaire";
 }
 
 // One page handles every state (view, fill-in questions, and sign) — the
