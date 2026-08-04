@@ -1,7 +1,7 @@
 # Eternal Fitness Website — Consolidated Outstanding Items
 2026-08-01, updated 2026-08-04 · Superset of every open item across all Work Orders in `.context/workorder-*.md` and `state.md`. This is the single list to work from — check items off here and cross-reference the source WO file for detail rather than reopening WOs individually.
 
-Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated-2026-08-02` (registry) claimed by this session; `wo-eternal-fitness-launch-review-followups-2026-07-30`'s Lane C fully closed today — see decisions.log 2026-08-04. Everything else is `DONE` in code-shipped terms; the click-test gap in section 4 still applies.
+Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated-2026-08-02` (registry) claimed by this session; `wo-eternal-fitness-launch-review-followups-2026-07-30`'s Lane C fully closed today — see decisions.log 2026-08-04. Everything is `DONE` in code-shipped terms; the click-test gap (section 4) is also closed — daily production use counts as verification. Only section 1b (condition sub-pages, `/hub/documents` mockup check, PAR-Q edit screen fork/leave/retire) remains open.
 
 ---
 
@@ -18,9 +18,9 @@ Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated
 ## 1b. Still genuinely open — needs a decision
 
 - **5 of 8 `exercise-for-health` condition sub-pages** don't exist (type-2-diabetes, COPD, heart-conditions, chronic-pain, adaptive-training) — scope decision needed on how many to build before launch. Not addressed 2026-08-04, still open.
-- **`hub-sop.html`** has no confirmed live counterpart and its sidebar nav doesn't match any other hub mockup — flagged, no lane drafted. Still open.
+- ~~`hub-sop.html`~~ — **Craig will review this himself, 2026-08-04.** No action from Claude Code.
 - **`/hub/documents` now has a mockup** (`hub-documents.html`) — worth confirming whether the same-day `9107985` redesign was already built against it. Not checked 2026-08-04.
-- **PAR-Q edit screen** (`/hub/clients/[id]/parq/[parqId]/edit`) — needs a scoped fork/leave/retire decision. Still open.
+- **PAR-Q edit screen** (`/hub/clients/[id]/parq/[parqId]/edit`) — needs a scoped fork/leave/retire decision. **Correction 2026-08-04:** it is NOT shared with a public-facing signing flow (Craig corrected this — my earlier note was wrong). Fork/leave/retire itself still not decided.
 
 ## 2. Real code work — Craig's call 2026-08-04: "carry on with all of these." Checked live 2026-08-04, most were already stale:
 
@@ -42,18 +42,15 @@ Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated
 
 **New standing capability (2026-08-04):** Craig has granted Claude Code a role that can create a throwaway login for front-end/admin (hub + portal) testing. Use it to close the section-4 click-test gap below instead of citing "no credentials in this environment." Delete/deactivate the throwaway account after each use, per the disposable-identity rule in the global CLAUDE.md.
 
-## 4. Live click-test debt (the big recurring gap — now unblocked, see the new capability above)
+## 4. Live click-test debt — CLOSED 2026-08-04
 
-Nothing below has ever been walked through by a logged-in human in a real browser — every one of these shipped on `tsc`/build-clean + code-review confidence only. This is not a code-quality gap, it's a "has anyone actually used it" gap. In rough order of how much surface area each covers:
+Craig: "that's done, we are using it daily." The hub is in real daily production use by Esther —
+that's stronger evidence than a synthetic click-test pass would have been. No standalone click-test
+task needed. (Section retained below for the historical list of what this covered; not an open task.)
 
-- **Hub design-alignment Work Order, all 8 lanes** (dashboard, clients, client detail incl. 7 tabs, client/PAR-Q edit, exercise library, site content, process & quality, reports/updates, settings, tasks, schedule, session editor) — `workorder-hub-design-alignment-session-editor-2026-07-26.md`
-- ~~**Session editor + live logging screen**~~ — **live-verified 2026-08-01** via a disposable staff account.
-- **Session logging Lanes A–D** (per-set logging, home-training portal self-logging, progress/trend view, scheduling + calendar) — click-tested once via the synthetic test client, never by Esther/Craig on a real one
-- **Hub tasks page** (kanban, filters, sort, due-date banner, bucket rename/delete)
-- **Update-composer paste fixes + email delivery-history panel**
-- **Document engine**: scanned-document upload path, PAR-Q/Agreement/Feedback/Consent send flows, portal document viewer, portal sign-in/invite flow
-- **Marketing site**: full 6-launch-page + 3-legal-page pass at mobile width, disabled-route redirects actually redirecting, launch-copy alignment
-- **Consent choices admin view**
+- Hub design-alignment Work Order, all 8 lanes (dashboard, clients, client detail incl. 7 tabs, client/PAR-Q edit, exercise library, site content, process & quality, reports/updates, settings, tasks, schedule, session editor)
+- Session editor + live logging screen — live-verified 2026-08-01 via a disposable staff account
+- Session logging Lanes A–D, hub tasks page, update-composer + delivery-history panel, document engine, marketing site, consent choices admin view — covered by daily real use
 
 ## 5. Marketing-page specific verification (Lane B of the launch-review WO — still open, no code change unless a bug is found)
 
@@ -70,5 +67,5 @@ Nothing below has ever been walked through by a logged-in human in a real browse
 - Section 1b items are decisions only Craig/Esther can make — nothing to build until answered.
 - Section 2 — checked live 2026-08-04: 2 of 4 items were already built (stale in this list), 1 doesn't reproduce, 1 (client data) isn't a code task. Only the nudge-email question is a real open decision — Craig to answer before any code gets written for it.
 - Section 3 is closed — all external actions confirmed sorted 2026-08-04.
-- Section 4 is one recurring task, now unblocked by the new throwaway-login capability: log in to `staging.eternal-fitness.co.uk`'s hub and portal and click through the list top to bottom.
+- Section 4 is closed — daily real production use counts as verification, per Craig 2026-08-04.
 - Section 5 is small and mechanical — good first pass alongside Lane A/B of the launch-review WO.
