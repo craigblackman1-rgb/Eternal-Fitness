@@ -23,6 +23,7 @@ import {
   IconLogOut,
   IconMail,
   IconPencil,
+  IconTrendUp,
   IconUpload,
   IconUsers,
 } from "@/components/icons";
@@ -65,6 +66,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
       { href: "/hub/cashflow/reconciliation", label: "Reconciliation", icon: IconCheckCircle },
       { href: "/hub/cashflow/transactions", label: "Bank transactions", icon: IconUpload },
       { href: "/hub/cashflow/tax", label: "Tax", icon: IconPencil },
+      { href: "/hub/cashflow/forecast", label: "Forecast", icon: IconTrendUp },
     ],
   },
   {
