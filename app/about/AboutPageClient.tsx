@@ -130,8 +130,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               light
             />
             <Reveal y={24}>
-              <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness is not a generic weight-loss service. Training here is not about forcing your body to fit an artificial standard—it is about discovering what your body is capable of right now, and building sustainably from there."}</p>
-              <p className="ds-body ds-body-light" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "Real physical progress cannot be rushed into a six-week trend. True success means climbing stairs with ease, sleeping better, and moving through daily life with lasting confidence. Achieving this requires time, consistency, and a coach who knows exactly how to adapt your programming when your needs change. That is my focus."}</p>
+              <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness is not a generic weight-loss or body transformation service. Training here is never about forcing your body to fit an artificial standard—it is about discovering what you are capable of right now, and building sustainably from there."}</p>
+              <p className="ds-body ds-body-light" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "Real physical progress cannot be rushed or forced into a six-week trend. True success means climbing stairs with ease, sleeping deeper, and moving through daily life with lasting confidence. Achieving this requires time, consistency, and a coach who knows exactly how to adapt your programming when your body's needs change. That is my focus."}</p>
               <div style={{ marginTop: 28 }}>
                 <CtaButton cta={bookCta} />
               </div>
@@ -142,7 +142,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               icon={IconHeartHandshake}
               accent="rose"
               title={content?.phil_callout_title ?? "More Than a Workout"}
-              body={content?.phil_callout_body ?? "There are no generic weigh-ins or before-and-after photos here. I remove the pressure to look a certain way, focusing entirely on steady, measurable progress relative to your personal baseline."}
+              body={content?.phil_callout_body ?? "There are no generic weigh-ins or before-and-after photos here. I remove the pressure to look a certain way, focusing entirely on steady, meaningful progress relative to your personal baseline."}
               className="ds-callout-dark"
             />
           </Reveal>
