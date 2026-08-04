@@ -8,12 +8,17 @@ import {
   IconCheckSquare,
   IconArrowUpRight,
   IconBarChart3,
+  IconTriangleAlert,
+  IconTrendUp,
+  IconZap,
+  IconPlus,
 } from "@/components/icons";
 import {
   findSuggestedMatches,
   type MatchTransaction,
   type MatchInvoice,
 } from "@/lib/cashflow-matching";
+import { computeForecast } from "@/lib/cashflow-forecast";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(amount);
@@ -109,6 +114,25 @@ export default async function CashflowOverviewPage() {
     clients: { name: string; client_number: number; display_code: string } | null;
   }>;
 
+  const [{ data: taxCalcRaw }, forecast] = await Promise.all([
+    supabase
+      .from("tax_calculations")
+      .select("*")
+      .order("calculated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    computeForecast(),
+  ]);
+
+  const taxCalc = taxCalcRaw as {
+    tax_year: string;
+    total_tax_due: number;
+    taxable_profit: number;
+  } | null;
+
+  const forecastClosingBalance =
+    forecast.projection.length > 2 ? forecast.projection[2].closing : null;
+
   return (
     <div className="space-y-6">
       <HubPageHeader
@@ -144,104 +168,238 @@ export default async function CashflowOverviewPage() {
         />
       </div>
 
-      {/* Recent activity */}
-      <HubCard padded={false}>
-        <HubCardHeader
-          icon={<IconBarChart3 className="w-4 h-4" />}
-          title="Recent activity"
-          subtitle="Last 7 invoices by last update"
-          color="navy"
-          divider
-          className="px-5 pt-5 pb-3.5"
-        />
-        <div className="px-5 pb-5">
-          {recentInvoices.length > 0 ? (
-            <div className="overflow-x-auto -mx-5">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                      Invoice
-                    </th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                      Client
-                    </th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                      Total
-                    </th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                      Status
-                    </th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                      Updated
-                    </th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 w-10">
-                      &nbsp;
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentInvoices.map((inv) => {
-                    const initials = (inv.clients?.name ?? "??")
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .join("")
-                      .toUpperCase()
-                      .slice(0, 2);
-                    return (
-                      <tr
-                        key={inv.id}
-                        className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors"
-                      >
-                        <td className="px-5 py-3">
-                          <span className="font-semibold text-foreground font-mono text-[13px]">
-                            {inv.invoice_number}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3">
-                          <div className="inline-flex items-center gap-2.5 min-w-0">
-                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">
-                              {initials}
+      <div className="grid gap-[18px] grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] items-start">
+        {/* Recent activity — left column */}
+        <HubCard padded={false}>
+          <HubCardHeader
+            icon={<IconBarChart3 className="w-4 h-4" />}
+            title="Recent activity"
+            subtitle="Last 7 invoices by last update"
+            color="navy"
+            divider
+            className="px-5 pt-5 pb-3.5"
+          />
+          <div className="px-5 pb-5">
+            {recentInvoices.length > 0 ? (
+              <div className="overflow-x-auto -mx-5">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
+                        Invoice
+                      </th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
+                        Client
+                      </th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
+                        Total
+                      </th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
+                        Status
+                      </th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
+                        Updated
+                      </th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 w-10">
+                        &nbsp;
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentInvoices.map((inv) => {
+                      const initials = (inv.clients?.name ?? "??")
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2);
+                      return (
+                        <tr
+                          key={inv.id}
+                          className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors"
+                        >
+                          <td className="px-5 py-3">
+                            <span className="font-semibold text-foreground font-mono text-[13px]">
+                              {inv.invoice_number}
                             </span>
-                            <span className="text-muted-foreground truncate">
-                              {inv.clients?.name ?? "Unknown client"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3 font-semibold tabular-nums text-foreground">
-                          {formatCurrency(inv.total)}
-                        </td>
-                        <td className="px-5 py-3">
-                          <StatusBadge status={inv.status} />
-                        </td>
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                          {new Date(inv.updated_at).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </td>
-                        <td className="px-5 py-3">
-                          <Link
-                            href={`/hub/cashflow/invoices/${inv.id}`}
-                            className="inline-flex items-center text-muted-foreground hover:text-rose transition-colors"
-                          >
-                            <IconArrowUpRight className="w-4 h-4" />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="inline-flex items-center gap-2.5 min-w-0">
+                              <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">
+                                {initials}
+                              </span>
+                              <span className="text-muted-foreground truncate">
+                                {inv.clients?.name ?? "Unknown client"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 font-semibold tabular-nums text-foreground">
+                            {formatCurrency(inv.total)}
+                          </td>
+                          <td className="px-5 py-3">
+                            <StatusBadge status={inv.status} />
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                            {new Date(inv.updated_at).toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td className="px-5 py-3">
+                            <Link
+                              href={`/hub/cashflow/invoices/${inv.id}`}
+                              className="inline-flex items-center text-muted-foreground hover:text-rose transition-colors"
+                            >
+                              <IconArrowUpRight className="w-4 h-4" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground pt-5 pb-1">
+                No invoices yet — create one to see activity here.
+              </p>
+            )}
+          </div>
+        </HubCard>
+
+        {/* Right rail — Tax, Forecast, Quick actions */}
+        <div className="flex flex-col gap-[18px]">
+          {/* Tax estimate */}
+          <HubCard padded={false}>
+            <HubCardHeader
+              icon={<IconTriangleAlert className="w-4 h-4" />}
+              title="Tax estimate"
+              subtitle={`Tax year ${taxCalc?.tax_year ?? "—"}`}
+              color="amber"
+              action={
+                <Link
+                  href="/hub/cashflow/tax"
+                  className="text-xs font-semibold text-rose hover:underline shrink-0"
+                >
+                  Details
+                </Link>
+              }
+              divider
+              className="px-5 pt-5 pb-3.5"
+            />
+            {taxCalc ? (
+              <>
+                <div className="px-5 pt-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Income Tax + NIC
+                  </p>
+                  <p className="text-[26px] font-bold text-foreground tabular-nums leading-tight">
+                    {formatCurrency(taxCalc.total_tax_due)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    On {formatCurrency(taxCalc.taxable_profit)} profit to date (income minus categorised expenses)
+                  </p>
+                </div>
+                <div className="flex gap-2 items-start text-[11.5px] leading-[1.5] text-muted-foreground px-5 py-3 mt-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                  <IconTriangleAlert className="w-3.5 h-3.5 shrink-0 mt-px text-amber" />
+                  <span>Estimate only — not a substitute for an accountant. Accuracy depends on real bank imports and categorised transactions.</span>
+                </div>
+              </>
+            ) : (
+              <div className="px-5 pb-5 pt-2">
+                <p className="text-sm text-muted-foreground">
+                  No tax estimate calculated yet —{" "}
+                  <Link href="/hub/cashflow/tax" className="text-rose hover:underline font-medium">
+                    visit Tax to generate one
+                  </Link>
+                  .
+                </p>
+              </div>
+            )}
+          </HubCard>
+
+          {/* Cash flow forecast */}
+          <HubCard padded={false}>
+            <HubCardHeader
+              icon={<IconTrendUp className="w-4 h-4" />}
+              title="Cash flow forecast"
+              subtitle="Next few months"
+              color="teal"
+              action={
+                <Link
+                  href="/hub/cashflow/forecast"
+                  className="text-xs font-semibold text-rose hover:underline shrink-0"
+                >
+                  Details
+                </Link>
+              }
+              divider
+              className="px-5 pt-5 pb-3.5"
+            />
+            {forecast.hasSettings && forecastClosingBalance !== null ? (
+              <>
+                <div className="px-5 pt-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Projected balance, 3 months out
+                  </p>
+                  <p className="text-[22px] font-bold text-foreground tabular-nums leading-tight">
+                    {formatCurrency(forecastClosingBalance)}
+                  </p>
+                </div>
+                <div className="flex gap-2 items-start text-[11.5px] leading-[1.5] text-muted-foreground px-5 py-3 mt-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                  <IconTriangleAlert className="w-3.5 h-3.5 shrink-0 mt-px text-amber" />
+                  <span>Estimate only. Built from unpaid invoices, pending bills and a manually entered starting balance — not a live bank feed.</span>
+                </div>
+              </>
+            ) : (
+              <div className="px-5 pb-5 pt-2">
+                <p className="text-sm text-muted-foreground">
+                  Enter your current bank balance first —{" "}
+                  <Link href="/hub/cashflow/forecast" className="text-rose hover:underline font-medium">
+                    visit Forecast to set it up
+                  </Link>
+                  .
+                </p>
+              </div>
+            )}
+          </HubCard>
+
+          {/* Quick actions */}
+          <HubCard padded={false}>
+            <HubCardHeader
+              icon={<IconZap className="w-4 h-4" />}
+              title="Quick actions"
+              color="slate"
+              divider
+              className="px-5 pt-5 pb-3.5"
+            />
+            <div className="flex flex-col">
+              <Link
+                href="/hub/cashflow/invoices"
+                className="flex items-center gap-2.5 px-5 py-2.5 text-[13px] font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+              >
+                <IconPlus className="w-4 h-4 text-muted-foreground shrink-0" />
+                New invoice
+              </Link>
+              <Link
+                href="/hub/cashflow/transactions"
+                className="flex items-center gap-2.5 px-5 py-2.5 text-[13px] font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors border-t border-[var(--hub-border)]"
+              >
+                <IconArrowUpRight className="w-4 h-4 text-muted-foreground shrink-0 rotate-90" />
+                Import bank statement
+              </Link>
+              <Link
+                href="/hub/cashflow/reconciliation"
+                className="flex items-center gap-2.5 px-5 py-2.5 text-[13px] font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors border-t border-[var(--hub-border)]"
+              >
+                <IconCheckSquare className="w-4 h-4 text-muted-foreground shrink-0" />
+                Review reconciliation
+              </Link>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground pt-5 pb-1">
-              No invoices yet — create one to see activity here.
-            </p>
-          )}
+          </HubCard>
         </div>
-      </HubCard>
+      </div>
     </div>
   );
 }
