@@ -36,9 +36,9 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
   ];
 
   const longTermCards = [
-    { title: content?.long_card_1_title ?? "The Power of Consistency", desc: content?.long_card_1_desc ?? "Small, steady actions repeated over time create lasting change, without extremes.", image: "/images/approach-consistency.jpg", href: undefined },
-    { title: content?.long_card_2_title ?? "Adapting When Things Change", desc: content?.long_card_2_desc ?? "Your programme adapts with you, so progress never stops, it just looks different.", image: "/images/mobility-movement.jpg", href: undefined },
-    { title: content?.long_card_3_title ?? "Real Outcomes, Not Aesthetics", desc: content?.long_card_3_desc ?? "Stronger, more capable, more comfortable in your body. These are the outcomes that actually matter.", image: "/images/mind-body.jpg", href: undefined },
+    { title: content?.long_card_1_title ?? "The Power of Consistency", desc: content?.long_card_1_desc ?? "Small, steady actions repeated over time create lasting, real-world change. We focus on building manageable habits, completely avoiding extreme or restrictive routines.", image: "/images/approach-consistency.jpg", href: undefined },
+    { title: content?.long_card_2_title ?? "Adapting When Things Change", desc: content?.long_card_2_desc ?? "Life is unpredictable, and your body changes daily. Your programme adapts alongside your energy levels and circumstances, ensuring progress never stops—it just looks different.", image: "/images/mobility-movement.jpg", href: undefined },
+    { title: content?.long_card_3_title ?? "Real Outcomes, Not Aesthetics", desc: content?.long_card_3_desc ?? "We measure success by how you feel, move, and live outside the studio. True fitness means becoming stronger, more capable, and comfortable in your own skin.", image: "/images/mind-body.jpg", href: undefined },
   ];
 
   const bookCta = { label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true };
