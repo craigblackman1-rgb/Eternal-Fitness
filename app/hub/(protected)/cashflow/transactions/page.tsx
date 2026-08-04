@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
-import { HubPageHeader, HubCard, EmptyState, StatusBadge } from "@/components/hub";
-import { IconUpload, IconDownload, IconSearch, IconRefreshCw } from "@/components/icons";
+import { HubPageHeader, HubCard, EmptyState, StatusBadge, Toolbar, toolbarSelectClasses } from "@/components/hub";
+import { IconUpload, IconCheck, IconDownload, IconSearch, IconRefreshCw } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import type { ParsedTransaction } from "@/lib/bank-statement-parser";
 
@@ -15,6 +15,25 @@ interface ImportRow {
   status: string;
   row_count: number;
   created_at: string;
+  total: number;
+  uncategorised: number;
+  categorised: number;
+  excluded: number;
+}
+
+interface ImportStatsResponse {
+  imports: ImportRow[];
+  lastImport: {
+    id: string;
+    uploaded_at: string;
+    source_file_name: string;
+    status: string;
+    row_count: number;
+    total: number;
+    uncategorised: number;
+    categorised: number;
+    excluded: number;
+  } | null;
 }
 
 interface ParseResult {
@@ -23,14 +42,8 @@ interface ParseResult {
   transactions: ParsedTransaction[];
 }
 
-function formatAmount(amount: number): string {
-  const abs = Math.abs(amount);
-  const formatted = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(abs);
-  return amount < 0 ? `-${formatted}` : `+${formatted}`;
-}
-
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
+  const d = new Date(dateStr);
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
@@ -40,6 +53,7 @@ export default function TransactionsPage() {
 
   const [imports, setImports] = useState<ImportRow[]>([]);
   const [loadingImports, setLoadingImports] = useState(true);
+  const [lastImport, setLastImport] = useState<ImportStatsResponse["lastImport"]>(null);
 
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -47,19 +61,31 @@ export default function TransactionsPage() {
   const [committing, setCommitting] = useState(false);
   const [commitError, setCommitError] = useState<string | null>(null);
 
-  const fetchImports = useCallback(async () => {
+  const [searchValue, setSearchValue] = useState("");
+  const [filter, setFilter] = useState("All");
+
+  const fetchStats = useCallback(async () => {
     setLoadingImports(true);
-    const { data } = await supabase
-      .from("bank_statement_imports")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setImports(data ?? []);
+    try {
+      const res = await fetch("/api/cashflow/transactions/stats");
+      if (!res.ok) {
+        setImports([]);
+        setLastImport(null);
+      } else {
+        const json: ImportStatsResponse = await res.json();
+        setImports(json.imports);
+        setLastImport(json.lastImport);
+      }
+    } catch {
+      setImports([]);
+      setLastImport(null);
+    }
     setLoadingImports(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
-    fetchImports();
-  }, [fetchImports]);
+    fetchStats();
+  }, [fetchStats]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setParseError(null);
@@ -106,7 +132,7 @@ export default function TransactionsPage() {
         setCommitError(json.error ?? "Commit failed");
       } else {
         setParseResult(null);
-        fetchImports();
+        fetchStats();
       }
     } catch {
       setCommitError("Failed to commit import");
@@ -125,11 +151,27 @@ export default function TransactionsPage() {
     router.push(`/hub/cashflow/transactions/${importId}`);
   };
 
+  const filteredImports = imports.filter((imp) => {
+    const matchesSearch = imp.source_file_name.toLowerCase().includes(searchValue.toLowerCase());
+    if (!matchesSearch) return false;
+    if (filter === "All") return true;
+    if (filter === "Uncategorised") return imp.uncategorised > 0;
+    if (filter === "Categorised") return imp.total > 0 && imp.uncategorised === 0 && imp.excluded === 0;
+    if (filter === "Excluded") return imp.excluded > 0;
+    return true;
+  });
+
+  const filterOptions = ["All", "Uncategorised", "Categorised", "Excluded"];
+
+  const totalLines = imports.reduce((sum, imp) => sum + imp.total, 0);
+  const totalUncategorised = imports.reduce((sum, imp) => sum + imp.uncategorised, 0);
+  const countText = `${totalLines} ${totalLines === 1 ? "line" : "lines"} · ${totalUncategorised} uncategorised`;
+
   return (
     <div className="space-y-6">
       <HubPageHeader
         title="Bank transactions"
-        subtitle="Import bank statements and review transactions"
+        subtitle="Statement lines from file upload — HSBC format. Categorise each line so it feeds the tax estimate and forecast correctly."
         actions={
           <label className="cursor-pointer">
             <Button asChild className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
@@ -148,6 +190,32 @@ export default function TransactionsPage() {
           </label>
         }
       />
+
+      {/* Last import summary */}
+      {lastImport && (
+        <HubCard className="flex items-center gap-3.5 p-4">
+          <div className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-success-bg)] text-[var(--color-teal)] flex items-center justify-center shrink-0">
+            <IconCheck className="w-[18px] h-[18px]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] font-bold text-foreground leading-tight">
+              Last import — {formatDate(lastImport.uploaded_at)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {lastImport.source_file_name} · {lastImport.total} {lastImport.total === 1 ? "line" : "lines"}{" "}
+              · {lastImport.uncategorised} still need a category
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-lg gap-1.5"
+            onClick={() => handleViewImport(lastImport.id)}
+          >
+            View import log
+          </Button>
+        </HubCard>
+      )}
 
       {/* Parse error */}
       {parseError && (
@@ -234,7 +302,11 @@ export default function TransactionsPage() {
                         txn.amount < 0 ? "text-[var(--status-danger)]" : "text-[var(--status-success-text)]"
                       }`}
                     >
-                      {formatAmount(txn.amount)}
+                      {(() => {
+                        const abs = Math.abs(txn.amount);
+                        const formatted = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(abs);
+                        return txn.amount < 0 ? `-${formatted}` : `+${formatted}`;
+                      })()}
                     </td>
                     <td className="px-5 py-2.5 text-right tabular-nums text-[var(--hub-muted)]">
                       {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(txn.balance)}
@@ -249,15 +321,34 @@ export default function TransactionsPage() {
 
       {/* Import history */}
       <HubCard padded={false}>
-        <div className="px-5 py-4 border-b border-[var(--hub-border)]">
+        <div className="px-5 py-4 border-b border-[var(--hub-border)] flex items-center justify-between">
           <p className="text-sm font-semibold">Import history</p>
         </div>
+
+        <Toolbar
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          searchPlaceholder="Search description…"
+          count={countText}
+        >
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className={toolbarSelectClasses}
+            aria-label="Filter by category status"
+          >
+            {filterOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </Toolbar>
+
         {loadingImports ? (
           <div className="flex items-center gap-3 px-5 py-10">
             <IconRefreshCw className="w-5 h-5 animate-spin text-[var(--hub-muted)]" />
             <p className="text-sm text-[var(--hub-muted)]">Loading imports…</p>
           </div>
-        ) : imports.length === 0 ? (
+        ) : filteredImports.length === 0 ? (
           <div className="px-5 py-12">
             <EmptyState
               icon={<IconUpload className="w-9 h-9" />}
@@ -272,12 +363,12 @@ export default function TransactionsPage() {
                 <tr className="bg-[var(--hub-hover)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--hub-muted)]">
                   <th className="px-5 py-2.5 text-left">File</th>
                   <th className="px-5 py-2.5 text-left">Uploaded</th>
-                  <th className="px-5 py-2.5 text-right">Rows</th>
+                  <th className="px-5 py-2.5 text-right">Lines</th>
                   <th className="px-5 py-2.5 text-left">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {imports.map((imp) => (
+                {filteredImports.map((imp) => (
                   <tr
                     key={imp.id}
                     onClick={() => handleViewImport(imp.id)}
@@ -293,7 +384,18 @@ export default function TransactionsPage() {
                         minute: "2-digit",
                       })}
                     </td>
-                    <td className="px-5 py-2.5 text-right tabular-nums">{imp.row_count}</td>
+                    <td className="px-5 py-2.5 text-right tabular-nums">
+                      {imp.uncategorised > 0 ? (
+                        <span>
+                          {imp.total}{" "}
+                          <span className="text-[var(--status-warning)]">
+                            ({imp.uncategorised} uncategorised)
+                          </span>
+                        </span>
+                      ) : (
+                        imp.total
+                      )}
+                    </td>
                     <td className="px-5 py-2.5">
                       <StatusBadge status={imp.status} />
                     </td>
