@@ -67,19 +67,20 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           <Reveal y={40}>
             <figure style={{ margin: 0, position: "relative" }}>
               <div className="ds-split-img">
-                <Image src="/images/esther-training.jpg" alt="Esther Fair in her converted-garage studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 20%" }} />
+                <Image src="/images/esther-training.jpg" alt="Esther Fair in her private studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 20%" }} />
               </div>
-              <figcaption className="ds-figcaption">The converted-garage studio, Worthing</figcaption>
+              <figcaption className="ds-figcaption">The private studio, Worthing</figcaption>
             </figure>
           </Reveal>
           <div>
             <SectionHeading eyebrow={content?.story_eyebrow ?? "My Story"} heading={content?.story_heading ?? "How Eternal Fitness Came to Be"} />
             <Reveal y={24}>
-              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "After qualifying, I took a job in a leisure centre first — I wanted the security of employment before doing anything on my own."}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "Covid changed that. When leisure centres closed, some of my more vulnerable clients asked if I could keep training them outdoors. Around the same time, I joined a clinical trial delivering online exercise sessions for people going through cancer treatment. I said yes to a few things, and it worked out okay. So I said yes to a few more."}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "I didn't want to build a generic weight-loss business. I wanted to work with people who had real physical and mental health needs — people finding their way back to fitness after cancer treatment, older adults, visually impaired clients, athletes — and measure it in confidence, independence and how people actually feel, not just numbers."}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3b ?? "I prioritize continuous education, constantly upgrading my qualifications and knowledge so that my training methods remain at the absolute forefront of fitness and health care. I am committed to continuous learning, regularly adding new qualifications to ensure every client receives the most advanced, safe, and effective care."}</p>
-              <p className="ds-body" style={{ marginBottom: 0 }}>{content?.story_p4 ?? "I train from a converted garage studio now, and I've built my working hours around the life I actually want, not the other way round. My first client stayed with me for around seven years — that's the kind of relationship I'm after."}</p>
+              <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "I started working in fitness because I wanted to help people move well and feel good, but I quickly realized my heart lay in making exercise accessible to absolutely everyone—regardless of the challenges or health issues they might be facing. I loved finding ways to make movement work for people who felt left out by standard gym routines, which led me to set up and run a dedicated GP Exercise Referral scheme within a busy public leisure centre."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "When Covid-19 closed gym doors in 2020, everything shifted. I began training clients outdoors and simultaneously joined a clinical trial, delivering online exercise sessions for people undergoing cancer treatment. Saying \"yes\" to these opportunities redefined my purpose. It proved just how much people benefit from a coach who adapts dynamically, rather than relying on one-size-fits-all routines."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "Driven by this new purpose, I established Eternal Fitness in 2020. I chose to step away from the typical weight-loss and body transformation focus of the fitness industry. Instead, I wanted to deliver thoughtful, highly individualized coaching centered on real-world fitness, health, and longevity."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3b ?? "My clients range from everyday people looking to get fitter and feel like themselves again, to individuals navigating complex medical recovery, through to athletes who require deep, calculated thought built into their programming."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3c ?? "To best serve this diverse community, I am deeply committed to continuous education. I regularly add advanced qualifications to my toolkit to ensure that my training methods remain safe, progressive, and highly effective—no matter who is walking through my door."}</p>
+              <p className="ds-body" style={{ marginBottom: 0 }}>{content?.story_p4 ?? "Today, I train clients out of my private studio in Worthing. Success here is not measured by numbers on a scale, but by real-world confidence and strength. The proof is in the results: the vast majority of my clients choose to stay and train with me for a number of years. That is the kind of trusted, lasting partnership I offer to every person I work with."}</p>
               <div style={{ marginTop: 30 }}>
                 <CtaButton cta={bookCta} />
               </div>
@@ -154,7 +155,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           eyebrow={content?.studio_eyebrow ?? "Studio"}
           heading={content?.studio_heading ?? "A Private Space in Worthing"}
           intro={content?.studio_intro ??
-            "Sessions take place in a small, private, converted-garage studio. No public gym floor. No other clients watching. No ambient pressure of what anyone else around you is doing."}
+            "Sessions take place in a small, private studio. No public gym floor. No other clients watching. No ambient pressure of what anyone else around you is doing."}
         />
         <Reveal className="ds-grid-2" stagger={0.12} y={40} start="top 82%" >
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
