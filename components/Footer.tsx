@@ -51,7 +51,7 @@ const Footer = () => {
               <p className="text-[14.5px] leading-[1.62] text-white/60 max-w-[36ch] mb-7">
                 All sessions are 60 minutes, one-to-one — in the private studio in Worthing, or live online.
               </p>
-              <Link href="/contact" className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
+              <Link href="https://bookings.cloud.microsoft/book/EternalFitnessBookings@eternal-fitness.co.uk/?ismsaljsauthenabled=true" className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
                 Book a free consultation
                 <IconArrowUpRight style={{ width: 13, height: 13 }} />
               </Link>
