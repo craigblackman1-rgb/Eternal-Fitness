@@ -1,4 +1,23 @@
-# Eternal Fitness Website — State
+# Eternal - **Launch-review Lane C fully closed + FAQ rewrite pass — DONE 2026-08-04.** Craig resolved all 5
+  outstanding Lane C GATE items from `workorder-launch-review-followups-2026-07-30.md` in one batch:
+  condition-roll-call copy on Home/PT left as-is for now, blog scope deferred, About "Real Story" and
+  the Google Reviews shortlist both confirmed final, and FAQ answer bodies approved for a rewrite pass.
+  Reviewed all 17 FAQ answers against `voice.md` — most were already realigned in `74b2fa9`
+  (2026-07-27); polished 3 for tone (GP-referral phrasing, a corporate "accommodate wherever possible"
+  line, a transactional "budgets" phrase). `tsc --noEmit` clean, built in worktree
+  `eternal-fitness-website-wt/decisions-2026-08-04` per DO-SOP-010. Separately, Craig confirmed the
+  `portal-sign-in.html` mismatch flagged as open in `outstanding-items-2026-08-01.md` was stale — it
+  was already resolved 2026-07-30 (keep password auth, reskin only) and shipped (`71de12c`); the
+  outstanding-items file's stale entry is now corrected. Also cleared as resolved: Resend delivery
+  (Craig confirmed tested/working), SPF/DKIM (confirmed working), `ANTHROPIC_API_KEY` (hub's AI agent
+  runs on OpenRouter instead — not a gap), and the "no real client invited to portal" item (real
+  clients are live). Craig approved proceeding on all of `outstanding-items-2026-08-01.md` section 2
+  (nudge send mechanism, `home_training` toggle UI, `/hub/site-review` 500 bug, client data
+  consolidation) as the next Work Order. New standing capability: Claude Code can now create a
+  throwaway login for front-end/admin testing, closing the section-4 live-click-test gap going
+  forward. Full detail: `.context/decisions.log` 2026-08-04 entry,
+  `workorder-launch-review-followups-2026-07-30.md`, `outstanding-items-2026-08-01.md`.
+Fitness Website — State
 
 ## Current
 - **Cashflow work order CLOSED — Lanes 5-7 (bank import, reconciliation, dashboard) DONE + DEPLOYED

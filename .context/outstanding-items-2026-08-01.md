@@ -1,50 +1,51 @@
 # Eternal Fitness Website — Consolidated Outstanding Items
-2026-08-01 · Superset of every open item across all Work Orders in `.context/workorder-*.md` and `state.md`. This is the single list to work from — check items off here and cross-reference the source WO file for detail rather than reopening WOs individually.
+2026-08-01, updated 2026-08-04 · Superset of every open item across all Work Orders in `.context/workorder-*.md` and `state.md`. This is the single list to work from — check items off here and cross-reference the source WO file for detail rather than reopening WOs individually.
 
-Registry status at time of writing: only one Work Order is still `ACTIVE` (`wo-eternal-fitness-launch-review-followups-2026-07-30`). Everything else is `DONE`, but "done" in this repo has consistently meant *code shipped and deployed*, not *click-tested by a human* — that gap runs through nearly every item below.
+Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated-2026-08-02` (registry) claimed by this session; `wo-eternal-fitness-launch-review-followups-2026-07-30`'s Lane C fully closed today — see decisions.log 2026-08-04. Everything else is `DONE` in code-shipped terms; the click-test gap in section 4 still applies.
 
 ---
 
-## 1. Blocking launch — needs Craig/Esther decision (`[GATE]`)
+## 1. Blocking launch — RESOLVED 2026-08-04 (Craig's decisions, see decisions.log)
 
-From the active Work Order (`workorder-launch-review-followups-2026-07-30.md`, Lane C):
+- **Condition-roll-call copy** on Home + Personal Training — **leave as-is for now**, revisit once the Specialist Training catalogue ships.
+- **Blog scope** (27 unedited legacy posts) — **deferred**, no action before launch.
+- **FAQ answer bodies** — **rewrite pass done 2026-08-04.** Reviewed all 17 against voice.md; most already compliant from `74b2fa9`; 3 polished for tone. `tsc` clean.
+- **About page "Real Story"** — **confirmed correct/final by Craig.**
+- **Google Reviews shortlist** — **confirmed usable as-is by Craig** (also previously resolved 2026-07-30 in stats.md).
+- **Specialist Training catalogue** — **deferred to post-launch**, confirmed by Craig.
+- **`portal-sign-in.html` mismatch** — **not actually open.** This item was stale here: the real GATE was already resolved 2026-07-30 (Craig: keep password auth, reskin only — see `workorder-hub-portal-mockup-audit-2026-07-30.md` Lane 5) and shipped in commit `71de12c`. Craig reconfirmed 2026-08-04: "just a password and username, that is it." No further work.
 
-- **Condition-roll-call copy** on Home + Personal Training ("Heart health and blood pressure / Bone and joint health / Visual impairment / Cancer rehabilitation") — hard rule says generalise on general pages. Reword now, or accept as-is until the Specialist Training catalogue ships?
-- **Blog scope** (27 unedited legacy WordPress posts, currently disabled/redirected) — noindex-and-launch-as-is, curate a subset, or post-launch rewrite project?
-- **FAQ answer bodies** — only ~2 of 17 rewritten. Needs a full pass against `voice.md` with Esther.
-- **About page "Real Story"** — sourced from Esther's published Storm Fitness Academy interview, not yet confirmed verbatim by her directly.
-- **Google Reviews shortlist** (curated in `references/stories.md`) — Esther hasn't confirmed which reviews she's comfortable seeing used publicly.
+## 1b. Still genuinely open — needs a decision
 
-From `state.md` / other WOs:
-- **Specialist Training catalogue** doesn't exist yet — Personal Training/Home pages link to a placeholder anchor (`/personal-training#specialist`). Must not reach production pointing at nothing real.
-- **5 of 8 `exercise-for-health` condition sub-pages** don't exist (type-2-diabetes, COPD, heart-conditions, chronic-pain, adaptive-training) — scope decision needed on how many to build before launch.
-- **`portal-sign-in.html` mismatch** — mockup is passwordless email+one-time-code, live is traditional email+password. Matching means changing the auth mechanism itself, not a visual fix. Parked pending Craig's call (`workorder-hub-portal-mockup-audit-2026-07-30.md`).
-- **`hub-sop.html`** has no confirmed live counterpart and its sidebar nav doesn't match any other hub mockup — flagged, no lane drafted. Re-confirmed via `.context/tools/verify-hub-pages.js` 2026-08-01, still unresolved.
-- **`/hub/documents` now has a mockup** (`hub-documents.html`, appeared 2026-08-01) — the 2026-07-26 WO's "real, not mocked" note for this route is now stale. There's already a same-day commit (`9107985`, pushed 09:13) redesigning this exact page — worth checking whether it was already built against the new mockup or is coincidental, before assuming it's covered.
-- **`/hub/site-review` returns HTTP 500** — found live via `.context/tools/verify-hub-pages.js` 2026-08-01, not yet investigated. Real bug, not a mockup-parity issue.
-- **PAR-Q edit screen** (`/hub/clients/[id]/parq/[parqId]/edit`) still runs on the old shared public-facing component, deliberately not restyled (also lives on the public signing flow). Needs a scoped decision: fork it, leave it, or retire it.
+- **5 of 8 `exercise-for-health` condition sub-pages** don't exist (type-2-diabetes, COPD, heart-conditions, chronic-pain, adaptive-training) — scope decision needed on how many to build before launch. Not addressed 2026-08-04, still open.
+- **`hub-sop.html`** has no confirmed live counterpart and its sidebar nav doesn't match any other hub mockup — flagged, no lane drafted. Still open.
+- **`/hub/documents` now has a mockup** (`hub-documents.html`) — worth confirming whether the same-day `9107985` redesign was already built against it. Not checked 2026-08-04.
+- **PAR-Q edit screen** (`/hub/clients/[id]/parq/[parqId]/edit`) — needs a scoped fork/leave/retire decision. Still open.
 
-## 2. Real code work not yet started
+## 2. Real code work — Craig's call 2026-08-04: **carry on with all of these.** Next Work Order candidates.
 
-- **"Haven't logged in N days" nudge send mechanism** — detection/flagging is built (7-day threshold), but whether it auto-sends to the client or generates an Esther-reviewed draft is still open, per the standing no-auto-send-without-review rule. (`workorder-session-logging-2026-07-25.md`)
-- **No hub UI to flip a client to `delivery_mode='home_training'`** — SQL-only today. Built as a gap, not fixed.
-- **Client data consolidation** (Trainerize/Outlook/paper → hub `clients` table) — decided to do this by manual entry, never started. Not currently blocking anything.
-- **Lane J — paper→digital conversion tool** — deliberately parked by Craig 2026-07-22 (recommendation on record: vision-LLM extraction, not OCR). Not to be picked up proactively.
+- **"Haven't logged in N days" nudge send mechanism** — detection/flagging built (7-day threshold); build the send path — auto-send vs. Esther-reviewed draft, per the standing no-auto-send-without-review rule.
+- **Hub UI to flip a client to `delivery_mode='home_training'`** — SQL-only today, build the UI toggle.
+- **`/hub/site-review` returns HTTP 500** — real bug, found 2026-08-01 via `verify-hub-pages.js`, not yet investigated. Investigate and fix.
+- **Client data consolidation** (Trainerize/Outlook/paper → hub `clients` table) — manual-entry approach already decided, not started. Not blocking, but in scope to progress per Craig's "carry on with all of those."
+- **Lane J — paper→digital conversion tool** — still deliberately parked (Craig, 2026-07-22). Not included in "carry on with all of those" — do not pick up proactively unless Craig raises it again.
 
-## 3. Real actions needed outside the codebase
+## 3. Real actions outside the codebase — RESOLVED/CLEARED 2026-08-04
 
-- **Subscribe `email.delivered` / `email.bounced` / `email.complained`** on the Resend webhook (Resend dashboard → Domains → sending domain → Webhooks). Only `opened`/`clicked` are currently enabled; the handler code already supports all 5 event types (shipped 2026-07-28) but nothing populates until this is subscribed.
-- **Confirm SMTP/SendGrid backend is actually live**, not dry-running — a 36ms created→sent gap on a real send is circumstantial evidence it's dry-running in prod, never definitively confirmed. `emailed`/"Not delivered" UI indicators now surface this if/when it happens, but a real test send would settle it.
-- **Set `ANTHROPIC_API_KEY`** — currently empty, Claude generation (blocks + updates) silently falls back to template.
-- **Verify SPF/DKIM** for the sending domain.
-- **No real client has ever been invited to the portal** — portal auth, home-training self-logging, and the document engine's client-facing send flow have all shipped but never been exercised against a real client account (only a synthetic test client, `client_number 19`, exists — safe to delete once done with it).
+- ~~Subscribe `email.delivered`/`bounced`/`complained` on Resend webhook~~ — **Craig confirmed 2026-08-04: Resend is fully sorted, tested, working.** Drop as an open item.
+- ~~Confirm SMTP/SendGrid backend is live~~ — **covered by the above**, Resend is the confirmed live backend.
+- ~~Set `ANTHROPIC_API_KEY`~~ — **Craig, 2026-08-04: ignore.** The hub's working AI agent runs through OpenRouter instead; this is not a gap.
+- ~~Verify SPF/DKIM~~ — **Craig confirmed 2026-08-04: fine, working.**
+- ~~No real client invited to the portal~~ — **Craig confirmed 2026-08-04: real clients are live/working in the portal.** Stale item, dropped.
 
-## 4. Live click-test debt (the big recurring gap)
+**New standing capability (2026-08-04):** Craig has granted Claude Code a role that can create a throwaway login for front-end/admin (hub + portal) testing. Use it to close the section-4 click-test gap below instead of citing "no credentials in this environment." Delete/deactivate the throwaway account after each use, per the disposable-identity rule in the global CLAUDE.md.
 
-Nothing below has ever been walked through by a logged-in human in a real browser — every one of these shipped on `tsc`/build-clean + code-review confidence only, because no hub credentials exist in this build environment. This is not a code-quality gap, it's a "has anyone actually used it" gap. In rough order of how much surface area each covers:
+## 4. Live click-test debt (the big recurring gap — now unblocked, see the new capability above)
+
+Nothing below has ever been walked through by a logged-in human in a real browser — every one of these shipped on `tsc`/build-clean + code-review confidence only. This is not a code-quality gap, it's a "has anyone actually used it" gap. In rough order of how much surface area each covers:
 
 - **Hub design-alignment Work Order, all 8 lanes** (dashboard, clients, client detail incl. 7 tabs, client/PAR-Q edit, exercise library, site content, process & quality, reports/updates, settings, tasks, schedule, session editor) — `workorder-hub-design-alignment-session-editor-2026-07-26.md`
-- ~~**Session editor + live logging screen**~~ — **live-verified 2026-08-01** via a disposable staff account (created and deleted per the standing rule): `/hub/log/[sessionId]` renders real data correctly (superset grouping, reps-vs-time badges, prescribed targets), a real Done click wrote a genuine `set_logs` row end-to-end, edit mode's log-type toggle renders and is clickable. Cross-section drag itself (Unit 2) was code-reviewed thoroughly but not physically drag-tested in a browser — browser drag-and-drop simulation is unreliable via current tooling on this page.
+- ~~**Session editor + live logging screen**~~ — **live-verified 2026-08-01** via a disposable staff account.
 - **Session logging Lanes A–D** (per-set logging, home-training portal self-logging, progress/trend view, scheduling + calendar) — click-tested once via the synthetic test client, never by Esther/Craig on a real one
 - **Hub tasks page** (kanban, filters, sort, due-date banner, bucket rename/delete)
 - **Update-composer paste fixes + email delivery-history panel**
@@ -52,7 +53,7 @@ Nothing below has ever been walked through by a logged-in human in a real browse
 - **Marketing site**: full 6-launch-page + 3-legal-page pass at mobile width, disabled-route redirects actually redirecting, launch-copy alignment
 - **Consent choices admin view**
 
-## 5. Marketing-page specific verification (Lane B of the active WO — no code change unless a bug is found)
+## 5. Marketing-page specific verification (Lane B of the launch-review WO — still open, no code change unless a bug is found)
 
 - Hero "L4 QUALIFIED" badge — confirm the fix (Lane A) actually resolves clipping at 1280px and 375px
 - Homepage "01/02/03" scroll-pinned section — confirm all 3 steps render on a real slow scroll, not just jump-scroll
@@ -63,8 +64,9 @@ Nothing below has ever been walked through by a logged-in human in a real browse
 
 ## How to use this list
 
-- Section 1 items are decisions only Craig/Esther can make — nothing to build until answered.
-- Section 2 items are real, scoped, buildable — candidates for the next Work Order.
-- Section 3 items are Craig actions in third-party dashboards (Resend, env vars) — not something an agent can do.
-- Section 4 is one recurring task, not many: get Craig (or a shared session) logged into `staging.eternal-fitness.co.uk`'s hub and portal once, and click through the list top to bottom. Most of it will likely just confirm what's already shipped.
-- Section 5 is small and mechanical — good first pass once Craig's next available for a live check.
+- Section 1 is closed — Craig's decisions are logged in `decisions.log` 2026-08-04.
+- Section 1b items are decisions only Craig/Esther can make — nothing to build until answered.
+- Section 2 items are approved and buildable — candidates for the next Work Order (Craig: "carry on with all of those," 2026-08-04).
+- Section 3 is closed — all external actions confirmed sorted 2026-08-04.
+- Section 4 is one recurring task, now unblocked by the new throwaway-login capability: log in to `staging.eternal-fitness.co.uk`'s hub and portal and click through the list top to bottom.
+- Section 5 is small and mechanical — good first pass alongside Lane A/B of the launch-review WO.

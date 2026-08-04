@@ -44,7 +44,7 @@ const faqGroups = [
       {
         question: "Do you offer short-term programmes?",
         answer:
-          "Yes. While I believe in the long-term approach, I offer flexible options to suit different needs and budgets. I will recommend what I think is realistic for your goals during the initial consultation.",
+          "Yes. I believe in the long-term approach, but I offer flexible options too — we'll talk about what's realistic for your goals and your life during the initial consultation.",
       },
       {
         question: "What if my health changes during a programme?",
@@ -54,7 +54,7 @@ const faqGroups = [
       {
         question: "Can I bring someone with me to sessions?",
         answer:
-          "If having a carer, family member, or support person present would make you more comfortable, please let me know. I will accommodate wherever possible.",
+          "Of course. If having a carer, family member, or support person there would make you more comfortable, just let me know beforehand and I'll make it work.",
       },
       {
         question: "My question is not answered here. What should I do?",
@@ -94,7 +94,7 @@ const faqGroups = [
       {
         question: "My GP has referred me for exercise. Can you help?",
         answer:
-          "Yes — I hold the Exercise Referral qualification and I'm experienced working within GP and medical guidance. I don't currently take referrals directly through an NHS scheme, so if your GP or doctor has recommended exercise, message me and we'll work out together how to build your training around that guidance.",
+          "Yes — I hold the Exercise Referral qualification and I'm experienced working within GP and medical guidance. I don't currently take referrals directly through an NHS scheme, so if your GP or doctor has recommended exercise, message me and we'll work out how to build your training around that guidance together.",
       },
       {
         question: "I have an injury. Is it safe to exercise?",

@@ -1,3 +1,64 @@
+# Session Handoff: August 4, 2026 (Claude Code)
+
+## Agent
+Claude Code
+
+## Session Summary
+Craig reviewed the project's open-items backlog and cleared it in one batch, delivered as chat
+instructions rather than a live click-test session. All decisions logged in `.context/decisions.log`
+(2026-08-04 entry) and applied to `workorder-launch-review-followups-2026-07-30.md` and
+`outstanding-items-2026-08-01.md`:
+
+- **Lane C (copy/content GATEs) closed, all 5 items:** condition-roll-call copy on Home/PT left as-is
+  for now; blog (27 legacy posts) deferred; FAQ answer bodies approved for rewrite (see below); About
+  "Real Story" confirmed final; Google Reviews shortlist confirmed usable.
+- **FAQ rewrite pass done:** all 17 answers in `app/faqs/FAQsPageClient.tsx` reviewed against
+  `voice.md`. Most were already realigned by `74b2fa9` (2026-07-27) and compliant with the hard
+  rules (no condition roll-calls, no "survivors," no trainer comparisons, no Level 4 PT claim) — this
+  session's earlier report to Craig that "~15 of 17 still need rewriting" was itself stale. Polished 3
+  answers for tone per voice.md's "avoiding AI voice" guidance. `tsc --noEmit` clean. Built in worktree
+  `D:appsworktreeseternal-fitness-websitedecisions-2026-08-04` (branch
+  `chore/decisions-2026-08-04`) per DO-SOP-010.
+- **portal-sign-in.html "mismatch" — found to be stale, not a real open item.** It was already resolved
+  2026-07-30 (Craig: keep email+password auth, reskin only) and shipped in `71de12c`. Craig
+  re-confirmed the same thing today without knowing it was already done — `outstanding-items-
+  2026-08-01.md` had never been corrected after that WO closed. Fixed the stale entry.
+- **Item-2 buildable backlog approved to proceed:** nudge send mechanism (auto vs. reviewed decision
+  still needed), hub UI toggle for `delivery_mode='home_training'`, `/hub/site-review` HTTP 500 bug,
+  client data consolidation. Not yet started — next Work Order candidate.
+- **Item-3 external actions all cleared by Craig:** Resend fully tested/working (drop the webhook-
+  subscription ask), SPF/DKIM confirmed fine, `ANTHROPIC_API_KEY` intentionally not needed (hub's AI
+  agent runs on OpenRouter), real clients confirmed live in the portal (drop the "no real client
+  invited" item).
+- **New standing capability:** Craig has granted a role that lets Claude Code create a throwaway
+  login for front-end/admin (hub + portal) testing — this closes the recurring "no hub credentials in
+  this environment" gap that has blocked live click-testing across nearly every prior session (see
+  section 4 of `outstanding-items-2026-08-01.md`). Delete/deactivate after each use per the
+  disposable-identity rule in the global CLAUDE.md.
+
+## Current State
+FAQ copy change committed on `chore/decisions-2026-08-04`, not yet pushed/merged (about to be).
+Docs (`decisions.log` — local-only, gitignored — plus `state.md`, `handoff.md`,
+`outstanding-items-2026-08-01.md`, `workorder-launch-review-followups-2026-07-30.md`) updated on the
+same branch. Registry: claimed `wo-eternalfitness-consolidated-2026-08-02` for this session.
+
+## Next Steps
+1. Push/merge this branch's FAQ + docs changes to main, confirm Coolify deploy healthy.
+2. Use the new throwaway-login capability to actually click-test the section-4 backlog live — the
+   single highest-leverage next step per the outstanding-items file.
+3. Scope and dispatch the approved item-2 work (nudge send mechanism decision first — auto-send vs.
+   Esther-reviewed draft — since that's a real product decision, not just a build task).
+4. Lane A (badge clip fix) and Lane B (verification passes) of the launch-review WO are still open
+   and unclaimed — good OpenCode candidates alongside the item-2 work.
+
+## Files Changed
+### Modified
+- `app/faqs/FAQsPageClient.tsx` — 3 FAQ answers polished for tone
+- `.context/state.md`, `.context/handoff.md`, `.context/decisions.log` (local, not pushed),
+  `.context/outstanding-items-2026-08-01.md`, `.context/workorder-launch-review-followups-2026-07-30.md`
+
+---
+
 # Handoff
 
 ## Session close — 2026-08-03 — Cashflow WO closed (Lanes 5-7), marketing follow-ups deferred
