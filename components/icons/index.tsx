@@ -828,6 +828,15 @@ export function IconMove({ className, style }: IconProps) {
   );
 }
 
+export function IconTrendUp({ className, style }: IconProps) {
+  return (
+    <svg {...base(className, style)}>
+      <polyline points="23 7 13.5 15.5 8.5 10.5 3 17" />
+      <polyline points="17 7 23 7 23 13" />
+    </svg>
+  );
+}
+
 export function IconListenAdapt({ className, style }: IconProps) {
   return (
     <svg {...base(className, style)}>
