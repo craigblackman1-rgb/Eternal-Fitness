@@ -138,7 +138,7 @@ export function WorkoutTemplateBrowser({
 
       <HubCard padded={false}>
         <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-[var(--hub-border)]">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--status-success-bg)] text-teal shrink-0">
+          <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-[var(--status-success-bg)] text-teal shrink-0">
             <IconMenu className="w-4 h-4" />
           </div>
           <div>

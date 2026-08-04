@@ -187,7 +187,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
               className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
               <div
-                className={`w-7 h-7 rounded-full grid place-items-center shrink-0 text-[11px] font-bold ${
+                className={`w-6 h-6 rounded-full grid place-items-center shrink-0 text-[10px] font-bold ${
                   message.role === "user"
                     ? "bg-[var(--status-primary-bg)] text-rose"
                     : "bg-[var(--status-success-bg)] text-teal"

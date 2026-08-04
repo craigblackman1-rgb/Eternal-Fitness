@@ -20,7 +20,7 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
 
   return (
     <div className={cn("bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm p-4 flex items-center gap-3.5", className)}>
-      <div className={cn("w-11 h-11 rounded-lg flex items-center justify-center shrink-0", c.bg, c.text)}>
+      <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", c.bg, c.text)}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">

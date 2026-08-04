@@ -37,8 +37,8 @@ export default async function TemplatesPage() {
             <Link key={t.id} href={`/hub/templates/${t.id}`} className="block">
               <div className="bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] shadow-sm hover:border-rose/40 transition p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-rose/10 flex items-center justify-center shrink-0">
-                    <IconFileSignature className="h-5 w-5 text-rose" />
+                  <div className="w-[30px] h-[30px] rounded-lg bg-rose/10 flex items-center justify-center shrink-0">
+                    <IconFileSignature className="h-4 w-4 text-rose" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{t.name}</p>

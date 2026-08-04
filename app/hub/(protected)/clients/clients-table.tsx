@@ -24,7 +24,7 @@ function InitialsCircle({ name }: { name: string }) {
     .toUpperCase()
     .slice(0, 2);
   return (
-    <div className="w-10 h-10 rounded-full bg-rose/15 text-rose flex items-center justify-center text-sm font-bold shrink-0">
+    <div className="w-8 h-8 rounded-full bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
       {initials}
     </div>
   );

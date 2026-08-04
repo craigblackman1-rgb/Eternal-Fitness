@@ -151,7 +151,7 @@ export function UpdateChatPanel({
             {messages.map((message, i) => (
               <div key={i} className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
                     message.role === "user" ? "bg-rose/15 text-rose" : "bg-dark-navy/10 text-dark-navy"
                   }`}
                 >

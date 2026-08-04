@@ -282,22 +282,14 @@ export default async function DashboardPage() {
           value={activeClientCount}
           statusToken="neutral"
         />
-        <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm p-4 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning)]">
-            <IconMail className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-muted-foreground">Updates due</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold tabular-nums text-foreground leading-tight">{updatesDueSoon.length}</p>
-              {updatesOverdueCount > 0 && (
-                <span className="inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold leading-none bg-[var(--status-danger-bg)] text-[var(--status-danger)]">
-                  {updatesOverdueCount} overdue
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+        <KpiTile
+          icon={<IconMail className="w-5 h-5" />}
+          label="Updates due"
+          value={updatesDueSoon.length}
+          statusToken="warning"
+          trend={updatesOverdueCount > 0 ? `${updatesOverdueCount} overdue` : undefined}
+          trendUp={false}
+        />
       </div>
 
       {doNotTrain.length > 0 && (
@@ -554,7 +546,7 @@ export default async function DashboardPage() {
                         href={href}
                         className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
                       >
-                        <div className="w-10 h-10 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -601,7 +593,7 @@ export default async function DashboardPage() {
                         href={`/hub/clients/${client.client_number}`}
                         className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
                       >
-                        <div className="w-9 h-9 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">

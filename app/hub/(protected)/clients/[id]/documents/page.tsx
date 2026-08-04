@@ -65,8 +65,8 @@ export default async function ClientDocumentsPage({ params }: { params: { id: st
               <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)] hover:border-rose/40 transition">
                 <CardContent className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-teal/10 flex items-center justify-center shrink-0">
-                      <IconFileText className="h-5 w-5 text-teal" />
+                    <div className="w-8 h-8 rounded-full bg-teal/10 flex items-center justify-center shrink-0">
+                      <IconFileText className="h-4 w-4 text-teal" />
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{d.title}</p>
