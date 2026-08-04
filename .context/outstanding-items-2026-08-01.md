@@ -1,7 +1,7 @@
 # Eternal Fitness Website — Consolidated Outstanding Items
 2026-08-01, updated 2026-08-04 · Superset of every open item across all Work Orders in `.context/workorder-*.md` and `state.md`. This is the single list to work from — check items off here and cross-reference the source WO file for detail rather than reopening WOs individually.
 
-Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated-2026-08-02` (registry) claimed by this session; `wo-eternal-fitness-launch-review-followups-2026-07-30`'s Lane C fully closed today — see decisions.log 2026-08-04. Everything is `DONE` in code-shipped terms; the click-test gap (section 4) is also closed — daily production use counts as verification. Only section 1b (condition sub-pages, `/hub/documents` mockup check, PAR-Q edit screen fork/leave/retire) remains open.
+Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated-2026-08-02` (registry) claimed by this session. Session fully closed as of 2026-08-04 — every item below is resolved. Nothing currently open.
 
 ---
 
@@ -15,12 +15,12 @@ Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated
 - **Specialist Training catalogue** — **deferred to post-launch**, confirmed by Craig.
 - **`portal-sign-in.html` mismatch** — **not actually open.** This item was stale here: the real GATE was already resolved 2026-07-30 (Craig: keep password auth, reskin only — see `workorder-hub-portal-mockup-audit-2026-07-30.md` Lane 5) and shipped in commit `71de12c`. Craig reconfirmed 2026-08-04: "just a password and username, that is it." No further work.
 
-## 1b. Still genuinely open — needs a decision
+## 1b. CLOSED 2026-08-04
 
-- **5 of 8 `exercise-for-health` condition sub-pages** don't exist (type-2-diabetes, COPD, heart-conditions, chronic-pain, adaptive-training) — scope decision needed on how many to build before launch. Not addressed 2026-08-04, still open.
-- ~~`hub-sop.html`~~ — **Craig will review this himself, 2026-08-04.** No action from Claude Code.
-- **`/hub/documents` now has a mockup** (`hub-documents.html`) — worth confirming whether the same-day `9107985` redesign was already built against it. Not checked 2026-08-04.
-- **PAR-Q edit screen** (`/hub/clients/[id]/parq/[parqId]/edit`) — needs a scoped fork/leave/retire decision. **Correction 2026-08-04:** it is NOT shared with a public-facing signing flow (Craig corrected this — my earlier note was wrong). Fork/leave/retire itself still not decided.
+- ~~5 of 8 `exercise-for-health` condition sub-pages~~ — **Craig: "none to launch with."** Closed, no build before launch.
+- ~~`hub-sop.html`~~ — **Craig is reviewing this himself.**
+- ~~`/hub/documents` mockup (`hub-documents.html`)~~ — **Craig is reviewing this together with `hub-sop.html`, as one task.**
+- ~~PAR-Q edit screen~~ (`/hub/clients/[id]/parq/[parqId]/edit`) — **retired.** Craig: "if it is not needed retire it." Confirmed unreachable from any hub nav/link (grepped `app/`, `components/` — nothing pointed to it); the legacy `signed_parq` data it edited was already fully migrated into `client_documents` on 2026-07-21. Route files deleted, `tsc` clean, pushed. `/api/parq` (still used live by the Agreement pages) and the public `/parq`/`/parq/edit/[id]` safety-net routes were left untouched — separate purpose, not part of this decision.
 
 ## 2. Real code work — Craig's call 2026-08-04: "carry on with all of these." Checked live 2026-08-04, most were already stale:
 
