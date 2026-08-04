@@ -175,11 +175,11 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
                 {content.specialist_body ?? "As a Level 4 Specialist and GP Referral Trainer, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
               </p>
               <ul className="spec-list">
-                <li>Cardiovascular Care: Support for heart health and blood pressure management.</li>
-                <li>Musculoskeletal Strength: Targeted exercise for bone and joint health.</li>
-                <li>Inclusive Training: Tailored physical coaching for visual impairment.</li>
-                <li>Cancer Rehabilitation: Gentle, progressive recovery training during or after treatment.</li>
-                <li>Active Ageing: Specialized mobility and performance coaching for older adults.</li>
+                <li><strong>Cardiovascular Care:</strong> Support for heart health and blood pressure management.</li>
+                <li><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone and joint health.</li>
+                <li><strong>Inclusive Training:</strong> Tailored physical coaching for visual impairment.</li>
+                <li><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training during or after treatment.</li>
+                <li><strong>Active Ageing:</strong> Specialized mobility and performance coaching for older adults.</li>
               </ul>
             </div>
           </div>
