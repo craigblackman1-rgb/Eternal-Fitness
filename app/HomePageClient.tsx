@@ -47,7 +47,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <p className="h-loc" id="hloc">{content.hero_loc ?? "Private studio. No gym floor. No one watching. Just you, and a plan built around how you actually feel today."}</p>
           <div className="hero-rule" aria-hidden="true" />
           <p className="h-sub" id="hsub">
-            {content.hero_subheading ?? "I'm Esther — a personal trainer based in a private studio in Worthing. Every session starts with a conversation: how's your energy, how did you sleep, what's changed since last week. The plan for the day gets set there, not before you walk in."}
+            {content.hero_subheading ?? "I'm Esther — a personal trainer based in a private studio in Worthing. I am a Level 4 Personal Trainer, trained beyond the standard route — so whatever's going on for you, the plan adapts instead of stopping."}
           </p>
           <div className="h-btns" id="hbtns">
             <button className="btn btn-rs" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
