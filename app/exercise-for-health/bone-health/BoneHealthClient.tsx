@@ -113,9 +113,9 @@ export default function BoneHealthClient() {
                 progress it safely.
               </p>
               <p className="ds-body" style={{ marginBottom: 28 }}>
-                As a Level 4 Personal Trainer with specialist training in exercise referral and clinical
-                populations, I am qualified to make these assessments. Your safety is built into every
-                decision I make about loading, progression, and exercise selection.
+                With specialist training in exercise referral and clinical populations, I am qualified to
+                make these assessments. Your safety is built into every decision I make about loading,
+                progression, and exercise selection.
               </p>
               <CtaButton cta={bookCta} />
             </Reveal>

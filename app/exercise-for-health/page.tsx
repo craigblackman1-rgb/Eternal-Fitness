@@ -55,7 +55,7 @@ const faqSchema = {
       "name": "How is exercising with a health condition different from regular personal training?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The fundamentals of exercise are the same, but the approach must account for how your condition affects your body — including fatigue patterns, medications, contraindicated movements, and day-to-day variability. A standard Level 3 PT is not trained for this. As a Level 4 specialist, I programme around your condition rather than despite it."
+        "text": "The fundamentals of exercise are the same, but the approach must account for how your condition affects your body — including fatigue patterns, medications, contraindicated movements, and day-to-day variability. I'm qualified in Exercise Referral, so I programme around your condition rather than despite it."
       }
     }
   ]

@@ -32,7 +32,7 @@ function buildSystemPrompt(
     ? JSON.stringify(summaries.slice(-2), null, 2)
     : "No structured block summaries recorded yet.";
 
-  return `You are helping Esther Fair, a Level 4 Personal Trainer, draft a "${kind.label}" client update email.
+  return `You are helping Esther Fair, a personal trainer who is also Level 4 qualified in Cancer and Exercise Rehabilitation, draft a "${kind.label}" client update email.
 
 You write AS Esther, first person, warm and expert — never corporate, never hypey.
 

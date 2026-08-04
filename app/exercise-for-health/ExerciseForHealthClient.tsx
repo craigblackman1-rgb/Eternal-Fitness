@@ -119,7 +119,7 @@ export default function ExerciseForHealthClient({ content = {} }: { content?: Re
     },
     {
       title: content.faq_3_title ?? "How is this different from a regular personal trainer?",
-      body: content.faq_3_body ?? "A standard Level 3 PT is not trained to work with clinical populations. As a Level 4 Exercise Referral Specialist, I understand contraindicated exercises, medication effects, fatigue management, and how conditions affect capacity from one session to the next.",
+      body: content.faq_3_body ?? "I'm qualified in Exercise Referral, so I understand contraindicated exercises, medication effects, fatigue management, and how conditions affect capacity from one session to the next.",
     },
     {
       title: content.faq_4_title ?? "What if I am having a bad day when I come in?",
@@ -173,7 +173,7 @@ export default function ExerciseForHealthClient({ content = {} }: { content?: Re
                 {content.approach_p2 ?? "I work the same way a physio or an osteopath does — targeting conditions, not demographics. Every session starts with a check-in. The plan for that day is set then, based on how you actually feel — not how you felt last week."}
               </p>
               <p className="ds-body" style={{ marginBottom: 28 }}>
-                {content.approach_p3 ?? "As a Level 4 Personal Trainer and Exercise Referral Specialist, I am qualified to work with clinical populations that a standard Level 3 PT is not trained for. That distinction matters."}
+                {content.approach_p3 ?? "I'm qualified in Exercise Referral, which means I can work safely with clinical populations — and keep adapting your training as your circumstances change."}
               </p>
               <CtaButton cta={bookCta} />
             </Reveal>

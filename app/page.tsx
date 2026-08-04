@@ -28,7 +28,7 @@ const localBusinessSchema = {
   "priceRange": "££",
   "image": "https://eternal-fitness.co.uk/og-image.png",
   "sameAs": ["https://www.facebook.com/EternalFitnessPersonalTraining/", "https://instagram.com/eternalfitness/", "https://linkedin.com/in/esther-fair/", "https://youtube.com/eternalfitness/"],
-  "founder": { "@type": "Person", "name": "Esther Fair", "jobTitle": "Level 4 Personal Trainer" },
+  "founder": { "@type": "Person", "name": "Esther Fair", "jobTitle": "Personal Trainer" },
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
     "name": "Personal Training Services",

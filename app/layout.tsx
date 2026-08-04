@@ -26,16 +26,16 @@ const ALLOW_INDEXING = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Eternal Fitness | Level 4 Personal Trainer in Worthing",
+    default: "Eternal Fitness | Personal Training in Worthing",
     template: "%s | Eternal Fitness",
   },
   description:
-    "Private one-to-one personal training in Worthing with Level 4 qualified trainer Esther Fair. Specialist support for health conditions, cancer rehabilitation, disability and complex needs.",
+    "Private one-to-one personal training in Worthing with Esther Fair — with the qualifications to adapt when your health picture is more complex.",
   openGraph: {
     siteName: "Eternal Fitness",
     locale: "en_GB",
     type: "website",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Eternal Fitness — Level 4 Personal Trainer in Worthing" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Eternal Fitness — Personal Training in Worthing" }],
   },
   twitter: {
     card: "summary_large_image",
