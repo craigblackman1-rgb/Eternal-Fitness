@@ -24,9 +24,9 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
   const { open, setOpen, openDialog } = useConsultationDialog();
 
   const qualifications = [
-    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "Individualised coaching to build the foundation for your strength and fitness." },
+    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "Individualised coaching to build a lasting foundation for your everyday strength and fitness." },
     { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Specialist programming to safely manage clinical conditions, injuries, and GP-referred health requirements." },
-    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to safely support your body during and after cancer treatment." },
+    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Expert physical coaching to safely support your body before, during, and after cancer treatment." },
   ];
 
   const studioCards = [
@@ -97,12 +97,12 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
             <SectionHeading
               eyebrow={content?.quals_eyebrow ?? "Qualifications"}
               heading={content?.quals_heading ?? "My Qualifications & Expertise"}
-              intro={content?.quals_intro ?? "Beyond standard personal training credentials, I hold advanced specialisms in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, this means your training never has to pause if your health circumstances change. Whether navigating a new medical diagnosis, managing a GP referral, or recovering from clinical treatment, I have the specialist expertise to adapt your program safely—meaning you never have to look for a new trainer."}
+              intro={content?.quals_intro ?? "Beyond standard personal training credentials, I hold advanced specialisms in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, this means your training never has to reset if your health changes. Whether you face fluctuating blood pressure, a new diagnosis, or recovery from medical treatment, I adapt your movements safely. You get to keep training with the personal trainer who already knows your body, without the stress of searching for someone new."}
             />
             <div className="ds-exp">
               <p className="ds-body" style={{ fontWeight: 600, color: "var(--color-ink)", marginBottom: 12 }}>{content?.exp_heading ?? "A Wide Range of Experience"}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "The majority of my clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside standard training, I regularly design programs for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>
-              <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you're wondering whether your situation is too complicated, it almost certainly isn't — get in touch."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "My clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside everyday training, I design custom programmes for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>
+              <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you are wondering whether your situation is too complicated for personal training, it almost certainly is not."}</p>
               <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
             </div>
           </div>
