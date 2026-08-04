@@ -24,9 +24,9 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
   const { open, setOpen, openDialog } = useConsultationDialog();
 
   const qualifications = [
-    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "The foundation everything else builds on." },
-    { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Qualified to work with GP-referred clients and clinical conditions requiring adapted programmes." },
-    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to support people during and after cancer treatment." },
+    { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "Individualised coaching to build the foundation for your strength and fitness." },
+    { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Specialist programming to safely manage clinical conditions, injuries, and GP-referred health requirements." },
+    { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Specialist training to safely support your body during and after cancer treatment." },
   ];
 
   const studioCards = [
@@ -58,7 +58,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}
         primaryCta={bookCta}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "My Story", href: "#story", variant: "outline" }}
-        belowLead={<>&ldquo;I&rsquo;m a personal trainer. I just so happen to be a personal trainer that can work around things that your average personal trainer can&rsquo;t.&rdquo;</>}
+        belowLead={<>I specialize in adaptive fitness. I design personalized training programs that accommodate injuries, limitations, and unique goals that standard routines leave behind.</>}
       />
 
       {/* Story */}
@@ -78,8 +78,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "After qualifying, I took a job in a leisure centre first — I wanted the security of employment before doing anything on my own."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "Covid changed that. When leisure centres closed, some of my more vulnerable clients asked if I could keep training them outdoors. Around the same time, I joined a clinical trial delivering online exercise sessions for people going through cancer treatment. I said yes to a few things, and it worked out okay. So I said yes to a few more."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "I didn't want to build a generic weight-loss business. I wanted to work with people who had real physical and mental health needs — people finding their way back to fitness after cancer treatment, older adults, visually impaired clients, athletes — and measure it in confidence, independence and how people actually feel, not just numbers."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3b ?? "I prioritize continuous education, constantly upgrading my qualifications and knowledge so that my training methods remain at the absolute forefront of fitness and health care. I am committed to continuous learning, regularly adding new qualifications to ensure every client receives the most advanced, safe, and effective care."}</p>
               <p className="ds-body" style={{ marginBottom: 0 }}>{content?.story_p4 ?? "I train from a converted garage studio now, and I've built my working hours around the life I actually want, not the other way round. My first client stayed with me for around seven years — that's the kind of relationship I'm after."}</p>
-              <p className="ds-story-close">{content?.story_close ?? "I still get imposter syndrome some days. It hasn't stopped me building something I'm proud of."}</p>
               <div style={{ marginTop: 30 }}>
                 <CtaButton cta={bookCta} />
               </div>
@@ -94,12 +94,12 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           <div>
             <SectionHeading
               eyebrow={content?.quals_eyebrow ?? "Qualifications"}
-              heading={content?.quals_heading ?? "What I'm Qualified For"}
-              intro={content?.quals_intro ?? "I trained as a personal trainer first, then went further: Exercise Referral, and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I'm equipped to keep working with you if your health changes — a new diagnosis, a GP referral, recovery from treatment — without you needing to find someone new."}
+              heading={content?.quals_heading ?? "My Qualifications & Expertise"}
+              intro={content?.quals_intro ?? "Beyond standard personal training credentials, I hold advanced specialisms in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, this means your training never has to pause if your health circumstances change. Whether navigating a new medical diagnosis, managing a GP referral, or recovering from clinical treatment, I have the specialist expertise to adapt your program safely—meaning you never have to look for a new trainer."}
             />
             <div className="ds-exp">
               <p className="ds-body" style={{ fontWeight: 600, color: "var(--color-ink)", marginBottom: 12 }}>{content?.exp_heading ?? "A Wide Range of Experience"}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "Over the years I've worked with people managing chronic conditions, recovering from surgery, adjusting to a new diagnosis, or living with a disability — alongside the majority of my clients, who are just looking for proper one-to-one training."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "The majority of my clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside standard training, I regularly design programs for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>
               <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you're wondering whether your situation is too complicated, it almost certainly isn't — get in touch."}</p>
               <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
             </div>
@@ -128,8 +128,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               light
             />
             <Reveal y={24}>
-              <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness isn't a weight-loss service. It's not about transforming your body into something it isn't. It's about finding out what your body can do right now, and building steadily from there."}</p>
-              <p className="ds-body ds-body-light" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "The goal isn't a six-week result. It's climbing stairs with less effort. Sleeping better. Moving through life with more ease and confidence than before. That takes time, consistency, and someone who adjusts when things change. That's what I do."}</p>
+              <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 16 }}>{content?.phil_p1 ?? "Eternal Fitness is not a generic weight-loss service. Training here is not about forcing your body to fit an artificial standard—it is about discovering what your body is capable of right now, and building sustainably from there."}</p>
+              <p className="ds-body ds-body-light" style={{ marginBottom: 28 }}>{content?.phil_p2 ?? "Real physical progress cannot be rushed into a six-week trend. True success means climbing stairs with ease, sleeping better, and moving through daily life with lasting confidence. Achieving this requires time, consistency, and a coach who knows exactly how to adapt your programming when your needs change. That is my focus."}</p>
               <div style={{ marginTop: 28 }}>
                 <CtaButton cta={bookCta} />
               </div>
@@ -140,7 +140,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               icon={IconHeartHandshake}
               accent="rose"
               title={content?.phil_callout_title ?? "More Than a Workout"}
-              body={content?.phil_callout_body ?? "No weigh-ins. No before-and-after photos. No pressure to look a certain way. Just steady progress, measured against your own baseline."}
+              body={content?.phil_callout_body ?? "There are no generic weigh-ins or before-and-after photos here. I remove the pressure to look a certain way, focusing entirely on steady, measurable progress relative to your personal baseline."}
               className="ds-callout-dark"
             />
           </Reveal>

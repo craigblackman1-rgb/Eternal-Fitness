@@ -95,8 +95,8 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               {content.why_body && <p className="L">{content.why_body}</p>}
               <div className="wfeats">
                 <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Real, sustainable strength and mobility"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves how you move, day to day."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No gym floor, no other clients, no pressure to perform."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "Qualified in exercise referral and cancer rehabilitation, so if your health picture shifts, I don't have to stop training you."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No gym floor, no other people, no pressure to perform."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "As a level 4 specialist personal trainer, my advanced clinical qualifications mean that even if your health or medical picture shifts, your progress never has to stop."}</div></div></div>
               </div>
             </div>
           </div>
@@ -111,12 +111,12 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <h2 className="D">How I Actually<br />Train You</h2>
           </div>
           <p className="L" style={{ maxWidth: 560 }}>
-            {content.approach_body ?? "I'm always watching, and always adapting. Every session starts with a check-in — energy, pain, sleep, what's changed since last week. The plan for that day gets set then, not before you walk through the door."}
+            {content.approach_body ?? "Effective training can't be rigid. I'm always watching, and always adapting, ensuring you get the safest, most effective workout every time. Workouts are planned in advance, but because bodies change daily, I don't force you through a session that doesn't fit how you feel that day."}
           </p>
           <div className="steps">
             <div className="step">
               <div className="sn">01</div>
-              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it. You leave having done something worthwhile."}</p></div>
+              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Structured planning, dynamically adapted to you — the perfect balance of consistent progress and expert flexibility. Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it."}</p></div>
               <div className="si"><Image src="/images/coaching-plank-client.jpg" alt="Esther coaching a client through a plank, adjusting the movement as they go" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
@@ -179,9 +179,9 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
                 <li>Bone and joint health</li>
                 <li>Visual impairment</li>
                 <li>Cancer rehabilitation</li>
-                <li className="pending">…and more, as the catalogue is built</li>
+                <li>As a level 3 specialist and GP referral coach I bridge the gap between medical treatment and everyday functional strength.</li>
+                <li>Older adult mobility and performance</li>
               </ul>
-              <Link href="/personal-training#specialist" className="btn btn-ow">{content.specialist_link ?? "See Specialist Training"} <Arrow /></Link>
             </div>
           </div>
         </div>
