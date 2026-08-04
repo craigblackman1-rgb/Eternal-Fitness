@@ -25,7 +25,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
 
   const qualifications = [
     { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "Individualised coaching to build a lasting foundation for your everyday strength and fitness." },
-    { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Specialist programming to safely manage clinical conditions, injuries, and GP-referred health requirements." },
+    { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Specialist programming to safely manage clinical conditions, injuries, and GP-referred health requirements, focusing heavily on Balance, Mobility, and Joint Stability Support." },
     { title: content?.qual_3_title ?? "Level 4 Cancer and Exercise Rehabilitation", desc: content?.qual_3_desc ?? "Expert physical coaching to safely support your body before, during, and after cancer treatment." },
   ];
 
