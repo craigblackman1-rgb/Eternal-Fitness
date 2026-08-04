@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { HubPageHeader, HubCard, EmptyState, StatusBadge } from "@/components/hub";
-import { IconCheckCircle, IconRefreshCw, IconSearch, IconX } from "@/components/icons";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import Link from "next/link";
+import { HubPageHeader, EmptyState, Toolbar, toolbarSelectClasses } from "@/components/hub";
+import { IconCheckCircle, IconRefreshCw, IconX } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 interface DBTransaction {
@@ -53,23 +54,56 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function getConfidence(matchType: "likely" | "possible"): {
+  label: string;
+  pct: number;
+  color: string;
+  bg: string;
+  iconColor: string;
+} {
+  if (matchType === "likely") return {
+    label: "High", pct: 92,
+    color: "var(--status-success)",
+    bg: "var(--status-success-bg)",
+    iconColor: "var(--status-success)",
+  };
+  return {
+    label: "Medium", pct: 61,
+    color: "var(--status-warning)",
+    bg: "var(--status-warning-bg)",
+    iconColor: "var(--status-warning)",
+  };
+}
+
+function LinkIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.2 1.2" />
+      <path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.1-1.1" />
+    </svg>
+  );
+}
+
 export default function ReconciliationPage() {
   const [suggestions, setSuggestions] = useState<SuggestedPair[]>([]);
+  const [unmatched, setUnmatched] = useState<DBTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [matchFilter, setMatchFilter] = useState("suggested");
 
   const fetchSuggestions = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
       const res = await fetch("/api/cashflow/reconciliation/suggestions");
       const json = await res.json();
       if (!res.ok) {
         setError(json.error ?? "Failed to load suggestions");
       } else {
-        setSuggestions(json);
+        setSuggestions(json.suggestions ?? []);
+        setUnmatched(json.unmatched ?? []);
       }
     } catch {
       setError("Failed to load suggestions");
@@ -85,7 +119,6 @@ export default function ReconciliationPage() {
   const handleConfirm = async (transactionId: string, invoiceId: string) => {
     const key = `${transactionId}::${invoiceId}`;
     setConfirmingId(key);
-
     try {
       const res = await fetch("/api/cashflow/reconciliation/confirm", {
         method: "POST",
@@ -93,7 +126,6 @@ export default function ReconciliationPage() {
         body: JSON.stringify({ transaction_id: transactionId, invoice_id: invoiceId }),
       });
       const json = await res.json();
-
       if (!res.ok) {
         setError(json.error ?? "Failed to confirm match");
       } else {
@@ -117,7 +149,6 @@ export default function ReconciliationPage() {
   const handleDismiss = async (transactionId: string, invoiceId: string) => {
     const key = `${transactionId}::${invoiceId}`;
     setConfirmingId(key);
-
     try {
       const res = await fetch("/api/cashflow/reconciliation/dismiss", {
         method: "POST",
@@ -125,7 +156,6 @@ export default function ReconciliationPage() {
         body: JSON.stringify({ transaction_id: transactionId, invoice_id: invoiceId }),
       });
       const json = await res.json();
-
       if (!res.ok) {
         setError(json.error ?? "Failed to dismiss suggestion");
       } else {
@@ -146,13 +176,48 @@ export default function ReconciliationPage() {
     }
   };
 
-  const totalSuggestions = suggestions.reduce((sum, s) => sum + s.matches.length, 0);
+  const totalMatchCount = useMemo(
+    () => suggestions.reduce((sum, s) => sum + s.matches.length, 0),
+    [suggestions],
+  );
+
+  const filteredSuggestions = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+
+    return suggestions
+      .map((pair) => {
+        const filtered = pair.matches.filter((m) => {
+          if (matchFilter === "confirmed" || matchFilter === "dismissed") return false;
+
+          if (q) {
+            const inTxn = pair.transaction.description.toLowerCase().includes(q);
+            const inInv = m.invoice.invoice_number.toLowerCase().includes(q);
+            const inClient = (m.invoice.clients?.name ?? "").toLowerCase().includes(q);
+            if (!inTxn && !inInv && !inClient) return false;
+          }
+
+          return true;
+        });
+        return filtered.length > 0 ? { ...pair, matches: filtered } : null;
+      })
+      .filter(Boolean) as SuggestedPair[];
+  }, [suggestions, searchQuery, matchFilter]);
+
+  const filteredUnmatched = useMemo(() => {
+    if (!searchQuery) return unmatched;
+    const q = searchQuery.toLowerCase();
+    return unmatched.filter((t) => t.description.toLowerCase().includes(q));
+  }, [unmatched, searchQuery]);
+
+  const countText = `${totalMatchCount} suggested · ${unmatched.length} unmatched`;
+  const showSuggested = matchFilter === "all" || matchFilter === "suggested";
+  const hasData = (showSuggested && filteredSuggestions.length > 0) || filteredUnmatched.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div>
       <HubPageHeader
         title="Reconciliation"
-        subtitle="Match bank transactions to outstanding invoices"
+        subtitle="Imported bank lines matched against open invoices. Confirm a suggestion to mark the invoice paid, or dismiss it if the match is wrong."
         actions={
           <Button
             size="sm"
@@ -168,28 +233,28 @@ export default function ReconciliationPage() {
       />
 
       {error && (
-        <HubCard>
+        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--status-danger)]/20 rounded-2xl shadow-sm p-4">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] flex items-center justify-center shrink-0 mt-0.5">
-              <IconSearch className="w-4 h-4" />
+              <IconX className="w-4 h-4" />
             </div>
             <div>
               <p className="text-sm font-semibold text-[var(--status-danger)]">Error</p>
-              <p className="text-sm text-[var(--hub-muted)] mt-1">{error}</p>
+              <p className="text-sm text-muted-foreground mt-1">{error}</p>
             </div>
           </div>
-        </HubCard>
+        </div>
       )}
 
       {loading ? (
-        <HubCard>
-          <div className="flex items-center gap-3 py-4">
-            <IconRefreshCw className="w-5 h-5 animate-spin text-[var(--hub-muted)]" />
-            <p className="text-sm text-[var(--hub-muted)]">Loading suggestions…</p>
+        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-sm p-8">
+          <div className="flex items-center gap-3">
+            <IconRefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading suggestions…</p>
           </div>
-        </HubCard>
-      ) : suggestions.length === 0 ? (
-        <HubCard>
+        </div>
+      ) : !hasData ? (
+        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-sm">
           <div className="px-5 py-12">
             <EmptyState
               icon={<IconCheckCircle className="w-9 h-9" />}
@@ -198,112 +263,153 @@ export default function ReconciliationPage() {
               cta={{ label: "Go to transactions", href: "/hub/cashflow/transactions" }}
             />
           </div>
-        </HubCard>
+        </div>
       ) : (
         <>
-          <p className="text-sm text-[var(--hub-muted)]">
-            {totalSuggestions} {totalSuggestions === 1 ? "suggestion" : "suggestions"} across{" "}
-            {suggestions.length} {suggestions.length === 1 ? "transaction" : "transactions"}
-          </p>
+          <div className="mt-6">
+            <Toolbar
+              searchValue={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchPlaceholder="Search by client or reference…"
+              count={countText}
+            >
+              <select
+                className={toolbarSelectClasses}
+                value={matchFilter}
+                onChange={(e) => setMatchFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="suggested">Suggested matches</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="dismissed">Dismissed</option>
+              </select>
+            </Toolbar>
+          </div>
 
-          {suggestions.map((pair) => (
-            <HubCard key={pair.transaction.id} padded={false}>
-              <div className="px-5 py-4 border-b border-[var(--hub-border)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{pair.transaction.description}</p>
-                    <p className="text-xs text-[var(--hub-muted)] mt-0.5 tabular-nums">
-                      {formatDate(pair.transaction.txn_date)} · {formatAmount(pair.transaction.amount)}
-                    </p>
-                  </div>
-                  <span className="text-xs text-[var(--hub-muted)] tabular-nums">
-                    {pair.matches.length} {pair.matches.length === 1 ? "match" : "matches"}
-                  </span>
-                </div>
-              </div>
-              <div className="overflow-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[var(--hub-hover)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--hub-muted)]">
-                      <th className="px-5 py-2.5 text-left">Invoice</th>
-                      <th className="px-5 py-2.5 text-left">Client</th>
-                      <th className="px-5 py-2.5 text-right">Total</th>
-                      <th className="px-5 py-2.5 text-left">Status</th>
-                      <th className="px-5 py-2.5 text-left">Dates</th>
-                      <th className="px-5 py-2.5 text-left">Match</th>
-                      <th className="px-5 py-2.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pair.matches.map((match) => {
-                      const key = `${pair.transaction.id}::${match.invoice.id}`;
-                      const isActing = confirmingId === key;
+          {showSuggested && filteredSuggestions.length > 0 && (
+            <>
+              <p className="text-xs font-bold uppercase tracking-[0.06em] text-muted-foreground mt-7 mb-3">
+                Suggested matches
+              </p>
 
-                      return (
-                        <tr
-                          key={match.invoice.id}
-                          className="border-b border-[var(--hub-border)] text-sm hover:bg-[var(--hub-hover)]/50 transition-colors"
+              <div className="flex flex-col gap-3">
+                {filteredSuggestions.map((pair) =>
+                  pair.matches.map((match) => {
+                    const key = `${pair.transaction.id}::${match.invoice.id}`;
+                    const isActing = confirmingId === key;
+                    const conf = getConfidence(match.matchType);
+
+                    return (
+                      <div
+                        key={key}
+                        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-sm p-[18px_20px] flex items-center gap-[18px] flex-wrap"
+                      >
+                        <div
+                          className="shrink-0 w-[30px] h-[30px] rounded-full grid place-items-center"
+                          style={{ background: conf.bg, color: conf.iconColor }}
                         >
-                          <td className="px-5 py-2.5">
-                            <span className="font-medium tabular-nums">{match.invoice.invoice_number}</span>
-                          </td>
-                          <td className="px-5 py-2.5">
-                            <span className="text-[var(--hub-muted)]">
-                              {match.invoice.clients?.name ?? "—"}
-                            </span>
-                          </td>
-                          <td className="px-5 py-2.5 text-right tabular-nums font-medium">
-                            {formatAmount(match.invoice.total)}
-                          </td>
-                          <td className="px-5 py-2.5">
-                            <StatusBadge status={match.invoice.status} />
-                          </td>
-                          <td className="px-5 py-2.5 text-[var(--hub-muted)] whitespace-nowrap">
-                            <span className="text-xs">
-                              Issued {formatDate(match.invoice.issue_date)} · Due{" "}
-                              {formatDate(match.invoice.due_date)}
-                            </span>
-                          </td>
-                          <td className="px-5 py-2.5">
-                            {match.matchType === "likely" ? (
-                              <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold border-[var(--status-success-text)]/25 bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
-                                Likely match
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold border-amber/25 bg-amber/10 text-amber">
-                                Possible match
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-5 py-2.5">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button
-                                size="sm"
-                                onClick={() => handleConfirm(pair.transaction.id, match.invoice.id)}
-                                disabled={isActing}
-                                className="rounded-lg text-xs h-7 bg-[var(--status-success-text)] hover:bg-[var(--status-success-text)]/90 text-white"
-                              >
-                                {isActing ? "…" : "Confirm"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDismiss(pair.transaction.id, match.invoice.id)}
-                                disabled={isActing}
-                                className="rounded-lg text-xs h-7"
-                              >
-                                Dismiss
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          <LinkIcon />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-muted-foreground mb-1">
+                            Bank line
+                          </p>
+                          <p className="text-[13.5px] font-semibold text-foreground">
+                            {formatAmount(pair.transaction.amount)} · {formatDate(pair.transaction.txn_date)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {pair.transaction.description}
+                          </p>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-muted-foreground mb-1">
+                            Suggested invoice
+                          </p>
+                          <p className="text-[13.5px] font-semibold text-foreground">
+                            {match.invoice.invoice_number} · {match.invoice.clients?.name ?? "—"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Sent {formatDate(match.invoice.issue_date)} · {formatAmount(match.invoice.total)} due
+                          </p>
+                        </div>
+
+                        <div className="shrink-0 text-center w-[84px]">
+                          <div className="w-full h-[6px] rounded-full bg-[var(--hub-border)] overflow-hidden mb-[5px]">
+                            <div
+                              className="h-full rounded-full"
+                              style={{ width: `${conf.pct}%`, background: conf.color }}
+                            />
+                          </div>
+                          <span className="text-[11px] font-bold" style={{ color: conf.color }}>
+                            {conf.label} · {conf.pct}%
+                          </span>
+                        </div>
+
+                        <div className="shrink-0 flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDismiss(pair.transaction.id, match.invoice.id)}
+                            disabled={isActing}
+                            className="rounded-lg text-xs h-[34px]"
+                          >
+                            Dismiss
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleConfirm(pair.transaction.id, match.invoice.id)}
+                            disabled={isActing}
+                            className="rounded-lg text-xs h-[34px] bg-[var(--status-success)] hover:bg-[var(--status-success-text)] text-white"
+                          >
+                            {isActing ? "…" : "Confirm"}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  }),
+                )}
               </div>
-            </HubCard>
-          ))}
+            </>
+          )}
+
+          {filteredUnmatched.length > 0 && (
+            <>
+              <p className="text-xs font-bold uppercase tracking-[0.06em] text-muted-foreground mt-7 mb-3">
+                Unmatched bank lines
+              </p>
+
+              <div className="flex flex-col gap-2.5">
+                {filteredUnmatched.map((txn) => (
+                  <div
+                    key={txn.id}
+                    className="bg-[var(--hub-card)] border border-dashed border-[var(--hub-border)] rounded-2xl p-[14px_20px] flex items-center gap-[14px] flex-wrap"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13.5px] font-semibold text-foreground">
+                        {formatAmount(txn.amount)} · {formatDate(txn.txn_date)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {txn.description}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)] shrink-0">
+                      No invoice match
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-lg text-xs h-[34px] shrink-0"
+                      asChild
+                    >
+                      <Link href="/hub/cashflow/transactions">Categorise instead →</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

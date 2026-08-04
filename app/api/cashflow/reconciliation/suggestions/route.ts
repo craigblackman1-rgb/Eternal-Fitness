@@ -51,5 +51,8 @@ export async function GET() {
     dismissedSet,
   });
 
-  return NextResponse.json(results);
+  const matchedTxnIds = new Set(results.map((r) => r.transaction.id));
+  const unmatched = unmatchedTxns.filter((t) => !matchedTxnIds.has(t.id));
+
+  return NextResponse.json({ suggestions: results, unmatched });
 }
