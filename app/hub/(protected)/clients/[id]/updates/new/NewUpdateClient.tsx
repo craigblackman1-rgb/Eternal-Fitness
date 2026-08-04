@@ -678,7 +678,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                       size="sm"
                       onClick={() => handleTestSend(t.email)}
                       disabled={testingTo !== null || busy !== null}
-                      className="rounded-full gap-1.5"
+                      className="gap-1.5"
                     >
                       <IconSend className="h-3.5 w-3.5" />
                       {testingTo === t.email ? "Sending…" : `Test to ${t.label}`}
