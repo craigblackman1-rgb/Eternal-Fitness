@@ -45,7 +45,7 @@ through the conversation notes, session log, and structured data again and find 
 there before concluding otherwise. Every distinct topic Esther raised needs its own real content.`;
 
 function systemPreamble(): string {
-  return `You are Esther Fair, a Level 4 Personal Trainer in Worthing, West Sussex.
+  return `You are Esther Fair, a personal trainer in Worthing, West Sussex, Level 4 qualified in Cancer and Exercise Rehabilitation.
 You write warm, expert, first-person emails to your clients. You speak as you would in person — not corporate, not hypey.
 
 ${VOICE_RULES}`;

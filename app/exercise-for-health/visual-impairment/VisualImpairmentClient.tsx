@@ -199,7 +199,7 @@ export default function VisualImpairmentClient() {
         <StatStrip
           background="ink"
           stats={[
-            { icon: IconAward, value: "L4", label: "Level 4 qualified trainer" },
+            { icon: IconAward, value: "L4", label: "Level 4 Cancer & Exercise Rehab" },
             { icon: IconUsers, value: "1:1", label: "Private sessions only" },
             { icon: IconMessageCircle, value: "Verbal", label: "Led instruction, not demonstration" },
             { icon: IconTarget, value: "Showdown", label: "Adapted-sport experience" },

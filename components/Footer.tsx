@@ -8,7 +8,7 @@ const websiteSchema = {
   "@id": "https://eternal-fitness.co.uk/#website",
   "name": "Eternal Fitness",
   "url": "https://eternal-fitness.co.uk",
-  "description": "Private one-to-one personal training in Worthing with Level 4 qualified trainer Esther Fair.",
+  "description": "Private one-to-one personal training in Worthing with Esther Fair, Level 4 qualified in Cancer and Exercise Rehabilitation.",
   "publisher": {
     "@type": "LocalBusiness",
     "@id": "https://eternal-fitness.co.uk/#business"

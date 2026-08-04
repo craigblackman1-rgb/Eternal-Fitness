@@ -89,7 +89,7 @@ export function DocumentView({
           <div className="doc-brandline">
             <EfLogo />
             <p className="doc-org">
-              <strong>Esther Fair</strong> — Level 4 Personal Trainer
+              <strong>Esther Fair</strong> — Level 4 Cancer and Exercise Rehabilitation Specialist
               <br />
               Private studio, Worthing, West Sussex
             </p>
@@ -146,8 +146,8 @@ export function DocumentView({
 
         <footer className="doc-footer">
           <p>
-            <strong>Eternal Fitness</strong> — Esther Fair, Level 4 Personal Trainer. Private
-            studio, Worthing, West Sussex.
+            <strong>Eternal Fitness</strong> — Esther Fair, Level 4 Cancer and Exercise
+            Rehabilitation Specialist. Private studio, Worthing, West Sussex.
           </p>
           <p>
             {doc.title}, {version} · Reference {reference} · Review on request. If you need this

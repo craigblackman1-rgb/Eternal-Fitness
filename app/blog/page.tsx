@@ -7,7 +7,7 @@ export const fetchCache = "force-no-store";
 
 export const metadata: Metadata = {
   title: "Health Conditions & Cancer Recovery Blog",
-  description: "Articles on training with health conditions, cancer rehabilitation, adaptive fitness and moving well at any ability. Written by Level 4 PT Esther Fair.",
+  description: "Articles on training with health conditions, cancer rehabilitation, adaptive fitness and moving well at any ability. Written by Esther Fair, Level 4 qualified in Cancer and Exercise Rehabilitation.",
   alternates: { canonical: "https://eternal-fitness.co.uk/blog" },
 };
 

@@ -6,7 +6,7 @@ const schema = {
   "@type": "Service",
   "@id": "https://eternal-fitness.co.uk/exercise-for-health/high-blood-pressure/#service",
   "name": "Exercise for High Blood Pressure Worthing",
-  "description": "Personal training for high blood pressure in Worthing with a Level 4 Exercise Referral Specialist. Safe, monitored exercise for hypertension management.",
+  "description": "Personal training for high blood pressure in Worthing with an Exercise Referral Specialist. Safe, monitored exercise for hypertension management.",
   "url": "https://eternal-fitness.co.uk/exercise-for-health/high-blood-pressure",
   "provider": {
     "@type": "LocalBusiness",
@@ -30,7 +30,7 @@ const faqSchema = {
       "name": "Is exercise safe if I have high blood pressure?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes — in most cases, exercise is both safe and clinically recommended for managing high blood pressure. The key is having a qualified specialist who understands when it is safe to exercise, how to monitor your response, and what to avoid. As a Level 4 Exercise Referral Specialist, I am trained to programme safely for hypertension, including contraindicated movements and intensity management."
+        "text": "Yes — in most cases, exercise is both safe and clinically recommended for managing high blood pressure. The key is having a qualified specialist who understands when it is safe to exercise, how to monitor your response, and what to avoid. I'm qualified in Exercise Referral, trained to programme safely for hypertension, including contraindicated movements and intensity management."
       }
     },
     {
@@ -62,7 +62,7 @@ const faqSchema = {
 
 export const metadata: Metadata = {
   title: "Exercise for High Blood Pressure, Worthing",
-  description: "Safe, specialist personal training for high blood pressure in Worthing with a Level 4 Exercise Referral Specialist. Monitored sessions tailored to your condition.",
+  description: "Safe, specialist personal training for high blood pressure in Worthing with an Exercise Referral Specialist. Monitored sessions tailored to your condition.",
   alternates: { canonical: "https://eternal-fitness.co.uk/exercise-for-health/high-blood-pressure" },
 };
 

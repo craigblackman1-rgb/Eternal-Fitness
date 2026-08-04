@@ -56,7 +56,7 @@ export default function HowItWorksSection() {
           <StatStrip
             background="ink"
             stats={[
-              { value: "Level 4", label: "Highest PT qualification in the UK — plus cancer rehab and exercise referral" },
+              { value: "Level 4", label: "Cancer and Exercise Rehabilitation qualified — plus exercise referral" },
               { value: "1-to-1", label: "Private studio, no other clients, no gym floor. Every session is just us" },
               { value: "100%", label: "Of clients referred by their GP, consultant, or physio continue training long-term" },
             ]}

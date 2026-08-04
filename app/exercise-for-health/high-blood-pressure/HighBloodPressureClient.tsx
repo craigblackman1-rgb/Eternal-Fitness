@@ -87,7 +87,7 @@ export default function HighBloodPressureClient() {
         imageObjectPositionWide="50% 22%"
         eyebrow="High Blood Pressure"
         heading={<>Exercise for High Blood<br />Pressure in Worthing</>}
-        subhead="Exercise is clinically recommended for managing hypertension — but doing it safely requires specialist knowledge. As a Level 4 Exercise Referral Specialist, I programme around your blood pressure, your medications, and your capacity, with monitoring built into every session."
+        subhead="Exercise is clinically recommended for managing hypertension — but doing it safely requires specialist knowledge. I'm qualified in Exercise Referral, so I programme around your blood pressure, your medications, and your capacity, with monitoring built into every session."
         primaryCta={bookCta}
         secondaryCta={{ label: "See Pricing", href: "/pricing", variant: "ghost-white" }}
         badge={<StatBadge variant="rose" value="L4" label="Exercise Referral Specialist" />}
@@ -114,8 +114,8 @@ export default function HighBloodPressureClient() {
                 dangerous pressure spikes, and how to progress without risking a hypertensive response.
               </p>
               <p className="ds-body" style={{ marginBottom: 28 }}>
-                This is where Level 4 training matters. Standard personal trainers (Level 3) are not
-                equipped to make these clinical judgments. I am.
+                I'm qualified in Exercise Referral, which means I'm equipped to make these clinical
+                judgments safely.
               </p>
               <CtaButton cta={bookCta} />
             </Reveal>

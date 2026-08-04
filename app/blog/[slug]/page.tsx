@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
   const description = post.excerpt
     ? cleanMetaDescription(post.excerpt)
-    : `Read ${post.title} on the Eternal Fitness blog. Personal training insights from Level 4 trainer Esther Fair in Worthing.`;
+    : `Read ${post.title} on the Eternal Fitness blog. Personal training insights from Esther Fair, Level 4 qualified in Cancer and Exercise Rehabilitation, in Worthing.`;
   return {
     title: post.title,
     description,

@@ -116,7 +116,7 @@ export function buildBrandedUpdateEmail(input: BrandedUpdateEmailInput): string 
                 <p style="font-size:15px;line-height:1.6;color:${BODY_COLOR};margin:0 0 4px;">Speak soon,</p>
                 <p style="font-size:24px;line-height:1.4;color:${INK};margin:0;font-weight:400;font-style:italic;font-family:Georgia,'Times New Roman',serif;">Esther x</p>
                 <p style="font-size:12px;line-height:1.7;color:${BODY_COLOR};margin:14px 0 0;">
-                  <strong style="color:${INK};font-weight:700;">Esther Fair</strong> &middot; Level 4 Personal Trainer<br />
+                  <strong style="color:${INK};font-weight:700;">Esther Fair</strong> &middot; Level 4 Cancer and Exercise Rehabilitation Specialist<br />
                   <span style="color:${ROSE};font-weight:700;">Eternal Fitness</span> &middot; Private studio, Worthing, West Sussex
                 </p>
               </div>

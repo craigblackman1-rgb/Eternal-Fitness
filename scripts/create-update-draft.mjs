@@ -152,7 +152,7 @@ function buildBrandedUpdateEmail(input) {
                 <p style="font-size:15px;line-height:1.6;color:${BODY_COLOR};margin:0 0 4px;">Speak soon,</p>
                 <p style="font-size:20px;line-height:1.4;color:${INK};margin:0;font-weight:600;font-style:italic;">Esther x</p>
                 <p style="font-size:12px;line-height:1.6;color:#8A8790;margin:12px 0 0;">
-                  <strong style="color:${INK};font-weight:600;">Esther Fair</strong> &middot; Level 4 Personal Trainer<br />
+                  <strong style="color:${INK};font-weight:600;">Esther Fair</strong> &middot; Level 4 Cancer and Exercise Rehabilitation Specialist<br />
                   <span style="color:${ROSE};font-weight:600;">Eternal Fitness</span> &middot; Private studio, Worthing, West Sussex
                 </p>
               </div>

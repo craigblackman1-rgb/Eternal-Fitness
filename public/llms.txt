@@ -1,10 +1,9 @@
 # Eternal Fitness
 
 > Private one-to-one personal training studio in Worthing, West Sussex, run by
-> Esther Fair, a Level 4 Personal Trainer (the highest mainstream UK PT
-> qualification) holding a GP Exercise Referral qualification and a separate
-> Level 4 Cancer and Exercise Rehabilitation qualification. Specialises in
-> exercise for clinical and complex health populations, not general
+> Esther Fair, a personal trainer holding a GP Exercise Referral qualification
+> and a Level 4 Cancer and Exercise Rehabilitation qualification. Specialises
+> in exercise for clinical and complex health populations, not general
 > weight-loss or toning.
 
 ## Who this is for

@@ -172,7 +172,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
                 <div className="flex-1">
                   <p className="font-bold text-foreground">{post.author_name}</p>
                   <p className="ef-body text-sm">
-                    Level 4 personal trainer in Worthing, specialising in exercise for people with health conditions and complex needs.
+                    Personal trainer in Worthing, Level 4 qualified in Cancer and Exercise Rehabilitation, specialising in exercise for people with health conditions and complex needs.
                   </p>
                 </div>
                 <button

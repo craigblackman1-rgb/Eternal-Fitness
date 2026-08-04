@@ -145,7 +145,7 @@ export function HubSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           </div>
           <div className="text-xs min-w-0 flex-1">
             <p className="font-semibold text-white truncate">Esther Fair</p>
-            <p className="text-white/40">Level 4 PT</p>
+            <p className="text-white/40">Level 4 Cancer & Exercise Rehab</p>
           </div>
           <button
             onClick={handleSignOut}

@@ -31,7 +31,7 @@ const WhySection = () => {
             <h2 className="text-4xl md:text-5xl text-foreground leading-[1.1]">Training That Meets You Where You Are</h2>
           </div>
           <p className="text-muted-foreground font-body text-base max-w-md md:pt-8">
-            Esther Fair is a Level 4 personal trainer, Exercise Referral Specialist, and Cancer Rehabilitation Specialist based in Worthing. She specialises in rehabilitation and recovery training for cancer treatment survivors, chronic health conditions, post-surgery recovery, disabilities, and anyone with complex medical needs who has been overlooked by mainstream fitness.
+            Esther Fair is a personal trainer, Level 4 qualified in Cancer and Exercise Rehabilitation, and also qualified in Exercise Referral, based in Worthing. She specialises in rehabilitation and recovery training for cancer treatment survivors, chronic health conditions, post-surgery recovery, disabilities, and anyone with complex medical needs who has been overlooked by mainstream fitness.
           </p>
         </AnimateIn>
 

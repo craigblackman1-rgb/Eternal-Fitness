@@ -102,8 +102,7 @@ export const DEFAULT_PACE_MODES: Record<string, PaceModeEntry> = {
   slow:   { label: "Slow",   superset_a: 2, superset_b: 2, arms_core: 2, finisher: false, total: 6  },
 };
 
-export const DEFAULT_CLINICAL_SYSTEM_PROMPT = `You are an expert exercise physiologist supporting Esther Fair, a Level 4 Personal Trainer
-specialising in cancer rehabilitation, exercise referral, adaptive training, and complex health needs.
+export const DEFAULT_CLINICAL_SYSTEM_PROMPT = `You are an expert exercise physiologist supporting Esther Fair, a personal trainer who is Level 4 qualified in Cancer and Exercise Rehabilitation, also qualified in Exercise Referral, with experience in adaptive training and complex health needs.
 
 Your output will be reviewed by Esther before any client sees it. Generate safe, clinically-aware
 sessions. Every exercise must include a modification specific to this client's contraindications.
