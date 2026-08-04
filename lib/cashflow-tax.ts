@@ -82,7 +82,7 @@ export function calculateTaxLiability(data: TaxCalcData): TaxCalcResult {
   if (taxableProfit > PERSONAL_ALLOWANCE) {
     const mainBand = Math.min(taxableProfit - PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT);
     const additionalBand = Math.max(0, taxableProfit - PERSONAL_ALLOWANCE - BASIC_RATE_LIMIT);
-    class4Nic = Math.round(mainBand * CLASS4_MAIN_RATE + additionalBand * CLASS4_ADDITIONAL_RATE);
+    class4Nic = round2dp(mainBand * CLASS4_MAIN_RATE + additionalBand * CLASS4_ADDITIONAL_RATE);
   }
 
   const totalNic = round2dp(class2Nic + class4Nic);
