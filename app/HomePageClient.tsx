@@ -116,17 +116,17 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="steps">
             <div className="step">
               <div className="sn">01</div>
-              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Structured planning, dynamically adapted to you — the perfect balance of consistent progress and expert flexibility. Fatigue, a bad night, a stiff shoulder — I notice and adjust without making a thing of it."}</p></div>
+              <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Structured planning, dynamically tailored to you. It is the perfect balance of consistent progress and expert flexibility. If you are facing fatigue, a bad night, or a stiff shoulder, I notice and adjust without making a thing of it."}</p></div>
               <div className="si"><Image src="/images/coaching-plank-client.jpg" alt="Esther coaching a client through a plank, adjusting the movement as they go" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">02</div>
-              <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, no dress code. Just you and what you need today."}</p></div>
+              <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, and no dress code. Just you and exactly what you need today."}</p></div>
               <div className="si"><Image src="/images/studio-kneel-stretch.jpg" alt="A relaxed stretch session in the private Eternal Fitness studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">03</div>
-              <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That's what I build towards."}</p></div>
+              <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That is the real-world strength we build together."}</p></div>
               <div className="si"><Image src="/images/esther-training.jpg" alt="Esther Fair in the studio between sets" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover", objectPosition: "50% 14%" }} /></div>
             </div>
           </div>
