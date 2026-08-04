@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { HubTable, HubCard, HubCardHeader, TokenPill } from "@/components/hub";
-import { IconCalendar } from "@/components/icons";
+import { HubTable, TokenPill } from "@/components/hub";
 import { getScheduleStatus } from "@/lib/hubStatus";
 import type { BlockWithClient } from "./page";
 
@@ -84,6 +83,34 @@ function EditableDateCell({
 }
 
 export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
+  const statusFilters = [
+    { value: "all", label: "All statuses" },
+    { value: "draft", label: "Awaiting review" },
+    { value: "approved", label: "Approved" },
+    { value: "active", label: "Active" },
+    { value: "complete", label: "Completed" },
+  ] as const;
+
+  const [statusFilter, setStatusFilter] = useState<(typeof statusFilters)[number]["value"]>("all");
+
+  const filtered = useMemo(() => {
+    if (statusFilter === "all") return data;
+    return data.filter((row) => row.status === statusFilter);
+  }, [data, statusFilter]);
+
+  const sortedData = [...filtered].sort((a, b) => {
+    const statusOrder: Record<string, number> = { active: 0, approved: 1, draft: 2, complete: 3 };
+    const aOrder = statusOrder[a.status] ?? 4;
+    const bOrder = statusOrder[b.status] ?? 4;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    if (a.scheduled_start && b.scheduled_start) {
+      return new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime();
+    }
+    if (a.scheduled_start) return -1;
+    if (b.scheduled_start) return 1;
+    return b.block_number - a.block_number;
+  });
+
   const columns = [
     {
       key: "client",
@@ -126,7 +153,7 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
     },
     {
       key: "status",
-      header: "Status",
+      header: "Approval",
       sortable: true,
       sortValue: (row: BlockWithClient) => row.status,
       className: "w-[120px]",
@@ -137,39 +164,26 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
     },
   ];
 
-  const sortedData = [...data].sort((a, b) => {
-    const statusOrder: Record<string, number> = { active: 0, approved: 1, draft: 2, complete: 3 };
-    const aOrder = statusOrder[a.status] ?? 4;
-    const bOrder = statusOrder[b.status] ?? 4;
-    if (aOrder !== bOrder) return aOrder - bOrder;
-    if (a.scheduled_start && b.scheduled_start) {
-      return new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime();
-    }
-    if (a.scheduled_start) return -1;
-    if (b.scheduled_start) return 1;
-    return b.block_number - a.block_number;
-  });
-
   return (
-    <HubCard padded={false}>
-      <HubCardHeader
-        icon={<IconCalendar className="w-4 h-4" />}
-        title="Training plan schedule"
-        subtitle="Click a scheduled start date to set or change it. Status updates automatically from block progress."
-        color="teal"
-        divider
-        className="px-5 pt-5 pb-3.5"
-      />
-      <div className="px-5 pb-5">
-        <HubTable
-          data={sortedData}
-          columns={columns}
-          getRowHref={(row) => `/hub/clients/${row.client_id}/blocks/${row.id}`}
-          searchPlaceholder="Search by client name..."
-          searchKeys={[(row: BlockWithClient) => row.client_name ?? ""]}
-          countLabel="block"
-        />
-      </div>
-    </HubCard>
+    <HubTable
+      data={sortedData}
+      columns={columns}
+      getRowHref={(row) => `/hub/clients/${row.client_id}/blocks/${row.id}`}
+      searchPlaceholder="Search clients…"
+      searchKeys={[(row: BlockWithClient) => row.client_name ?? ""]}
+      countLabel="block"
+      toolbar={
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+          className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+          aria-label="Filter by approval status"
+        >
+          {statusFilters.map((f) => (
+            <option key={f.value} value={f.value}>{f.label}</option>
+          ))}
+        </select>
+      }
+    />
   );
 }

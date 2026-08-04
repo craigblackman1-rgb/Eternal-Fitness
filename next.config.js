@@ -119,6 +119,9 @@ const nextConfig = {
       { source: "/cancer-rehabilitation", destination: "/", permanent: false },
       { source: "/exercise-for-health", destination: "/", permanent: false },
       { source: "/exercise-for-health/:path*", destination: "/", permanent: false },
+
+      // --- Renamed hub route (2026-08-04) ---
+      { source: "/hub/plan-schedule", destination: "/hub/training-blocks", permanent: false },
     ];
   },
 };

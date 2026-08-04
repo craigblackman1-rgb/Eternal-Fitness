@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { HubPageHeader } from "@/components/hub";
 import { PlanScheduleTable } from "./PlanScheduleTable";
+import Link from "next/link";
 import type { DBBlock } from "@/types";
 
 export type BlockWithClient = DBBlock & {
@@ -9,7 +10,7 @@ export type BlockWithClient = DBBlock & {
   delivery_mode: string | null;
 };
 
-export default async function PlanSchedulePage() {
+export default async function TrainingBlocksPage() {
   const supabase = createClient();
 
   const { data: blockRows } = await supabase
@@ -36,8 +37,13 @@ export default async function PlanSchedulePage() {
   return (
     <div className="space-y-6">
       <HubPageHeader
-        title="Plan schedule"
-        subtitle="Every client's training block, its scheduled start date, and its live status."
+        title="Training blocks"
+        subtitle={
+          <>
+            Every client{`'`}s current training block — start date, sessions and approval status. Looking for individual session times instead? See{" "}
+            <Link href="/hub/schedule" className="text-teal font-semibold hover:underline">Studio Schedule</Link>.
+          </>
+        }
       />
       <PlanScheduleTable data={rows} />
     </div>
