@@ -44,10 +44,10 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(40px, 4.7vw, 64px)", fontWeight: 400, lineHeight: 1.03, letterSpacing: "-.025em", color: "#fff", marginBottom: 22 }}>
             {content.hero_line_1 ?? "One-to-One"} {content.hero_line_2 ?? "Personal Training"}<br /><em style={{ fontStyle: "italic", color: "#fff" }}>{content.hero_line_3 ?? "in Worthing"}</em>
           </h1>
-          <p className="h-loc" id="hloc">{content.hero_loc ?? "Private studio. No gym floor. No one watching. Just you, and a plan built around how you actually feel today."}</p>
+          <p className="h-loc" id="hloc">{content.hero_loc ?? "Private studio. No busy gym floors. No one watching. Just you, and a tailored plan built around how your body actually feels today."}</p>
           <div className="hero-rule" aria-hidden="true" />
           <p className="h-sub" id="hsub">
-            {content.hero_subheading ?? "I'm Esther — a personal trainer based in a private studio in Worthing. I am a Level 4 Personal Trainer, trained beyond the industry standard — so whatever's going on for you, the plan adapts instead of stopping."}
+            {content.hero_subheading ?? "I am Esther—a Level 4 Specialist Personal Trainer based in a private studio in Worthing. Because I am trained beyond the industry standard, whatever is going on with your health, your plan adapts instead of stopping."}
           </p>
           <div className="h-btns" id="hbtns">
             <button className="btn btn-rs" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
@@ -71,8 +71,8 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <span className="ti">{content.ticker_1 ?? "Private One-to-One Personal Training"}</span><span className="ti ts">✦</span>
               <span className="ti">{content.ticker_2 ?? "No Gym Floor"}</span><span className="ti ts">✦</span>
               <span className="ti">{content.ticker_3 ?? "Blocks of 12 or 24 Sessions"}</span><span className="ti ts">✦</span>
-              <span className="ti">{content.ticker_4 ?? "Qualified in Cancer & Exercise Rehabilitation"}</span><span className="ti ts">✦</span>
-              <span className="ti">{content.ticker_5 ?? "Studio or Online"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_4 ?? "Level 4 Cancer & Exercise Rehabilitation"}</span><span className="ti ts">✦</span>
+              <span className="ti">{content.ticker_5 ?? "Private Studio or Live Online"}</span><span className="ti ts">✦</span>
               <span className="ti">{content.ticker_6 ?? "Based in Worthing"}</span><span className="ti ts">✦</span>
             </span>
           ))}
@@ -111,7 +111,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <h2 className="D">How I Actually<br />Train You</h2>
           </div>
           <p className="L" style={{ maxWidth: 560 }}>
-            {content.approach_body ?? "Effective training can't be rigid. I'm always watching, and always adapting, ensuring you get the safest, most effective workout every time. Workouts are planned in advance, but because bodies change daily, I don't force you through a session that doesn't fit how you feel that day."}
+            {content.approach_body ?? "Effective training cannot be rigid. Your workouts are structured in advance, but because bodies change daily, I never force you through a session that does not fit your energy. I am always observing and adjusting to ensure you get the safest, most effective workout every single time."}
           </p>
           <div className="steps">
             <div className="step">
@@ -136,12 +136,12 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <ul className="qual-list">
                 <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Personal Trainer</li>
                 <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Exercise Referral</li>
-                <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Level 4 Cancer and Exercise Rehabilitation</li>
+                <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Level 4 Cancer & Exercise Rehabilitation</li>
               </ul>
             </div>
             <div>
-              <h3>{content.approach_box_1_title ?? "Qualified to keep training you if things change"}</h3>
-              <p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then went further: Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, that means I can adapt safely if your health picture shifts — blood pressure, a new diagnosis, recovery from treatment — without you having to find someone new."}</p>
+              <h3>{content.approach_box_1_title ?? "My Qualifications & Trust"}</h3>
+              <p>{content.approach_box_1_desc ?? "I trained as a personal trainer first, then advanced my credentials to specialise in clinical exercise delivery. In practice, this means your fitness journey never has to reset if your medical picture shifts. Whether you face fluctuating blood pressure, a new diagnosis, or recovery from medical treatment, I adapt your movements safely. You get to keep training with the coach who already knows your body, without the stress of searching for someone new."}</p>
             </div>
           </aside>
         </div>
@@ -172,7 +172,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div>
               <div className="stag stag-w">{content.specialist_tag ?? "Specialist Training"}</div>
               <p className="L LL" style={{ marginTop: 16, maxWidth: 480, marginBottom: 0 }}>
-                {content.specialist_body ?? "As a Level 4 Specialist and GP Referral Coach, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
+                {content.specialist_body ?? "As a Level 4 Specialist and GP Referral Trainer, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
               </p>
               <ul className="spec-list">
                 <li>Cardiovascular Care: Support for heart health and blood pressure management.</li>
