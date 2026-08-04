@@ -41,6 +41,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Clients",
     items: [
       { href: "/hub/clients", label: "Clients", icon: IconUsers },
+      { href: "/hub/resources", label: "Portal Resources", icon: IconLayoutDashboard },
     ],
   },
   {
