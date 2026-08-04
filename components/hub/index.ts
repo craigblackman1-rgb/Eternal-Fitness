@@ -8,6 +8,7 @@ export { HubAlert } from "./HubAlert";
 export { HubTable, type HubColumn } from "./HubTable";
 export { StatusBadge, TokenPill } from "./StatusBadge";
 export { KpiTile } from "./KpiTile";
+export { Toolbar, toolbarSelectClasses, type ToolbarSegment } from "./Toolbar";
 export { EmptyState } from "./EmptyState";
 export { HubTabsList, HubTabsTrigger } from "./HubTabs";
 export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
