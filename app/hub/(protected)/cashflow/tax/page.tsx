@@ -1,11 +1,9 @@
 import { createClient } from "@/lib/supabase-server";
-import { HubPageHeader, HubCard, HubCardHeader, KpiTile } from "@/components/hub";
+import { HubPageHeader, HubCard, HubCardHeader } from "@/components/hub";
 import {
   IconBarChart3,
   IconFileText,
-  IconPencil,
-  IconCheckCircle,
-  IconTarget,
+  IconShieldCheck,
   IconTriangleAlert,
 } from "@/components/icons";
 import { currentTaxYear, getTaxYearBounds } from "@/lib/cashflow-tax";
@@ -81,16 +79,32 @@ export default async function TaxPage() {
     { key: "other_expenses", label: EXPENSE_CATEGORY_LABELS.other },
   ] as const;
 
+  const periodStart = new Date(bounds.periodStart + "T00:00:00");
+  const periodEnd = new Date(bounds.periodEnd + "T00:00:00");
+  const dateRangeLabel = `${periodStart.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} – ${periodEnd.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <HubPageHeader
-        title="Tax liability"
-        subtitle={`${taxYear} tax year (${new Date(bounds.periodStart + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} — ${new Date(bounds.periodEnd + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })})`}
+        title="Tax estimate"
+        subtitle="Income Tax and National Insurance for the current UK tax year, calculated from categorised income and expenses."
         actions={<RecalculateButton taxYear={taxYear} />}
       />
 
+      {/* Disclaimer */}
+      <div
+        data-od-id="tax-disclaimer"
+        className="flex gap-3 rounded-[14px] border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4 text-[13px] leading-relaxed"
+      >
+        <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning)] mt-px" />
+        <div>
+          <b className="text-[var(--color-ink)]">Estimate only — not a substitute for an accountant.</b>{" "}
+          This figure is only as accurate as your categorised bank transactions and invoices. No real HSBC import has landed yet for every month, so treat this as directional until a full tax year of real data is in.
+        </div>
+      </div>
+
       {!calculation ? (
-        <HubCard>
+        <HubCard padded>
           <div className="text-center py-10">
             <p className="text-sm text-muted-foreground mb-4">
               No tax calculation yet for {taxYear}.
@@ -103,235 +117,215 @@ export default async function TaxPage() {
         </HubCard>
       ) : (
         <>
-          {/* Summary KPI band */}
-          <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
-            <KpiTile
-              icon={<IconTarget className="w-5 h-5" />}
-              label="Taxable profit"
-              value={formatCurrency(calculation.taxable_profit)}
-              statusToken="primary"
-            />
-            <KpiTile
-              icon={<IconFileText className="w-5 h-5" />}
-              label="Total tax due"
-              value={formatCurrency(calculation.total_tax_due)}
-              statusToken={calculation.total_tax_due > 0 ? "warning" : "success"}
-            />
-            <KpiTile
-              icon={<IconCheckCircle className="w-5 h-5" />}
-              label="Payments made"
-              value={formatCurrency(calculation.payments_made)}
-              statusToken={calculation.payments_made > 0 ? "success" : "neutral"}
-            />
-            <KpiTile
-              icon={<IconTriangleAlert className="w-5 h-5" />}
-              label="Balance due"
-              value={formatCurrency(calculation.balance_due)}
-              statusToken={calculation.balance_due > 0 ? "danger" : "success"}
-            />
+          {/* Headline */}
+          <div
+            data-od-id="tax-headline"
+            className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[20px] shadow-sm p-7 flex items-center justify-between gap-5 flex-wrap"
+          >
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.06em] text-[var(--color-muted-text)] m-0 mb-1.5">
+                Estimated total due — tax year {taxYear}
+              </p>
+              <p className="text-[40px] font-bold text-[var(--color-ink)] m-0 tabular-nums tracking-[-.02em] leading-none">
+                {formatCurrency(calculation.total_tax_due)}
+              </p>
+              <p className="text-[13px] text-[var(--color-body)] mt-1.5 m-0">
+                {dateRangeLabel} · based on {formatCurrency(calculation.taxable_profit)} taxable profit to date
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[.05em] text-[var(--status-warning)] bg-white border border-[var(--status-warning-border)] rounded-full px-3 py-1.5 shrink-0">
+              <IconTriangleAlert className="w-3 h-3" />
+              Estimate
+            </span>
           </div>
 
-          {/* Income breakdown */}
-          <HubCard padded={false}>
-            <HubCardHeader
-              icon={<IconTarget className="w-4 h-4" />}
-              title="Income"
-              subtitle={`Total income received in the ${taxYear} tax year`}
-              color="teal"
-              divider
-              className="px-5 pt-5 pb-3.5"
-            />
-            <div className="px-5 pb-5">
-              <div className="overflow-x-auto -mx-5">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
-                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                        Source
-                      </th>
-                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-[var(--hub-border)] last:border-0">
-                      <td className="px-5 py-3 font-medium">Invoice payments</td>
-                      <td className="px-5 py-3 text-right tabular-nums">
-                        {formatCurrency(calculation.invoice_income)}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-[var(--hub-border)] last:border-0">
-                      <td className="px-5 py-3 font-medium">Other income</td>
-                      <td className="px-5 py-3 text-right tabular-nums">
-                        {formatCurrency(calculation.other_income)}
-                      </td>
-                    </tr>
-                    <tr className="bg-[var(--hub-hover)]">
-                      <td className="px-5 py-3 font-semibold">Total income</td>
-                      <td className="px-5 py-3 text-right tabular-nums font-semibold">
-                        {formatCurrency(calculation.total_income)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </HubCard>
-
-          {/* Expense breakdown */}
-          <HubCard padded={false}>
-            <HubCardHeader
-              icon={<IconPencil className="w-4 h-4" />}
-              title="Allowable expenses"
-              subtitle="Categorised from imported bank transactions"
-              color="amber"
-              divider
-              className="px-5 pt-5 pb-3.5"
-            />
-            <div className="px-5 pb-5">
-              <div className="overflow-x-auto -mx-5">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
-                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                        Category
-                      </th>
-                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {expenseCategories.map(({ key, label }) => {
-                      const value = (calculation as unknown as Record<string, number>)[key] || 0;
-                      if (value === 0) return null;
-                      return (
-                        <tr
-                          key={key}
-                          className="border-b border-[var(--hub-border)] last:border-0"
-                        >
-                          <td className="px-5 py-3 font-medium">{label}</td>
-                          <td className="px-5 py-3 text-right tabular-nums">
-                            {formatCurrency(value)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr className="bg-[var(--hub-hover)]">
-                      <td className="px-5 py-3 font-semibold">Total expenses</td>
-                      <td className="px-5 py-3 text-right tabular-nums font-semibold">
-                        {formatCurrency(calculation.total_expenses)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </HubCard>
-
-          {/* Tax breakdown */}
-          <HubCard padded={false}>
+          {/* Income & expenses card */}
+          <HubCard
+            data-od-id="income-expense-card"
+            padded={false}
+          >
             <HubCardHeader
               icon={<IconBarChart3 className="w-4 h-4" />}
-              title="Tax calculation"
-              subtitle="2025-26 UK rates — Income Tax + Class 2 & 4 National Insurance"
-              color="navy"
+              title="Income &amp; expenses"
+              subtitle="From categorised invoices &amp; bank transactions this tax year"
+              color="teal"
               divider
-              className="px-5 pt-5 pb-3.5"
+              className="px-5 pt-4 pb-3.5"
             />
-            <div className="px-5 pb-5">
-              <div className="overflow-x-auto -mx-5">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
-                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">
-                        Component
-                      </th>
-                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">
-                        Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-[var(--hub-border)]">
-                      <td className="px-5 py-3 text-muted-foreground text-xs" colSpan={2}>
-                        Taxable profit = {formatCurrency(calculation.total_income)} income −{" "}
-                        {formatCurrency(calculation.total_expenses)} expenses ={" "}
-                        {formatCurrency(calculation.taxable_profit)}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-[var(--hub-border)]">
-                      <td className="px-5 py-3 pl-8 font-medium">
-                        Basic rate (20% on first £50,270 above allowance)
-                      </td>
-                      <td className="px-5 py-3 text-right tabular-nums">
-                        {formatCurrency(calculation.basic_rate_tax)}
-                      </td>
-                    </tr>
-                    {calculation.higher_rate_tax > 0 && (
-                      <tr className="border-b border-[var(--hub-border)]">
-                        <td className="px-5 py-3 pl-8 font-medium">
-                          Higher rate (40% on profit above £50,270)
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums">
-                          {formatCurrency(calculation.higher_rate_tax)}
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                      <td className="px-5 py-3 pl-8 font-semibold">Total Income Tax</td>
-                      <td className="px-5 py-3 text-right tabular-nums font-semibold">
-                        {formatCurrency(calculation.total_income_tax)}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-[var(--hub-border)]">
-                      <td className="px-5 py-3 pl-8 font-medium">
-                        Class 2 NIC ({calculation.class2_weeks} weeks × £3.45)
-                      </td>
-                      <td className="px-5 py-3 text-right tabular-nums">
-                        {formatCurrency(calculation.class2_nic)}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-[var(--hub-border)]">
-                      <td className="px-5 py-3 pl-8 font-medium">
-                        Class 4 NIC (6% + 2% above £50,270)
-                      </td>
-                      <td className="px-5 py-3 text-right tabular-nums">
-                        {formatCurrency(calculation.class4_nic)}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                      <td className="px-5 py-3 pl-8 font-semibold">Total NIC</td>
-                      <td className="px-5 py-3 text-right tabular-nums font-semibold">
-                        {formatCurrency(calculation.total_nic)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-5 py-3 font-bold text-[14px]">
-                        Total tax + NIC due
-                      </td>
-                      <td className="px-5 py-3 text-right tabular-nums font-bold text-[14px]">
-                        {formatCurrency(calculation.total_tax_due)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            <div className="px-5 pb-4">
+              <Row label="Training income" value={formatCurrency(calculation.total_income)} />
+
+              {(() => {
+                const activeCategories = expenseCategories
+                  .filter(({ key }) => (calculation as unknown as Record<string, number>)[key] > 0)
+                  .map(({ label }) => label);
+                const catList = activeCategories.length > 0
+                  ? activeCategories.join(", ")
+                  : "None";
+                return (
+                  <Row
+                    label="Allowable expenses"
+                    detail={catList}
+                    value={`–${formatCurrency(calculation.total_expenses)}`}
+                    valueClass="text-[var(--color-teal)]"
+                  />
+                );
+              })()}
+
+              <RowTotal label="Taxable profit" value={formatCurrency(calculation.taxable_profit)} />
+            </div>
+          </HubCard>
+
+          {/* Income Tax card */}
+          <HubCard
+            data-od-id="income-tax-card"
+            padded={false}
+          >
+            <HubCardHeader
+              icon={<IconFileText className="w-4 h-4" />}
+              title="Income Tax"
+              subtitle={`${taxYear} bands — personal allowance £12,570, basic rate 20% to £50,270`}
+              color="amber"
+              divider
+              className="px-5 pt-4 pb-3.5"
+            />
+            <div className="px-5 pb-4">
+              <div className="grid grid-cols-3 gap-3 mb-1.5">
+                <BandTile
+                  label="Personal allowance"
+                  value="£12,570"
+                  sub="Taxed at 0%"
+                />
+                <BandTile
+                  label="Basic rate portion"
+                  value={formatCurrency(
+                    Math.min(Math.max(0, calculation.taxable_profit - 12570), 37700),
+                  )}
+                  sub="Taxed at 20%"
+                />
+                <BandTile
+                  label="Higher rate portion"
+                  value={formatCurrency(
+                    Math.max(0, calculation.taxable_profit - 50270),
+                  )}
+                  sub={calculation.taxable_profit > 50270 ? "Taxed at 40%" : "Not reached this year"}
+                />
               </div>
+              <RowTotal label="Income Tax due" value={formatCurrency(calculation.total_income_tax)} />
+            </div>
+          </HubCard>
+
+          {/* National Insurance card */}
+          <HubCard
+            data-od-id="nic-card"
+            padded={false}
+          >
+            <HubCardHeader
+              icon={<IconShieldCheck className="w-4 h-4" />}
+              title="National Insurance"
+              subtitle="Class 2 + Class 4, self-employed"
+              color="rose"
+              divider
+              className="px-5 pt-4 pb-3.5"
+            />
+            <div className="px-5 pb-4">
+              <Row
+                label="Class 2 NIC"
+                detail="£3.45 / week — flat rate, payable once profit clears the personal allowance"
+                value={formatCurrency(calculation.class2_nic)}
+              />
+              <Row
+                label="Class 4 NIC — main band"
+                detail="6% on profit between £12,570 and £50,270"
+                value={formatCurrency(calculation.class4_nic)}
+              />
+              <Row
+                label="Class 4 NIC — additional band"
+                detail="2% on profit above £50,270"
+                value="£0.00"
+              />
+              <RowTotal label="NIC due" value={formatCurrency(calculation.total_nic)} />
+            </div>
+          </HubCard>
+
+          {/* Total card */}
+          <HubCard
+            data-od-id="total-card"
+            padded={false}
+          >
+            <div className="px-5 pt-4 pb-4">
+              <div className="flex items-baseline justify-between py-2.5 px-0 bg-[var(--hub-hover)] -mx-5 px-5 text-[13.5px]">
+                <span className="text-[var(--color-body)]">Income Tax</span>
+                <span className="font-semibold text-[var(--color-ink)] tabular-nums whitespace-nowrap">
+                  {formatCurrency(calculation.total_income_tax)}
+                </span>
+              </div>
+              <Row label="Class 2 + Class 4 NIC" value={formatCurrency(calculation.total_nic)} />
+              <RowTotal label="Estimated total due" value={formatCurrency(calculation.total_tax_due)} />
             </div>
           </HubCard>
         </>
       )}
 
-      {/* Disclaimer */}
-      <div className="rounded-[16px] border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4 text-[13px] text-[var(--status-warning-text)]">
-        <p className="font-semibold mb-1">Estimate only</p>
-        <p>
-          This is not a substitute for a qualified accountant. Based on 2025-26 UK rates;
-          these change every tax year. Figures are only as accurate as imported and categorised
-          bank transactions.
-        </p>
-      </div>
+      {/* Footnote */}
+      <p className="text-xs text-[var(--color-muted-text)] text-center mt-1.5">
+        No VAT applied — Esther is not VAT-registered. Rates shown are the {taxYear} tax year and are updated by hand each April.
+      </p>
+    </div>
+  );
+}
+
+/* ── Shared card row primitives ── */
+
+function Row({
+  label,
+  detail,
+  value,
+  valueClass,
+}: {
+  label: string;
+  detail?: string;
+  value: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between py-2.5 text-[13.5px] border-t border-[var(--hub-border)] first:border-t-0">
+      <span className="text-[var(--color-body)]">
+        {label}
+        {detail && (
+          <span className="block text-[11.5px] text-[var(--color-muted-text)] mt-0.5">{detail}</span>
+        )}
+      </span>
+      <span className={`font-semibold text-[var(--color-ink)] tabular-nums whitespace-nowrap ${valueClass ?? ""}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function RowTotal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between pt-3.5 pb-0 text-[15px] border-t-2 border-[var(--color-ink)]">
+      <span className="font-bold text-[var(--color-ink)]">{label}</span>
+      <span className="font-bold text-[var(--color-ink)] tabular-nums whitespace-nowrap">{value}</span>
+    </div>
+  );
+}
+
+function BandTile({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+}) {
+  return (
+    <div className="border border-[var(--hub-border)] rounded-xl p-3.5">
+      <p className="text-[11px] font-bold uppercase tracking-[.05em] text-[var(--color-muted-text)] m-0 mb-1.5">{label}</p>
+      <p className="text-lg font-bold text-[var(--color-ink)] m-0 tabular-nums">{value}</p>
+      <p className="text-[11.5px] text-[var(--color-muted-text)] mt-1 m-0">{sub}</p>
     </div>
   );
 }
