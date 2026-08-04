@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare, IconClock, IconActivity } from "@/components/icons";
+import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconBarChart3, IconCheckSquare, IconClock, IconActivity, IconPanelLeft } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
@@ -31,6 +31,7 @@ import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendS
 import { buildExerciseHistory } from "@/lib/exercise-history";
 import { getLastClientLogAt } from "@/lib/progress-db";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
+import { RESOURCES } from "@/lib/resources";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -95,9 +96,11 @@ function KeyFactChip({ label, children }: { label: string; children: React.React
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
-  const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode").eq("client_number", parseInt(params.id)).single();
+  const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode, resource_visibility").eq("client_number", parseInt(params.id)).single();
 
   if (!client) notFound();
+
+  const resourceVisibility: Record<string, boolean> = (client as any).resource_visibility ?? {};
 
   const { data: parqs } = await supabase.from("signed_parq").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
   const { data: agreements } = await supabase.from("signed_agreements").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
@@ -280,6 +283,24 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`} className="text-rose font-medium hover:underline">Create Block</Link>
             </div>
           )}
+        </div>
+      </HubCard>
+
+      <HubCard>
+        <HubCardHeader icon={<IconPanelLeft className="w-4 h-4" />} title="Resources" action={<span className="text-xs text-muted-foreground">Portal access</span>} color="teal" noBottomPadding />
+        <div className="pb-5">
+          <div className="space-y-0">
+            {RESOURCES.map((r) => (
+              <div key={r.key} className="flex items-center justify-between py-2 text-sm">
+                <span className="text-foreground">{r.name}</span>
+                <TokenPill token={resourceVisibility[r.key] ? "success" : "neutral"} label={resourceVisibility[r.key] ? "Enabled" : "Disabled"} />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-3.5 pt-2.5">
+            <Link href="/hub/resources" className="text-[12.5px] font-semibold text-teal hover:underline">View all clients →</Link>
+            <Link href={`/hub/clients/${client.client_number}/edit`} className="text-[12.5px] font-semibold text-muted-foreground hover:underline">Manage in Edit</Link>
+          </div>
         </div>
       </HubCard>
 
