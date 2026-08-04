@@ -22,13 +22,15 @@ Registry status at time of writing (2026-08-04): `wo-eternalfitness-consolidated
 - **`/hub/documents` now has a mockup** (`hub-documents.html`) — worth confirming whether the same-day `9107985` redesign was already built against it. Not checked 2026-08-04.
 - **PAR-Q edit screen** (`/hub/clients/[id]/parq/[parqId]/edit`) — needs a scoped fork/leave/retire decision. Still open.
 
-## 2. Real code work — Craig's call 2026-08-04: **carry on with all of these.** Next Work Order candidates.
+## 2. Real code work — Craig's call 2026-08-04: "carry on with all of these." Checked live 2026-08-04, most were already stale:
 
-- **"Haven't logged in N days" nudge send mechanism** — detection/flagging built (7-day threshold); build the send path — auto-send vs. Esther-reviewed draft, per the standing no-auto-send-without-review rule.
-- **Hub UI to flip a client to `delivery_mode='home_training'`** — SQL-only today, build the UI toggle.
-- **`/hub/site-review` returns HTTP 500** — real bug, found 2026-08-01 via `verify-hub-pages.js`, not yet investigated. Investigate and fix.
-- **Client data consolidation** (Trainerize/Outlook/paper → hub `clients` table) — manual-entry approach already decided, not started. Not blocking, but in scope to progress per Craig's "carry on with all of those."
-- **Lane J — paper→digital conversion tool** — still deliberately parked (Craig, 2026-07-22). Not included in "carry on with all of those" — do not pick up proactively unless Craig raises it again.
+- ~~Hub UI to flip a client to `delivery_mode='home_training'`~~ — **already exists.** `SegmentedControl` on `/hub/clients/[id]/edit` (Studio 1:1 / Home training), wired and saving. Stale item, dropped.
+- ~~`/hub/site-review` returns HTTP 500~~ — **not reproducing.** Live-checked 2026-08-04 with a disposable staff account: page renders correctly (40 tasks, stats, sitemap tab). Whatever caused the 2026-08-01 500 isn't live now — possibly fixed by an intervening deploy, possibly transient. Dropped; re-open if it recurs.
+- **"Haven't logged in N days" nudge — detection is live and IS the current design, not a half-built gap.** `/hub/clients/[id]` shows a real "Home-training client gone quiet" warning banner (confirmed live on the test client, 2026-08-04) — this already surfaces to Esther, who can check in with the client herself outside the system (text/call). The open question from before ("auto-send vs. Esther-reviewed draft") assumed a client-facing email needed to be built; it doesn't necessarily — **Craig to confirm: is the Esther-facing banner enough, or does he still want an in-app "send a check-in email" button?** Not built without that answer — genuinely ASK FIRST territory, not a default-yes under "carry on with all of those."
+- **Client data consolidation** (Trainerize/Outlook/paper → hub `clients` table) — manual-entry approach already decided; this is Craig's own data-entry task, not a code task. Nothing for Claude Code to build here.
+- **Lane J — paper→digital conversion tool** — still deliberately parked (Craig, 2026-07-22). Not raised again.
+
+**Also found and fixed while checking the above (not on this list before today):** the "Level 4 Personal Trainer" claim and a Level-3-vs-4 trainer comparison — both confirmed banned 2026-07-27 — were still live in 7 places the original rewrite missed: the site-wide default `<title>`/description (`app/layout.tsx`, was showing on every hub page's browser tab), a stale `localBusinessSchema.founder.jobTitle` in `app/page.tsx`, the two AI system prompts that draft client update emails and training plans (`app/api/claude/{update-chat,plan-chat}/route.ts`), and three spots on the disabled exercise-for-health pages. All fixed, `tsc` clean, pushed `72de64f`, deployed.
 
 ## 3. Real actions outside the codebase — RESOLVED/CLEARED 2026-08-04
 
@@ -55,7 +57,7 @@ Nothing below has ever been walked through by a logged-in human in a real browse
 
 ## 5. Marketing-page specific verification (Lane B of the launch-review WO — still open, no code change unless a bug is found)
 
-- Hero "L4 QUALIFIED" badge — confirm the fix (Lane A) actually resolves clipping at 1280px and 375px
+- Hero "L4 QUALIFIED" badge — **checked 2026-08-04, not reproducing.** Computed geometry at 1280px (devicePixelRatio 1.5): text 37px fits inside the 54px circle, no overflow. Badge is hidden entirely below 1180px, so the 375px case is moot. Real screenshot still worth a look if Craig sees it clip on his own screen.
 - Homepage "01/02/03" scroll-pinned section — confirm all 3 steps render on a real slow scroll, not just jump-scroll
 - Contact form — confirm empty-field validation blocks submit and no real email fires during the test
 - All 7 launch pages at 375px — nav collapse, footer stacking, badge clipping
@@ -66,7 +68,7 @@ Nothing below has ever been walked through by a logged-in human in a real browse
 
 - Section 1 is closed — Craig's decisions are logged in `decisions.log` 2026-08-04.
 - Section 1b items are decisions only Craig/Esther can make — nothing to build until answered.
-- Section 2 items are approved and buildable — candidates for the next Work Order (Craig: "carry on with all of those," 2026-08-04).
+- Section 2 — checked live 2026-08-04: 2 of 4 items were already built (stale in this list), 1 doesn't reproduce, 1 (client data) isn't a code task. Only the nudge-email question is a real open decision — Craig to answer before any code gets written for it.
 - Section 3 is closed — all external actions confirmed sorted 2026-08-04.
 - Section 4 is one recurring task, now unblocked by the new throwaway-login capability: log in to `staging.eternal-fitness.co.uk`'s hub and portal and click through the list top to bottom.
 - Section 5 is small and mechanical — good first pass alongside Lane A/B of the launch-review WO.

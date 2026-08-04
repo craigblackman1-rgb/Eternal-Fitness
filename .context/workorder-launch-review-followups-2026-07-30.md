@@ -20,7 +20,7 @@ ASK FIRST: Any copy change to condition/health-related language, anything touchi
       "budgets" phrasing). `tsc --noEmit` clean.
 - [x] About "Real Story" wording — **Craig confirmed 2026-08-04: correct/final, no further changes**
 - [x] Google Reviews shortlist — **Craig reconfirmed 2026-08-04: fine to use as-is** (also resolved 2026-07-30 in stats.md)
-- [ ] Hero "L4 QUALIFIED" badge text no longer clips inside the circle, checked at desktop + mobile widths
+- [x] Hero "L4 QUALIFIED" badge — checked 2026-08-04, not reproducing (see outstanding-items-2026-08-01.md §5). No code change made.
 - [ ] Homepage "How I Actually Train You" (01/02/03) scroll-pinned section confirmed rendering all 3 steps on a real slow scroll (not just jump-scroll)
 - [ ] Contact form: submit validation confirmed working (empty required fields blocked, real submit path not accidentally triggered during the test)
 - [ ] Full 7-page pass re-checked at mobile viewport (375px) — nav, hero badge, footer columns

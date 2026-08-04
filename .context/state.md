@@ -1,4 +1,15 @@
-# Eternal - **Launch-review Lane C fully closed + FAQ rewrite pass — DONE 2026-08-04.** Craig resolved all 5
+# Eternal - **Item-2 backlog checked live + a real "Level 4 Personal Trainer" regression found and fixed —
+  DONE 2026-08-04.** Live-checked all 4 approved item-2 units with a disposable staff account: the
+  home_training hub toggle and the site-review 500 both turned out to already be non-issues (toggle
+  already built, 500 not reproducing); client data consolidation is Craig's own manual task, not
+  code; the "gone quiet" nudge's Esther-facing detection banner is already live and may already be
+  the intended design — queued as a direct question to Craig rather than building a speculative
+  client-facing send feature. While checking, found the "Level 4 Personal Trainer" claim (banned
+  2026-07-27) and a Level-3-vs-4 comparison (banned by voice.md rule 3) still live in 7 places the
+  original rewrite missed, including the site-wide default page title (`app/layout.tsx`, showing on
+  every hub page) and the AI system prompts that draft client emails/plans. All fixed, `tsc` clean,
+  pushed `72de64f`, deployed. Full detail: `.context/decisions.log` 2026-08-04 (later entry).
+- **Launch-review Lane C fully closed + FAQ rewrite pass — DONE 2026-08-04.** Craig resolved all 5
   outstanding Lane C GATE items from `workorder-launch-review-followups-2026-07-30.md` in one batch:
   condition-roll-call copy on Home/PT left as-is for now, blog scope deferred, About "Real Story" and
   the Google Reviews shortlist both confirmed final, and FAQ answer bodies approved for a rewrite pass.
