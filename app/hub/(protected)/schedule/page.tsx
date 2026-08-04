@@ -75,7 +75,7 @@ export default async function SchedulePage() {
     <div className="space-y-6">
       <HubPageHeader
         title="Studio schedule"
-        subtitle="Every client's booked sessions across the studio. Overlapping bookings are flagged, never blocked."
+        subtitle="Every booked session across the studio. See Training Blocks for each client's block start date and approval status."
       />
       <ScheduleCalendar entries={entries} />
     </div>

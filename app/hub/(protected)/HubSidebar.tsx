@@ -23,6 +23,7 @@ import {
   IconLogOut,
   IconMail,
   IconPencil,
+  IconRibbon,
   IconUpload,
   IconUsers,
 } from "@/components/icons";
@@ -32,8 +33,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Overview",
     items: [
       { href: "/hub", label: "Dashboard", icon: IconLayoutDashboard },
-      { href: "/hub/schedule", label: "Schedule", icon: IconCalendar },
-      { href: "/hub/plan-schedule", label: "Plan Schedule", icon: IconClock },
+      { href: "/hub/schedule", label: "Studio Schedule", icon: IconCalendar },
       { href: "/hub/tasks", label: "Tasks", icon: IconCheckSquare },
     ],
   },
@@ -41,6 +41,15 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Clients",
     items: [
       { href: "/hub/clients", label: "Clients", icon: IconUsers },
+      { href: "/hub/plan-schedule", label: "Training Blocks", icon: IconClock },
+      { href: "/hub/resources", label: "Portal Resources", icon: IconRibbon },
+    ],
+  },
+  {
+    label: "Client Library",
+    items: [
+      { href: "/hub/exercises", label: "Exercise Library", icon: IconBookText },
+      { href: "/hub/workout-templates", label: "Workout Templates", icon: IconDumbbell },
     ],
   },
   {
@@ -48,13 +57,6 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     items: [
       { href: "/hub/documents", label: "All Documents", icon: IconFileText },
       { href: "/hub/templates", label: "Templates", icon: IconFileSignature },
-    ],
-  },
-  {
-    label: "Reports",
-    items: [
-      { href: "/hub/reports/updates", label: "Email Updates", icon: IconMail },
-      { href: "/hub/tracker", label: "Medical Tracker", icon: IconClipboardList },
     ],
   },
   {
@@ -68,18 +70,18 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     ],
   },
   {
-    label: "Resources",
+    label: "Reports",
     items: [
-      { href: "/hub/exercises", label: "Exercise Library", icon: IconBookText },
-      { href: "/hub/workout-templates", label: "Workout Templates", icon: IconDumbbell },
-      { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
-      { href: "/hub/site-review", label: "Site Review", icon: IconCheckSquare },
-      { href: "/hub/site-content", label: "Site Content", icon: IconEdit3 },
+      { href: "/hub/reports/updates", label: "Email Updates", icon: IconMail },
+      { href: "/hub/tracker", label: "Medical Tracker", icon: IconClipboardList },
     ],
   },
   {
-    label: "Settings",
+    label: "Studio Admin",
     items: [
+      { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
+      { href: "/hub/site-review", label: "Site Review", icon: IconCheckSquare },
+      { href: "/hub/site-content", label: "Site Content", icon: IconEdit3 },
       { href: "/hub/settings/training-rules", label: "Training Rules", icon: IconClipboardCheck },
       { href: "/hub/settings/studio-equipment", label: "Studio Equipment", icon: IconDumbbell },
       { href: "/hub/settings/plan-agent", label: "Plan Agent Rules", icon: IconBot },
