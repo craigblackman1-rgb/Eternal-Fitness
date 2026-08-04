@@ -179,7 +179,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
                 <li><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone and joint health.</li>
                 <li><strong>Inclusive Training:</strong> Tailored physical coaching for visual impairment.</li>
                 <li><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training during or after treatment.</li>
-                <li><strong>Active Ageing:</strong> Specialised mobility and performance coaching for older adults.</li>
+                <li><strong>Active Ageing:</strong> Specialised mobility coaching for older adults, focusing heavily on Balance, Mobility, and Joint Stability Support.</li>
               </ul>
             </div>
           </div>
