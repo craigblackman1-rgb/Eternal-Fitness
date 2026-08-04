@@ -94,9 +94,9 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <h2 className="D" style={{ marginBottom: 16 }}>Training That Meets<br />You Where You Are</h2>
               {content.why_body && <p className="L">{content.why_body}</p>}
               <div className="wfeats">
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Real, sustainable strength and mobility"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves how you move, day to day."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No gym floor, no other people, no pressure to perform."}</div></div></div>
-                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "As a level 4 specialist personal trainer, my advanced clinical qualifications mean that even if your health or medical picture shifts, your progress never has to stop."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_1_title ?? "Real, sustainable strength and mobility"}</div><div className="wfc">{content.why_feat_1_desc ?? "Building functional strength that improves how you move every single day."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No crowded gym floor, no other people, and absolutely no pressure to perform."}</div></div></div>
+                <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "Specialised in exercise referral and cancer rehabilitation. If your health picture shifts, your training adapts instead of stopping."}</div></div></div>
               </div>
             </div>
           </div>
