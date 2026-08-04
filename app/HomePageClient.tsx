@@ -160,7 +160,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div>
               <div className="stag stag-w">{content.who_tag ?? "Who I Work With"}</div>
               <p className="L LL" style={{ marginTop: 16, maxWidth: 480, fontFamily: "var(--font-serif)", fontSize: "clamp(19px,1.8vw,23px)", fontWeight: 400, color: "#fff", lineHeight: 1.35 }}>
-                {content.who_body_lede ?? "Most of the people I train are just looking for proper one-to-one attention — to get fitter, stronger, feel more like themselves."}
+                {content.who_body_lede ?? "Most of the people I train are simply looking for focused, one-to-one attention. Whether you want to get fitter, build strength, or feel more like yourself, my sessions are tailored entirely to you."}
               </p>
               <p className="L LL" style={{ marginTop: 16, maxWidth: 480 }}>
                 {content.who_body ?? "Some arrive with more going on: a health condition, recovery from treatment, something that makes them wonder if training is even for them. If that's you, it almost certainly still is — get in touch."}
@@ -172,15 +172,14 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div>
               <div className="stag stag-w">{content.specialist_tag ?? "Specialist Training"}</div>
               <p className="L LL" style={{ marginTop: 16, maxWidth: 480, marginBottom: 0 }}>
-                {content.specialist_body ?? "If your health picture is more specific, here's more detail on how I work with it."}
+                {content.specialist_body ?? "As a Level 4 Specialist and GP Referral Coach, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
               </p>
               <ul className="spec-list">
-                <li>Heart health and blood pressure</li>
-                <li>Bone and joint health</li>
-                <li>Visual impairment</li>
-                <li>Cancer rehabilitation</li>
-                <li>As a level 3 specialist and GP referral coach I bridge the gap between medical treatment and everyday functional strength.</li>
-                <li>Older adult mobility and performance</li>
+                <li>Cardiovascular Care: Support for heart health and blood pressure management.</li>
+                <li>Musculoskeletal Strength: Targeted exercise for bone and joint health.</li>
+                <li>Inclusive Training: Tailored physical coaching for visual impairment.</li>
+                <li>Cancer Rehabilitation: Gentle, progressive recovery training during or after treatment.</li>
+                <li>Active Ageing: Specialized mobility and performance coaching for older adults.</li>
               </ul>
             </div>
           </div>
