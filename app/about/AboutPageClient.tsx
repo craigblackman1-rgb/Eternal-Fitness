@@ -58,7 +58,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}
         primaryCta={bookCta}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "My Story", href: "#story", variant: "outline" }}
-        belowLead={<>I specialize in adaptive fitness. I design personalized training programs that accommodate injuries, limitations, and unique goals that standard routines leave behind.</>}
+        belowLead={<>I specialise in adaptive fitness. I design personalised training programmes that accommodate injuries, limitations, and unique goals that standard routines leave behind.</>}
       />
 
       {/* Story */}
@@ -77,7 +77,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
             <Reveal y={24}>
               <p className="ds-body" style={{ marginTop: 20, marginBottom: 16 }}>{content?.story_p1 ?? "I started working in fitness because I wanted to help people move well and feel good, but I quickly realised my heart lay in making exercise accessible to absolutely everyone—regardless of the challenges or health issues they might be facing. I loved finding ways to make movement work for people who felt left out by standard gym routines, which led me to set up and run a dedicated GP Exercise Referral scheme within a busy public leisure centre."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p2 ?? "When Covid closed gym doors in 2020, everything shifted. I began training clients outdoors and simultaneously joined a clinical trial, delivering online exercise sessions for people undergoing cancer treatment. Saying \"yes\" to these opportunities redefined my purpose. It proved just how much people benefit from a trainer who adapts dynamically, rather than relying on one-size-fits-all routines."}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "I chose to step away from the typical weight-loss and body transformation focus of the fitness industry and launched Eternal Fitness in 2020. I wanted to deliver thoughtful, highly individualised coaching centered on real-world fitness, health, and longevity."}</p>
+              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3 ?? "I chose to step away from the typical weight-loss and body transformation focus of the fitness industry and launched Eternal Fitness in 2020. I wanted to deliver thoughtful, highly individualised coaching centred on real-world fitness, health, and longevity."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3b ?? "My clients range from everyday people looking to get fitter and feel like themselves again, to individuals navigating complex medical needs, through to athletes who require deep, calculated thought built into their programming."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p3c ?? "To best serve this diverse community, I am committed to continuous education. I regularly add advanced qualifications to my toolkit to make sure that my training methods remain safe, progressive, and highly effective—no matter who is walking through my door."}</p>
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.story_p4 ?? "I train my clients out of my private studio in Worthing. Success here is not measured by numbers on a scale, but by real-world confidence and strength."}</p>
