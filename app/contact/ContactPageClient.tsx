@@ -277,7 +277,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <figure className="m-0">
             <div className="rounded-3xl overflow-hidden aspect-[4/3] relative">
-              <Image src="/images/studio-kneel-stretch.jpg" alt="Inside the private converted-garage studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+              <Image src="/images/studio-kneel-stretch.jpg" alt="Inside the private studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
             </div>
             <figcaption className="ds-figcaption">Private studio, Worthing — one client at a time</figcaption>
           </figure>
