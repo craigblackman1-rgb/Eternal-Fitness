@@ -17,15 +17,15 @@ export default async function StudioEquipmentPage() {
   const activeCount = initialEquipment.filter((e) => e.active).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+    <div>
+      <div className="flex items-end justify-between gap-4 flex-wrap mb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Studio equipment</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.01em] text-foreground">Studio equipment</h1>
           <p className="text-sm text-muted-foreground mt-1">
             The Plan Agent can only programme from items listed here. Toggle off anything out of service.
           </p>
         </div>
-        <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[var(--status-success)] px-2.5 py-1 text-xs font-semibold">
+        <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success-border)]">
           {activeCount} active
         </span>
       </div>

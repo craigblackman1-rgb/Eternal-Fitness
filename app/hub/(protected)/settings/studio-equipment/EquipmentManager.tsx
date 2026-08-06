@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IconPlus, IconDumbbell, IconTrash2 } from "@/components/icons";
+import { IconDumbbell, IconTrash2 } from "@/components/icons";
 import { toast } from "sonner";
 import type { StudioEquipment } from "@/types";
 
@@ -15,13 +15,11 @@ interface EquipmentManagerProps {
 
 export function EquipmentManager({ initialEquipment }: EquipmentManagerProps) {
   const [equipment, setEquipment] = useState(initialEquipment);
-  const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [detail, setDetail] = useState("");
   const [homeEquivalent, setHomeEquivalent] = useState("");
-
-  const activeCount = equipment.filter((e) => e.active).length;
+  const nameRef = useRef<HTMLInputElement>(null);
 
   async function addEquipment() {
     if (!name.trim()) return;
@@ -42,7 +40,6 @@ export function EquipmentManager({ initialEquipment }: EquipmentManagerProps) {
       setName("");
       setDetail("");
       setHomeEquivalent("");
-      setAdding(false);
       toast.success("Equipment added");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add equipment");
@@ -85,94 +82,109 @@ export function EquipmentManager({ initialEquipment }: EquipmentManagerProps) {
         title="Equipment"
         subtitle="Add, edit and toggle availability"
         color="teal"
-        action={
-          <Button size="sm" className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white h-auto py-1.5 px-3 font-semibold" onClick={() => setAdding((v) => !v)}>
-            <IconPlus className="h-4 w-4" />
-            Add equipment
-          </Button>
-        }
         divider
-        className="px-5 pt-5"
+        className="px-5 pt-[14px]"
       />
 
-      {adding && (
-        <div className="px-5 py-4 border-b border-[var(--hub-border)] grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_1fr_1.2fr_auto] md:items-end">
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-semibold text-foreground">Name</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Dumbbells"
-              className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-semibold text-foreground">Detail</Label>
-            <Input
-              value={detail}
-              onChange={(e) => setDetail(e.target.value)}
-              placeholder="e.g. 2kg–40kg"
-              className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-semibold text-foreground">Home equivalent</Label>
-            <Input
-              value={homeEquivalent}
-              onChange={(e) => setHomeEquivalent(e.target.value)}
-              placeholder="e.g. Resistance band"
-              className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
-            />
-          </div>
-          <Button onClick={addEquipment} disabled={saving || !name.trim()} className="h-9 rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold shrink-0">
-            Add equipment
-          </Button>
+      <form
+        className="px-5 py-4 border-b border-[var(--hub-border)] grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_1fr_1.2fr_auto] md:items-end"
+        onSubmit={(e) => {
+          e.preventDefault();
+          addEquipment();
+        }}
+      >
+        <div className="flex flex-col gap-[5px]">
+          <Label className="text-xs font-semibold text-foreground" htmlFor="eqName">Name</Label>
+          <Input
+            ref={nameRef}
+            id="eqName"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Dumbbells"
+            className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30 font-[inherit]"
+          />
         </div>
-      )}
+        <div className="flex flex-col gap-[5px]">
+          <Label className="text-xs font-semibold text-foreground" htmlFor="eqDetail">Detail</Label>
+          <Input
+            id="eqDetail"
+            value={detail}
+            onChange={(e) => setDetail(e.target.value)}
+            placeholder="e.g. 2kg–40kg"
+            className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30 font-[inherit]"
+          />
+        </div>
+        <div className="flex flex-col gap-[5px]">
+          <Label className="text-xs font-semibold text-foreground" htmlFor="eqHome">Home equivalent</Label>
+          <Input
+            id="eqHome"
+            value={homeEquivalent}
+            onChange={(e) => setHomeEquivalent(e.target.value)}
+            placeholder="e.g. Resistance band"
+            className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30 font-[inherit]"
+          />
+        </div>
+        <Button
+          type="submit"
+          disabled={saving || !name.trim()}
+          className="h-8 rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold shrink-0 px-3 text-[12.5px] leading-none inline-flex items-center gap-[6px]"
+        >
+          Add equipment
+        </Button>
+      </form>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-[13px] border-collapse">
           <thead>
-            <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-              <th className="text-left font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-5">Name</th>
-              <th className="text-left font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-5">Detail</th>
-              <th className="text-left font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-5">Home equivalent</th>
-              <th className="text-left font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-5 w-[110px]">Active</th>
-              <th className="w-[56px] px-5" />
+            <tr>
+              <th className="text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground bg-[var(--hub-hover)] h-10 px-4 border-b border-[var(--hub-border)]">Name</th>
+              <th className="text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground bg-[var(--hub-hover)] h-10 px-4 border-b border-[var(--hub-border)]">Detail</th>
+              <th className="text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground bg-[var(--hub-hover)] h-10 px-4 border-b border-[var(--hub-border)]">Home equivalent</th>
+              <th className="text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground bg-[var(--hub-hover)] h-10 px-4 border-b border-[var(--hub-border)] w-[110px]">Active</th>
+              <th className="w-[56px] px-4 border-b border-[var(--hub-border)]" />
             </tr>
           </thead>
           <tbody>
-            {equipment.map((item) => (
-              <tr key={item.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
-                <td className="py-3 px-5 font-semibold text-foreground">{item.name}</td>
-                <td className="py-3 px-5 text-muted-foreground">{item.detail ?? "—"}</td>
-                <td className="py-3 px-5 text-muted-foreground">{item.home_equivalent ?? "—"}</td>
-                <td className="py-3 px-5">
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={item.active}
-                    onClick={() => toggleActive(item)}
-                    className={`relative inline-block w-10 h-[22px] shrink-0 rounded-full transition-colors duration-200 ${item.active ? "bg-[var(--status-success)]" : "bg-[var(--hub-field-border)]"} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--status-success)]/40`}
-                  >
-                    <span
-                      className={`absolute left-[3px] top-[3px] w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${item.active ? "translate-x-[18px]" : "translate-x-0"}`}
-                    />
-                  </button>
+            {equipment.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+                  No equipment added yet.
                 </td>
-                <td className="py-3 px-5 text-right">
+              </tr>
+            ) : (
+              equipment.map((item) => (
+                <tr key={item.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
+                  <td className="py-3 px-4 font-semibold text-foreground align-middle">{item.name}</td>
+                  <td className="py-3 px-4 text-[var(--color-body)] align-middle">{item.detail ?? "—"}</td>
+                  <td className="py-3 px-4 text-[var(--color-body)] align-middle">{item.home_equivalent ?? "—"}</td>
+                  <td className="py-3 px-4 align-middle">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={item.active}
+                      onClick={() => toggleActive(item)}
+                      className={`relative inline-block w-10 h-[22px] shrink-0 rounded-full transition-[background-color] duration-200 ${item.active ? "bg-[var(--status-success)]" : "bg-[var(--hub-field-border)]"} focus-visible:outline-none`}
+                      style={item.active ? { boxShadow: "none" } : {}}
+                    >
+                      <span
+                        className={`absolute left-[3px] top-[3px] w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.2)] ${item.active ? "translate-x-[18px]" : "translate-x-0"}`}
+                      />
+                    </button>
+                  </td>
+                  <td className="py-3 px-4 align-middle">
                     <button
                       type="button"
                       title="Remove"
                       aria-label={`Delete ${item.name}`}
                       onClick={() => deleteEquipment(item)}
                       className="w-[30px] h-[30px] rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground grid place-items-center hover:text-[var(--status-danger)] hover:border-[var(--status-danger-border)] transition-colors"
-                  >
-                    <IconTrash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                    >
+                      <IconTrash2 className="w-[15px] h-[15px]" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
