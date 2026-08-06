@@ -1,4 +1,45 @@
-# Eternal - **Item-2 backlog checked live + a real "Level 4 Personal Trainer" regression found and fixed —
+# Eternal Fitness Website — State
+
+## 2026-08-06 (Claude Code)
+- **Work Order `wo-hub-consolidated-2026-08-06` — DONE, all 9 lanes merged, deployed.** Craig raised 9
+  hub items in one session: (1) Quote/invoice template built into cashflow's `invoice_templates`
+  system using `invoice-template.html` as the basis, surfaced on `/hub/templates` (`2c9cbcc`); (2)
+  Email Updates gained working search + column sort (`a044170`); (3) Medical Tracker redesigned
+  against `hub-medical-tracker.html` (`d93fcf7`); (4) Site Review removed entirely (`16d8eaf`); (5)
+  Site Content removed entirely, `page_keywords`/`page_content_blocks` tables left intact (`14f7e62`);
+  (6) Training Rules toggle recoloured + inline edit added for existing rule types (`2296bc6`); (7)
+  Studio Equipment redesigned against `hub-studio-equipment.html`, and a real pre-existing bug caught
+  in passing — `DELETE /api/equipment/[id]` had no handler despite the UI already calling it
+  (`f7776da`); (8) Plan Agent Settings reconciled against `hub-plan-agent-settings.html`, 12 documented
+  deltas fixed (`205de15`); (9) Client Detail restructured from 9 tabs to a refined 5-tab layout
+  (Overview/Profile/Admin/Training/Comms + Plan Agent as a 6th), full `?tab=`/`?view=` alias map so old
+  links still resolve, Resources rail card and Plan Agent access both kept per Craig's confirmed
+  answers rather than the newer mockup's silent omissions (`e7fec08`). Bank Transactions (a 10th item
+  Craig asked about) needed no work — checked live against its mockup and already matched (shipped
+  2026-08-04). All 9 lanes dispatched via OpenCode in isolated worktrees under
+  `D:\apps\worktrees\eternal-fitness-website\`, every diff reviewed line-by-line before merge, `tsc`
+  clean throughout. Full lane-by-lane detail in `.context/workorder-hub-consolidated-2026-08-06.md`.
+- **Two follow-up fixes from live Craig feedback, same session:**
+  - Hub sidebar nav sections now actually collapse (chevron toggle, Studio Admin collapsed by default,
+    active group force-expands) — the 2026-08-04 nav restructure had regrouped/renamed sections but
+    never built the collapse behaviour its own mockup (`hub-nav-restructure.html`) specified (`71cf1f8`).
+    First webhook deploy of this commit failed at the Docker build step with an unclear exit 255 (no
+    error text surfaced, matches this project's known flaky-build-infra pattern); a force-rebuild
+    redeploy succeeded.
+  - New `/hub/resources/preview/[key]` route lets staff see exactly what each portal resource (calorie
+    calculator, Showdown Soundboard) looks like/contains without a client portal login — the existing
+    `/hub/resources` page only showed the client×resource visibility matrix, not the resource content
+    itself. Reuses the real client-facing components directly (`CalorieGuideClient`,
+    `ShowdownSoundboardClient`) with a placeholder name; both are fully self-contained with no
+    fetch/save calls, safe to render under hub auth. "Preview →" link added to each resource's summary
+    card (`5cc8970`).
+  - Portal Resources nav link (added 2026-08-04) was independently re-confirmed live and correct
+    multiple times this session (code, DOM, post-deploy) — Craig's "can't see it" reports turned out to
+    be about wanting the resource-preview feature above, not a missing nav link.
+- **Note for next session:** confirm the `5cc8970` deploy finished — it was still building when this
+  session closed; check `wo active`/Coolify if picking this up.
+
+- **Item-2 backlog checked live + a real "Level 4 Personal Trainer" regression found and fixed —
   DONE 2026-08-04.** Live-checked all 4 approved item-2 units with a disposable staff account: the
   home_training hub toggle and the site-review 500 both turned out to already be non-issues (toggle
   already built, 500 not reproducing); client data consolidation is Craig's own manual task, not
