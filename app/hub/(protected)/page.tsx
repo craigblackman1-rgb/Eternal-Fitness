@@ -336,7 +336,7 @@ export default async function DashboardPage() {
       )}
 
       {/* Recent check-ins + this week's plan — the two-column layout hub-dashboard.html specifies */}
-      <div className="grid gap-6 lg:grid-cols-2 items-start">
+      <div className="grid gap-6 lg:grid-cols-2 items-stretch">
         <HubCard padded={false}>
           <HubCardHeader
             icon={<IconCheckCircle className="w-4 h-4" />}
@@ -423,6 +423,88 @@ export default async function DashboardPage() {
         </HubCard>
       </div>
 
+      {/* Needs Attention paired with a narrow side-stack — the attn-grid + side-stack
+          split hub-dashboard.html specifies (wide list column, fixed-ish narrow rail),
+          rather than stacking mismatched-height cards in an even 2/3-1/3 split. */}
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+        <HubCard padded={false} className="lg:col-span-2">
+          <HubCardHeader
+            icon={<IconTriangleAlert className="w-4 h-4" />}
+            title="Needs Attention"
+            color="amber"
+            action={
+              needsAttention.length > 8 ? (
+                <Link href="/hub/tracker" className="text-sm text-rose hover:underline">
+                  View all {needsAttention.length}
+                </Link>
+              ) : undefined
+            }
+            divider
+            className="px-5 pt-5 pb-3.5"
+          />
+          <div className="px-5 pt-5 pb-5">
+            {needsAttention.length > 0 ? (
+              <div className="space-y-1">
+                {needsAttention.slice(0, 8).map((client) => {
+                  const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                  return (
+                    <Link
+                      key={client.id}
+                      href={`/hub/clients/${client.client_number}`}
+                      className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)] transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                        {initials}
+                      </div>
+                      <span className="flex-1 min-w-0 text-sm font-medium text-foreground truncate">{client.name}</span>
+                      <StatusBadge status={client.compliance_status as string} />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-2">All clients clear — nothing needs attention.</p>
+            )}
+          </div>
+        </HubCard>
+
+        <div className="flex flex-col gap-6">
+          <HubCard padded={false}>
+            <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Recent Blocks" divider className="px-5 pt-5 pb-3.5" />
+            <div className="px-5 pt-5 pb-5">
+              {blocks && blocks.length > 0 ? (
+                <div className="space-y-2">
+                  {blocks.slice(0, 5).map((block) => (
+                    <Link
+                      key={block.id}
+                      href={`/hub/clients/${(block as any).clients?.client_number || block.client_id}/blocks/${block.id}`}
+                      className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[var(--hub-hover)] group"
+                    >
+                      <span className="flex-1 text-sm font-medium text-foreground">Block {block.block_number}</span>
+                      <StatusBadge status={block.status} />
+                      <IconArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">No blocks generated yet.</p>
+              )}
+            </div>
+          </HubCard>
+
+          <HubCard padded={false} className="flex-1 flex flex-col">
+            <HubCardHeader icon={<IconActivity className="w-4 h-4" />} title="Quick Actions" color="navy" divider className="px-5 pt-5 pb-3.5" />
+            <div className="px-5 pt-5 pb-5">
+              <HubQuickActions actions={[
+                { href: "/hub/clients/new", label: "Add a new client", icon: <IconUserPlus className="w-4 h-4" /> },
+                { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
+                { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
+              ]} />
+            </div>
+          </HubCard>
+        </div>
+      </div>
+
       {updatesDueClients.length > 0 && (
         <HubCard padded={false}>
           <HubCardHeader
@@ -483,176 +565,96 @@ export default async function DashboardPage() {
         </HubCard>
       )}
 
-      {/* Additional client-management views — real functionality beyond the mockup's
-          daily-work view, kept per spec's "never delete a feature to reach parity". */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <HubCard padded={false}>
-            <HubCardHeader
-              icon={<IconTriangleAlert className="w-4 h-4" />}
-              title="Needs Attention"
-              color="amber"
-              action={
-                needsAttention.length > 8 ? (
-                  <Link href="/hub/tracker" className="text-sm text-rose hover:underline">
-                    View all {needsAttention.length}
+      {/* Active Blocks and Recent Clients — real functionality beyond the mockup's
+          daily-work view, kept per spec's "never delete a feature to reach parity",
+          now full-width rows rather than crammed into an already-uneven column. */}
+      <HubCard padded={false}>
+        <HubCardHeader icon={<IconCalendar className="w-4 h-4" />} title="Active Blocks — Next Session" divider className="px-5 pt-5 pb-3.5" />
+        <div className="px-5 pt-5 pb-5">
+          {nextUpByBlock.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {nextUpByBlock.map(({ block, nextSession, completedCount, totalCount }) => {
+                const clientNumber = (block as any).clients?.client_number;
+                const clientName = (block as any).clients?.name;
+                const initials = (clientName ?? "").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                const href = nextSession
+                  ? `/hub/clients/${clientNumber}/blocks/${block.id}/sessions/${nextSession.session_number}`
+                  : `/hub/clients/${clientNumber}/blocks/${block.id}`;
+                return (
+                  <Link
+                    key={block.id}
+                    href={href}
+                    className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-rose transition-colors">{clientName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Block {block.block_number}
+                        {nextSession ? ` · Session ${nextSession.session_number}` : " · All sessions logged"}
+                        {totalCount > 0 && ` · ${completedCount}/${totalCount} done`}
+                      </p>
+                    </div>
+                    <IconArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </Link>
-                ) : undefined
-              }
-              divider
-              className="px-5 pt-5 pb-3.5"
-            />
-            <div className="px-5 pt-5 pb-5">
-              {needsAttention.length > 0 ? (
-                <div className="space-y-1">
-                  {needsAttention.slice(0, 8).map((client) => {
-                    const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                    return (
-                      <Link
-                        key={client.id}
-                        href={`/hub/clients/${client.client_number}`}
-                        className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)] transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                          {initials}
-                        </div>
-                        <span className="flex-1 min-w-0 text-sm font-medium text-foreground truncate">{client.name}</span>
-                        <StatusBadge status={client.compliance_status as string} />
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">All clients clear — nothing needs attention.</p>
-              )}
+                );
+              })}
             </div>
-          </HubCard>
-
-          <HubCard padded={false}>
-            <HubCardHeader icon={<IconCalendar className="w-4 h-4" />} title="Active Blocks — Next Session" divider className="px-5 pt-5 pb-3.5" />
-            <div className="px-5 pt-5 pb-5">
-              {nextUpByBlock.length > 0 ? (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {nextUpByBlock.map(({ block, nextSession, completedCount, totalCount }) => {
-                    const clientNumber = (block as any).clients?.client_number;
-                    const clientName = (block as any).clients?.name;
-                    const initials = (clientName ?? "").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                    const href = nextSession
-                      ? `/hub/clients/${clientNumber}/blocks/${block.id}/sessions/${nextSession.session_number}`
-                      : `/hub/clients/${clientNumber}/blocks/${block.id}`;
-                    return (
-                      <Link
-                        key={block.id}
-                        href={href}
-                        className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                          {initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate group-hover:text-rose transition-colors">{clientName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Block {block.block_number}
-                            {nextSession ? ` · Session ${nextSession.session_number}` : " · All sessions logged"}
-                            {totalCount > 0 && ` · ${completedCount}/${totalCount} done`}
-                          </p>
-                        </div>
-                        <IconArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2.5 py-1.5 text-sm text-muted-foreground">
-                  <IconCalendar className="w-4 h-4 shrink-0" />
-                  <span>No active blocks right now — approve a block to see it here.</span>
-                  <Link href="/hub/clients" className="text-rose hover:underline shrink-0 ml-auto">View clients</Link>
-                </div>
-              )}
+          ) : (
+            <div className="flex items-center gap-2.5 py-1.5 text-sm text-muted-foreground">
+              <IconCalendar className="w-4 h-4 shrink-0" />
+              <span>No active blocks right now — approve a block to see it here.</span>
+              <Link href="/hub/clients" className="text-rose hover:underline shrink-0 ml-auto">View clients</Link>
             </div>
-          </HubCard>
-
-          <HubCard padded={false}>
-            <HubCardHeader
-              icon={<IconUsers className="w-4 h-4" />}
-              title="Recent Clients"
-              action={<Link href="/hub/clients" className="text-sm text-rose hover:underline inline-flex items-center gap-1">View all <IconArrowUpRight className="w-3 h-3" /></Link>}
-              divider
-              className="px-5 pt-5 pb-3.5"
-            />
-            <div className="px-5 pt-5 pb-5">
-              {clients && clients.length > 0 ? (
-                <div className="space-y-1">
-                  {clients.slice(0, 5).map((client) => {
-                    const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                    const sessionsPerWeek = client.profile?.logistics?.sessions_per_week;
-                    const conditions = client.profile?.health?.conditions?.length ?? 0;
-                    return (
-                      <Link
-                        key={client.id}
-                        href={`/hub/clients/${client.client_number}`}
-                        className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                          {initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {sessionsPerWeek ? `${sessionsPerWeek}x / week` : "No schedule set"}
-                            {conditions > 0 && ` · ${conditions} condition(s)`}
-                          </p>
-                        </div>
-                        <div className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">No clients yet.</p>
-              )}
-            </div>
-          </HubCard>
+          )}
         </div>
+      </HubCard>
 
-        <div className="space-y-6">
-          <HubCard padded={false}>
-            <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Recent Blocks" divider className="px-5 pt-5 pb-3.5" />
-            <div className="px-5 pt-5 pb-5">
-              {blocks && blocks.length > 0 ? (
-                <div className="space-y-2">
-                  {blocks.slice(0, 5).map((block) => (
-                    <Link
-                      key={block.id}
-                      href={`/hub/clients/${(block as any).clients?.client_number || block.client_id}/blocks/${block.id}`}
-                      className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[var(--hub-hover)] group"
-                    >
-                      <span className="flex-1 text-sm font-medium text-foreground">Block {block.block_number}</span>
-                      <StatusBadge status={block.status} />
-                      <IconArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">No blocks generated yet.</p>
-              )}
+      <HubCard padded={false}>
+        <HubCardHeader
+          icon={<IconUsers className="w-4 h-4" />}
+          title="Recent Clients"
+          action={<Link href="/hub/clients" className="text-sm text-rose hover:underline inline-flex items-center gap-1">View all <IconArrowUpRight className="w-3 h-3" /></Link>}
+          divider
+          className="px-5 pt-5 pb-3.5"
+        />
+        <div className="px-5 pt-5 pb-5">
+          {clients && clients.length > 0 ? (
+            <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+              {clients.slice(0, 6).map((client) => {
+                const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                const sessionsPerWeek = client.profile?.logistics?.sessions_per_week;
+                const conditions = client.profile?.health?.conditions?.length ?? 0;
+                return (
+                  <Link
+                    key={client.id}
+                    href={`/hub/clients/${client.client_number}`}
+                    className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {sessionsPerWeek ? `${sessionsPerWeek}x / week` : "No schedule set"}
+                        {conditions > 0 && ` · ${conditions} condition(s)`}
+                      </p>
+                    </div>
+                    <div className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          </HubCard>
-
-          <HubCard padded={false}>
-            <HubCardHeader icon={<IconActivity className="w-4 h-4" />} title="Quick Actions" color="navy" divider className="px-5 pt-5 pb-3.5" />
-            <div className="px-5 pt-5 pb-5">
-              <HubQuickActions actions={[
-                { href: "/hub/clients/new", label: "Add a new client", icon: <IconUserPlus className="w-4 h-4" /> },
-                { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
-                { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
-              ]} />
-            </div>
-          </HubCard>
+          ) : (
+            <p className="text-sm text-muted-foreground py-2">No clients yet.</p>
+          )}
         </div>
-      </div>
+      </HubCard>
     </div>
   );
 }
