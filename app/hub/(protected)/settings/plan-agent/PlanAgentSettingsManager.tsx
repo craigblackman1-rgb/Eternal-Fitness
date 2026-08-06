@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { HubCard, HubCardHeader } from "@/components/hub";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { IconBot, IconFileText, IconClipboardCheck, IconClipboardList } from "@/components/icons";
@@ -53,6 +51,43 @@ const SECTION_ICONS: Record<string, React.ReactNode> = {
   "General": <IconBot className="w-4 h-4" />,
 };
 
+/** Reusable inline "Saved" flash that fades out after ~2s. */
+function SavedFlash({ visible }: { visible: boolean }) {
+  return (
+    <span
+      className="text-[12px] font-semibold transition-opacity duration-200"
+      style={{ color: "var(--status-success, #087E8B)", opacity: visible ? 1 : 0 }}
+    >
+      Saved
+    </span>
+  );
+}
+
+/** Reusable save-button row: inline flash + rose CTA. */
+function CardActions({
+  saved,
+  onSave,
+  saving,
+}: {
+  saved: boolean;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-[10px]">
+      <SavedFlash visible={saved} />
+      <button
+        type="button"
+        className="inline-flex items-center gap-1.5 h-[34px] px-[14px] rounded-lg bg-[var(--color-rose)] text-white text-[12.5px] font-semibold border-0 cursor-pointer transition-opacity hover:opacity-[.88] disabled:opacity-60"
+        onClick={onSave}
+        disabled={saving}
+      >
+        Save
+      </button>
+    </div>
+  );
+}
+
 export function PlanAgentSettingsManager({ initialSettings }: PlanAgentSettingsManagerProps) {
   const [settings, setSettings] = useState(initialSettings);
 
@@ -73,38 +108,35 @@ export function PlanAgentSettingsManager({ initialSettings }: PlanAgentSettingsM
   }
 
   async function saveSetting(key: string, value: unknown) {
-    try {
-      const res = await fetch(`/api/plan-agent-settings/${encodeURIComponent(key)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to save");
-      toast.success("Saved");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save");
-    }
+    const res = await fetch(`/api/plan-agent-settings/${encodeURIComponent(key)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error ?? "Failed to save");
   }
 
   return (
-    <div className="space-y-6">
-      {sortedSections.map((section) => (
-        <div key={section} className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
-            {section}
-          </h2>
-          <div className="space-y-4">
-            {grouped[section].map((setting) => (
-              <SettingEditor
-                key={setting.key}
-                setting={setting}
-                onUpdate={(value) => updateLocal(setting.key, value)}
-                onSave={(value) => saveSetting(setting.key, value)}
-              />
-            ))}
+    <div>
+      <div className="space-y-8">
+        {sortedSections.map((section) => (
+          <div key={section}>
+            <h2 className="text-xs font-bold uppercase tracking-[.08em] text-muted-foreground mb-3">
+              {section}
+            </h2>
+            <div className="flex flex-col gap-4">
+              {grouped[section].map((setting) => (
+                <SettingEditor
+                  key={setting.key}
+                  setting={setting}
+                  onUpdate={(value) => updateLocal(setting.key, value)}
+                  onSave={async (value) => { await saveSetting(setting.key, value); }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -116,7 +148,7 @@ function SettingEditor({
 }: {
   setting: PlanAgentSetting;
   onUpdate: (value: unknown) => void;
-  onSave: (value: unknown) => void;
+  onSave: (value: unknown) => Promise<void>;
 }) {
   if (setting.value_type === "pace_modes") {
     return <PaceModesEditor setting={setting} onUpdate={onUpdate} onSave={onSave} />;
@@ -140,11 +172,19 @@ function PaceModesEditor({
 }: {
   setting: PlanAgentSetting;
   onUpdate: (value: unknown) => void;
-  onSave: (value: unknown) => void;
+  onSave: (value: unknown) => Promise<void>;
 }) {
   const modes = setting.value as PaceModesValue;
   const [draft, setDraft] = useState(modes);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const flashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flash = useCallback(() => {
+    setSaved(true);
+    if (flashRef.current) clearTimeout(flashRef.current);
+    flashRef.current = setTimeout(() => setSaved(false), 2000);
+  }, []);
 
   function updateField(key: keyof PaceMode, mode: string, val: string | boolean) {
     setDraft((prev) => {
@@ -156,7 +196,12 @@ function PaceModesEditor({
   async function handleSave() {
     setSaving(true);
     onUpdate(draft);
-    await onSave(draft);
+    try {
+      await onSave(draft);
+      flash();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save");
+    }
     setSaving(false);
   }
 
@@ -164,72 +209,78 @@ function PaceModesEditor({
 
   return (
     <HubCard>
-      <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color="teal" />
+      <HubCardHeader
+        icon={<IconClipboardList className="w-4 h-4" />}
+        title={setting.label}
+        subtitle={setting.description ?? undefined}
+        color="teal"
+      />
       <div className="space-y-4">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                <th className="text-left font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-4">Mode</th>
-                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Superset A</th>
-                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Superset B</th>
-                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Arms + core</th>
-                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 px-3">Total</th>
-                <th className="text-center font-semibold uppercase tracking-wide text-[11px] text-muted-foreground h-10 pl-3 pr-4">Finisher</th>
+              <tr className="border-b border-[var(--hub-border)]">
+                <th className="text-left font-semibold uppercase tracking-[.04em] text-[11px] text-muted-foreground py-2 px-1.5">Mode</th>
+                <th className="text-center font-semibold uppercase tracking-[.04em] text-[11px] text-muted-foreground py-2 px-1.5">Superset A</th>
+                <th className="text-center font-semibold uppercase tracking-[.04em] text-[11px] text-muted-foreground py-2 px-1.5">Superset B</th>
+                <th className="text-center font-semibold uppercase tracking-[.04em] text-[11px] text-muted-foreground py-2 px-1.5">Arms + core</th>
+                <th className="text-center font-semibold uppercase tracking-[.04em] text-[11px] text-muted-foreground py-2 px-1.5">Total</th>
+                <th className="text-center font-semibold uppercase tracking-[.04em] text-[11px] text-muted-foreground py-2 pl-1.5 pr-1.5">
+                  Finisher
+                </th>
               </tr>
             </thead>
             <tbody>
               {modeKeys.map((mode) => (
-                <tr key={mode} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
-                  <td className="py-2 pr-4 font-medium capitalize">{draft[mode].label}</td>
-                  <td className="py-2 px-3">
+                <tr key={mode} className="border-b border-[var(--hub-hover)] last:border-0">
+                  <td className="py-2 px-1.5 font-semibold text-foreground capitalize">{draft[mode].label}</td>
+                  <td className="py-2 px-1.5 text-center">
                     <Input
                       type="number"
-                      className="w-16 text-center h-8 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
+                      className="w-14 h-8 text-center text-[13px] rounded-[7px] border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
                       value={draft[mode].superset_a}
                       onChange={(e) => updateField("superset_a", mode, e.target.value)}
                     />
                   </td>
-                  <td className="py-2 px-3">
+                  <td className="py-2 px-1.5 text-center">
                     <Input
                       type="number"
-                      className="w-16 text-center h-8 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
+                      className="w-14 h-8 text-center text-[13px] rounded-[7px] border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
                       value={draft[mode].superset_b}
                       onChange={(e) => updateField("superset_b", mode, e.target.value)}
                     />
                   </td>
-                  <td className="py-2 px-3">
+                  <td className="py-2 px-1.5 text-center">
                     <Input
                       type="number"
-                      className="w-16 text-center h-8 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
+                      className="w-14 h-8 text-center text-[13px] rounded-[7px] border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
                       value={draft[mode].arms_core}
                       onChange={(e) => updateField("arms_core", mode, e.target.value)}
                     />
                   </td>
-                  <td className="py-2 px-3">
+                  <td className="py-2 px-1.5 text-center">
                     <Input
                       type="number"
-                      className="w-16 text-center h-8 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
+                      className="w-14 h-8 text-center text-[13px] rounded-[7px] border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
                       value={draft[mode].total}
                       onChange={(e) => updateField("total", mode, e.target.value)}
                     />
                   </td>
-                  <td className="py-2 pl-3 flex justify-center">
-                    <Switch
-                      checked={draft[mode].finisher}
-                      onCheckedChange={(checked) => updateField("finisher", mode, checked)}
-                    />
+                  <td className="py-2 px-1.5">
+                    <div className="flex justify-center">
+                      <Switch
+                        className="data-[state=checked]:bg-[var(--status-success,#087E8B)]"
+                        checked={draft[mode].finisher}
+                        onCheckedChange={(checked) => updateField("finisher", mode, checked)}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="flex justify-end">
-          <Button size="sm" className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={handleSave} disabled={saving}>
-            Save
-          </Button>
-        </div>
+        <CardActions saved={saved} onSave={handleSave} saving={saving} />
       </div>
     </HubCard>
   );
@@ -242,33 +293,42 @@ function TextEditor({
 }: {
   setting: PlanAgentSetting;
   onUpdate: (value: unknown) => void;
-  onSave: (value: unknown) => void;
+  onSave: (value: unknown) => Promise<void>;
 }) {
   const [draft, setDraft] = useState(typeof setting.value === "string" ? setting.value : JSON.stringify(setting.value));
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const flashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flash = useCallback(() => {
+    setSaved(true);
+    if (flashRef.current) clearTimeout(flashRef.current);
+    flashRef.current = setTimeout(() => setSaved(false), 2000);
+  }, []);
 
   async function handleSave() {
     setSaving(true);
     onUpdate(draft);
-    await onSave(draft);
+    try {
+      await onSave(draft);
+      flash();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save");
+    }
     setSaving(false);
   }
 
   return (
     <HubCard>
       <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color="navy" />
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         <Textarea
-          rows={10}
-          className="font-mono text-sm rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
+          rows={6}
+          className="font-mono text-[12.5px] rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)] resize-y"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <div className="flex justify-end">
-          <Button size="sm" className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={handleSave} disabled={saving}>
-            Save
-          </Button>
-        </div>
+        <CardActions saved={saved} onSave={handleSave} saving={saving} />
       </div>
     </HubCard>
   );
@@ -281,44 +341,50 @@ function ListEditor({
 }: {
   setting: PlanAgentSetting;
   onUpdate: (value: unknown) => void;
-  onSave: (value: unknown) => void;
+  onSave: (value: unknown) => Promise<void>;
 }) {
   const arr = Array.isArray(setting.value) ? setting.value : [];
   const [draft, setDraft] = useState(arr.join("\n"));
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const flashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flash = useCallback(() => {
+    setSaved(true);
+    if (flashRef.current) clearTimeout(flashRef.current);
+    flashRef.current = setTimeout(() => setSaved(false), 2000);
+  }, []);
 
   async function handleSave() {
     const parsed = draft.split("\n").map((s) => s.trim()).filter(Boolean);
     setSaving(true);
     onUpdate(parsed);
-    await onSave(parsed);
+    try {
+      await onSave(parsed);
+      flash();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save");
+    }
     setSaving(false);
   }
 
   return (
     <HubCard>
       <HubCardHeader icon={SECTION_ICONS[setting.section] ?? <IconBot className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color={SECTION_COLORS[setting.section] ?? "slate"} />
-      <div className="space-y-3">
-        <Label className="text-xs text-muted-foreground">One item per line</Label>
+      <div className="flex flex-col gap-3">
+        <p className="text-[11px] text-muted-foreground">One item per line</p>
         <Textarea
-          rows={10}
-          className="font-mono text-sm rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
+          rows={6}
+          className="font-mono text-[12.5px] rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)] resize-y"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <div className="flex justify-end">
-          <Button size="sm" className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={handleSave} disabled={saving}>
-            Save
-          </Button>
-        </div>
+        <CardActions saved={saved} onSave={handleSave} saving={saving} />
       </div>
     </HubCard>
   );
 }
 
-/** Editor for a flat Record<string,string> — one labelled row per key, shared Save.
- *  Used for phase_guidance (foundation/build/develop/peak/deload) and
- *  archetype_labels (A/B/C). */
 function KeyedTextEditor({
   setting,
   onUpdate,
@@ -326,11 +392,19 @@ function KeyedTextEditor({
 }: {
   setting: PlanAgentSetting;
   onUpdate: (value: unknown) => void;
-  onSave: (value: unknown) => void;
+  onSave: (value: unknown) => Promise<void>;
 }) {
   const initial = (setting.value && typeof setting.value === "object" ? setting.value : {}) as Record<string, string>;
   const [draft, setDraft] = useState(initial);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const flashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flash = useCallback(() => {
+    setSaved(true);
+    if (flashRef.current) clearTimeout(flashRef.current);
+    flashRef.current = setTimeout(() => setSaved(false), 2000);
+  }, []);
 
   function updateField(k: string, v: string) {
     setDraft((prev) => ({ ...prev, [k]: v }));
@@ -339,25 +413,32 @@ function KeyedTextEditor({
   async function handleSave() {
     setSaving(true);
     onUpdate(draft);
-    await onSave(draft);
+    try {
+      await onSave(draft);
+      flash();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save");
+    }
     setSaving(false);
   }
 
   return (
     <HubCard>
       <HubCardHeader icon={SECTION_ICONS[setting.section] ?? <IconBot className="w-4 h-4" />} title={setting.label} subtitle={setting.description ?? undefined} color={SECTION_COLORS[setting.section] ?? "slate"} />
-      <div className="space-y-3">
+      <div className="flex flex-col gap-2.5">
         {Object.keys(draft).map((k) => (
-          <div key={k} className="space-y-1">
-            <Label className="text-xs text-muted-foreground capitalize">{k}</Label>
-            <Input className="h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30" value={draft[k]} onChange={(e) => updateField(k, e.target.value)} />
+          <div key={k} className="flex flex-col gap-1">
+            <label className="text-[11px] font-bold uppercase tracking-[.04em] text-muted-foreground">
+              {k}
+            </label>
+            <Input
+              className="h-9 text-[13px] rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-[var(--color-rose)] [&:focus]:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
+              value={draft[k]}
+              onChange={(e) => updateField(k, e.target.value)}
+            />
           </div>
         ))}
-        <div className="flex justify-end">
-          <Button size="sm" className="rounded-lg bg-rose hover:bg-rose/90 text-white font-semibold" onClick={handleSave} disabled={saving}>
-            Save
-          </Button>
-        </div>
+        <CardActions saved={saved} onSave={handleSave} saving={saving} />
       </div>
     </HubCard>
   );
