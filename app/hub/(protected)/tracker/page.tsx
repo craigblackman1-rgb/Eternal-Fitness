@@ -1,144 +1,191 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { computeComplianceFlags } from "@/lib/compliance";
-import { HubCard, HubPageHeader, StatusBadge, KpiTile, EmptyState } from "@/components/hub";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { IconAlertTriangle, IconCheckCircle, IconClipboardCheck, IconUsers } from "@/components/icons";
-import type { DBClient, SignedAgreement, SignedPARQ } from "@/types";
+import { MedicalTracker, type TrackerClient, type DocInfo, type DocState } from "@/components/hub/MedicalTracker";
+import type { DBClient } from "@/types";
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+interface DocRow {
+  id: string;
+  client_id: string;
+  kind: string;
+  status: string;
+  signed_at: string | null;
+  client_signed_date: string | null;
+}
+
+function deriveDocState(
+  signedDate: string | null,
+  hasSentPending: boolean,
+  hasTrainerOverride: boolean,
+  overrideNote: string | null,
+  declareDeclined: boolean,
+): DocInfo | null {
+  if (declareDeclined) {
+    return { signedDate, expiryDate: null, note: null, state: "dec" };
+  }
+  if (signedDate) {
+    const d = new Date(signedDate);
+    const expiry = new Date(d);
+    expiry.setFullYear(expiry.getFullYear() + 1);
+    const now = new Date();
+    if (expiry < now) return { signedDate, expiryDate: expiry.toISOString().slice(0, 10), note: null, state: "exp" };
+    const daysUntilExpiry = Math.round((expiry.getTime() - now.getTime()) / 86400000);
+    if (daysUntilExpiry <= 45) return { signedDate, expiryDate: expiry.toISOString().slice(0, 10), note: null, state: "due" };
+    return { signedDate, expiryDate: expiry.toISOString().slice(0, 10), note: null, state: "ok" };
+  }
+  if (hasTrainerOverride) {
+    return { signedDate: null, expiryDate: null, note: overrideNote ?? "Trainer override — pending migration", state: "ok" };
+  }
+  if (hasSentPending) {
+    return { signedDate: null, expiryDate: null, note: null, state: "pend" };
+  }
+  return null;
 }
 
 export default async function TrackerPage() {
   const supabase = createClient();
 
   const { data: clients } = await supabase.from("clients").select("*").order("name");
+
   const { data: allParq } = await supabase
     .from("signed_parq")
     .select("*")
     .order("created_at", { ascending: false });
+
   const { data: allAgreements } = await supabase
     .from("signed_agreements")
     .select("*")
     .order("created_at", { ascending: false });
-  const { data: signedDocuments } = await supabase
+
+  const { data: allDocs } = await supabase
     .from("client_documents")
-    .select("client_id, kind, status")
-    .in("kind", ["parq", "terms"])
-    .eq("status", "signed");
+    .select("id, client_id, kind, status, signed_at, client_signed_date")
+    .in("kind", ["parq", "terms", "risk_assessment", "consent"])
+    .order("created_at", { ascending: false });
 
-  const latestParqByClient = new Map<string, SignedPARQ>();
+  const clientDocsByKind = new Map<string, Map<string, DocRow[]>>();
+  for (const doc of (allDocs ?? []) as DocRow[]) {
+    if (!clientDocsByKind.has(doc.client_id)) {
+      clientDocsByKind.set(doc.client_id, new Map());
+    }
+    const byKind = clientDocsByKind.get(doc.client_id)!;
+    if (!byKind.has(doc.kind)) {
+      byKind.set(doc.kind, []);
+    }
+    byKind.get(doc.kind)!.push(doc);
+  }
+
+  const latestLegacyParqByClient = new Map<string, any>();
   for (const p of allParq ?? []) {
-    if (p.client_id && !latestParqByClient.has(p.client_id)) latestParqByClient.set(p.client_id, p);
+    if (p.client_id && !latestLegacyParqByClient.has(p.client_id)) {
+      latestLegacyParqByClient.set(p.client_id, p);
+    }
   }
-  const latestAgreementByClient = new Map<string, SignedAgreement>();
-  for (const a of allAgreements ?? []) {
-    if (a.client_id && !latestAgreementByClient.has(a.client_id)) latestAgreementByClient.set(a.client_id, a);
-  }
-  const signedParqDocClientIds = new Set(
-    (signedDocuments ?? []).filter((d) => d.kind === "parq").map((d) => d.client_id),
-  );
-  const signedAgreementDocClientIds = new Set(
-    (signedDocuments ?? []).filter((d) => d.kind === "terms").map((d) => d.client_id),
-  );
 
-  const rows = (clients ?? []).map((client: DBClient) => {
-    const latestParq = latestParqByClient.get(client.id) ?? null;
-    const latestAgreement = latestAgreementByClient.get(client.id) ?? null;
-    return {
+  const latestLegacyAgreementByClient = new Map<string, any>();
+  for (const a of allAgreements ?? []) {
+    if (a.client_id && !latestLegacyAgreementByClient.has(a.client_id)) {
+      latestLegacyAgreementByClient.set(a.client_id, a);
+    }
+  }
+
+  const trackerClients: TrackerClient[] = (clients ?? []).map((client: DBClient) => {
+    const legacyParq = latestLegacyParqByClient.get(client.id) ?? null;
+    const legacyAgreement = latestLegacyAgreementByClient.get(client.id) ?? null;
+
+    const byKind = clientDocsByKind.get(client.id) ?? new Map();
+
+    function bestDocRow(docKind: string): { signed: DocRow | null; sentPending: boolean } {
+      const rows = byKind.get(docKind) ?? [];
+      const signed = rows.find((r) => r.status === "signed") ?? null;
+      const sentPending = !signed && rows.some((r) => r.status === "sent");
+      return { signed, sentPending };
+    }
+
+    const parqRows = bestDocRow("parq");
+    const hasParqTrainerOverride = !!client.profile?.health?.parq_trainer_override;
+    const parqOverrideNote = client.profile?.health?.parq_trainer_override_note ?? null;
+    const parqSignedDate =
+      parqRows.signed?.client_signed_date ??
+      parqRows.signed?.signed_at ??
+      legacyParq?.created_at ??
+      null;
+    const parqHasSentPending = parqRows.sentPending;
+    const parqDoc = deriveDocState(parqSignedDate, parqHasSentPending, hasParqTrainerOverride, parqOverrideNote, false);
+
+    const gpClearanceObtained = !!client.profile?.health?.gp_clearance;
+    const gpClearanceRequired = !!client.profile?.health?.gp_clearance_required;
+    const gpLetterStatus = client.gp_letter_status;
+    let gpDoc: DocInfo | null = null;
+    if (gpClearanceObtained || gpLetterStatus === "received") {
+      const receivedDate = client.gp_letter_received_date ?? null;
+      if (receivedDate) {
+        const d = new Date(receivedDate);
+        const expiry = new Date(d);
+        expiry.setFullYear(expiry.getFullYear() + 1);
+        const now = new Date();
+        if (expiry < now) {
+          gpDoc = { signedDate: receivedDate, expiryDate: expiry.toISOString().slice(0, 10), note: null, state: "exp" };
+        } else {
+          const daysUntilExpiry = Math.round((expiry.getTime() - now.getTime()) / 86400000);
+          gpDoc = { signedDate: receivedDate, expiryDate: expiry.toISOString().slice(0, 10), note: null, state: daysUntilExpiry <= 45 ? "due" : "ok" };
+        }
+      } else {
+        gpDoc = { signedDate: null, expiryDate: null, note: null, state: "ok" };
+      }
+    } else if (gpLetterStatus === "requested") {
+      gpDoc = { signedDate: null, expiryDate: null, note: null, state: "pend" };
+    } else if (gpClearanceRequired) {
+      gpDoc = { signedDate: null, expiryDate: null, note: null, state: "out" };
+    } else {
+      gpDoc = { signedDate: null, expiryDate: null, note: null, state: "na" };
+    }
+
+    const agreementRows = bestDocRow("terms");
+    const agreementSignedDate =
+      agreementRows.signed?.client_signed_date ??
+      agreementRows.signed?.signed_at ??
+      (legacyAgreement?.status === "signed" ? legacyAgreement?.signed_at ?? null : null);
+    const agreementDoc = deriveDocState(agreementSignedDate, agreementRows.sentPending, false, null, false);
+
+    const riskRows = bestDocRow("risk_assessment");
+    const riskSignedDate = riskRows.signed?.client_signed_date ?? riskRows.signed?.signed_at ?? null;
+    const riskDoc = deriveDocState(riskSignedDate, riskRows.sentPending, false, null, false);
+
+    const consentRows = bestDocRow("consent");
+    const consentSignedDate = consentRows.signed?.client_signed_date ?? consentRows.signed?.signed_at ?? null;
+    const consentDoc = deriveDocState(consentSignedDate, consentRows.sentPending, false, null, false);
+
+    const hasSignedParqDocument = parqRows.signed !== null || legacyParq !== null;
+    const hasSignedAgreementDocument = agreementRows.signed !== null ||
+      (legacyAgreement !== null && legacyAgreement.status === "signed");
+
+    const flags = computeComplianceFlags({
       client,
-      latestParq,
-      latestAgreement,
-      flags: computeComplianceFlags({
-        client,
-        latestParq,
-        latestAgreement,
-        hasSignedParqDocument: signedParqDocClientIds.has(client.id),
-        hasSignedAgreementDocument: signedAgreementDocClientIds.has(client.id),
-      }),
+      latestParq: legacyParq,
+      latestAgreement: legacyAgreement,
+      hasSignedParqDocument,
+      hasSignedAgreementDocument,
+    });
+
+    const profileConditions = client.profile?.health?.conditions ?? [];
+
+    return {
+      id: client.id,
+      clientNumber: client.client_number ?? null,
+      name: client.name,
+      conditions: profileConditions,
+      complianceStatus: flags.effectiveStatus,
+      hold: flags.effectiveStatus === "do_not_train",
+      nextReview: client.annual_review_due_date ?? null,
+      documents: {
+        parq: parqDoc ?? { signedDate: null, expiryDate: null, note: null, state: "out" as DocState },
+        gp: gpDoc ?? { signedDate: null, expiryDate: null, note: null, state: "out" as DocState },
+        agreement: agreementDoc ?? { signedDate: null, expiryDate: null, note: null, state: "out" as DocState },
+        risk: riskDoc ?? { signedDate: null, expiryDate: null, note: null, state: "out" as DocState },
+        consent: consentDoc ?? { signedDate: null, expiryDate: null, note: null, state: "out" as DocState },
+      },
     };
   });
 
-  const needsAction = rows.filter((r) => r.flags.effectiveStatus === "action_needed" || r.flags.effectiveStatus === "pending_medical").length;
-  const doNotTrain = rows.filter((r) => r.flags.effectiveStatus === "do_not_train").length;
-  const clear = rows.filter((r) => r.flags.effectiveStatus === "clear").length;
-
-  return (
-    <div className="space-y-6">
-      <HubPageHeader
-        title="Compliance Tracker"
-        subtitle="Read-only, at-a-glance view across every client. All editing happens on each client's profile."
-      />
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <KpiTile icon={<IconCheckCircle className="w-5 h-5" />} label="Clear" value={clear} statusToken="success" />
-        <KpiTile icon={<IconAlertTriangle className="w-5 h-5" />} label="Action Needed" value={needsAction} statusToken="warning" />
-        <KpiTile icon={<IconClipboardCheck className="w-5 h-5" />} label="Do Not Train" value={doNotTrain} statusToken="danger" />
-      </div>
-
-      {rows.length === 0 ? (
-        <HubCard>
-          <EmptyState icon={<IconUsers className="w-9 h-9" />} title="No clients yet" description="Add a client to see their compliance status here" />
-        </HubCard>
-      ) : (
-        <HubCard padded={false}>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-[var(--hub-border)] hover:bg-transparent">
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-[var(--hub-hover)] h-10">Client</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-[var(--hub-hover)] h-10">Status</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-[var(--hub-hover)] h-10">PAR-Q</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-[var(--hub-hover)] h-10">Agreement</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-[var(--hub-hover)] h-10">GP Letter</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-semibold bg-[var(--hub-hover)] h-10">Outstanding</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map(({ client, latestParq, latestAgreement, flags }) => (
-                  <TableRow key={client.id} className="border-[var(--hub-border)] hover:bg-[var(--hub-hover)] transition-colors">
-                    <TableCell>
-                      <Link href={`/hub/clients/${client.client_number}`} className="font-medium text-foreground hover:text-rose hover:underline">
-                        {client.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={flags.effectiveStatus} />
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {latestParq ? formatDate(latestParq.created_at) : "Not on file"}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {latestAgreement && latestAgreement.status === "signed" ? formatDate(latestAgreement.signed_at) : "Not signed"}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground capitalize">
-                      {client.gp_letter_status.replace("_", " ")}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {flags.autoOutstanding.length + (client.outstanding_actions?.length ?? 0) > 0 ? (
-                        <span className="text-amber-600 font-medium">
-                          {flags.autoOutstanding.length + (client.outstanding_actions?.length ?? 0)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </HubCard>
-      )}
-    </div>
-  );
+  return <MedicalTracker clients={trackerClients} />;
 }
