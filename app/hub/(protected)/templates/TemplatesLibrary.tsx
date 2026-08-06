@@ -24,6 +24,7 @@ import {
   IconUsers,
   IconArrowRight,
   IconSearch,
+  IconExternalLink,
 } from "@/components/icons";
 import { DOCUMENT_KIND_LABEL, type DocumentTemplate, type DocumentKind } from "@/lib/documents/types";
 
@@ -307,6 +308,28 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
           shared by every client document of that kind — editing the wording here changes it for every new document created
           going forward, not past ones already sent or signed.
         </p>
+      </HubCard>
+
+      <HubCard>
+        <div className="flex items-start gap-4">
+          <span className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
+            <IconFileText className="w-4 h-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-bold text-foreground leading-tight mb-1">Invoice &amp; quote templates</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+              Cashflow templates live in the invoicing section, not the document engine. The Quote template pre-fills
+              line items when you create a new invoice — send it as an estimate before a booking is confirmed.
+            </p>
+            <Link
+              href="/hub/cashflow/invoices"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-body)] hover:text-rose transition-colors"
+            >
+              Open invoicing
+              <IconExternalLink className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
       </HubCard>
     </div>
   );
