@@ -82,7 +82,6 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Studio Admin",
     items: [
       { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
-      { href: "/hub/site-review", label: "Site Review", icon: IconCheckSquare },
       { href: "/hub/site-content", label: "Site Content", icon: IconEdit3 },
       { href: "/hub/settings/training-rules", label: "Training Rules", icon: IconClipboardCheck },
       { href: "/hub/settings/studio-equipment", label: "Studio Equipment", icon: IconDumbbell },

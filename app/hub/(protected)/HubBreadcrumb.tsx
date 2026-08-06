@@ -8,7 +8,6 @@ const crumbLabels: Record<string, string> = {
   "/hub/exercises": "Exercise Library",
   "/hub/tracker": "Medical Tracker",
   "/hub/agreements": "Agreements",
-  "/hub/site-review": "Site Review",
   "/hub/reports/updates": "Email Updates",
 };
 

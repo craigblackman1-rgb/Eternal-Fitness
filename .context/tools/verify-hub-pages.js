@@ -74,7 +74,6 @@ const JOIN_TABLE = [
   { route: "app/hub/(protected)/templates/page.tsx", mockup: null },
   { route: "app/hub/(protected)/templates/[id]/page.tsx", mockup: null },
   { route: "app/hub/(protected)/tracker/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/site-review/page.tsx", mockup: null },
   { route: "app/hub/(protected)/agreements/page.tsx", mockup: null },
   { route: "app/hub/(protected)/agreements/[id]/page.tsx", mockup: null },
   { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/print/page.tsx", mockup: null },
