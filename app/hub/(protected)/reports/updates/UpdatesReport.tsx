@@ -9,13 +9,41 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetOverlay, SheetPortal, SheetTitle } from "@/components/ui/sheet";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
-import { IconEye, IconEdit3, IconTrash2, IconMail, IconSend } from "@/components/icons";
+import { IconEye, IconEdit3, IconTrash2, IconMail, IconSend, IconChevronUp, IconChevronDown } from "@/components/icons";
 import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
 import { Toolbar, toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import { updateStatusMeta, formatUpdateTime } from "@/lib/updates/status";
 import { getTemplateKind } from "@/lib/email-templates/registry";
 import type { UpdateWithClient, UpdateStatus } from "@/types";
+
+type SortKey = "client" | "subject" | "when" | "status";
+
+function sortUpdates(
+  updates: readonly UpdateWithClient[],
+  key: SortKey | null,
+  dir: "asc" | "desc",
+): UpdateWithClient[] {
+  if (!key) return [...updates];
+  const sign = dir === "asc" ? 1 : -1;
+  return [...updates].sort((a, b) => {
+    switch (key) {
+      case "client":
+        return sign * (a.client?.name ?? "").localeCompare(b.client?.name ?? "");
+      case "subject":
+        return sign * a.subject.localeCompare(b.subject);
+      case "when": {
+        const aTime = a.sent_at || a.scheduled_for || a.created_at;
+        const bTime = b.sent_at || b.scheduled_for || b.created_at;
+        return sign * aTime.localeCompare(bTime);
+      }
+      case "status":
+        return sign * a.status.localeCompare(b.status);
+      default:
+        return 0;
+    }
+  });
+}
 
 const FILTERS: { id: "all" | UpdateStatus; label: string }[] = [
   { id: "all", label: "All" },
@@ -41,6 +69,17 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
   const [programmeFilter, setProgrammeFilter] = useState("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkSending, setBulkSending] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const handleSortClick = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
 
   const handleDelete = async (u: UpdateWithClient) => {
     if (!confirm(`Delete this ${u.status} update for ${u.client?.name ?? "this client"}? This can't be undone.`)) return;
@@ -140,7 +179,7 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return updates.filter((u) => {
+    const filtered = updates.filter((u) => {
       if (filter !== "all" && u.status !== filter) return false;
       if (programmeFilter !== "all" && u.client?.package_type !== programmeFilter) return false;
       if (!q) return true;
@@ -150,7 +189,8 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
         (u.client_email ?? "").toLowerCase().includes(q)
       );
     });
-  }, [updates, filter, query, programmeFilter]);
+    return sortUpdates(filtered, sortKey, sortDir);
+  }, [updates, filter, query, programmeFilter, sortKey, sortDir]);
 
   const allVisibleSelected = rows.length > 0 && rows.every((u) => selectedIds.has(u.id));
   const someVisibleSelected = rows.some((u) => selectedIds.has(u.id));
@@ -261,11 +301,39 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
                       aria-label="Select all"
                     />
                   </th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Client</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">
+                    <button type="button" className="inline-flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => handleSortClick("client")}>
+                      Client
+                      {sortKey === "client" && (
+                        sortDir === "asc" ? <IconChevronUp className="h-3 w-3" /> : <IconChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                  </th>
                   <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Programme</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Subject</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">When</th>
-                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">Status</th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">
+                    <button type="button" className="inline-flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => handleSortClick("subject")}>
+                      Subject
+                      {sortKey === "subject" && (
+                        sortDir === "asc" ? <IconChevronUp className="h-3 w-3" /> : <IconChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">
+                    <button type="button" className="inline-flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => handleSortClick("when")}>
+                      When
+                      {sortKey === "when" && (
+                        sortDir === "asc" ? <IconChevronUp className="h-3 w-3" /> : <IconChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="text-left font-semibold text-muted-foreground text-[11px] uppercase tracking-wider px-5 h-10">
+                    <button type="button" className="inline-flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => handleSortClick("status")}>
+                      Status
+                      {sortKey === "status" && (
+                        sortDir === "asc" ? <IconChevronUp className="h-3 w-3" /> : <IconChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                  </th>
                   <th className="px-5 h-10"></th>
                 </tr>
               </thead>
