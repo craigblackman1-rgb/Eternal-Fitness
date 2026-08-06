@@ -39,10 +39,10 @@ ASK FIRST:
 
 ## DONE
 
-- [ ] Lane 1: real invoice creation flow uses a Quote/invoice template built from `invoice-template.html`; template also visible/creatable from `/hub/templates` per whichever architecture Craig confirms (or the recommended default if unanswered)
-- [ ] Lane 2: `/hub/reports/updates` has working free-text search (client name + subject) and at least one sortable column, built on `components/hub/Toolbar.tsx`
-- [ ] Lane 3: `/hub/tracker` redesigned to match `hub-medical-tracker.html`, Design Parity Gate pass documented, data/edit-scope unchanged unless mockup explicitly shows otherwise
-- [ ] Lane 4: `/hub/site-review` route deleted, nav entry removed, `tsc` clean, no dangling links anywhere in the app
+- [x] Lane 1: real invoice creation flow uses a Quote/invoice template built from `invoice-template.html`; template also visible/creatable from `/hub/templates` per whichever architecture Craig confirms (or the recommended default if unanswered) — DONE 2026-08-06, `2c9cbcc`, reviewed line-by-line, tsc 0/0
+- [x] Lane 2: `/hub/reports/updates` has working free-text search (client name + subject) and at least one sortable column, built on `components/hub/Toolbar.tsx` — DONE 2026-08-06, `a044170`, reviewed line-by-line, tsc 0/0 (search already existed on this branch; sort was the real gap, now added on Client/Subject/When/Status)
+- [x] Lane 3: `/hub/tracker` redesigned to match `hub-medical-tracker.html`, Design Parity Gate pass documented, data/edit-scope unchanged unless mockup explicitly shows otherwise — DONE 2026-08-06, `d93fcf7`, reviewed line-by-line, tsc 0/0, kept read-only (no inline mutation added)
+- [x] Lane 4: `/hub/site-review` route deleted, nav entry removed, `tsc` clean, no dangling links anywhere in the app — DONE 2026-08-06, `16d8eaf`, reviewed line-by-line, tsc 0/0
 - [ ] Lane 5: `/hub/site-content` and `/hub/site-content/[slug]` routes deleted, nav entry removed, underlying tables left intact, `tsc` clean, no dangling links
 - [ ] Lane 6: Training Rules toggle has clear on/off colour treatment; existing rule types can be edited (label/bucket/description), not just toggled/added
 - [ ] Lane 7: `/hub/settings/studio-equipment` redesigned to match `hub-studio-equipment.html`, Design Parity Gate pass documented
