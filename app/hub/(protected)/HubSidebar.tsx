@@ -16,7 +16,6 @@ import {
   IconClock,
   IconDumbbell,
   IconBot,
-  IconEdit3,
   IconFileSignature,
   IconFileText,
   IconLayoutDashboard,
@@ -82,7 +81,6 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Studio Admin",
     items: [
       { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
-      { href: "/hub/site-content", label: "Site Content", icon: IconEdit3 },
       { href: "/hub/settings/training-rules", label: "Training Rules", icon: IconClipboardCheck },
       { href: "/hub/settings/studio-equipment", label: "Studio Equipment", icon: IconDumbbell },
       { href: "/hub/settings/plan-agent", label: "Plan Agent Rules", icon: IconBot },

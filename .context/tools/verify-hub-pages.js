@@ -55,8 +55,6 @@ const JOIN_TABLE = [
   { route: "app/hub/(protected)/clients/new/page.tsx", mockup: "hub-client-edit.html" },
   { route: "app/hub/(protected)/clients/[id]/parq/[parqId]/edit/page.tsx", mockup: "hub-parq-edit.html" },
   { route: "app/hub/(protected)/exercises/page.tsx", mockup: "hub-exercise-library.html" },
-  { route: "app/hub/(protected)/site-content/page.tsx", mockup: "hub-site-content.html" },
-  { route: "app/hub/(protected)/site-content/[slug]/page.tsx", mockup: "hub-site-content-editor.html" },
   { route: "app/hub/(protected)/process-quality/page.tsx", mockup: "hub-process-quality.html" },
   { route: "app/hub/(protected)/reports/updates/page.tsx", mockup: "hub-reports-updates.html" },
   { route: "app/hub/(protected)/settings/studio-equipment/page.tsx", mockup: "hub-studio-equipment.html" },
