@@ -56,6 +56,7 @@ export default function TestimonialsPageClient() {
     <div className="min-h-screen bg-background">
       <Navbar onBookConsultation={openDialog} />
 
+      <main id="main-content">
       <PageHero
         image="/images/coaching-plank-client.jpg"
         imageAlt="Esther Fair coaching a client through floor work in her private Worthing studio"
@@ -247,6 +248,7 @@ export default function TestimonialsPageClient() {
         secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
 
+      </main>
       <Footer />
       <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>

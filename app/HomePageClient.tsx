@@ -23,6 +23,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
     <div className="efhome">
       <Navbar onBookConsultation={openDialog} />
 
+      <main id="main-content">
       {/* HERO */}
       <section id="hero">
         <div className="hero-media">
@@ -233,6 +234,8 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           </div>
         </div>
       </section>
+
+      </main>
 
       <Footer />
 

@@ -87,6 +87,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
     <div className="min-h-screen bg-background">
       <ConsultationDialog open={open} onOpenChange={setOpen} />
 
+      <main id="main-content">
       {/* Editorial hero — ink band, no stock photo */}
       <section className="ds-bg-ink pt-[72px]">
         <Navbar onBookConsultation={openDialog} />
@@ -130,7 +131,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
             <div className="min-w-0">
               {post.image_url && (
                 <figure className="relative aspect-[16/9] rounded-3xl overflow-hidden mb-10 border border-[#E4DDD7]">
-                  <Image src={post.image_url} alt={post.title} fill sizes="(min-width: 1024px) 860px, 100vw" className="object-cover" priority />
+                  <Image src={post.image_url} alt="" fill sizes="(min-width: 1024px) 860px, 100vw" className="object-cover" priority />
                 </figure>
               )}
 
@@ -235,7 +236,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
                   <div className="max-w-[180px] mb-4"><PulseLine accent="rose" /></div>
                   <p className="font-serif text-xl text-foreground leading-snug mb-2">Not sure where to start?</p>
                   <p className="ef-body text-sm mb-4">The first conversation is free, with no commitment.</p>
-                  <button onClick={openDialog} className="text-rose text-sm font-semibold hover:underline underline-offset-4">
+                  <button onClick={openDialog} className="text-[var(--rose-text)] text-sm font-semibold hover:underline underline-offset-4">
                     Book a Free Consultation →
                   </button>
                 </div>
@@ -251,7 +252,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
           <div className="max-w-[1160px] mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between mb-10 gap-4">
               <h2 className="font-serif text-3xl md:text-4xl text-foreground tracking-[-0.02em]">Keep reading</h2>
-              <Link href="/blog" className="text-rose text-sm font-semibold hover:underline underline-offset-4">
+              <Link href="/blog" className="text-[var(--rose-text)] text-sm font-semibold hover:underline underline-offset-4">
                 View all articles →
               </Link>
             </div>
@@ -290,6 +291,8 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
           </div>
         </div>
       </section>
+
+      </main>
 
       <Footer />
     </div>

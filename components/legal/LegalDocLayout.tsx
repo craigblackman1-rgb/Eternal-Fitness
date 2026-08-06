@@ -74,6 +74,7 @@ export default function LegalDocLayout({
     <div className="min-h-screen bg-background">
       <Navbar />
 
+      <main id="main-content">
       {/* Hero */}
       <section className="pt-40 pb-16 md:pt-48 md:pb-20 px-6 md:px-12 bg-ink">
         <div className="max-w-4xl mx-auto">
@@ -166,6 +167,8 @@ export default function LegalDocLayout({
           </div>
         </div>
       </section>
+
+      </main>
 
       <Footer />
     </div>

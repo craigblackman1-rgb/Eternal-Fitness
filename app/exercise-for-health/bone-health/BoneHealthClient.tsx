@@ -80,6 +80,7 @@ export default function BoneHealthClient() {
     <div className="min-h-screen bg-background">
       <Navbar onBookConsultation={openDialog} />
 
+      <main id="main-content">
       <PageHero
         image="/images/studio/studio-rack.jpg"
         imageAlt="Exercise for osteoporosis and bone health in Worthing"
@@ -173,6 +174,7 @@ export default function BoneHealthClient() {
         primaryCta={{ label: "Book a Free Consultation", onClick: openDialog }}
         secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
+      </main>
       <Footer />
       <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>

@@ -48,9 +48,10 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
       <ConsultationDialog open={open} onOpenChange={setOpen} />
       <Navbar onBookConsultation={openDialog} />
 
+      <main id="main-content">
       {/* Hero */}
       <section className="relative min-h-[50vh] pt-[72px] flex items-center justify-center overflow-hidden">
-        <Image src="/images/blog-hero.jpg" alt="Blog" fill sizes="100vw" className="object-cover" priority />
+        <Image src="/images/blog-hero.jpg" alt="One-to-one personal training session in the private Worthing studio" fill sizes="100vw" className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-b from-hero-overlay/55 via-hero-overlay/65 to-hero-overlay/75" />
         <div className="relative z-10 text-center px-6">
           <h1 className="text-4xl md:text-5xl lg:text-6xl text-white mb-4">My Blog</h1>
@@ -77,7 +78,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
 
           <div className="relative max-w-md mx-auto mb-8">
             <IconSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="text" placeholder="Search for blogs" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-11 pr-4 py-3 rounded-full border border-border-warm bg-white text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-rose" />
+            <input type="text" placeholder="Search for blogs" aria-label="Search blog posts" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-11 pr-4 py-3 rounded-full border border-border-warm bg-white text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-rose" />
           </div>
 
           <div className="flex flex-wrap gap-2 justify-center mb-12">
@@ -114,7 +115,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
               {featured.map((post, i) => (
                 <Link key={post.id} href={`/blog/${post.slug}`} className="group border-t border-[#D8CFC7] pt-6 block">
                   <div className="flex items-baseline gap-3 mb-3">
-                    <span className="text-[11px] font-bold text-rose tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="text-[11px] font-bold text-[var(--rose-text)] tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                     <span className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal">{post.category}</span>
                   </div>
                   <h3 className="font-serif text-2xl text-foreground leading-snug tracking-[-0.015em] mb-3 group-hover:text-rose transition-colors">
@@ -130,6 +131,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
 
       <FAQSection />
       <CTASection onBookConsultation={openDialog} />
+      </main>
       <Footer />
     </div>
   );
@@ -141,7 +143,7 @@ function BlogRow({ post }: { post: BlogPost }) {
     <Link href={`/blog/${post.slug}`} className="group block border-t border-border-warm pt-6">
       {post.image_url && (
         <div className="relative rounded-2xl overflow-hidden mb-5 aspect-[16/10] bg-white">
-          <Image src={post.image_url} alt={post.title} fill sizes="(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw" className="object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+          <Image src={post.image_url} alt="" fill sizes="(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw" className="object-cover group-hover:scale-[1.03] transition-transform duration-300" />
         </div>
       )}
       <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">{post.category}</p>
@@ -149,7 +151,7 @@ function BlogRow({ post }: { post: BlogPost }) {
       {post.excerpt && <p className="ef-body text-sm mb-4 line-clamp-2">{post.excerpt}</p>}
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">{post.author_name} · {date}</p>
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose">Read <IconArrowUpRight className="w-3 h-3" /></span>
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--rose-text)]">Read <IconArrowUpRight className="w-3 h-3" /></span>
       </div>
     </Link>
   );

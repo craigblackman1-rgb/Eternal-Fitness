@@ -69,6 +69,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
     <div className="min-h-screen bg-background">
       <Navbar />
 
+      <main id="main-content">
       <PageHero
         image="/images/who-mobility.jpg"
         imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
@@ -114,7 +115,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-1.5">
-                        {content.form_firstname_label ?? "First name"} <span className="text-rose">*</span>
+                        {content.form_firstname_label ?? "First name"} <span className="text-[var(--rose-text)]">*</span>
                       </label>
                       <input
                         id="firstName"
@@ -123,7 +124,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                         value={form.firstName}
                         onChange={handleChange}
                         placeholder="First name"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-rose/30"
+                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
                       />
                     </div>
                     <div>
@@ -137,7 +138,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                         value={form.lastName}
                         onChange={handleChange}
                         placeholder="Last name"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-rose/30"
+                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
                       />
                     </div>
                   </div>
@@ -145,7 +146,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
-                        {content.form_email_label ?? "Email"} <span className="text-rose">*</span>
+                        {content.form_email_label ?? "Email"} <span className="text-[var(--rose-text)]">*</span>
                       </label>
                       <input
                         id="email"
@@ -154,7 +155,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                         value={form.email}
                         onChange={handleChange}
                         placeholder="you@example.com"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-rose/30"
+                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
                       />
                     </div>
                     <div>
@@ -168,14 +169,14 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                         value={form.phone}
                         onChange={handleChange}
                         placeholder="07xxx xxx xxx"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-rose/30"
+                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-foreground mb-1.5">
-                      {content.form_message_label ?? "Message"} <span className="text-rose">*</span>
+                      {content.form_message_label ?? "Message"} <span className="text-[var(--rose-text)]">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -184,7 +185,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                       value={form.message}
                       onChange={handleChange}
                       placeholder="Tell me a little about what you&apos;re looking for — and anything you&apos;d like me to know before we speak."
-                      className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-rose/30 resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)] resize-none"
                     />
                   </div>
 
@@ -305,6 +306,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         primaryCta={{ label: content.cta_btn_primary ?? "Call me now", href: "tel:07517658128" }}
         secondaryCta={{ label: content.cta_btn_secondary ?? "Send a message", href: "#form" }}
       />
+      </main>
       <Footer />
     </div>
   );

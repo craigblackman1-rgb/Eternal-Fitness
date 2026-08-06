@@ -7,6 +7,8 @@
     /* ===== BRAND COLORS ===== */
     --color-white: #FFFFFF;
     --color-rose: #C1839F;
+    --rose-text: #AE547D;
+    --rose-text-rgb: 174 84 125;
     --color-teal: #087E8B;
     --color-cream: #FCF8F4;
     --color-warm: #F5EFEA;
@@ -915,6 +917,27 @@
 
 /* ----- Print / PDF (A4) ----- */
 @page { size: A4; margin: 16mm 15mm 18mm; }
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--color-rose);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
 @media print {
   .doc-page {
     background: #ffffff !important;

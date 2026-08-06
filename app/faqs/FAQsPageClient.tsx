@@ -127,6 +127,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
     <div className="min-h-screen bg-background">
       <Navbar onBookConsultation={openDialog} />
 
+      <main id="main-content">
       <PageHero
         image="/images/coaching-plank-client.jpg"
         imageAlt="Esther coaching a client through a floor exercise in the private studio"
@@ -191,7 +192,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                       <span className="font-serif text-lg text-foreground/70 group-hover:text-foreground transition-colors tracking-tight">
                         {content?.[`group_${gi + 1}_name`] ?? group.group}
                       </span>
-                      <span className="text-[11px] font-bold text-rose tabular-nums">
+                      <span className="text-[11px] font-bold text-[var(--rose-text)] tabular-nums">
                         {String(group.faqs.length).padStart(2, "0")}
                       </span>
                     </a>
@@ -207,7 +208,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
             {faqGroups.map((group, gi) => (
               <div key={group.group} id={`faq-group-${gi}`} style={{ scrollMarginTop: 110 }}>
                 <div className="flex items-baseline gap-4 mb-2 pb-4 border-b border-border-warm">
-                  <span className={`text-[11px] font-bold tabular-nums ${gi % 2 === 0 ? "text-teal" : "text-rose"}`}>
+                  <span className={`text-[11px] font-bold tabular-nums ${gi % 2 === 0 ? "text-teal" : "text-[var(--rose-text)]"}`}>
                     {String(gi + 1).padStart(2, "0")}
                   </span>
                   <h3 className="font-serif text-2xl md:text-[28px] tracking-tight text-foreground">
@@ -292,6 +293,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         primaryCta={{ label: content?.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
         secondaryCta={{ label: content?.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
+      </main>
       <Footer />
       <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>

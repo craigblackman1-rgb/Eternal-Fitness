@@ -63,6 +63,7 @@ export default function RootLayout({
   return (
       <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
         <body>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <Providers>{children}</Providers>
       </body>
     </html>

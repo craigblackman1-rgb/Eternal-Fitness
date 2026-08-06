@@ -53,6 +53,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
     <div className="min-h-screen bg-background">
       <Navbar onBookConsultation={openDialog} />
 
+      <main id="main-content">
       <PageHero
         image="/images/who-mobility.jpg"
         imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
@@ -163,6 +164,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
         secondaryCta={{ label: content.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
+      </main>
       <Footer />
       <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
