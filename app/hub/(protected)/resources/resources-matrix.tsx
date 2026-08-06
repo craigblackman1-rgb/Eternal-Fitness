@@ -133,6 +133,12 @@ export function ResourcesMatrix({
                   />
                 </div>
               </div>
+              <Link
+                href={`/hub/resources/preview/${r.key}`}
+                className="shrink-0 self-start text-[12px] font-semibold text-teal hover:underline whitespace-nowrap"
+              >
+                Preview →
+              </Link>
             </div>
           );
         })}
