@@ -421,59 +421,57 @@ export function ExerciseBrowser({
                           }`}
                           onClick={() => setSelectedId(isSelected ? null : ex.id)}
                         >
-                          <td className="px-4 py-2.5 align-middle" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-4 py-1 align-middle" onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={selectedIds.has(ex.id)}
                               onCheckedChange={() => toggleSelect(ex.id)}
                               aria-label={`Select ${ex.name}`}
                             />
                           </td>
-                          <td className="px-3 py-2.5 align-middle">
+                          <td className="px-3 py-1 align-middle">
                             <div className="flex items-center gap-2 min-w-0">
                               {ex.image_url ? (
                                 <img
                                   src={ex.image_url}
                                   alt={ex.name}
-                                  className="w-7 h-7 rounded-md object-cover shrink-0"
+                                  className="w-5 h-5 rounded object-cover shrink-0"
                                 />
                               ) : (
-                                <div className="w-7 h-7 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
-                                  <IconDumbbell className="w-3.5 h-3.5" />
+                                <div className="w-5 h-5 rounded bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                                  <IconDumbbell className="w-2.5 h-2.5" />
                                 </div>
                               )}
-                              <div className="min-w-0">
-                                <span className="font-semibold text-[var(--color-ink)] text-[13px] truncate block">{ex.name}</span>
-                                <div className="flex flex-wrap gap-1 mt-0.5">
-                                  {ex.archetypes.map((a) => (
-                                    <span
-                                      key={a}
-                                      className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none"
-                                    >
-                                      {a}
-                                    </span>
-                                  ))}
-                                  {ex.source === "trainerize" && ex.trainerize_custom === true && (
-                                    <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">
-                                      Custom
-                                    </span>
-                                  )}
-                                </div>
+                              <div className="min-w-0 flex items-center gap-1.5">
+                                <span className="font-medium text-[var(--color-ink)] text-[12.5px] truncate">{ex.name}</span>
+                                {ex.archetypes.map((a) => (
+                                  <span
+                                    key={a}
+                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0"
+                                  >
+                                    {a}
+                                  </span>
+                                ))}
+                                {ex.source === "trainerize" && ex.trainerize_custom === true && (
+                                  <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0">
+                                    Custom
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </td>
-                          <td className="px-3 py-2.5 align-middle text-[13px] text-[var(--color-body)]">
+                          <td className="px-3 py-1 align-middle text-[12.5px] text-[var(--color-body)] whitespace-nowrap">
                             {ex.movement_type ? movementTypeLabels[ex.movement_type] || ex.movement_type : "—"}
                           </td>
-                          <td className="px-3 py-2.5 align-middle">
+                          <td className="px-3 py-1 align-middle">
                             {ex.difficulty != null ? (
-                              <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
+                              <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10.5px] font-medium text-[var(--color-body)] leading-[18px]">
                                 {difficultyLabel(ex.difficulty)}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-[13px]">—</span>
+                              <span className="text-muted-foreground text-[12.5px]">—</span>
                             )}
                           </td>
-                          <td className="px-3 py-2.5 align-middle">
+                          <td className="px-3 py-1 align-middle">
                             <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                               {sourceLabel(ex.source)}
                             </span>
