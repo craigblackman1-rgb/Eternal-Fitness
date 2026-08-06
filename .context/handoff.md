@@ -2672,3 +2672,58 @@ checkout (`D:\apps\eternal-fitness-website`) while investigating — it sits beh
 all real work happens in per-task worktrees, but it's easy to forget mid-investigation. Use
 `git show origin/main:<path>` to read the actual live code, not a plain `Read` on the shared
 checkout path.
+
+## Session close — 2026-08-06 — Dashboard layout, hub-wide Toolbar rollout, exercise data enrichment, Templates rebuild
+
+Worked in `.claude\worktrees\nathans-pt-agreement-status-b46171` (branch `claude/design-update-c8ef22`),
+pushed straight to `main` each step per Craig's explicit "push to main" instructions. 4 commits, all
+merged and deployed (Coolify auto-deploy on push to `main`).
+
+**1. Dashboard grid fix (`68f5d3a`).** Recent Check-ins/This Week's Plan cards now `items-stretch`
+instead of `items-start` (equal height, no more gap under the shorter card). Needs Attention paired
+with a narrow Recent Blocks + Quick Actions rail matching `hub-dashboard.html`'s attn-grid/side-stack
+pattern, instead of stacking 3 differently-sized cards in an uneven 2/3 column. Updates due/Active
+Blocks/Recent Clients moved to full-width rows to match mockup order.
+
+**2. Shared `Toolbar` rolled out hub-wide (`ff87fea`).** Resolves Part 4b of
+`design-brief-hub-nav-cashflow-2026-08-04.md` (`hub-toolbar-icon-spec.html`). `components/hub/Toolbar.tsx`
+already existed (used by 4 pages) but most pages still hand-rolled search/filter UI — `HubTable` now
+renders its internal search/count row through `Toolbar`, fixing Agreements/Clients/Documents/Plan
+Schedule at once; every hand-rolled `<select>` switched to `toolbarSelectClasses`; Site Content's
+filters moved into the same row as search (this, not Plan Schedule, was the page actually
+structured differently — confirmed via a live-code survey before touching anything, the design
+brief's citation was stale); Email Updates and Exercise Library (fully bespoke before) rebuilt onto
+`Toolbar` with segments for status/archetype pills. Widened `ToolbarSegment.label` to
+`React.ReactNode` (backward compatible) so Email Updates keeps its dimmed inline pill-count styling.
+
+**3. Exercise library row height + data enrichment (`192a9f5`, DB write not a commit).** Row height
+30px (was ~46px). Then: 2548 of 2627 exercises (source='trainerize') had `movement_type`,
+`difficulty` NULL and `muscle_groups`/`equipment` empty — confirmed via direct DB query that this
+isn't recoverable data, the raw Trainerize export itself is ~87-94% empty on these fields. Ran a
+20-agent Workflow (`scripts/_scratch-classify-workflow-final.mjs`, not committed — scratch file,
+deleted after) classifying every exercise name against the app's real enums (22 movement_types, 21
+muscle_groups, an extended 18-value equipment list). 100% valid output (0 invalid enum values, only
+1 correctly-null "STRENGTH PAIR" placeholder row), applied via a transaction that only fills
+NULL/empty fields — never overwrites existing data. `missing_movement_type` 2548→1,
+`missing_difficulty` 2548→0, `missing_muscle` 2474→108, `missing_equipment` 2451→61. This was a
+direct prod DB write (Craig explicitly chose "AI classification via a workflow" from an
+AskUserQuestion prompt after I flagged the raw-export-is-empty finding) — no migration file was
+left behind since scripts were scratch/one-off; if this needs re-running or auditing later, the
+enum lists and approach are documented above, not on disk.
+
+**4. Templates page rebuilt against `client-documents-system.html` (`cf5a8b8`).** KPI tally band +
+`Toolbar` search/filters + grid/list view toggle. Important divergence from the mockup, flagged to
+Craig in the same message: the mockup's `TEMPLATES` array describes a flat `documents/*.html` file
+folder with an "Email templates" category — that structure doesn't exist in this app. Templates are
+real `document_templates` DB rows (7 total, edited via `/hub/templates/[id]`); category and
+"who completes it" are derived from actual `kind` + signature-requirement fields, and the 4th tally
+tile is "Agreements & consent" (real count) instead of a fabricated email-template count (email
+templates are a separate subsystem, `lib/email-templates/registry.ts`, not in this table).
+
+**Not done / worth flagging for a future session:** the icon-badge sizing audit (Part 4a of the same
+design brief — 4 different badge measurements in live use) was scoped in the brief alongside the
+toolbar work (Part 4b) but never asked for or done this session.
+
+Verified: `tsc --noEmit` clean after every change; every page live-tested in the browser (search,
+filters, segmented pills, grid/list toggle, exercise data all confirmed rendering/filtering
+correctly against real data) before pushing.
