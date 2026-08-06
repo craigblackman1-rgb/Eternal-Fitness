@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { IconSearch, IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight } from "@/components/icons";
+import { Toolbar } from "./Toolbar";
 import { cn } from "@/lib/utils";
 
 export interface HubColumn<T> {
@@ -101,24 +101,18 @@ export function HubTable<T>({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative max-w-sm flex-1 min-w-48">
-          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
-            }}
-            className="pl-9 rounded-lg border-[var(--hub-border)] bg-[var(--hub-card)]"
-          />
-        </div>
+      <Toolbar
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          setPage(0);
+        }}
+        searchPlaceholder={searchPlaceholder}
+        searchMaxWidth="384px"
+        count={`${sorted.length} ${sorted.length === 1 ? countLabel : `${countLabel}s`}`}
+      >
         {toolbar}
-        <p className="ml-auto text-xs text-muted-foreground tabular-nums">
-          {sorted.length} {sorted.length === 1 ? countLabel : `${countLabel}s`}
-        </p>
-      </div>
+      </Toolbar>
 
       {sorted.length === 0 ? (
         emptyState || (

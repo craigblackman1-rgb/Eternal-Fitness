@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { HubTable, TokenPill } from "@/components/hub";
+import { toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { getScheduleStatus } from "@/lib/hubStatus";
 import type { BlockWithClient } from "./page";
 
@@ -176,7 +177,7 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-          className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+          className={toolbarSelectClasses}
           aria-label="Filter by approval status"
         >
           {statusFilters.map((f) => (

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubTable, type HubColumn } from "@/components/hub/HubTable";
+import { toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { DocumentRowActions } from "@/components/hub/DocumentRowActions";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { IconFileText } from "@/components/icons";
@@ -227,7 +228,7 @@ export function DocumentsTable({ data }: DocumentsTableProps) {
             onChange={(e) =>
               setKindFilter(e.target.value as typeof kindFilter)
             }
-            className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+            className={toolbarSelectClasses}
             aria-label="Filter by document type"
           >
             {kindFilters.map((f) => (
@@ -241,7 +242,7 @@ export function DocumentsTable({ data }: DocumentsTableProps) {
             onChange={(e) =>
               setStatusFilter(e.target.value as typeof statusFilter)
             }
-            className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+            className={toolbarSelectClasses}
             aria-label="Filter by status"
           >
             {statusFilters.map((f) => (
@@ -255,7 +256,7 @@ export function DocumentsTable({ data }: DocumentsTableProps) {
             onChange={(e) =>
               setSignedFilter(e.target.value as typeof signedFilter)
             }
-            className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+            className={toolbarSelectClasses}
             aria-label="Filter by date signed"
           >
             <option value="any">Signed — any time</option>
@@ -270,7 +271,7 @@ export function DocumentsTable({ data }: DocumentsTableProps) {
             onChange={(e) =>
               setSentFilter(e.target.value as typeof sentFilter)
             }
-            className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+            className={toolbarSelectClasses}
             aria-label="Filter by last sent"
           >
             <option value="any">Last sent — any time</option>

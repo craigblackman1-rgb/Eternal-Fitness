@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { HubTable, type HubColumn } from "@/components/hub/HubTable";
 import { HubCard, HubCardHeader } from "@/components/hub";
+import { toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import {
@@ -10,7 +11,6 @@ import {
   IconCheckCircle,
   IconEdit3,
   IconRefreshCw,
-  IconChevronDown,
 } from "@/components/icons";
 
 interface PageKeyword {
@@ -97,33 +97,28 @@ const columns: HubColumn<PageKeyword>[] = [
   },
 ];
 
-function SelectField({
-  label,
+function ToolbarSelect({
   value,
   onChange,
   options,
+  ariaLabel,
 }: {
-  label: string;
   value: string;
   onChange: (val: string) => void;
   options: { value: string; label: string }[];
+  ariaLabel: string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 min-w-[190px]">
-      <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</label>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] pl-3 pr-8 text-sm text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-2 focus:ring-rose/30 appearance-none"
-        >
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-        <IconChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-      </div>
-    </div>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={toolbarSelectClasses}
+      aria-label={ariaLabel}
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
   );
 }
 
@@ -179,19 +174,30 @@ export function SiteContentTable({ keywords }: { keywords: PageKeyword[] }) {
       </div>
 
       <HubCard padded={false}>
-        <HubCardHeader icon={<IconCheckCircle className="w-4 h-4" />} color="teal" title="Page inventory" subtitle="Filter by status or type, then edit copy on any static page" />
-        <div className="px-5 py-4 border-b border-[var(--hub-border)] flex flex-col gap-4 sm:flex-row">
-          <SelectField label="Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} />
-          <SelectField label="Type" value={typeFilter} onChange={setTypeFilter} options={typeOptions} />
-        </div>
-        <HubTable
-          data={filtered}
-          columns={columns}
-          getRowHref={(row) => (EDITABLE_SLUGS.has(row.page_slug) ? `/hub/site-content/${row.page_slug}` : "#")}
-          searchPlaceholder="Search pages..."
-          searchKeys={["page_title", "page_slug", "primary_keyword"]}
-          pageSize={20}
+        <HubCardHeader
+          icon={<IconCheckCircle className="w-4 h-4" />}
+          color="teal"
+          title="Page inventory"
+          subtitle="Filter by status or type, then edit copy on any static page"
+          divider
+          className="px-5 pt-5 pb-3.5"
         />
+        <div className="px-5 pt-5 pb-5">
+          <HubTable
+            data={filtered}
+            columns={columns}
+            getRowHref={(row) => (EDITABLE_SLUGS.has(row.page_slug) ? `/hub/site-content/${row.page_slug}` : "#")}
+            searchPlaceholder="Search pages..."
+            searchKeys={["page_title", "page_slug", "primary_keyword"]}
+            pageSize={20}
+            toolbar={
+              <>
+                <ToolbarSelect ariaLabel="Filter by status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} />
+                <ToolbarSelect ariaLabel="Filter by type" value={typeFilter} onChange={setTypeFilter} options={typeOptions} />
+              </>
+            }
+          />
+        </div>
       </HubCard>
     </div>
   );

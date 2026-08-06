@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { HubTable, type HubColumn } from "@/components/hub/HubTable";
+import { toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { IconUsers } from "@/components/icons";
 import type { DBClient } from "@/types";
@@ -138,7 +139,7 @@ export function ClientsTable({ clients }: { clients: DBClient[] }) {
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as typeof filter)}
-            className="h-10 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-rose/30"
+            className={toolbarSelectClasses}
             aria-label="Filter by compliance status"
           >
             {complianceFilters.map((f) => (

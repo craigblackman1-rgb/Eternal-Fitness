@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { IconSearch } from "@/components/icons";
 
 export interface ToolbarSegment {
-  label: string;
+  label: React.ReactNode;
   value: string;
 }
 

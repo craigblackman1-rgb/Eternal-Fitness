@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetOverlay, SheetPortal, SheetTitle } from "@/components/ui/sheet";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
-import { IconSearch, IconEye, IconEdit3, IconTrash2, IconMail, IconSend } from "@/components/icons";
+import { IconEye, IconEdit3, IconTrash2, IconMail, IconSend } from "@/components/icons";
 import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
+import { Toolbar, toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import { updateStatusMeta, formatUpdateTime } from "@/lib/updates/status";
 import { getTemplateKind } from "@/lib/email-templates/registry";
@@ -186,29 +186,28 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
 
   return (
     <div className="space-y-5">
-      {/* Filter tabs + programme filter + bulk action */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-lg p-1 gap-0.5">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`rounded-md px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-                filter === f.id
-                  ? "bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+      {/* Search + status segments + programme filter + bulk action */}
+      <Toolbar
+        searchValue={query}
+        onSearchChange={setQuery}
+        searchPlaceholder="Search client, subject, email…"
+        segments={FILTERS.map((f) => ({
+          value: f.id,
+          label: (
+            <>
               {f.label}
               <span className="ml-1.5 text-xs font-medium opacity-70">{counts[f.id] ?? 0}</span>
-            </button>
-          ))}
-        </div>
-
+            </>
+          ),
+        }))}
+        activeSegment={filter}
+        onSegmentChange={(v) => setFilter(v as "all" | UpdateStatus)}
+        count={`${rows.length} update${rows.length === 1 ? "" : "s"}`}
+      >
         <select
           value={programmeFilter}
           onChange={(e) => setProgrammeFilter(e.target.value)}
-          className="h-9 border border-[var(--hub-field-border)] hover:border-[var(--hub-field-border-hover)] focus:border-rose focus:ring-2 focus:ring-rose/20 rounded-lg px-3 text-sm font-medium bg-[var(--hub-card)] text-foreground outline-none transition-colors"
+          className={toolbarSelectClasses}
           aria-label="Filter by programme"
         >
           <option value="all">All programmes</option>
@@ -216,30 +215,17 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
             <option key={opt} value={opt}>{formatProgrammeLabel(opt)}</option>
           ))}
         </select>
-
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-lg gap-1.5"
-            disabled={selectedCount === 0 || bulkSending}
-            onClick={handleBulkSend}
-          >
-            <IconSend className="h-3.5 w-3.5" />
-            {bulkSending ? "Sending…" : `Send selected${selectedCount > 0 ? ` (${selectedCount})` : ""}`}
-          </Button>
-        </div>
-
-        <div className="relative w-full sm:w-64">
-          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search client, subject, email…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-lg gap-1.5"
+          disabled={selectedCount === 0 || bulkSending}
+          onClick={handleBulkSend}
+        >
+          <IconSend className="h-3.5 w-3.5" />
+          {bulkSending ? "Sending…" : `Send selected${selectedCount > 0 ? ` (${selectedCount})` : ""}`}
+        </Button>
+      </Toolbar>
 
       {pendingDrafts && (
         <HubAlert

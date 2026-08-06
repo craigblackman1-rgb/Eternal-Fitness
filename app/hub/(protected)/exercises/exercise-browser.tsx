@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HubCard, HubCardHeader } from "@/components/hub";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IconChevronLeft, IconChevronRight, IconDumbbell, IconMenu, IconPlus, IconSearch, IconVideo, IconEdit3, IconX } from "@/components/icons";
+import { Toolbar, toolbarSelectClasses } from "@/components/hub/Toolbar";
+import { IconChevronLeft, IconChevronRight, IconDumbbell, IconMenu, IconPlus, IconVideo, IconEdit3, IconX } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import type { Archetype } from "@/types";
 import type { ExerciseEntry } from "./page";
@@ -327,108 +327,58 @@ export function ExerciseBrowser({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-3">
-          <div className="relative">
-            <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search exercises..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              className="pl-9 h-9 w-56 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30"
-            />
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {(["all", "A", "B", "C"] as const).map((a) => {
-              const on = archetypeFilter === a;
-              return (
-                <button
-                  key={a}
-                  onClick={() => { setArchetypeFilter(a); setPage(0); }}
-                  className={`h-9 rounded-full px-4 text-xs font-semibold transition-colors border ${
-                    on
-                      ? "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--status-primary)]"
-                      : "bg-[var(--hub-card)] border-[var(--hub-field-border)] text-[var(--color-body)] hover:border-[var(--hub-field-border-hover)] hover:text-[var(--color-ink)]"
-                  }`}
-                >
-                  {a === "all" ? "All archetypes" : `Type ${a}`}
-                </button>
-              );
-            })}
-          </div>
-
-          <span className="text-xs font-medium text-muted-foreground">Type:</span>
-          <Select value={movementFilter} onValueChange={resetAndSet(setMovementFilter)}>
-            <SelectTrigger className="h-9 w-44 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
-              <SelectValue placeholder="Movement type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
+        <div className="px-5 pt-4 pb-3">
+          <Toolbar
+            searchValue={search}
+            onSearchChange={(v) => { setSearch(v); setPage(0); }}
+            searchPlaceholder="Search exercises..."
+            count={`${filtered.length} ${filtered.length === 1 ? "exercise" : "exercises"}`}
+            segments={[
+              { value: "all", label: "All archetypes" },
+              { value: "A", label: "Type A" },
+              { value: "B", label: "Type B" },
+              { value: "C", label: "Type C" },
+            ]}
+            activeSegment={archetypeFilter}
+            onSegmentChange={(v) => { setArchetypeFilter(v as Archetype | "all"); setPage(0); }}
+          >
+            <select value={movementFilter} onChange={(e) => resetAndSet(setMovementFilter)(e.target.value)} className={toolbarSelectClasses} aria-label="Filter by movement type">
+              <option value="all">All types</option>
               {movementTypes.map((mt) => (
-                <SelectItem key={mt} value={mt}>
-                  {movementTypeLabels[mt] || mt}
-                </SelectItem>
+                <option key={mt} value={mt}>{movementTypeLabels[mt] || mt}</option>
               ))}
-            </SelectContent>
-          </Select>
+            </select>
 
-          <Select value={muscleFilter} onValueChange={resetAndSet(setMuscleFilter)}>
-            <SelectTrigger className="h-9 w-44 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
-              <SelectValue placeholder="Main muscle" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All muscles</SelectItem>
+            <select value={muscleFilter} onChange={(e) => resetAndSet(setMuscleFilter)(e.target.value)} className={toolbarSelectClasses} aria-label="Filter by main muscle">
+              <option value="all">All muscles</option>
               {allMuscleGroups.map((mg) => (
-                <SelectItem key={mg} value={mg}>
-                  {mg}
-                </SelectItem>
+                <option key={mg} value={mg}>{mg}</option>
               ))}
-            </SelectContent>
-          </Select>
+            </select>
 
-          <Select value={equipmentFilter} onValueChange={resetAndSet(setEquipmentFilter)}>
-            <SelectTrigger className="h-9 w-40 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
-              <SelectValue placeholder="Equipment" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All equipment</SelectItem>
+            <select value={equipmentFilter} onChange={(e) => resetAndSet(setEquipmentFilter)(e.target.value)} className={toolbarSelectClasses} aria-label="Filter by equipment">
+              <option value="all">All equipment</option>
               {allEquipment.filter(Boolean).map((eq) => (
-                <SelectItem key={eq} value={eq}>
-                  {equipmentLabels[eq] || eq}
-                </SelectItem>
+                <option key={eq} value={eq}>{equipmentLabels[eq] || eq}</option>
               ))}
-            </SelectContent>
-          </Select>
+            </select>
 
-          <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v as ExerciseEntry["source"] | "all"); setPage(0); }}>
-            <SelectTrigger className="h-9 w-40 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
-              <SelectValue placeholder="Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sources</SelectItem>
-              <SelectItem value="original">Original</SelectItem>
-              <SelectItem value="trainerize">Trainerize</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
+            <select value={sourceFilter} onChange={(e) => { setSourceFilter(e.target.value as ExerciseEntry["source"] | "all"); setPage(0); }} className={toolbarSelectClasses} aria-label="Filter by source">
+              <option value="all">All sources</option>
+              <option value="original">Original</option>
+              <option value="trainerize">Trainerize</option>
+              <option value="custom">Custom</option>
+            </select>
 
-          <Select value={String(difficultyFilter)} onValueChange={(v) => { setDifficultyFilter(Number(v)); setPage(0); }}>
-            <SelectTrigger className="h-9 w-36 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
-              <SelectValue placeholder="Max difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">Any level</SelectItem>
-              <SelectItem value="1">Beginner (1)</SelectItem>
-              <SelectItem value="2">Easy (2)</SelectItem>
-              <SelectItem value="3">Intermediate (3)</SelectItem>
-              <SelectItem value="4">Advanced (4)</SelectItem>
-              <SelectItem value="5">Expert (5)</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <span className="ml-auto text-[11.5px] font-medium uppercase tracking-wide text-muted-foreground tabular-nums">
-            {filtered.length} {filtered.length === 1 ? "exercise" : "exercises"}
-          </span>
+            <select value={String(difficultyFilter)} onChange={(e) => { setDifficultyFilter(Number(e.target.value)); setPage(0); }} className={toolbarSelectClasses} aria-label="Filter by max difficulty">
+              <option value="0">Any level</option>
+              <option value="1">Beginner (1)</option>
+              <option value="2">Easy (2)</option>
+              <option value="3">Intermediate (3)</option>
+              <option value="4">Advanced (4)</option>
+              <option value="5">Expert (5)</option>
+            </select>
+          </Toolbar>
         </div>
       </HubCard>
 
