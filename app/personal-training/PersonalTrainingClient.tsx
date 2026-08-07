@@ -50,14 +50,10 @@ const steps = [
   {
     title: "Free Consultation",
     desc: "A relaxed 30-minute conversation about your goals, history, and what has and hasn't worked before.",
-    image: "/images/esther-training.jpg",
-    imageAlt: "Esther talking with a client at the start of a session",
   },
   {
     title: "Movement Assessment",
     desc: "Checking your current mobility, strength, and any limitations, so the plan starts from where you actually are.",
-    image: "/images/studio-kneel-stretch.jpg",
-    imageAlt: "Assessing range of motion in the studio",
   },
   {
     title: "Your Programme",
