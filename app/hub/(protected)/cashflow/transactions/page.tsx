@@ -337,7 +337,12 @@ export default function TransactionsPage() {
             />
           </div>
         ) : (
-          <TransactionTable transactions={filteredTransactions} />
+          <TransactionTable
+            transactions={filteredTransactions}
+            onRowUpdated={(id, updates) =>
+              setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)))
+            }
+          />
         )}
       </HubCard>
     </div>
