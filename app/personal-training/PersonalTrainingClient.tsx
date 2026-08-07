@@ -159,7 +159,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           <PulseLine accent="rose" />
         </div>
         <div style={{ marginTop: 48 }}>
-          <ProcessFlow steps={steps.map((s, i) => ({ title: content[`step_${i + 1}_title`] ?? s.title, body: content[`step_${i + 1}_desc`] ?? s.desc, image: s.image, imageAlt: s.imageAlt }))} />
+          <ProcessFlow steps={steps.map((s, i) => ({ title: content[`step_${i + 1}_title`] ?? s.title, body: content[`step_${i + 1}_desc`] ?? s.desc }))} />
         </div>
         <div style={{ textAlign: "center", marginTop: 44 }}>
           <CtaButton cta={bookCta} />
