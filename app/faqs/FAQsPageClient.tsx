@@ -18,22 +18,22 @@ const faqGroups = [
       {
         question: "Do I need to be fit or healthy to start?",
         answer:
-          "No. Most of my clients haven't exercised in a while, or don't think of themselves as \"gym people.\" You do not need any experience, and you do not need to be at a particular weight. The only starting point is where you are right now.",
+          "No. Most of my clients haven't exercised in a while, or don't think of themselves as \"gym people.\" You do not need any previous experience, and there are no artificial physical standards to meet. The only starting point is where you are right now.",
       },
       {
         question: "I have never used a personal trainer before. What can I expect?",
         answer:
-          "Everything begins with a free consultation — a relaxed conversation about what you want to achieve and what your body is currently dealing with. There is no pressure and no commitment required. From there, I will design a programme specifically for you and walk you through every exercise at a pace that feels comfortable.",
+          "Everything begins with a free consultation—a relaxed conversation about what you want to achieve and what your body is currently dealing with. There is no pressure and no commitment required. From there, I will design a programme specifically for you and guide you through every movement at a pace that feels completely comfortable.",
       },
       {
         question: "How often should I train?",
         answer:
-          "For most clients, two sessions per week is a good starting point. For those managing health conditions or recovering from illness, one session per week may be more appropriate initially. I will recommend a frequency that is sustainable and effective for your specific situation — never more than your body can handle.",
+          "For most clients, two sessions per week is a good starting point to build momentum. For those managing health conditions or recovering from illness, one session per week may be more appropriate initially. I will always recommend a frequency that is sustainable and effective for your specific situation—never more than your body can handle.",
       },
       {
         question: "Where are sessions held?",
         answer:
-          "Sessions take place in a private studio in Worthing, West Sussex. The studio is used exclusively for one-to-one training — there is no public gym floor, no other clients present, and no waiting around. The address is confirmed at the point of booking.",
+          "Sessions take place in my private studio in Worthing, West Sussex. The space is used exclusively for one-to-one training—there is no busy gym floor, no other clients are present, and there is no audience. The exact address is confirmed immediately upon booking.",
       },
     ],
   },
