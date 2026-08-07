@@ -36,7 +36,7 @@ const focusCards = [
   },
   {
     title: "Balance and stability",
-    desc: "Reducing fall risks and building the deep physical confidence you need to move through your environment safely.",
+    desc: "Staying steady on your feet and building the deep physical confidence you need to move through your environment safely.",
     icon: IconTarget,
   },
   {
@@ -50,24 +50,14 @@ const steps = [
   {
     title: "Free Consultation",
     desc: "A relaxed, no-obligation 30-minute conversation about your goals, health history, and what has or hasn't worked for you in the past.",
-<<<<<<< Updated upstream
-=======
-    image: "/images/esther-training.jpg",
-    imageAlt: "Esther talking with a client at the start of a session",
->>>>>>> Stashed changes
   },
   {
     title: "Movement Assessment",
     desc: "A gentle check of your current mobility, strength, and any physical limitations, ensuring your plan starts exactly where you are today.",
-<<<<<<< Updated upstream
-=======
-    image: "/images/studio-kneel-stretch.jpg",
-    imageAlt: "Assessing range of motion in the studio",
->>>>>>> Stashed changes
   },
   {
     title: "Your Custom Programme",
-    desc: "A thoughtful, highly individualized fitness strategy built around your unique body, lifestyle, and goals.",
+    desc: "A thoughtful, highly individualised fitness strategy built around your unique body, lifestyle, and goals.",
   },
   {
     title: "Ongoing Adaptive Support",
@@ -207,7 +197,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             />
             <Reveal y={24}>
               <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 28, maxWidth: "52ch" }}>
-                {content.specialist_intro ?? "If your health picture requires more specific clinical attention, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance across these dedicated pillars:"}
+                {content.specialist_intro ?? "If your health picture requires more specific clinical attention, I focus on making exercise completely accessible, regardless of the challenges or health issues you might be facing. I provide expert, safe guidance across these dedicated pillars:"}
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", arrow: true }} />
