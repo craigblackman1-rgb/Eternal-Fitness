@@ -1,18 +1,20 @@
 "use client";
 
-import LegalDocLayout, { LegalSection, LegalNote } from "@/components/legal/LegalDocLayout";
+import LegalDocLayout, { LegalSection, LegalNote, LegalTable } from "@/components/legal/LegalDocLayout";
 
 const tocItems = [
+  { id: "who-we-are", label: "Who we are" },
   { id: "information-collect", label: "What information do we collect?" },
+  { id: "health-data", label: "Health information (special category data)" },
+  { id: "lawful-basis", label: "Our lawful basis for using your information" },
   { id: "use-information", label: "How do we use your information?" },
-  { id: "information-shared", label: "Will your information be shared?" },
+  { id: "information-shared", label: "Who do we share your information with?" },
+  { id: "international-transfers", label: "International transfers" },
   { id: "cookies-tracking", label: "Cookies and tracking technologies" },
   { id: "keep-information", label: "How long do we keep your information?" },
   { id: "information-safe", label: "How do we keep your information safe?" },
-  { id: "minors", label: "Do we collect information from minors?" },
-  { id: "privacy-rights", label: "What are your privacy rights?" },
-  { id: "dnt-features", label: "Do-Not-Track features" },
-  { id: "california-rights", label: "California residents' rights" },
+  { id: "minors", label: "Children's information" },
+  { id: "privacy-rights", label: "Your rights" },
   { id: "policy-updates", label: "Updates to this policy" },
   { id: "contact-us", label: "How can you contact us?" },
 ];
@@ -22,11 +24,11 @@ export default function PrivacyPolicyClient() {
     <LegalDocLayout
       activeSlug="privacy"
       title="Privacy Policy"
-      lead="We are committed to protecting your personal information and your right to privacy. This policy explains what information we collect, how we use it, and your rights over it."
+      lead="This policy explains what personal information Eternal Fitness collects, why, how it's used, who it's shared with, and the rights you have over it under UK GDPR and the Data Protection Act 2018."
       meta={[
-        { label: "Last updated", value: "6 December 2020" },
-        { label: "Data controller", value: "Eternal Fitness, Worthing" },
-        { label: "Data protection officer", value: "Esther Fair" },
+        { label: "Last updated", value: "7 August 2026" },
+        { label: "Data controller", value: "Esther Fair, trading as Eternal Fitness" },
+        { label: "Based in", value: "Worthing, West Sussex" },
         { label: "Questions", value: <a href="mailto:esther.fair@eternal-fitness.co.uk">esther.fair@eternal-fitness.co.uk</a> },
       ]}
       tocItems={tocItems}
@@ -34,92 +36,118 @@ export default function PrivacyPolicyClient() {
       askHeading="Want a copy of what we hold?"
       askBody="Ask and I will send it. If you would rather have the conversation on the phone than in writing, that is fine too."
     >
-      <LegalSection id="information-collect" n={1} title="What information do we collect?">
-        <h3>Personal information you disclose to us</h3>
-        <p>We collect personal information that you voluntarily provide to us when expressing an interest in obtaining information about us or our products and services, when participating in activities on the Sites, or otherwise contacting us.</p>
-        <p>The personal information we collect may include the following:</p>
-        <ul>
-          <li><strong>Name and Contact Data.</strong> We collect your first and last name, email address, postal address, phone number, and other similar contact data.</li>
-          <li><strong>Credentials.</strong> We collect passwords, password hints, and similar security information used for authentication and account access.</li>
-          <li><strong>Payment Data.</strong> We collect data necessary to process your payment if you make purchases, such as your payment instrument number and the security code associated with your payment instrument. All payment data is stored by our payment processor.</li>
-        </ul>
-        <h3>Information automatically collected</h3>
-        <p>We automatically collect certain information when you visit, use or navigate the Sites. This information does not reveal your specific identity but may include device and usage information, such as your IP address, browser and device characteristics, operating system, language preferences, referring URLs, device name, country, location, information about how and when you use our Sites and other technical information.</p>
-        <p>This information is primarily needed to maintain the security and operation of our Sites, and for our internal analytics and reporting purposes. Like many businesses, we also collect information through cookies and similar technologies.</p>
-        <h3>Information collected from other sources</h3>
-        <p>We may obtain information about you from other sources, such as public databases, joint marketing partners, as well as from other third parties. Examples of the information we receive from other sources include: social media profile information; marketing leads and search results and links, including paid listings.</p>
+      <LegalSection id="who-we-are" n={1} title="Who we are">
+        <p>Eternal Fitness is a private, one-to-one personal training business operated by Esther Fair as a sole trader, based in Worthing, West Sussex. Esther is the data controller responsible for your personal information — the person who decides why and how it is used. The exact studio address is shared only with clients at the point of booking, to keep a private, single-occupant training space secure; general correspondence should go to the email address above.</p>
+        <p>We don't have a formal Data Protection Officer — the law doesn't require one at this scale — but Esther is personally responsible for how your data is handled and is who to contact with any question or concern.</p>
       </LegalSection>
 
-      <LegalSection id="use-information" n={2} title="How do we use your information?">
-        <p>We process your information for purposes based on legitimate business interests, the fulfillment of our contract with you, compliance with our legal obligations, and/or your consent.</p>
-        <p>We use the information we collect or receive:</p>
+      <LegalSection id="information-collect" n={2} title="What information do we collect?">
+        <h3>Information you give us directly</h3>
         <ul>
-          <li><strong>Marketing and promotional communications.</strong> We and/or our third party marketing partners may use the personal information you send to us for our marketing purposes, if this is in accordance with your marketing preferences. You can opt-out of our marketing emails at any time.</li>
-          <li><strong>Testimonials.</strong> We post testimonials on our Sites that may contain personal information. Prior to posting a testimonial, we will obtain your consent to use your name and testimonial.</li>
-          <li><strong>Request feedback.</strong> We may use your information to request feedback and to contact you about your use of our Sites.</li>
-          <li><strong>User-to-user communications.</strong> We may use your information in order to enable user-to-user communications with each user&apos;s consent.</li>
-          <li><strong>Enforce terms, conditions and policies.</strong></li>
-          <li><strong>Respond to legal requests and prevent harm.</strong> If we receive a subpoena or other legal request, we may need to inspect the data we hold to determine how to respond.</li>
-          <li><strong>Other business purposes.</strong> We may use your information for data analysis, identifying usage trends, determining the effectiveness of our promotional campaigns and to evaluate and improve our Sites, products, services, marketing and your experience.</li>
+          <li><strong>Enquiries and messages.</strong> When you use the contact form, your name, email address, phone number (if given), and the content of your message.</li>
+          <li><strong>Booking a free consultation.</strong> The "Book a Free Consultation" button on this site takes you to our Microsoft Bookings calendar, hosted by Microsoft, to choose a time. Booking there means you're giving your name, email, phone number, and any notes directly to that booking system — see <a href="#information-shared">who we share your information with</a> below for how that works.</li>
+          <li><strong>Becoming a client.</strong> If you go ahead with training, we collect the details needed to deliver the service safely and keep proper records: your name, contact details, emergency contact, health/PAR-Q information (see below), signed agreements and consent forms, session notes, and training programme data.</li>
+          <li><strong>Client portal.</strong> If you're given access to the client portal, we hold your login details, session history, exercise logs, and any documents shared through it.</li>
         </ul>
+        <h3>Information collected automatically</h3>
+        <p>The public website itself doesn't run any analytics or advertising trackers, so beyond standard web server/hosting logs (kept briefly for security and abuse prevention, not used to build a profile of you) we don't automatically collect browsing data about visitors to the public pages. The staff hub and client portal — both password-protected — use essential session cookies to keep you logged in; see our <a href="/cookies-policy">Cookie Policy</a> for the full, accurate list.</p>
+        <h3>What we don't collect</h3>
+        <p>We don't take payment directly through this website, so we don't collect or store card numbers or other payment instrument details ourselves. Payment for training is arranged directly with Esther.</p>
       </LegalSection>
 
-      <LegalSection id="information-shared" n={3} title="Will your information be shared with anyone?">
-        <p>We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations.</p>
-        <p>We may process or share your data based on the following legal basis:</p>
+      <LegalSection id="health-data" n={3} title="Health information (special category data)">
+        <p>Before your first session, we ask you to complete a PAR-Q (Physical Activity Readiness Questionnaire) covering things like diagnosed medical conditions, medications, implanted medical devices, and recent surgeries or hospital admissions. Under UK GDPR this counts as <strong>"special category data"</strong> — information about your health — which the law treats with extra care.</p>
+        <p>We only collect this because it's genuinely necessary: without knowing about a condition, medication, or recent surgery, a session could be programmed unsafely. We ask for your <strong>explicit consent</strong> to hold and use this information for that purpose when you complete the form, and it is only ever used to plan and adapt your training safely — never for marketing, never sold, and never shared beyond what's described in this policy.</p>
+        <p>If your PAR-Q answers indicate that medical clearance is needed before training can begin, we'll ask you to get a signed letter from your GP or relevant consultant, and no session will go ahead until that's received.</p>
+      </LegalSection>
+
+      <LegalSection id="lawful-basis" n={4} title="Our lawful basis for using your information">
+        <p>UK GDPR requires us to have a valid legal reason ("lawful basis") for every use of your personal information. Depending on the situation, we rely on:</p>
         <ul>
-          <li><strong>Consent:</strong> We may process your data if you have given us specific consent to use your personal information for a specific purpose.</li>
-          <li><strong>Legitimate Interests:</strong> We may process your data when it is reasonably necessary to achieve our legitimate business interests.</li>
-          <li><strong>Performance of a Contract:</strong> Where we have entered into a contract with you, we may process your personal information to fulfill the terms of our contract.</li>
-          <li><strong>Legal Obligations:</strong> We may disclose your information where we are legally required to do so in order to comply with applicable law, governmental requests, a judicial proceeding, court order, or legal process.</li>
-          <li><strong>Vital Interests:</strong> We may disclose your information where we believe it is necessary to investigate, prevent, or take action regarding potential violations of our policies, suspected fraud, situations involving potential threats to the safety of any person and illegal activities, or as evidence in litigation in which we are involved.</li>
-          <li><strong>Business Transfers:</strong> We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.</li>
+          <li><strong>Contract.</strong> Where we need your information to provide the training service you've booked — e.g. contact details, scheduling, session records.</li>
+          <li><strong>Consent.</strong> Especially for health/PAR-Q information (see above), and for anything else where we ask you directly and you can withdraw that consent at any time without it affecting other services.</li>
+          <li><strong>Legitimate interests.</strong> For things like responding to a general enquiry, keeping basic records for insurance purposes, and the day-to-day administration of running the business — always balanced against your right to privacy.</li>
+          <li><strong>Legal obligation.</strong> Where we're required to keep or disclose information — for example, financial records for HMRC.</li>
         </ul>
       </LegalSection>
 
-      <LegalSection id="cookies-tracking" n={4} title="Do we use cookies and other tracking technologies?">
-        <p>We may use cookies and similar tracking technologies (like web beacons and pixels) to access or store information. Specific information about how we use such technologies and how you can refuse certain cookies is set out in our <a href="/cookies-policy">Cookie Policy</a>.</p>
+      <LegalSection id="use-information" n={5} title="How do we use your information?">
+        <ul>
+          <li><strong>Delivering training safely.</strong> Programming, adapting, and running your sessions around your goals and health information.</li>
+          <li><strong>Communicating with you.</strong> Replying to enquiries, session scheduling, and — for clients — progress updates and reminders.</li>
+          <li><strong>AI-assisted drafting.</strong> Some client progress-update emails and training plans are drafted with the help of an AI writing assistant, using relevant session/programme context, before Esther reviews and sends them herself. See <a href="#information-shared">who we share your information with</a> for the processor involved.</li>
+          <li><strong>Record-keeping and insurance.</strong> Signed agreements, consent forms, and health records are kept as evidence of what was agreed and disclosed, which also protects you.</li>
+          <li><strong>Testimonials.</strong> We only ever use your name or words as a testimonial with your specific, separate consent — never PAR-Q or health information.</li>
+          <li><strong>Running the business.</strong> Invoicing, basic bookkeeping, and administration.</li>
+        </ul>
+        <p>We don't use your information for automated decision-making or profiling that produces legal or similarly significant effects on you.</p>
       </LegalSection>
 
-      <LegalSection id="keep-information" n={5} title="How long do we keep your information?">
-        <p>We keep your information for as long as necessary to fulfill the purposes outlined in this privacy policy unless otherwise required by law. We will only keep your personal information for as long as it is necessary for the purposes set out in this privacy policy, unless a longer retention period is required or permitted by law (such as tax, accounting or other legal requirements). No purpose in this policy will require us keeping your personal information for longer than 1 year.</p>
-        <p>When we have no ongoing legitimate business need to process your personal information, we will either delete or anonymize it, or, if this is not possible (for example, because your personal information has been stored in backup archives), then we will securely store your personal information and isolate it from any further processing until deletion is possible.</p>
+      <LegalSection id="information-shared" n={6} title="Who do we share your information with?">
+        <p>We don't sell your information, and we don't share it for third-party marketing. We do use a small number of trusted service providers ("processors") to run the business — each only processes data on our instructions, for the purpose stated:</p>
+        <LegalTable
+          columns={["Who", "What for", "What they see"]}
+          rows={[
+            ["Microsoft (Bookings)", "Scheduling free consultations", "Name, email, phone, and any notes you enter when booking — collected directly by Microsoft once you leave our site; their own privacy notice applies to that data"],
+            ["Our email provider", "Sending booking confirmations, enquiry replies, and client update emails", "Your email address and the content of the email being sent"],
+            ["Our hosting provider", "Running the website and securely storing client records in our database", "Whatever is stored in your client record, hosted on infrastructure we control"],
+            ["AI writing assistant (via OpenRouter)", "Helping draft client progress-update emails and training plans, which Esther always reviews before sending", "Relevant session/programme context for the client the draft is being written for — never your PAR-Q answers"],
+            ["Trainerize", "Historic client records from before we moved to our current system", "Training history for clients who were with us before the migration; no longer actively used for new data"],
+          ]}
+        />
+        <p>We may also disclose information where we're legally required to — for example, in response to a court order — or to protect someone's vital interests in a genuine emergency.</p>
       </LegalSection>
 
-      <LegalSection id="information-safe" n={6} title="How do we keep your information safe?">
-        <p>We aim to protect your personal information through a system of organisational and technical security measures. We have implemented appropriate technical and organisational security measures designed to protect the security of any personal information we process. However, please also remember that we cannot guarantee that the internet itself is 100% secure. Although we will do our best to protect your personal information, transmission of personal information to and from our Sites is at your own risk. You should only access the services within a secure environment.</p>
+      <LegalSection id="international-transfers" n={7} title="International transfers">
+        <p>Some of the service providers above may process data outside the UK (for example, the AI assistant provider). Where that happens, we rely on the safeguards built into those providers' own terms (such as the UK's International Data Transfer Agreement or the EU Standard Contractual Clauses, as applicable) to keep your information protected to UK standards wherever it's processed.</p>
       </LegalSection>
 
-      <LegalSection id="minors" n={7} title="Do we collect information from minors?">
-        <p>We do not knowingly solicit data from or market to children under 18 years of age. By using the Sites, you represent that you are at least 18 or that you are the parent or guardian of such a minor and consent to such minor dependent&apos;s use of the Sites. If we learn that personal information from users less than 18 years of age has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we may have collected from children under age 18, please contact us at <a href="mailto:esther.fair@eternal-fitness.co.uk">esther.fair@eternal-fitness.co.uk</a>.</p>
+      <LegalSection id="cookies-tracking" n={8} title="Do we use cookies and other tracking technologies?">
+        <p>The public website doesn't use any advertising or analytics cookies. The staff hub and client portal use a small number of essential cookies to keep you securely signed in. The full, accurate list is in our <a href="/cookies-policy">Cookie Policy</a>.</p>
       </LegalSection>
 
-      <LegalSection id="privacy-rights" n={8} title="What are your privacy rights?">
-        <p>In some regions, such as the European Economic Area, you have rights that allow you greater access to and control over your personal information. You may review, change, or terminate your account at any time.</p>
-        <p>In some regions (like the European Economic Area), you have certain rights under applicable data protection laws. These may include the right (i) to request access and obtain a copy of your personal information, (ii) to request rectification or erasure; (iii) to restrict the processing of your personal information; and (iv) if applicable, to data portability. In certain circumstances, you may also have the right to object to the processing of your personal information.</p>
-        <p>If we are relying on your consent to process your personal information, you have the right to withdraw your consent at any time. Please note however that this will not affect the lawfulness of the processing before its withdrawal.</p>
-        <LegalNote eyebrow="Cookies and similar technologies">
-          Most web browsers are set to accept cookies by default. If you prefer, you can usually choose to set your browser to remove cookies and to reject cookies. If you choose to remove cookies or reject cookies, this could affect certain features or services of our Sites. For further information, please see our <a href="/cookies-policy">Cookie Policy</a>.
+      <LegalSection id="keep-information" n={9} title="How long do we keep your information?">
+        <p>We only keep information for as long as we actually need it:</p>
+        <ul>
+          <li><strong>General enquiries that don't become bookings.</strong> Deleted or anonymised after around 12 months of inactivity.</li>
+          <li><strong>Client records — contracts, invoices, financial records.</strong> Kept for at least 6 years after the end of the relationship, to meet HMRC record-keeping requirements.</li>
+          <li><strong>PAR-Q, health information, and signed consent/agreement forms.</strong> Kept for the duration of our training relationship and for a further period afterwards — in line with standard professional-indemnity insurance guidance for the fitness industry — in case a question about what was disclosed or agreed ever needs to be answered.</li>
+          <li><strong>Client portal data (session logs, exercise history).</strong> Kept while you remain an active client, and for a reasonable period afterwards in case you return to training with us.</li>
+        </ul>
+        <p>When there's no longer a good reason to keep it, we delete or anonymise it, except where we're required by law to keep it longer.</p>
+      </LegalSection>
+
+      <LegalSection id="information-safe" n={10} title="How do we keep your information safe?">
+        <p>We use appropriate technical and organisational measures to protect your information — including encrypted connections (HTTPS) across the site, access to client records and the staff hub restricted to authenticated logins, and health information handled with particular care given its sensitivity. No system connected to the internet can be guaranteed 100% secure, but we take reasonable, proportionate steps for a business of our size to protect what we hold.</p>
+      </LegalSection>
+
+      <LegalSection id="minors" n={11} title="Children's information">
+        <p>Eternal Fitness's services are provided to adults. We don't knowingly collect personal information from children. If you believe a child's information has been provided to us, please contact us at <a href="mailto:esther.fair@eternal-fitness.co.uk">esther.fair@eternal-fitness.co.uk</a> and we'll remove it.</p>
+      </LegalSection>
+
+      <LegalSection id="privacy-rights" n={12} title="What are your privacy rights?">
+        <p>Under UK GDPR, you have the right to:</p>
+        <ul>
+          <li><strong>Access</strong> a copy of the personal information we hold about you.</li>
+          <li><strong>Rectification</strong> — ask us to correct anything inaccurate or incomplete.</li>
+          <li><strong>Erasure</strong> — ask us to delete your information, where there's no legal reason for us to keep it.</li>
+          <li><strong>Restriction</strong> — ask us to limit how we use your information in certain circumstances.</li>
+          <li><strong>Portability</strong> — receive certain information in a portable format, or ask us to transfer it to another provider.</li>
+          <li><strong>Object</strong> — object to processing based on legitimate interests.</li>
+          <li><strong>Withdraw consent</strong> at any time, where we're relying on consent — this won't affect anything already done before you withdrew it.</li>
+        </ul>
+        <p>To exercise any of these, just <a href="/contact">get in touch</a> — we'll respond within one month. There's no charge for a reasonable request.</p>
+        <LegalNote eyebrow="If you're not happy with our response">
+          You also have the right to complain to the UK's data protection regulator, the <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer">Information Commissioner's Office (ICO)</a>, at ico.org.uk or on 0303 123 1113. We'd always appreciate the chance to put things right directly first, but that right stands either way.
         </LegalNote>
       </LegalSection>
 
-      <LegalSection id="dnt-features" n={9} title="Controls for Do-Not-Track features">
-        <p>Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track (&ldquo;DNT&rdquo;) feature or setting you can activate to signal your privacy preference not to have data about your online browsing activities monitored and collected. No uniform technology standard for recognizing and implementing DNT signals has been finalized. As such, we do not currently respond to DNT browser signals or any other mechanism that automatically communicates your choice not to be tracked online. If a standard for online tracking is adopted that we must follow in the future, we will inform you about that practice in a revised version of this Privacy Policy.</p>
+      <LegalSection id="policy-updates" n={13} title="Do we make updates to this policy?">
+        <p>We'll update this policy if the way we handle your information changes, or to stay in line with the law. The "Last updated" date at the top shows when it was last revised. If we make a significant change, we'll make that clear on this page rather than relying on you checking back.</p>
       </LegalSection>
 
-      <LegalSection id="california-rights" n={10} title="Do California residents have specific privacy rights?">
-        <p>Yes, if you are a resident of California, you are granted specific rights regarding access to your personal information. California Civil Code Section 1798.83, also known as the &ldquo;Shine The Light&rdquo; law, permits our users who are California residents to request and obtain from us, once a year and free of charge, information about categories of personal information (if any) we disclosed to third parties for direct marketing purposes and the names and addresses of all third parties with which we shared personal information in the immediately preceding calendar year.</p>
-        <p>If you are under 18 years of age, reside in California, and have a registered account with the Sites, you have the right to request removal of unwanted data that you publicly post on the Sites. To request removal of such data, please contact us using the contact information provided below, and include the email address associated with your account and a statement that you reside in California. We will make sure the data is not publicly displayed on the Sites, but please be aware that the data may not be completely or comprehensively removed from all our systems.</p>
-      </LegalSection>
-
-      <LegalSection id="policy-updates" n={11} title="Do we make updates to this policy?">
-        <p>Yes, we will update this policy as necessary to stay compliant with relevant laws. We may update this privacy policy from time to time. The updated version will be indicated by an updated &ldquo;Revised&rdquo; date and the updated version will be effective as soon as it is accessible. If we make material changes to this privacy policy, we may notify you either by prominently posting a notice of such changes or by directly sending you a notification. We encourage you to review this privacy policy frequently to be informed of how we are protecting your information.</p>
-      </LegalSection>
-
-      <LegalSection id="contact-us" n={12} title="How can you contact us about this policy?">
-        <p>If you have questions or comments about this policy, you may contact our Data Protection Officer (DPO), Esther Fair, by email at <a href="mailto:esther.fair@eternal-fitness.co.uk">esther.fair@eternal-fitness.co.uk</a>.</p>
-        <h3>How can you review, update, or delete the data we collect from you?</h3>
-        <p>Based on the applicable laws of your country, you may have the right to request access to the personal information we collect from you, change that information, or delete it in some circumstances. To request to review, update, or delete your personal information, please <a href="/contact">contact us</a>. We will respond to your request within 30 days.</p>
+      <LegalSection id="contact-us" n={14} title="How can you contact us about this policy?">
+        <p>For anything to do with your personal information — a question, a request to see or delete your data, or a concern — contact Esther Fair directly at <a href="mailto:esther.fair@eternal-fitness.co.uk">esther.fair@eternal-fitness.co.uk</a>.</p>
       </LegalSection>
     </LegalDocLayout>
   );
