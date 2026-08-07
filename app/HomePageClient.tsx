@@ -83,7 +83,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="why-g">
             <div className="wic">
               <div className="wimg">
-                <Image src="/images/esther-training.jpg" alt="Esther Fair training a client in Worthing" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover" }} />
+                <Image src="/images/esther-barbell-squat.jpg" alt="Esther Fair under a barbell in the squat rack at her Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "62% 50%" }} />
               </div>
               <div className="wbadge"><div className="wbn">4</div><div className="wbl">{content.badge_title ?? "Level 4 Qualified"}</div></div>
             </div>
@@ -115,7 +115,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div className="step">
               <div className="sn">01</div>
               <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Structured planning, dynamically tailored to you. It is the perfect balance of consistent progress and expert flexibility. If you are facing fatigue, a bad night, or a stiff shoulder, I notice and adjust without making a thing of it."}</p></div>
-              <div className="si"><Image src="/images/coaching-plank-client.jpg" alt="Esther coaching a client through a plank, adjusting the movement as they go" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="si"><Image src="/images/consultation-programme-review.jpg" alt="Esther talking a client through their session plan mid-workout, notes in hand" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">02</div>
@@ -125,7 +125,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div className="step">
               <div className="sn">03</div>
               <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That is the real-world strength we build together."}</p></div>
-              <div className="si"><Image src="/images/esther-training.jpg" alt="Esther Fair in the studio between sets" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover", objectPosition: "50% 14%" }} /></div>
+              <div className="si"><Image src="/images/active-ageing-step-up.jpg" alt="Esther supporting an older client through a step-up — the everyday strength that makes stairs easier" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover", objectPosition: "50% 45%" }} /></div>
             </div>
           </div>
           <aside className="cred-band">

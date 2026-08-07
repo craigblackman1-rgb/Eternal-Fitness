@@ -74,11 +74,11 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
 
       <main id="main-content">
       <PageHero
-        image="/images/coaching-plank-client.jpg"
-        imageAlt="Esther coaching a client through a supported plank, adjusting the movement as they go"
+        image="/images/coaching-bench-press-spot.jpg"
+        imageAlt="Esther spotting a client through a barbell bench press in her private Worthing studio"
         imagePan="126%"
-        imageObjectPosition="50% 43%"
-        imageObjectPositionWide="50% 24%"
+        imageObjectPosition="50% 45%"
+        imageObjectPositionWide="50% 56%"
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
         heading={content.hero_heading ?? "Personal Training in Worthing"}
         subhead={content.hero_lead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel."}
@@ -112,7 +112,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             </Reveal>
           </div>
           <Reveal y={40} className="ds-split-img">
-            <Image src="/images/strength-tasks.jpg" alt="Strength training for health and function" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+            <Image src="/images/consultation-programme-notes.jpg" alt="Esther going through the session plan with a client before they start" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "58% 50%" }} />
           </Reveal>
         </div>
       </Section>
@@ -206,8 +206,8 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       </Section>
 
       <CTABand
-        image="/images/studio-1.jpg"
-        imagePosition="center 20%"
+        image="/images/studio-slam-balls-rack.jpg"
+        imagePosition="center 55%"
         eyebrow={content.cta_eyebrow ?? "Free Consultation"}
         heading={content.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}

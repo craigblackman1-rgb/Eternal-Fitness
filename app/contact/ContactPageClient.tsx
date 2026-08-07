@@ -89,11 +89,11 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
 
       <main id="main-content">
       <PageHero
-        image="/images/who-mobility.jpg"
-        imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
+        image="/images/consultation-warm-chat.jpg"
+        imageAlt="Esther talking a client through their next set in the private Worthing studio"
         imagePan="122%"
-        imageObjectPosition="50% 47%"
-        imageObjectPositionWide="50% 44%"
+        imageObjectPosition="50% 18%"
+        imageObjectPositionWide="50% 14%"
         eyebrow={content.hero_eyebrow ?? "Contact"}
         heading={content.hero_heading ?? <>Get in <em>Touch</em></>}
         subhead={content.hero_subhead ?? "Whether you have a question, want to learn more, or are ready to book your free consultation — I would love to hear from you."}
@@ -296,7 +296,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <figure className="m-0">
             <div className="rounded-3xl overflow-hidden aspect-[4/3] relative">
-              <Image src="/images/studio-kneel-stretch.jpg" alt="Inside the private studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+              <Image src="/images/mobility-hip-flexor-stretch.jpg" alt="Esther and a client working through a kneeling hip stretch on the mats in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
             </div>
             <figcaption className="ds-figcaption">Private studio, Worthing — one client at a time</figcaption>
           </figure>

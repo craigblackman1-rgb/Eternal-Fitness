@@ -46,10 +46,10 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
 
       <main id="main-content">
       <PageHero
-        image="/images/studio-kneel-stretch.jpg"
-        imageAlt="Esther Fair and a client stretching together on the mats in her private studio in Worthing"
+        image="/images/esther-shoulder-press.jpg"
+        imageAlt="Esther Fair mid-set on a seated shoulder press in her private studio in Worthing"
         imagePan="108%"
-        imageObjectPosition="50% 46%"
+        imageObjectPosition="50% 42%"
         imageObjectPositionWide="50% 34%"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
         heading={content?.hero_heading ?? "About Esther Fair"}
@@ -222,8 +222,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
       </Section>
 
       <CTABand
-        image="/images/studio-1.jpg"
-        imagePosition="center 20%"
+        image="/images/studio-kettlebell-shelf.jpg"
+        imagePosition="center 45%"
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content?.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}

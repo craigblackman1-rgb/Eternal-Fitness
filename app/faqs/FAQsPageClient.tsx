@@ -126,11 +126,11 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
 
       <main id="main-content">
       <PageHero
-        image="/images/coaching-plank-client.jpg"
-        imageAlt="Esther coaching a client through a floor exercise in the private studio"
+        image="/images/consultation-question-chat.jpg"
+        imageAlt="Esther talking a question through with a client mid-session in the private Worthing studio"
         imagePan="126%"
-        imageObjectPosition="50% 43%"
-        imageObjectPositionWide="50% 24%"
+        imageObjectPosition="50% 40%"
+        imageObjectPositionWide="50% 32%"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
         subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
@@ -282,8 +282,8 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
       </Section>
 
       <CTABand
-        image="/images/studio-lunge-pair.jpg"
-        imagePosition="center 15%"
+        image="/images/coaching-deadlift-setup.jpg"
+        imagePosition="center 55%"
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content?.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
