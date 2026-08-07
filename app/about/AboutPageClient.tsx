@@ -170,10 +170,10 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         />
         <Reveal className="ds-grid-2" stagger={0.12} y={40} start="top 82%" >
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
-            <Image src="/images/studio/studio-rack.jpg" alt="The real Eternal Fitness studio in Worthing — squat rack, free weights, and mirror wall" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+            <Image src="/images/studio-slam-balls-rack.jpg" alt="The real Eternal Fitness studio in Worthing — squat rack, free weights, and mirror wall" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
           </div>
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
-            <Image src="/images/studio/studio-neon.jpg" alt="Inside the Eternal Fitness studio — Consistency is Key" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+            <Image src="/images/studio-rack-consult.jpg" alt="Esther talking a client through their session by the rack in the Eternal Fitness studio" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "50% 42%" }} />
           </div>
         </Reveal>
         <Reveal y={40} start="top 82%" style={{ marginTop: 48 }}>

@@ -223,15 +223,21 @@ a.ds-card { display: block; }
   .ds-hero-content { max-width: none; }
 }
 
-/* ── Process flow diagram ─────────── */
-.ds-flow { display: grid; gap: 28px; position: relative; grid-template-columns: repeat(var(--ds-flow-count, 3), 1fr); }
+/* ── Process flow diagram ───────────
+   gap widened from 28px (2026-08-07): at 4 columns the 271px-wide steps sat
+   nearly flush against each other, and because each step's paragraph wraps
+   to a different number of lines, the tight gap read as a jagged, uneven
+   row rather than 4 clearly separate steps. The connector's `right` offset
+   is `-1 * gap` by construction (it has to reach exactly to the next step's
+   circle) — if gap changes here, that offset must change with it. */
+.ds-flow { display: grid; gap: 44px; position: relative; grid-template-columns: repeat(var(--ds-flow-count, 3), 1fr); }
 .ds-flow-step { position: relative; }
 .ds-flow-num { width: 56px; height: 56px; border-radius: 999px; background: #fff; border: 2px solid var(--color-rose); color: var(--color-rose); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; margin-bottom: 18px; position: relative; z-index: 2; }
 .ds-flow-step h4 { font-size: 17px; font-weight: 700; color: var(--color-ink); letter-spacing: -.015em; line-height: 1.2; margin-bottom: 8px; }
 .ds-flow-step p { font-size: 14px; color: var(--color-body); line-height: 1.6; }
 /* horizontal connector line running through the number circles */
 .ds-flow-step:not(:last-child)::after {
-  content: ''; position: absolute; top: 28px; left: 56px; right: -28px; height: 2px;
+  content: ''; position: absolute; top: 28px; left: 56px; right: -44px; height: 2px;
   background: repeating-linear-gradient(90deg, rgba(193,131,159,.4) 0 8px, transparent 8px 16px); z-index: 1;
 }
 .ds-bg-ink .ds-flow-num, .ds-bg-teal .ds-flow-num { background: transparent; border-color: rgba(255,255,255,.6); color: #fff; }
