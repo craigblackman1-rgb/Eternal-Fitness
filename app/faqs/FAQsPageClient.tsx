@@ -108,12 +108,12 @@ const faqGroups = [
       {
         question: "Do you work with trans and non-binary clients?",
         answer:
-          "Yes, without reservation. I work with clients across the full spectrum of gender identity and expression. You will be addressed and supported in whatever way feels right for you. If you have specific physical goals related to your gender identity, I will work with you on those without judgement.",
+          "Yes, without reservation. I work with clients across the full spectrum of gender identity and expression. You will be addressed and supported in whatever way feels right for you. If you have specific physical goals related to your gender identity, we will work together on a targeted plan to build that strength and capability without judgment.",
       },
       {
         question: "I have always felt uncomfortable or unwelcome in fitness spaces. Is this different?",
         answer:
-          "This is the most common thing I hear. The private studio, the one-to-one format, and the complete absence of any mirror-and-performance culture is specifically designed to make it different. There is no dress code, no weigh-in, and no expectation of what fitness should look like. Many of my clients come to me having had negative experiences elsewhere. Most of them stay for years.",
+          "This is the most common thing I hear. The fully private studio, the one-to-one format, and the complete absence of a traditional gym culture are specifically designed to make it different. There is no dress code, no forced weigh-in, and no expectation of what fitness \"should\" look like. Many of my clients arrive having had negative experiences elsewhere, and the vast majority choose to stay and train with me for a number of years because they finally feel at home.",
       },
     ],
   },
@@ -175,7 +175,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
               {content?.sidebar_heading ?? "No question is too complicated"}
             </h2>
             <p className="ds-body" style={{ marginBottom: 16 }}>
-              {content?.sidebar_body ?? "Training with me covers a wide range of situations — general fitness, injuries, health conditions, disabilities. If you're wondering whether yours fits, it almost certainly does."}
+              {content?.sidebar_body ?? "Training with me covers a wide range of baselines—from general fitness and athletic milestones to injuries, chronic health conditions, and disabilities. If you are wondering whether your specific situation fits here, it almost certainly does."}
             </p>
             <nav aria-label="FAQ sections" className="mb-8 mt-7">
               <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">{content?.sidebar_jump_label ?? "Jump to"}</p>
