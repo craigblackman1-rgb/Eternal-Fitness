@@ -16,18 +16,47 @@ const ConsultationDialog = ({ open, onOpenChange }: ConsultationDialogProps) => 
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    const data = new FormData(e.currentTarget);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "consultation_dialog",
+          firstName: data.get("firstName"),
+          lastName: data.get("lastName"),
+          email: data.get("email"),
+          phone: data.get("phone"),
+          message: data.get("goals"),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast({
+          title: "Couldn't send your request",
+          description: body.error || "Please call or email directly instead.",
+          variant: "destructive",
+        });
+        return;
+      }
       onOpenChange(false);
       toast({
         title: "Consultation Request Sent!",
         description: "We'll be in touch within 24 hours to confirm your booking.",
       });
-    }, 1000);
+    } catch {
+      toast({
+        title: "Couldn't send your request",
+        description: "Please call or email directly instead.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

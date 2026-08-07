@@ -29,6 +29,7 @@ const initialForm: FormData = {
 export default function ContactPageClient({ content = {} }: { content?: Record<string, string> }) {
   const [form, setForm] = useState<FormData>(initialForm);
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -38,7 +39,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.firstName.trim()) {
@@ -62,7 +63,24 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
       return;
     }
 
-    setSent(true);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: "contact_form", ...form }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error || "Something went wrong sending your message. Please call or email directly.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      toast.error("Something went wrong sending your message. Please call or email directly.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -207,8 +225,8 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
                     </label>
                   </div>
 
-                  <button type="submit" className="ef-btn ef-btn-primary w-full justify-center mt-1">
-                    {content.form_submit_btn ?? "Send Message"} <IconArrowUpRight className="w-4 h-4" />
+                  <button type="submit" disabled={submitting} className="ef-btn ef-btn-primary w-full justify-center mt-1 disabled:opacity-60">
+                    {submitting ? "Sending…" : (content.form_submit_btn ?? "Send Message")} <IconArrowUpRight className="w-4 h-4" />
                   </button>
                 </form>
               )}

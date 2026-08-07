@@ -29,6 +29,7 @@ export interface SendEmailInput {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
   attachments?: EmailAttachment[];
 }
 
@@ -100,6 +101,7 @@ async function sendResend(input: SendEmailInput): Promise<SendEmailResult> {
     subject: input.subject,
     html: input.html,
     text: text || undefined,
+    replyTo: input.replyTo,
     attachments: input.attachments?.map((a) => ({
       filename: a.filename,
       content: a.content,
@@ -129,6 +131,7 @@ async function sendSendgrid(input: SendEmailInput): Promise<SendEmailResult> {
     body: JSON.stringify({
       personalizations: [{ to: recipients }],
       from,
+      reply_to: input.replyTo ? { email: input.replyTo } : undefined,
       subject: input.subject,
       // SendGrid requires text/plain before text/html.
       content: [
@@ -168,6 +171,7 @@ async function sendNodemailer(input: SendEmailInput): Promise<SendEmailResult> {
   const info = await transporter.sendMail({
     from: getFromRaw(),
     to,
+    replyTo: input.replyTo,
     subject: input.subject,
     html: input.html,
     text: input.text || htmlToText(input.html) || undefined,

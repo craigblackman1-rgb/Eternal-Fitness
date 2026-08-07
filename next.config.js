@@ -98,15 +98,21 @@ const nextConfig = {
       // automatically, no explicit redirect needed)
       { source: "/whats-on-offer", destination: "/personal-training", permanent: true },
       { source: "/elementor-hf/whats-on-offer", destination: "/personal-training", permanent: true },
-      { source: "/cancer-rehabilitation-and-exercise", destination: "/cancer-rehabilitation", permanent: true },
-      { source: "/exercising-with-a-medical-condition", destination: "/exercise-for-health", permanent: true },
+      // These 6 point straight at "/" rather than their old WP-equivalent slug (which
+      // would be the "correct" permanent mapping) because that slug is itself currently
+      // 307'd to "/" below — pointing here avoids a 2-hop redirect chain during launch.
+      // Revert to /cancer-rehabilitation, /exercise-for-health, /blog respectively once
+      // those pages come out of the disabled block (2026-08-07).
+      { source: "/cancer-rehabilitation-and-exercise", destination: "/", permanent: true },
+      { source: "/exercising-with-a-medical-condition", destination: "/", permanent: true },
       { source: "/terms-conditions", destination: "/terms", permanent: true },
 
-      // Old WP blog category archives -> blog index (no category taxonomy on new site)
-      { source: "/category/nutrition", destination: "/blog", permanent: true },
-      { source: "/category/exercise", destination: "/blog", permanent: true },
-      { source: "/category/myth-buster", destination: "/blog", permanent: true },
-      { source: "/category/sleep", destination: "/blog", permanent: true },
+      // Old WP blog category archives -> home (blog index itself redirects to home
+      // while disabled — see 2026-08-07 note above)
+      { source: "/category/nutrition", destination: "/", permanent: true },
+      { source: "/category/exercise", destination: "/", permanent: true },
+      { source: "/category/myth-buster", destination: "/", permanent: true },
+      { source: "/category/sleep", destination: "/", permanent: true },
 
       // --- Pages not part of the 2026-07-27 launch scope ---
       // Launch set is Home, About, Personal Training, Pricing, FAQs, Contact, plus the
@@ -119,6 +125,12 @@ const nextConfig = {
       { source: "/cancer-rehabilitation", destination: "/", permanent: false },
       { source: "/exercise-for-health", destination: "/", permanent: false },
       { source: "/exercise-for-health/:path*", destination: "/", permanent: false },
+
+      // --- Public calorie calculator retired 2026-08-07 ---
+      // Was always noindex/unlinked ("hidden for now"); the client portal's gated
+      // per-client calorie-guide (app/portal/(protected)/calorie-guide) is now the
+      // real version. Route handler kept in repo, not deleted.
+      { source: "/calorie-calculator", destination: "/", permanent: false },
 
       // --- Renamed hub route (2026-08-04) ---
       { source: "/hub/plan-schedule", destination: "/hub/training-blocks", permanent: false },
