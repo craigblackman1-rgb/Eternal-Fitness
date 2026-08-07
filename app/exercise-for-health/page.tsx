@@ -47,7 +47,7 @@ const faqSchema = {
       "name": "What health conditions do you work with?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "I work with clients managing a wide range of conditions: high blood pressure, high cholesterol, type 2 diabetes, COPD, post-cardiac events, osteoporosis and bone health, chronic pain, fibromyalgia, ME/CFS, visual impairment, neurological conditions, and more. If your condition is not listed, please get in touch — the answer is almost always yes."
+        "text": "I work with clients managing a wide range of conditions: high blood pressure, high cholesterol, type 2 diabetes, COPD, post-cardiac events, osteoporosis and bone health, chronic pain, fibromyalgia, ME/CFS, partial sight, neurological conditions, and more. If your condition is not listed, please get in touch — the answer is almost always yes."
       }
     },
     {

@@ -56,7 +56,7 @@ export default function ExerciseForHealthClient({ content = {} }: { content?: Re
     },
     {
       icon: IconEye,
-      title: content.cond_4_title ?? "Visual Impairment",
+      title: content.cond_4_title ?? "Partially Sighted",
       slug: "visual-impairment",
       desc: content.cond_4_desc ?? "Adapted training for people who are blind or partially sighted. Sessions built around clear verbal instruction, consistent equipment placement, and a familiar environment.",
       available: true,

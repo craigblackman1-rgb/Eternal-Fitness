@@ -86,9 +86,9 @@ const faqGroups = [
           "Yes. My approach is to start from where you are, whatever that looks like. Some clients begin with very gentle seated exercises, breathing work, or small range-of-motion movements. Progress looks different for everyone and is always measured against your own baseline — not anyone else's.",
       },
       {
-        question: "I am visually impaired or blind. Can you work with me?",
+        question: "I am partially sighted or blind. Can you work with me?",
         answer:
-          "Yes. I have experience working with visually impaired clients. All exercises are adapted and described verbally in full detail, with complete awareness of sensory needs throughout every session. Please get in touch to discuss your specific situation.",
+          "Yes. I have experience working with partially sighted clients. All exercises are adapted and described verbally in full detail, with complete awareness of sensory needs throughout every session. Please get in touch to discuss your specific situation.",
       },
       {
         question: "My GP has referred me for exercise. Can you help?",

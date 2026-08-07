@@ -59,7 +59,7 @@ const adaptations = [
   },
   {
     title: "Sport-specific programming",
-    body: "I work with visually impaired clients engaged in showdown and other adapted sports. If you have a sport-specific goal, sessions can be built around the demands of that activity.",
+    body: "I work with partially sighted clients engaged in showdown and other adapted sports. If you have a sport-specific goal, sessions can be built around the demands of that activity.",
     icon: IconTarget,
   },
 ];
@@ -67,7 +67,7 @@ const adaptations = [
 const faqs = [
   {
     title: "Can I do personal training if I am blind or partially sighted?",
-    body: "Yes. Personal training is very achievable for visually impaired people with the right approach. Sessions rely on verbal instruction, consistent environment, and tactile guidance — not visual demonstration.",
+    body: "Yes. Personal training is very achievable for partially sighted people with the right approach. Sessions rely on verbal instruction, consistent environment, and tactile guidance — not visual demonstration.",
     icon: IconCheckCircle,
   },
   {
@@ -97,9 +97,9 @@ export default function VisualImpairmentClient() {
       <main id="main-content">
       <PageHero
         image="/images/studio-2.jpg"
-        imageAlt="Personal training for visually impaired people in Worthing"
-        eyebrow="Visual Impairment"
-        heading={<>Personal Training for<br />Visually Impaired People</>}
+        imageAlt="Personal training for partially sighted people in Worthing"
+        eyebrow="Partially Sighted"
+        heading={<>Personal Training for<br />Partially Sighted People</>}
         subhead="One-to-one training adapted for people who are blind or partially sighted. Sessions are built entirely around clear verbal instruction, consistent environment, and your specific goals — whether that is general fitness, a specific health condition, or sport."
         primaryCta={bookCta}
         secondaryCta={{ label: "See Pricing", href: "/pricing", variant: "ghost-white" }}
@@ -121,7 +121,7 @@ export default function VisualImpairmentClient() {
                 work for VIP clients, and attempting it is both ineffective and exclusionary.
               </p>
               <p className="ds-body" style={{ marginBottom: 16 }}>
-                My approach for visually impaired clients is built around precise verbal instruction, proprioceptive
+                My approach for partially sighted clients is built around precise verbal instruction, proprioceptive
                 awareness, and a consistent, predictable environment. You learn to feel the movement correctly rather
                 than see it — which, for many people, produces a more mindful and connected training experience anyway.
               </p>
@@ -133,7 +133,7 @@ export default function VisualImpairmentClient() {
                 icon={IconEye}
                 accent="teal"
                 title="Actively working with VIP clients"
-                body="I currently work with visually impaired clients in Worthing, including people engaged in showdown — a competitive sport for blind and partially sighted people. This is an area I am actively developing."
+                body="I currently work with partially sighted clients in Worthing, including people engaged in showdown — a competitive sport for blind and partially sighted people. This is an area I am actively developing."
               />
               <div style={{ marginTop: 28 }}>
                 <CtaButton cta={bookCta} />

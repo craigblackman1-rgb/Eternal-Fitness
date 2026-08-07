@@ -207,11 +207,11 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           </div>
           <Reveal y={24}>
             <ul className="ds-spec-list">
-              <li><strong>Cardiovascular Care:</strong>&nbsp;Support for heart health and blood pressure management.</li>
-              <li><strong>Musculoskeletal Strength:</strong>&nbsp;Targeted exercise for bone density and joint health.</li>
-              <li><strong>Inclusive Training:</strong>&nbsp;Tailored physical coaching and movement correction for visual impairment.</li>
-              <li><strong>Cancer Rehabilitation:</strong>&nbsp;Gentle, progressive recovery training before, during, or after clinical treatment.</li>
-              <li><strong>Active Ageing:</strong>&nbsp;Specialised mobility coaching for older adults, focusing on balance, agility, and joint stability.</li>
+              <li><span><strong>Cardiovascular Care:</strong> Support for heart health and blood pressure management.</span></li>
+              <li><span><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone density and joint health.</span></li>
+              <li><span><strong>Inclusive Training:</strong> Tailored physical coaching and movement correction for partially sighted people.</span></li>
+              <li><span><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training before, during, or after clinical treatment.</span></li>
+              <li><span><strong>Active Ageing:</strong> Specialised mobility coaching for older adults, focusing on balance, agility, and joint stability.</span></li>
             </ul>
           </Reveal>
         </div>
