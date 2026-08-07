@@ -58,7 +58,7 @@ const faqGroups = [
       {
         question: "My question is not answered here. What should I do?",
         answer:
-          "Just get in touch. There is no question too small or too complicated. I would always rather speak to someone who is not sure than have them talk themselves out of trying.",
+          "Just get in touch. There is no question too small or too complicated. I would always rather speak directly to someone who is not sure than have them talk themselves out of trying.",
       },
     ],
   },
@@ -68,37 +68,37 @@ const faqGroups = [
       {
         question: "I have cancer or am going through cancer treatment. Can you still work with me?",
         answer:
-          "Yes. I hold a specialist qualification in cancer rehabilitation and have experience working with clients at all stages — during active treatment, in remission, and in long-term recovery. Exercise has a significant evidence base for supporting people through cancer and its treatment. I work closely with your medical team where appropriate and adapt every session to what your body can manage that day.",
+          "Yes. I hold a Level 4 specialist qualification in cancer rehabilitation and have experience working with clients at all stages—during active treatment, in remission, and in long-term recovery. Controlled exercise has a significant evidence base for supporting your body through treatment and recovery. I work safely within the boundaries of any guidance from your medical team, and I dynamically adapt every single session to what your body can manage that day.",
       },
       {
         question: "I have a chronic health condition. Can personal training still help me?",
         answer:
-          "Almost certainly yes. I am qualified in exercise referral, which means I am specifically trained to work with people who have clinical health conditions. Every programme is adapted to what your body can manage, and adjusted regularly as your health changes.",
+          "Almost certainly yes. I am qualified in exercise referral, which means I am specifically trained to design exercise for individuals with chronic health conditions. Every programme is built entirely around what your body can tolerate, with a heavy focus on Balance, Mobility, and Joint Stability Support. Your sessions are adjusted dynamically as your energy levels and health change day to day.",
       },
       {
         question: "I have a disability. Can I still do personal training?",
         answer:
-          "Yes. I have experience working with clients with a wide range of physical disabilities and mobility limitations. Programmes are fully adaptive. If you use a wheelchair or have very limited mobility, that is the starting point — not a barrier. Please get in touch to discuss your specific situation.",
+          "Yes. I am highly experienced in adapting training for individuals with physical disabilities and mobility limitations. While my studio is not fully wheelchair accessible due to an uneven access road, clients can be dropped off directly at the studio gate if needed. We focus entirely on your specific capabilities—your physical baseline is our starting point, never a barrier. Please get in touch so we can chat through any practical requirements.",
       },
       {
         question: "I have extremely limited mobility. Is there still something I can do?",
         answer:
-          "Yes. My approach is to start from where you are, whatever that looks like. Some clients begin with very gentle seated exercises, breathing work, or small range-of-motion movements. Progress looks different for everyone and is always measured against your own baseline — not anyone else's.",
+          "Yes. My approach is always to start from where you are, whatever that looks like. We can easily begin with very gentle seated exercises, mobility work, or small range-of-motion movements. Progress looks completely different for everyone, and it is always measured against your own personal baseline—never anyone else's.",
       },
       {
         question: "I am partially sighted or blind. Can you work with me?",
         answer:
-          "Yes. I have experience working with partially sighted clients. All exercises are adapted and described verbally in full detail, with complete awareness of sensory needs throughout every session. Please get in touch to discuss your specific situation.",
+          "Yes. I am experienced in delivering inclusive physical coaching, guiding techniques, and precise verbal movement correction for blind and partially sighted clients. In my fully private studio, there are no public gym floor distractions. We keep the music low so verbal cues are clear, ensure equipment and benches stay in consistent positions, and keep the floor clear of obstacles. We focus on building your independent navigation, confidence, and autonomy at a pace that is entirely yours. Please get in touch to discuss your specific situation.",
       },
       {
         question: "My GP has referred me for exercise. Can you help?",
         answer:
-          "Yes — I hold the Exercise Referral qualification and I'm experienced working within GP and medical guidance. I don't currently take referrals directly through an NHS scheme, so if your GP or doctor has recommended exercise, message me and we'll work out how to build your training around that guidance together.",
+          "Yes. I am a fully qualified GP Exercise Referral Trainer and experienced in working within medical guidance, focusing heavily on Balance, Mobility, and Joint Stability Support. While I do not take referrals directly through an NHS scheme, if your GP or doctor has recommended exercise, please get in touch. We will review their guidance together and build a safe, structured plan tailored to your body.",
       },
       {
         question: "I have an injury. Is it safe to exercise?",
         answer:
-          "In most cases yes, though it depends on the injury and the stage of recovery. I always start with an assessment and will not take on a client if I believe exercise would be harmful. For recent injuries or post-surgical clients, I work within the guidance of physiotherapists and medical teams.",
+          "In most cases, yes, though it depends entirely on the type of injury and your current stage of recovery. An injury rarely means you have to stop moving altogether; it simply means we train intelligently by carefully adapting your range of motion and loading to protect the area while keeping the rest of your body strong and active. For recent injuries or post-surgical recovery, I work safely within the boundaries of any guidance provided by your physiotherapist or medical team.",
       },
     ],
   },
