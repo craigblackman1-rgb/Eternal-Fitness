@@ -1,3 +1,144 @@
+# Session Handoff: August 7, 2026 (Claude Code) — launch-readiness sweep, Bookings CTA, GDPR legal pages
+
+## Agent
+Claude Code
+
+## Session Summary
+Long session, four separate pushes, run from a series of isolated worktrees per DO-SOP-010:
+
+1. **Launch-readiness sweep (`27ab8e6`, `e29cfab`).** Craig asked for staging cleaned up for a live
+   push. Found the real headline issue during an `/seo-audit` pass: **both public lead-capture forms
+   were UI-only stubs** — the Contact page form called `setSent(true)` with no `fetch`/API call, and
+   the site-wide "Book a Free Consultation" dialog faked a send via `setTimeout`. Neither ever
+   transmitted anything; every real enquiry would have been silently lost. Built `app/api/leads/route.ts`
+   on the existing `lib/email.ts` Resend/SendGrid/SMTP sender (confirmed `RESEND_API_KEY` genuinely
+   configured on Coolify, so this sends real email), wired both forms to it, matched the existing
+   `ESTHER_NOTIFY_EMAIL` override convention from the cron nudge job. Also: retired `/calorie-calculator`
+   (redirect to `/`, code kept — portal's gated per-client version is the real one now), flattened 6
+   legacy-WordPress redirects that were double-hopping through a disabled page before reaching `/`, and
+   added `/testimonials` to `sitemap.xml` (live, nav-linked, was missing entirely).
+2. **Site-wide Bookings CTA sweep (`427dd0e`).** Craig flagged that the footer already linked "Book a
+   free consultation" straight to the live Microsoft Bookings calendar (a deliberate Esther-approved
+   swap from `b63887e`, 2026-08-04) but nothing else did — every other CTA (Navbar on every page, every
+   hero, every closing CTA band, 13 page files) still opened the dialog just fixed to email instead.
+   Verified the Bookings page live in a browser first (real "Initial consult, 30 min, new customers
+   only" service). Swapped all 13 files + `Navbar.tsx` + `CTASection.tsx` to link straight to
+   `lib/booking.ts`'s `BOOKINGS_URL`, then deleted `components/ConsultationDialog.tsx` and
+   `hooks/useConsultationDialog.tsx` entirely once confirmed zero remaining references — dropped a
+   Radix dialog from every page's bundle as a side effect.
+3. **Legal pages rewritten for UK GDPR/PECR (`39a8c44`).** Craig asked for Privacy Policy, Cookie
+   Policy, and Terms reviewed with GDPR "included." Audited what the site actually does (grepped for
+   analytics/tracking scripts — none; checked `middleware.ts`/`lib/auth.ts` for real cookie names;
+   checked `app/parq/page.tsx` for the actual special-category health data collected; checked
+   `app/api/claude/*` for the OpenRouter AI processor) before writing anything, rather than polishing
+   the existing text. The old pages were the **unedited 6 Dec 2020 WordPress/Termly template** — US/
+   California-oriented, listing Google Analytics and Flash cookies that don't exist on this Next.js
+   site, no UK GDPR/ICO mention anywhere, a false "never longer than 1 year" retention claim, and
+   Esther mislabelled a formal "DPO" (not accurate at this scale). Full rewrite of Privacy + Cookie
+   Policy, additive changes to Terms (14-day distance-selling cooling-off section, complaints
+   procedure, Consumer Rights Act 2015 reference). Real finding: **the public site sets zero cookies**
+   — no consent banner is currently required under PECR because of that; only 3 essential
+   hub/portal session cookies exist. New processor table in the Privacy Policy: Microsoft Bookings,
+   email provider, hosting, the OpenRouter AI assistant (explicitly excluding PAR-Q data), Trainerize
+   (historic). Verified every TOC anchor on all 3 pages resolves to a real section id via an automated
+   cross-check, not eyeballed.
+4. **GDPR internal-documentation Work Order created (`89d6349`), not run.** Craig asked what
+   ICO-facing internal documentation (as opposed to the public policies) the hub needs, then asked for
+   it as a Work Order for a separate session rather than built inline. Scoped as
+   `wo-eternalfitness-gdpr-hub-documentation-2026-08-07` (planned, unclaimed) — ROPA, breach procedure
+   + log, Subject Access Request procedure, processor/DPA register (including Decoded Ops' own DB
+   access as a real, currently-undisclosed processor relationship — flagged as a `[GATE]`, not
+   invented), retention schedule, internal data-handling policy — as `Sop`/`ProcessEntry` rows in the
+   hub's existing Process & Quality module (`/hub/process-quality`), not a new feature. Full detail:
+   `.context/workorder-gdpr-hub-documentation-2026-08-07.md`.
+
+Also recovered here: the **2026-08-06 accessibility WO entry below was never actually committed** —
+found the shared checkout (`D:\apps\eternal-fitness-website`) carrying it as a local uncommitted diff
+against `handoff.md` at session start. The work itself was genuinely shipped and verified at the time
+(`7179fb8`, confirmed live) — only the handoff narrative was lost. Recovered and committed here so it's
+not lost a second time.
+
+## Current State
+Staging (`staging.eternal-fitness.co.uk`) is solid for a public launch from a code standpoint: lead
+capture actually works, every CTA points at a real booking calendar, and the 3 legal pages are UK
+GDPR/PECR-accurate rather than a stale US template. **Not done**: the actual domain cutover.
+`NEXT_PUBLIC_ALLOW_INDEXING` is still unset on Coolify (site currently serves `noindex`/`Disallow: /`
+regardless of what domain points at it), the `staging.` subdomain isn't retired, and DNS/WordPress
+decommission/GSC submission haven't started — all Craig's own go-live checklist, untouched this
+session by design (DNS + indexing is a `[GATE]`-level, client-facing action).
+
+Craig separately said he'd register Esther with the ICO (Tier 1, £52/year, self-assessment at
+ico.org.uk) — status unconfirmed as of session close.
+
+## Blockers
+None on anything actionable this session. The GDPR documentation Work Order is deliberately
+**unclaimed and not run** — Craig asked for it scoped, not executed, this session.
+
+## Next Steps
+1. Craig: decide on and execute the actual domain cutover (`NEXT_PUBLIC_ALLOW_INDEXING`, staging
+   subdomain retirement, DNS, WordPress decommission, GSC sitemap submission) — see
+   `EF_SEO_AI_Migration_Plan_Jul2026.md` §3 in the workspace repo for the existing checklist.
+2. Confirm Esther's ICO registration status.
+3. Pick up `wo-eternalfitness-gdpr-hub-documentation-2026-08-07` in a separate session — read the live
+   `sops`/`process_register` tables first (something was seeded there in late July that Esther hadn't
+   reviewed; don't duplicate or clobber it), then work the `[AUTO]` units, surfacing the `[GATE]` items
+   (Decoded Ops' own processor-relationship wording, hub-login state) rather than guessing them.
+4. Reports/Updates page's "Export" and "New update" header buttons are still fake placeholder links to
+   `/hub/clients` (flagged 2026-07-30, re-confirmed still true 2026-08-07) — real, still-open gap, not
+   part of anything scoped this session.
+
+## Files Changed
+### New
+- `app/api/leads/route.ts` — shared contact-form/consultation-dialog send endpoint
+- `lib/booking.ts` — `BOOKINGS_URL` constant
+- `.context/workorder-gdpr-hub-documentation-2026-08-07.md`
+
+### Modified
+- `app/contact/ContactPageClient.tsx`, `components/ConsultationDialog.tsx` (deleted),
+  `hooks/useConsultationDialog.tsx` (deleted), `lib/email.ts` (added `replyTo`)
+- `next.config.js` (calorie-calculator retirement, redirect-chain flattening), `app/sitemap.ts`
+  (added `/testimonials`)
+- `components/Navbar.tsx`, `components/CTASection.tsx`, `components/Footer.tsx`, and all 13 page
+  files listed in the `427dd0e` commit body — Bookings CTA swap
+- `app/privacy-policy/PrivacyPolicyClient.tsx`, `app/cookies-policy/CookiesPolicyClient.tsx`,
+  `app/terms/TermsPageClient.tsx` — full GDPR/PECR rewrite
+
+---
+
+# Session Handoff: August 6, 2026, evening (Claude Code) — accessibility WO
+
+## Agent
+Claude Code
+
+## Session Summary
+Craig asked about vision-accessibility (image captions etc.) for the public site. Ran an audit
+(Explore agent + `a11y-audit` skill) — real gaps weren't image alt text (37/40 already solid), they
+were structural: no skip-to-content link/`<main>` landmark on the public marketing pages (the client
+portal already has one), and the brand "rose" colour computing to ~2.9-3:1 on white when used as text
+(fails WCAG AA 4.5:1). Craig said "go with it" — promoted to `wo-eternalfitness-accessibility-vision-
+2026-08-06` (full detail: `.context/workorder-accessibility-vision-2026-08-06.md`), dispatched as one
+OpenCode lane (deepseek-v4-pro, worktree `accessibility-vision-2026-08-06`, all 3 lanes in one pass
+since they shared files) covering:
+- Skip-to-content link (`app/layout.tsx`) + `<main id="main-content">` on all 15 public page components
+- New `--rose-text: #AE547D` token (4.81:1 on white, computed independently, not trusted from self-report)
+  swapped in at 8 text-colour call sites (step numbers, links, asterisks, FAQ markers); decorative/
+  hover/background rose left untouched per the MUST constraint
+- Blog search input `aria-label`, contact form focus ring darkened to the same token, blog hero/post
+  image alt text improved (one now correctly `alt=""` as decorative, adjacent heading provides context)
+
+Verified independently before merging (not on the lane's self-report): `git diff --stat` confirmed
+only public-page files touched (no /hub or /portal); contrast recomputed via a standalone Node script;
+`tsc --noEmit` clean; live-rendered in a dev server and inspected via DOM (skip link is the first
+`<body>` child, exactly one `<main>` per page, Navbar/Footer outside it); blog/post pages verified by
+diff review only since blog currently redirects to Home (pre-existing, separate decision — code is
+correct and will apply once blog is re-enabled). Rebased onto a newer `origin/main` (another session's
+hub-consolidated WO had pushed unrelated commits meanwhile, no file overlap), pushed `7179fb8`,
+triggered and watched the Coolify deploy to `finished`/`running:healthy`, then confirmed the skip link
+and `<main>` landmark live on `staging.eternal-fitness.co.uk` directly. Worktree removed, WO marked done
+in the registry.
+
+---
+
 # Session Handoff: August 4, 2026 (Claude Code)
 
 ## Agent

@@ -1,5 +1,32 @@
 # Eternal Fitness Website — State
 
+## 2026-08-07 (Claude Code)
+- **Launch-readiness sweep — DONE + DEPLOYED (`27ab8e6`, `e29cfab`).** Both public lead-capture forms
+  (Contact page form, site-wide "Book a Free Consultation" dialog) were found to be non-functional
+  stubs that never sent anything — fixed with a real `app/api/leads/route.ts` on the existing
+  `lib/email.ts` sender (confirmed `RESEND_API_KEY` genuinely configured, so this sends real email).
+  Also: `/calorie-calculator` retired (redirect, code kept), 6 legacy-WordPress redirect chains
+  flattened, `/testimonials` added to `sitemap.xml` (was missing despite being live and nav-linked).
+- **Site-wide Bookings CTA sweep — DONE + DEPLOYED (`427dd0e`).** Every "Book a Free Consultation" CTA
+  (13 page files + Navbar + CTASection) now links straight to the live Microsoft Bookings calendar,
+  matching what the footer already did since 2026-08-04. `ConsultationDialog.tsx`/
+  `useConsultationDialog.tsx` deleted as dead code (zero remaining references confirmed).
+- **Legal pages rewritten for UK GDPR/PECR — DONE + DEPLOYED (`39a8c44`).** Privacy Policy and Cookie
+  Policy were the unedited 6 Dec 2020 WordPress/Termly template (US/CCPA-oriented, listed Google
+  Analytics/Flash cookies that don't exist on this site, no UK GDPR/ICO mention). Full rewrite,
+  grounded in an actual codebase audit (confirmed: zero tracking cookies on the public site; 3
+  essential hub/portal session cookies; PAR-Q collects genuine special-category health data; an
+  OpenRouter-routed AI assistant drafts client emails/plans, explicitly excluding PAR-Q). Terms
+  extended (not rewritten) with a 14-day distance-selling cooling-off section, complaints procedure,
+  Consumer Rights Act 2015 reference.
+- **GDPR internal-documentation Work Order scoped, not run.** `wo-eternalfitness-gdpr-hub-
+  documentation-2026-08-07` (planned, unclaimed) — ROPA, breach procedure + log, SAR procedure,
+  processor/DPA register, retention schedule, internal data-handling policy, as entries in the hub's
+  existing Process & Quality module. Full detail: `.context/workorder-gdpr-hub-documentation-2026-08-07.md`.
+- **Not started this session:** the actual domain cutover (`NEXT_PUBLIC_ALLOW_INDEXING` still unset,
+  staging subdomain not retired, DNS/WordPress decommission/GSC submission) — Craig's own go-live
+  checklist. Craig said he'd register Esther with the ICO; status unconfirmed at session close.
+
 ## 2026-08-06 (Claude Code)
 - **Work Order `wo-hub-consolidated-2026-08-06` — DONE, all 9 lanes merged, deployed.** Craig raised 9
   hub items in one session: (1) Quote/invoice template built into cashflow's `invoice_templates`
