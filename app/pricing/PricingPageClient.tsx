@@ -5,8 +5,7 @@ import { IconArrowUpRight, IconCheck } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import {
   Section,
   SectionHeading,
@@ -16,8 +15,6 @@ import {
 } from "@/components/ds";
 
 export default function PricingPageClient({ content = {} }: { content?: Record<string, string> }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-
   const plans = [
     {
       name: content.plan_2_name ?? "Block of 12",
@@ -51,7 +48,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       <PageHero
@@ -63,7 +60,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         eyebrow={content.hero_eyebrow ?? "Pricing"}
         heading={content.hero_heading ?? <>Simple, <em>Straightforward</em> Pricing</>}
         subhead={content.hero_subhead ?? "One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}
-        primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
+        primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }}
         secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing" }}
       />
 
@@ -81,7 +78,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
             </p>
             <div style={{ marginTop: 24 }}>
-              <button type="button" onClick={openDialog} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
+              <Link href={BOOKINGS_URL} className="ef-btn ef-btn-outline">Book a Free Consultation</Link>
             </div>
           </div>
         </div>
@@ -122,10 +119,10 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
                   </li>
                 ))}
               </ul>
-              <button onClick={openDialog} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
+              <Link href={BOOKINGS_URL} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
                 {plan.cta}
                 <IconArrowUpRight className="w-3.5 h-3.5" />
-              </button>
+              </Link>
             </div>
           ))}
         </Reveal>
@@ -143,9 +140,9 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
             <p className="ds-body ds-body-light" style={{ fontSize: 19, fontWeight: 600, color: "#fff", lineHeight: 1.4, marginBottom: 16 }}>
               {content.pricing_note_body ?? "Start with the free consultation. I'll give you an honest recommendation based on your situation — not the most expensive option."}
             </p>
-            <button type="button" onClick={openDialog} className="ef-btn ef-btn-primary">
+            <Link href={BOOKINGS_URL} className="ef-btn ef-btn-primary">
               Book a Free Consultation <IconArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, justifyContent: "center" }}>
             <Link href="/personal-training" style={{ color: "#fff", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
@@ -161,12 +158,11 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         eyebrow={content.cta_eyebrow ?? "Free Consultation"}
         heading={content.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
-        primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
+        primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: content.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

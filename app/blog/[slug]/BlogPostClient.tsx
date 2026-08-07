@@ -6,8 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SocialIcon from "@/components/SocialIcons";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import { PulseLine } from "@/components/ds";
 
 interface BlogPostData {
@@ -33,8 +32,6 @@ interface Props {
 }
 
 export default function BlogPostClient({ post, relatedPosts, recentPosts }: Props) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-
   const { processedContent, tocItems } = useMemo(() => {
     if (!post.content) return { processedContent: "", tocItems: [] as { id: string; text: string; level: string }[] };
     let content = post.content;
@@ -85,12 +82,10 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
 
   return (
     <div className="min-h-screen bg-background">
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
-
       <main id="main-content">
       {/* Editorial hero — ink band, no stock photo */}
       <section className="ds-bg-ink pt-[72px]">
-        <Navbar onBookConsultation={openDialog} />
+        <Navbar />
         <div className="max-w-[1320px] mx-auto px-6 md:px-12 py-16 md:py-24">
           <div className="max-w-[820px]">
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-semibold tracking-[0.1em] uppercase mb-6">
@@ -176,12 +171,12 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
                     Personal trainer in Worthing, Level 4 qualified in Cancer and Exercise Rehabilitation, specialising in exercise for people with health conditions and complex needs.
                   </p>
                 </div>
-                <button
-                  onClick={openDialog}
+                <Link
+                  href={BOOKINGS_URL}
                   className="inline-flex items-center gap-2 bg-rose text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity self-start sm:self-auto"
                 >
                   Book a Free Consultation
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -236,9 +231,9 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
                   <div className="max-w-[180px] mb-4"><PulseLine accent="rose" /></div>
                   <p className="font-serif text-xl text-foreground leading-snug mb-2">Not sure where to start?</p>
                   <p className="ef-body text-sm mb-4">The first conversation is free, with no commitment.</p>
-                  <button onClick={openDialog} className="text-[var(--rose-text)] text-sm font-semibold hover:underline underline-offset-4">
+                  <Link href={BOOKINGS_URL} className="text-[var(--rose-text)] text-sm font-semibold hover:underline underline-offset-4">
                     Book a Free Consultation →
-                  </button>
+                  </Link>
                 </div>
               </div>
             </aside>
@@ -282,9 +277,9 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
             Want a simple plan based on your body and goals? Book a free consultation and I will map out a safe, personalised approach that feels good and fits your week.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <button onClick={openDialog} className="inline-flex items-center gap-2 bg-rose text-white px-6 py-3 rounded-full font-medium hover:opacity-90 transition-opacity">
+            <Link href={BOOKINGS_URL} className="inline-flex items-center gap-2 bg-rose text-white px-6 py-3 rounded-full font-medium hover:opacity-90 transition-opacity">
               Book a Free Consultation
-            </button>
+            </Link>
             <a href="tel:07517658128" className="inline-flex items-center gap-2 border border-[#E4DDD7] text-[#525A61] px-6 py-3 rounded-full font-medium hover:bg-rose hover:text-white transition-colors">
               Call: 07517 658 128
             </a>

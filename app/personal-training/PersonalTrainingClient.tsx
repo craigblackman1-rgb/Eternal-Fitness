@@ -10,8 +10,7 @@ import {
 } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import {
   Section,
   SectionHeading,
@@ -71,12 +70,11 @@ const steps = [
 ];
 
 export default function PersonalTrainingClient({ content = {} }: { content?: Record<string, string> }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-  const bookCta = { label: content.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true };
+  const bookCta = { label: content.hero_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       <PageHero
@@ -204,12 +202,11 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         eyebrow={content.cta_eyebrow ?? "Free Consultation"}
         heading={content.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
-        primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
+        primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: content.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

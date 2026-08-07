@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import {
   Section,
   SectionHeading,
@@ -89,12 +88,11 @@ const faqs = [
 ];
 
 export default function VisualImpairmentClient() {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-  const bookCta = { label: "Book a Free Consultation", onClick: openDialog, arrow: true };
+  const bookCta = { label: "Book a Free Consultation", href: BOOKINGS_URL, arrow: true };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       <PageHero
@@ -224,12 +222,11 @@ export default function VisualImpairmentClient() {
         image="/images/blind-sport-team.jpg"
         heading="Ready to find out if this is right for you?"
         body="The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."
-        primaryCta={{ label: "Book a Free Consultation", onClick: openDialog }}
+        primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

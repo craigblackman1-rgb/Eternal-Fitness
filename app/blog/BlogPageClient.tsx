@@ -8,8 +8,7 @@ import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 
 const categories = ["All", "Training", "Nutrition", "Recovery", "General"];
 
@@ -28,7 +27,6 @@ interface BlogPost {
 }
 
 export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -45,8 +43,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       {/* Hero */}
@@ -59,9 +56,9 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
             Dive into my blog for insights, tips, and advice to support your health and fitness journey.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <button onClick={openDialog} className="ef-btn ef-btn-primary shadow-lg shadow-rose/30">
+            <Link href={BOOKINGS_URL} className="ef-btn ef-btn-primary shadow-lg shadow-rose/30">
               Book a Free Consultation
-            </button>
+            </Link>
             <Link href="/about" className="ef-btn ef-btn-ghost-white">Visit the Studio</Link>
           </div>
         </div>
@@ -130,7 +127,7 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
       )}
 
       <FAQSection />
-      <CTASection onBookConsultation={openDialog} />
+      <CTASection />
       </main>
       <Footer />
     </div>

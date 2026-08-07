@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import {
   Section,
   SectionHeading,
@@ -29,8 +28,6 @@ import { IconRibbon } from "@/components/icons";
 
 
 export default function CancerRehabClient({ content = {} }: { content?: Record<string, string> }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-
   const stages = [
     { title: content?.stage_1_title ?? "During active treatment", body: content?.stage_1_body ?? "Chemotherapy and radiotherapy significantly affect energy, immune function, and physical capacity — and those effects are unpredictable from week to week. Sessions during active treatment are lower intensity, shorter, and built around your current treatment schedule. Every session begins with a check-in." },
     { title: content?.stage_2_title ?? "In remission", body: content?.stage_2_body ?? "Remission brings its own challenges — rebuilding fitness that has been lost, managing ongoing fatigue or side effects, and navigating the physical and emotional after-effects of treatment. Sessions progress gradually, respecting the timeline your body needs." },
@@ -51,11 +48,11 @@ export default function CancerRehabClient({ content = {} }: { content?: Record<s
     { title: content?.faq_4_title ?? "Do you work with people during active treatment?", body: content?.faq_4_body ?? "Yes. I work with people during active chemotherapy or radiotherapy, people in remission, and those who have finished treatment but are rebuilding. Each stage requires a different approach — the programme is built around where you are right now." },
   ];
 
-  const bookCta = { label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true };
+  const bookCta = { label: content?.hero_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       <PageHero
@@ -180,12 +177,11 @@ export default function CancerRehabClient({ content = {} }: { content?: Record<s
         image="/images/studio-kettlebell-playful.jpg"
         heading={content.cta_heading ?? "Ready to find out if this is right for you?"}
         body={content.cta_body ?? "The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."}
-        primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
+        primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: content.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
 import { IconMenu, IconX, IconArrowUpRight } from "@/components/icons";
+import { BOOKINGS_URL } from "@/lib/booking";
 
 type NavChild = { label: string; to: string };
 type NavItem = { label: string; to: string; children?: NavChild[] };
@@ -19,9 +20,6 @@ const navItems: NavItem[] = [
   { label: "Contact", to: "/contact" },
 ];
 
-interface NavbarProps {
-  onBookConsultation?: () => void;
-}
 
 const SITE_URL = "https://eternal-fitness.co.uk";
 
@@ -181,7 +179,7 @@ function NavDropdown({
   );
 }
 
-const Navbar = ({ onBookConsultation }: NavbarProps) => {
+const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -267,21 +265,12 @@ const Navbar = ({ onBookConsultation }: NavbarProps) => {
 
         {/* Desktop CTA */}
         <div className="hidden md:block">
-          {onBookConsultation ? (
-            <button
-              onClick={onBookConsultation}
-              className="ef-btn ef-btn-primary text-sm py-2.5 px-5"
-            >
-              Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <Link
-              href="/contact"
-              className="ef-btn ef-btn-primary text-sm py-2.5 px-5"
-            >
-              Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
-            </Link>
-          )}
+          <Link
+            href={BOOKINGS_URL}
+            className="ef-btn ef-btn-primary text-sm py-2.5 px-5"
+          >
+            Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
+          </Link>
         </div>
 
         {/* Mobile toggle */}
@@ -337,22 +326,13 @@ const Navbar = ({ onBookConsultation }: NavbarProps) => {
             )}
           </div>
         ))}
-        {onBookConsultation ? (
-          <button
-            onClick={() => { setOpen(false); onBookConsultation(); }}
-            className="ef-btn ef-btn-primary text-sm w-fit"
-          >
-            Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
-          </button>
-        ) : (
-          <Link
-            href="/contact"
-            onClick={() => setOpen(false)}
-            className="ef-btn ef-btn-primary text-sm w-fit"
-          >
-            Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
-          </Link>
-        )}
+        <Link
+          href={BOOKINGS_URL}
+          onClick={() => setOpen(false)}
+          className="ef-btn ef-btn-primary text-sm w-fit"
+        >
+          Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
+        </Link>
       </div>
     </>
   );

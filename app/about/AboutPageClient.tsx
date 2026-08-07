@@ -4,8 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import {
   Section,
   SectionHeading,
@@ -21,8 +20,6 @@ import {
 import { IconAccessibility, IconDumbbell, IconLeaf, IconHeartHandshake } from "@/components/icons";
 
 export default function AboutPageClient({ content = {} }: { content?: Record<string, string> }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-
   const qualifications = [
     { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "Individualised coaching to build a lasting foundation for your everyday strength and fitness." },
     { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Specialist programming to safely manage clinical conditions, injuries, and GP-referred health requirements, focusing heavily on Balance, Mobility, and Joint Stability Support." },
@@ -41,11 +38,11 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
     { title: content?.long_card_3_title ?? "Real Outcomes, Not Aesthetics", desc: content?.long_card_3_desc ?? "We measure success by how you feel, move, and live outside the studio. True fitness means becoming stronger, more capable, and comfortable in your own skin.", image: "/images/mind-body.jpg", href: undefined },
   ];
 
-  const bookCta = { label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true };
+  const bookCta = { label: content?.hero_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       <PageHero
@@ -201,15 +198,14 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           </figcaption>
         </figure>
         <div className="ds-about-foot">
-          <button
-            type="button"
-            onClick={openDialog}
+          <Link
+            href={BOOKINGS_URL}
             className="ef-btn ef-btn-primary"
             style={{ gap: 8 }}
           >
             Book a Free Consultation
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
+          </Link>
         </div>
       </Section>
 
@@ -219,12 +215,11 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content?.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
-        primaryCta={{ label: content?.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
+        primaryCta={{ label: content?.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: content?.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

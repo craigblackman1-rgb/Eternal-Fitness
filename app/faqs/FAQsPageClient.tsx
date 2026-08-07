@@ -2,8 +2,7 @@
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ConsultationDialog from "@/components/ConsultationDialog";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import { Section, PageHero, CTABand, Eyebrow, CtaButton } from "@/components/ds";
 import {
   Accordion,
@@ -121,11 +120,9 @@ const faqGroups = [
 ];
 
 export default function FAQsPageClient({ content = {} }: { content?: Record<string, string> }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       <PageHero
@@ -137,7 +134,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
         subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
-        primaryCta={{ label: content?.hero_btn_primary ?? "Book a Free Consultation", onClick: openDialog, arrow: true }}
+        primaryCta={{ label: content?.hero_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }}
         secondaryCta={{ label: content?.hero_btn_secondary ?? "Read the FAQs", href: "#faq" }}
         badge={
           <div className="flex gap-3.5 items-start max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-md shadow-lg p-5">
@@ -200,7 +197,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                 ))}
               </ul>
             </nav>
-            <CtaButton cta={{ label: content?.sidebar_btn ?? "Book a Free Consultation", onClick: openDialog, arrow: true }} />
+            <CtaButton cta={{ label: content?.sidebar_btn ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }} />
           </div>
 
           {/* Right — grouped FAQs */}
@@ -290,12 +287,11 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content?.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
-        primaryCta={{ label: content?.cta_btn_primary ?? "Book a Free Consultation", onClick: openDialog }}
+        primaryCta={{ label: content?.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: content?.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

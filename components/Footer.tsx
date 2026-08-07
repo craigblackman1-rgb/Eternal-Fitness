@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { IconFacebook, IconArrowUpRight } from "@/components/icons";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
+import { BOOKINGS_URL } from "@/lib/booking";
 
 const websiteSchema = {
   "@context": "https://schema.org",
@@ -51,7 +52,7 @@ const Footer = () => {
               <p className="text-[14.5px] leading-[1.62] text-white/60 max-w-[36ch] mb-7">
                 All sessions last 60 minutes. Train in my private Worthing studio or join live online.
               </p>
-              <Link href="https://bookings.cloud.microsoft/book/EternalFitnessBookings@eternal-fitness.co.uk/?ismsaljsauthenabled=true" className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
+              <Link href={BOOKINGS_URL} className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
                 Book a free consultation
                 <IconArrowUpRight style={{ width: 13, height: 13 }} />
               </Link>

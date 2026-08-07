@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import ConsultationDialog from "@/components/ConsultationDialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeMotion from "@/components/home/HomeMotion";
-import { useConsultationDialog } from "@/hooks/useConsultationDialog";
+import { BOOKINGS_URL } from "@/lib/booking";
 import { IconAward } from "@/components/icons";
 import "./home.css";
 
@@ -17,11 +16,9 @@ const Arrow = () => (
 );
 
 export default function HomePageClient({ content = {} }: { content?: Record<string, string> }) {
-  const { open, setOpen, openDialog } = useConsultationDialog();
-
   return (
     <div className="efhome">
-      <Navbar onBookConsultation={openDialog} />
+      <Navbar />
 
       <main id="main-content">
       {/* HERO */}
@@ -51,7 +48,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             {content.hero_subheading ?? "I am Esther—a Level 4 Specialist Personal Trainer based in a private studio in Worthing. Because I am trained beyond the industry standard, whatever is going on with your health, your plan adapts instead of stopping."}
           </p>
           <div className="h-btns" id="hbtns">
-            <button className="btn btn-rs" onClick={openDialog}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></button>
+            <Link className="btn btn-rs" href={BOOKINGS_URL}>{content.hero_btn_primary ?? "Book a Free Consultation"} <Arrow /></Link>
             <a href="#approach" className="btn btn-ol">{content.hero_btn_secondary ?? "See How It Works"}</a>
           </div>
         </div>
@@ -167,7 +164,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
                 {content.who_body ?? "Some arrive with more going on: a health condition, recovery from treatment, something that makes them wonder if training is even for them. If that's you, it almost certainly still is — get in touch."}
               </p>
               <div style={{ marginTop: 28 }}>
-                <button className="btn btn-ow" onClick={openDialog}>{content.who_cta ?? "Book a Free Consultation"} <Arrow /></button>
+                <Link className="btn btn-ow" href={BOOKINGS_URL}>{content.who_cta ?? "Book a Free Consultation"} <Arrow /></Link>
               </div>
             </div>
             <div>
@@ -229,7 +226,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <h2>{content.cta_heading ?? "Your first conversation is free, with absolutely no commitment."}</h2>
           <p>{content.cta_body ?? "I work with a small number of clients at any one time. This ensures you always receive my full, undivided attention."}</p>
           <div className="ctabtns">
-            <button className="btn btn-wh" onClick={openDialog}>{content.cta_btn_primary ?? "Book a Free Consultation"}</button>
+            <Link className="btn btn-wh" href={BOOKINGS_URL}>{content.cta_btn_primary ?? "Book a Free Consultation"}</Link>
             <a href="tel:07517658128" className="btn btn-ow">{content.cta_btn_secondary ?? "Call: 07517 658 128"}</a>
           </div>
         </div>
@@ -240,7 +237,6 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
       <Footer />
 
       <HomeMotion />
-      <ConsultationDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }
