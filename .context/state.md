@@ -19,13 +19,45 @@
   OpenRouter-routed AI assistant drafts client emails/plans, explicitly excluding PAR-Q). Terms
   extended (not rewritten) with a 14-day distance-selling cooling-off section, complaints procedure,
   Consumer Rights Act 2015 reference.
-- **GDPR internal-documentation Work Order scoped, not run.** `wo-eternalfitness-gdpr-hub-
-  documentation-2026-08-07` (planned, unclaimed) — ROPA, breach procedure + log, SAR procedure,
-  processor/DPA register, retention schedule, internal data-handling policy, as entries in the hub's
-  existing Process & Quality module. Full detail: `.context/workorder-gdpr-hub-documentation-2026-08-07.md`.
+- **GDPR internal-documentation Work Order — RUN + GATED, later same day.** `wo-eternalfitness-gdpr-
+  hub-documentation-2026-08-07` — SOP-011 through SOP-015 (ROPA, breach procedure, SAR procedure,
+  retention schedule, processor register) drafted and inserted live into the hub's `sops`/
+  `process_entries` tables, cross-checked against the real Privacy Policy. Caught and fixed a real
+  problem first: the worktree picking this up was 3 commits behind `main`, missing the actual legal-
+  page rewrite (`39a8c44`) this WO's content had to be grounded in — fast-forwarded before drafting
+  anything. Craig asked for the Decoded Ops/Craig DB-access line to be a formal processor relationship,
+  not just wording — drafted a full Art. 28 UK GDPR Data Processing Agreement
+  (`.context/decoded-ops-dpa-2026-08-07.md` + a signable `.docx` sent to Craig), `PR-015.status` left
+  as `review` pending signature. Craig confirmed: has his own hub login now; ICO registration **not
+  yet** done. Full detail: `.context/workorder-gdpr-hub-documentation-2026-08-07.md`.
+- **Marketing/hub follow-ups Work Order — RUN + GATED, same day.** `wo-eternalfitness-marketing-hub-
+  followups-2026-08-07` — consolidated a marketing brain-dump (podcast episode, FitPro press feature,
+  blind-fitness/cancer-rehab copy) plus live UI feedback from the same session. Shipped: Tasks "New
+  task" form → popup modal, exercise library row-spacing + pagination fix, Updates report header
+  spacing fix, FitPro "As featured in" mention on the About page. A live review of Bank Transactions
+  first looked like a missing feature (only checked the list page) — corrected: the per-line
+  categorization UI already exists one click deeper, at `/hub/cashflow/transactions/[id]`, no rebuild
+  needed. Blind-fitness copy Lane B is `[BLOCKED]` — Craig: no page exists yet to host it, depends on
+  the still-disabled Specialist Training catalogue restructure.
+  **Programming-engine build (Lane E) — code-complete, NOT click-through verified:** Esther's 4-module
+  brain-dump (Master Template Registry, Session Roller, Exercise Swap, Volume Skeletons, Relational
+  Update Module) was scoped first, not built blind — a grep-level audit found most of it already built
+  under different names (exercise-swap volume retention, the live-session "Prescribed: 3×10" inline
+  display) or partially built (`workout_templates`). Built the 3 real gaps: (1) **Session Roller** —
+  new `GET /api/clients/[id]/sessions/latest-completed` + a "Roll Over Previous Session" button in
+  `SessionEditor.tsx`; (2) **Volume Skeletons** — a preset picker (Elite Strength 4×6, Hypertrophy
+  3×10, Endurance/Flow 3×15, Power 3×5) next to "Add exercise"; (3) **template → client assign
+  action** — investigated first and found there's no manual block/session creation path at all
+  (blocks only come from the AI Plan Agent chat), so instead of a standalone assign button, a chosen
+  template now grounds the AI generation prompt itself (`buildTemplateFrameworkSection()` in
+  `lib/planAgentPrompt.ts`) — Craig's explicit pick among 3 options presented. All pushed
+  (`bc1c149`/`f90d677`). **No hub login credentials available this session — none of Lane E has been
+  clicked through, needs a real pass before being trusted with a client.** Full detail:
+  `.context/workorder-marketing-hub-followups-2026-08-07.md`,
+  `.context/programming-engine-scoping-2026-08-07.md`.
 - **Not started this session:** the actual domain cutover (`NEXT_PUBLIC_ALLOW_INDEXING` still unset,
   staging subdomain not retired, DNS/WordPress decommission/GSC submission) — Craig's own go-live
-  checklist. Craig said he'd register Esther with the ICO; status unconfirmed at session close.
+  checklist.
 
 ## 2026-08-06 (Claude Code)
 - **Work Order `wo-hub-consolidated-2026-08-06` — DONE, all 9 lanes merged, deployed.** Craig raised 9

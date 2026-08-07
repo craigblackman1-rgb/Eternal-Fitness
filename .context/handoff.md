@@ -1,3 +1,126 @@
+# Session Handoff: August 7, 2026 (Claude Code, later same day) — GDPR SOPs + DPA, marketing/hub follow-ups, programming-engine build
+
+## Agent
+Claude Code
+
+## Session Summary
+Craig brought a marketing brain-dump (podcast episode, FitPro press feature, Esther's blind-fitness/
+cancer-rehab copy, and Esther's own 4-module programming-engine brain-dump) and asked it held until
+ready. Also gave live UI feedback via inline element selection during the same session. Consolidated
+both into `wo-eternalfitness-marketing-hub-followups-2026-08-07.md`, then separately picked up the
+pre-existing `wo-eternalfitness-gdpr-hub-documentation-2026-08-07.md` (created earlier the same day,
+see the handoff entry below).
+
+**Worktree hygiene finding (important for next session):** this worktree (`claude/pending-changes-
+b8cddb`) was 3 commits behind `origin/main` when picked up — missing the actual legal-page rewrite
+(`39a8c44`) this session's GDPR work needed to be grounded in. First read of `PrivacyPolicyClient.tsx`
+returned the stale 2020 US template. Fast-forwarded (`git merge --ff-only origin/main`) before
+drafting anything, no conflicts, uncommitted UI-fix edits preserved. Also caught and fixed a real
+process slip mid-session: WO doc edits accidentally landed in the shared checkout
+(`D:\apps\eternal-fitness-website\`) instead of this worktree — copied the content across, reverted
+the shared checkout back to clean via `git checkout --`. **Check `git status`/`git log
+origin/main..HEAD` at the start of any worktree session, not just at creation.**
+
+1. **Live UI fixes, 3 items ("Tasks modal" WO in registry).** Tasks "New/Edit task" form → popup
+   modal (`components/ui/dialog.tsx`, already existed, just not used here). Exercise library table:
+   row padding restored (`py-1` → `py-2.5`, had regressed from an earlier session), pagination
+   defaulted to 10/page with a 10/25/50/100 selector (was fixed at 60/page, no way to change it).
+   Updates report card header: padding was 16px top / 0px bottom against the mockup's uniform 14px —
+   fixed. Verified in browser via the preview tool (dev server had to `pnpm install` first — this
+   worktree's `node_modules` wasn't junctioned from the shared checkout per DO-SOP-010, worth fixing
+   if this worktree persists).
+
+2. **FitPro "As featured in" mention — About page.** Small credibility line under "Get in touch" near
+   the qualifications section (`app/about/AboutPageClient.tsx`), matching Craig's own placement
+   guidance (small mention, not a new section). Verified live in browser.
+
+3. **Bank Transactions — false alarm, corrected.** Live review of `/hub/cashflow/transactions`
+   initially looked like it was missing the per-line categorization UI the mockup shows (only the
+   import-history list was checked). Investigation found the categorization UI genuinely exists —
+   one click deeper, at `/hub/cashflow/transactions/[id]`, reached via "View import log" (built
+   commit `e584605`, 4 Aug). No rebuild needed; corrected in the WO and the queued question.
+
+4. **Blind-fitness/cancer-rehab specialist copy — Lane B, `[BLOCKED]` by Craig.** Esther supplied two
+   draft copy variants (British Blind Sport Activity Finder listing, Roy Turnham workshop mentoring,
+   CanRehab cancer rehab). Craig: "there is no more content to go live yet until we build out the
+   other pages" — not a wording decision, a real dependency on the still-disabled Specialist Training
+   catalogue restructure (`/cancer-rehabilitation`, `/exercise-for-health/*` redirects). Deferred, not
+   left as an open question.
+
+5. **GDPR documentation — SOP-011 through SOP-015, live in the hub DB.** ROPA, breach procedure (logs
+   via the existing `improvement_log` table, no new table), SAR procedure, retention/deletion
+   schedule, and a processor register — every figure cross-checked against the real, live Privacy
+   Policy (not paraphrased into drift). Found SOP-010 already covered the "internal data-handling
+   policy" DONE item — no duplicate entry created. Craig's answers: has his own hub login now; ICO
+   registration **not yet** done — don't imply full compliance until that's confirmed complete.
+   **Escalated the Decoded Ops DB-access line past a simple register entry, per Craig's explicit
+   ask for "something more formal":** drafted a real Art. 28 UK GDPR Data Processing Agreement
+   between Esther (Controller) and Decoded Ops (Processor) —
+   `.context/decoded-ops-dpa-2026-08-07.md`, also generated as a signable `.docx`
+   (`.context/Eternal-Fitness-Decoded-Ops-DPA.docx`) via the `docx` skill and sent to Craig.
+   `PR-015.status` left as `review`, not `active`, until both parties actually sign it — **that
+   signature is the one thing left open on this WO.**
+
+6. **Programming-engine build (Lane E) — Esther's 4-module brain-dump, built after scoping first.**
+   Esther's raw "Master Prompt for Claude" dump described 4 modules (Master Template Registry,
+   Session Roller, Inline Exercise Swap + Volume Skeletons, Relational Update Module) with an Aug 31
+   target, explicitly saying not to act on it yet. Craig later said "roll out the changes" — but
+   scoping ran first (`.context/programming-engine-scoping-2026-08-07.md`), which found most of it
+   already built under different names: exercise-swap already retains sets/reps/tempo on swap
+   (verified by reading `SessionEditor.tsx`'s `swapExercise()` — spreads `...e` first, only
+   overwrites name/cue/mod/equipment/media), and the live session-logging screen already shows
+   "Prescribed: {sets} × {reps}" inline with pre-filled inputs (`LiveSessionLog.tsx`) — the
+   Relational Update Module was already done. Built the 3 genuine gaps:
+   - **Session Roller** — new `GET /api/clients/[id]/sessions/latest-completed` (raw SQL join via
+     `getPool()`, ordered by `data.session_log.completed_at`, not row order — finds what was actually
+     last delivered, not just the last row) + a "Roll Over Previous Session" button in
+     `SessionEditor.tsx` reusing the existing `applyTemplate` → `setSections` path.
+   - **Volume Skeletons** — a "Skeleton" dropdown next to "Add exercise to {section}" with 4
+     hardcoded presets (Elite Strength 4×6, Hypertrophy 3×10, Endurance/Flow 3×15, Power 3×5) that
+     pre-fill sets/reps/tempo/rest; exercise name still picked via the existing `AddExerciseDialog`.
+   - **Template → client assign action** — investigated the real architecture first and found there
+     is **no manual "create a new block" or "add a session" path at all** — every block/session is
+     generated exclusively via the AI Plan Agent chat (`generateBlock()` →
+     `/api/claude/generate-block`). Presented Craig 3 real options given that constraint; **he chose
+     option 3** — feed the template into the AI generation prompt as structural grounding rather than
+     bolt on a separate assign action. Built: `PlanAgentTab.tsx` gets a "Use a template as the
+     framework" picker; `generate-block/route.ts` fetches the template and threads it through
+     `generateViaAi` as a new `TemplateFramework`; new `buildTemplateFrameworkSection()`
+     (`lib/planAgentPrompt.ts`) describes the template's structure/volume in the AI system prompt as
+     a shape guide for every session in the block, while exercise choice still comes from the real
+     EXERCISE LIBRARY and this client's own constraints — safety always overrides matching the
+     template. The non-AI fallback generator (used when no AI provider is configured) also honours a
+     template when present, deterministically repeating its exercises with phase-appropriate
+     sets/reps rather than picking fresh ones. Template `usage_count` increments on successful block
+     creation, matching the existing single-session convention.
+
+   Pushed `bc1c149` (Session Roller + Volume Skeletons) and `f90d677` (template-grounded generation).
+   **None of Lane E has been click-through verified — this session had no `/hub` login credentials,
+   and the template-grounding specifically also can't be fully exercised without a configured AI
+   provider.** All additive (new buttons/routes/prompt section, no existing code paths changed),
+   type-checked clean throughout. **First thing next session should do with real hub access: roll a
+   session forward for a client with completed history, add an exercise via a Skeleton preset, and
+   generate a block with a template selected to see if the output actually reads as "shaped like the
+   template."**
+
+## What's Genuinely Open
+- **DPA signature** — the GDPR WO's only remaining gate. Once Esther and Craig sign
+  `.context/Eternal-Fitness-Decoded-Ops-DPA.docx`, `PR-015.status` can flip to `active`.
+- **ICO registration** — Craig said he'd handle it; still not done as of this session's close.
+- **Lane E click-through verification** — see above, this is real risk if trusted blind.
+- **Lane B (specialist copy)** — blocked on the Specialist Training catalogue pages, which don't
+  exist yet. Don't revisit until those pages are built.
+- **Podcast placement** — Craig confirmed About-page placement is fine; separately mentioned he
+  "might" commission a homepage "as featured in" banner later covering both FitPro and the podcast.
+  Deferred (`dmsiuq6y68l`), not a firm ask — don't build it unprompted.
+
+Both Work Orders (`wo-eternalfitness-gdpr-hub-documentation-2026-08-07`,
+`wo-eternalfitness-marketing-hub-followups-2026-08-07`) are left in the registry as `gated`, OWNER
+cleared at session close. Full detail in each WO's own file plus
+`.context/programming-engine-scoping-2026-08-07.md`.
+
+---
+
 # Session Handoff: August 7, 2026 (Claude Code) — launch-readiness sweep, Bookings CTA, GDPR legal pages
 
 ## Agent

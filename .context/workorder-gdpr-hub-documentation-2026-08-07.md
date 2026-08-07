@@ -1,6 +1,6 @@
 # Work Order: GDPR internal documentation in the hub — 2026-08-07
 
-OWNER: claude (this session) — claimed 2026-08-07T12:00Z
+OWNER: (cleared — session closed 2026-08-07. Only remaining gate: Esther+Craig sign the DPA)
 SCOPE: eternal-fitness-website (app/hub/(protected)/process-quality — SOPs + Process Register tabs only; no new feature, no schema changes expected)
 
 GOAL: the internal GDPR/data-protection documentation a business processing special-category health data actually needs (ROPA, breach procedure + log, Subject Access Request procedure, processor/DPA register, retention schedule, internal data-handling policy) exists as real, accurate SOP/Process Register entries in the hub's existing Process & Quality module — not a new feature, not generic boilerplate.

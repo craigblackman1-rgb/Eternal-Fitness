@@ -1,6 +1,6 @@
 # Work Order: Marketing Credibility + Hub Programming Engine + Cashflow Follow-ups — 2026-08-07
 
-OWNER: claude (this session) — claimed 2026-08-07T12:00Z
+OWNER: (cleared — session closed 2026-08-07. Lane E code-complete, needs click-through verification; Lane B blocked on unbuilt pages)
 SCOPE: eternal-fitness-website (app/ marketing pages, app/hub/(protected)/** — programming/exercises/cashflow, components/ds/, components/hub/) — no other app touched.
 
 GOAL: Land the marketing-credibility items from Craig's 2026-08-07 brain-dump session (podcast feature, FitPro press mention) and get a clear, scoped decision on Esther's programming-engine brain-dump (Master Template Registry / Session Roller / Exercise Swap / Volume Skeletons / Relational Update Module) and the visually-impaired/rehab specialist copy — plus close out the Bank Transactions functional gap found during this session's UI review.
