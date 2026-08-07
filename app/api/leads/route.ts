@@ -7,7 +7,19 @@ import { getEmailSender } from "@/lib/email";
  * success state client-side with nothing actually sent (2026-08-07 fix).
  */
 
-const BUSINESS_EMAIL = "esther.fair@eternal-fitness.co.uk";
+// Same resolution order as app/api/cron/check-updates-due/route.ts's
+// resolveNotifyEmail(), so ESTHER_NOTIFY_EMAIL redirects both notification
+// paths with one env var.
+function resolveBusinessEmail(): string {
+  if (process.env.ESTHER_NOTIFY_EMAIL) {
+    return process.env.ESTHER_NOTIFY_EMAIL;
+  }
+  const raw = process.env.MAIL_FROM || "";
+  const match = raw.match(/<([^>]+)>/);
+  if (match) return match[1].trim();
+  if (raw.trim()) return raw.trim();
+  return "esther.fair@eternal-fitness.co.uk";
+}
 
 const SOURCE_LABELS: Record<string, string> = {
   contact_form: "Contact page form",
@@ -67,7 +79,7 @@ export async function POST(request: Request) {
   try {
     const sender = getEmailSender();
     const result = await sender.send({
-      to: BUSINESS_EMAIL,
+      to: resolveBusinessEmail(),
       subject: `New enquiry from ${fullName} — Eternal Fitness website`,
       html,
       replyTo: email,
