@@ -42,6 +42,7 @@ ASK FIRST:
 - Lane B — Specialist copy reconciliation (blind fitness / cancer rehab) · depends on: none
 - Lane C — Bank Transactions functional fix · depends on: investigation of existing cashflow WO Lane A status
 - Lane D — Programming-engine scoping (research only, no build) · depends on: none
+- Lane E — Programming-engine build (Craig authorised 2026-08-07: "roll out the changes") · depends on: Lane D findings
 
 ## UNITS
 
@@ -60,8 +61,19 @@ ASK FIRST:
 - [AUTO] Keep (or fold in) the existing import-history list — check with Craig whether it should remain as a secondary view or be removed in favor of the mockup's flow — VERIFY: no loss of the "view import log" capability
 
 ### Lane D — Programming-engine scoping (research only)
-- [AUTO] Audit what already exists against Esther's 4-module brain-dump (Master Template Registry, Session Roller, Inline Exercise Swap + Volume Skeletons, Relational Update Module) — cross-reference `training_blocks`, `sessions`, `set_logs`, exercise library, `workout-templates` — produce a gap list (what's built, what's missing, what's mislabeled) — files: none changed, output is a `.context/` note — VERIFY: findings written to `.context/programming-engine-scoping-2026-08-07.md`
-- [GATE] Present the gap list to Craig/Esther before any lanes are written for the actual build — this is explicitly not ready to grind per Esther's own "you don't need to do anything now" and the Aug 31 date needs sanity-checking against real scope
+- [x] Audit what already exists against Esther's 4-module brain-dump — see `.context/programming-engine-scoping-2026-08-07.md`
+- [x] Present the gap list to Craig — done in chat 2026-08-07; Craig responded "roll out the changes" — Lane E below is authorised
+
+### Lane E — Programming-engine build (authorised, not yet started)
+Scope per the Lane D gap list — build only the confirmed gaps, don't rebuild what already exists:
+- [AUTO] **Session Roller** — "Roll Over Previous Session" action on the client programming/session screen: query the most recent completed session/block for the client, populate a new session with the same exercise IDs/sets/reps/tempo/weight/cues from `sessions`/`set_logs`, fields left editable for micro-progression — files: new component + API route under `app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/**`, reusing existing `sessions`/`set_logs` schema (no new tables expected) — VERIFY: preview skill, real click-through, rolled-forward session shows the prior session's real values, not blank
+- [AUTO] **Volume Skeletons** — preset set/rep structures (e.g. "Elite Strength" 4×6, "Endurance/Flow" 3×15) selectable when building a new session, pre-filling sets/reps for each row, exercise name left blank for selection — files: likely a small config/constant + UI addition to `SessionEditor.tsx`, no new table needed unless presets need to be user-editable (decide yourself, lean toward hardcoded constants first, add a table only if Esther asks to customise them) — VERIFY: preview skill, selecting a skeleton produces the right sets/reps grid
+- [GATE] **Template → client assign/clone action** — before building, confirm with Craig/Esther this is still wanted: the template browser (`workout-template-browser.tsx`) exists but has no found "assign to this client" action. Needs a design decision (dropdown on client profile? action from the browser itself?) before implementation, not just a code gap — surface options, don't guess the UX
+- [x] **Verify — Exercise Swap volume retention** (2026-08-07): CONFIRMED already correct. `SessionEditor.tsx`'s `swapExercise()` spreads the original exercise object first (`...e`) and only overwrites `exercise_name`/`coaching_cue`/`modification`/`equipment`/`media` — sets/reps/tempo/weight are untouched by the swap. No fix needed.
+- [x] **Verify — Relational Update Module wiring** (2026-08-07): CONFIRMED already built. `LiveSessionLog.tsx` shows "Prescribed: {sets} × {reps}" inline per exercise and pre-fills log inputs to match the prescription (line ~750), plus a per-exercise note field — this is exactly Esther's ask. `TrainerizeHistoryPanel.tsx` renders whatever historical data it's given; since only ~12 months of Trainerize history was ever imported (per project CLAUDE.md), the panel's scope is inherently the 12-month lookback Esther described — not a literal date filter, but functionally equivalent given the data available. No fix needed.
+
+**Net effect of the two verifications above: the real remaining build is smaller than Esther's original 4-module dump — just Session Roller and Volume Skeletons (both genuinely missing), plus the Template → client assign action pending a UX decision.**
+- [ASK FIRST] Once the above lands, sanity-check the Aug 31 2026 date against the real remaining scope (likely much smaller than Esther's original dump) with Craig/Esther directly — don't let a date set against an unscoped ask silently become a deadline for scoped-down work
 
 ## LEDGER
 Progress written to: `eternal-fitness-website/.context/state.md` + `handoff.md` as each unit ticks.
