@@ -26,22 +26,22 @@ import {
 const focusCards = [
   {
     title: "Mobility and joint health",
-    desc: "Improving range of motion, reducing stiffness, and moving with less effort and pain day to day.",
+    desc: "Improving your range of motion, reducing daily stiffness, and helping you move with less effort and discomfort day to day.",
     icon: IconMove,
   },
   {
     title: "Functional strength",
-    desc: "Building practical strength for real life — carrying shopping, climbing stairs, getting up from the floor.",
+    desc: "Building practical strength for the things that matter: carrying shopping, climbing stairs without thinking about it, and getting up off the floor with ease.",
     icon: IconDumbbell,
   },
   {
     title: "Balance and stability",
-    desc: "Reducing fall risk and building physical confidence to move through your environment safely.",
+    desc: "Staying steady on your feet and building the deep physical confidence you need to move through your environment safely.",
     icon: IconTarget,
   },
   {
     title: "Fatigue management",
-    desc: "Training effectively when energy levels are variable or unpredictable.",
+    desc: "Learning how to train effectively and safely when your energy levels are variable, unpredictable, or recovering from medical treatment.",
     icon: IconClock,
   },
 ];
@@ -49,19 +49,19 @@ const focusCards = [
 const steps = [
   {
     title: "Free Consultation",
-    desc: "A relaxed 30-minute conversation about your goals, history, and what has and hasn't worked before.",
+    desc: "A relaxed, no-obligation 30-minute conversation about your goals, health history, and what has or hasn't worked for you in the past.",
   },
   {
     title: "Movement Assessment",
-    desc: "Checking your current mobility, strength, and any limitations, so the plan starts from where you actually are.",
+    desc: "A gentle check of your current mobility, strength, and any physical limitations, ensuring your plan starts exactly where you are today.",
   },
   {
-    title: "Your Programme",
-    desc: "A plan built around your body and your life.",
+    title: "Your Custom Programme",
+    desc: "A thoughtful, highly individualised fitness strategy built around your unique body, lifestyle, and goals.",
   },
   {
-    title: "Ongoing Support",
-    desc: "Adjusted as your health, energy, and capacity change — because they will.",
+    title: "Ongoing Adaptive Support",
+    desc: "Your sessions are dynamically adjusted in real time as your health, energy, and daily capacity change—because life happens.",
   },
 ];
 
@@ -81,8 +81,17 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         imageObjectPositionWide="50% 56%"
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
         heading={content.hero_heading ?? "Personal Training in Worthing"}
-        subhead={content.hero_lead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel."}
-        belowLead={<p>{content.hero_intro ?? "Whatever brought you here — getting fitter and stronger, working around an old injury, training safely with a health condition — sessions are built entirely around you. Private studio, one-to-one, no gym floor."}</p>}
+        subhead={content.hero_lead ?? "Private, one-to-one sessions focusing on strength, mobility, and a plan that adapts to how you actually feel today."}
+        belowLead={
+          content.hero_intro ? (
+            <p>{content.hero_intro}</p>
+          ) : (
+            <>
+              <p style={{ marginBottom: 14 }}>Whatever brought you here—whether you want to get fitter and stronger, need a highly calculated plan to navigate an athletic goal, or want to work safely around an injury or long-term health condition—your sessions are built entirely around you.</p>
+              <p>There are no crowded spaces, no audience, and no busy gym floors. Just dedicated support in a fully private studio environment.</p>
+            </>
+          )
+        }
         belowLeadVariant="plain"
         primaryCta={bookCta}
         secondaryCta={{ label: content.hero_btn_secondary ?? "What Sessions Involve", href: "#what", variant: "ghost-white" }}
@@ -97,13 +106,16 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
               heading={content.what_heading ?? "What to Expect"}
             />
             <Reveal y={24}>
-              <p className="ds-body" style={{ marginTop: 20, marginBottom: 26 }}>
-                {content.what_p1 ?? "Training with me isn't about pushing harder or doing more for its own sake. It's about what your body needs today, and building something sustainable from there. Sessions are private, one-to-one, in a small studio in Worthing — no gym floor, no other clients, no comparing yourself to anyone else."}
+              <p className="ds-body" style={{ marginTop: 20, marginBottom: 14 }}>
+                {content.what_p1 ?? "Training with me is never about pushing harder or doing more for its own sake. It is about what your body needs today, and building something sustainable from there."}
+              </p>
+              <p className="ds-body" style={{ marginBottom: 26 }}>
+                {content.what_p1b ?? <><strong>Privacy</strong> Every session is strictly one-to-one in a private studio in Worthing. There are no other clients in the space, meaning zero performance pressure and absolutely no comparing yourself to anyone else.</>}
               </p>
               <Callout
                 icon={IconRefreshCw}
-                title={content.what_callout_title ?? "If your health changes, the plan changes — not the trainer"}
-                body={content.what_p2 ?? "I'm also trained in exercise referral and cancer rehabilitation, so if something in your health picture changes — a new diagnosis, a GP referral, recovery from treatment — I can adapt the plan rather than you having to start again with someone new."}
+                title={content.what_callout_title ?? "Continuous Care"}
+                body={content.what_p2 ?? "Because I'm advanced-qualified in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation, your training never has to reset if your health picture shifts — a new diagnosis, a GP referral, or recovery from treatment. I adapt your movements safely, so you get to keep training with the coach who already knows your body, without the stress of searching for someone new."}
                 accent="teal"
               />
               <div style={{ marginTop: 28 }}>
@@ -124,7 +136,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           eyebrow={content.focus_eyebrow ?? "What I Work On"}
           eyebrowColor="teal"
           heading={content.focus_heading ?? "What We Work On"}
-          intro={content.focus_intro ?? "Strength, mobility, endurance, and capability for daily life — not aesthetics, not a number on the scales. Practical things: carrying the shopping, getting up off the floor, climbing the stairs without thinking about it, sleeping better, feeling more like yourself."}
+          intro={content.focus_intro ?? "Our primary focus is on how your body performs. We focus on building strength, mobility, endurance, and capability for daily life. While changes to your body shape or weight often happen as a natural by-product of consistent training, this is a fantastic bonus—real-world capability is what we build towards."}
         />
         <Reveal className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" stagger={0.1} y={30} start="top 85%" style={{ marginTop: 40 }}>
           {focusCards.map((c, i) => (
@@ -146,7 +158,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             <span className="ds-quote-card-av" aria-hidden="true">EA</span>
             <span>
               <span className="ds-quote-card-name" style={{ display: "block" }}>{content.testimonial_1_name ?? "Emma A"}</span>
-              <span className="ds-quote-card-meta" style={{ display: "block" }}>{content.testimonial_1_meta ?? "Training 5 years"}</span>
+              <span className="ds-quote-card-meta" style={{ display: "block" }}>{content.testimonial_1_meta ?? "(Training with Esther for 5 years)"}</span>
             </span>
           </figcaption>
         </figure>
@@ -180,12 +192,12 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           <div>
             <SectionHeading
               eyebrow={content.specialist_eyebrow ?? "Specialist Training"}
-              heading={content.specialist_heading ?? "Some clients need more specific support"}
+              heading={content.specialist_heading ?? "Specialist Training Support"}
               light
             />
             <Reveal y={24}>
               <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 28, maxWidth: "52ch" }}>
-                {content.specialist_intro ?? "As a Level 4 Specialist and GP Referral Trainer, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
+                {content.specialist_intro ?? "If your health picture requires more specific clinical attention, I focus on making exercise completely accessible, regardless of the challenges or health issues you might be facing. I provide expert, safe guidance across these dedicated pillars:"}
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", arrow: true }} />
@@ -196,10 +208,10 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           <Reveal y={24}>
             <ul className="ds-spec-list">
               <li><strong>Cardiovascular Care:</strong>&nbsp;Support for heart health and blood pressure management.</li>
-              <li><strong>Musculoskeletal Strength:</strong>&nbsp;Targeted exercise for bone and joint health.</li>
-              <li><strong>Inclusive Training:</strong>&nbsp;Tailored physical coaching for visual impairment.</li>
-              <li><strong>Cancer Rehabilitation:</strong>&nbsp;Gentle, progressive recovery training during or after treatment.</li>
-              <li><strong>Active Ageing:</strong>&nbsp;Specialised mobility coaching for older adults, focusing on balance, mobility, and joint stability.</li>
+              <li><strong>Musculoskeletal Strength:</strong>&nbsp;Targeted exercise for bone density and joint health.</li>
+              <li><strong>Inclusive Training:</strong>&nbsp;Tailored physical coaching and movement correction for visual impairment.</li>
+              <li><strong>Cancer Rehabilitation:</strong>&nbsp;Gentle, progressive recovery training before, during, or after clinical treatment.</li>
+              <li><strong>Active Ageing:</strong>&nbsp;Specialised mobility coaching for older adults, focusing on balance, agility, and joint stability.</li>
             </ul>
           </Reveal>
         </div>
