@@ -1,20 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase-client";
-import { HubPageHeader, HubCard, EmptyState, StatusBadge, Toolbar, toolbarSelectClasses } from "@/components/hub";
-import { IconUpload, IconCheck, IconDownload, IconSearch, IconRefreshCw } from "@/components/icons";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { HubPageHeader, HubCard, EmptyState, Toolbar, toolbarSelectClasses } from "@/components/hub";
+import { IconUpload, IconCheck, IconSearch, IconRefreshCw } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import type { ParsedTransaction } from "@/lib/bank-statement-parser";
+import { TransactionTable, type BankTransaction } from "./[id]/transaction-table";
 
-interface ImportRow {
+interface LastImport {
   id: string;
   uploaded_at: string;
   source_file_name: string;
   status: string;
   row_count: number;
-  created_at: string;
   total: number;
   uncategorised: number;
   categorised: number;
@@ -22,18 +20,8 @@ interface ImportRow {
 }
 
 interface ImportStatsResponse {
-  imports: ImportRow[];
-  lastImport: {
-    id: string;
-    uploaded_at: string;
-    source_file_name: string;
-    status: string;
-    row_count: number;
-    total: number;
-    uncategorised: number;
-    categorised: number;
-    excluded: number;
-  } | null;
+  imports: LastImport[];
+  lastImport: LastImport | null;
 }
 
 interface ParseResult {
@@ -48,12 +36,9 @@ function formatDate(dateStr: string): string {
 }
 
 export default function TransactionsPage() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [imports, setImports] = useState<ImportRow[]>([]);
-  const [loadingImports, setLoadingImports] = useState(true);
-  const [lastImport, setLastImport] = useState<ImportStatsResponse["lastImport"]>(null);
+  const [transactions, setTransactions] = useState<BankTransaction[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [lastImport, setLastImport] = useState<LastImport | null>(null);
 
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -64,28 +49,30 @@ export default function TransactionsPage() {
   const [searchValue, setSearchValue] = useState("");
   const [filter, setFilter] = useState("All");
 
-  const fetchStats = useCallback(async () => {
-    setLoadingImports(true);
+  const fetchData = useCallback(async () => {
+    setLoadingTransactions(true);
     try {
-      const res = await fetch("/api/cashflow/transactions/stats");
-      if (!res.ok) {
-        setImports([]);
-        setLastImport(null);
+      const [txnsRes, statsRes] = await Promise.all([
+        fetch("/api/cashflow/transactions"),
+        fetch("/api/cashflow/transactions/stats"),
+      ]);
+      setTransactions(txnsRes.ok ? await txnsRes.json() : []);
+      if (statsRes.ok) {
+        const stats: ImportStatsResponse = await statsRes.json();
+        setLastImport(stats.lastImport);
       } else {
-        const json: ImportStatsResponse = await res.json();
-        setImports(json.imports);
-        setLastImport(json.lastImport);
+        setLastImport(null);
       }
     } catch {
-      setImports([]);
+      setTransactions([]);
       setLastImport(null);
     }
-    setLoadingImports(false);
+    setLoadingTransactions(false);
   }, []);
 
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    fetchData();
+  }, [fetchData]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setParseError(null);
@@ -132,7 +119,7 @@ export default function TransactionsPage() {
         setCommitError(json.error ?? "Commit failed");
       } else {
         setParseResult(null);
-        fetchStats();
+        fetchData();
       }
     } catch {
       setCommitError("Failed to commit import");
@@ -147,24 +134,25 @@ export default function TransactionsPage() {
     setCommitError(null);
   };
 
-  const handleViewImport = (importId: string) => {
-    router.push(`/hub/cashflow/transactions/${importId}`);
-  };
+  const isUncategorised = (t: BankTransaction) =>
+    !t.is_excluded && !t.income_category && !t.expense_category;
 
-  const filteredImports = imports.filter((imp) => {
-    const matchesSearch = imp.source_file_name.toLowerCase().includes(searchValue.toLowerCase());
-    if (!matchesSearch) return false;
-    if (filter === "All") return true;
-    if (filter === "Uncategorised") return imp.uncategorised > 0;
-    if (filter === "Categorised") return imp.total > 0 && imp.uncategorised === 0 && imp.excluded === 0;
-    if (filter === "Excluded") return imp.excluded > 0;
-    return true;
-  });
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const matchesSearch = t.description.toLowerCase().includes(searchValue.toLowerCase());
+      if (!matchesSearch) return false;
+      if (filter === "All") return true;
+      if (filter === "Uncategorised") return isUncategorised(t);
+      if (filter === "Categorised") return !t.is_excluded && (t.income_category || t.expense_category);
+      if (filter === "Excluded") return t.is_excluded;
+      return true;
+    });
+  }, [transactions, searchValue, filter]);
 
   const filterOptions = ["All", "Uncategorised", "Categorised", "Excluded"];
 
-  const totalLines = imports.reduce((sum, imp) => sum + imp.total, 0);
-  const totalUncategorised = imports.reduce((sum, imp) => sum + imp.uncategorised, 0);
+  const totalLines = transactions.length;
+  const totalUncategorised = transactions.filter(isUncategorised).length;
   const countText = `${totalLines} ${totalLines === 1 ? "line" : "lines"} · ${totalUncategorised} uncategorised`;
 
   return (
@@ -206,14 +194,6 @@ export default function TransactionsPage() {
               · {lastImport.uncategorised} still need a category
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-lg gap-1.5"
-            onClick={() => handleViewImport(lastImport.id)}
-          >
-            View import log
-          </Button>
         </HubCard>
       )}
 
@@ -319,91 +299,45 @@ export default function TransactionsPage() {
         </HubCard>
       )}
 
-      {/* Import history */}
-      <HubCard padded={false}>
-        <div className="px-5 py-4 border-b border-[var(--hub-border)] flex items-center justify-between">
-          <p className="text-sm font-semibold">Import history</p>
-        </div>
-
-        <Toolbar
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          searchPlaceholder="Search description…"
-          count={countText}
+      {/* Transactions — one unified list across every import, matching hub-cashflow-transactions.html */}
+      <Toolbar
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+        searchPlaceholder="Search description…"
+        count={countText}
+      >
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className={toolbarSelectClasses}
+          aria-label="Filter by category status"
         >
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className={toolbarSelectClasses}
-            aria-label="Filter by category status"
-          >
-            {filterOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </Toolbar>
+          {filterOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+      </Toolbar>
 
-        {loadingImports ? (
+      <HubCard padded={false}>
+        {loadingTransactions ? (
           <div className="flex items-center gap-3 px-5 py-10">
             <IconRefreshCw className="w-5 h-5 animate-spin text-[var(--hub-muted)]" />
-            <p className="text-sm text-[var(--hub-muted)]">Loading imports…</p>
+            <p className="text-sm text-[var(--hub-muted)]">Loading transactions…</p>
           </div>
-        ) : filteredImports.length === 0 ? (
+        ) : filteredTransactions.length === 0 ? (
           <div className="px-5 py-12">
             <EmptyState
               icon={<IconUpload className="w-9 h-9" />}
-              title="No imports yet"
-              description="Upload a bank statement CSV to get started"
+              title={transactions.length === 0 ? "No transactions yet" : "No transactions match"}
+              description={
+                transactions.length === 0
+                  ? "Upload a bank statement CSV to get started"
+                  : "Try a different search or filter"
+              }
             />
           </div>
         ) : (
-          <div className="overflow-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-[var(--hub-hover)] text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--hub-muted)]">
-                  <th className="px-5 py-2.5 text-left">File</th>
-                  <th className="px-5 py-2.5 text-left">Uploaded</th>
-                  <th className="px-5 py-2.5 text-right">Lines</th>
-                  <th className="px-5 py-2.5 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredImports.map((imp) => (
-                  <tr
-                    key={imp.id}
-                    onClick={() => handleViewImport(imp.id)}
-                    className="border-b border-[var(--hub-border)] text-sm hover:bg-[var(--hub-hover)]/50 transition-colors cursor-pointer"
-                  >
-                    <td className="px-5 py-2.5 font-medium">{imp.source_file_name}</td>
-                    <td className="px-5 py-2.5 whitespace-nowrap text-[var(--hub-muted)]">
-                      {new Date(imp.uploaded_at).toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-5 py-2.5 text-right tabular-nums">
-                      {imp.uncategorised > 0 ? (
-                        <span>
-                          {imp.total}{" "}
-                          <span className="text-[var(--status-warning)]">
-                            ({imp.uncategorised} uncategorised)
-                          </span>
-                        </span>
-                      ) : (
-                        imp.total
-                      )}
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <StatusBadge status={imp.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TransactionTable transactions={filteredTransactions} />
         )}
       </HubCard>
     </div>

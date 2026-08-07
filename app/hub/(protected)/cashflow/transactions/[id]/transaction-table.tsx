@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
-interface BankTransaction {
+export interface BankTransaction {
   id: string;
   import_id: string;
   txn_date: string;
@@ -51,6 +51,13 @@ interface TransactionTableProps {
 
 export function TransactionTable({ transactions }: TransactionTableProps) {
   const [rows, setRows] = useState(transactions);
+
+  // Callers that filter/search re-pass a new `transactions` array — keep local
+  // state in sync so the visible rows always reflect the current filter, not
+  // just whatever was passed in on first mount.
+  useEffect(() => {
+    setRows(transactions);
+  }, [transactions]);
 
   const patchRow = useCallback(async (id: string, updates: Record<string, unknown>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
