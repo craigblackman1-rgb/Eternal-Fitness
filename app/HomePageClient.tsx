@@ -174,10 +174,10 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               </p>
               <ul className="spec-list">
                 <li><strong>Cardiovascular Care:</strong> Support for heart health and blood pressure management.</li>
-                <li><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone and joint health.</li>
-                <li><strong>Inclusive Training:</strong> Tailored physical coaching for visual impairment.</li>
-                <li><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training during or after treatment.</li>
-                <li><strong>Active Ageing:</strong> Specialised mobility coaching for older adults, focusing heavily on Balance, Mobility, and Joint Stability Support.</li>
+                <li><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone density and joint health.</li>
+                <li><strong>Inclusive Training:</strong> Tailored physical coaching and movement correction for visual impairment.</li>
+                <li><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training before, during, or after clinical treatment.</li>
+                <li><strong>Active Ageing:</strong> Specialised mobility coaching for older adults, focusing on balance, agility, and joint stability.</li>
               </ul>
             </div>
           </div>
