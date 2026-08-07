@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   IconPlus,
   IconTrash2,
   IconPencil,
@@ -492,8 +498,19 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
         </HubCard>
       )}
 
-      {showForm && (
-        <HubCard>
+      <Dialog
+        open={showForm}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowForm(false);
+            setEditing(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit task" : "New task"}</DialogTitle>
+          </DialogHeader>
           <div className="space-y-3">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
@@ -653,8 +670,8 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
               </Button>
             </div>
           </div>
-        </HubCard>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {buckets.length > 0 && (
         <div className="inline-flex w-full max-w-full justify-start gap-0.5 flex-wrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm sm:w-auto">

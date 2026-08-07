@@ -283,9 +283,8 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
           title="Updates"
           subtitle="Click a row to preview the email"
           color="teal"
-          noBottomPadding
           divider
-          className="px-5 pt-4"
+          className="px-5 pt-[14px]"
         />
         {rows.length === 0 ? (
           <div className="px-5 py-12 text-center text-muted-foreground text-sm">No updates match this view.</div>

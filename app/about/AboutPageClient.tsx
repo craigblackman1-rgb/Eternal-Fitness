@@ -102,6 +102,18 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
               <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "My clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside everyday training, I design custom programmes for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>
               <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you are wondering whether your situation is too complicated for personal training, it almost certainly is not."}</p>
               <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
+              <p style={{ marginTop: 20, fontSize: 12.5, color: "var(--color-muted-text)", letterSpacing: "0.02em" }}>
+                {content?.press_label ?? "As featured in"}{" — "}
+                <a
+                  href="https://www.fitpro.com/blog/training-blind-or-partially-sighted-clients/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontWeight: 700, color: "var(--color-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
+                >
+                  {content?.press_publication ?? "FitPro"}
+                </a>
+                {" "}{content?.press_context ?? "— on training blind and partially sighted clients"}
+              </p>
             </div>
           </div>
           <div className="ds-qual-cards">

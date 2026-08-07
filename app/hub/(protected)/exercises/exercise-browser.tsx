@@ -90,6 +90,7 @@ export function ExerciseBrowser({
   const [difficultyFilter, setDifficultyFilter] = useState<number>(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingExercise, setEditingExercise] = useState<ExerciseEntry | null>(null);
   const [bulkSaving, setBulkSaving] = useState(false);
@@ -98,8 +99,6 @@ export function ExerciseBrowser({
   const [bulkMuscleGroups, setBulkMuscleGroups] = useState("");
   const [bulkTags, setBulkTags] = useState("");
   const [bulkActive, setBulkActive] = useState<boolean | null>(null);
-  const PAGE_SIZE = 60;
-
   const filtered = useMemo(() => {
     return exercises.filter((ex) => {
       if (search && !ex.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -113,9 +112,9 @@ export function ExerciseBrowser({
     }).sort((a, b) => a.name.localeCompare(b.name));
   }, [exercises, search, archetypeFilter, movementFilter, muscleFilter, equipmentFilter, sourceFilter, difficultyFilter]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
-  const paginated = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+  const paginated = filtered.slice(safePage * pageSize, safePage * pageSize + pageSize);
 
   const selectedExercise = useMemo(
     () => (selectedId ? exercises.find((e) => e.id === selectedId) ?? null : null),
@@ -421,14 +420,14 @@ export function ExerciseBrowser({
                           }`}
                           onClick={() => setSelectedId(isSelected ? null : ex.id)}
                         >
-                          <td className="px-4 py-1 align-middle" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-4 py-2.5 align-middle" onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={selectedIds.has(ex.id)}
                               onCheckedChange={() => toggleSelect(ex.id)}
                               aria-label={`Select ${ex.name}`}
                             />
                           </td>
-                          <td className="px-3 py-1 align-middle">
+                          <td className="px-3 py-2.5 align-middle">
                             <div className="flex items-center gap-2 min-w-0">
                               {ex.image_url ? (
                                 <img
@@ -459,10 +458,10 @@ export function ExerciseBrowser({
                               </div>
                             </div>
                           </td>
-                          <td className="px-3 py-1 align-middle text-[12.5px] text-[var(--color-body)] whitespace-nowrap">
+                          <td className="px-3 py-2.5 align-middle text-[12.5px] text-[var(--color-body)] whitespace-nowrap">
                             {ex.movement_type ? movementTypeLabels[ex.movement_type] || ex.movement_type : "—"}
                           </td>
-                          <td className="px-3 py-1 align-middle">
+                          <td className="px-3 py-2.5 align-middle">
                             {ex.difficulty != null ? (
                               <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10.5px] font-medium text-[var(--color-body)] leading-[18px]">
                                 {difficultyLabel(ex.difficulty)}
@@ -471,7 +470,7 @@ export function ExerciseBrowser({
                               <span className="text-muted-foreground text-[12.5px]">—</span>
                             )}
                           </td>
-                          <td className="px-3 py-1 align-middle">
+                          <td className="px-3 py-2.5 align-middle">
                             <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                               {sourceLabel(ex.source)}
                             </span>
@@ -483,11 +482,31 @@ export function ExerciseBrowser({
                 </table>
               </div>
 
-              {pageCount > 1 && (
-                <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
+              <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
+                <div className="flex items-center gap-3">
                   <p className="text-xs text-muted-foreground tabular-nums">
                     Page {safePage + 1} of {pageCount}
                   </p>
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    Show
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(0);
+                      }}
+                      className="h-7 rounded-md border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-1.5 text-xs text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                      aria-label="Exercises per page"
+                    >
+                      {[10, 25, 50, 100].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {pageCount > 1 && (
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -506,8 +525,8 @@ export function ExerciseBrowser({
                       <IconChevronRight className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
         </HubCard>
