@@ -55,7 +55,7 @@ const steps = [
   },
   {
     title: "Movement Assessment",
-    desc: "Checking your current mobility, strength, and any limitations before we start.",
+    desc: "Checking your current mobility, strength, and any limitations, so the plan starts from where you actually are.",
     image: "/images/studio-kneel-stretch.jpg",
     imageAlt: "Assessing range of motion in the studio",
   },
@@ -65,7 +65,7 @@ const steps = [
   },
   {
     title: "Ongoing Support",
-    desc: "Adjusted as your health and capacity change.",
+    desc: "Adjusted as your health, energy, and capacity change — because they will.",
   },
 ];
 
@@ -86,7 +86,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
         eyebrow={content.hero_eyebrow ?? "Personal Training"}
         heading={content.hero_heading ?? "Personal Training in Worthing"}
         subhead={content.hero_lead ?? "Private, one-to-one sessions — strength, mobility, and a plan that adapts to how you actually feel."}
-        belowLead={<p>{content.hero_intro ?? "Whatever brought you here — wanting to get fitter and stronger, an injury to work around, a health condition to train safely with — sessions are built entirely around you. Private studio, one-to-one, no gym floor."}</p>}
+        belowLead={<p>{content.hero_intro ?? "Whatever brought you here — getting fitter and stronger, working around an old injury, training safely with a health condition — sessions are built entirely around you. Private studio, one-to-one, no gym floor."}</p>}
         belowLeadVariant="plain"
         primaryCta={bookCta}
         secondaryCta={{ label: content.hero_btn_secondary ?? "What Sessions Involve", href: "#what", variant: "ghost-white" }}
@@ -102,12 +102,12 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             />
             <Reveal y={24}>
               <p className="ds-body" style={{ marginTop: 20, marginBottom: 26 }}>
-                {content.what_p1 ?? "Training with me isn't about pushing harder or doing more for its own sake. It's about what your body needs right now, and building a sustainable plan around that. Sessions are private, one-to-one, in a small studio in Worthing — no gym floor, no other clients, no comparison to anyone else."}
+                {content.what_p1 ?? "Training with me isn't about pushing harder or doing more for its own sake. It's about what your body needs today, and building something sustainable from there. Sessions are private, one-to-one, in a small studio in Worthing — no gym floor, no other clients, no comparing yourself to anyone else."}
               </p>
               <Callout
                 icon={IconRefreshCw}
                 title={content.what_callout_title ?? "If your health changes, the plan changes — not the trainer"}
-                body={content.what_p2 ?? "I'm also trained in exercise referral and cancer rehabilitation, so if your health changes — a new condition, a GP referral, recovery from treatment — I can adapt rather than you having to start again with someone new."}
+                body={content.what_p2 ?? "I'm also trained in exercise referral and cancer rehabilitation, so if something in your health picture changes — a new diagnosis, a GP referral, recovery from treatment — I can adapt the plan rather than you having to start again with someone new."}
                 accent="teal"
               />
               <div style={{ marginTop: 28 }}>
@@ -128,7 +128,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           eyebrow={content.focus_eyebrow ?? "What I Work On"}
           eyebrowColor="teal"
           heading={content.focus_heading ?? "What We Work On"}
-          intro={content.focus_intro ?? "Strength, mobility, endurance, and capability for real life — not aesthetics, not a number on a scale. Practical things: carrying the shopping, getting up off the floor, climbing stairs without thinking about it, sleeping better, feeling more like yourself."}
+          intro={content.focus_intro ?? "Strength, mobility, endurance, and capability for daily life — not aesthetics, not a number on the scales. Practical things: carrying the shopping, getting up off the floor, climbing the stairs without thinking about it, sleeping better, feeling more like yourself."}
         />
         <Reveal className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" stagger={0.1} y={30} start="top 85%" style={{ marginTop: 40 }}>
           {focusCards.map((c, i) => (
@@ -141,6 +141,19 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             </div>
           ))}
         </Reveal>
+        <figure className="ds-quote-card" style={{ marginTop: 40 }}>
+          <div className="ds-quote-card-mark" aria-hidden="true">&ldquo;</div>
+          <p className="ds-quote-card-body">
+            {content.testimonial_1 ?? "As a 50+ woman on a strength and fitness journey I thank my lucky stars I met Esther... I would never have achieved the level of fitness and wellbeing I have without her."}
+          </p>
+          <figcaption className="ds-quote-card-by">
+            <span className="ds-quote-card-av" aria-hidden="true">EA</span>
+            <span>
+              <span className="ds-quote-card-name" style={{ display: "block" }}>{content.testimonial_1_name ?? "Emma A"}</span>
+              <span className="ds-quote-card-meta" style={{ display: "block" }}>{content.testimonial_1_meta ?? "Training 5 years"}</span>
+            </span>
+          </figcaption>
+        </figure>
       </Section>
 
       {/* How It Works */}
@@ -176,7 +189,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             />
             <Reveal y={24}>
               <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 28, maxWidth: "52ch" }}>
-                {content.specialist_intro ?? "A health condition, an injury, adapting for a disability. Here's more detail on how I work with particular situations."}
+                {content.specialist_intro ?? "A health condition, an old injury, adapting for a disability — here's where I go into more detail on how I work with particular situations."}
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", arrow: true }} />
