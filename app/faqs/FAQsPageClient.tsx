@@ -43,17 +43,17 @@ const faqGroups = [
       {
         question: "Do you offer short-term programmes?",
         answer:
-          "Yes. I believe in the long-term approach, but I offer flexible options too — we'll talk about what's realistic for your goals and your life during the initial consultation.",
+          "No. I believe true progress requires a consistent, long-term approach, which is why training is structured in blocks of 12 or 24 sessions. We will discuss exactly what is realistic for your goals, your lifestyle, and your body during your initial consultation.",
       },
       {
         question: "What if my health changes during a programme?",
         answer:
-          "This is something I am specifically trained to manage. If your health changes — whether that is a new diagnosis, a flare-up, a change in medication, or simply a difficult period — your programme changes with it. You do not lose sessions and you do not fall behind. You just adapt.",
+          "This is something I am specifically trained to manage. If your health changes—whether that is a new diagnosis, a flare-up, a change in medication, or simply a difficult period—your programme changes with it. You do not lose sessions, and you do not fall behind. We simply adapt.",
       },
       {
         question: "Can I bring someone with me to sessions?",
         answer:
-          "Of course. If having a carer, family member, or support person there would make you more comfortable, just let me know beforehand and I'll make it work.",
+          "Of course. If having a partner, family member, or support person present helps you feel more comfortable and confident in the space, they are very welcome. Just let me know beforehand so I can prepare the studio.",
       },
       {
         question: "My question is not answered here. What should I do?",
