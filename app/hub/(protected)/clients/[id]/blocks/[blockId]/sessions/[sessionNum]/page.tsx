@@ -351,6 +351,8 @@ export default function SessionViewPage({
                   data={
                     session.data?.versions?.[version] || { warm_up: [], main_block: [], cooldown: [] }
                   }
+                  clientId={params.id}
+                  sessionId={session.id}
                   onSaved={(updated) => saveSessionEdit(version, updated)}
                   onCancel={() => setEditingVersion(null)}
                 />

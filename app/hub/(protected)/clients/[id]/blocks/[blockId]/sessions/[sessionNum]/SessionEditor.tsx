@@ -27,6 +27,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu as SkeletonMenu,
+  DropdownMenuContent as SkeletonMenuContent,
+  DropdownMenuItem as SkeletonMenuItem,
+  DropdownMenuTrigger as SkeletonMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   IconGripVertical,
   IconChevronUp,
   IconChevronDown,
@@ -41,6 +47,7 @@ import {
   IconCopy,
   IconSearch,
   IconDumbbell,
+  IconClock,
 } from "@/components/icons";
 import type { Exercise, SessionVersion } from "@/types";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
@@ -123,16 +130,43 @@ function normalizeGroupsList(list: EditableExercise[]): { list: EditableExercise
   return { list: next, changed };
 }
 
+/** Preset set/rep/tempo/rest structures — "Volume Skeletons". Selecting one when
+ *  adding an exercise pre-fills the numeric prescription, leaving only the exercise
+ *  name to pick. Hardcoded for now (per WO decide-yourself: add a table only if
+ *  Esther asks to customise these herself). */
+const VOLUME_SKELETONS = [
+  { key: "elite_strength", label: "Elite Strength", sub: "4 × 6", sets: 4, reps: "6", tempo: "3-1-1", rest: "120s" },
+  { key: "hypertrophy", label: "Hypertrophy", sub: "3 × 10", sets: 3, reps: "10", tempo: "2-0-2", rest: "60s" },
+  { key: "endurance_flow", label: "Endurance / Flow", sub: "3 × 15", sets: 3, reps: "15", tempo: "Controlled", rest: "30s" },
+  { key: "power", label: "Power", sub: "3 × 5", sets: 3, reps: "5", tempo: "Explosive", rest: "120s" },
+] as const;
+type VolumeSkeleton = (typeof VOLUME_SKELETONS)[number];
+
+interface LatestCompletedSession {
+  session_id: string;
+  session_number: number;
+  block_number: number;
+  week: number;
+  completed_at: string | null;
+  versions: { studio?: SessionVersion; home?: SessionVersion };
+}
+
 /** Desk-planning editor for a single session prescription (one version — studio or home).
  *  Local-only state until "Save changes" — Discard just unmounts without persisting. */
 export function SessionEditor({
   version,
   data,
+  clientId,
+  sessionId,
   onSaved,
   onCancel,
 }: {
   version: "studio" | "home";
   data: SessionVersion;
+  /** Needed to look up this client's most recent completed session for "Roll Over
+   *  Previous Session" — excludes the session currently being edited. */
+  clientId: string;
+  sessionId: string;
   /** Parent owns the actual PATCH (it merges this version's sections back into
    *  session.data.versions and updates the session state) — returns whether it succeeded. */
   onSaved: (updated: SessionVersion) => Promise<boolean>;
@@ -157,6 +191,8 @@ export function SessionEditor({
   const [templateList, setTemplateList] = useState<{ id: string; name: string; data: SessionVersion }[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [overBlockKey, setOverBlockKey] = useState<string | null>(null);
+  const [rollingOver, setRollingOver] = useState(false);
+  const [addSkeleton, setAddSkeleton] = useState<VolumeSkeleton | null>(null);
 
   const updateField = (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => {
     setSections((prev) => ({
@@ -310,10 +346,10 @@ export function SessionEditor({
     const newEx: EditableExercise = {
       _uid: crypto.randomUUID(),
       exercise_name: entry.name,
-      sets: 2,
-      reps: "10",
-      tempo: "Controlled",
-      rest: "45s",
+      sets: addSkeleton?.sets ?? 2,
+      reps: addSkeleton?.reps ?? "10",
+      tempo: addSkeleton?.tempo ?? "Controlled",
+      rest: addSkeleton?.rest ?? "45s",
       coaching_cue: entry.coaching_cue || "",
       modification: entry.default_mod || "",
       equipment: entry.equipment || [],
@@ -327,8 +363,47 @@ export function SessionEditor({
       list.splice(insertIndex, 0, newEx);
       return { ...prev, [addTarget]: list };
     });
-    toast.message(`Added "${entry.name}" to ${SECTION_LABEL[addTarget]}.`);
+    toast.message(
+      addSkeleton
+        ? `Added "${entry.name}" to ${SECTION_LABEL[addTarget]} — ${addSkeleton.label} (${addSkeleton.sub}).`
+        : `Added "${entry.name}" to ${SECTION_LABEL[addTarget]}.`
+    );
     setAddTarget(null);
+    setAddSkeleton(null);
+  };
+
+  const rollOverPreviousSession = async () => {
+    setRollingOver(true);
+    try {
+      const res = await fetch(`/api/clients/${clientId}/sessions/latest-completed?exclude=${sessionId}`);
+      if (!res.ok) {
+        toast.error("Failed to look up the previous session");
+        return;
+      }
+      const prev: LatestCompletedSession | null = await res.json();
+      if (!prev) {
+        toast.message("No previous completed session found for this client yet.");
+        return;
+      }
+      const rolled = prev.versions[version];
+      if (!rolled || (rolled.warm_up.length === 0 && rolled.main_block.length === 0 && rolled.cooldown.length === 0)) {
+        toast.message(`The most recent completed session has no ${version} prescription to roll forward.`);
+        return;
+      }
+      setSections({
+        warm_up: withUids(rolled.warm_up || []),
+        main_block: withUids(rolled.main_block || []),
+        cooldown: withUids(rolled.cooldown || []),
+      });
+      const when = prev.completed_at
+        ? new Date(prev.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+        : "an earlier date";
+      toast.success(`Rolled forward from Week ${prev.week}, Session ${prev.session_number} (completed ${when}) — sets/reps/tempo/cues carried over, edit as needed.`);
+    } catch {
+      toast.error("Failed to roll over the previous session");
+    } finally {
+      setRollingOver(false);
+    }
   };
 
   const swapExercise = (entry: ExerciseEntry) => {
@@ -427,6 +502,17 @@ export function SessionEditor({
       <HubCard padded={false} className="flex items-center justify-between px-4 py-3">
         <p className="text-sm text-muted-foreground">Editing the {version === "studio" ? "Studio" : "Home"} prescription — saves to this session only.</p>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={rollOverPreviousSession}
+            disabled={saving || rollingOver}
+            className="rounded-lg gap-1.5"
+            title="Pull this client's most recently completed session forward into this one — sets, reps, tempo, and cues carried over, ready for micro-progression edits."
+          >
+            <IconClock className="h-4 w-4" />
+            {rollingOver ? "Rolling over…" : "Roll Over Previous Session"}
+          </Button>
           <Button variant="outline" size="sm" onClick={openTemplatePicker} disabled={saving} className="rounded-lg gap-1.5">
             <IconCopy className="h-4 w-4" />
             Apply template
@@ -641,13 +727,43 @@ export function SessionEditor({
                   </div>
                 )
               )}
-              <button
-                onClick={() => setAddTarget(sec.key)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-[var(--hub-field-border)] py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-rose hover:bg-rose/5 hover:text-rose"
-              >
-                <IconPlus className="h-4 w-4" />
-                Add exercise to {sec.label}
-              </button>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => {
+                    setAddSkeleton(null);
+                    setAddTarget(sec.key);
+                  }}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-[var(--hub-field-border)] py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-rose hover:bg-rose/5 hover:text-rose"
+                >
+                  <IconPlus className="h-4 w-4" />
+                  Add exercise to {sec.label}
+                </button>
+                <SkeletonMenu>
+                  <SkeletonMenuTrigger asChild>
+                    <button
+                      title="Add exercise using a preset volume skeleton (sets/reps/tempo/rest pre-filled)"
+                      className="flex shrink-0 items-center justify-center gap-1 rounded-xl border-[1.5px] border-dashed border-[var(--hub-field-border)] px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-rose hover:bg-rose/5 hover:text-rose"
+                    >
+                      <IconDumbbell className="h-4 w-4" />
+                      Skeleton
+                    </button>
+                  </SkeletonMenuTrigger>
+                  <SkeletonMenuContent align="end" className="w-48">
+                    {VOLUME_SKELETONS.map((sk) => (
+                      <SkeletonMenuItem
+                        key={sk.key}
+                        onClick={() => {
+                          setAddSkeleton(sk);
+                          setAddTarget(sec.key);
+                        }}
+                      >
+                        <span className="flex-1">{sk.label}</span>
+                        <span className="text-xs text-muted-foreground tabular-nums">{sk.sub}</span>
+                      </SkeletonMenuItem>
+                    ))}
+                  </SkeletonMenuContent>
+                </SkeletonMenu>
+              </div>
             </div>
           </HubCard>
         );
@@ -656,7 +772,12 @@ export function SessionEditor({
       {addTarget && (
         <AddExerciseDialog
           open={Boolean(addTarget)}
-          onOpenChange={(open) => !open && setAddTarget(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddTarget(null);
+              setAddSkeleton(null);
+            }
+          }}
           sectionLabel={SECTION_LABEL[addTarget]}
           positionOptions={(() => {
             const list = sections[addTarget];
