@@ -223,6 +223,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
 
       <CTABand
         image="/images/studio-kettlebell-shelf.jpg"
+        imageAlt="Kettlebells racked on the shelf in the Eternal Fitness studio"
         imagePosition="center 45%"
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}

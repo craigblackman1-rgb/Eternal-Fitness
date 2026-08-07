@@ -283,6 +283,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
 
       <CTABand
         image="/images/coaching-deadlift-setup.jpg"
+        imageAlt="Esther coaching a client through a deadlift setup"
         imagePosition="center 55%"
         eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
         heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}

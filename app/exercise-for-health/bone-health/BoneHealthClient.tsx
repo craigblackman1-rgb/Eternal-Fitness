@@ -167,6 +167,7 @@ export default function BoneHealthClient() {
 
       <CTABand
         image="/images/studio-overhead-press.jpg"
+        imageAlt="A client performing an overhead press in the Eternal Fitness studio"
         heading="Ready to find out if this is right for you?"
         body="The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}

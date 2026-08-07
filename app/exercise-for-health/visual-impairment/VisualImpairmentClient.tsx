@@ -220,6 +220,7 @@ export default function VisualImpairmentClient() {
 
       <CTABand
         image="/images/blind-sport-team.jpg"
+        imageAlt="A visually impaired sports team training together"
         heading="Ready to find out if this is right for you?"
         body="The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}

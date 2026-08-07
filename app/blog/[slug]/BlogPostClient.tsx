@@ -102,7 +102,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
               <span className="flex items-center gap-2">
                 {post.author_avatar ? (
-                  <Image src={post.author_avatar} alt="" width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                  <Image src={post.author_avatar} alt={post.author_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
                 ) : (
                   <span className="w-7 h-7 rounded-full bg-rose/40 flex items-center justify-center text-white text-[11px] font-bold">
                     {post.author_name.charAt(0)}
@@ -126,7 +126,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
             <div className="min-w-0">
               {post.image_url && (
                 <figure className="relative aspect-[16/9] rounded-3xl overflow-hidden mb-10 border border-[#E4DDD7]">
-                  <Image src={post.image_url} alt="" fill sizes="(min-width: 1024px) 860px, 100vw" className="object-cover" priority />
+                  <Image src={post.image_url} alt={post.title} fill sizes="(min-width: 1024px) 860px, 100vw" className="object-cover" priority />
                 </figure>
               )}
 

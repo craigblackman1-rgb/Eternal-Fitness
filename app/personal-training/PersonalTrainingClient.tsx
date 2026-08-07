@@ -219,6 +219,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
 
       <CTABand
         image="/images/studio-slam-balls-rack.jpg"
+        imageAlt="Slam balls racked in the Eternal Fitness studio"
         imagePosition="center 55%"
         eyebrow={content.cta_eyebrow ?? "Free Consultation"}
         heading={content.cta_heading ?? "The first conversation is free, with no commitment."}

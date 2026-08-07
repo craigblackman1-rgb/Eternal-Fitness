@@ -140,7 +140,7 @@ function BlogRow({ post }: { post: BlogPost }) {
     <Link href={`/blog/${post.slug}`} className="group block border-t border-border-warm pt-6">
       {post.image_url && (
         <div className="relative rounded-2xl overflow-hidden mb-5 aspect-[16/10] bg-white">
-          <Image src={post.image_url} alt="" fill sizes="(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw" className="object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+          <Image src={post.image_url} alt={post.title} fill sizes="(min-width: 1024px) 380px, (min-width: 768px) 50vw, 100vw" className="object-cover group-hover:scale-[1.03] transition-transform duration-300" />
         </div>
       )}
       <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">{post.category}</p>

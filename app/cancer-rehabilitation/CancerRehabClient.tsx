@@ -175,6 +175,7 @@ export default function CancerRehabClient({ content = {} }: { content?: Record<s
 
       <CTABand
         image="/images/studio-kettlebell-playful.jpg"
+        imageAlt="A relaxed moment with kettlebells in the Eternal Fitness studio"
         heading={content.cta_heading ?? "Ready to find out if this is right for you?"}
         body={content.cta_body ?? "The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."}
         primaryCta={{ label: content.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}

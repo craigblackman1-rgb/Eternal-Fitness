@@ -167,6 +167,7 @@ export default function HighBloodPressureClient() {
 
       <CTABand
         image="/images/approach-flexible.jpg"
+        imageAlt="A flexible training session adapted to the client's needs"
         heading="Ready to find out if this is right for you?"
         body="The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}

@@ -11,6 +11,7 @@ const CTASection = () => {
   return (
     <CTABand
       image="/images/studio-1.jpg"
+      imageAlt="Eternal Fitness private studio in Worthing"
       heading="Ready to find out if this is right for you?"
       body="The first conversation is free, there is no commitment, and there is no such thing as the wrong question. I work with a small number of clients at any one time — so every person gets my full attention."
       primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}

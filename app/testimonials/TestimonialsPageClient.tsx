@@ -239,6 +239,7 @@ export default function TestimonialsPageClient() {
 
       <CTABand
         image="/images/rapport-client-laughing.jpg"
+        imageAlt="Esther Fair laughing with a client during a session"
         imagePosition="center 40%"
         eyebrow="Free Consultation"
         heading="The first conversation is free, with no commitment."

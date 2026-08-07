@@ -317,6 +317,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
 
       <CTABand
         image="/images/esther-headshot-smile.jpg"
+        imageAlt="Esther Fair smiling"
         imagePosition="center 30%"
         eyebrow={content.cta_eyebrow ?? "Not Sure Where to Start?"}
         heading={content.cta_heading ?? "That is completely normal."}
