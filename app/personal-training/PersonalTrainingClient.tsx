@@ -50,14 +50,10 @@ const steps = [
   {
     title: "Free Consultation",
     desc: "A relaxed 30-minute conversation about your goals, history, and what has and hasn't worked before.",
-    image: "/images/esther-training.jpg",
-    imageAlt: "Esther talking with a client at the start of a session",
   },
   {
     title: "Movement Assessment",
     desc: "Checking your current mobility, strength, and any limitations, so the plan starts from where you actually are.",
-    image: "/images/studio-kneel-stretch.jpg",
-    imageAlt: "Assessing range of motion in the studio",
   },
   {
     title: "Your Programme",
@@ -163,7 +159,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           <PulseLine accent="rose" />
         </div>
         <div style={{ marginTop: 48 }}>
-          <ProcessFlow steps={steps.map((s, i) => ({ title: content[`step_${i + 1}_title`] ?? s.title, body: content[`step_${i + 1}_desc`] ?? s.desc, image: s.image, imageAlt: s.imageAlt }))} />
+          <ProcessFlow steps={steps.map((s, i) => ({ title: content[`step_${i + 1}_title`] ?? s.title, body: content[`step_${i + 1}_desc`] ?? s.desc }))} />
         </div>
         <div style={{ textAlign: "center", marginTop: 44 }}>
           <CtaButton cta={bookCta} />

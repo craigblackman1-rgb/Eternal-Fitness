@@ -47,9 +47,15 @@ const expenseCategoryOptions = [
 
 interface TransactionTableProps {
   transactions: BankTransaction[];
+  /** Called after a successful category/exclude edit so a parent holding its
+   *  own copy of the full (unfiltered) list — e.g. for search/filter — can
+   *  stay in sync. Without this, an edit only lives in this component's local
+   *  state and gets silently reverted the next time the parent re-filters and
+   *  passes a fresh `transactions` array back down. */
+  onRowUpdated?: (id: string, updates: Partial<BankTransaction>) => void;
 }
 
-export function TransactionTable({ transactions }: TransactionTableProps) {
+export function TransactionTable({ transactions, onRowUpdated }: TransactionTableProps) {
   const [rows, setRows] = useState(transactions);
 
   // Callers that filter/search re-pass a new `transactions` array — keep local
@@ -61,6 +67,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
 
   const patchRow = useCallback(async (id: string, updates: Record<string, unknown>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
+    onRowUpdated?.(id, updates);
 
     try {
       const res = await fetch(`/api/cashflow/transactions/${id}`, {
