@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getAiConfig } from "@/lib/ai-client";
 import { loadPlanAgentBundle } from "@/lib/planAgentData";
-import { generateViaAi, weekPhases, getWeeklyArchetypes } from "@/lib/planGeneration";
+import { generateViaAi, weekPhases, getWeeklyArchetypes, type TemplateFramework } from "@/lib/planGeneration";
 import type { ClientProfile, Session, Archetype, Phase, Exercise, SessionVersion } from "@/types";
 
 export async function POST(request: Request) {
@@ -13,10 +13,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { clientId, blockNote, previousSummary } = await request.json();
+  const { clientId, blockNote, previousSummary, templateId } = await request.json();
 
   if (!clientId) {
     return NextResponse.json({ error: "clientId is required" }, { status: 400 });
+  }
+
+  let template: TemplateFramework | null = null;
+  let templateUsageCount = 0;
+  if (templateId) {
+    const { data: templateRow } = await supabase
+      .from("workout_templates")
+      .select("name, condition_tags, data, usage_count")
+      .eq("id", templateId)
+      .single();
+    if (templateRow) {
+      template = {
+        name: templateRow.name,
+        condition_tags: templateRow.condition_tags ?? [],
+        data: templateRow.data as SessionVersion,
+      };
+      templateUsageCount = (templateRow.usage_count as number) ?? 0;
+    }
   }
 
   const { data: client } = await supabase.from("clients").select("*").eq("client_number", parseInt(clientId)).single();
@@ -45,7 +63,7 @@ export async function POST(request: Request) {
 
   if (aiConfig.provider) {
     try {
-      sessions = await generateViaAi(profile, client.pace_mode as string | null, bundle, blockNote, previousSummary);
+      sessions = await generateViaAi(profile, client.pace_mode as string | null, bundle, blockNote, previousSummary, template);
     } catch (err) {
       const detail = err instanceof Error ? err.message.slice(0, 500) : "unknown error";
       console.error(`[generate-block] AI generation failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`);
@@ -59,7 +77,7 @@ export async function POST(request: Request) {
       .from("exercises")
       .select("id, name, archetypes, movement_type, equipment, coaching_cue, default_mod")
       .eq("active", true);
-    sessions = generateFallback(profile, blockNumber, (exercisePool ?? []) as ExerciseDbEntry[]);
+    sessions = generateFallback(profile, blockNumber, (exercisePool ?? []) as ExerciseDbEntry[], template);
   }
 
   const invalid =
@@ -112,7 +130,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: sessionsError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ blockId: block.id }, { status: 201 });
+  if (template && templateId) {
+    await supabase
+      .from("workout_templates")
+      .update({ usage_count: templateUsageCount + 1, updated_at: new Date().toISOString() })
+      .eq("id", templateId);
+  }
+
+  return NextResponse.json({ blockId: block.id, templateUsed: template?.name ?? null }, { status: 201 });
 }
 
 /* ─── Fallback generator — pulls from the `exercises` table (source-agnostic:
@@ -272,7 +297,27 @@ function composeSessionVersion(
   return { warm_up, main_block, cooldown };
 }
 
-function generateFallback(profile: ClientProfile, blockNumber: number, exercisePool: ExerciseDbEntry[]): Session[] {
+/** Rescales a template's own exercises to the current phase's volume, keeping the
+ *  exercise choice fixed — the non-AI fallback path can't reason about picking
+ *  fresh exercises per week the way the AI path does, so for a template-grounded
+ *  block it deterministically repeats the template's exercises with phase-
+ *  appropriate sets/reps/tempo/rest instead. */
+function rescaleTemplateSection(exercises: Exercise[], phase: Phase, section: "warm_up" | "main_block" | "cooldown"): Exercise[] {
+  const isDeload = phase === "deload";
+  const isFoundation = phase === "foundation";
+  const isPeak = phase === "peak";
+  if (section !== "main_block") return exercises;
+
+  let sets: number, reps: string, tempo: string, rest: string;
+  if (isDeload) { sets = 2; reps = "10-12"; tempo = "2-0-2"; rest = "60s"; }
+  else if (isFoundation) { sets = 3; reps = "10-12"; tempo = "2-0-2"; rest = "60s"; }
+  else if (isPeak) { sets = 4; reps = "6-8"; tempo = "2-0-1"; rest = "90s"; }
+  else { sets = 3; reps = "8-10"; tempo = "2-0-2"; rest = "60-75s"; }
+
+  return exercises.map((ex) => ({ ...ex, sets, reps, tempo, rest }));
+}
+
+function generateFallback(profile: ClientProfile, blockNumber: number, exercisePool: ExerciseDbEntry[], template?: TemplateFramework | null): Session[] {
   const sessions: Session[] = [];
   const usedIds = new Set<string>();
   const spw = profile.logistics.sessions_per_week;
@@ -310,11 +355,24 @@ function generateFallback(profile: ClientProfile, blockNumber: number, exerciseP
         phase: wp.phase,
         focus_label: `${archetypeFocus[archetype]} — ${phaseLabel} (Week ${wp.week})`,
         time_tier: profile.logistics.time_tier,
-        versions: {
-          studio: composeSessionVersion(archetype, wp.phase, usedIds, false, exercisePool),
-          home: composeSessionVersion(archetype, wp.phase, usedIds, true, exercisePool),
-        },
-        coaching_notes: `Client-specific: ${profile.health.contraindications?.join(", ") || "none noted"}. ${profile.notes.watch_for || ""}. Home version substitutes bodyweight for equipment.`,
+        versions: template
+          ? {
+              studio: {
+                warm_up: rescaleTemplateSection(template.data.warm_up, wp.phase, "warm_up"),
+                main_block: rescaleTemplateSection(template.data.main_block, wp.phase, "main_block"),
+                cooldown: rescaleTemplateSection(template.data.cooldown, wp.phase, "cooldown"),
+              },
+              home: {
+                warm_up: rescaleTemplateSection(template.data.warm_up, wp.phase, "warm_up").map((ex) => ({ ...ex, equipment: [] })),
+                main_block: rescaleTemplateSection(template.data.main_block, wp.phase, "main_block").map((ex) => ({ ...ex, equipment: [] })),
+                cooldown: rescaleTemplateSection(template.data.cooldown, wp.phase, "cooldown").map((ex) => ({ ...ex, equipment: [] })),
+              },
+            }
+          : {
+              studio: composeSessionVersion(archetype, wp.phase, usedIds, false, exercisePool),
+              home: composeSessionVersion(archetype, wp.phase, usedIds, true, exercisePool),
+            },
+        coaching_notes: `Client-specific: ${profile.health.contraindications?.join(", ") || "none noted"}. ${profile.notes.watch_for || ""}. Home version substitutes bodyweight for equipment.${template ? ` Built from template "${template.name}".` : ""}`,
         client_intro: archetypeFocus[archetype],
       });
     }

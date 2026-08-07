@@ -1,4 +1,4 @@
-import type { TrainingRule, TrainingRuleType } from "@/types";
+import type { TrainingRule, TrainingRuleType, SessionVersion } from "@/types";
 import { buildTrainingRulesSection } from "@/lib/trainingRules";
 
 /**
@@ -294,6 +294,36 @@ export function buildPrinciplesSection(settings: PlanAgentSettingsMap): string {
 
 export function buildFormatsSection(settings: PlanAgentSettingsMap): string {
   return resolveSessionFormats(settings).map((f) => `- ${f}`).join("\n");
+}
+
+/** Describes a saved workout_templates row as a structural reference — the AI
+ *  reads it as "this shape and rough volume", not a literal script to copy;
+ *  exercise choice must still come from the EXERCISE LIBRARY section and
+ *  respect this client's specific contraindications/phase/archetype. Used
+ *  when a block is generated "from a template" (Master Template Registry /
+ *  Session Roller brain-dump, 2026-08-07) — grounds the whole block in a
+ *  condition-specific framework instead of a free-form chat. */
+export function buildTemplateFrameworkSection(template: { name: string; condition_tags: string[]; data: SessionVersion }): string {
+  const describeSection = (label: string, exercises: SessionVersion["warm_up"]) => {
+    if (!exercises?.length) return `${label}: (none in the template)`;
+    return `${label}:\n${exercises
+      .map((ex) => `  - ${ex.exercise_name} — ${ex.sets ?? "?"} × ${ex.reps || "?"}${ex.tempo ? `, tempo ${ex.tempo}` : ""}${ex.group_label ? ` [${ex.group_label}]` : ""}`)
+      .join("\n")}`;
+  };
+  return `TEMPLATE FRAMEWORK — "${template.name}"${template.condition_tags?.length ? ` (${template.condition_tags.join(", ")})` : ""}:
+This block was requested to follow this template as its structural framework. Use it as a shape and
+rough volume guide for EVERY session in this block — the same number of movement slots per section,
+a similar set/rep skeleton, and the same session-format grouping (supersets etc.) — while still:
+- choosing the actual exercise for each slot from the EXERCISE LIBRARY section below (never invent one),
+- varying exercise choice appropriately across the 6 weeks (this is a template shape, not one session repeated 18 times),
+- overriding anything here that conflicts with this client's HARD CONSTRAINTS or CONTRAINDICATIONS — client
+  safety always wins over matching the template.
+
+${describeSection("Warm-up", template.data.warm_up)}
+
+${describeSection("Main block", template.data.main_block)}
+
+${describeSection("Cooldown", template.data.cooldown)}`;
 }
 
 export function buildSplitSection(split: SplitDefinition, sessionsPerWeek: number): string {

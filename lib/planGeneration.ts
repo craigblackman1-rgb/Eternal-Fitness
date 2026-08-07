@@ -10,6 +10,7 @@ import {
   buildPrinciplesSection,
   buildSafetySection,
   buildSplitSection,
+  buildTemplateFrameworkSection,
   resolveArchetypeFocusLabels,
   resolveClientSplit,
   resolveClinicalSystemPrompt,
@@ -22,7 +23,15 @@ import {
   validateGeneratedSession,
   type ExerciseIndex,
 } from "@/lib/planValidation";
-import type { ClientProfile, Session, Archetype, Phase } from "@/types";
+import type { ClientProfile, Session, Archetype, Phase, SessionVersion } from "@/types";
+
+/** A saved workout_templates row, passed through when a block is generated
+ *  "from a template" rather than free-form chat (option 3, 2026-08-07). */
+export interface TemplateFramework {
+  name: string;
+  condition_tags: string[];
+  data: SessionVersion;
+}
 
 export const weekPhases: { week: number; phase: Phase }[] = [
   { week: 1, phase: "foundation" },
@@ -103,11 +112,12 @@ export async function generateViaAi(
   bundle: PlanAgentBundle,
   blockNote?: string,
   previousSummary?: string,
+  template?: TemplateFramework | null,
 ): Promise<Session[]> {
   const slots = buildSessionSlots(profile);
   const split = resolveClientSplit(bundle.settings, profile.logistics.split);
   const index = buildExerciseIndex(bundle.allExercises);
-  const system = buildGenerationSystemPrompt(profile, bundle, split);
+  const system = buildGenerationSystemPrompt(profile, bundle, split, template);
 
   // Generate sessions concurrently — one call each — so the route completes
   // well within serverless limits even for a full 3x/week block (18 calls).
@@ -142,6 +152,7 @@ export function buildGenerationSystemPrompt(
   profile: ClientProfile,
   bundle: PlanAgentBundle,
   split: SplitDefinition,
+  template?: TemplateFramework | null,
 ): string {
   const health = profile.health as ClientProfile["health"];
   const parqOverride = health?.parq_trainer_override
@@ -155,6 +166,10 @@ export function buildGenerationSystemPrompt(
 ${buildHardConstraintsSection(profile.programming_adaptations, profile.health.contraindications ?? [], bundle.ruleTypesById)}
 
 ---
+${template ? `${buildTemplateFrameworkSection(template)}
+
+---
+` : ""}
 
 PAR-Q SCREENING:
 ${buildParqSection(bundle.parq, parqOverride)}
