@@ -189,7 +189,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             />
             <Reveal y={24}>
               <p className="ds-body ds-body-light" style={{ marginTop: 20, marginBottom: 28, maxWidth: "52ch" }}>
-                {content.specialist_intro ?? "A health condition, an old injury, adapting for a disability — here's where I go into more detail on how I work with particular situations."}
+                {content.specialist_intro ?? "As a Level 4 Specialist and GP Referral Trainer, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <CtaButton cta={{ label: content.specialist_link ?? "Get in Touch", href: "/contact", arrow: true }} />
@@ -199,11 +199,11 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           </div>
           <Reveal y={24}>
             <ul className="ds-spec-list">
-              <li>Heart health and blood pressure</li>
-              <li>Bone and joint health</li>
-              <li>Visual impairment</li>
-              <li>Cancer rehabilitation</li>
-              <li className="pending">…and more, as the catalogue is built</li>
+              <li><strong>Cardiovascular Care:</strong>&nbsp;Support for heart health and blood pressure management.</li>
+              <li><strong>Musculoskeletal Strength:</strong>&nbsp;Targeted exercise for bone and joint health.</li>
+              <li><strong>Inclusive Training:</strong>&nbsp;Tailored physical coaching for visual impairment.</li>
+              <li><strong>Cancer Rehabilitation:</strong>&nbsp;Gentle, progressive recovery training during or after treatment.</li>
+              <li><strong>Active Ageing:</strong>&nbsp;Specialised mobility coaching for older adults, focusing on balance, mobility, and joint stability.</li>
             </ul>
           </Reveal>
         </div>

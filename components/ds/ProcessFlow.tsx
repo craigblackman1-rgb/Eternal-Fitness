@@ -11,9 +11,10 @@ export interface FlowStep {
 
 /** Numbered horizontal process flow with a connecting line — a diagram, not a card grid. */
 export function ProcessFlow({ steps }: { steps: FlowStep[] }) {
+  const hasAnyImage = steps.some((s) => s.image);
   return (
     <Reveal
-      className="ds-flow"
+      className={hasAnyImage ? "ds-flow ds-flow-has-img" : "ds-flow"}
       stagger={0.12}
       y={40}
       start="top 82%"
@@ -21,15 +22,17 @@ export function ProcessFlow({ steps }: { steps: FlowStep[] }) {
     >
       {steps.map((step, i) => (
         <div key={step.title} className="ds-flow-step">
-          {step.image && (
-            <div className="ds-flow-step-img">
-              <Image
-                src={step.image}
-                alt={step.imageAlt ?? step.title}
-                fill
-                sizes="(max-width: 1000px) 100vw, 25vw"
-                style={{ objectFit: "cover", ...(step.imagePosition ? { objectPosition: step.imagePosition } : {}) }}
-              />
+          {hasAnyImage && (
+            <div className="ds-flow-step-img" style={step.image ? undefined : { visibility: "hidden" }}>
+              {step.image && (
+                <Image
+                  src={step.image}
+                  alt={step.imageAlt ?? step.title}
+                  fill
+                  sizes="(max-width: 1000px) 100vw, 25vw"
+                  style={{ objectFit: "cover", ...(step.imagePosition ? { objectPosition: step.imagePosition } : {}) }}
+                />
+              )}
             </div>
           )}
           <div className="ds-flow-num">{i + 1}</div>
