@@ -113,7 +113,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
           ))}
         </Reveal>
         <div style={{ textAlign: "center", marginTop: 32 }}>
-          <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
+          <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-primary">Book a Free Consultation</button>
         </div>
         <p className="ds-body" style={{ textAlign: "center", marginTop: 24, maxWidth: 640, marginLeft: "auto", marginRight: "auto" }}>
           {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
@@ -174,7 +174,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
           <p className="ds-body">{content.pricing_option_b_desc ?? "Designed for clients looking for long-term consistency, continuous care, and predictable scheduling over time."}</p>
         </div>
         <Reveal y={40} start="top 82%" style={{ maxWidth: 400, margin: "24px auto 0" }}>
-          <div className="ds-card" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="ds-card" style={{ display: "flex", flexDirection: "column", border: "2px solid var(--color-rose)" }}>
             <div style={{ marginBottom: 12 }}>
               <p style={{ fontSize: 22, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em", marginBottom: 8 }}>{monthlyPlan.name}</p>
               <span className="ds-card-body">{monthlyPlan.price}</span>
