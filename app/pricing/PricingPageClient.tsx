@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { IconArrowUpRight, IconCheck } from "@/components/icons";
+import { IconArrowUpRight, IconCheck, IconTarget, IconAward, IconEye } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
@@ -17,18 +17,38 @@ import {
 
 export default function PricingPageClient({ content = {} }: { content?: Record<string, string> }) {
   const { openBookingModal } = useBookingModal();
+  const investingCards = [
+    {
+      title: content.value_card_1_title ?? "Undivided Attention",
+      body: content.value_card_1_body ?? "One person. One trainer. Your programme is entirely custom-built and dynamically adjusted to how your body feels each day — never a generic template.",
+      icon: IconTarget,
+      accent: "rose" as const,
+    },
+    {
+      title: content.value_card_2_title ?? "True Professional Specialism",
+      body: content.value_card_2_body ?? "As a Level 4 Specialist and GP Referral Coach, you are investing in advanced expertise. If your health picture shifts, your training adapts safely so you can keep moving forward.",
+      icon: IconAward,
+      accent: "teal" as const,
+    },
+    {
+      title: content.value_card_3_title ?? "Honest, Transparent Terms",
+      body: content.value_card_3_body ?? "Everything is laid out clearly upfront. No hidden costs, no unexpected changes, and an honest recommendation on the best framework for your life.",
+      icon: IconEye,
+      accent: "rose" as const,
+    },
+  ];
   const plans = [
     {
       name: content.plan_2_name ?? "Block of 12",
       price: "£480",
       per: "£40 per session",
       popular: true,
-      description: content.plan_2_desc ?? "The most popular choice. Enough sessions to build real momentum.",
+      description: content.plan_2_desc ?? "Our most popular entry point. Provides the ideal momentum to build consistency and real-world functional strength.",
       features: [
-        content.plan_2_feat_1 ?? "12 x 60-minute one-to-one sessions",
-        content.plan_2_feat_2 ?? "Programme review and adjustment included",
+        content.plan_2_feat_1 ?? "12 x 60-minute, fully private one-to-one sessions.",
+        content.plan_2_feat_2 ?? "Continuous programme review and dynamic adjustments included.",
         content.plan_2_feat_3 ?? "Private studio in Worthing, or live online",
-        content.plan_2_feat_4 ?? "Sessions used at your pace — no expiry pressure",
+        content.plan_2_feat_4 ?? "Valid for 120 days from the date of purchase.",
       ],
       cta: content.plan_2_cta ?? "Book a Free Consultation",
     },
@@ -66,24 +86,28 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         secondaryCta={{ label: content.hero_btn_secondary ?? "See Pricing", href: "#pricing" }}
       />
 
-      {/* What You're Investing In (per mockup — short statement + CTA, not a card grid) */}
+      {/* What You're Investing In (3-item benefit grid) */}
       <Section background="cream" id="investing">
-        <div className="ds-split">
-          <div>
-            <p className="ds-eyebrow ds-eyebrow-teal">{content.value_eyebrow ?? "What You're Investing In"}</p>
-            <p className="ds-body" style={{ fontSize: 19, fontWeight: 600, color: "var(--color-ink)", lineHeight: 1.4 }}>
-              {content.value_heading ?? "One person. One trainer. Full attention, every session. Your programme is built around you and adjusted as things change — not a fixed template."}
-            </p>
-          </div>
-          <div>
-            <p className="ds-body">
-              {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
-            </p>
-            <div style={{ marginTop: 24 }}>
-              <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
-            </div>
-          </div>
+        <div className="ds-head">
+          <p className="ds-eyebrow ds-eyebrow-teal">{content.value_eyebrow ?? "What You're Investing In"}</p>
         </div>
+        <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-5" stagger={0.12} y={40} style={{ marginTop: 24 }}>
+          {investingCards.map((c) => (
+            <div key={c.title} className="ds-card">
+              <div className={`ds-card-ic ds-card-ic-${c.accent}`}>
+                <c.icon className="w-5 h-5" />
+              </div>
+              <h4 className="ds-card-title">{c.title}</h4>
+              <p className="ds-card-body">{c.body}</p>
+            </div>
+          ))}
+        </Reveal>
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
+        </div>
+        <p className="ds-body" style={{ textAlign: "center", marginTop: 24, maxWidth: 640, marginLeft: "auto", marginRight: "auto" }}>
+          {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
+        </p>
       </Section>
 
       {/* Pricing Cards */}
