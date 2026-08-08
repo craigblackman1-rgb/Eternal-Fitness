@@ -13,20 +13,16 @@ const faqs = [
     answer: "No. Most clients haven't exercised in a while, or don't think of themselves as \"gym people.\" You do not need any experience — the only starting point is where you are right now.",
   },
   {
-    question: "Is this suitable if I have an injury or medical condition?",
-    answer: "Almost certainly yes. I am qualified in exercise referral and cancer rehabilitation, specifically trained to work with people who have clinical health conditions. Every programme is adapted to what your body can manage and adjusted as your health changes.",
+    question: "What happens if my health changes during a block?",
+    answer: "If you experience a medical setback, injury, or flare-up, your sessions do not simply disappear. While blocks have fixed validity periods (120 or 240 days), I offer a medical suspension framework. We can safely hold your unused sessions on account and resume training the moment your body is ready.",
   },
   {
-    question: "How often should I train?",
-    answer: "For most clients, two sessions per week is a good starting point. For those managing health conditions or recovering from illness, one session per week may be more appropriate initially. I will recommend a frequency that is sustainable and effective for your specific situation.",
+    question: "What is your session cancellation policy?",
+    answer: "Sessions must be cancelled or rescheduled with at least 24 hours' notice. Sessions cancelled with less than 24 hours' notice are forfeited. If you are running late for a session, the appointment will still end at its scheduled time to protect the next client's booking slot.",
   },
   {
-    question: "Do you offer flexible packages?",
-    answer: "Yes. While I believe in the long-term approach, I offer flexible options to suit different needs and budgets. I will recommend what I think is realistic for your goals during the initial consultation.",
-  },
-  {
-    question: "Where is the studio located?",
-    answer: "Sessions take place in a private studio in Worthing, West Sussex — used exclusively for one-to-one training. No public gym floor, no other clients. The full address is confirmed at the point of booking.",
+    question: "Do you offer flexible or rolling packages?",
+    answer: "Yes. Alongside our fixed session blocks, we offer structured Rolling Monthly Contracts. These require a minimum initial term of 3 months (12 weeks) to establish real consistency, followed by a one-calendar-month written notice period if you ever choose to cancel.",
   },
 ];
 

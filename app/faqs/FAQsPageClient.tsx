@@ -46,9 +46,24 @@ const faqGroups = [
           "No. I believe true progress requires a consistent, long-term approach, which is why training is structured in blocks of 12 or 24 sessions. We will discuss exactly what is realistic for your goals, your lifestyle, and your body during your initial consultation.",
       },
       {
-        question: "What if my health changes during a programme?",
+        question: "What happens if my health changes during a block?",
         answer:
-          "This is something I am specifically trained to manage. If your health changes—whether that is a new diagnosis, a flare-up, a change in medication, or simply a difficult period—your programme changes with it. You do not lose sessions, and you do not fall behind. We simply adapt.",
+          "If you experience a medical setback, injury, or flare-up, your sessions do not simply disappear. While blocks have fixed validity periods (120 or 240 days), I offer a medical suspension framework. We can safely hold your unused sessions on account and resume training the moment your body is ready.",
+      },
+      {
+        question: "What is your session cancellation policy?",
+        answer:
+          "Sessions must be cancelled or rescheduled with at least 24 hours' notice. Sessions cancelled with less than 24 hours' notice are forfeited. If you are running late for a session, the appointment will still end at its scheduled time to protect the next client's booking slot.",
+      },
+      {
+        question: "Do you offer flexible or rolling packages?",
+        answer:
+          "Yes. Alongside our fixed session blocks, we offer structured Rolling Monthly Contracts. These require a minimum initial term of 3 months (12 weeks) to establish real consistency, followed by a one-calendar-month written notice period if you ever choose to cancel.",
+      },
+      {
+        question: "Do you offer refunds on unused sessions?",
+        answer:
+          "Because I strictly limit the number of clients I work with at any one time to ensure full attention, I do not issue refunds for unused sessions due to relocation, illness, or lifestyle changes. However, through our medical suspension framework, we will always find a safe timeframe to help you complete your block.",
       },
       {
         question: "Can I bring someone with me to sessions?",
