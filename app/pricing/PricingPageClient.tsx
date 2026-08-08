@@ -60,7 +60,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       description: content.plan_3_desc ?? "Our best value choice. Designed for longer-term progress, specific athletic milestones, or managing complex health and rehabilitation needs.",
       features: [
         content.plan_3_feat_1 ?? "24 x 60-minute one-to-one sessions",
-        content.plan_3_feat_2 ?? "Ongoing programme management, priority scheduling",
+        content.plan_3_feat_2 ?? "Continuous programme review and dynamic adjustments included.",
         content.plan_3_feat_3 ?? "Valid for 240 days from the date of purchase.",
       ],
       cta: content.plan_3_cta ?? "Book a Free Consultation",
@@ -150,7 +150,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               {plan.depositNote && (
                 <p className="ds-card-body" style={{ fontSize: 13, color: "var(--color-body)", marginBottom: 16 }}>{plan.depositNote}</p>
               )}
-              <button type="button" onClick={openBookingModal} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
+              <button type="button" onClick={openBookingModal} className="ef-btn justify-center w-full ef-btn-primary">
                 {plan.cta}
                 <IconArrowUpRight className="w-3.5 h-3.5" />
               </button>
