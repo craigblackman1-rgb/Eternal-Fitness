@@ -84,7 +84,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="why-g">
             <div className="wic">
               <div className="wimg">
-                <Image src="/images/why-coaching-review.jpg" alt="Esther Fair coaching a client through a session, reviewing their programme notes in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "50% 30%" }} />
+                <Image src="/images/why-coaching-review.jpg" alt="Esther Fair coaching a client through a session, reviewing their programme notes in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "38% 30%" }} />
               </div>
               <div className="wbadge"><div className="wbn">4</div><div className="wbl">{content.badge_title ?? "Level 4 Qualified"}</div></div>
             </div>
