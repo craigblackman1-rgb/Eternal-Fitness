@@ -194,6 +194,13 @@
 .efhome .spec-list li::before { content: ''; width: 5px; height: 5px; border-radius: 999px; background: var(--rose); flex: none; }
 .efhome .spec-list li.pending { color: rgba(255,255,255,.45); font-style: italic; font-weight: 400; }
 .efhome .spec-list li.pending::before { background: rgba(255,255,255,.45); }
+.efhome .spec-row { display: grid; grid-template-columns: 1fr 200px; gap: 24px; align-items: start; margin-top: 26px; }
+.efhome .spec-photo { position: relative; border-radius: 16px; overflow: hidden; align-self: stretch; min-height: 260px; }
+.efhome .spec-photo img { border-radius: 16px; }
+@media (max-width: 1000px) {
+  .efhome .spec-row { grid-template-columns: 1fr; }
+  .efhome .spec-photo { min-height: 220px; }
+}
 
 /* ── Shared 2-column grid utility (Who/Specialist band, Testimonials) ── */
 .efhome .aq-g { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }

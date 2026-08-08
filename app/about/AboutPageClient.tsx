@@ -48,11 +48,11 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
 
       <main id="main-content">
       <PageHero
-        image="/images/esther-shoulder-press.jpg"
-        imageAlt="Esther Fair mid-set on a seated shoulder press in her private studio in Worthing"
+        image="/images/about-hero-esther-portrait.png"
+        imageAlt="Esther Fair smiling in her private studio in Worthing"
         imagePan="108%"
-        imageObjectPosition="50% 42%"
-        imageObjectPositionWide="50% 34%"
+        imageObjectPosition="50% 30%"
+        imageObjectPositionWide="50% 22%"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
         heading={content?.hero_heading ?? "About Esther Fair"}
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}

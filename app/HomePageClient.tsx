@@ -84,7 +84,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="why-g">
             <div className="wic">
               <div className="wimg">
-                <Image src="/images/why-client-spotter.jpg" alt="Clients training together in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "50% 50%" }} />
+                <Image src="/images/why-coaching-review.jpg" alt="Esther Fair coaching a client through a session, reviewing their programme notes in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "78% 40%" }} />
               </div>
               <div className="wbadge"><div className="wbn">4</div><div className="wbl">{content.badge_title ?? "Level 4 Qualified"}</div></div>
             </div>
@@ -116,17 +116,17 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div className="step">
               <div className="sn">01</div>
               <div className="sc"><h3>{content.approach_step_1_title ?? "Every session adapts to how you feel that day"}</h3><p>{content.approach_step_1_desc ?? "Structured planning, dynamically tailored to you. It is the perfect balance of consistent progress and expert flexibility. If you are facing fatigue, a bad night, or a stiff shoulder, I notice and adjust without making a thing of it."}</p></div>
-              <div className="si"><Image src="/images/consultation-programme-review.jpg" alt="Esther talking a client through their session plan mid-workout, notes in hand" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="si"><Image src="/images/approach-step1-plank-coaching.jpg" alt="Esther adjusting a client's form during a plank in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">02</div>
               <div className="sc"><h3>{content.approach_step_2_title ?? "Private, one-to-one — no gym floor"}</h3><p>{content.approach_step_2_desc ?? "No other clients, no performance pressure, and no dress code. Just you and exactly what you need today."}</p></div>
-              <div className="si"><Image src="/images/studio-kneel-stretch.jpg" alt="A relaxed stretch session in the private Eternal Fitness studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="si"><Image src="/images/approach-step2-lunges-together.png" alt="Esther and a client doing lunges together, laughing, in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
             <div className="step">
               <div className="sn">03</div>
               <div className="sc"><h3>{content.approach_step_3_title ?? "Progress you can feel, not a number on a scale"}</h3><p>{content.approach_step_3_desc ?? "Climbing stairs with less effort. Sleeping better. Walking further. That is the real-world strength we build together."}</p></div>
-              <div className="si"><Image src="/images/active-ageing-step-up.jpg" alt="Esther supporting an older client through a step-up — the everyday strength that makes stairs easier" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover", objectPosition: "50% 45%" }} /></div>
+              <div className="si"><Image src="/images/approach-step3-deadlift-clients.jpg" alt="Two clients working through a dumbbell deadlift together in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
             </div>
           </div>
           <aside className="cred-band">
@@ -173,13 +173,18 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               <p className="L LL" style={{ marginTop: 16, maxWidth: 480, marginBottom: 0 }}>
                 {content.specialist_body ?? "If your health picture requires more specific attention, I focus on making exercise completely accessible, regardless of the challenges or health issues you might be facing. I provide expert, safe guidance across these dedicated pillars:"}
               </p>
-              <ul className="spec-list">
-                <li><span><strong>Cardiovascular Care:</strong> Support for heart health and blood pressure management.</span></li>
-                <li><span><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone density and joint health.</span></li>
-                <li><span><strong>Inclusive Training:</strong> Tailored physical coaching and movement correction for partially sighted people.</span></li>
-                <li><span><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training before, during, or after clinical treatment.</span></li>
-                <li><span><strong>Active Ageing:</strong> Specialised mobility coaching for older adults, focusing on balance, agility, and joint stability.</span></li>
-              </ul>
+              <div className="spec-row">
+                <ul className="spec-list" style={{ margin: 0 }}>
+                  <li><span><strong>Cardiovascular Care:</strong> Support for heart health and blood pressure management.</span></li>
+                  <li><span><strong>Musculoskeletal Strength:</strong> Targeted exercise for bone density and joint health.</span></li>
+                  <li><span><strong>Inclusive Training:</strong> Tailored physical coaching and movement correction for partially sighted people.</span></li>
+                  <li><span><strong>Cancer Rehabilitation:</strong> Gentle, progressive recovery training before, during, or after clinical treatment.</span></li>
+                  <li><span><strong>Active Ageing:</strong> Specialised mobility coaching for older adults, focusing on balance, agility, and joint stability.</span></li>
+                </ul>
+                <div className="spec-photo">
+                  <Image src="/images/specialist-training-esther-client.jpg" alt="Esther guiding a client through specialist training in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 200px" style={{ objectFit: "cover" }} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
