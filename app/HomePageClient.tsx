@@ -26,8 +26,8 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
       <section id="hero">
         <div className="hero-media">
           <Image
-            src="/images/studio-lunge-pair.jpg"
-            alt="Esther Fair, laughing on the mats in her private studio in Worthing"
+            src="/images/hero-pullup-rack.png"
+            alt="Esther Fair smiling mid-stretch at the power rack in her private Worthing studio"
             fill
             priority
             sizes="100vw"
