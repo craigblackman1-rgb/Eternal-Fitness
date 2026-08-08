@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HubCard } from "@/components/hub/HubCard";
@@ -9,7 +10,7 @@ import { IconDumbbell, IconMenu, IconSearch, IconChevronLeft, IconChevronRight, 
 import { EmptyState } from "@/components/hub/EmptyState";
 import type { WorkoutTemplate } from "@/types";
 
-const movementTypeLabels: Record<string, string> = {
+export const movementTypeLabels: Record<string, string> = {
   spinal_mobility: "Spinal Mobility",
   upper_body_mobility: "Upper Body Mobility",
   lower_body_mobility: "Lower Body Mobility",
@@ -88,6 +89,7 @@ export function WorkoutTemplateBrowser({
   const [difficultyFilter, setDifficultyFilter] = useState<number>(0);
   const [conditionFilter, setConditionFilter] = useState("all");
   const [page, setPage] = useState(0);
+  const router = useRouter();
   const PAGE_SIZE = 60;
 
   const filtered = useMemo(() => {
@@ -284,7 +286,8 @@ export function WorkoutTemplateBrowser({
                     return (
                       <tr
                         key={t.id}
-                        className="border-b border-[var(--hub-border)] transition-colors hover:bg-[var(--hub-hover)]"
+                        className="border-b border-[var(--hub-border)] transition-colors hover:bg-[var(--hub-hover)] cursor-pointer"
+                        onClick={() => router.push(`/hub/workout-templates/${t.id}`)}
                       >
                         <td className="px-4 py-2.5 align-middle">
                           <div className="flex items-center gap-2 min-w-0">
