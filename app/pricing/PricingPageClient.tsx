@@ -56,14 +56,13 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
     {
       name: content.plan_3_name ?? "Block of 24",
       price: "£840",
-      per: "£35 per session",
+      per: "£35 per session — Save £120",
       popular: false,
-      description: content.plan_3_desc ?? "Best value. For longer-term progress or more complex needs.",
+      description: content.plan_3_desc ?? "Our best value choice. Designed for longer-term progress, specific athletic milestones, or managing complex health and rehabilitation needs.",
       features: [
         content.plan_3_feat_1 ?? "24 x 60-minute one-to-one sessions",
-        content.plan_3_feat_2 ?? "Save £5 per session vs. Block of 12",
-        content.plan_3_feat_3 ?? "Ongoing programme management, priority scheduling",
-        content.plan_3_feat_4 ?? "Private studio in Worthing, or live online",
+        content.plan_3_feat_2 ?? "Ongoing programme management, priority scheduling",
+        content.plan_3_feat_3 ?? "Private studio in Worthing, or live online",
       ],
       cta: content.plan_3_cta ?? "Book a Free Consultation",
     },
