@@ -47,8 +47,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       features: [
         content.plan_2_feat_1 ?? "12 x 60-minute, fully private one-to-one sessions.",
         content.plan_2_feat_2 ?? "Continuous programme review and dynamic adjustments included.",
-        content.plan_2_feat_3 ?? "Private studio in Worthing, or live online",
-        content.plan_2_feat_4 ?? "Valid for 120 days from the date of purchase.",
+        content.plan_2_feat_3 ?? "Valid for 120 days from the date of purchase.",
       ],
       cta: content.plan_2_cta ?? "Book a Free Consultation",
       depositNote: content.plan_2_deposit_note ?? "Note: A £100 non-refundable deposit is required to secure your regular time slots, which is fully deducted from your first block payment.",
@@ -62,7 +61,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       features: [
         content.plan_3_feat_1 ?? "24 x 60-minute one-to-one sessions",
         content.plan_3_feat_2 ?? "Ongoing programme management, priority scheduling",
-        content.plan_3_feat_3 ?? "Private studio in Worthing, or live online",
+        content.plan_3_feat_3 ?? "Valid for 240 days from the date of purchase.",
       ],
       cta: content.plan_3_cta ?? "Book a Free Consultation",
     },
