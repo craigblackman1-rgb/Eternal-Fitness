@@ -171,7 +171,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             <div>
               <div className="stag stag-w">{content.specialist_tag ?? "Specialist Training"}</div>
               <p className="L LL" style={{ marginTop: 16, maxWidth: 480, marginBottom: 0 }}>
-                {content.specialist_body ?? "As a Level 4 Specialist and GP Referral Trainer, I bridge the gap between medical treatment and everyday functional strength. I provide expert, safe guidance if you are managing specific health pictures, including:"}
+                {content.specialist_body ?? "If your health picture requires more specific attention, I focus on making exercise completely accessible, regardless of the challenges or health issues you might be facing. I provide expert, safe guidance across these dedicated pillars:"}
               </p>
               <ul className="spec-list">
                 <li><span><strong>Cardiovascular Care:</strong> Support for heart health and blood pressure management.</span></li>
