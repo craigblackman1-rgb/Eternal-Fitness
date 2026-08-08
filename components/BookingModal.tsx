@@ -38,6 +38,24 @@ export function BookingModalProvider({ children }: { children: ReactNode }) {
                 <X className="h-4 w-4" />
               </DialogPrimitive.Close>
             </div>
+            <div className="px-5 py-3 border-b border-border-warm bg-warm/60 text-[13px] leading-[1.5] text-slate">
+              <p className="font-semibold text-ink mb-0.5">Prefer to book directly?</p>
+              <p>
+                If you use a screen reader and find the calendar grid below cumbersome to navigate, you don&apos;t have
+                to use it. You can skip the booking widget entirely and arrange your consultation directly by calling{" "}
+                <a href="tel:07517658128" className="underline underline-offset-4 hover:text-rose transition-colors">
+                  07517 658 128
+                </a>{" "}
+                or emailing{" "}
+                <a
+                  href="mailto:esther.fair@eternal-fitness.co.uk"
+                  className="underline underline-offset-4 hover:text-rose transition-colors break-all"
+                >
+                  esther.fair@eternal-fitness.co.uk
+                </a>
+                .
+              </p>
+            </div>
             <div className="relative h-[70vh] max-h-[640px] min-h-[420px] bg-warm">
               <iframe
                 src={BOOKINGS_URL}
