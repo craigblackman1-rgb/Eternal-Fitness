@@ -130,40 +130,14 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
 
       {/* Book Online + Direct Contact */}
       <Section background="white" id="form">
-        <div className="grid md:grid-cols-[1.15fr_.85fr] gap-16 items-start">
-          {/* Book online */}
-          <div>
-            <SectionHeading
-              eyebrow={content.booking_eyebrow ?? "Book Online"}
-              heading={content.booking_heading ?? "Book your free consultation"}
-              intro={content.booking_intro ?? "Choose a day and time that works for you — your first conversation is always free."}
-            />
-            <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7" style={{ marginTop: 28 }}>
-              <button
-                type="button"
-                onClick={openBookingModal}
-                className="block w-full border-[1.5px] border-dashed border-border-warm rounded-xl bg-warm px-6 py-12 text-center hover:bg-warm/70 transition-colors"
-              >
-                <span className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center mx-auto mb-3.5">
-                  <IconCalendar className="w-5 h-5 text-rose" />
-                </span>
-                <p className="text-[15px] font-bold text-ink tracking-tight">Open the booking calendar</p>
-                <p className="text-[12.5px] text-muted-foreground mt-1.5">Microsoft Bookings</p>
-              </button>
-              <div className="mt-[22px] pt-5 border-t border-border-warm">
-                <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Primary service</p>
-                <p className="text-[15.5px] font-semibold text-ink">Initial Consult — 30 mins, new customers only</p>
-              </div>
-            </div>
-          </div>
-
+        <div className="grid md:grid-cols-[.85fr_1.15fr] gap-16 items-start">
           {/* Direct contact */}
           <div>
             <SectionHeading
               eyebrow={content.direct_eyebrow ?? "Direct"}
               eyebrowColor="teal"
               heading={content.direct_heading ?? "Prefer to book directly?"}
-              intro={content.direct_intro ?? "If you use a screen reader and find the calendar grid above cumbersome to navigate, you do not have to use it. You can skip the booking widget entirely and schedule your free 30-minute consultation by contacting me directly. Let me know what days or times suit you, and I will lock your appointment in manually."}
+              intro={content.direct_intro ?? "If you use a screen reader and find the calendar grid cumbersome to navigate, you do not have to use it. You can skip the booking widget entirely and schedule your free 30-minute consultation by contacting me directly. Let me know what days or times suit you, and I will lock your appointment in manually."}
             />
 
             <ul className="border-t border-border-warm list-none p-0 m-0" style={{ marginTop: 24 }}>
@@ -196,6 +170,32 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
               Prefer to talk it through first? Call and we can have an informal chat — no pressure, no commitment.
               If you would rather put it in writing, <a href="#message" className="underline underline-offset-4 hover:text-rose transition-colors">send a message instead</a>.
             </p>
+          </div>
+
+          {/* Book online */}
+          <div>
+            <SectionHeading
+              eyebrow={content.booking_eyebrow ?? "Book Online"}
+              heading={content.booking_heading ?? "Book your free consultation"}
+              intro={content.booking_intro ?? "Choose a day and time that works for you — your first conversation is always free."}
+            />
+            <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7" style={{ marginTop: 28 }}>
+              <button
+                type="button"
+                onClick={openBookingModal}
+                className="block w-full border-[1.5px] border-dashed border-border-warm rounded-xl bg-warm px-6 py-12 text-center hover:bg-warm/70 transition-colors"
+              >
+                <span className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center mx-auto mb-3.5">
+                  <IconCalendar className="w-5 h-5 text-rose" />
+                </span>
+                <p className="text-[15px] font-bold text-ink tracking-tight">Open the booking calendar</p>
+                <p className="text-[12.5px] text-muted-foreground mt-1.5">Microsoft Bookings</p>
+              </button>
+              <div className="mt-[22px] pt-5 border-t border-border-warm">
+                <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Primary service</p>
+                <p className="text-[15.5px] font-semibold text-ink">Initial Consult — 30 mins, new customers only</p>
+              </div>
+            </div>
           </div>
         </div>
       </Section>
