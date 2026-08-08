@@ -47,18 +47,21 @@ export async function POST(request: Request) {
   const source = typeof body.source === "string" && SOURCE_LABELS[body.source] ? body.source : "contact_form";
   const firstName = typeof body.firstName === "string" ? body.firstName.trim() : "";
   const lastName = typeof body.lastName === "string" ? body.lastName.trim() : "";
+  const singleName = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+  const topic = typeof body.topic === "string" ? body.topic.trim() : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
 
-  if (!firstName) {
-    return NextResponse.json({ error: "First name is required." }, { status: 400 });
+  const fullName = singleName || [firstName, lastName].filter(Boolean).join(" ");
+
+  if (!fullName) {
+    return NextResponse.json({ error: "Your name is required." }, { status: 400 });
   }
   if (!email || !EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "A valid email address is required." }, { status: 400 });
   }
 
-  const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const sourceLabel = SOURCE_LABELS[source];
 
   const rows = [
@@ -67,6 +70,7 @@ export async function POST(request: Request) {
     ["Phone", phone || "—"],
     ["Source", sourceLabel],
   ];
+  if (topic) rows.push(["Topic", topic]);
   if (message) rows.push(["Message", message]);
 
   const html = `

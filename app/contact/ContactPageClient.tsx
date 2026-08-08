@@ -2,36 +2,52 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { IconArrowUpRight, IconPhone, IconMail, IconMapPin, IconCheckCircle } from "@/components/icons";
+import { IconArrowUpRight, IconPhone, IconMail, IconMapPin, IconCheckCircle, IconCalendar } from "@/components/icons";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Section, SectionHeading, PageHero, CTABand } from "@/components/ds";
+import { BOOKINGS_URL } from "@/lib/booking";
 
 interface FormData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   phone: string;
+  topic: string;
   message: string;
-  agree: boolean;
+  consent: boolean;
 }
 
 const initialForm: FormData = {
-  firstName: "",
-  lastName: "",
+  name: "",
   email: "",
   phone: "",
+  topic: "A general question",
   message: "",
-  agree: false,
+  consent: false,
 };
+
+const TOPIC_OPTIONS = [
+  "A general question",
+  "Training with an injury or health condition",
+  "Prices and packages",
+  "Online training",
+  "Something else",
+];
+
+const ASK_HINTS = [
+  "Any injuries, surgery or health conditions I should know about",
+  "What you would like to be able to do again, or do more easily",
+  "Days and times that generally work for you",
+  "Anything you are unsure or nervous about — no question is too small",
+];
 
 export default function ContactPageClient({ content = {} }: { content?: Record<string, string> }) {
   const [form, setForm] = useState<FormData>(initialForm);
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setForm((prev) => ({
       ...prev,
@@ -42,8 +58,8 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.firstName.trim()) {
-      toast.error("Please enter your first name.");
+    if (!form.name.trim()) {
+      toast.error("Please enter your name.");
       return;
     }
     if (!form.email.trim()) {
@@ -58,7 +74,7 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
       toast.error("Please enter a message.");
       return;
     }
-    if (!form.agree) {
+    if (!form.consent) {
       toast.error("Please agree before submitting.");
       return;
     }
@@ -89,15 +105,14 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
 
       <main id="main-content">
       <PageHero
-        image="/images/consultation-warm-chat.jpg"
-        imageAlt="Esther talking a client through their next set in the private Worthing studio"
+        image="/images/who-mobility.jpg"
+        imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
         imagePan="122%"
-        imageObjectPosition="50% 18%"
-        imageObjectPositionWide="50% 14%"
-        eyebrow={content.hero_eyebrow ?? "Contact"}
-        heading={content.hero_heading ?? <>Get in <em>Touch</em></>}
-        subhead={content.hero_subhead ?? "Whether you have a question, want to learn more, or are ready to book your free consultation — I would love to hear from you."}
-        primaryCta={{ label: content.hero_btn_primary ?? "Send a Message", href: "#form", arrow: true }}
+        imageObjectPosition="50% 47%"
+        eyebrow={content.hero_eyebrow ?? "Contact & Booking"}
+        heading={content.hero_heading ?? <>Let&apos;s Talk About <em>Where You Are Starting From</em></>}
+        subhead={content.hero_subhead ?? "There is no question too small or too complicated. Whether you are looking to get fitter, navigating an injury, or managing a health condition, let's have a relaxed, no-obligation conversation."}
+        primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", href: "#form", arrow: true }}
         secondaryCta={{ label: content.hero_btn_secondary ?? "Find the Studio", href: "#studio", variant: "outline" }}
         badge={
           <div className="flex gap-3.5 items-start max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-md shadow-lg p-5">
@@ -106,193 +121,231 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
             </div>
             <div>
               <p className="text-sm font-bold text-ink tracking-tight">The first conversation is free</p>
-              <p className="text-[13px] text-slate leading-relaxed mt-0.5">No pressure, no commitment — call, email, or send a message.</p>
+              <p className="text-[13px] text-slate leading-relaxed mt-0.5">No pressure, no commitment — book online, call, or email.</p>
             </div>
           </div>
         }
       />
 
-      {/* Contact Form + Info */}
+      {/* Book Online + Direct Contact */}
       <Section background="white" id="form">
-          <SectionHeading align="center" eyebrow={content.form_eyebrow ?? "Contact"} heading={content.form_heading ?? "Send me a message"} />
-          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto" style={{ marginTop: 48 }}>
-            {/* Form Card */}
-            <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7">
-              {sent ? (
-                <div className="text-center py-6 px-2" role="status">
-                  <div className="w-14 h-14 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-5">
-                    <IconCheckCircle className="w-7 h-7 text-teal" />
-                  </div>
-                  <h3 className="font-serif text-[26px] text-ink mb-2">Thank you — that&apos;s with me.</h3>
-                  <p className="text-[14.5px] text-slate leading-relaxed max-w-[36ch] mx-auto">
-                    I&apos;ll come back to you within one working day. If it&apos;s urgent, please call 07517 658 128.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-1.5">
-                        {content.form_firstname_label ?? "First name"} <span className="text-[var(--rose-text)]">*</span>
-                      </label>
-                      <input
-                        id="firstName"
-                        name="firstName"
-                        type="text"
-                        value={form.firstName}
-                        onChange={handleChange}
-                        placeholder="First name"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-1.5">
-                        {content.form_lastname_label ?? "Last name"}
-                      </label>
-                      <input
-                        id="lastName"
-                        name="lastName"
-                        type="text"
-                        value={form.lastName}
-                        onChange={handleChange}
-                        placeholder="Last name"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
-                        {content.form_email_label ?? "Email"} <span className="text-[var(--rose-text)]">*</span>
-                      </label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="you@example.com"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1.5">
-                        {content.form_phone_label ?? "Phone"}
-                      </label>
-                      <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={form.phone}
-                        onChange={handleChange}
-                        placeholder="07xxx xxx xxx"
-                        className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-1.5">
-                      {content.form_message_label ?? "Message"} <span className="text-[var(--rose-text)]">*</span>
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      rows={5}
-                      value={form.message}
-                      onChange={handleChange}
-                      placeholder="Tell me a little about what you&apos;re looking for — and anything you&apos;d like me to know before we speak."
-                      className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)] resize-none"
-                    />
-                  </div>
-
-                  <div className="flex items-start gap-3 pt-2">
-                    <input
-                      id="agree"
-                      name="agree"
-                      type="checkbox"
-                      checked={form.agree}
-                      onChange={handleChange}
-                      className="mt-1 h-4 w-4 rounded border-border-warm accent-rose"
-                    />
-                    <label htmlFor="agree" className="text-sm ef-body leading-relaxed">
-                      I&apos;m happy for Esther to contact me about this enquiry. Nothing is shared with anyone else.{" "}
-                      <a href="/privacy-policy" className="text-rose underline hover:text-rose/80 transition-colors">
-                        Privacy policy
-                      </a>
-                      .
-                    </label>
-                  </div>
-
-                  <button type="submit" disabled={submitting} className="ef-btn ef-btn-primary w-full justify-center mt-1 disabled:opacity-60">
-                    {submitting ? "Sending…" : (content.form_submit_btn ?? "Send Message")} <IconArrowUpRight className="w-4 h-4" />
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Contact Details */}
-            <div>
-              <SectionHeading
-                eyebrow={content.info_eyebrow ?? "Direct"}
-                eyebrowColor="teal"
-                heading={content.info_heading ?? "Or reach me directly"}
-                className="mb-6"
-              />
-
-              <ul className="border-t border-border-warm list-none p-0 m-0">
-                {/* Phone */}
-                <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
-                  <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-rose">
-                    <IconPhone className="w-[18px] h-[18px]" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Phone</p>
-                    <a href="tel:07517658128" className="text-[17px] font-semibold text-ink leading-[1.35] tracking-[-.015em] hover:text-rose transition-colors">
-                      07517 658 128
-                    </a>
-                  </div>
-                </li>
-
-                {/* Email */}
-                <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
-                  <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-teal">
-                    <IconMail className="w-[18px] h-[18px]" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Email</p>
-                    <a href="mailto:esther.fair@eternal-fitness.co.uk" className="text-[15.5px] font-semibold text-ink leading-[1.35] tracking-[-.015em] hover:text-teal transition-colors break-all">
-                      esther.fair@eternal-fitness.co.uk
-                    </a>
-                  </div>
-                </li>
-
-                {/* Location */}
-                <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
-                  <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-warm">
-                    <IconMapPin className="w-[18px] h-[18px]" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">{content.info_location_heading ?? "Studio location"}</p>
-                    <p className="text-[17px] font-semibold text-ink leading-[1.35] tracking-[-.015em]">{content.info_location_body ?? "Worthing, West Sussex"}</p>
-                    <p className="text-[13.5px] text-slate leading-[1.55] mt-1">
-                      {content.info_location_note ?? "Exact address shared after booking."}
-                    </p>
-                  </div>
-                </li>
-              </ul>
-
-              <p className="mt-[26px] p-5 rounded-2xl bg-warm text-[14px] leading-relaxed text-slate">
-                Prefer to talk it through? Call and we can have an informal chat — no pressure, no commitment.
-              </p>
+        <div className="grid md:grid-cols-[1.15fr_.85fr] gap-16 items-start">
+          {/* Book online */}
+          <div>
+            <SectionHeading
+              eyebrow={content.booking_eyebrow ?? "Book Online"}
+              heading={content.booking_heading ?? "Book your free consultation"}
+              intro={content.booking_intro ?? "Choose a day and time that works for you — your first conversation is always free."}
+            />
+            <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7" style={{ marginTop: 28 }}>
+              <a
+                href={BOOKINGS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block border-[1.5px] border-dashed border-border-warm rounded-xl bg-warm px-6 py-12 text-center hover:bg-warm/70 transition-colors"
+                aria-label="Open the online booking calendar (opens in a new tab)"
+              >
+                <span className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center mx-auto mb-3.5">
+                  <IconCalendar className="w-5 h-5 text-rose" />
+                </span>
+                <p className="text-[15px] font-bold text-ink tracking-tight">Open the booking calendar</p>
+                <p className="text-[12.5px] text-muted-foreground mt-1.5 font-mono">Opens in a new tab — Microsoft Bookings</p>
+              </a>
+              <div className="mt-[22px] pt-5 border-t border-border-warm">
+                <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Primary service</p>
+                <p className="text-[15.5px] font-semibold text-ink">Initial Consult — 30 mins, new customers only</p>
+              </div>
             </div>
           </div>
+
+          {/* Direct contact */}
+          <div>
+            <SectionHeading
+              eyebrow={content.direct_eyebrow ?? "Direct"}
+              eyebrowColor="teal"
+              heading={content.direct_heading ?? "Prefer to book directly?"}
+              intro={content.direct_intro ?? "If you use a screen reader and find the calendar grid above cumbersome to navigate, you do not have to use it. You can skip the booking widget entirely and schedule your free 30-minute consultation by contacting me directly. Let me know what days or times suit you, and I will lock your appointment in manually."}
+            />
+
+            <ul className="border-t border-border-warm list-none p-0 m-0" style={{ marginTop: 24 }}>
+              <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
+                <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-rose">
+                  <IconPhone className="w-[18px] h-[18px]" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Call or WhatsApp</p>
+                  <a href="tel:07517658128" className="text-[17px] font-semibold text-ink leading-[1.35] tracking-[-.015em] hover:text-rose transition-colors">
+                    07517 658 128
+                  </a>
+                </div>
+              </li>
+
+              <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
+                <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-teal">
+                  <IconMail className="w-[18px] h-[18px]" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Email</p>
+                  <a href="mailto:esther.fair@eternal-fitness.co.uk" className="text-[15.5px] font-semibold text-ink leading-[1.35] tracking-[-.015em] hover:text-teal transition-colors break-all">
+                    esther.fair@eternal-fitness.co.uk
+                  </a>
+                </div>
+              </li>
+            </ul>
+
+            <p className="mt-[26px] p-5 rounded-2xl bg-warm text-[14px] leading-relaxed text-slate">
+              Prefer to talk it through first? Call and we can have an informal chat — no pressure, no commitment.
+              If you would rather put it in writing, <a href="#message" className="underline underline-offset-4 hover:text-rose transition-colors">send a message instead</a>.
+            </p>
+          </div>
+        </div>
       </Section>
 
-      {/* Studio (per mockup — replaces the Maps embed; the studio address is
-          deliberately never shown, confirmed at booking only) */}
-      <Section background="cream" id="studio">
+      {/* Contact form */}
+      <Section background="cream" id="message">
+        <div className="grid md:grid-cols-[.85fr_1.15fr] gap-16 items-start">
+          <div>
+            <SectionHeading
+              eyebrow={content.message_eyebrow ?? "By Email"}
+              eyebrowColor="teal"
+              heading={content.message_heading ?? "Rather send a message?"}
+              intro={content.message_intro ?? "If you are not ready to put something in the diary yet, write to me here instead. It comes straight through to my inbox and I answer it myself — usually within one working day."}
+            />
+            <ul className="list-none p-0 grid gap-[11px]" style={{ marginTop: 22 }}>
+              {ASK_HINTS.map((hint) => (
+                <li key={hint} className="relative pl-5 text-[14.5px] leading-relaxed text-slate">
+                  <span className="absolute left-0 top-[9px] w-1.5 h-1.5 rounded-full bg-rose" aria-hidden="true" />
+                  {hint}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-[26px] p-5 rounded-2xl bg-white text-[14px] leading-relaxed text-slate">
+              Nothing you write is shared with anyone else. If you would rather speak than type, call or WhatsApp{" "}
+              <a href="tel:07517658128" className="underline underline-offset-4 hover:text-rose transition-colors">07517 658 128</a>.
+            </p>
+          </div>
+
+          <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7">
+            {sent ? (
+              <div className="text-center py-6 px-2" role="status">
+                <div className="w-14 h-14 rounded-full bg-teal/10 flex items-center justify-center mx-auto mb-5">
+                  <IconCheckCircle className="w-7 h-7 text-teal" />
+                </div>
+                <h3 className="font-serif text-[26px] text-ink mb-2">Thank you — that&apos;s with me.</h3>
+                <p className="text-[14.5px] text-slate leading-relaxed max-w-[36ch] mx-auto">
+                  I read every message myself and will come back to you within one working day.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="ct-name" className="block text-sm font-medium text-foreground mb-1.5">
+                      Your name <span className="text-[var(--rose-text)]">*</span>
+                    </label>
+                    <input
+                      id="ct-name"
+                      name="name"
+                      type="text"
+                      autoComplete="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ct-phone" className="block text-sm font-medium text-foreground mb-1.5">
+                      Phone <span className="text-muted-foreground font-normal normal-case">(optional)</span>
+                    </label>
+                    <input
+                      id="ct-phone"
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="07xxx xxx xxx"
+                      className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="ct-email" className="block text-sm font-medium text-foreground mb-1.5">
+                    Email <span className="text-[var(--rose-text)]">*</span>
+                  </label>
+                  <input
+                    id="ct-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="ct-topic" className="block text-sm font-medium text-foreground mb-1.5">
+                    What is your message about?
+                  </label>
+                  <select
+                    id="ct-topic"
+                    name="topic"
+                    value={form.topic}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)]"
+                  >
+                    {TOPIC_OPTIONS.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="ct-message" className="block text-sm font-medium text-foreground mb-1.5">
+                    Your message <span className="text-[var(--rose-text)]">*</span>
+                  </label>
+                  <textarea
+                    id="ct-message"
+                    name="message"
+                    rows={5}
+                    value={form.message}
+                    onChange={handleChange}
+                    placeholder="Tell me a little about where you are starting from."
+                    className="w-full px-4 py-3 rounded-xl border border-border-warm bg-white text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[var(--rose-text)] resize-none"
+                  />
+                </div>
+
+                <div className="flex items-start gap-3 pt-2">
+                  <input
+                    id="ct-consent"
+                    name="consent"
+                    type="checkbox"
+                    checked={form.consent}
+                    onChange={handleChange}
+                    className="mt-1 h-4 w-4 rounded border-border-warm accent-rose"
+                  />
+                  <label htmlFor="ct-consent" className="text-sm ef-body leading-relaxed">
+                    I am happy for Esther to reply to me by email or phone about this enquiry.
+                  </label>
+                </div>
+
+                <button type="submit" disabled={submitting} className="ef-btn ef-btn-primary w-full justify-center mt-1 disabled:opacity-60">
+                  {submitting ? "Sending…" : "Send message"} <IconArrowUpRight className="w-4 h-4" />
+                </button>
+                <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+                  Fields marked <span className="text-[var(--rose-text)]">*</span> are required. Your details are used only to reply to you — never shared, never added to a mailing list.
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      {/* Studio (the studio address is deliberately never shown, confirmed at booking only) */}
+      <Section background="white" id="studio">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <figure className="m-0">
             <div className="rounded-3xl overflow-hidden aspect-[4/3] relative">
@@ -303,12 +356,27 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
           <div>
             <SectionHeading
               eyebrow={content.map_eyebrow ?? "Location"}
-              eyebrowColor="teal"
-              heading={content.map_heading ?? "Find the Studio"}
-              intro={content.map_intro ?? "Sessions take place in a private studio in Worthing, West Sussex. The studio is used exclusively for one-to-one training — there is no public gym floor, no other clients present, and no waiting around. The address is confirmed at the point of booking."}
+              heading={content.map_heading ?? "Studio location details"}
+              intro={content.map_intro ?? "If you have successfully booked your slot via the calendar above, your appointment is confirmed. Sessions take place in a private studio in Worthing, West Sussex, used exclusively for one-to-one training — there is no public gym floor, no other clients present, and no waiting around."}
             />
+            <ul className="border-t border-border-warm list-none p-0 m-0" style={{ marginTop: 22 }}>
+              <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
+                <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 ds-card-ic-warm">
+                  <IconMapPin className="w-[18px] h-[18px]" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Location</p>
+                  <p className="text-[17px] font-semibold text-ink leading-[1.35] tracking-[-.015em]">Private Studio, Worthing, West Sussex</p>
+                </div>
+              </li>
+            </ul>
+            <p className="mt-[26px] p-5 rounded-2xl bg-warm text-[14px] leading-relaxed text-slate">
+              Note: the exact studio address and parking details will be shared with you immediately via email after booking.
+            </p>
             <div className="flex gap-3 flex-wrap" style={{ marginTop: 28 }}>
-              <a href="#form" className="ef-btn ef-btn-primary">Send a Message</a>
+              <a href={BOOKINGS_URL} target="_blank" rel="noopener noreferrer" className="ef-btn ef-btn-primary">
+                Book a Free Consultation
+              </a>
               <a href="/faqs" className="ef-btn ef-btn-outline">Read the FAQs</a>
             </div>
           </div>
@@ -321,9 +389,9 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         imagePosition="center 30%"
         eyebrow={content.cta_eyebrow ?? "Not Sure Where to Start?"}
         heading={content.cta_heading ?? "That is completely normal."}
-        body={content.cta_body ?? "Send me a message or give me a call and we can have an informal chat \u2014 no pressure, no commitment."}
+        body={content.cta_body ?? "Book online or give me a call and we can have an informal chat — no pressure, no commitment."}
         primaryCta={{ label: content.cta_btn_primary ?? "Call me now", href: "tel:07517658128" }}
-        secondaryCta={{ label: content.cta_btn_secondary ?? "Send a message", href: "#form" }}
+        secondaryCta={{ label: content.cta_btn_secondary ?? "Book online", href: "#form" }}
       />
       </main>
       <Footer />
