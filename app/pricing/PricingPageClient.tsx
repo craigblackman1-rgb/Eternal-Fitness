@@ -89,7 +89,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       {/* What You're Investing In (3-item benefit grid) */}
       <Section background="cream" id="investing">
         <div className="ds-head">
-          <p className="ds-eyebrow ds-eyebrow-teal">{content.value_eyebrow ?? "What You're Investing In"}</p>
+          <p className="ds-eyebrow ds-eyebrow-teal" style={{ fontSize: 15 }}>{content.value_eyebrow ?? "What You're Investing In"}</p>
         </div>
         <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-5" stagger={0.12} y={40} style={{ marginTop: 24 }}>
           {investingCards.map((c) => (
