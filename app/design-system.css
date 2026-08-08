@@ -253,7 +253,7 @@ a.ds-card { display: block; }
 .ds-compare-col { padding: 32px; border-radius: 20px; }
 .ds-compare-neg { background: #fff; border: 1.5px dashed var(--color-border-warm); }
 .ds-compare-pos { background: rgba(8,126,139,.06); border: 1.5px solid rgba(8,126,139,.25); }
-.ds-compare-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 16px; }
+.ds-compare-label { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 16px; }
 .ds-compare-neg .ds-compare-label { color: var(--color-muted-text); }
 .ds-compare-pos .ds-compare-label { color: var(--color-teal); }
 .ds-compare-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; font-size: 14.5px; color: var(--color-body); line-height: 1.5; }
@@ -298,7 +298,7 @@ a.ds-card { display: block; }
 .ds-index-panelcard { border-left: 2px solid var(--color-rose); padding: 8px 0 8px 36px; animation: dsIndexIn .45s cubic-bezier(.22,.9,.3,1) both; }
 .ds-index-panelcard h3 { font-family: var(--font-serif); font-size: clamp(24px, 2.2vw, 32px); font-weight: 700; letter-spacing: -.025em; line-height: 1.1; color: var(--color-ink); margin: 14px 0 12px; }
 .ds-index-panelcard p { font-size: 15.5px; color: var(--color-body); line-height: 1.7; margin-bottom: 20px; }
-.ds-index-panel-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-teal); display: block; margin-top: 14px; }
+.ds-index-panel-eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-teal); display: block; margin-top: 14px; }
 @keyframes dsIndexIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 /* ── Typographic feature band (borderless FeatureCard replacement) ── */

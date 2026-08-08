@@ -54,7 +54,7 @@
 }
 .efhome .hero-copy { position: relative; z-index: 3; width: 100%; max-width: var(--max); margin: 0 auto; padding: 192px 80px 78px; display: flex; flex-direction: column; align-items: flex-start; }
 .efhome .hero-copy > * { max-width: 660px; }
-.efhome .h-tag { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.78); display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+.efhome .h-tag { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.78); display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
 .efhome .h-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--rose); }
 .efhome .h-loc { font-size: clamp(15px, 1.4vw, 19px); color: rgba(255,255,255,.86); font-weight: 400; line-height: 1.5; margin: 0 0 22px; }
 .efhome .h-sub { font-size: 15.5px; color: rgba(255,255,255,.68); line-height: 1.7; max-width: 540px; margin-bottom: 32px; }
@@ -97,7 +97,7 @@
 /* ── Shared ───────────────────────── */
 .efhome .sec { padding: 100px 80px; }
 .efhome .sin { max-width: var(--max); margin: 0 auto; }
-.efhome .stag { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.efhome .stag { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .efhome .stag-r { color: var(--rose); }
 .efhome .stag-r::before { content: ''; display: block; width: 26px; height: 1px; background: var(--rose); }
 .efhome .stag-f { color: var(--teal); }
