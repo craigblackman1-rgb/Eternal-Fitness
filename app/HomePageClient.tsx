@@ -31,10 +31,10 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
             fill
             priority
             sizes="100vw"
-            // object-position itself lives in home.css (`--hero-pos`/`--hero-pos-wide`) —
-            // the fixed-height hero crops much further into Esther's head at 4K/ultrawide
-            // than at a normal desktop width, so the crop point has to change above
-            // 1600px, which an inline style can't be conditioned on.
+            // At this container aspect ratio the hero crops top/bottom only, so
+            // object-position's X has zero effect (no horizontal slack to shift into).
+            // The scale+translateX in home.css's .hero-media img rule manufactures
+            // that slack, shifting Esther right, clear of the heading text.
             style={{ objectFit: "cover" }}
           />
         </div>
@@ -84,7 +84,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
           <div className="why-g">
             <div className="wic">
               <div className="wimg">
-                <Image src="/images/esther-barbell-squat.jpg" alt="Esther Fair under a barbell in the squat rack at her Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "62% 50%" }} />
+                <Image src="/images/why-client-spotter.jpg" alt="Clients training together in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "50% 50%" }} />
               </div>
               <div className="wbadge"><div className="wbn">4</div><div className="wbl">{content.badge_title ?? "Level 4 Qualified"}</div></div>
             </div>

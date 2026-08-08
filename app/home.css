@@ -34,7 +34,15 @@
    ───────────────────────────────────────────────────────────────── */
 .efhome #hero { position: relative; display: flex; align-items: flex-end; min-height: min(94vh, 880px); background: var(--ink); overflow: hidden; }
 .efhome .hero-media { position: absolute; inset: 0; background: var(--ink); overflow: hidden; }
-.efhome .hero-media img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; object-position: var(--hero-pos, 50% 36%); }
+.efhome .hero-media img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; object-position: var(--hero-pos, 50% 36%); transform: scale(1.28) translateX(13%); }
+/* hero-pullup-rack.png has no horizontal crop slack at this container's aspect
+   ratio (object-position's X does nothing), so the scale+translateX above
+   manufactures slack to shift Esther clear of the heading text on the left.
+   Mobile's hero-copy text goes full-width (see max-width:1000px block below)
+   instead of clamping to 660px, so it needs a bigger shift to still clear her. */
+@media (max-width: 1000px) {
+  .efhome .hero-media img { transform: scale(2.2) translateX(35%); }
+}
 /* #hero holds a fixed pixel height while width keeps growing with the viewport, so
    object-fit:cover crops proportionally more off the top/bottom the wider the screen
    — 36% (tuned for a normal desktop) crops straight through Esther's head by 4K/
@@ -52,7 +60,7 @@
     linear-gradient(to top, rgba(19,19,19,.93) 0%, rgba(19,19,19,.76) 30%, rgba(19,19,19,.22) 68%, transparent 100%),
     linear-gradient(to right, rgba(19,19,19,.62) 0%, rgba(19,19,19,.16) 54%, transparent 82%);
 }
-.efhome .hero-copy { position: relative; z-index: 3; width: 100%; max-width: var(--max); margin: 0 auto; padding: 192px 80px 78px; display: flex; flex-direction: column; align-items: flex-start; }
+.efhome .hero-copy { position: relative; z-index: 3; width: 100%; max-width: var(--max); margin: 0 auto; padding: 192px 80px 120px; display: flex; flex-direction: column; align-items: flex-start; }
 .efhome .hero-copy > * { max-width: 660px; }
 .efhome .h-tag { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.78); display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
 .efhome .h-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--rose); }
