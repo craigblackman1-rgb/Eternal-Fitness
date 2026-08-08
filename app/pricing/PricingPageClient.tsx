@@ -66,6 +66,17 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       cta: content.plan_3_cta ?? "Book a Free Consultation",
     },
   ];
+  const monthlyPlan = {
+    name: content.plan_b_name ?? "Ongoing Monthly Training",
+    price: content.plan_b_price ?? "Contact for Monthly Rates",
+    description: content.plan_b_desc ?? "Commit to your long-term health with a structured, rolling arrangement. Payments are due every 4 weeks to secure your ongoing priority slots.",
+    features: [
+      content.plan_b_feat_1 ?? "Minimum initial term of 3 months (12 weeks) to establish real, sustainable change.",
+      content.plan_b_feat_2 ?? "One calendar month's written notice required for cancellation after the initial term.",
+      content.plan_b_feat_3 ?? "Includes priority scheduling and continuous, seamless programme management.",
+    ],
+    cta: content.plan_b_cta ?? "Book a Free Consultation",
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,6 +167,32 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               </button>
             </div>
           ))}
+        </Reveal>
+
+        <div style={{ maxWidth: 760, margin: "56px auto 0" }}>
+          <p className="ds-card-title" style={{ marginBottom: 8 }}>{content.pricing_option_b_label ?? "Option B: Rolling Monthly Contracts"}</p>
+          <p className="ds-body">{content.pricing_option_b_desc ?? "Designed for clients looking for long-term consistency, continuous care, and predictable scheduling over time."}</p>
+        </div>
+        <Reveal y={40} start="top 82%" style={{ maxWidth: 400, margin: "24px auto 0" }}>
+          <div className="ds-card" style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ marginBottom: 12 }}>
+              <p className="ds-card-body" style={{ marginBottom: 8 }}>{monthlyPlan.name}</p>
+              <span style={{ fontSize: 28, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em" }}>{monthlyPlan.price}</span>
+            </div>
+            <p className="ds-card-body" style={{ marginBottom: 24 }}>{monthlyPlan.description}</p>
+            <ul style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32, flex: 1 }}>
+              {monthlyPlan.features.map((feature) => (
+                <li key={feature} className="ds-card-body" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <IconCheck className="w-4 h-4" style={{ color: "var(--color-teal)", flexShrink: 0, marginTop: 2 }} />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={openBookingModal} className="ef-btn justify-center w-full ef-btn-primary">
+              {monthlyPlan.cta}
+              <IconArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </Reveal>
       </Section>
 
