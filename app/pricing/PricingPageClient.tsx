@@ -143,7 +143,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
                 </span>
               )}
               <div style={{ marginBottom: 12 }}>
-                <p className="ds-card-body" style={{ marginBottom: 8 }}>{plan.name}</p>
+                <p style={{ fontSize: 22, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em", marginBottom: 8 }}>{plan.name}</p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
                   <span style={{ fontSize: 36, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em" }}>{plan.price}</span>
                 </div>
@@ -176,8 +176,8 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         <Reveal y={40} start="top 82%" style={{ maxWidth: 400, margin: "24px auto 0" }}>
           <div className="ds-card" style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ marginBottom: 12 }}>
-              <p className="ds-card-body" style={{ marginBottom: 8 }}>{monthlyPlan.name}</p>
-              <span style={{ fontSize: 28, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em" }}>{monthlyPlan.price}</span>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em", marginBottom: 8 }}>{monthlyPlan.name}</p>
+              <span className="ds-card-body">{monthlyPlan.price}</span>
             </div>
             <p className="ds-card-body" style={{ marginBottom: 24 }}>{monthlyPlan.description}</p>
             <ul style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32, flex: 1 }}>
