@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { IconFacebook, IconArrowUpRight } from "@/components/icons";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
-import { BOOKINGS_URL } from "@/lib/booking";
+import { useBookingModal } from "@/components/BookingModal";
 
 const websiteSchema = {
   "@context": "https://schema.org",
@@ -21,6 +21,7 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 const footerLinkClasses = `relative inline-block py-2 text-[15px] leading-[1.35] text-white/60 transition-colors hover:text-white ${focusRing}`;
 
 const Footer = () => {
+  const { openBookingModal } = useBookingModal();
   return (
     <>
       <script
@@ -52,10 +53,10 @@ const Footer = () => {
               <p className="text-[14.5px] leading-[1.62] text-white/60 max-w-[36ch] mb-7">
                 All sessions last 60 minutes. Train in my private Worthing studio or join live online.
               </p>
-              <Link href={BOOKINGS_URL} className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
+              <button type="button" onClick={openBookingModal} className={`ef-btn ef-btn-ghost-white ${focusRing}`}>
                 Book a free consultation
                 <IconArrowUpRight style={{ width: 13, height: 13 }} />
-              </Link>
+              </button>
             </div>
 
             {/* Explore */}

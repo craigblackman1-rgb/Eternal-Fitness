@@ -5,6 +5,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BOOKINGS_URL } from "@/lib/booking";
+import { useBookingModal } from "@/components/BookingModal";
 import {
   Section,
   SectionHeading,
@@ -20,6 +21,7 @@ import {
 import { IconAccessibility, IconDumbbell, IconLeaf, IconHeartHandshake } from "@/components/icons";
 
 export default function AboutPageClient({ content = {} }: { content?: Record<string, string> }) {
+  const { openBookingModal } = useBookingModal();
   const qualifications = [
     { title: content?.qual_1_title ?? "Personal Training", desc: content?.qual_1_desc ?? "Individualised coaching to build a lasting foundation for your everyday strength and fitness." },
     { title: content?.qual_2_title ?? "Exercise Referral", desc: content?.qual_2_desc ?? "Specialist programming to safely manage clinical conditions, injuries, and GP-referred health requirements, focusing heavily on Balance, Mobility, and Joint Stability Support." },
@@ -210,14 +212,15 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           </figcaption>
         </figure>
         <div className="ds-about-foot">
-          <Link
-            href={BOOKINGS_URL}
+          <button
+            type="button"
+            onClick={openBookingModal}
             className="ef-btn ef-btn-primary"
             style={{ gap: 8 }}
           >
             Book a Free Consultation
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </Link>
+          </button>
         </div>
       </Section>
 

@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import { BOOKINGS_URL } from "@/lib/booking";
+import { useBookingModal } from "@/components/BookingModal";
 import {
   Section,
   SectionHeading,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ds";
 
 export default function PricingPageClient({ content = {} }: { content?: Record<string, string> }) {
+  const { openBookingModal } = useBookingModal();
   const plans = [
     {
       name: content.plan_2_name ?? "Block of 12",
@@ -78,7 +80,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
             </p>
             <div style={{ marginTop: 24 }}>
-              <Link href={BOOKINGS_URL} className="ef-btn ef-btn-outline">Book a Free Consultation</Link>
+              <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
             </div>
           </div>
         </div>
@@ -119,10 +121,10 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
                   </li>
                 ))}
               </ul>
-              <Link href={BOOKINGS_URL} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
+              <button type="button" onClick={openBookingModal} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
                 {plan.cta}
                 <IconArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
+              </button>
             </div>
           ))}
         </Reveal>
@@ -140,9 +142,9 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
             <p className="ds-body ds-body-light" style={{ fontSize: 19, fontWeight: 600, color: "#fff", lineHeight: 1.4, marginBottom: 16 }}>
               {content.pricing_note_body ?? "Start with the free consultation. I'll give you an honest recommendation based on your situation — not the most expensive option."}
             </p>
-            <Link href={BOOKINGS_URL} className="ef-btn ef-btn-primary">
+            <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-primary">
               Book a Free Consultation <IconArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
+            </button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, justifyContent: "center" }}>
             <Link href="/personal-training" style={{ color: "#fff", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>

@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
-import { BOOKINGS_URL } from "@/lib/booking";
+import { useBookingModal } from "@/components/BookingModal";
 
 const categories = ["All", "Training", "Nutrition", "Recovery", "General"];
 
@@ -29,6 +29,7 @@ interface BlogPost {
 export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const { openBookingModal } = useBookingModal();
 
   const filtered = posts.filter((p) => {
     const matchesSearch =
@@ -56,9 +57,9 @@ export default function BlogPageClient({ posts }: { posts: BlogPost[] }) {
             Dive into my blog for insights, tips, and advice to support your health and fitness journey.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href={BOOKINGS_URL} className="ef-btn ef-btn-primary shadow-lg shadow-rose/30">
+            <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-primary shadow-lg shadow-rose/30">
               Book a Free Consultation
-            </Link>
+            </button>
             <Link href="/about" className="ef-btn ef-btn-ghost-white">Visit the Studio</Link>
           </div>
         </div>

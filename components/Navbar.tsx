@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
 import { IconMenu, IconX, IconArrowUpRight } from "@/components/icons";
-import { BOOKINGS_URL } from "@/lib/booking";
+import { useBookingModal } from "@/components/BookingModal";
 
 type NavChild = { label: string; to: string };
 type NavItem = { label: string; to: string; children?: NavChild[] };
@@ -183,6 +183,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { openBookingModal } = useBookingModal();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -265,12 +266,13 @@ const Navbar = () => {
 
         {/* Desktop CTA */}
         <div className="hidden md:block">
-          <Link
-            href={BOOKINGS_URL}
+          <button
+            type="button"
+            onClick={openBookingModal}
             className="ef-btn ef-btn-primary text-sm py-2.5 px-5"
           >
             Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
-          </Link>
+          </button>
         </div>
 
         {/* Mobile toggle */}
@@ -326,13 +328,16 @@ const Navbar = () => {
             )}
           </div>
         ))}
-        <Link
-          href={BOOKINGS_URL}
-          onClick={() => setOpen(false)}
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            openBookingModal();
+          }}
           className="ef-btn ef-btn-primary text-sm w-fit"
         >
           Book a Free Consultation <IconArrowUpRight className="w-4 h-4" />
-        </Link>
+        </button>
       </div>
     </>
   );

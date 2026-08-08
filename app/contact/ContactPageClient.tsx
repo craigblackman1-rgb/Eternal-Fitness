@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Section, SectionHeading, PageHero, CTABand } from "@/components/ds";
-import { BOOKINGS_URL } from "@/lib/booking";
+import { useBookingModal } from "@/components/BookingModal";
 
 interface FormData {
   name: string;
@@ -43,6 +43,7 @@ const ASK_HINTS = [
 ];
 
 export default function ContactPageClient({ content = {} }: { content?: Record<string, string> }) {
+  const { openBookingModal } = useBookingModal();
   const [form, setForm] = useState<FormData>(initialForm);
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -138,19 +139,17 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
               intro={content.booking_intro ?? "Choose a day and time that works for you — your first conversation is always free."}
             />
             <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7" style={{ marginTop: 28 }}>
-              <a
-                href={BOOKINGS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block border-[1.5px] border-dashed border-border-warm rounded-xl bg-warm px-6 py-12 text-center hover:bg-warm/70 transition-colors"
-                aria-label="Open the online booking calendar (opens in a new tab)"
+              <button
+                type="button"
+                onClick={openBookingModal}
+                className="block w-full border-[1.5px] border-dashed border-border-warm rounded-xl bg-warm px-6 py-12 text-center hover:bg-warm/70 transition-colors"
               >
                 <span className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center mx-auto mb-3.5">
                   <IconCalendar className="w-5 h-5 text-rose" />
                 </span>
                 <p className="text-[15px] font-bold text-ink tracking-tight">Open the booking calendar</p>
-                <p className="text-[12.5px] text-muted-foreground mt-1.5 font-mono">Opens in a new tab — Microsoft Bookings</p>
-              </a>
+                <p className="text-[12.5px] text-muted-foreground mt-1.5">Microsoft Bookings</p>
+              </button>
               <div className="mt-[22px] pt-5 border-t border-border-warm">
                 <p className="text-[11px] font-bold tracking-[.1em] uppercase text-muted-foreground mb-[5px]">Primary service</p>
                 <p className="text-[15.5px] font-semibold text-ink">Initial Consult — 30 mins, new customers only</p>
@@ -374,9 +373,9 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
               Note: the exact studio address and parking details will be shared with you immediately via email after booking.
             </p>
             <div className="flex gap-3 flex-wrap" style={{ marginTop: 28 }}>
-              <a href={BOOKINGS_URL} target="_blank" rel="noopener noreferrer" className="ef-btn ef-btn-primary">
+              <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-primary">
                 Book a Free Consultation
-              </a>
+              </button>
               <a href="/faqs" className="ef-btn ef-btn-outline">Read the FAQs</a>
             </div>
           </div>
