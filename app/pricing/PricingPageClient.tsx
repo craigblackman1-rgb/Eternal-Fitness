@@ -135,7 +135,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
             <div
               key={plan.name}
               className="ds-card"
-              style={{ display: "flex", flexDirection: "column", position: "relative", ...(plan.popular ? { border: "2px solid var(--color-rose)" } : {}) }}
+              style={{ display: "flex", flexDirection: "column", position: "relative", border: "2px solid var(--color-rose)" }}
             >
               {plan.popular && (
                 <span style={{ position: "absolute", top: -13, left: 34, background: "var(--color-rose)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "4px 16px", borderRadius: 999, whiteSpace: "nowrap", letterSpacing: "0.03em" }}>
