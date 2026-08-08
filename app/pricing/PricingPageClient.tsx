@@ -51,6 +51,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         content.plan_2_feat_4 ?? "Valid for 120 days from the date of purchase.",
       ],
       cta: content.plan_2_cta ?? "Book a Free Consultation",
+      depositNote: content.plan_2_deposit_note ?? "Note: A £100 non-refundable deposit is required to secure your regular time slots, which is fully deducted from your first block payment.",
     },
     {
       name: content.plan_3_name ?? "Block of 24",
@@ -114,9 +115,12 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       <Section background="cream" id="pricing">
         <SectionHeading
           eyebrow={content.pricing_eyebrow ?? "Pricing"}
-          heading={content.pricing_heading ?? "Choose what works for you"}
-          intro={content.pricing_intro ?? "All sessions are 60 minutes, one-to-one — in the private studio in Worthing, or live online."}
+          heading={content.pricing_heading ?? "Choose Your Training Structure"}
         />
+        <div style={{ maxWidth: 760, margin: "0 auto 32px" }}>
+          <p className="ds-card-title" style={{ marginBottom: 8 }}>{content.pricing_option_a_label ?? "Option A: Fixed Session Blocks"}</p>
+          <p className="ds-body">{content.pricing_option_a_desc ?? "Perfect for those who want a structured runway to build momentum, or individuals navigating specific health boundaries at a set pace."}</p>
+        </div>
         <Reveal className="ds-grid-2" stagger={0.13} y={48} start="top 82%" style={{ maxWidth: 760, margin: "0 auto" }}>
           {plans.map((plan) => (
             <div
@@ -145,6 +149,9 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
                   </li>
                 ))}
               </ul>
+              {plan.depositNote && (
+                <p className="ds-card-body" style={{ fontSize: 13, color: "var(--color-body)", marginBottom: 16 }}>{plan.depositNote}</p>
+              )}
               <button type="button" onClick={openBookingModal} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-outline"}`}>
                 {plan.cta}
                 <IconArrowUpRight className="w-3.5 h-3.5" />
