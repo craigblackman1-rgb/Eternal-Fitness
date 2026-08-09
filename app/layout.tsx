@@ -3,6 +3,7 @@ import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import "./design-system.css";
 import { Providers } from "@/components/Providers";
+import { Analytics } from "@/components/Analytics";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -63,6 +64,7 @@ export default function RootLayout({
   return (
       <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
         <body>
+        <Analytics />
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <Providers>{children}</Providers>
       </body>
