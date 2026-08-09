@@ -155,10 +155,10 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
             {content.testimonial_1 ?? "As a 50+ woman on a strength and fitness journey I thank my lucky stars I met Esther... I would never have achieved the level of fitness and wellbeing I have without her."}
           </p>
           <figcaption className="ds-quote-card-by">
-            <span className="ds-quote-card-av" aria-hidden="true">EA</span>
+            <span className="ds-quote-card-av" aria-hidden="true">E</span>
             <span>
-              <span className="ds-quote-card-name" style={{ display: "block" }}>{content.testimonial_1_name ?? "Emma A"}</span>
-              <span className="ds-quote-card-meta" style={{ display: "block" }}>{content.testimonial_1_meta ?? "(Training with Esther for 5 years)"}</span>
+              <span className="ds-quote-card-name" style={{ display: "block" }}>{content.testimonial_1_name ?? "Emma"}</span>
+              <span className="ds-quote-card-meta" style={{ display: "block" }}>{content.testimonial_1_meta ?? "Training with Esther for 5 years"}</span>
             </span>
           </figcaption>
         </figure>

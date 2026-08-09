@@ -142,7 +142,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
       <main id="main-content">
       <PageHero
         image="/images/consultation-question-chat.jpg"
-        imageAlt="Esther talking a question through with a client mid-session in the private Worthing studio"
+        imageAlt="The kettlebell rack and TRX straps in the private Worthing studio"
         imagePan="126%"
         imageObjectPosition="50% 40%"
         imageObjectPositionWide="50% 32%"

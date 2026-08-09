@@ -12,21 +12,21 @@ const themeCards = [
     body: "When something changes — energy, pain, a new restriction — the exercise changes with it. The session still happens.",
     icon: IconRefreshCw,
     accent: "rose" as const,
-    source: "Mentioned by Amanda M and Saffron S",
+    source: "Mentioned by Amanda and Emma",
   },
   {
     title: "Listening first",
     body: "Every session opens with a check-in — sleep, energy, what's changed since last week. The plan for the day is set from that answer.",
     icon: IconListenAdapt,
     accent: "teal" as const,
-    source: "Mentioned by Saffron S",
+    source: "Mentioned by Saffron",
   },
   {
     title: "Measured in years",
     body: "Clients here tend to stay. Five and seven years of continuous training is the pattern, not the exception.",
     icon: IconClock,
     accent: "rose" as const,
-    source: "Mentioned by Amanda M and Colin F",
+    source: "Mentioned by Colin and Ian",
   },
 ];
 
@@ -85,7 +85,7 @@ export default function TestimonialsPageClient() {
             <figcaption className="ds-quote-card-by">
               <span className="ds-quote-card-av" aria-hidden="true">A</span>
               <span>
-                <span className="ds-quote-card-name" style={{ display: "block" }}>Amanda M</span>
+                <span className="ds-quote-card-name" style={{ display: "block" }}>Amanda</span>
                 <span className="ds-quote-card-meta" style={{ display: "block" }}>Training 5 years</span>
               </span>
             </figcaption>
@@ -96,12 +96,12 @@ export default function TestimonialsPageClient() {
           <div className="py-8 md:pr-12">
             <div className="text-5xl leading-none mb-5 text-rose/50 font-serif">&ldquo;</div>
             <p className="text-foreground/85 text-lg leading-relaxed mb-6 font-serif italic">
-              Esther has really helped me wonderfully over the past 7 years with my fitness and flexibility.
+              Esther is a friendly and easy going person to get along with and copes well with my limited ability, and occasional lack of concentration. I would highly recommend her as a careful and insightful trainer.
             </p>
             <div className="flex items-center gap-3 pt-5 border-t border-border">
-              <div className="w-10 h-10 rounded-full bg-teal flex items-center justify-center text-white text-sm font-bold shrink-0">C</div>
+              <div className="w-10 h-10 rounded-full bg-teal flex items-center justify-center text-white text-sm font-bold shrink-0">I</div>
               <div>
-                <p className="text-foreground font-semibold text-sm">Colin F</p>
+                <p className="text-foreground font-semibold text-sm">Ian</p>
                 <p className="text-muted-foreground text-xs">Training 7 years</p>
               </div>
             </div>
@@ -114,8 +114,8 @@ export default function TestimonialsPageClient() {
             <div className="flex items-center gap-3 pt-5 border-t border-border">
               <div className="w-10 h-10 rounded-full bg-rose flex items-center justify-center text-white text-sm font-bold shrink-0">S</div>
               <div>
-                <p className="text-foreground font-semibold text-sm">Saffron S</p>
-                <p className="text-muted-foreground text-xs">Client</p>
+                <p className="text-foreground font-semibold text-sm">Saffron</p>
+                <p className="text-muted-foreground text-xs">Training for 3 years</p>
               </div>
             </div>
           </div>
@@ -131,6 +131,31 @@ export default function TestimonialsPageClient() {
             Trained with me? Share your experience
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 11L11 3M11 3H5M11 3v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </a>
+        </Reveal>
+      </Section>
+
+      {/* Wide range of experience */}
+      <Section background="white" id="wide-range-of-experience">
+        <SectionHeading
+          eyebrow="Every Stage"
+          eyebrowColor="teal"
+          heading="A Wide Range of Experience"
+          intro="Some clients have trained here for years. Others are only a few months in. Both get the same level of care from session one."
+        />
+        <Reveal y={44} style={{ marginTop: 44 }}>
+          <figure className="ds-quote-card">
+            <div className="ds-quote-card-mark" aria-hidden="true">&ldquo;</div>
+            <p className="ds-quote-card-body">
+              I have always felt safe, challenged and supported when working with her.
+            </p>
+            <figcaption className="ds-quote-card-by">
+              <span className="ds-quote-card-av" aria-hidden="true">E</span>
+              <span>
+                <span className="ds-quote-card-name" style={{ display: "block" }}>Ellie</span>
+                <span className="ds-quote-card-meta" style={{ display: "block" }}>Training for 5 months</span>
+              </span>
+            </figcaption>
+          </figure>
         </Reveal>
       </Section>
 
