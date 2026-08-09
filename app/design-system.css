@@ -367,6 +367,7 @@ a.ds-card { display: block; }
 /* ── Qualification cards ──────────── */
 .ds-qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
 .ds-qual-cards { display: grid; gap: 16px; }
+.ds-qual-cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .ds-qual-card {
   background: #fff; border: 1px solid var(--color-border-warm);
   border-radius: 18px; padding: 24px 26px;
@@ -400,6 +401,7 @@ a.ds-card { display: block; }
 
 @media (max-width: 1000px) {
   .ds-qual-grid { grid-template-columns: 1fr; gap: 36px; }
+  .ds-qual-cards-row { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
