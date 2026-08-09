@@ -104,7 +104,7 @@ const Footer = () => {
               <div className="mt-[18px] pt-[17px] border-t border-white/10">
                 <span className="block text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3">Follow</span>
                 <a
-                  href="https://www.facebook.com/profile.php?id=61576413498498"
+                  href="https://www.facebook.com/EternalFitnessPersonalTraining/"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Eternal Fitness on Facebook"
