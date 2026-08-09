@@ -12,7 +12,7 @@ const themeCards = [
     body: "When something changes — energy, pain, a new restriction — the exercise changes with it. The session still happens.",
     icon: IconRefreshCw,
     accent: "rose" as const,
-    source: "Mentioned by Amanda and Saffron",
+    source: "Mentioned by Amanda and Emma",
   },
   {
     title: "Listening first",
@@ -26,7 +26,7 @@ const themeCards = [
     body: "Clients here tend to stay. Five and seven years of continuous training is the pattern, not the exception.",
     icon: IconClock,
     accent: "rose" as const,
-    source: "Mentioned by Amanda and Ian",
+    source: "Mentioned by Colin and Ian",
   },
 ];
 
