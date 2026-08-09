@@ -204,7 +204,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               </p>
               <figcaption className="quote-by">
                 <div className="avatar">A</div>
-                <div><div className="quote-n">Amanda M</div><div className="quote-m">Training 5 years</div></div>
+                <div><div className="quote-n">Amanda</div><div className="quote-m">Training 5 years</div></div>
               </figcaption>
             </figure>
             <figure className="quote" style={{ margin: 0 }}>
@@ -214,7 +214,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               </p>
               <figcaption className="quote-by">
                 <div className="avatar">S</div>
-                <div><div className="quote-n">Saffron S</div><div className="quote-m">Client</div></div>
+                <div><div className="quote-n">Saffron</div><div className="quote-m">Training for 3 years</div></div>
               </figcaption>
             </figure>
           </div>
@@ -226,7 +226,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
 
       {/* CTA */}
       <section id="cta">
-        <div className="ctabg"><Image src="/images/studio-1.jpg" alt="Eternal Fitness private studio in Worthing" fill sizes="100vw" style={{ objectFit: "cover", transform: "scale(1.4)", transformOrigin: "50% 40%" }} /></div>
+        <div className="ctabg"><Image src="/images/studio-1.jpg" alt="Eternal Fitness private studio in Worthing" fill sizes="100vw" style={{ objectFit: "cover" }} /></div>
         <div className="ctac">
           <div className="stag stag-w" style={{ marginBottom: 16 }}>{content.cta_tag ?? "Free Consultation"}</div>
           <h2>{content.cta_heading ?? "Your first conversation is free, with absolutely no commitment."}</h2>
