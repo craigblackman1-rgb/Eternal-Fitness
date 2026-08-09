@@ -56,9 +56,9 @@ export default function TestimonialsPageClient() {
 
       <main id="main-content">
       <PageHero
-        image="/images/rapport-client-portrait.jpg"
-        imageAlt="Esther Fair and a long-standing client together in her private Worthing studio"
-        imageObjectPosition="50% 42%"
+        image="/images/consultation-programme-review.jpg"
+        imageAlt="Esther Fair reviewing a client's programme together in her private Worthing studio"
+        imageObjectPosition="50% 30%"
         eyebrow="Client Stories"
         heading={<>In their <em>own words</em></>}
         subhead="What it's actually like to train here, from the people who do it."
@@ -238,9 +238,9 @@ export default function TestimonialsPageClient() {
       </Section>
 
       <CTABand
-        image="/images/rapport-client-laughing.jpg"
-        imageAlt="Esther Fair laughing with a client during a session"
-        imagePosition="center 40%"
+        image="/images/consultation-warm-chat.jpg"
+        imageAlt="Esther Fair chatting warmly with clients during a session"
+        imagePosition="center 30%"
         eyebrow="Free Consultation"
         heading="The first conversation is free, with no commitment."
         body="I work with a small number of clients at a time — so every person gets my full attention."
