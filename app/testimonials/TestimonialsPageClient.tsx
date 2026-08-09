@@ -121,11 +121,6 @@ export default function TestimonialsPageClient() {
           </div>
         </Reveal>
 
-        <Reveal y={24} className="flex items-start gap-2.5 mt-10 text-muted-foreground text-sm leading-relaxed max-w-2xl">
-          <span className="w-[5px] h-[5px] rounded-full bg-rose shrink-0 mt-2" aria-hidden="true" />
-          Three reviews are published here. More are only added once the client has confirmed, in writing, that they&apos;re happy to be quoted — which is why this page grows slowly.
-        </Reveal>
-
         <Reveal y={24} className="mt-8">
           <a href="/contact" className="inline-flex items-center gap-2 border border-border text-foreground px-6 py-3 rounded-full font-medium hover:bg-rose hover:text-white hover:border-rose transition-colors">
             Trained with me? Share your experience
