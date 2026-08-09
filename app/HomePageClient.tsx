@@ -204,7 +204,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               </p>
               <figcaption className="quote-by">
                 <div className="avatar">A</div>
-                <div><div className="quote-n">Amanda M</div><div className="quote-m">Training 5 years</div></div>
+                <div><div className="quote-n">Amanda</div><div className="quote-m">Training 5 years</div></div>
               </figcaption>
             </figure>
             <figure className="quote" style={{ margin: 0 }}>
@@ -214,7 +214,7 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
               </p>
               <figcaption className="quote-by">
                 <div className="avatar">S</div>
-                <div><div className="quote-n">Saffron S</div><div className="quote-m">Client</div></div>
+                <div><div className="quote-n">Saffron</div><div className="quote-m">Training for 3 years</div></div>
               </figcaption>
             </figure>
           </div>
