@@ -260,6 +260,8 @@
   .ef-btn-ghost-white:hover { background: rgba(255,255,255,0.12); }
   .ef-btn-white { background: #fff; color: var(--color-rose); }
   .ef-btn-white:hover { opacity: 0.9; }
+  .ef-btn-teal { background: var(--color-teal); color: #fff; }
+  .ef-btn-teal:hover { background: color-mix(in oklab, var(--color-teal) 84%, var(--color-ink)); }
 
   @media (prefers-reduced-motion: no-preference) {
     .animate-in-ready {

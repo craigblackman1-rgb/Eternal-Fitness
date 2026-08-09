@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { IconArrowUpRight, IconCheck, IconTarget, IconAward, IconEye } from "@/components/icons";
+import { IconArrowUpRight, IconCheck, IconTarget, IconAward, IconEye, IconAlertCircle } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
@@ -43,37 +43,42 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
       price: "£480",
       per: "£40 per session",
       popular: true,
-      description: content.plan_2_desc ?? "Our most popular entry point. Provides the ideal momentum to build consistency and real-world functional strength.",
+      pitch: content.plan_2_pitch ?? "Our most popular entry point.",
+      description: content.plan_2_desc ?? "Provides the ideal momentum to build consistency and real-world functional strength.",
       features: [
-        content.plan_2_feat_1 ?? "12 x 60-minute, fully private one-to-one sessions.",
-        content.plan_2_feat_2 ?? "Continuous programme review and dynamic adjustments included.",
-        content.plan_2_feat_3 ?? "Valid for 120 days from the date of purchase.",
+        content.plan_2_feat_1 ?? "12 × 60-minute, fully private one-to-one sessions",
+        content.plan_2_feat_2 ?? "Continuous programme review and dynamic adjustments included",
+        content.plan_2_feat_3 ?? "Valid for 120 days from the date of purchase",
       ],
       cta: content.plan_2_cta ?? "Book a Free Consultation",
-      depositNote: content.plan_2_deposit_note ?? "Note: A £100 non-refundable deposit is required to secure your regular time slots, which is fully deducted from your first block payment.",
+      depositLabel: content.plan_2_deposit_label ?? "£100 deposit",
+      depositRest: content.plan_2_deposit_rest ?? " — non-refundable, it secures your regular time slots and is fully deducted from your first block payment.",
     },
     {
       name: content.plan_3_name ?? "Block of 24",
       price: "£840",
-      per: "£35 per session — Save £120",
+      per: "£35 per session",
+      save: content.plan_3_save ?? "Best value — save £120",
       popular: false,
-      description: content.plan_3_desc ?? "Our best value choice. Designed for longer-term progress, specific athletic milestones, or managing complex health and rehabilitation needs.",
+      pitch: content.plan_3_pitch ?? "Our best value choice.",
+      description: content.plan_3_desc ?? "Designed for longer-term progress, specific athletic milestones, or managing complex health and rehabilitation needs.",
       features: [
-        content.plan_3_feat_1 ?? "24 x 60-minute one-to-one sessions",
-        content.plan_3_feat_2 ?? "Continuous programme review and dynamic adjustments included.",
-        content.plan_3_feat_3 ?? "Valid for 240 days from the date of purchase.",
+        content.plan_3_feat_1 ?? "24 × 60-minute one-to-one sessions",
+        content.plan_3_feat_2 ?? "Continuous programme review and dynamic adjustments included",
+        content.plan_3_feat_3 ?? "Valid for 240 days from the date of purchase",
       ],
       cta: content.plan_3_cta ?? "Book a Free Consultation",
     },
   ];
   const monthlyPlan = {
     name: content.plan_b_name ?? "Ongoing Monthly Training",
-    price: content.plan_b_price ?? "Contact for Monthly Rates",
-    description: content.plan_b_desc ?? "Commit to your long-term health with a structured, rolling arrangement. Payments are due every 4 weeks to secure your ongoing priority slots.",
+    rate: content.plan_b_price ?? "Contact for monthly rates",
+    unit: content.plan_b_unit ?? "Payments due every 4 weeks",
+    description: content.plan_b_desc ?? "Commit to your long-term health with a structured, rolling arrangement that secures your ongoing priority slots.",
     features: [
-      content.plan_b_feat_1 ?? "Minimum initial term of 3 months (12 weeks) to establish real, sustainable change.",
-      content.plan_b_feat_2 ?? "One calendar month's written notice required for cancellation after the initial term.",
-      content.plan_b_feat_3 ?? "Includes priority scheduling and continuous, seamless programme management.",
+      content.plan_b_feat_1 ?? "Minimum initial term of 3 months (12 weeks) to establish real, sustainable change",
+      content.plan_b_feat_2 ?? "One calendar month's written notice required for cancellation after the initial term",
+      content.plan_b_feat_3 ?? "Includes priority scheduling and continuous, seamless programme management",
     ],
     cta: content.plan_b_cta ?? "Book a Free Consultation",
   };
@@ -103,7 +108,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         </div>
         <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-5" stagger={0.12} y={40} style={{ marginTop: 24 }}>
           {investingCards.map((c) => (
-            <div key={c.title} className="ds-card" style={{ border: "2px solid var(--color-teal)" }}>
+            <div key={c.title} className="ds-card">
               <div className={`ds-card-ic ds-card-ic-${c.accent}`}>
                 <c.icon className="w-5 h-5" />
               </div>
@@ -112,56 +117,58 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
             </div>
           ))}
         </Reveal>
-        <div style={{ textAlign: "center", marginTop: 32 }}>
-          <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-primary">Book a Free Consultation</button>
-        </div>
-        <p className="ds-body" style={{ textAlign: "center", marginTop: 24, maxWidth: 640, marginLeft: "auto", marginRight: "auto" }}>
+        <p className="ds-invest-note">
           {content.value_body ?? "The first conversation is always free. After that, I'll recommend the block that actually fits your goals — not the most expensive option."}
         </p>
+        <div className="ds-invest-cta">
+          <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-outline">Book a Free Consultation</button>
+        </div>
       </Section>
 
       {/* Pricing Cards */}
-      <Section background="cream" id="pricing">
-        <SectionHeading
-          eyebrow={content.pricing_eyebrow ?? "Pricing"}
-          heading={content.pricing_heading ?? "Choose Your Training Structure"}
-        />
-        <div style={{ maxWidth: 760, margin: "0 auto 32px" }}>
-          <p className="ds-card-title" style={{ marginBottom: 8 }}>{content.pricing_option_a_label ?? "Option A: Fixed Session Blocks"}</p>
-          <p className="ds-body">{content.pricing_option_a_desc ?? "Perfect for those who want a structured runway to build momentum, or individuals navigating specific health boundaries at a set pace."}</p>
+      <Section background="white" id="pricing">
+        <div className="ds-head">
+          <p className="ds-eyebrow ds-eyebrow-rose">{content.pricing_eyebrow ?? "Pricing"}</p>
+          <h2 className="ds-h2" style={{ marginBottom: 14 }}>{content.pricing_heading ?? "Choose your training structure"}</h2>
+          <p className="ds-body">{content.pricing_intro ?? "Two ways to work together. All sessions are 60 minutes, one-to-one — in the private studio in Worthing, or live online."}</p>
         </div>
-        <Reveal className="ds-grid-2" stagger={0.13} y={48} start="top 82%" style={{ maxWidth: 760, margin: "0 auto" }}>
+
+        <div className="ds-opt" style={{ marginTop: 52 }}>
+          <div className="ds-opt-mark" aria-hidden="true">A</div>
+          <div>
+            <div className="ds-opt-kicker">Option A</div>
+            <h3 className="ds-opt-title">{content.pricing_option_a_title ?? "Fixed Session Blocks"}</h3>
+            <p className="ds-opt-desc">{content.pricing_option_a_desc ?? "Perfect for those who want a structured runway to build momentum, or individuals navigating specific health boundaries at a set pace."}</p>
+          </div>
+        </div>
+
+        <Reveal className="ds-plans" stagger={0.13} y={48} start="top 82%">
           {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className="ds-card"
-              style={{ display: "flex", flexDirection: "column", position: "relative", border: "2px solid var(--color-rose)" }}
-            >
-              {plan.popular && (
-                <span style={{ position: "absolute", top: -13, left: 34, background: "var(--color-rose)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "4px 16px", borderRadius: 999, whiteSpace: "nowrap", letterSpacing: "0.03em" }}>
-                  {content.plan_2_popular ?? "Most Popular"}
-                </span>
-              )}
-              <div style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 22, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em", marginBottom: 8 }}>{plan.name}</p>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
-                  <span style={{ fontSize: 36, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em" }}>{plan.price}</span>
-                </div>
-                <p className="ds-card-body">{plan.per}</p>
+            <div key={plan.name} className={`ds-plan${plan.popular ? " ds-plan-featured" : ""}`}>
+              {plan.popular && <span className="ds-plan-chip">{content.plan_2_popular ?? "Most popular"}</span>}
+              <div className="ds-plan-name">{plan.name}</div>
+              <div className="ds-plan-price">
+                <span className="ds-plan-fig">{plan.price}</span>
+                <span className="ds-plan-unit">{plan.per}</span>
               </div>
-              <p className="ds-card-body" style={{ marginBottom: 24 }}>{plan.description}</p>
-              <ul style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32, flex: 1 }}>
+              {plan.save && <span className="ds-plan-save">{plan.save}</span>}
+              <p className="ds-plan-pitch">{plan.pitch}</p>
+              <p className="ds-plan-sub">{plan.description}</p>
+              <ul className="ds-plan-list">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="ds-card-body" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                    <IconCheck className="w-4 h-4" style={{ color: plan.popular ? "var(--color-teal)" : "var(--color-rose)", flexShrink: 0, marginTop: 2 }} />
+                  <li key={feature}>
+                    <IconCheck className="w-3.5 h-3.5" />
                     {feature}
                   </li>
                 ))}
               </ul>
-              {plan.depositNote && (
-                <p className="ds-card-body" style={{ fontSize: 13, color: "var(--color-body)", marginBottom: 16 }}>{plan.depositNote}</p>
+              {plan.depositLabel && (
+                <p className="ds-plan-note">
+                  <IconAlertCircle className="w-3.5 h-3.5" />
+                  <span><b>{plan.depositLabel}</b>{plan.depositRest}</span>
+                </p>
               )}
-              <button type="button" onClick={openBookingModal} className="ef-btn justify-center w-full ef-btn-primary">
+              <button type="button" onClick={openBookingModal} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-teal"}`}>
                 {plan.cta}
                 <IconArrowUpRight className="w-3.5 h-3.5" />
               </button>
@@ -169,31 +176,42 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
           ))}
         </Reveal>
 
-        <div style={{ maxWidth: 760, margin: "56px auto 0" }}>
-          <p className="ds-card-title" style={{ marginBottom: 8 }}>{content.pricing_option_b_label ?? "Option B: Rolling Monthly Contracts"}</p>
-          <p className="ds-body">{content.pricing_option_b_desc ?? "Designed for clients looking for long-term consistency, continuous care, and predictable scheduling over time."}</p>
+        <div className="ds-opt" style={{ marginTop: 64 }}>
+          <div className="ds-opt-mark" aria-hidden="true">B</div>
+          <div>
+            <div className="ds-opt-kicker">Option B</div>
+            <h3 className="ds-opt-title">{content.pricing_option_b_title ?? "Rolling Monthly Contracts"}</h3>
+            <p className="ds-opt-desc">{content.pricing_option_b_desc ?? "Designed for clients looking for long-term consistency, continuous care, and predictable scheduling over time."}</p>
+          </div>
         </div>
-        <Reveal y={40} start="top 82%" style={{ maxWidth: 400, margin: "24px auto 0" }}>
-          <div className="ds-card" style={{ display: "flex", flexDirection: "column", border: "2px solid var(--color-rose)" }}>
-            <div style={{ marginBottom: 12 }}>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-0.02em", marginBottom: 8 }}>{monthlyPlan.name}</p>
-              <span className="ds-card-body">{monthlyPlan.price}</span>
+
+        <Reveal y={40} start="top 82%">
+          <div className="ds-monthly">
+            <div className="ds-monthly-main">
+              <div className="ds-plan-name">{monthlyPlan.name}</div>
+              <p className="ds-monthly-rate">{monthlyPlan.rate}</p>
+              <p className="ds-monthly-unit">{monthlyPlan.unit}</p>
+              <p className="ds-monthly-desc">{monthlyPlan.description}</p>
+              <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-outline">
+                {monthlyPlan.cta}
+                <IconArrowUpRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <p className="ds-card-body" style={{ marginBottom: 24 }}>{monthlyPlan.description}</p>
-            <ul style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32, flex: 1 }}>
-              {monthlyPlan.features.map((feature) => (
-                <li key={feature} className="ds-card-body" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <IconCheck className="w-4 h-4" style={{ color: "var(--color-teal)", flexShrink: 0, marginTop: 2 }} />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            <button type="button" onClick={openBookingModal} className="ef-btn justify-center w-full ef-btn-primary">
-              {monthlyPlan.cta}
-              <IconArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="ds-monthly-side">
+              <div className="ds-plan-name">Terms</div>
+              <ul className="ds-plan-list">
+                {monthlyPlan.features.map((feature) => (
+                  <li key={feature}>
+                    <IconCheck className="w-3.5 h-3.5" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </Reveal>
+
+        <p className="ds-plans-note">{content.pricing_footnote ?? "Every option is one-to-one, 60 minutes, in the studio in Worthing or live online."}</p>
       </Section>
 
       {/* Not Sure Which to Choose? (standalone dark band, per mockup) —
@@ -201,8 +219,8 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
           /exercise-for-health, which currently redirects to Home
           (disabled per the 2026-07-27 launch-scope decision); flagged,
           not silently decided. */}
-      <Section background="ink">
-        <div className="ds-split">
+      <Section background="ink" className="ds-sec-tight" id="unsure">
+        <div className="ds-unsure">
           <div>
             <p className="ds-eyebrow ds-eyebrow-white">Not Sure Which to Choose?</p>
             <p className="ds-body ds-body-light" style={{ fontSize: 19, fontWeight: 600, color: "#fff", lineHeight: 1.4, marginBottom: 16 }}>
@@ -212,9 +230,9 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
               Book a Free Consultation <IconArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, justifyContent: "center" }}>
-            <Link href="/personal-training" style={{ color: "#fff", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
-            <Link href="/faqs" style={{ color: "#fff", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
+          <div className="ds-unsure-links">
+            <Link href="/personal-training" className="ds-link-row">{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
+            <Link href="/faqs" className="ds-link-row">{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
           </div>
         </div>
       </Section>

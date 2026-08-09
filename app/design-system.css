@@ -12,6 +12,7 @@
 
 /* ── Section rhythm ───────────────── */
 .ds-sec { padding: 100px 80px; }
+.ds-sec-tight { padding: 76px 80px; }
 .ds-sin { max-width: var(--ds-max); margin: 0 auto; }
 
 .ds-bg-white { background: #fff; color: var(--color-ink); }
@@ -317,6 +318,7 @@ a.ds-card { display: block; }
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
   .ds-sec { padding: 72px 28px; }
+  .ds-sec-tight { padding: 72px 28px; }
   .ds-flow { grid-template-columns: 1fr; }
   .ds-flow-step:not(:last-child)::after { display: none; }
   .ds-compare { grid-template-columns: 1fr; gap: 16px; }
@@ -402,4 +404,95 @@ a.ds-card { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .ds-ticker-track { animation: none; }
+}
+
+/* ── Pricing — option groups & plan cards (pricing.html) ───────── */
+.ds-invest-note { max-width: 60ch; margin: 34px auto 0; text-align: center; font-size: 16.5px; line-height: 1.72; color: var(--color-body); }
+.ds-invest-cta { display: flex; justify-content: center; margin-top: 26px; }
+
+.ds-opt { display: grid; grid-template-columns: 52px 1fr; gap: 22px; align-items: start; max-width: 720px; }
+.ds-opt-mark { font-family: var(--font-serif); font-size: 52px; line-height: .76; letter-spacing: -.04em; color: color-mix(in oklab, var(--color-rose) 60%, var(--color-warm)); user-select: none; }
+.ds-opt-kicker { font-size: 11.5px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--color-muted-text); margin-bottom: 9px; }
+.ds-opt-title { font-family: var(--font-serif); font-size: clamp(22px, 2.1vw, 28px); line-height: 1.22; letter-spacing: -.022em; color: var(--color-ink); margin-bottom: 10px; }
+.ds-opt-desc { font-size: 15.5px; line-height: 1.66; color: var(--color-body); max-width: 54ch; }
+
+.ds-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 14px; align-items: stretch; }
+.ds-plan {
+  position: relative; background: #fff; border: 1px solid var(--color-border-warm); border-radius: 18px;
+  padding: 36px 34px 34px; box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+  display: flex; flex-direction: column;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.ds-plan:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(30,24,20,.06), 0 28px 60px rgba(30,24,20,.1); }
+.ds-plan-featured { border-color: color-mix(in srgb, var(--color-rose) 46%, var(--color-border-warm)); }
+.ds-plan-chip {
+  position: absolute; top: -13px; left: 34px;
+  background: var(--color-rose); color: #fff; border-radius: 999px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  padding: 7px 15px; box-shadow: 0 4px 14px color-mix(in srgb, var(--color-rose) 34%, transparent);
+}
+.ds-plan-name { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted-text); margin-bottom: 14px; }
+.ds-plan-price { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ds-plan-fig { font-family: var(--font-serif); font-size: clamp(44px, 4.4vw, 60px); line-height: 1; letter-spacing: -.03em; color: var(--color-ink); }
+.ds-plan-unit { font-size: 14px; font-weight: 600; color: var(--color-muted-text); }
+.ds-plan-save {
+  display: inline-flex; align-self: flex-start; align-items: center; gap: 7px; margin-top: 12px;
+  background: rgba(8,126,139,.12); color: color-mix(in oklab, var(--color-teal) 72%, var(--color-ink));
+  border-radius: 999px; padding: 6px 13px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.ds-plan-pitch { font-family: var(--font-serif); font-style: italic; font-size: 19px; line-height: 1.38; letter-spacing: -.015em; color: var(--color-ink); margin: 20px 0 8px; }
+.ds-plan-sub { font-size: 14.5px; line-height: 1.62; color: var(--color-body); margin: 0 0 4px; padding-bottom: 22px; border-bottom: 1px solid var(--color-border-warm); }
+.ds-plan-list { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+.ds-plan-list li { display: flex; gap: 11px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--color-border-warm); font-size: 14.5px; line-height: 1.55; color: var(--color-body); }
+.ds-plan-list li:last-child { border-bottom: none; }
+.ds-plan-list li svg { color: var(--color-teal); flex: none; margin-top: 3px; }
+.ds-plan-note {
+  display: flex; gap: 11px; align-items: flex-start; margin: 0 0 22px; padding: 14px 16px;
+  background: var(--color-cream); border: 1px solid var(--color-border-warm); border-radius: 12px;
+  font-size: 13px; line-height: 1.6; color: var(--color-body);
+}
+.ds-plan-note svg { color: var(--color-muted-text); flex: none; margin-top: 2px; }
+.ds-plan-note b { color: var(--color-ink); font-weight: 700; }
+.ds-plan .ef-btn { margin-top: auto; }
+
+.ds-monthly {
+  display: grid; grid-template-columns: 1.06fr 1fr; align-items: stretch; margin-top: 24px;
+  background: #fff; border: 1px solid var(--color-border-warm); border-radius: 18px;
+  overflow: hidden; box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.ds-monthly:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(30,24,20,.06), 0 28px 60px rgba(30,24,20,.1); }
+.ds-monthly-main { display: flex; flex-direction: column; padding: 38px 36px 34px; }
+.ds-monthly-side { padding: 38px 36px 34px; background: var(--color-cream); border-left: 1px solid var(--color-border-warm); }
+.ds-monthly-rate { font-family: var(--font-serif); font-size: clamp(28px, 2.7vw, 38px); line-height: 1.1; letter-spacing: -.03em; color: var(--color-ink); margin: 2px 0 10px; max-width: 13ch; }
+.ds-monthly-unit { font-size: 14px; font-weight: 600; color: var(--color-muted-text); margin: 0 0 22px; }
+.ds-monthly-desc { font-size: 15px; line-height: 1.66; color: var(--color-body); margin: 0 0 30px; max-width: 42ch; padding-top: 22px; border-top: 1px solid var(--color-border-warm); }
+.ds-monthly .ef-btn { margin-top: auto; align-self: flex-start; }
+.ds-monthly .ds-plan-list { margin-bottom: 0; }
+.ds-monthly .ds-plan-list li:first-child { padding-top: 0; }
+
+.ds-plans-note { margin-top: 32px; font-size: 13px; color: var(--color-muted-text); display: flex; align-items: center; gap: 10px; }
+.ds-plans-note::before { content: ''; width: 18px; height: 1px; background: var(--color-border-warm); flex: none; }
+
+.ds-unsure { display: grid; grid-template-columns: 1.2fr .8fr; gap: 64px; align-items: center; }
+.ds-unsure-links { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.ds-link-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%;
+  padding: 16px 4px; border-bottom: 1px solid rgba(255,255,255,.14);
+  font-size: 15.5px; font-weight: 500; color: #fff;
+  transition: padding-left .2s ease;
+}
+.ds-link-row:first-child { border-top: 1px solid rgba(255,255,255,.14); }
+.ds-link-row:hover { padding-left: 10px; }
+.ds-link-row svg { color: var(--color-rose); flex: none; }
+
+@media (max-width: 1000px) {
+  .ds-plans { grid-template-columns: 1fr; }
+  .ds-monthly { grid-template-columns: 1fr; }
+  .ds-monthly-main, .ds-monthly-side { padding: 30px 26px; }
+  .ds-monthly-side { border-left: none; border-top: 1px solid var(--color-border-warm); }
+  .ds-monthly-rate { max-width: none; }
+  .ds-opt { grid-template-columns: 40px 1fr; gap: 16px; }
+  .ds-opt-mark { font-size: 40px; }
+  .ds-unsure { grid-template-columns: 1fr; gap: 36px; }
 }
