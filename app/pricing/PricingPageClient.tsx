@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { IconArrowUpRight, IconCheck, IconTarget, IconAward, IconEye, IconAlertCircle } from "@/components/icons";
+import { IconArrowUpRight, IconCheck, IconTarget, IconAward, IconEye } from "@/components/icons";
 import Navbar from "@/components/Navbar";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
@@ -51,8 +51,6 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         content.plan_2_feat_3 ?? "Valid for 120 days from the date of purchase",
       ],
       cta: content.plan_2_cta ?? "Book a Free Consultation",
-      depositLabel: content.plan_2_deposit_label ?? "£100 deposit",
-      depositRest: content.plan_2_deposit_rest ?? " — non-refundable, it secures your regular time slots and is fully deducted from your first block payment.",
     },
     {
       name: content.plan_3_name ?? "Block of 24",
@@ -162,12 +160,6 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
                   </li>
                 ))}
               </ul>
-              {plan.depositLabel && (
-                <p className="ds-plan-note">
-                  <IconAlertCircle className="w-3.5 h-3.5" />
-                  <span><b>{plan.depositLabel}</b>{plan.depositRest}</span>
-                </p>
-              )}
               <button type="button" onClick={openBookingModal} className={`ef-btn justify-center w-full ${plan.popular ? "ef-btn-primary" : "ef-btn-teal"}`}>
                 {plan.cta}
                 <IconArrowUpRight className="w-3.5 h-3.5" />
