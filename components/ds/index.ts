@@ -25,6 +25,7 @@ export type { BandItem } from "./FeatureBand";
 export { FaqSplit } from "./FaqSplit";
 export type { FaqItem } from "./FaqSplit";
 export { AccreditationStrip } from "./AccreditationStrip";
+export { FeaturedReviewedBand } from "./FeaturedReviewedBand";
 export { Reveal } from "./Reveal";
 export type { CTA, Accent, SectionBg } from "./types";
 export { PulseLine } from "./artwork/PulseLine";

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { IconFacebook, IconArrowUpRight } from "@/components/icons";
 import EternalFitnessLogo from "@/components/EternalFitnessLogo";
 import { useBookingModal } from "@/components/BookingModal";
+import { FeaturedReviewedBand } from "@/components/ds/FeaturedReviewedBand";
 
 const websiteSchema = {
   "@context": "https://schema.org",
@@ -28,6 +29,11 @@ const Footer = () => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
+
+      {/* Sits above the footer proper so it lands on every page that renders
+          <Footer /> — all 15 marketing + legal routes, and nothing in the hub
+          or client portal, which render neither Footer nor Navbar. */}
+      <FeaturedReviewedBand />
 
       <footer className="relative isolate overflow-hidden bg-ink text-white/60">
         {/* rose eyebrow rule + radial glow, echoing the section-head device used across the marketing pages */}

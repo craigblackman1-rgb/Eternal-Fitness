@@ -498,3 +498,162 @@ a.ds-card { display: block; }
   .ds-opt-mark { font-size: 40px; }
   .ds-unsure { grid-template-columns: 1fr; gap: 36px; }
 }
+
+/* ── Featured & Reviewed band ──────────────────────────────────
+   Site-wide credibility band: external press lockups on the left,
+   the Google rating behind a hairline on the right. Rendered from
+   components/ds/FeaturedReviewedBand.tsx at the top of the footer,
+   so it lands on every marketing + legal page without touching the
+   fixed 72px navbar or any .ds-hero.
+
+   Ported 1:1 from brand-staging-2662e9/featured-reviewed-band.html.
+   One deliberate change: the mockup drove its breakpoints with
+   @container on .fr-band. The band is always full-bleed at page
+   level, so the container width and the viewport width are the same
+   number and the two are equivalent — but @container is silently
+   ignored by older Safari, which would serve the desktop grid to a
+   phone. Plain media queries at this file's existing 1000/640
+   breakpoints have no such failure mode.
+   ────────────────────────────────────────────────────────────── */
+.fr-band {
+  background: var(--color-cream);
+  border-top: 1px solid var(--color-border-warm);
+  border-bottom: 1px solid var(--color-border-warm);
+}
+.fr-inner {
+  max-width: var(--ds-max); margin: 0 auto; padding: 52px 80px;
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+}
+
+/* Zone 1 — press */
+.fr-press { padding-right: 56px; min-width: 0; }
+.fr-eyebrow {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 22px;
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--color-teal);
+}
+.fr-eyebrow::before { content: ''; width: 26px; height: 1px; background: var(--color-teal); flex: none; }
+
+.fr-lockups { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+.fr-item { padding-right: 44px; min-width: 0; }
+.fr-item + .fr-item { padding-right: 0; padding-left: 44px; border-left: 1px solid var(--color-border-warm); }
+
+/* Fixed-height mark slot — lets logos of differing native size and aspect
+   ratio (FitPro's raster PNG, Storm's WebP) share one baseline. */
+.fr-mark { height: 34px; display: flex; align-items: center; margin-bottom: 14px; }
+.fr-mark img {
+  height: 34px; width: auto; display: block;
+  filter: grayscale(1); opacity: .6;
+  transition: filter .3s ease, opacity .3s ease;
+}
+
+/* Single-action press item */
+.fr-link {
+  display: block; text-decoration: none; color: inherit;
+  padding: 10px; margin: -10px; border-radius: 14px;
+  transition: background .2s ease;
+}
+.fr-link:hover { background: var(--color-warm); }
+.fr-link:hover .fr-mark img { filter: none; opacity: 1; }
+.fr-hook {
+  display: block; font-size: 14.5px; line-height: 1.5; font-weight: 500;
+  color: var(--color-ink); max-width: 32ch;
+}
+/* Arrow trails the last word inline so a two-line hook can't strand it.
+   Inline alone is not enough — when the hook fills its last line exactly, the
+   arrow wraps to a line of its own and reads as a stray glyph (seen at ~990px).
+   .fr-nowrap binds it to the final word so the pair always wraps together. */
+.fr-hook .fr-arrow { margin-left: 7px; vertical-align: -1px; }
+.fr-nowrap { white-space: nowrap; }
+.fr-arrow { display: inline-block; color: var(--rose-text); flex: none; transition: transform .2s ease; }
+.fr-link:hover .fr-arrow { transform: translate(2px, -2px); }
+
+/* Dual-action press item — one publisher, two formats */
+.fr-actions { display: flex; flex-direction: column; margin-top: 16px; }
+.fr-action {
+  display: flex; align-items: center; gap: 11px; min-height: 44px;
+  padding: 8px 10px; margin: 0 -10px; border-radius: 12px;
+  text-decoration: none; color: var(--color-ink);
+  font-size: 14px; line-height: 1.4; font-weight: 500;
+  transition: background .2s ease;
+}
+.fr-action:hover { background: var(--color-warm); }
+.fr-action:hover .fr-arrow { transform: translate(2px, -2px); }
+/* Text uses the darker --status-success-text, not --color-teal. The tag is the
+   only teal text in the band that sits inside a link, so it inherits the
+   --color-warm hover surface — where --color-teal measures 4.22:1 and fails AA
+   for 9.5px text. #07717D clears on both surfaces (5.42 on cream, 5.02 on
+   warm). The border keeps the lighter teal: non-text, 3:1 threshold. */
+.fr-tag {
+  flex: none; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--status-success-text); border: 1px solid color-mix(in srgb, var(--color-teal) 34%, transparent);
+  border-radius: 999px; padding: 4px 9px;
+}
+.fr-action-label { flex: 1; min-width: 0; }
+
+/* Zone 2 — rating. Deliberately not shaped like the press items. */
+.fr-rating-zone {
+  padding-left: 56px; border-left: 1px solid var(--color-border-warm);
+  align-self: stretch; display: flex; align-items: center;
+}
+.fr-rating {
+  display: block; text-decoration: none; color: inherit;
+  padding: 12px; margin: -12px; border-radius: 14px;
+  transition: background .2s ease;
+}
+a.fr-rating:hover { background: var(--color-warm); }
+a.fr-rating:hover .fr-arrow { transform: translate(2px, -2px); }
+.fr-stars { display: flex; gap: 4px; margin-bottom: 10px; }
+/* --color-amber-text, not --color-amber: raw amber on cream is 1.93:1 and
+   would fail the 3:1 graphic threshold. */
+.fr-stars svg { fill: var(--color-amber-text); display: block; }
+.fr-scoreline { display: flex; align-items: baseline; gap: 12px; margin-bottom: 2px; }
+.fr-score { font-family: var(--font-serif); font-size: 40px; line-height: 1; letter-spacing: -.03em; color: var(--color-ink); }
+.fr-outof { font-size: 13px; font-weight: 500; color: var(--color-body); }
+.fr-source { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-body); }
+
+/* Focus-visible on every link, not hover-only */
+.fr-link:focus-visible,
+.fr-action:focus-visible,
+a.fr-rating:focus-visible {
+  outline: 2px solid var(--rose-text); outline-offset: 3px; background: var(--color-warm);
+}
+.fr-link:focus-visible .fr-mark img { filter: none; opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fr-band *, .fr-band *::before, .fr-band *::after { transition-duration: .01ms !important; }
+  .fr-link:hover .fr-arrow,
+  .fr-action:hover .fr-arrow,
+  a.fr-rating:hover .fr-arrow { transform: none; }
+}
+
+@media (max-width: 1199px) {
+  .fr-inner { padding: 48px 40px; }
+  .fr-press { padding-right: 36px; }
+  .fr-item { padding-right: 28px; }
+  .fr-item + .fr-item { padding-left: 28px; }
+  .fr-rating-zone { padding-left: 36px; }
+  .fr-hook { font-size: 14px; }
+}
+@media (max-width: 1000px) {
+  .fr-inner { grid-template-columns: 1fr; padding: 44px 28px; }
+  .fr-press { padding-right: 0; }
+  .fr-rating-zone {
+    padding-left: 0; padding-top: 32px; margin-top: 32px;
+    border-left: none; border-top: 1px solid var(--color-border-warm);
+  }
+  .fr-score { font-size: 36px; }
+}
+@media (max-width: 640px) {
+  .fr-inner { padding: 40px 28px; }
+  .fr-lockups { grid-template-columns: 1fr; }
+  .fr-item { padding-right: 0; }
+  .fr-item + .fr-item {
+    padding-left: 0; padding-top: 26px; margin-top: 26px;
+    border-left: none; border-top: 1px solid var(--color-border-warm);
+  }
+  /* Rating leads on mobile — strongest social proof, least scrolling. */
+  .fr-rating-zone { order: -1; padding-top: 0; margin-top: 0; border-top: none; }
+  .fr-press { padding-top: 32px; margin-top: 32px; border-top: 1px solid var(--color-border-warm); }
+  .fr-hook { max-width: none; }
+}

@@ -23,7 +23,7 @@ const reviewSchema = {
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "5",
-    "reviewCount": "2",
+    "reviewCount": "26",
     "bestRating": "5"
   }
 };
