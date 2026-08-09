@@ -1,5 +1,44 @@
 # Eternal Fitness Website — State
 
+## 2026-08-09 (Claude Code) — Featured & Reviewed band, Facebook link fix, Contact hero photo swap
+- **Site-wide "Featured & Reviewed" band — DONE + DEPLOYED (`9623a22`, `6337996`).** Craig wanted a
+  banner promoting the FitPro press feature, the Storm Fitness Academy podcast episode + interview,
+  and Google reviews, but wasn't sure where it should live. Wrote a design brief
+  (`.context/brief-promotional-banner-2026-08-09.md`) recommending an in-flow band above the footer
+  (Option A) over a sticky top bar (4 items don't fit legibly in ~48px) — open design delivered a full
+  spec sheet (`brand-staging-2662e9/featured-reviewed-band.html`). Built as
+  `components/ds/FeaturedReviewedBand.tsx`, rendered from `Footer.tsx` so it appears on all 10 public
+  routes, absent from `/hub` and `/portal`. Found and fixed 2 real defects the spec's own audit missed:
+  a teal-text contrast fail under AA on the tag's own hover surface (`--status-success-text` swap), and
+  an arrow that could strand onto its own line at ~990px (`.fr-nowrap` fix). Also corrected
+  `TestimonialsSection.tsx`'s stale `aggregateRating.reviewCount: "2"` to the real **26**, confirmed by
+  Craig, to match the band's visible claim. Google Reviews currently links to a clean parameter-free
+  Maps search deep link, not Craig's pasted URL — that one carried an `rlz` tracking ID tied to his
+  Chrome install, unsafe to bake into permanent site HTML. **Open:** swap for the real Business Profile
+  share link (Maps → listing → Share → Copy link) when Craig pulls it — one constant in the component.
+- **Footer Facebook link fixed — DONE + DEPLOYED (`6337996`).** Was pointing at a stale numeric
+  `profile.php?id=...` URL. Corrected to `facebook.com/EternalFitnessPersonalTraining/`.
+- **Contact hero photo swapped off one showing Esther's face — DONE + DEPLOYED (`748605b`).** Craig
+  asked to remove Esther's head from an image; turned out to be `who-mobility.jpg` on the Contact page
+  hero, which also had stale alt text describing a completely different photo ("the kettlebell rack")
+  than what was actually shown (Esther mid-session with a client). Swapped to
+  `studio-kettlebell-shelf.jpg`, an existing people-free asset already correctly used on the About page
+  CTABand — one photo now serves both, alt text finally matches reality. Verified at desktop, mobile,
+  and simulated ultrawide (2200px) — the old crop's specific failure mode.
+- **Same asset re-cropped to remove a dirty/glare mirror — DONE + DEPLOYED (`002ce08`).** Craig flagged
+  the reflective mirror visible on the right of `studio-kettlebell-shelf.jpg`. Trimmed 1800×1200 →
+  1130×1200 (took 3 attempts — the first two crop lines still caught the mirror's edge). Since this
+  file is shared by both the About CTABand and Contact hero, one crop fixed both places at once.
+- **Process note:** used a temporary local static server + a `design-assets-static` launch.json entry
+  to try rendering a `brand-staging-2662e9` mockup file live before Craig redirected to the real target
+  (the live Contact hero) — reverted both the launch.json entry and the mockup file edit afterward so
+  neither this worktree nor the shared design-systems repo carries stray half-finished experiments.
+- **Worktree hygiene:** `node_modules` had to be junctioned from the shared checkout (`D:\apps\eternal-
+  fitness-website\node_modules`) and `.env.local` copied over — this worktree had neither on pickup.
+  `pnpm dev` also can't be used as-is in a junctioned-`node_modules` worktree — `pnpm install`'s
+  confirm-purge prompt aborts non-interactively. Launch config runs `node node_modules/next/dist/bin/
+  next dev` directly instead, bypassing pnpm's install-check entirely.
+
 ## 2026-08-07 (Claude Code)
 - **Launch-readiness sweep — DONE + DEPLOYED (`27ab8e6`, `e29cfab`).** Both public lead-capture forms
   (Contact page form, site-wide "Book a Free Consultation" dialog) were found to be non-functional

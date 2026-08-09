@@ -1,3 +1,61 @@
+# Session Handoff: August 9, 2026 (Claude Code) — Featured & Reviewed band, Facebook link fix, Contact hero photo swap
+
+## Agent
+Claude Code
+
+## Session Summary
+Craig asked for a banner promoting the FitPro press feature, the Storm Fitness Academy podcast episode
++ interview, and Google reviews — unsure where or how it should display. Scoped it as a design brief
+first (`.context/brief-promotional-banner-2026-08-09.md`), recommending an in-flow band above the
+footer over a sticky top bar (4 items don't fit legibly in ~48px). Open design delivered a full spec
+sheet at `brand-staging-2662e9/featured-reviewed-band.html`. Built, verified live at all 4 breakpoints
+against the spec's own computed CSS values, found and fixed 2 real defects the spec's own audit missed
+(a contrast fail under AA, a stranding arrow at ~990px), then handled three follow-up asks in the same
+session: a broken footer Facebook link, and two rounds of photo work once Craig clarified an earlier
+vague "remove Esther's head from this image" ask actually meant the Contact page hero.
+
+**Real mid-session correction worth flagging:** Craig's first two messages about "the banner image"
+referenced no attached image and no file path. I spent several turns investigating design-systems mockup
+banner files (`ef-banner-1280x720.png`/`.html`) as candidates before Craig interrupted with an inline
+element-selection screenshot showing he meant the live Contact page hero the whole time. **Lesson: when
+a user references "this image" with nothing actually attached, ask for the file/path immediately rather
+than guessing from context — I guessed wrong once here before the correction landed.** No harm done
+(caught before any push), but it cost turns. Cleaned up fully: reverted the design-systems mockup file
+edit, removed the temporary `design-assets-static` launch.json entry and its backing static server, and
+caught+reverted a redundant image regeneration that would have overwritten an existing correctly-sized
+asset with a needlessly larger one.
+
+## What shipped (4 commits, all pushed to `main`, Coolify auto-deploys)
+1. **`9623a22`** — `components/ds/FeaturedReviewedBand.tsx` (new), wired into `Footer.tsx`, styles in
+   `design-system.css`. `TestimonialsSection.tsx`'s `aggregateRating.reviewCount` corrected from a
+   stale `"2"` to **26** (Craig-confirmed) in the same change, so the schema doesn't contradict the new
+   visible claim.
+2. **`6337996`** — footer Facebook link: `profile.php?id=61576413498498` → `EternalFitnessPersonalTraining/`.
+3. **`748605b`** — Contact hero `who-mobility.jpg` (showed Esther's face, mismatched its own alt text)
+   → `studio-kettlebell-shelf.jpg` (already correctly used on About's CTABand, no people).
+4. **`002ce08`** — that same shared asset re-cropped 1800×1200 → 1130×1200 to remove a smudged/glare
+   mirror visible on the right edge; fixes both the About and Contact placements at once.
+
+Every gate (ownership, scope diff, Design Parity where applicable) was checked and attested before each
+push via `wo attest gate:promotional-banner-design-59654e:claude/promotional-banner-design-59654e` — see
+that key in the registry for the specific notes per commit.
+
+## Open items for next session
+- **Google Reviews link is an interim clean Maps search URL**, not Craig's Business Profile share link
+  — his pasted URL carried a personal Chrome `rlz` tracking parameter, unsafe to embed permanently.
+  Swap the one constant in `FeaturedReviewedBand.tsx` (`GOOGLE_REVIEWS_URL`) once he pulls the real
+  `maps.app.goo.gl`/`g.page` link from Maps → his listing → Share → Copy link.
+- **Storm Fitness Academy logo** and **FitPro press wordmark** are both real assets now (delivered
+  mid-session via OneDrive), already wired in — nothing outstanding there, noting only because the
+  original brief flagged them as blocking.
+- This worktree's `node_modules` wasn't junctioned and had no `.env.local` on pickup — fixed this
+  session (junctioned from the shared checkout, env copied over), but the dev-server launch command had
+  to bypass `pnpm dev` entirely (its non-interactive install-purge-confirm prompt aborts against a
+  junctioned `node_modules`) — runs `node node_modules/next/dist/bin/next dev` directly instead. Worth
+  carrying that launch.json pattern forward if this worktree persists.
+
+---
+
 # Session Handoff: August 7, 2026 (Claude Code, later same day) — GDPR SOPs + DPA, marketing/hub follow-ups, programming-engine build
 
 ## Agent
