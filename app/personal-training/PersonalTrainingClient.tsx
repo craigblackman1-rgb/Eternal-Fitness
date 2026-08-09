@@ -75,7 +75,7 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
       <main id="main-content">
       <PageHero
         image="/images/coaching-bench-press-spot.jpg"
-        imageAlt="Esther spotting a client through a barbell bench press in her private Worthing studio"
+        imageAlt="Esther coaching a client through an incline dumbbell press in her private Worthing studio"
         imagePan="126%"
         imageObjectPosition="50% 45%"
         imageObjectPositionWide="50% 56%"
