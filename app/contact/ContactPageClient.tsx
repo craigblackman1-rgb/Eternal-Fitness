@@ -107,9 +107,10 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
       <main id="main-content">
       <PageHero
         image="/images/who-mobility.jpg"
-        imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
+        imageAlt="The kettlebell rack in the private Worthing studio"
         imagePan="122%"
-        imageObjectPosition="50% 47%"
+        imageObjectPosition="50% 40%"
+        imageObjectPositionWide="50% 32%"
         eyebrow={content.hero_eyebrow ?? "Contact & Booking"}
         heading={content.hero_heading ?? <>Let&apos;s Talk About <em>Where You Are Starting From</em></>}
         subhead={content.hero_subhead ?? "There is no question too small or too complicated. Whether you are looking to get fitter, navigating an injury, or managing a health condition, let's have a relaxed, no-obligation conversation."}
