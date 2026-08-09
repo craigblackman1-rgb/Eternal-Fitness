@@ -87,11 +87,11 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
 
       <main id="main-content">
       <PageHero
-        image="/images/who-mobility.jpg"
-        imageAlt="Two clients working through adapted mobility work in the private Worthing studio"
+        image="/images/pricing-hero-coaching.jpg"
+        imageAlt="Esther coaching a client through a split squat with a barbell in the private Worthing studio"
         imagePan="122%"
-        imageObjectPosition="50% 47%"
-        imageObjectPositionWide="50% 44%"
+        imageObjectPosition="50% 40%"
+        imageObjectPositionWide="50% 32%"
         eyebrow={content.hero_eyebrow ?? "Pricing"}
         heading={content.hero_heading ?? <>Simple, <em>Straightforward</em> Pricing</>}
         subhead={content.hero_subhead ?? "One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}
@@ -233,7 +233,8 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
 
       <CTABand
         image="/images/pricing-studio.jpg"
-        imageAlt="Eternal Fitness private studio in Worthing"
+        imageAlt="Esther coaching a client through a walking barbell lunge in the private Worthing studio"
+        imagePosition="center 35%"
         eyebrow={content.cta_eyebrow ?? "Free Consultation"}
         heading={content.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
