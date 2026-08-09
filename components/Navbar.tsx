@@ -233,7 +233,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop nav */}
-        <ul className={`hidden md:flex items-center gap-8 text-sm font-medium ${isLit ? "text-charcoal/70" : "text-white/80"}`}>
+        <ul className={`hidden xl:flex items-center gap-8 text-sm font-medium ${isLit ? "text-charcoal/70" : "text-white/80"}`}>
           {navItems.map((item) => {
             if (item.children) {
               return (
@@ -265,7 +265,7 @@ const Navbar = () => {
         </ul>
 
         {/* Desktop CTA */}
-        <div className="hidden md:block">
+        <div className="hidden xl:block">
           <button
             type="button"
             onClick={openBookingModal}
@@ -278,7 +278,7 @@ const Navbar = () => {
         {/* Mobile toggle */}
         <button
           onClick={() => setOpen((v) => !v)}
-          className={`md:hidden ${isLit ? "text-charcoal" : "text-white"}`}
+          className={`xl:hidden ${isLit ? "text-charcoal" : "text-white"}`}
           aria-label={open ? "Close menu" : "Open menu"}
         >
           {open ? <IconX className="w-6 h-6" /> : <IconMenu className="w-6 h-6" />}
@@ -287,7 +287,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       <div
-        className={`fixed top-[72px] left-0 right-0 z-40 bg-white border-b border-border-warm p-6 md:hidden flex flex-col gap-4 shadow-lg transition-all duration-200 max-h-[calc(100vh-72px)] overflow-y-auto ${
+        className={`fixed top-[72px] left-0 right-0 z-40 bg-white border-b border-border-warm p-6 xl:hidden flex flex-col gap-4 shadow-lg transition-all duration-200 max-h-[calc(100vh-72px)] overflow-y-auto ${
           open
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-2 pointer-events-none"

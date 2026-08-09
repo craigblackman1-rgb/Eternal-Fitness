@@ -196,10 +196,16 @@
 .efhome .spec-list li.pending::before { background: rgba(255,255,255,.45); }
 .efhome .spec-row { display: grid; grid-template-columns: 1fr 200px; gap: 24px; align-items: start; margin-top: 26px; }
 .efhome .spec-photo { position: relative; border-radius: 16px; overflow: hidden; align-self: stretch; min-height: 260px; }
-.efhome .spec-photo img { border-radius: 16px; }
+.efhome .spec-photo img { border-radius: 16px; object-position: center 15%; }
 @media (max-width: 1000px) {
   .efhome .spec-row { grid-template-columns: 1fr; }
   .efhome .spec-photo { min-height: 220px; }
+}
+/* Full-bleed single-column layout at tablet widths makes the box very wide and
+   short (fixed height, full viewport width) — the fixed 220px height crops too
+   tightly to keep both people's heads in frame, so give it more room here. */
+@media (min-width: 640px) and (max-width: 1000px) {
+  .efhome .spec-photo { min-height: 420px; }
 }
 
 /* ── Shared 2-column grid utility (Who/Specialist band, Testimonials) ── */
