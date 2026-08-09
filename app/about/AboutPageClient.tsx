@@ -215,12 +215,12 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         <figure className="ds-quote-card">
           <div className="ds-quote-card-mark" aria-hidden="true">&ldquo;</div>
           <p className="ds-quote-card-body">
-            {content?.testimonial_1 ?? "Esther has really helped me wonderfully over the past 7 years with my fitness and flexibility."}
+            {content?.testimonial_1 ?? "Esther is a friendly and easy going person to get along with and copes well with my limited ability, and occasional lack of concentration. I would highly recommend her as a careful and insightful trainer."}
           </p>
           <figcaption className="ds-quote-card-by">
-            <span className="ds-quote-card-av" aria-hidden="true">CF</span>
+            <span className="ds-quote-card-av" aria-hidden="true">I</span>
             <span>
-              <span className="ds-quote-card-name" style={{ display: "block" }}>{content?.testimonial_1_name ?? "Colin F"}</span>
+              <span className="ds-quote-card-name" style={{ display: "block" }}>{content?.testimonial_1_name ?? "Ian"}</span>
               <span className="ds-quote-card-meta" style={{ display: "block" }}>{content?.testimonial_1_meta ?? "Training 7 years"}</span>
             </span>
           </figcaption>

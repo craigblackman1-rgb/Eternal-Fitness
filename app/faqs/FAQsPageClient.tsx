@@ -141,11 +141,10 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
 
       <main id="main-content">
       <PageHero
-        image="/images/consultation-question-chat.jpg"
-        imageAlt="Esther talking a question through with a client mid-session in the private Worthing studio"
-        imagePan="126%"
-        imageObjectPosition="50% 40%"
-        imageObjectPositionWide="50% 32%"
+        image="/images/consultation-warm-chat.jpg"
+        imageAlt="Esther chatting warmly with a client in the private Worthing studio"
+        imageObjectPosition="50% 38%"
+        imageObjectPositionWide="50% 28%"
         eyebrow={content?.hero_eyebrow ?? "FAQs"}
         heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
         subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}

@@ -97,6 +97,14 @@ export default function HomePageClient({ content = {} }: { content?: Record<stri
                 <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_2_title ?? "Calm, private, one-to-one training"}</div><div className="wfc">{content.why_feat_2_desc ?? "No crowded gym floor, no other people, and absolutely no pressure to perform."}</div></div></div>
                 <div className="wf"><div className="wfd" /><div><div className="wft">{content.why_feat_3_title ?? "Trained to adapt when things change"}</div><div className="wfc">{content.why_feat_3_desc ?? "Specialised in exercise referral and cancer rehabilitation. If your health picture shifts, your training adapts instead of stopping."}</div></div></div>
               </div>
+              <figure className="quote" style={{ marginTop: 28 }}>
+                <div className="quote-mark" aria-hidden="true">&ldquo;</div>
+                <p className="quote-p">Coming straight out of chemotherapy, barely able to walk 10 minutes. Esther helped me run a half marathon 6 months later!</p>
+                <figcaption className="quote-by">
+                  <div className="avatar">R</div>
+                  <div><div className="quote-n">Rick</div></div>
+                </figcaption>
+              </figure>
             </div>
           </div>
         </div>
