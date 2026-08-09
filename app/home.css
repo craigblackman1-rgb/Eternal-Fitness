@@ -38,10 +38,13 @@
 /* hero-pullup-rack.png has no horizontal crop slack at this container's aspect
    ratio (object-position's X does nothing), so the scale+translateX above
    manufactures slack to shift Esther clear of the heading text on the left.
-   Mobile's hero-copy text goes full-width (see max-width:1000px block below)
-   instead of clamping to 660px, so it needs a bigger shift to still clear her. */
+   Mobile flips this: the portrait container is much narrower than the
+   landscape photo, so object-fit:cover already crops in hard on the sides —
+   object-position's X has plenty of slack to work with on its own. The old
+   rule stacked scale(2.2) on top of that, zooming in ~2x too far and pushing
+   the image mostly off-screen. */
 @media (max-width: 1000px) {
-  .efhome .hero-media img { transform: scale(2.2) translateX(35%); }
+  .efhome .hero-media img { transform: none; object-position: 65% 36%; }
 }
 /* #hero holds a fixed pixel height while width keeps growing with the viewport, so
    object-fit:cover crops proportionally more off the top/bottom the wider the screen
