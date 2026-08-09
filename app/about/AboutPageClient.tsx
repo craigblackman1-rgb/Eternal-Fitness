@@ -51,8 +51,8 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         image="/images/about-hero-esther-portrait.png"
         imageAlt="Esther Fair smiling in her private studio in Worthing"
         imagePan="108%"
-        imageObjectPosition="50% 30%"
-        imageObjectPositionWide="50% 22%"
+        imageObjectPosition="56% 35%"
+        imageObjectPositionWide="56% 22%"
         eyebrow={content?.hero_eyebrow ?? "About Esther"}
         heading={content?.hero_heading ?? "About Esther Fair"}
         subhead={content?.hero_subhead ?? "Personal trainer. Private studio, Worthing."}
@@ -67,7 +67,7 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
           <Reveal y={40}>
             <figure style={{ margin: 0, position: "relative" }}>
               <div className="ds-split-img">
-                <Image src="/images/esther-training.jpg" alt="Esther Fair in her private studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 20%" }} />
+                <Image src="/images/about-story-deadlift.jpg" alt="Esther Fair coaching a client through a deadlift in her private studio in Worthing" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "54% 50%" }} />
               </div>
               <figcaption className="ds-figcaption">The private studio, Worthing</figcaption>
             </figure>
@@ -92,42 +92,56 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
 
       {/* Qualifications + Experience */}
       <Section background="cream" id="qualifications">
-        <div className="ds-qual-grid">
+        <div className="ds-split">
           <div>
             <SectionHeading
               eyebrow={content?.quals_eyebrow ?? "Qualifications"}
               heading={content?.quals_heading ?? "My Qualifications & Expertise"}
               intro={content?.quals_intro ?? "Beyond standard personal training credentials, I hold advanced specialisms in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, this means your training never has to reset if your health changes. Whether you face fluctuating blood pressure, a new diagnosis, or recovery from medical treatment, I adapt your movements safely. You get to keep training with the personal trainer who already knows your body, without the stress of searching for someone new."}
             />
-            <div className="ds-exp">
-              <p className="ds-body" style={{ fontWeight: 600, color: "var(--color-ink)", marginBottom: 12 }}>{content?.exp_heading ?? "A Wide Range of Experience"}</p>
-              <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "My clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside everyday training, I design custom programmes for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>
-              <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you are wondering whether your situation is too complicated for personal training, it almost certainly is not."}</p>
-              <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
-              <p style={{ marginTop: 20, fontSize: 12.5, color: "var(--color-muted-text)", letterSpacing: "0.02em" }}>
-                {content?.press_label ?? "As featured in"}{" — "}
-                <a
-                  href="https://www.fitpro.com/blog/training-blind-or-partially-sighted-clients/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontWeight: 700, color: "var(--color-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
-                >
-                  {content?.press_publication ?? "FitPro"}
-                </a>
-                {" "}{content?.press_context ?? "— on training blind and partially sighted clients"}
-              </p>
-            </div>
           </div>
-          <div className="ds-qual-cards">
-            {qualifications.map((q, i) => (
-              <div key={q.title} className="ds-qual-card">
-                <div className="ds-qual-n">{String(i + 1).padStart(2, "0")}</div>
-                <div>
-                  <div className="ds-qual-t">{q.title}</div>
-                  <div className="ds-qual-d">{q.desc}</div>
-                </div>
+          <Reveal y={40}>
+            <div className="ds-split-img" style={{ aspectRatio: "4/3" }}>
+              <Image src="/images/about-quals-barbell-hands.jpg" alt="Esther steadying a barbell for a client in the studio" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
+            </div>
+          </Reveal>
+        </div>
+
+        <div className="ds-qual-cards-row" style={{ marginTop: 48 }}>
+          {qualifications.map((q, i) => (
+            <div key={q.title} className="ds-qual-card">
+              <div className="ds-qual-n">{String(i + 1).padStart(2, "0")}</div>
+              <div>
+                <div className="ds-qual-t">{q.title}</div>
+                <div className="ds-qual-d">{q.desc}</div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="ds-exp ds-split" style={{ marginTop: 64 }}>
+          <Reveal y={40}>
+            <div className="ds-split-img" style={{ aspectRatio: "4/3" }}>
+              <Image src="/images/about-experience-coaching.png" alt="Esther coaching a client through a dumbbell exercise in the studio" fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 35%" }} />
+            </div>
+          </Reveal>
+          <div>
+            <p className="ds-body" style={{ fontWeight: 600, color: "var(--color-ink)", marginBottom: 12 }}>{content?.exp_heading ?? "A Wide Range of Experience"}</p>
+            <p className="ds-body" style={{ marginBottom: 16 }}>{content?.exp_p1 ?? "My clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside everyday training, I design custom programmes for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>
+            <p className="ds-body" style={{ marginBottom: 22 }}>{content?.exp_p2 ?? "If you are wondering whether your situation is too complicated for personal training, it almost certainly is not."}</p>
+            <Link href="/contact" className="ef-btn ef-btn-outline">Get in touch</Link>
+            <p style={{ marginTop: 20, fontSize: 12.5, color: "var(--color-muted-text)", letterSpacing: "0.02em" }}>
+              {content?.press_label ?? "As featured in"}{" — "}
+              <a
+                href="https://www.fitpro.com/blog/training-blind-or-partially-sighted-clients/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontWeight: 700, color: "var(--color-ink)", textDecoration: "underline", textUnderlineOffset: 3 }}
+              >
+                {content?.press_publication ?? "FitPro"}
+              </a>
+              {" "}{content?.press_context ?? "— on training blind and partially sighted clients"}
+            </p>
           </div>
         </div>
       </Section>
@@ -172,10 +186,10 @@ export default function AboutPageClient({ content = {} }: { content?: Record<str
         />
         <Reveal className="ds-grid-2" stagger={0.12} y={40} start="top 82%" >
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
-            <Image src="/images/studio-slam-balls-rack.jpg" alt="The real Eternal Fitness studio in Worthing — squat rack, free weights, and mirror wall" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
+            <Image src="/images/about-studio-band-stretch.jpg" alt="Esther guiding a client through a resistance band stretch beside the squat rack in the studio" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "50% 40%" }} />
           </div>
           <div className="ds-split-img" style={{ aspectRatio: "16/10" }}>
-            <Image src="/images/studio-rack-consult.jpg" alt="Esther talking a client through their session by the rack in the Eternal Fitness studio" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "50% 42%" }} />
+            <Image src="/images/about-studio-kettlebells.jpg" alt="Esther guiding a client through a mobility stretch on the studio mats" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
           </div>
         </Reveal>
         <Reveal y={40} start="top 82%" style={{ marginTop: 48 }}>
