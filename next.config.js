@@ -43,6 +43,17 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // --- Production cutover (2026-08-09): staging subdomain was shared with real
+      // people pre-launch. Once eternal-fitness.co.uk is live, anyone still holding a
+      // staging.eternal-fitness.co.uk link must land on the real site, not the stale
+      // staging environment (risk: submitting documents / logging in against old data).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "staging.eternal-fitness.co.uk" }],
+        destination: "https://eternal-fitness.co.uk/:path*",
+        permanent: true,
+      },
+
       // --- Renamed blog posts (slug changed on migration) ---
       {
         source: "/blog/getting-back-on-track-when-youve-fallen-off-the-wagon",
