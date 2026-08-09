@@ -123,8 +123,8 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
               </div>
             </Reveal>
           </div>
-          <Reveal y={40} className="ds-split-img">
-            <Image src="/images/consultation-programme-notes.jpg" alt="Esther going through the session plan with a client before they start" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "58% 50%" }} />
+          <Reveal y={40} className="ds-split-img" style={{ aspectRatio: "3/2" }}>
+            <Image src="/images/consultation-programme-notes.jpg" alt="Esther going through the session plan with a client before they start" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "42% 50%" }} />
           </Reveal>
         </div>
       </Section>
