@@ -223,7 +223,8 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
 
       <CTABand
         image="/images/pricing-studio.jpg"
-        imageAlt="Eternal Fitness private studio in Worthing"
+        imageAlt="Esther coaching a client through a walking barbell lunge in the private Worthing studio"
+        imagePosition="center 35%"
         eyebrow={content.cta_eyebrow ?? "Free Consultation"}
         heading={content.cta_heading ?? "The first conversation is free, with no commitment."}
         body={content.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
