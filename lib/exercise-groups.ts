@@ -61,16 +61,17 @@ export function normalizeGroups<T extends { group_label?: string | null }>(
   return { list: next, dissolved };
 }
 
+// Real production group_label data is highly varied — "Superset 1", "Circuit 3",
+// "Arms + Core", "Band Block — Floor", "Superset 2 — Bench, Seated" — not a simple
+// letter scheme. "Superset N" is the single most common convention (Craig, 2026-08-10),
+// so a newly-created group is auto-labelled that way; Esther can rename it afterwards.
 export function nextGroupLabel<T extends { group_label?: string | null }>(
   list: T[],
 ): string {
-  const used = new Set<string>();
+  let maxN = 0;
   for (const item of list) {
-    if (item.group_label) used.add(item.group_label);
+    const m = item.group_label?.match(/^superset\s+(\d+)/i);
+    if (m) maxN = Math.max(maxN, parseInt(m[1], 10));
   }
-  const pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (const ch of pool) {
-    if (!used.has(ch)) return ch;
-  }
-  return "Z";
+  return `Superset ${maxN + 1}`;
 }
