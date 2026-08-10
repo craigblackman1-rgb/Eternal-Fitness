@@ -218,6 +218,12 @@ export interface Exercise {
   /** Persistent identity set by the migration and preserved by ensureUids.
    *  Optional so nothing that constructs an Exercise object needs to change. */
   uid?: string;
+  /** First N of `sets` are warm-up. Absent on all current data —
+   *  the badge simply won't show on existing sessions. */
+  warmup_sets?: number;
+  /** Only set when Esther manually corrects the unit for this exercise.
+   *  Absent → derived from equipment at read time (band → lb, else kg). */
+  weight_unit?: 'kg' | 'lb';
 }
 
 export interface SessionVersion {
@@ -260,6 +266,11 @@ export interface Session {
   coaching_notes: string;
   client_intro: string;
   session_log?: SessionLog;
+  /** Per-exercise notes keyed by persistent uid, saved via debounced PATCH. */
+  exercise_notes?: Record<string, string>;
+  /** Optional override for the session duration display;
+   *  absent → derived from time_tier via sessionDurationMinutes(). */
+  estimated_minutes?: number;
 }
 
 export interface SessionLog {
