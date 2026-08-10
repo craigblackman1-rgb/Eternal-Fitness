@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getPageContentBlocks } from "@/lib/pageContent";
 import SpecialistTrainingClient from "./SpecialistTrainingClient";
 
 const schema = {
@@ -62,13 +61,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://eternal-fitness.co.uk/specialist-training" },
 };
 
-export default async function SpecialistTrainingPage() {
-  const content = await getPageContentBlocks("specialist-training");
+export default function SpecialistTrainingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <SpecialistTrainingClient content={content} />
+      <SpecialistTrainingClient />
     </>
   );
 }

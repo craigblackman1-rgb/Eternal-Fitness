@@ -134,7 +134,7 @@ const faqGroups = [
   },
 ];
 
-export default function FAQsPageClient({ content = {} }: { content?: Record<string, string> }) {
+export default function FAQsPageClient() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -145,11 +145,11 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         imageAlt="Esther chatting warmly with a client in the private Worthing studio"
         imageObjectPosition="50% 38%"
         imageObjectPositionWide="50% 28%"
-        eyebrow={content?.hero_eyebrow ?? "FAQs"}
-        heading={content?.hero_heading ?? <>Frequently Asked <em>Questions</em></>}
-        subhead={content?.hero_subhead ?? "If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
-        primaryCta={{ label: content?.hero_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }}
-        secondaryCta={{ label: content?.hero_btn_secondary ?? "Read the FAQs", href: "#faq" }}
+        eyebrow={"FAQs"}
+        heading={<>Frequently Asked <em>Questions</em></>}
+        subhead={"If something's stopping you getting in touch, the answer's probably here. And if it's not — just ask."}
+        primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }}
+        secondaryCta={{ label: "Read the FAQs", href: "#faq" }}
         badge={
           <div className="flex gap-3.5 items-start max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-md shadow-lg p-5">
             <div
@@ -169,10 +169,10 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
             </div>
             <div>
               <p style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--color-ink)", letterSpacing: "-.01em", lineHeight: 1.3, margin: 0 }}>
-                {content?.badge_label ?? "No question is too small"}
+                {"No question is too small"}
               </p>
               <p style={{ fontSize: "12px", color: "var(--color-muted-text)", lineHeight: 1.45, margin: 0, marginTop: 3 }}>
-                {content?.badge_sublabel ?? "Just ask — I would rather you did than talk yourself out of trying."}
+                {"Just ask — I would rather you did than talk yourself out of trying."}
               </p>
             </div>
           </div>
@@ -184,15 +184,15 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
 
           {/* Left — intro + jump nav */}
           <div className="md:sticky md:top-24">
-            <Eyebrow color="rose">{content?.sidebar_eyebrow ?? "Your Questions Answered"}</Eyebrow>
+            <Eyebrow color="rose">{"Your Questions Answered"}</Eyebrow>
             <h2 className="ds-h2" style={{ margin: "16px 0" }}>
-              {content?.sidebar_heading ?? "No question is too complicated"}
+              {"No question is too complicated"}
             </h2>
             <p className="ds-body" style={{ marginBottom: 16 }}>
-              {content?.sidebar_body ?? "Training with me covers a wide range of baselines—from general fitness and athletic milestones to injuries, chronic health conditions, and disabilities. If you are wondering whether your specific situation fits here, it almost certainly does."}
+              {"Training with me covers a wide range of baselines—from general fitness and athletic milestones to injuries, chronic health conditions, and disabilities. If you are wondering whether your specific situation fits here, it almost certainly does."}
             </p>
             <nav aria-label="FAQ sections" className="mb-8 mt-7">
-              <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">{content?.sidebar_jump_label ?? "Jump to"}</p>
+              <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">{"Jump to"}</p>
               <ul>
                 {faqGroups.map((group, gi) => (
                   <li key={group.group} className="border-t border-border-warm last:border-b">
@@ -201,7 +201,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                       className="flex items-baseline justify-between gap-4 py-3 group"
                     >
                       <span className="font-serif text-lg text-foreground/70 group-hover:text-foreground transition-colors tracking-tight">
-                        {content?.[`group_${gi + 1}_name`] ?? group.group}
+                        {group.group}
                       </span>
                       <span className="text-[11px] font-bold text-[var(--rose-text)] tabular-nums">
                         {String(group.faqs.length).padStart(2, "0")}
@@ -211,7 +211,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                 ))}
               </ul>
             </nav>
-            <CtaButton cta={{ label: content?.sidebar_btn ?? "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }} />
+            <CtaButton cta={{ label: "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }} />
           </div>
 
           {/* Right — grouped FAQs */}
@@ -223,7 +223,7 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                     {String(gi + 1).padStart(2, "0")}
                   </span>
                   <h3 className="font-serif text-2xl md:text-[28px] tracking-tight text-foreground">
-                    {content?.[`group_${gi + 1}_name`] ?? group.group}
+                    {group.group}
                   </h3>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {group.faqs.length} questions
@@ -240,10 +240,10 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
                   {group.faqs.map((faq, i) => (
                     <AccordionItem key={i} value={`${group.group}-${i}`} className="border-border-warm">
                       <AccordionTrigger className="font-body text-foreground text-left text-[17px] font-medium py-5 hover:no-underline">
-                        {content?.[`faq_${gi + 1}_${i + 1}_q`] ?? faq.question}
+                        {faq.question}
                       </AccordionTrigger>
                       <AccordionContent className="ef-body text-[15px] leading-relaxed pb-6 max-w-[640px]">
-                        {content?.[`faq_${gi + 1}_${i + 1}_a`] ?? faq.answer}
+                        {faq.answer}
                       </AccordionContent>
                     </AccordionItem>
                   ))}
@@ -299,11 +299,11 @@ export default function FAQsPageClient({ content = {} }: { content?: Record<stri
         image="/images/coaching-deadlift-setup.jpg"
         imageAlt="Esther coaching a client through a deadlift setup"
         imagePosition="center 55%"
-        eyebrow={content?.cta_eyebrow ?? "Free Consultation"}
-        heading={content?.cta_heading ?? "The first conversation is free, with no commitment."}
-        body={content?.cta_body ?? "I work with a small number of clients at a time — so every person gets my full attention."}
-        primaryCta={{ label: content?.cta_btn_primary ?? "Book a Free Consultation", href: BOOKINGS_URL }}
-        secondaryCta={{ label: content?.cta_btn_secondary ?? "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
+        eyebrow={"Free Consultation"}
+        heading={"The first conversation is free, with no commitment."}
+        body={"I work with a small number of clients at a time — so every person gets my full attention."}
+        primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
+        secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
       />
       </main>
       <Footer />
