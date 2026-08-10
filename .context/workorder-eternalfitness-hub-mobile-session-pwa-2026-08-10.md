@@ -120,25 +120,34 @@ independently rather than trusting the lane's own claimed-clean output. Findings
   through `lib/portal-data.ts`, which needed (and got) `log_type` added to the `PortalExercise`
   interface and its mapping function — not just a call-site fix that would've silently no-op'd
   against an undefined field.
-- **One undisclosed secondary behaviour change found, judged acceptable, flagged rather than
-  silently passed:** `components/hub/PrescriptionTable.tsx`'s "— perform together, rest after
-  the pair" caption and rose left-border styling used to gate on `isSuperset(label)` — a
-  string-prefix heuristic true only for labels literally starting with "Superset". The
-  refactor replaced it with `group.type === "group"` (any 2+-item `group_label`, regardless
-  of text — covers "Tri-Set", "Metabolic Block" etc. too, per the type's own doc comment
-  listing those as valid labels the old heuristic silently excluded). This widens when the
-  caption/styling shows. Judged low-risk (cosmetic, not data-affecting) and consistent with
-  Craig's own L0 answer #5 today ("applies for anything where there's multiple exercises that
-  have been joined together") — kept rather than reverted, but it was not the explicit scope
-  of this lane and wasn't mentioned in its own report, so recording it here for the record.
+- **One undisclosed secondary behaviour change found — checked against real live data, put to
+  Craig, confirmed intentional.** `components/hub/PrescriptionTable.tsx`'s "— perform together,
+  rest after the pair" caption and rose left-border styling used to gate on `isSuperset(label)`
+  — a string-prefix heuristic true only for labels literally starting with "Superset". The
+  refactor replaced it with `group.type === "group"` (any 2+-item `group_label`, regardless of
+  text). **Queried live production data before deciding this was safe to leave** (86 sessions,
+  92 set_logs) — found **24 distinct real `group_label` values in use today**, including
+  `Circuit 1`–`Circuit 7`, `Conditioning Circuit`, `Arms + Core`, `Band Block — Floor`, none of
+  which triggered the caption under the old heuristic. This is not a hypothetical edge case —
+  it changes what several real client sessions display today. Put to Craig 2026-08-10 with the
+  real label list; **confirmed: keep the wider behaviour**, matching his own L0 answer #5
+  ("applies for anything where there's multiple exercises that have been joined together").
+- **Second finding from the same live-data check: `nextGroupLabel`'s single-letter scheme
+  (A, B, C…) didn't match real usage at all.** Of the 24 real labels, the dominant convention is
+  `Superset N` (9 of 24); none are single letters except two legacy `Superset A`/`Superset B`
+  rows. Put to Craig alongside the caption question; **confirmed: auto-generate `Superset N`**
+  (scan existing labels for the pattern, return the next free number; ignores the two legacy
+  letter-based rows). Fixed directly (commit `6f448a9`), with a new
+  `lib/__tests__/exercise-groups.test.ts` (previously zero coverage) testing `computeGroups`/
+  `normalizeGroups`/`nextGroupLabel` against the real 24-label set, not synthetic data.
 - Zero stale references to any of the 6 collapsed functions remain anywhere in `app/` or
   `components/` (grepped directly, not just trusted the lane's own grep claim).
 
-**VERIFY:** `npx tsc --noEmit` clean (confirmed independently) · `npx vitest run` 17/17 pass
-(confirmed independently) · portal `log_type` fix called out in its own commit paragraph ·
-new `lib/__tests__/prescription.test.ts` + a first `vitest.config.ts` + `package.json`
-`"test"` script (none existed before this lane, despite vitest already being a
-devDependency).
+**VERIFY:** `npx tsc --noEmit` clean (confirmed independently, twice) · `npx vitest run` 26/26
+pass (confirmed independently) · portal `log_type` fix called out in its own commit paragraph ·
+`lib/__tests__/prescription.test.ts` + `lib/__tests__/exercise-groups.test.ts` + a first
+`vitest.config.ts` + `package.json` `"test"` script (none existed before this lane, despite
+vitest already being a devDependency).
 
 ### L2 — `exercise_ref` stability `[AUTO]`
 **The load-bearing fix.** Today `exercise_ref` is a positional string `<version>:<section>:<index>:<name>` and `LiveSessionLog.tsx:509` derives the index via `list.indexOf(ex)` — which collides on duplicate exercises. **Any in-session reorder, insert or delete silently misattributes existing logs.** In-session editing (L3/L4) is impossible without this.
