@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { HubShell } from "./HubShell";
+import { MobileRedirect } from "@/components/hub/MobileRedirect";
 
 export default async function HubLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -10,5 +11,10 @@ export default async function HubLayout({ children }: { children: React.ReactNod
     redirect("/hub/login");
   }
 
-  return <HubShell>{children}</HubShell>;
+  return (
+    <HubShell>
+      <MobileRedirect />
+      {children}
+    </HubShell>
+  );
 }
