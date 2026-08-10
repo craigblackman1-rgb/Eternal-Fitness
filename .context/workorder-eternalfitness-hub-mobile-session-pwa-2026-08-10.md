@@ -281,6 +281,57 @@ Also fixes #1 (notes never persisted) and #4 (`version` hard-coded to `"studio"`
 
 **VERIFY:** real device, real client, a full session logged end to end. Rest timer counts down from `Exercise.rest`. Add a 4th set mid-session and confirm both the prescription and the logs stay attributed. Ungroup a superset and confirm the toast + `group_label` clearing matches desktop behaviour.
 
+---
+
+**Progress 2026-08-10 — two lanes shipped, split into L4-1 and L4-2 to get something viewable fast**
+(Craig: "I want to be able to deliver an app Esther can view"):
+
+**L4-1 (commits `31b22b8`, `b1aa09c`, `5bfba53`) — mobile shell + Today screen.** Bottom tab bar
+(the reference implementation `hub-m-train.html`/`hub-m-clients.html` will reuse unchanged),
+`/hub/m` day-agenda wired to real `sessions`/`blocks`/`clients`/`tasks` data, small-screen redirect
+from desktop `/hub`. Hand-reviewed: all CSS vars independently verified to resolve (node script,
+not the lane's own less-thorough check); fixed dead code in `MobileShell.tsx` and a self-report
+inaccuracy — the "in progress" pill was claimed wired but genuinely wasn't (added
+`SessionLog.started_at` to the type and wired it for real). Visual browser check deferred — needs a
+real login, not essential given the thorough code review.
+
+**L4-2 (commits `f1fca2b`, `99ad255`) — the Train screen itself, the actual deliverable.** Full
+view+log surface against the approved `hub-m-train.html` mockup at `/hub/m/train/[sessionId]`:
+sections, thumbnails/video, warm-up badges, the single rest control with countdown/stopwatch mode
+switch (verified correct for both standalone exercises — keyed per exercise — and superset rounds
+— keyed `grp:<label>:<roundIdx>`, one shared control per round, exactly matching Craig's mid-session
+correction), kg/lb auto-derive with session-local correction, add-set, round-by-round supersets
+with ungroup, RPE/fatigue/notes, complete overlay. Fixes the three known bugs from the desktop
+screen: notes now persist (debounced PATCH to `data.exercise_notes`, keyed by `uid`), version is
+derived from `clients.delivery_mode` instead of hardcoded to `"studio"`, and `started_at` is
+written on first mount — closing the loop with L4-1's pill.
+
+**Two real issues found on hand-review, both fixed, not just noted:**
+1. **A serious persistence gap**: `handleAddSet`, `handlePickGroup` and `handleUngroup` all
+   mutated the in-memory `Exercise` object correctly but never sent the change to the server —
+   every one of them silently reverted on reload. Worse for add-set specifically: the `set_logs`
+   row for an added set *was* saved, but the set became invisible again next visit because
+   `ex.sets` (the count driving how many rows render) was never incremented. Fixed with a shared
+   `persistPrescription()` PATCH, wired into all three handlers; `handleAddSet` now also
+   increments `ex.sets`.
+2. **A scope deviation**: the brief explicitly deferred "create a new superset" to a later lane,
+   but the lane built it anyway (`handlePickGroup`, using L1's `nextGroupLabel`). Verified it
+   mutates the same object graph the same safe way `ungroup` does, and is now correctly persisted
+   by fix #1 — **kept rather than stripped**, since it's functionally correct and actually matches
+   Craig's own L0 answer #5 (supersets should be creatable, not just breakable). Recorded here
+   rather than passed through silently, per this repo's standing rule on hand-reviewing OpenCode
+   output.
+
+**Still explicitly deferred** (unchanged from the original plan): the mid-session edit sheet
+(`hub-m-train-edit.html` — add exercise, add from a specific previous session/block, add from a
+template), concurrency (`rev` counter, 409 handling, desktop lock banner), and offline (L5). The
+"Edit workout" button links to `/hub/m/train/[sessionId]/edit`, which doesn't exist yet — 404s by
+design until that lane lands.
+
+**Not yet done: PWA installability (L5's manifest half).** The screens work in a browser tab today;
+Esther can't yet "Add to Home Screen" and get an app-like icon/standalone window. That's the next
+piece toward "an app Esther can view" in the literal sense Craig asked for.
+
 ### L5 — PWA + offline `[AUTO]`
 `public/hub.webmanifest` (`start_url: "/hub/m"`, `scope: "/hub/"`, `display: "standalone"`, its own maskable icon so it isn't visually identical to the marketing PWA), declared in `app/hub/layout.tsx` metadata — Next merges nested metadata so it overrides for `/hub` only. **Do not touch `public/site.webmanifest`**, which is the marketing site's.
 
