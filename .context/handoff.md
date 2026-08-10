@@ -3049,3 +3049,74 @@ toolbar work (Part 4b) but never asked for or done this session.
 Verified: `tsc --noEmit` clean after every change; every page live-tested in the browser (search,
 filters, segmented pills, grid/list toggle, exercise data all confirmed rendering/filtering
 correctly against real data) before pushing.
+
+## Session close — 2026-08-10 — Hub mobile PWA Work Order: registry clear-down, L1/L2 shared-logic +
+## exercise-uid refactor (incl. live migration), L4 mobile shell + Today + Train screen
+
+Worked in `D:\apps\worktrees\eternal-fitness-website\web-admin-pages-dashboard-5ccf37`, branch
+`claude/mobile-workout-features-6ddaba`. **Nothing pushed to main or deployed — everything below is
+committed to this branch/worktree only.** New Work Order:
+`.context/workorder-eternalfitness-hub-mobile-session-pwa-2026-08-10.md` (the canonical doc — read
+it first, this entry is a summary).
+
+**L8 — registry clear-down.** Closed 7 stale deferred items + the marketing-hub-followups parent WO
++ registered 6 pre-registry local WO files as `done`. Left open, on Craig's explicit call: the EF
+database's missing WAL archive (no point-in-time recovery — flagged as the highest-consequence item
+found), a live `CTABand.imagePosition` bug, and the GDPR WO (gated on DPA signatures).
+
+**L0 — scope questions answered directly by Craig** (warm-up sets = first N of an exercise's own
+sets, coexisting with the warm-up section; kg/lb auto-derives from equipment, not manual; "add
+previous workout" needs a real session/block picker, not just latest; rest control is one manual
+button with a countdown/stopwatch switch; supersets need full create+break, N-way not just pairs).
+
+**L1 — shared-logic refactor (commit `c583ca3` + `6f448a9`).** Collapsed 4 duplicate copies of
+prescription-parsing/superset-grouping logic into `lib/prescription.ts`/`lib/exercise-groups.ts`/
+`lib/units.ts`. Fixed a real drift bug: the client portal's `isTimeBased` was silently ignoring
+`log_type`. First `vitest` setup in this repo (26 tests). Checked real production `group_label`
+data (86 sessions) before finalising `nextGroupLabel` — real labels are "Superset N"/"Circuit N"/
+free text, not a letter scheme; fixed to auto-generate "Superset N".
+
+**L2 — exercise_ref → persistent uid (commit `1b6624b` DB + `62a800e` app layer).** The load-bearing
+fix: `exercise_ref` was a positional string that silently misattributed logs on any reorder.
+Migration `20260811_exercise_uid.sql` ran against production **today** (Craig ran it himself via
+`scripts/run-exercise-uid-migration.mjs` after a Bash-classifier block on a direct DB write from
+this session) — verified after: 92/92 `set_logs` backfilled, 3,094/3,094 exercise objects across 86
+sessions have a uid, zero duplicates. App layer connects `SessionEditor.tsx`'s uid handling to the
+persistent field — **found and fixed a live bug where saves would have silently dropped the newly
+backfilled uids**.
+
+**L3a — mobile mockups, approved.** 4 new `hub-m-*.html` + 3 desktop-state additions in
+`D:\apps\design-systems\ef-control-hub\`. Fixed a tap-target compliance gap on hand-review, then
+Craig gave a real mid-session correction: supersets must render **round by round** (Set 1 of
+exercise A, Set 1 of B, one shared rest, Set 2 of both...), not exercise-by-exercise — rebuilt and
+verified in-browser via a temp static server + accessibility-tree inspection.
+
+**L4-1 — mobile shell + Today screen (commits `31b22b8`, `b1aa09c`, `5bfba53`).** `/hub/m` bottom
+tab bar + real day-agenda (`sessions`/`blocks`/`clients`/`tasks`), small-screen redirect from
+desktop `/hub`. Hand-review fixed dead code and a self-report inaccuracy (claimed "in progress" pill
+was wired, wasn't — fixed for real, added `SessionLog.started_at` to the type).
+
+**L4-2 — the Train screen itself, the actual deliverable (commits `f1fca2b`, `99ad255`).** Real
+`/hub/m/train/[sessionId]` screen: full view+log surface, thumbnails/video, warm-up badges, the
+single rest control (verified correct for both standalone exercises and superset rounds), kg/lb
+auto-derive, add-set, round-by-round supersets with ungroup, RPE/fatigue/notes, complete overlay.
+Fixed the three known desktop-screen bugs (notes never persisted, version hardcoded to studio,
+no `started_at`). **Hand-review caught a serious bug before it shipped**: add-set/group/ungroup all
+mutated data in memory but never saved it — reverted on reload, and add-set specifically made a
+logged set invisible on next visit even though the log row was saved. Fixed with a proper PATCH.
+Also flagged (not silently passed): the lane built "create a new superset" despite being told to
+defer it — verified safe and correct once persistence was fixed, kept rather than stripped.
+
+**Explicitly deferred, not started:** the mid-session edit sheet (add exercise, previous-session/
+template pickers — `/hub/m/train/[sessionId]/edit` 404s by design), concurrency (`rev` counter, 409
+handling, desktop lock banner), PWA manifest/installability, offline queue, Microsoft Graph/Outlook
+(L6, blocked on Craig's Azure app registration), and the standing 2026-08-04 desktop mockup backlog
+(L3b — Plan Schedule, Workout Templates, 3 client-detail tabs, 6 Cashflow screens, nav restructure).
+
+**How to test what exists right now:** dev server running on `:3001` (LAN-reachable at
+`192.168.68.58:3001` at time of writing — re-check `ipconfig` if that's changed). Log in at `/hub/
+login` with a real staff account, then open `/hub/m` on a phone-width viewport or an actual phone on
+the same WiFi. Full session flow works end to end for a `studio_1to1` or `home_training` client with
+a scheduled session today. Every commit `tsc --noEmit` clean; every OpenCode lane hand-reviewed
+line-by-line per this repo's standing rule, not trusted on self-report — every lane's own report had
+at least one real inaccuracy or gap this session, all caught before commit stood as "done."
