@@ -223,7 +223,7 @@ export default function BlogPostClient({ post, relatedPosts, recentPosts }: Prop
                 <div className="border-t border-[#E4DDD7] pt-8">
                   <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-teal mb-3">Explore</p>
                   <ul className="space-y-2 text-sm">
-                    <li><Link href="/exercise-for-health" className="text-foreground hover:text-rose transition-colors">Exercise for Health</Link></li>
+                    <li><Link href="/specialist-training" className="text-foreground hover:text-rose transition-colors">Specialist Training</Link></li>
                     <li><Link href="/cancer-rehabilitation" className="text-foreground hover:text-rose transition-colors">Cancer Rehabilitation</Link></li>
                     <li><Link href="/personal-training" className="text-foreground hover:text-rose transition-colors">Personal Training</Link></li>
                   </ul>

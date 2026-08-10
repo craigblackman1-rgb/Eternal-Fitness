@@ -77,7 +77,7 @@ const Footer = () => {
             {/* Training */}
             <nav aria-label="Footer — training" className="flex flex-col items-start">
               <h2 className="text-[11px] font-bold tracking-[0.1em] uppercase text-white/45 mb-3.5">Training</h2>
-              <Link href="/personal-training#specialist" className={footerLinkClasses}>Specialist Training</Link>
+              <Link href="/specialist-training" className={footerLinkClasses}>Specialist Training</Link>
               <Link href="/faqs" className={footerLinkClasses}>FAQs</Link>
               <Link href="/contact" className={footerLinkClasses}>Contact</Link>
             </nav>

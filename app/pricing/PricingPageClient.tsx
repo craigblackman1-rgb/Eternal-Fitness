@@ -206,11 +206,11 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
         <p className="ds-plans-note">{content.pricing_footnote ?? "Every option is one-to-one, 60 minutes, in the studio in Worthing or live online."}</p>
       </Section>
 
-      {/* Not Sure Which to Choose? (standalone dark band, per mockup) —
-          linking to /personal-training rather than the mockup's
-          /exercise-for-health, which currently redirects to Home
-          (disabled per the 2026-07-27 launch-scope decision); flagged,
-          not silently decided. */}
+      {/* Not Sure Which to Choose? (standalone dark band, per mockup).
+          The "See Specialist Training" link now points at /specialist-training,
+          which replaced the mockup's /exercise-for-health in the 2026-08-10
+          restructure. It previously pointed at /personal-training only because
+          the old hub was redirected to Home during the launch-scope freeze. */}
       <Section background="ink" className="ds-sec-tight" id="unsure">
         <div className="ds-unsure">
           <div>
@@ -223,7 +223,7 @@ export default function PricingPageClient({ content = {} }: { content?: Record<s
             </button>
           </div>
           <div className="ds-unsure-links">
-            <Link href="/personal-training" className="ds-link-row">{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
+            <Link href="/specialist-training" className="ds-link-row">{content.pricing_link_areas ?? "See Specialist Training"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
             <Link href="/faqs" className="ds-link-row">{content.pricing_link_faqs ?? "Read the FAQs"} <IconArrowUpRight className="w-3.5 h-3.5" /></Link>
           </div>
         </div>

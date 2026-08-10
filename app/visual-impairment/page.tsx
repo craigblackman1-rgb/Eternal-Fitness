@@ -4,10 +4,10 @@ import VisualImpairmentClient from "./VisualImpairmentClient";
 const schema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  "@id": "https://eternal-fitness.co.uk/exercise-for-health/visual-impairment/#service",
+  "@id": "https://eternal-fitness.co.uk/visual-impairment/#service",
   "name": "Personal Training for Partially Sighted People Worthing",
   "description": "Adapted personal training for people who are blind or partially sighted in Worthing. Specialist one-to-one sessions in a private studio. Sessions tailored for partially sighted clients.",
-  "url": "https://eternal-fitness.co.uk/exercise-for-health/visual-impairment",
+  "url": "https://eternal-fitness.co.uk/visual-impairment",
   "provider": {
     "@type": "LocalBusiness",
     "name": "Eternal Fitness",
@@ -55,7 +55,7 @@ const faqSchema = {
 export const metadata: Metadata = {
   title: "Personal Training for Partially Sighted People",
   description: "Adapted personal training for blind and partially sighted people in Worthing. Private one-to-one sessions tailored for VIP clients. Book a free consultation.",
-  alternates: { canonical: "https://eternal-fitness.co.uk/exercise-for-health/visual-impairment" },
+  alternates: { canonical: "https://eternal-fitness.co.uk/visual-impairment" },
 };
 
 export default function VisualImpairmentPage() {

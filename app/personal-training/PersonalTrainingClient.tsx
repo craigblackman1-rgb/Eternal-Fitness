@@ -182,11 +182,15 @@ export default function PersonalTrainingClient({ content = {} }: { content?: Rec
           per Craig's explicit go-ahead (2026-07-29) after being flagged as a
           possible conflict with the "no condition roll-calls" hard rule —
           worth Esther's confirmation since it's her brand rule, but not
-          blocking on it. Still linking to /contact rather than the mockup's
-          /exercise-for-health — that page currently redirects to Home
-          (disabled per the 2026-07-27 launch-scope decision), so the
-          mockup's own literal link would send a visitor straight back to
-          the homepage. */}
+          blocking on it.
+
+          NEEDS ESTHER'S REWRITE (2026-08-10): the five pillars listed below
+          (Cardiovascular Care, Musculoskeletal Strength, Inclusive Training,
+          Cancer Rehabilitation, Active Ageing) predate the restructure that
+          narrowed the business to three specialisms — blind/partially sighted,
+          cancer rehabilitation, and strength/balance for older adults. Two of
+          these pillars no longer have a page behind them. Left as-is rather
+          than silently rewritten, because this is her brand copy. */}
       <Section background="ink" id="specialist">
         <div className="ds-split">
           <div>
