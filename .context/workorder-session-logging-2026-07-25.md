@@ -1,3 +1,20 @@
+<!-- wo-archived-banner -->
+> **ARCHIVED — HISTORY ONLY. DO NOT READ THIS AS OUTSTANDING WORK.**
+>
+> This work order closed as `done` (registry last updated 2026-08-10).
+> Its unit checklists were never re-ticked on close, so unticked boxes below do **not**
+> mean the work is outstanding. Eternal Fitness went live 2026-08-09; much of what this
+> document describes as pending shipped before or at launch.
+>
+> **Live state lives in the registry, not here:**
+> ```
+> wo active                    # current work orders
+> wo deferred-list             # what is genuinely still parked
+> wo questions                 # decisions waiting on Craig
+> ```
+> Registry id: `wo-eternalfitness-session-logging-2026-07-25`
+
+---
 # Work Order: Eternal Fitness — Session Logging (Trainerize Replacement) — 2026-07-25
 
 OWNER: (cleared — Lanes A, B, C, D all DONE + DEPLOYED 2026-07-25; only Craig-decision GATE items remain open, no further build work pending on this Work Order.) **Lanes A, B, C all DONE + DEPLOYED same day** (commits `b67163c`/`deed2d4`/`da21c2c`, live on `staging.eternal-fitness.co.uk`, Coolify confirmed `running:healthy`). `delivery_mode` toggle added to client edit page same day (`f6cf896`). **Lane D (session scheduling & calendar) also DONE + DEPLOYED 2026-07-25** (`1f057d0`/`dd15bb3`) — see below. **Follow-up fix 2026-07-25 (later, separate session, commit `77f5861`, live via `f25b98c`):** Lane D's "Review & Approve" link on the block page only rendered for draft blocks, orphaning the `/review` route's scheduler entirely once a block was approved — the block page now shows a persistent "Schedule" link post-approval, and the review page hides the Approve action (which would otherwise hit the API's existing 400-on-re-approve guard) once a block is no longer draft. Not yet click-tested live.

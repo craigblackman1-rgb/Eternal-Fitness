@@ -1,3 +1,20 @@
+<!-- wo-archived-banner -->
+> **ARCHIVED — HISTORY ONLY. DO NOT READ THIS AS OUTSTANDING WORK.**
+>
+> This work order closed as `done` (registry last updated 2026-08-03).
+> Its unit checklists were never re-ticked on close, so unticked boxes below do **not**
+> mean the work is outstanding. Eternal Fitness went live 2026-08-09; much of what this
+> document describes as pending shipped before or at launch.
+>
+> **Live state lives in the registry, not here:**
+> ```
+> wo active                    # current work orders
+> wo deferred-list             # what is genuinely still parked
+> wo questions                 # decisions waiting on Craig
+> ```
+> Registry id: `wo-eternalfitness-training-cashflow-2026-08-02`
+
+---
 # Work Order: Trainerize Historical Import + Live PB/Templates + Cashflow — 2026-08-02
 
 OWNER: claude (this session) — claimed 2026-08-02T11:00Z

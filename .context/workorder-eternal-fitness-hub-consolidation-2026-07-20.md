@@ -1,3 +1,20 @@
+<!-- wo-archived-banner -->
+> **ARCHIVED — HISTORY ONLY. DO NOT READ THIS AS OUTSTANDING WORK.**
+>
+> This work order closed as `done` (registry last updated 2026-08-10).
+> Its unit checklists were never re-ticked on close, so unticked boxes below do **not**
+> mean the work is outstanding. Eternal Fitness went live 2026-08-09; much of what this
+> document describes as pending shipped before or at launch.
+>
+> **Live state lives in the registry, not here:**
+> ```
+> wo active                    # current work orders
+> wo deferred-list             # what is genuinely still parked
+> wo questions                 # decisions waiting on Craig
+> ```
+> Registry id: `wo-eternalfitness-hub-consolidation-2026-07-20`
+
+---
 # Work Order: Eternal Fitness — Client Data Consolidation & Document-Led Client Portal — 2026-07-20
 
 OWNER: Claude Code — **ACTIVE, signed off by Craig 2026-07-20T12:02Z. Lane F added 2026-07-20T19:22Z, same session continuation, Craig-directed. Lanes I/J/K added 2026-07-22, Craig-directed (paper document storage, conversion-tool backlog, portal auth rework).**
