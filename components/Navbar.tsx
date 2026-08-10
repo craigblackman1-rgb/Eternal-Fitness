@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   },
   { label: "Pricing", to: "/pricing" },
   { label: "Client Stories", to: "/testimonials" },
+  { label: "Blog", to: "/blog" },
   { label: "FAQs", to: "/faqs" },
   { label: "Contact", to: "/contact" },
 ];
@@ -42,6 +43,7 @@ const pageTitles: Record<string, string> = {
   "/falls-prevention": "Strength, Balance & Falls",
   "/pricing": "Pricing",
   "/testimonials": "Client Stories",
+  "/blog": "Blog",
   "/faqs": "FAQs",
   "/contact": "Contact",
 };
