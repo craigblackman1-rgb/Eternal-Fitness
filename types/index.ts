@@ -215,6 +215,9 @@ export interface Exercise {
    *  'time' measures a single duration. Absent on legacy data; the reader
    *  falls back to a regex guess on the `reps` string for old sessions. */
   log_type?: 'reps' | 'time';
+  /** Persistent identity set by the migration and preserved by ensureUids.
+   *  Optional so nothing that constructs an Exercise object needs to change. */
+  uid?: string;
 }
 
 export interface SessionVersion {

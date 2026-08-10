@@ -56,6 +56,7 @@ import { AddExerciseDialog, type InsertPositionOption } from "../add-exercise-di
 import { toast } from "sonner";
 import { HubCard } from "@/components/hub/HubCard";
 import { computeGroups, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
+import { ensureUids } from "@/lib/exercise-ref";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -73,12 +74,12 @@ const SECTION_LABEL: Record<SectionKey, string> = {
 type EditableExercise = Exercise & { _uid: string };
 type SectionsState = Record<SectionKey, EditableExercise[]>;
 
-function withUids(exercises: Exercise[]): EditableExercise[] {
-  return exercises.map((ex) => ({ ...ex, _uid: crypto.randomUUID() }));
+function withUids(exercises: Exercise[], opts?: { forceNew?: boolean }): EditableExercise[] {
+  return ensureUids(exercises, opts).map((ex) => ({ ...ex, _uid: ex.uid }));
 }
 
 function stripUids(exercises: EditableExercise[]): Exercise[] {
-  return exercises.map(({ _uid, ...rest }) => rest);
+  return exercises.map(({ _uid, ...rest }) => ({ ...rest, uid: _uid }));
 }
 
 function computeBlocks(list: EditableExercise[], allowGroups: boolean) {
@@ -349,9 +350,9 @@ export function SessionEditor({
         return;
       }
       setSections({
-        warm_up: withUids(rolled.warm_up || []),
-        main_block: withUids(rolled.main_block || []),
-        cooldown: withUids(rolled.cooldown || []),
+        warm_up: withUids(rolled.warm_up || [], { forceNew: true }),
+        main_block: withUids(rolled.main_block || [], { forceNew: true }),
+        cooldown: withUids(rolled.cooldown || [], { forceNew: true }),
       });
       const when = prev.completed_at
         ? new Date(prev.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
@@ -438,9 +439,9 @@ export function SessionEditor({
 
   const applyTemplate = (tmpl: { id: string; name: string; data: SessionVersion }) => {
     setSections({
-      warm_up: withUids(tmpl.data.warm_up || []),
-      main_block: withUids(tmpl.data.main_block || []),
-      cooldown: withUids(tmpl.data.cooldown || []),
+      warm_up: withUids(tmpl.data.warm_up || [], { forceNew: true }),
+      main_block: withUids(tmpl.data.main_block || [], { forceNew: true }),
+      cooldown: withUids(tmpl.data.cooldown || [], { forceNew: true }),
     });
     setShowTemplatePicker(false);
     toast.success(`Applied template "${tmpl.name}"`);
