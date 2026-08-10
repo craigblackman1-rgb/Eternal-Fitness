@@ -1,37 +1,14 @@
 import { Fragment } from "react";
 import type { Exercise, SessionVersion } from "@/types";
 import { cn } from "@/lib/utils";
+import { computeGroups } from "@/lib/exercise-groups";
 
 interface PrescriptionTableProps {
   version: SessionVersion;
   className?: string;
 }
 
-interface ExerciseGroup {
-  label: string;
-  exercises: Exercise[];
-}
-
-/** Groups a list of exercises into consecutive runs by group_label. Ungrouped exercises fall under "Main Block". */
-function groupExercises(exercises: Exercise[]): ExerciseGroup[] {
-  const groups: ExerciseGroup[] = [];
-  for (const ex of exercises) {
-    const label = ex.group_label || "Main Block";
-    const last = groups[groups.length - 1];
-    if (last && last.label === label) {
-      last.exercises.push(ex);
-    } else {
-      groups.push({ label, exercises: [ex] });
-    }
-  }
-  return groups;
-}
-
-function isSuperset(label: string): boolean {
-  return label.toLowerCase().startsWith("superset");
-}
-
-function SectionHeaderRow({ label, count }: { label: string; count: number }) {
+function SectionHeaderRow({ label, count, isGroup }: { label: string; count: number; isGroup: boolean }) {
   return (
     <tr>
       <td
@@ -39,7 +16,7 @@ function SectionHeaderRow({ label, count }: { label: string; count: number }) {
         className="bg-rose/5 text-rose text-xs font-semibold uppercase tracking-wide px-3 py-1.5"
       >
         {label}
-        {isSuperset(label) && count > 1 && (
+        {isGroup && count > 1 && (
           <span className="normal-case font-normal text-muted-foreground">
             {" "}
             — perform together, rest after the pair
@@ -90,7 +67,9 @@ export function PrescriptionTable({ version, className }: PrescriptionTableProps
   const warmUp = version.warm_up || [];
   const mainBlock = version.main_block || [];
   const cooldown = version.cooldown || [];
-  const mainGroups = groupExercises(mainBlock);
+  const mainGroups = computeGroups(mainBlock);
+  const warmUpHasContent = warmUp.length > 0;
+  const cooldownHasContent = cooldown.length > 0;
 
   return (
     <table className={cn("w-full text-sm", className)}>
@@ -114,9 +93,9 @@ export function PrescriptionTable({ version, className }: PrescriptionTableProps
         </tr>
       </thead>
       <tbody>
-        {warmUp.length > 0 && (
+        {warmUpHasContent && (
           <Fragment>
-            <SectionHeaderRow label="Warm-up" count={warmUp.length} />
+            <SectionHeaderRow label="Warm-up" count={warmUp.length} isGroup={false} />
             {warmUp.map((ex, i) => (
               <ExerciseRows key={`warmup-${i}`} ex={ex} superset={false} />
             ))}
@@ -124,15 +103,15 @@ export function PrescriptionTable({ version, className }: PrescriptionTableProps
         )}
         {mainGroups.map((group, gi) => (
           <Fragment key={`main-group-${gi}`}>
-            <SectionHeaderRow label={group.label} count={group.exercises.length} />
-            {group.exercises.map((ex, i) => (
-              <ExerciseRows key={`main-${gi}-${i}`} ex={ex} superset={isSuperset(group.label)} />
+            <SectionHeaderRow label={group.label || "Main Block"} count={group.items.length} isGroup={group.type === "group"} />
+            {group.items.map((ex, i) => (
+              <ExerciseRows key={`main-${gi}-${i}`} ex={ex} superset={group.type === "group"} />
             ))}
           </Fragment>
         ))}
-        {cooldown.length > 0 && (
+        {cooldownHasContent && (
           <Fragment>
-            <SectionHeaderRow label="Cool-down" count={cooldown.length} />
+            <SectionHeaderRow label="Cool-down" count={cooldown.length} isGroup={false} />
             {cooldown.map((ex, i) => (
               <ExerciseRows key={`cooldown-${i}`} ex={ex} superset={false} />
             ))}

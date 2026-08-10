@@ -52,6 +52,7 @@ export interface PortalExercise {
   modification: string;
   equipment: string[];
   group_label?: string;
+  log_type?: "reps" | "time";
   video_url: string | null;
 }
 
@@ -195,6 +196,7 @@ export class PortalDataClient {
       modification: ex.modification,
       equipment: ex.equipment ?? [],
       group_label: ex.group_label,
+      log_type: ex.log_type,
       video_url:
         ex.media?.video_url ||
         videoByName.get((ex.exercise_name ?? "").toLowerCase()) ||

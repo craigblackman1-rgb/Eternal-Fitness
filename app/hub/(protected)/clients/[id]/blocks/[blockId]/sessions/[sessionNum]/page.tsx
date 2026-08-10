@@ -15,6 +15,8 @@ import type { DBSession, Exercise, SessionLog, SessionVersion, SetLog } from "@/
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 import { SwapExerciseDialog } from "../swap-exercise-dialog";
 import { SessionEditor } from "./SessionEditor";
+import { computeGroups } from "@/lib/exercise-groups";
+import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
 
 export default function SessionViewPage({
   params,
@@ -492,36 +494,6 @@ export default function SessionViewPage({
   );
 }
 
-interface ExerciseGroup {
-  label: string;
-  exercises: { exercise: Exercise; index: number }[];
-}
-
-/** Groups a list of exercises into consecutive runs by group_label, keeping original array indices.
- * Ungrouped exercises fall under "Main Block". If every exercise is ungrouped, returns a single
- * group with an empty label so the caller can skip rendering section headers for legacy data. */
-function groupExercisesWithIndex(exercises: Exercise[]): ExerciseGroup[] {
-  const allUngrouped = exercises.every((ex) => !ex.group_label);
-  if (allUngrouped) {
-    return [{ label: "", exercises: exercises.map((exercise, index) => ({ exercise, index })) }];
-  }
-  const groups: ExerciseGroup[] = [];
-  exercises.forEach((exercise, index) => {
-    const label = exercise.group_label || "Main Block";
-    const last = groups[groups.length - 1];
-    if (last && last.label === label) {
-      last.exercises.push({ exercise, index });
-    } else {
-      groups.push({ label, exercises: [{ exercise, index }] });
-    }
-  });
-  return groups;
-}
-
-function isSuperset(label: string): boolean {
-  return label.toLowerCase().startsWith("superset");
-}
-
 interface SetLogSavePayload {
   exercise_ref: string;
   set_number: number;
@@ -648,8 +620,8 @@ function SessionSection({
             </thead>
             <tbody>
               {(sectionKey === "main_block"
-                ? groupExercisesWithIndex(exercises)
-                : [{ label: "", exercises: exercises.map((exercise, index) => ({ exercise, index })) }]
+                ? computeGroups(exercises)
+                : exercises.map((exercise, index) => ({ type: "single" as const, items: [exercise], indices: [index] }))
               ).map((group, gi) => (
                 <Fragment key={`group-${gi}`}>
                   {group.label && (
@@ -659,7 +631,7 @@ function SessionSection({
                         className="bg-rose/5 text-rose text-xs font-semibold uppercase tracking-wide px-4 py-1.5"
                       >
                         {group.label}
-                        {isSuperset(group.label) && group.exercises.length > 1 && (
+                        {group.type === "group" && group.items.length > 1 && (
                           <span className="normal-case font-normal text-muted-foreground">
                             {" "}
                             — perform together, rest after the pair
@@ -668,9 +640,10 @@ function SessionSection({
                       </td>
                     </tr>
                   )}
-                  {group.exercises.map(({ exercise: ex, index: i }) => {
+                  {group.items.map((ex, idx) => {
+                const i = group.indices[idx] ?? idx;
                 const hasDetail = Boolean(ex.coaching_cue || ex.modification);
-                const superset = group.label ? isSuperset(group.label) : false;
+                const superset = group.label ? group.type === "group" : false;
                 const exerciseRef = `${versionKey}:${sectionKey}:${i}:${ex.exercise_name}`;
                 const totalSets = Math.max(1, ex.sets || 1);
                 let loggedCount = 0;
@@ -684,11 +657,11 @@ function SessionSection({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <p className="text-sm font-medium text-foreground">{ex.exercise_name}</p>
                           <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                            isTimeBasedReps(ex.reps, ex.log_type)
+                            isTimeBased(ex.reps, ex.log_type)
                               ? "border-teal/20 bg-teal/10 text-teal"
                               : "border-rose/20 bg-rose/5 text-rose"
                           }`}>
-                            {isTimeBasedReps(ex.reps, ex.log_type) ? "Time" : "Reps & wt"}
+                            {isTimeBased(ex.reps, ex.log_type) ? "Time" : "Reps & wt"}
                           </span>
                         </div>
                         {ex.equipment?.length > 0 && (
@@ -840,28 +813,6 @@ function SessionSection({
   );
 }
 
-/** True when the prescription is time-based rather than rep-based — checks the
- * explicit log_type field first; falls back to a regex heuristic on the reps string
- * for legacy sessions that predate the field (e.g. "30s", "45 sec each side", "1 min"). */
-function isTimeBasedReps(reps: string, logType?: "reps" | "time"): boolean {
-  if (logType === "time") return true;
-  if (logType === "reps") return false;
-  return /\d\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i.test(reps || "");
-}
-
-function parsePrescribedSeconds(reps: string): number | null {
-  const m = (reps || "").match(/(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return /^m/i.test(m[2]) ? n * 60 : n;
-}
-
-/** First number in the prescription's reps string ("8-10" → 8, "AMRAP" → null). */
-function parsePrescribedReps(reps: string): number | null {
-  const m = (reps || "").match(/\d+/);
-  return m ? parseInt(m[0], 10) : null;
-}
-
 /** Compact inline "what actually happened" string for an exercise's logged sets,
  * shown directly on the read-only session view without needing to open the
  * per-exercise logger — e.g. "8 × 60kg, 8 × 60kg, 8 reps" or "30s, skipped". */
@@ -901,7 +852,7 @@ function ExerciseSetLogger({
   onSave: (payload: SetLogSavePayload) => Promise<boolean>;
 }) {
   const totalSets = Math.max(1, exercise.sets || 1);
-  const timeBased = isTimeBasedReps(exercise.reps, exercise.log_type);
+  const timeBased = isTimeBased(exercise.reps, exercise.log_type);
   const prescribedSeconds = parsePrescribedSeconds(exercise.reps);
   const prescribedReps = parsePrescribedReps(exercise.reps);
 
