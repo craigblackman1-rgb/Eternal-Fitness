@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 function TabIcon({ type }: { type: "today" | "train" | "clients" }) {
   if (type === "today") {
@@ -29,12 +29,8 @@ function TabIcon({ type }: { type: "today" | "train" | "clients" }) {
   );
 }
 
-const DESKTOP_PREF_KEY = "ef-desktop-preferred";
-
 export function MobileShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const desktopPrefSet = useRef(false);
 
   const activeTab = useMemo(() => {
     if (pathname === "/hub/m") return "today";
@@ -42,15 +38,6 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith("/hub/m/clients")) return "clients";
     return "today";
   }, [pathname]);
-
-  const handleDesktopLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    if (!desktopPrefSet.current && typeof window !== "undefined") {
-      try { localStorage.setItem(DESKTOP_PREF_KEY, "1"); } catch {}
-      desktopPrefSet.current = true;
-    }
-    router.push("/hub");
-  };
 
   return (
     <div className="mobile-shell">

@@ -264,6 +264,10 @@ export interface Session {
 
 export interface SessionLog {
   completed_at: string | null;
+  /** Set when a trainer opens the live session screen and begins logging.
+   *  Absent on legacy data. Drives the "in progress" state on the mobile
+   *  Today screen and the desktop editor's "live on phone" lock banner. */
+  started_at?: string | null;
   rpe?: number | null;
   fatigue: "low" | "moderate" | "high" | null;
   notes: string;

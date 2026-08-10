@@ -293,6 +293,7 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
             {dayEntries.map((entry) => {
               const clash = conflictIds.has(entry.id);
               const isLogged = !!entry.sessionLogCompletedAt;
+              const isLive = !!entry.sessionLogStartedAt && !entry.sessionLogCompletedAt;
               const { start, end } = formatTimeRange(entry.scheduledAt, entry.durationMinutes);
               const hasMedicalFlag = entry.complianceStatus && entry.complianceStatus !== "clear";
 
@@ -315,9 +316,10 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
                       {entry.blockNumber != null && ` · Block ${entry.blockNumber}`}
                       {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
                     </div>
-                    {(clash || isLogged || hasMedicalFlag) && (
+                    {(clash || isLive || isLogged || hasMedicalFlag) && (
                       <div className="sflags">
                         {clash && <span className="pill clash-pill">{ICO.warnSm}Clash</span>}
+                        {isLive && <span className="pill live">{ICO.live}In progress</span>}
                         {isLogged && <span className="pill logged">{ICO.check}Logged</span>}
                         {hasMedicalFlag && <span className="pill med">{ICO.med}Medical flag</span>}
                       </div>
