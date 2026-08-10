@@ -91,14 +91,54 @@ Dependencies: **L0 → L1 → L2 → L3a → L4 → L5**, with **L3b ‖ L6 ‖ 
 
 **VERIFY:** answered directly by Craig 2026-08-10, recorded above. No unresolved items — gate cleared.
 
-### L1 — Shared-logic refactor `[AUTO]`
+### L1 — Shared-logic refactor `[AUTO]` — DONE 2026-08-10, commit `c583ca3`
+
 No user-visible change except fix #3 above. **Must land first** or the mobile work writes a fifth copy of the parsing logic.
 
 New pure modules: `lib/prescription.ts` (`isTimeBased`, `parsePrescribedSeconds`, `parsePrescribedReps`, new `parseRestSeconds` for the timer, `formatPrescription`), `lib/exercise-groups.ts` (one generic `computeGroups` + `normalizeGroups` + new `nextGroupLabel`), `lib/units.ts` (`LB_TO_KG` moved out of `lib/calorie-calculator.ts`, `toKg`/`fromKg`/`formatWeight`).
 
-Call sites collapse: `LiveSessionLog.tsx:61-112` (also **delete dead `parseLeadingNumber:93`**), `sessions/[sessionNum]/page.tsx:503-519,846-863`, `TrainingClient.tsx:11-26`, `SessionEditor.tsx:74-131`, `components/hub/PrescriptionTable.tsx:15-27`, `lib/progress.ts:38-51`.
+Call sites collapse: `LiveSessionLog.tsx:61-112` (also **delete dead `parseLeadingNumber:93`**), `sessions/[sessionNum]/page.tsx:503-519,846-863`, `TrainingClient.tsx:11-26`, `SessionEditor.tsx:74-131`, `components/hub/PrescriptionTable.tsx:15-27`.
 
-**VERIFY:** `npx tsc --noEmit` clean; new `lib/__tests__/prescription.test.ts` (vitest is already a devDependency and nothing currently exercises this logic); portal `log_type` fix called out explicitly in the commit message.
+**Scope correction made during dispatch (not in the original text above): `lib/progress.ts` was excluded.** `parseExerciseName` there is ref-parsing logic, not prescription/grouping logic — it belongs to L2's not-yet-built `lib/exercise-ref.ts`, alongside `exerciseRefKey` (`LiveSessionLog.tsx`) and `withUids`/`stripUids` (`SessionEditor.tsx`). All three were explicitly fenced off in the lane brief and confirmed untouched in review — moving them now would have pre-empted L2's uid-stability design before it exists.
+
+**Dispatched to an OpenCode lane** (`opencode-go/deepseek-v4-pro`, inline), brief at
+`.context/lane-brief-shared-logic-refactor-2026-08-10.md`. **Hand-reviewed line-by-line
+after completion, not trusted on self-report** (standing project rule) — read all 3 new
+lib files, the full diff on every call site, and re-ran `tsc --noEmit` / `vitest run`
+independently rather than trusting the lane's own claimed-clean output. Findings:
+
+- **Correct and faithful.** `computeGroups`/`normalizeGroups`/`nextGroupLabel` replicate all
+  three original grouping implementations' behaviour exactly, including the `allowGroups:
+  false` bypass and the orphan-group dissolve. `SessionEditor.tsx`'s block `key` generation
+  (load-bearing for its drag-and-drop `dragBlockKey`/`overBlockKey` state) is byte-identical
+  to the pre-refactor scheme. `LiveSessionLog.tsx`'s group-vs-single rendering branches both
+  checked correct — a superset still renders every exercise in the group, not just the first
+  (this was checked specifically, since the "single" branch's `block.ex` → `block.items[0]`
+  rewrite could plausibly have been misapplied to the group branch too; it wasn't).
+- **The one intentional fix (portal `log_type`) is real and complete end-to-end** — traced
+  from `TrainingClient.tsx`'s corrected `isTimeBased(reps, exercise.log_type)` call back
+  through `lib/portal-data.ts`, which needed (and got) `log_type` added to the `PortalExercise`
+  interface and its mapping function — not just a call-site fix that would've silently no-op'd
+  against an undefined field.
+- **One undisclosed secondary behaviour change found, judged acceptable, flagged rather than
+  silently passed:** `components/hub/PrescriptionTable.tsx`'s "— perform together, rest after
+  the pair" caption and rose left-border styling used to gate on `isSuperset(label)` — a
+  string-prefix heuristic true only for labels literally starting with "Superset". The
+  refactor replaced it with `group.type === "group"` (any 2+-item `group_label`, regardless
+  of text — covers "Tri-Set", "Metabolic Block" etc. too, per the type's own doc comment
+  listing those as valid labels the old heuristic silently excluded). This widens when the
+  caption/styling shows. Judged low-risk (cosmetic, not data-affecting) and consistent with
+  Craig's own L0 answer #5 today ("applies for anything where there's multiple exercises that
+  have been joined together") — kept rather than reverted, but it was not the explicit scope
+  of this lane and wasn't mentioned in its own report, so recording it here for the record.
+- Zero stale references to any of the 6 collapsed functions remain anywhere in `app/` or
+  `components/` (grepped directly, not just trusted the lane's own grep claim).
+
+**VERIFY:** `npx tsc --noEmit` clean (confirmed independently) · `npx vitest run` 17/17 pass
+(confirmed independently) · portal `log_type` fix called out in its own commit paragraph ·
+new `lib/__tests__/prescription.test.ts` + a first `vitest.config.ts` + `package.json`
+`"test"` script (none existed before this lane, despite vitest already being a
+devDependency).
 
 ### L2 — `exercise_ref` stability `[AUTO]`
 **The load-bearing fix.** Today `exercise_ref` is a positional string `<version>:<section>:<index>:<name>` and `LiveSessionLog.tsx:509` derives the index via `list.indexOf(ex)` — which collides on duplicate exercises. **Any in-session reorder, insert or delete silently misattributes existing logs.** In-session editing (L3/L4) is impossible without this.
