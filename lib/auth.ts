@@ -12,6 +12,22 @@ export const auth = betterAuth({
   database: pool,
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL,
   secret: process.env.BETTER_AUTH_SECRET,
+  // Better Auth trusts ONLY the origin of `baseURL` unless told otherwise, and it
+  // rejects any non-GET /api/auth request whose Origin header doesn't match with a
+  // 403 "Invalid origin". Coolify binds both the apex and the www host to this app,
+  // so a hub login or password reset started on www.eternal-fitness.co.uk sent
+  // `Origin: https://www.eternal-fitness.co.uk` against a baseURL of
+  // `https://eternal-fitness.co.uk` and 403'd (reported 2026-08-10 on
+  // /hub/forgot-password; sign-in on www was broken the same way).
+  // Every host the app is genuinely reachable on has to be listed here.
+  // BETTER_AUTH_TRUSTED_ORIGINS (comma-separated) is merged in by Better Auth itself
+  // if a new host ever needs adding without a code change.
+  trustedOrigins: [
+    "https://eternal-fitness.co.uk",
+    "https://www.eternal-fitness.co.uk",
+    "https://development.eternal-fitness.co.uk",
+    "http://localhost:3001",
+  ],
   emailAndPassword: {
     enabled: true,
     // Hub staff accounts are provisioned by hand (no public registration surface
