@@ -254,6 +254,25 @@ export function TrainScreen({
     [sessionId],
   );
 
+  // ── Persist prescription changes (add-set / group / ungroup) ───
+  // Structural edits (adding a set, grouping/ungrouping exercises) mutate the
+  // relevant Exercise object in place (same object graph as dataRef.current,
+  // since `sections` is a live reference into data.versions[version]), then
+  // call this to write the whole session `data` blob back — otherwise the
+  // change only lives in memory and silently reverts on the next page load,
+  // even though any set_logs rows already saved against it stay in the DB.
+  const persistPrescription = useCallback(() => {
+    const d = dataRef.current;
+    if (!d) return;
+    fetch(`/api/sessions/${sessionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: d }),
+    }).catch(() => {
+      toast.error("Failed to save — this change may not survive a reload.");
+    });
+  }, [sessionId]);
+
   // ── Rest timer interval ────────────────────────────────────────
   useEffect(() => {
     const running = Object.keys(restTimers).length > 0;
@@ -405,6 +424,10 @@ export function TrainScreen({
     const ex = findExerciseByUid(uid);
     if (!ex) return;
     const timeBased = isTimeBased(ex.reps, ex.log_type);
+    // Bump the prescribed count too (not just the local set list) — otherwise
+    // this set, and any log saved against it, disappears from view on reload
+    // even though the set_logs row itself is still there.
+    ex.sets = (ex.sets || 0) + 1;
     setExStates((prev) => {
       const st = prev[uid];
       if (!st) return prev;
@@ -418,6 +441,7 @@ export function TrainScreen({
       });
       return { ...prev, [uid]: { ...st, sets: newSets } };
     });
+    persistPrescription();
     toast(`Set ${exStates[uid]?.sets ? (exStates[uid].sets.length + 1) : 1} added to "${ex.exercise_name}".`);
   };
 
@@ -525,6 +549,7 @@ export function TrainScreen({
 
     setPickSection(null);
     setPicked({});
+    persistPrescription();
     toast(`${pickedUids.length} exercises grouped as ${label}.`);
   };
 
@@ -542,6 +567,7 @@ export function TrainScreen({
     }
     toast(`Superset ${groupLabel} ungrouped — the exercises stay in place, performed one at a time.`);
     setExStates((prev) => ({ ...prev }));
+    persistPrescription();
   };
 
   // ── Complete ───────────────────────────────────────────────────
