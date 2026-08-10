@@ -312,3 +312,40 @@ TESTS: 17/17 pass (npx vitest run)
 NOTE: the TrainingClient.tsx log_type fix (unit 3) is a real behaviour change — it is called out in its own paragraph in the commit message (the "FIX:" paragraph), not folded into generics. PortalExercise gained log_type in lib/portal-data.ts to support this.
 VERIFICATION GREP: zero remaining local definitions of isTimeBased/parsePrescribedSeconds/parsePrescribedReps/groupExercises in app/ or components/ (only the thin computeBlocks key-wrapper in SessionEditor.tsx remains, which calls computeGroups internally).
 
+---
+
+2026-08-10T20:30Z | L4 lane 1 — mobile shell + Today screen | worktree D:\apps\worktrees\eternal-fitness-website\web-admin-pages-dashboard-5ccf37, branch claude/mobile-workout-features-6ddaba | Built mobile bottom-tab shell + real-data Today screen per lane brief and hub-m-today.html mockup. Commit: 31b22b8.
+
+LANE: mobile-shell-today · BRANCH: claude/mobile-workout-features-6ddaba
+UNITS DONE:
+  1. Bottom tab bar (REFERENCE IMPLEMENTATION per hub-m-today.html, reuseable by later lanes) — 31b22b8
+  2. Today screen with real data (sessions → blocks → clients stitched in JS, same pattern as desktop schedule) — 31b22b8
+  3. Stub routes (train + clients) — 31b22b8
+  4. Small-screen redirect from desktop /hub to /hub/m — 31b22b8
+
+BLOCKERS: none
+TYPECHECK: clean
+
+FILES:
+  app/hub/m/layout.tsx         — auth check, renders MobileShell
+  app/hub/m/mobile.css          — scoped stylesheet, all tokens mapped to existing globals.css vars (no raw hex)
+  app/hub/m/page.tsx            — server component, 3-query stitch (sessions → blocks → clients) + tasks fetch
+  app/hub/m/TodayScreen.tsx     — client component: day paging, session cards, conflict detection, task checkboxes
+  app/hub/m/train/page.tsx      — stub ("Coming soon")
+  app/hub/m/clients/page.tsx    — stub ("Coming soon")
+  components/hub/MobileShell.tsx — client component: bottom tab bar, usePathname() active-tab detection
+  components/hub/MobileRedirect.tsx — client component: localStorage-gated redirect on small screens
+  app/hub/(protected)/layout.tsx — added MobileRedirect
+  app/layout.tsx                — added viewport export (viewport-fit=cover)
+
+PILL WIRING NOTES:
+  - clash (`.pill.clash-pill`): WIRED — findConflictIds() lifted from ScheduleCalendar.tsx, exact same logic (same-client overlaps don't count as clash)
+  - logged (`.pill.logged`): WIRED — reads session.data?.session_log?.completed_at from real data
+  - live / in-progress (`.pill.live`): CODED DEFENSIVELY — checks session.data?.session_log?.started_at but the field doesn't exist in the DB schema yet (a later lane's Train screen will write it); pill will never show until that lane lands, which is correct and expected
+  - medical flag (`.pill.med`): WIRED — uses clients.compliance_status !== 'clear' (same signal as the desktop dashboard's "Needs Attention" card and the clients-table compliance filter)
+  - No mockup placeholder data was copied — every value comes from real DB queries
+
+TOKEN MAP: mobile.css defines all 25 mobile token aliases (`--rose`, `--teal`, `--ink`, `--card`, etc.) as thin `var()` wrappers around existing globals.css custom properties. Verified via `git diff | grep '#'` — zero raw hex introduced.
+
+NOT PUSHED to main, NOT merged, NOT deployed — held for Craig's review per SOP.
+
