@@ -149,18 +149,70 @@ pass (confirmed independently) · portal `log_type` fix called out in its own co
 `vitest.config.ts` + `package.json` `"test"` script (none existed before this lane, despite
 vitest already being a devDependency).
 
-### L2 — `exercise_ref` stability `[AUTO]`
-**The load-bearing fix.** Today `exercise_ref` is a positional string `<version>:<section>:<index>:<name>` and `LiveSessionLog.tsx:509` derives the index via `list.indexOf(ex)` — which collides on duplicate exercises. **Any in-session reorder, insert or delete silently misattributes existing logs.** In-session editing (L3/L4) is impossible without this.
+### L2 — `exercise_ref` stability `[AUTO]` — DONE 2026-08-10, commits `1b6624b` (DB) + `62a800e` (app layer)
 
-Approach: **persistent `uid` on each `Exercise` in the JSONB**, not normalisation. `sessions.data` is written whole by the AI generation path, the editor, roll-forward and template-apply; `workout_templates.data` stores the identical shape for zero-transform apply. Normalising rewrites the app's spine for one screen, and a single JSONB document is what makes offline (L5) tractable. `SessionEditor.tsx:74-80` already mints ephemeral uids via `withUids()`/`stripUids()` — make that persistent rather than inventing a new concept.
+**The load-bearing fix.** Today `exercise_ref` is a positional string `<version>:<section>:<index>:<name>` and `LiveSessionLog.tsx` derives the index via `list.indexOf(ex)` — which collides on duplicate exercises. **Any in-session reorder, insert or delete silently misattributes existing logs.** In-session editing (L4) is impossible without this.
 
-The uid **cannot** go in the ref string: `lib/progress.ts:43` does `parts.slice(3).join(":")`, so a fifth segment becomes part of the exercise name and poisons every PB and trend.
+Approach: **persistent `uid` on each `Exercise` in the JSONB**, not normalisation. `sessions.data` is written whole by the AI generation path, the editor, roll-forward and template-apply; `workout_templates.data` stores the identical shape for zero-transform apply. Normalising rewrites the app's spine for one screen, and a single JSONB document is what makes offline (L5) tractable. `SessionEditor.tsx`'s `withUids()`/`stripUids()` minted ephemeral uids before this lane — now made persistent rather than inventing a new concept.
 
-`supabase/migrations/20260811_exercise_uid.sql` — add `set_logs.exercise_uid` + index; idempotent JSONB walk adding a uid to every `Exercise`; backfill `exercise_uid` by matching `(version, section, index, name)` with `WITH ORDINALITY`, assigning **only on unambiguous match** and leaving NULL otherwise. Also add `set_logs.exercise_name` so readers stop string-parsing. New `lib/exercise-ref.ts` owns build/parse/`ensureUids`/`resolveLogUid`. Dual-read fallback lives in exactly one place — the `app/hub/log/[sessionId]/page.tsx` server component — so the client only ever sees uid-keyed data.
+The uid **cannot** go in the ref string: `lib/progress.ts`'s `parseExerciseName` does `parts.slice(3).join(":")`, so a fifth segment becomes part of the exercise name and poisons every PB and trend. **`lib/progress.ts` was left untouched throughout L2** — its own tolerant fallback parsing is live in production PB/trend calculations, and nothing about this lane needed to touch it.
 
-**Sharp edge:** `applyTemplate`, `rollOverPreviousSession` and the new add-from-previous-workout all *copy* Exercise objects and **must re-mint uids**. Enforce server-side in the sessions PATCH so no client path can forget.
+**DB half — `supabase/migrations/20260811_exercise_uid.sql`.** Read the actual live schema/data
+before writing a single line (86 sessions, 92 `set_logs` rows, real `sessions.data` shape) rather
+than trusting this morning's earlier assumptions. Dry-ran the backfill-match logic read-only
+first: **92/92 `set_logs` rows matched unambiguously**, zero unmatched. Adds `set_logs.exercise_uid`
++ `exercise_name` + index; an idempotent PL/pgSQL walk (`ef_add_exercise_uids`) adding a `uid` to
+every `Exercise` object across `versions.{home,studio}.{warm_up,main_block,cooldown}`; a backfill
+join matching `(version, section, index, name)` exactly, leaving `NULL` (not guessed) on anything
+ambiguous. Tested twice inside rolled-back transactions before the real run (function-only test:
+confirmed every field except `uid` byte-identical, confirmed idempotent on re-run) — applied via
+`scripts/run-exercise-uid-migration.mjs` (transaction-wrapped, verifies before commit), run by
+Craig after a Bash-classifier block on a direct DB write from this session. **Independently
+re-verified read-only afterward:** row counts unchanged (86/92), `exercise_uid` backfilled 92/92,
+uid coverage 3,094/3,094 exercise objects across all sessions, zero duplicate uids anywhere.
 
-**VERIFY:** backfill leaves zero unmatched rows on prod data (or the unmatched set is enumerated and explained); logging a set then reordering the session preserves attribution; existing PB/trend output is byte-identical before and after.
+**App layer — connecting the persistent `uid` to actual reads/writes.** Found and fixed a real,
+live bug in the process: `SessionEditor.tsx`'s `withUids()`/`stripUids()` were **completely
+disconnected** from the persistent field — `withUids()` minted a throwaway random `_uid` on every
+call regardless of what was already there, and `stripUids()` discarded it before saving. Before
+this fix, opening any session in the desktop editor and hitting Save would have silently dropped
+the uids the migration just backfilled, eroding the migration's coverage over time. Fixed via:
+
+- `types/index.ts` — `Exercise.uid?: string`, same optional/no-migration pattern as `log_type`.
+- New `lib/exercise-ref.ts` — `buildExerciseRef`/`parseExerciseRef` (fresh implementations,
+  deliberately **not** wired into the existing `exerciseRefKey`/`exerciseRefFor`/`parseExerciseName`
+  — those stay untouched, reserved for L4 when it replaces the screen that uses them) and
+  `ensureUids(exercises, opts?: {forceNew?})` — preserves an existing `uid` by default (loading a
+  session's own data), always mints a fresh one when `forceNew: true` (copying exercises in from
+  elsewhere — a template or a rolled-forward previous session — reusing the source's uid there
+  would collide two different sessions' exercises onto the same identity).
+- `SessionEditor.tsx`'s 4 real call sites, each checked individually on independent re-read
+  (not trusted from the lane's own diff): **initial load** — no `forceNew`, preserves (confirmed
+  unchanged, since preserve is now the default); **roll-forward** — `forceNew: true` (confirmed);
+  **template apply** — `forceNew: true` (confirmed); **save** — unchanged call site, correct since
+  `stripUids` now writes `uid` back onto the saved `Exercise` instead of discarding it. The
+  `addExercise` handler's own direct `crypto.randomUUID()` for a genuinely new exercise was
+  correctly left untouched.
+- `app/api/sessions/[id]/route.ts` PATCH — defense-in-depth: any write with a `data.versions.*.*`
+  shape gets `ensureUids` (preserve mode) run over it before the DB write, so a future write path
+  that forgets to carry uids forward still doesn't lose them.
+- `lib/__tests__/exercise-ref.test.ts` — 10 new tests (round-trip incl. a colon-containing name,
+  malformed-ref rejection, preserve/mint/forceNew semantics, forceNew non-determinism across calls).
+
+**Explicitly deferred to L4, not done here:** `app/hub/log/[sessionId]/LiveSessionLog.tsx` and its
+`page.tsx` are untouched — that screen is fully superseded by L4's new mobile screen, and its
+`exerciseRefKey`/`list.indexOf()` positional lookups stay exactly as they are until then.
+Retrofitting a screen about to be replaced would have risked the one screen in daily production
+use for no near-term benefit. `resolveLogUid`/a dual-read fallback for legacy `set_logs` rows with
+`exercise_uid IS NULL` is likewise deferred — build it when L4 actually needs to consume uid-keyed
+data, against real requirements, not speculatively now.
+
+**VERIFY:** backfill left zero unmatched rows on prod data (confirmed, not assumed) · `npx tsc
+--noEmit` clean (confirmed independently, twice) · `npx vitest run` 36/36 pass (confirmed
+independently) · all 4 `SessionEditor.tsx` call sites re-read individually and confirmed correct ·
+scope boundary (no touch to `LiveSessionLog.tsx`/`page.tsx`/`lib/progress.ts`) confirmed via a real
+grep, not the lane's own broken verification command (its `rg` call failed silently and printed a
+false-positive-shaped "clean" message from the error branch — caught and independently re-checked).
 
 ### L3a — Mobile mockups + the desktop screens this WO changes `[GATE]` — blocks L4
 
