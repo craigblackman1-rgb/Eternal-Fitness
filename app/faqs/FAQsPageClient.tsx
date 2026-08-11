@@ -118,6 +118,26 @@ const faqGroups = [
     ],
   },
   {
+    group: "Visual Impairment & Access",
+    faqs: [
+      {
+        question: "How do I navigate into the studio?",
+        answer:
+          "I never presume to know what help you want — I will always ask. If you prefer to have a sighted guide, I can meet you outside or act as a guide on the walk into/around the studio.",
+      },
+      {
+        question: "Is there public transport or parking nearby?",
+        answer:
+          "Yes. The studio is located exceptionally close to main local bus stop routes, making travel straightforward. If you are arriving by car or being dropped off, free on-street parking is available. Please note that the direct access road is uneven, but you can be dropped off directly at the main gate.",
+      },
+      {
+        question: "Are guide dogs welcome?",
+        answer:
+          "Absolutely, without reservation. If you travel with a guide dog, they are incredibly welcome to rest safely in the private studio during your session. If you prefer to have a support person or family member sit in on your sessions, the space is entirely yours.",
+      },
+    ],
+  },
+  {
     group: "Inclusive Training",
     faqs: [
       {
