@@ -96,13 +96,13 @@ export default function TestimonialsPageClient() {
           <div className="py-8 md:pr-12">
             <div className="text-5xl leading-none mb-5 text-rose/50 font-serif">&ldquo;</div>
             <p className="text-foreground/85 text-lg leading-relaxed mb-6 font-serif italic">
-              Esther is a friendly and easy going person to get along with and copes well with my limited ability, and occasional lack of concentration. I would highly recommend her as a careful and insightful trainer.
+              I have been seeing Esther for several years now and my fitness has improved beyond what I could have thought possible. I have a medical condition that makes exercise painful sometimes but Esther works around this and provides alternative exercises. Can not recommend her highly enough.
             </p>
             <div className="flex items-center gap-3 pt-5 border-t border-border">
-              <div className="w-10 h-10 rounded-full bg-teal flex items-center justify-center text-white text-sm font-bold shrink-0">I</div>
+              <div className="w-10 h-10 rounded-full bg-teal flex items-center justify-center text-white text-sm font-bold shrink-0">S</div>
               <div>
-                <p className="text-foreground font-semibold text-sm">Ian</p>
-                <p className="text-muted-foreground text-xs">Training 7 years</p>
+                <p className="text-foreground font-semibold text-sm">Stephanie</p>
+                <p className="text-muted-foreground text-xs">Training 4 years</p>
               </div>
             </div>
           </div>
