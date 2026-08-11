@@ -14,6 +14,15 @@ const navItems: NavItem[] = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Personal Training", to: "/personal-training" },
+  {
+    // Interim single-child dropdown: the parent links straight to the one live
+    // specialist page until the /specialist-training hub ships from staging.
+    label: "Specialist Training",
+    to: "/exercise-for-health/visual-impairment",
+    children: [
+      { label: "Blind & Partially Sighted", to: "/exercise-for-health/visual-impairment" },
+    ],
+  },
   { label: "Pricing", to: "/pricing" },
   { label: "Client Stories", to: "/testimonials" },
   { label: "FAQs", to: "/faqs" },
@@ -27,6 +36,7 @@ const pageTitles: Record<string, string> = {
   "/": "Home",
   "/about": "About",
   "/personal-training": "Personal Training",
+  "/exercise-for-health/visual-impairment": "Blind & Partially Sighted",
   "/pricing": "Pricing",
   "/testimonials": "Client Stories",
   "/faqs": "FAQs",
