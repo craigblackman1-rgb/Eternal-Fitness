@@ -1,3 +1,79 @@
+# Session Handoff: August 10, 2026 (Claude Code) — www login/reset fix, set_logs audit trail, Emma Atkinson session data recovery
+
+## Agent
+Claude Code (worktree `pending-changes-b8cddb`, branch `claude/forgot-password-invalid-origin-0236e5`)
+
+## Session Summary
+Started as a single bug report ("forgot-password gives invalid origin"), ended up covering three
+distinct problems. Craig later asked to "fix all of this" more broadly, at which point a parallel
+session's Work Order (`wo-eternalfitness-hub-mobile-session-pwa-2026-08-10`, worktree
+`web-admin-pages-dashboard-5ccf37`) turned out to already own most of the remaining scope — Craig's
+call was to leave it there rather than duplicate. See "Left for the other Work Order" below.
+
+## What shipped (2 commits, pushed straight to `main` — deliberately not via `staging`, see why below)
+
+1. **`5900785`** — [lib/auth.ts](../lib/auth.ts): Better Auth's `trustedOrigins` only covered
+   `BETTER_AUTH_URL` (apex). Coolify serves both `eternal-fitness.co.uk` and
+   `www.eternal-fitness.co.uk` with no redirect between them, so any hub auth POST
+   (login **and** password reset) made from `www` 403'd `INVALID_ORIGIN`. Added an explicit list
+   covering both hosts + development + localhost. Verified against production before and after:
+   `www` origin 403→200, hostile origin still 403 (CSRF intact).
+
+2. **`a1f0045`** — [supabase/migrations/20260810_set_log_revisions.sql](../supabase/migrations/20260810_set_log_revisions.sql):
+   new `set_log_revisions` table + `trg_set_logs_audit` trigger. `set_logs` had no history —
+   `PATCH /api/sessions/[id]/set-logs` overwrote reps/weight/completed in place. This surfaced for
+   real the same session (see below). Trigger-based so it catches any write path, not just today's
+   one route; skips no-op saves (logged_at-only) so real edits don't drown in noise; uses
+   `clock_timestamp()` + a `bigserial seq` for ordering, not `now()` (caught in testing —
+   `now()` is transaction-start time, so one multi-row save would tie every revision).
+   Tested inside a rolled-back transaction against live prod before applying for real.
+
+**Not shipped via git — a live data repair, done directly against production:**
+
+3. **Emma Atkinson (client id `a1111111-1111-1111-1111-111111111007`), block 1** had its 3 Aug
+   session's `completed_at` and 4 set_logs silently overwritten when Esther reopened it on 10 Aug
+   and hit complete again — before the audit trigger above existed, so nothing recorded what the
+   prior values were. Recovered them from the DB VPS's **hourly `pg_dump` backups**
+   (`/var/backups/pg/eternal_fitness-*.dump` on `db-vps`, cron `/usr/local/bin/pg-backup.sh`,
+   hourly, no WAL archive — see open item below) via `pg_restore --data-only`, read-only, nothing
+   restored over live. Per Craig's explicit direction, **split into two separate session records**
+   rather than merged into one:
+   - **Session 1** restored to its pre-edit state (12:00 dump): 3 Aug, 21/21 sets completed.
+   - **Session 3** created fresh holding the as-submitted 10 Aug state (14:00 dump): 18/22
+     completed, the 4 un-ticked band sets preserved as genuinely un-ticked (not a bug — that's
+     what was actually submitted), the newly-created Dead Bug set moved onto it.
+   Both operations are themselves captured in the new `set_log_revisions` audit trail.
+
+## Root cause behind the Emma incident (not fixed this session — now owned by the mobile/PWA WO)
+`handleComplete` in `app/hub/log/[sessionId]/LiveSessionLog.tsx` unconditionally overwrites
+`data.session_log.completed_at` with no guard against re-completing an already-completed session,
+and no session existed for "today" in Emma's block (both her sessions were already in the past),
+so reopening the nearest one silently repurposed its date. That WO's L1–L4 lanes are already
+rewriting this exact file (concurrency `rev` counter, `started_at`/`completed_at` guard banner) —
+deliberately left there rather than patched twice in parallel worktrees.
+
+## Left for the other Work Order (per Craig, 2026-08-10 — do not duplicate)
+`wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` (worktree `web-admin-pages-dashboard-5ccf37`,
+branch `claude/mobile-workout-features-6ddaba`) already scopes, in its L7 lane:
+- `staging` branch missing this session's `5900785` origin fix
+- No canonical redirect between `www.` and apex (both serve 200 independently)
+- The `LiveSessionLog.tsx` re-completion guard (folded into its L1/L4 concurrency work)
+
+And as **open item #8 for Craig** in that WO (not delegated, needs his decision):
+- **WAL archive gap** — `archive_mode=on` but `archive_command=/bin/true` on the DB VPS, so no
+  point-in-time recovery exists, only the hourly dumps. Today's recovery worked because the edits
+  landed 35 minutes after a dump; the same incident 55 minutes later would have been unrecoverable.
+  Affects every DB on that host, not just eternal_fitness.
+
+## One thing genuinely still unclaimed, not done this session
+`app/hub/(protected)/page.tsx:91` filters dashboard "active blocks" strictly on `status === "active"`,
+but `app/api/blocks/[id]/approve/route.ts:28` writes `status: "approved"` — so approving a block
+through the normal button never makes it appear on the dashboard. 14 of 17 blocks in prod are
+`draft`, 2 `active`, 1 `approved`; this affects every client, not just Emma. Not mentioned anywhere
+in the mobile/PWA WO's scope. Small, safe fix whenever someone picks it up.
+
+---
+
 # Session Handoff: August 9, 2026 (Claude Code) — Featured & Reviewed band, Facebook link fix, Contact hero photo swap
 
 ## Agent
