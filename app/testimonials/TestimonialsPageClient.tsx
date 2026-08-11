@@ -75,7 +75,7 @@ export default function TestimonialsPageClient() {
         <SectionHeading
           eyebrow="Client Reviews"
           heading="What clients say"
-          intro="Every quote below was written by a client. Nothing has been re-worded, and names appear as the client left them."
+          intro="Every quote below was written by a client. Nothing has been re-worded."
         />
 
         <Reveal y={44} style={{ marginTop: 44 }}>
