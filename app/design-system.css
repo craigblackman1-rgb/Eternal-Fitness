@@ -336,7 +336,9 @@ a.ds-card { display: block; }
   .ds-spc:nth-child(2), .ds-spc:nth-child(3) { margin-top: 0; }
   .ds-split { grid-template-columns: 1fr; gap: 56px; }
   .ds-cta-inner { padding: 72px 28px; }
-  .ds-hero-inner { padding: 64px 28px; }
+  /* .ds-hero-inner mobile padding lives in the hero's own 1000px block above
+     (132px top). A 64px override here — a leftover from the pre-2026-07-29
+     split hero — sat under the fixed 72px navbar and clipped the eyebrow. */
   .ds-hero-badge { position: static; margin-top: 28px; }
   .ds-art-chip { width: 118px; left: 12px; bottom: 12px; }
 
