@@ -39,19 +39,15 @@ const studioFeats = [
 const accessFaqs = [
   {
     title: "How do I navigate into the studio?",
-    body: "I never presume to know what help you want — I will always ask. If you prefer to have a sighted guide, I can meet you outside or act as a guide on the walk into the studio.",
+    body: "I never presume to know what help you want — I will always ask. If you prefer to have a sighted guide, I can meet you outside or act as a guide on the walk into/around the studio.",
   },
   {
     title: "Is there public transport or parking nearby?",
-    body: "Yes. The studio is located exceptionally close to main local bus stop routes, making travel straightforward. If you are arriving by car or being dropped off, free on-street parking is available nearby. Please note that the direct access road is uneven, but you can be dropped off directly at the main gate.",
+    body: "Yes. The studio is located exceptionally close to main local bus stop routes, making travel straightforward. If you are arriving by car or being dropped off, free on-street parking is available. Please note that the direct access road is uneven, but you can be dropped off directly at the main gate.",
   },
   {
     title: "Are guide dogs welcome?",
     body: "Absolutely, without reservation. If you travel with a guide dog, they are incredibly welcome to rest safely in the private studio during your session. If you prefer to have a support person or family member sit in on your sessions, the space is entirely yours.",
-  },
-  {
-    title: "Do I need specialist kit?",
-    body: "No. If you truly focus on muscle contractions and listen to the teaching cues, you do not need heavy weights or complex machinery. We use highly effective resistance bands, mobility tools, and free weights to build lasting, real-world strength.",
   },
 ];
 
@@ -74,7 +70,15 @@ export default function VisualImpairmentClient() {
             </>
           }
           subhead="Accessible, one-to-one strength and movement coaching in a private Worthing studio."
-          belowLead="If you have ever been told to sit out of physical activity, or felt left behind by inaccessible gym environments, you are not alone. If you have a visual impairment, it is not unusual to feel like standard fitness spaces just aren't built for you."
+          belowLead={
+            <>
+              If you have ever been told to sit out of physical activity, or felt left behind by inaccessible gym
+              environments, you are not alone. If you have a visual impairment, it is not unusual to feel like
+              standard fitness spaces just aren&apos;t built for you. Over time, the belief sets in that training
+              simply isn&apos;t an option.
+              <span className="vi-hero-emphasis">I am here to tell you that it is.</span>
+            </>
+          }
           belowLeadVariant="plain"
           primaryCta={bookCta}
           secondaryCta={{ label: "What Makes This Space Different", href: "#space", variant: "ghost-white" }}
@@ -91,9 +95,7 @@ export default function VisualImpairmentClient() {
         <Section background="white">
           <Reveal y={24} className="vi-open">
             <Eyebrow color="rose">Training That Meets You Where You Are</Eyebrow>
-            <p style={{ marginTop: 16 }}>Over time, the belief sets in that training simply isn&rsquo;t an option.</p>
-            <p className="vi-open-say">I am here to tell you that it is.</p>
-            <p>
+            <p style={{ marginTop: 16 }}>
               Training together is not about fitting you into a rigid template. I am here to listen, adapt, and build
               real-world functionality on your own terms. Whether you want to improve your everyday functional
               strength, work toward a specific personal milestone, focus on moving with better posture and alignment,
@@ -138,7 +140,7 @@ export default function VisualImpairmentClient() {
                 <div className="vi-plate">
                   <Image
                     src="/images/studio-fixed-positions.jpg"
-                    alt="The studio between sessions: an adjustable bench standing clear of the wall, three barbells racked on fixed wall brackets at set heights, and bare matting on the floor with nothing left out on it"
+                    alt="The private studio between sessions, empty: bare rubber matting on the floor with nothing left out on it, and weights, exercise balls and resistance bands stored on wall racks"
                     fill
                     sizes="(max-width: 1000px) 100vw, 50vw"
                     style={{ objectFit: "cover" }}
@@ -154,10 +156,9 @@ export default function VisualImpairmentClient() {
                 <details className="vi-desc">
                   <summary>Describe this image</summary>
                   <p>
-                    A corner of the private studio with no one in it. An adjustable bench stands on the left with a
-                    clear metre of floor around it. Three barbells sit on fixed wall brackets at three set heights, so
-                    the same bar is always in the same place. The floor is bare rubber matting — no loose plates, no
-                    dumbbells left out, nothing to walk into.
+                    The private studio with no one in it. The floor is bare rubber matting — no loose plates, no
+                    dumbbells left out, nothing to walk into. Weights, exercise balls and resistance bands stored in
+                    racks.
                   </p>
                 </details>
               </figure>
@@ -206,17 +207,14 @@ export default function VisualImpairmentClient() {
                 <div className="vi-tech" style={{ ["--fx" as string]: "35%", ["--fy" as string]: "51%" }}>
                   <Image
                     src="/images/coaching-plank-lowback-cue.jpg"
-                    alt="Esther kneeling beside a client holding a forearm plank on the studio mats, resting a flat hand on his lower back to show him where the line of his body should sit"
+                    alt="Esther kneeling beside a client holding a forearm plank on the studio mats, resting a flat hand on his upper back to show him where the line of his body should sit"
                     fill
                     sizes="(max-width: 1000px) 100vw, 42vw"
                     style={{ objectFit: "cover" }}
                   />
                   <span className="vi-veil" aria-hidden="true" />
-                  <svg className="vi-arc" viewBox="0 0 100 100" aria-hidden="true">
-                    <circle cx="50" cy="50" r="46" transform="rotate(-46 50 50)" />
-                  </svg>
                   <div className="vi-pin">
-                    <span className="vi-dot" aria-hidden="true" /> Flat hand on the low back — a cue you can feel
+                    <span className="vi-dot" aria-hidden="true" /> Flat hand on the upper back — a cue you can feel
                   </div>
                 </div>
                 <figcaption className="ds-figcaption" style={{ textAlign: "left" }}>
@@ -226,9 +224,9 @@ export default function VisualImpairmentClient() {
                   <summary>Describe this image</summary>
                   <p>
                     A one-to-one session on the studio mats. The client holds a forearm plank. Esther kneels alongside
-                    him and rests one flat, open hand on his lower back, so he can feel where his hips should sit
-                    rather than being shown it in a mirror. Her other hand stays clear of him. Behind them the room is
-                    quiet — racked resistance bands on one wall, a foam roller, nothing on the floor.
+                    him and rests one flat, open hand on his upper back - a cue to activate the muscles here. Her
+                    other hand stays clear of him. Behind them the room is quiet — racked resistance bands on one
+                    wall, a foam roller, nothing on the floor.
                   </p>
                 </details>
               </figure>

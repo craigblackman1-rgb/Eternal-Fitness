@@ -52,6 +52,13 @@
   box-shadow: inset 0 0 0 var(--vi-img-hair-w) var(--vi-img-hair);
 }
 
+/* ── Hero intro emphasis line — the closing reassurance gets its
+   own line, bolder and larger than the surrounding intro copy. ── */
+.vi-hero-emphasis {
+  display: block; margin-top: 10px;
+  font-weight: 700; font-size: 1.2em; color: #fff;
+}
+
 /* ── Opening statement ──────────────────────────────────────── */
 .vi-open { max-width: 1000px; }
 .vi-open p { font-size: 17px; line-height: 1.72; color: var(--color-body); }
