@@ -5,25 +5,7 @@ import { toast } from "sonner";
 import type { SetLog } from "@/types";
 import type { PortalExercise, PortalSessionPlan, PortalTrainingPlan } from "@/lib/portal-data";
 import { IconCheck, IconCheckCircle, IconVideo, IconX } from "@/components/icons";
-
-/** True when the prescription is time-based rather than rep-based — inferred from the
- * reps string carrying a duration unit (e.g. "30s", "45 sec each side", "1 min"). */
-function isTimeBasedReps(reps: string): boolean {
-  return /\d\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i.test(reps || "");
-}
-
-function parsePrescribedSeconds(reps: string): number | null {
-  const m = (reps || "").match(/(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return /^m/i.test(m[2]) ? n * 60 : n;
-}
-
-/** First number in the prescription's reps string ("8-10" → 8, "AMRAP" → null). */
-function parsePrescribedReps(reps: string): number | null {
-  const m = (reps || "").match(/\d+/);
-  return m ? parseInt(m[0], 10) : null;
-}
+import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
 
 /** exercise_ref convention (matches Lane A's migration): <version>:<section>:<index>:<name>.
  * The portal always logs against the HOME version of the plan. */
@@ -333,7 +315,7 @@ function ExerciseSetLogger({
   onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   const totalSets = Math.max(1, exercise.sets || 1);
-  const timeBased = isTimeBasedReps(exercise.reps);
+  const timeBased = isTimeBased(exercise.reps, exercise.log_type);
   const prescribedSeconds = parsePrescribedSeconds(exercise.reps);
   const prescribedReps = parsePrescribedReps(exercise.reps);
 

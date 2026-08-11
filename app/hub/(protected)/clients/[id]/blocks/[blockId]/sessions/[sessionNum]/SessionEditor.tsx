@@ -55,6 +55,8 @@ import { SwapExerciseDialog } from "../swap-exercise-dialog";
 import { AddExerciseDialog, type InsertPositionOption } from "../add-exercise-dialog";
 import { toast } from "sonner";
 import { HubCard } from "@/components/hub/HubCard";
+import { computeGroups, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
+import { ensureUids } from "@/lib/exercise-ref";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -72,62 +74,19 @@ const SECTION_LABEL: Record<SectionKey, string> = {
 type EditableExercise = Exercise & { _uid: string };
 type SectionsState = Record<SectionKey, EditableExercise[]>;
 
-function withUids(exercises: Exercise[]): EditableExercise[] {
-  return exercises.map((ex) => ({ ...ex, _uid: crypto.randomUUID() }));
+function withUids(exercises: Exercise[], opts?: { forceNew?: boolean }): EditableExercise[] {
+  return ensureUids(exercises, opts).map((ex) => ({ ...ex, _uid: ex.uid }));
 }
 
 function stripUids(exercises: EditableExercise[]): Exercise[] {
-  return exercises.map(({ _uid, ...rest }) => rest);
+  return exercises.map(({ _uid, ...rest }) => ({ ...rest, uid: _uid }));
 }
 
-interface Block {
-  key: string;
-  type: "single" | "group";
-  label?: string;
-  items: EditableExercise[];
-}
-
-function computeBlocks(list: EditableExercise[], allowGroups: boolean): Block[] {
-  if (!allowGroups) return list.map((ex) => ({ key: ex._uid, type: "single", items: [ex] }));
-  const blocks: Block[] = [];
-  let i = 0;
-  while (i < list.length) {
-    const e = list[i];
-    if (e.group_label) {
-      const items = [e];
-      let j = i + 1;
-      while (j < list.length && list[j].group_label === e.group_label) {
-        items.push(list[j]);
-        j++;
-      }
-      if (items.length > 1) {
-        blocks.push({ key: `grp:${e.group_label}:${e._uid}`, type: "group", label: e.group_label, items });
-      } else {
-        blocks.push({ key: e._uid, type: "single", items: [e] });
-      }
-      i = j;
-    } else {
-      blocks.push({ key: e._uid, type: "single", items: [e] });
-      i++;
-    }
-  }
-  return blocks;
-}
-
-function normalizeGroupsList(list: EditableExercise[]): { list: EditableExercise[]; changed: boolean } {
-  const counts: Record<string, number> = {};
-  list.forEach((e) => {
-    if (e.group_label) counts[e.group_label] = (counts[e.group_label] || 0) + 1;
-  });
-  let changed = false;
-  const next = list.map((e) => {
-    if (e.group_label && counts[e.group_label] < 2) {
-      changed = true;
-      return { ...e, group_label: undefined };
-    }
-    return e;
-  });
-  return { list: next, changed };
+function computeBlocks(list: EditableExercise[], allowGroups: boolean) {
+  return computeGroups(list, { allowGroups }).map((g) => ({
+    ...g,
+    key: g.type === "group" && g.label ? `grp:${g.label}:${g.items[0]._uid}` : g.items[0]._uid,
+  }));
 }
 
 /** Preset set/rep/tempo/rest structures — "Volume Skeletons". Selecting one when
@@ -276,9 +235,9 @@ export function SessionEditor({
       const movedClean: EditableExercise = { ...moved, group_label: undefined };
       const toList = [...prev[toSection], movedClean];
       let next: SectionsState = { ...prev, [fromSection]: fromList, [toSection]: toList };
-      const norm = normalizeGroupsList(next.main_block);
+      const norm = normalizeGroups(next.main_block);
       next = { ...next, main_block: norm.list };
-      if (wasGrouped || norm.changed) {
+      if (wasGrouped || norm.dissolved.length > 0) {
         toast.message(`Moved "${moved.exercise_name}" to ${SECTION_LABEL[toSection]} — the superset was resolved, the remaining exercise now stands alone.`);
       } else {
         toast.message(`Moved "${moved.exercise_name}" to ${SECTION_LABEL[toSection]}.`);
@@ -314,7 +273,7 @@ export function SessionEditor({
       toList.splice(insertIdx, 0, ...movedItems);
 
       let next: SectionsState = { ...prev, [fromSection]: fromList, [toSection]: toList };
-      const norm = normalizeGroupsList(next.main_block);
+      const norm = normalizeGroups(next.main_block);
       next = { ...next, main_block: norm.list };
 
       const label = wasGroup ? `${block.items.length} exercises` : `"${block.items[0].exercise_name}"`;
@@ -331,11 +290,11 @@ export function SessionEditor({
       const [removed] = list.splice(idx, 1);
       const wasGrouped = Boolean(removed.group_label);
       let next: SectionsState = { ...prev, [sectionKey]: list };
-      const norm = normalizeGroupsList(next.main_block);
+      const norm = normalizeGroups(next.main_block);
       next = { ...next, main_block: norm.list };
       toast.message(
         `Removed "${removed.exercise_name}" from the session.` +
-          (wasGrouped || norm.changed ? " The superset was resolved — the remaining exercise now stands alone." : "")
+          (wasGrouped || norm.dissolved.length > 0 ? " The superset was resolved — the remaining exercise now stands alone." : "")
       );
       return next;
     });
@@ -391,9 +350,9 @@ export function SessionEditor({
         return;
       }
       setSections({
-        warm_up: withUids(rolled.warm_up || []),
-        main_block: withUids(rolled.main_block || []),
-        cooldown: withUids(rolled.cooldown || []),
+        warm_up: withUids(rolled.warm_up || [], { forceNew: true }),
+        main_block: withUids(rolled.main_block || [], { forceNew: true }),
+        cooldown: withUids(rolled.cooldown || [], { forceNew: true }),
       });
       const when = prev.completed_at
         ? new Date(prev.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
@@ -480,9 +439,9 @@ export function SessionEditor({
 
   const applyTemplate = (tmpl: { id: string; name: string; data: SessionVersion }) => {
     setSections({
-      warm_up: withUids(tmpl.data.warm_up || []),
-      main_block: withUids(tmpl.data.main_block || []),
-      cooldown: withUids(tmpl.data.cooldown || []),
+      warm_up: withUids(tmpl.data.warm_up || [], { forceNew: true }),
+      main_block: withUids(tmpl.data.main_block || [], { forceNew: true }),
+      cooldown: withUids(tmpl.data.cooldown || [], { forceNew: true }),
     });
     setShowTemplatePicker(false);
     toast.success(`Applied template "${tmpl.name}"`);
@@ -571,7 +530,7 @@ export function SessionEditor({
                     const fromList = prev[dragSection].filter((e) => !uidSet.has(e._uid));
                     const toList = [...prev[sec.key], ...movedItems];
                     let next: SectionsState = { ...prev, [dragSection]: fromList, [sec.key]: toList };
-                    const norm = normalizeGroupsList(next.main_block);
+                    const norm = normalizeGroups(next.main_block);
                     next = { ...next, main_block: norm.list };
                     const label = wasGroup ? `${block.items.length} exercises` : `"${block.items[0].exercise_name}"`;
                     toast.message(`Moved ${label} to ${SECTION_LABEL[sec.key]}.${wasGroup ? " The superset was resolved." : ""}`);

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { ensureUids } from "@/lib/exercise-ref";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
@@ -22,6 +23,26 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No updatable fields provided" }, { status: 400 });
+  }
+
+  const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+
+  if (update.data && typeof update.data === "object" && !Array.isArray(update.data)) {
+    const data = update.data as Record<string, unknown>;
+    if (data.versions && typeof data.versions === "object" && !Array.isArray(data.versions)) {
+      const versions = data.versions as Record<string, unknown>;
+      for (const v of Object.keys(versions)) {
+        const version = versions[v];
+        if (version && typeof version === "object" && !Array.isArray(version)) {
+          const ver = version as Record<string, unknown>;
+          for (const sk of sectionKeys) {
+            if (Array.isArray(ver[sk])) {
+              ver[sk] = ensureUids(ver[sk] as { uid?: string }[]);
+            }
+          }
+        }
+      }
+    }
   }
 
   const { data, error } = await supabase.from("sessions").update(update).eq("id", params.id).select().single();

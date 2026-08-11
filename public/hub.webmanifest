@@ -1,0 +1,29 @@
+{
+  "name": "Eternal Fitness Hub",
+  "short_name": "EF Hub",
+  "start_url": "/hub/m",
+  "scope": "/hub/",
+  "display": "standalone",
+  "background_color": "#131313",
+  "theme_color": "#C1839F",
+  "icons": [
+    {
+      "src": "/hub-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hub-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hub-icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
