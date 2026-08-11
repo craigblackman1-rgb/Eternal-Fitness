@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BOOKINGS_URL } from "@/lib/booking";
-import { Section, SectionHeading, PageHero, CTABand, Reveal, Eyebrow } from "@/components/ds";
+import { Section, SectionHeading, PageHero, CTABand, Reveal, Eyebrow, FeaturedReviewedBand } from "@/components/ds";
 import { IconRefreshCw, IconListenAdapt, IconClock, IconShieldCheck, IconChevronDown } from "@/components/icons";
 
 const themeCards = [
@@ -68,12 +68,14 @@ export default function TestimonialsPageClient() {
         secondaryCta={{ label: "Read the reviews", href: "#reviews", variant: "outline" }}
       />
 
+      <FeaturedReviewedBand showPress={false} />
+
       {/* Reviews */}
       <Section background="white" id="reviews">
         <SectionHeading
           eyebrow="Client Reviews"
           heading="What clients say"
-          intro="Every quote below was written by a client. Nothing has been re-worded, and names appear as the client left them."
+          intro="Every quote below was written by a client. Nothing has been re-worded."
         />
 
         <Reveal y={44} style={{ marginTop: 44 }}>
@@ -96,13 +98,13 @@ export default function TestimonialsPageClient() {
           <div className="py-8 md:pr-12">
             <div className="text-5xl leading-none mb-5 text-rose/50 font-serif">&ldquo;</div>
             <p className="text-foreground/85 text-lg leading-relaxed mb-6 font-serif italic">
-              Esther is a friendly and easy going person to get along with and copes well with my limited ability, and occasional lack of concentration. I would highly recommend her as a careful and insightful trainer.
+              I have been seeing Esther for several years now and my fitness has improved beyond what I could have thought possible. I have a medical condition that makes exercise painful sometimes but Esther works around this and provides alternative exercises. Can not recommend her highly enough.
             </p>
             <div className="flex items-center gap-3 pt-5 border-t border-border">
-              <div className="w-10 h-10 rounded-full bg-teal flex items-center justify-center text-white text-sm font-bold shrink-0">I</div>
+              <div className="w-10 h-10 rounded-full bg-teal flex items-center justify-center text-white text-sm font-bold shrink-0">S</div>
               <div>
-                <p className="text-foreground font-semibold text-sm">Ian</p>
-                <p className="text-muted-foreground text-xs">Training 7 years</p>
+                <p className="text-foreground font-semibold text-sm">Stephanie</p>
+                <p className="text-muted-foreground text-xs">Training 4 years</p>
               </div>
             </div>
           </div>
@@ -213,8 +215,8 @@ export default function TestimonialsPageClient() {
       <Section background="white" id="case-studies">
         <SectionHeading
           eyebrow="Case Studies"
-          heading="Longer stories, in preparation"
-          intro="A review is a sentence. A case study is the whole arc — where somebody started, what we changed along the way, and what training looks like for them now. Three are being written with clients at the moment. Each will follow the same four-part structure."
+          heading="Coming soon"
+          intro="A review is a sentence. A case study is the whole arc — where somebody started, what we changed along the way, and what training looks like for them now. Each will follow the same four-part structure."
         />
         <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-5" stagger={0.12} y={40} style={{ marginTop: 44 }}>
           {caseStudySlots.map((c) => (
