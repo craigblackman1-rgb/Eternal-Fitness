@@ -5,8 +5,8 @@ const schema = {
   "@context": "https://schema.org",
   "@type": "Service",
   "@id": "https://eternal-fitness.co.uk/exercise-for-health/visual-impairment/#service",
-  "name": "Personal Training for Partially Sighted People Worthing",
-  "description": "Adapted personal training for people who are blind or partially sighted in Worthing. Specialist one-to-one sessions in a private studio. Sessions tailored for partially sighted clients.",
+  "name": "VI-Inclusive Personal Training Worthing",
+  "description": "Accessible, one-to-one strength and movement coaching for blind and partially sighted people in a private Worthing studio. Trained with British Blind Sport — a predictable space, clear verbal cues, and a plan built around your baseline.",
   "url": "https://eternal-fitness.co.uk/exercise-for-health/visual-impairment",
   "provider": {
     "@type": "LocalBusiness",
@@ -14,47 +14,56 @@ const schema = {
     "@id": "https://eternal-fitness.co.uk/#business"
   },
   "areaServed": { "@type": "City", "name": "Worthing" },
-  "serviceType": "Adapted Personal Training for Partially Sighted People",
+  "serviceType": "VI-Inclusive Personal Training",
   "audience": {
     "@type": "Audience",
-    "audienceType": "Partially sighted people and people who are blind seeking personal training"
+    "audienceType": "Blind and partially sighted people seeking personal training"
   }
 };
 
+// Mirrors the on-page Access & Location accordion — keep the two in sync.
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Can I do personal training if I am blind or partially sighted?",
+      "name": "How do I navigate into the studio?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Personal training for partially sighted people (VIPs) is very achievable with the right approach. Sessions rely on clear verbal instruction, tactile guidance where appropriate, consistent equipment placement, and a stable, familiar environment. The private studio format at Eternal Fitness is ideal — there are no other people to navigate around, and the layout stays consistent so you can build confidence with the space."
+        "text": "I never presume to know what help you want — I will always ask. If you prefer to have a sighted guide, I can meet you outside or act as a guide on the walk into the studio."
       }
     },
     {
       "@type": "Question",
-      "name": "How do you adapt sessions for partially sighted clients?",
+      "name": "Is there public transport or parking nearby?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "I use clear, detailed verbal instruction rather than visual demonstration. Equipment is always placed in the same position so you know where to expect it. I use tactile guidance to help with movement positioning when that is welcome. And sessions are structured with extra time to build familiarity with movements and the environment. The goal is for you to feel confident and safe from the very first session."
+        "text": "Yes. The studio is located exceptionally close to main local bus stop routes, making travel straightforward. If you are arriving by car or being dropped off, free on-street parking is available nearby. Please note that the direct access road is uneven, but you can be dropped off directly at the main gate."
       }
     },
     {
       "@type": "Question",
-      "name": "Do you have experience working with partially sighted clients?",
+      "name": "Are guide dogs welcome?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. I currently work with partially sighted clients including people engaged in showdown — a competitive sport for blind and partially sighted people. I have developed specific approaches for VIP training through direct experience and specialist research, and I am continuing to build knowledge in this area."
+        "text": "Absolutely, without reservation. If you travel with a guide dog, they are incredibly welcome to rest safely in the private studio during your session. If you prefer to have a support person or family member sit in on your sessions, the space is entirely yours."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need specialist kit?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. If you truly focus on muscle contractions and listen to the teaching cues, you do not need heavy weights or complex machinery. We use highly effective resistance bands, mobility tools, and free weights to build lasting, real-world strength."
       }
     }
   ]
 };
 
 export const metadata: Metadata = {
-  title: "Personal Training for Partially Sighted People",
-  description: "Adapted personal training for blind and partially sighted people in Worthing. Private one-to-one sessions tailored for VIP clients. Book a free consultation.",
+  title: "VI-Inclusive Personal Training in Worthing",
+  description: "Accessible, one-to-one strength and movement coaching in a private Worthing studio. Trained with British Blind Sport — a predictable space, clear verbal cues, and a plan built around your baseline.",
   alternates: { canonical: "https://eternal-fitness.co.uk/exercise-for-health/visual-impairment" },
 };
 

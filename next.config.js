@@ -135,7 +135,9 @@ const nextConfig = {
       { source: "/blog/:path*", destination: "/", permanent: false },
       { source: "/cancer-rehabilitation", destination: "/", permanent: false },
       { source: "/exercise-for-health", destination: "/", permanent: false },
-      { source: "/exercise-for-health/:path*", destination: "/", permanent: false },
+      // visual-impairment re-enabled 2026-08-11 (rebuilt to the brand-staging-2662e9
+      // design) — the negative lookahead keeps every other subpage redirected.
+      { source: "/exercise-for-health/:path((?!visual-impairment).*)", destination: "/", permanent: false },
 
       // --- Public calorie calculator retired 2026-08-07 ---
       // Was always noindex/unlinked ("hidden for now"); the client portal's gated
