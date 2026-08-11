@@ -74,7 +74,15 @@ export default function VisualImpairmentClient() {
             </>
           }
           subhead="Accessible, one-to-one strength and movement coaching in a private Worthing studio."
-          belowLead="If you have ever been told to sit out of physical activity, or felt left behind by inaccessible gym environments, you are not alone. If you have a visual impairment, it is not unusual to feel like standard fitness spaces just aren't built for you."
+          belowLead={
+            <>
+              If you have ever been told to sit out of physical activity, or felt left behind by inaccessible gym
+              environments, you are not alone. If you have a visual impairment, it is not unusual to feel like
+              standard fitness spaces just aren&apos;t built for you. Over time, the belief sets in that training
+              simply isn&apos;t an option.
+              <span className="vi-hero-emphasis">I am here to tell you that it is.</span>
+            </>
+          }
           belowLeadVariant="plain"
           primaryCta={bookCta}
           secondaryCta={{ label: "What Makes This Space Different", href: "#space", variant: "ghost-white" }}
@@ -91,9 +99,7 @@ export default function VisualImpairmentClient() {
         <Section background="white">
           <Reveal y={24} className="vi-open">
             <Eyebrow color="rose">Training That Meets You Where You Are</Eyebrow>
-            <p style={{ marginTop: 16 }}>Over time, the belief sets in that training simply isn&rsquo;t an option.</p>
-            <p className="vi-open-say">I am here to tell you that it is.</p>
-            <p>
+            <p style={{ marginTop: 16 }}>
               Training together is not about fitting you into a rigid template. I am here to listen, adapt, and build
               real-world functionality on your own terms. Whether you want to improve your everyday functional
               strength, work toward a specific personal milestone, focus on moving with better posture and alignment,
@@ -138,7 +144,7 @@ export default function VisualImpairmentClient() {
                 <div className="vi-plate">
                   <Image
                     src="/images/studio-fixed-positions.jpg"
-                    alt="The studio between sessions: an adjustable bench standing clear of the wall, three barbells racked on fixed wall brackets at set heights, and bare matting on the floor with nothing left out on it"
+                    alt="The private studio between sessions, empty: bare rubber matting on the floor with nothing left out on it, and weights, exercise balls and resistance bands stored on wall racks"
                     fill
                     sizes="(max-width: 1000px) 100vw, 50vw"
                     style={{ objectFit: "cover" }}
@@ -154,10 +160,9 @@ export default function VisualImpairmentClient() {
                 <details className="vi-desc">
                   <summary>Describe this image</summary>
                   <p>
-                    A corner of the private studio with no one in it. An adjustable bench stands on the left with a
-                    clear metre of floor around it. Three barbells sit on fixed wall brackets at three set heights, so
-                    the same bar is always in the same place. The floor is bare rubber matting — no loose plates, no
-                    dumbbells left out, nothing to walk into.
+                    The private studio with no one in it. The floor is bare rubber matting — no loose plates, no
+                    dumbbells left out, nothing to walk into. Weights, exercise balls and resistance bands stored in
+                    racks.
                   </p>
                 </details>
               </figure>
