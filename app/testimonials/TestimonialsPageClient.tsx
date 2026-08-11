@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BOOKINGS_URL } from "@/lib/booking";
-import { Section, SectionHeading, PageHero, CTABand, Reveal, Eyebrow } from "@/components/ds";
+import { Section, SectionHeading, PageHero, CTABand, Reveal, Eyebrow, FeaturedReviewedBand } from "@/components/ds";
 import { IconRefreshCw, IconListenAdapt, IconClock, IconShieldCheck, IconChevronDown } from "@/components/icons";
 
 const themeCards = [
@@ -67,6 +67,8 @@ export default function TestimonialsPageClient() {
         primaryCta={bookCta}
         secondaryCta={{ label: "Read the reviews", href: "#reviews", variant: "outline" }}
       />
+
+      <FeaturedReviewedBand showPress={false} />
 
       {/* Reviews */}
       <Section background="white" id="reviews">
@@ -213,8 +215,8 @@ export default function TestimonialsPageClient() {
       <Section background="white" id="case-studies">
         <SectionHeading
           eyebrow="Case Studies"
-          heading="Longer stories, in preparation"
-          intro="A review is a sentence. A case study is the whole arc — where somebody started, what we changed along the way, and what training looks like for them now. Three are being written with clients at the moment. Each will follow the same four-part structure."
+          heading="Coming soon"
+          intro="A review is a sentence. A case study is the whole arc — where somebody started, what we changed along the way, and what training looks like for them now. Each will follow the same four-part structure."
         />
         <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-5" stagger={0.12} y={40} style={{ marginTop: 44 }}>
           {caseStudySlots.map((c) => (

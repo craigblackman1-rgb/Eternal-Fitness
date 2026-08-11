@@ -533,6 +533,7 @@ a.ds-card { display: block; }
   color: var(--color-teal);
 }
 .fr-eyebrow::before { content: ''; width: 26px; height: 1px; background: var(--color-teal); flex: none; }
+.fr-eyebrow--repeat { display: none; }
 
 .fr-lockups { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
 .fr-item { padding-right: 44px; min-width: 0; }
@@ -612,6 +613,14 @@ a.fr-rating:hover .fr-arrow { transform: translate(2px, -2px); }
 .fr-outof { font-size: 13px; font-weight: 500; color: var(--color-body); }
 .fr-source { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-body); }
 
+/* Rating-only variant — press column omitted, so the rating no longer sits
+   in a right-hand zone next to it. */
+.fr-band--rating-only .fr-inner { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+.fr-band--rating-only .fr-rating-zone { padding-left: 0; border-left: none; }
+.fr-band--rating-only .fr-stars { justify-content: center; }
+.fr-band--rating-only .fr-scoreline { justify-content: center; }
+.fr-band--rating-only .fr-source { justify-content: center; }
+
 /* Focus-visible on every link, not hover-only */
 .fr-link:focus-visible,
 .fr-action:focus-visible,
@@ -656,4 +665,7 @@ a.fr-rating:focus-visible {
   .fr-rating-zone { order: -1; padding-top: 0; margin-top: 0; border-top: none; }
   .fr-press { padding-top: 32px; margin-top: 32px; border-top: 1px solid var(--color-border-warm); }
   .fr-hook { max-width: none; }
+  /* Items stack in this layout, so the shared eyebrow above the first item
+     no longer reads as belonging to the second — repeat it there too. */
+  .fr-eyebrow--repeat { display: flex; margin-bottom: 14px; }
 }
