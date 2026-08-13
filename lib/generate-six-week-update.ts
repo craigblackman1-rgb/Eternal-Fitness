@@ -6,7 +6,7 @@ import { buildFourWeekUpdateHtml } from "@/lib/email-templates/four-week-update"
 import type { FourWeekUpdateData } from "@/lib/email-templates/four-week-update";
 import { buildFlexibleUpdateHtml } from "@/lib/email-templates/flexible-update";
 import type { FlexibleSection } from "@/lib/email-templates/flexible-update";
-import { getAiConfig, aiChat } from "@/lib/ai-client";
+import { getAiConfig, aiChat, QUALITY_MODEL, type AiConfig } from "@/lib/ai-client";
 import { buildSessionLogSection } from "@/lib/session-log-summary";
 import { buildComplianceSection } from "@/lib/compliance-summary";
 import { buildStrengthProgressionSection } from "@/lib/strength-progression-summary";
@@ -258,7 +258,7 @@ function generateSixWeekFallback(
 }
 
 async function generateSixWeekViaAi(
-  aiConfig: import("@/lib/ai-client").AiConfig,
+  aiConfig: AiConfig,
   profile: unknown,
   blocks: DBBlock[],
   summaries: BlockSummary[],
@@ -286,7 +286,8 @@ Return valid JSON with these fields:
 
 No markdown, no preamble, no explanation.`;
 
-  const text = await aiChat({ system, user, maxTokens: 4000 });
+  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const text = await aiChat({ system, user, maxTokens: 4000, model });
   if (!text) throw new Error("AI returned no response");
   const parsed = parseAiJson(text);
 
@@ -336,7 +337,7 @@ function generateFourWeekFallback(
 }
 
 async function generateFourWeekViaAi(
-  aiConfig: import("@/lib/ai-client").AiConfig,
+  aiConfig: AiConfig,
   profile: unknown,
   blocks: DBBlock[],
   summaries: BlockSummary[],
@@ -366,7 +367,8 @@ Return valid JSON with these fields:
 
 No markdown, no preamble, no explanation.`;
 
-  const text = await aiChat({ system, user, maxTokens: 4000 });
+  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const text = await aiChat({ system, user, maxTokens: 4000, model });
   if (!text) throw new Error("AI returned no response");
   const parsed = parseAiJson(text);
 
@@ -411,7 +413,7 @@ function generateFlexibleFallback(clientName: string, blockNumber: number): Upda
 }
 
 async function generateFlexibleViaAi(
-  aiConfig: import("@/lib/ai-client").AiConfig,
+  aiConfig: AiConfig,
   profile: unknown,
   blocks: DBBlock[],
   summaries: BlockSummary[],
@@ -453,7 +455,8 @@ Return valid JSON with this shape:
 
 Use as many section entries as the conversation actually calls for. No markdown, no preamble, no explanation.`;
 
-  const text = await aiChat({ system, user, maxTokens: 4000 });
+  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const text = await aiChat({ system, user, maxTokens: 4000, model });
   if (!text) throw new Error("AI returned no response");
   const parsed = parseAiJson(text);
 

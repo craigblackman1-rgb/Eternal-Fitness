@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
-import { getAiConfig, aiChatStream } from "@/lib/ai-client";
+import { getAiConfig, aiChatStream, QUALITY_MODEL } from "@/lib/ai-client";
 import { buildParqSection } from "@/lib/parq-summary";
 import { buildRecentUpdatesSection } from "@/lib/recent-updates-summary";
 import { buildSessionLogSection } from "@/lib/session-log-summary";
@@ -169,17 +169,24 @@ export async function POST(request: Request) {
     templateKind || "six_week_update",
   );
 
+  // Quality-critical (feeds the same voice/clinical-accuracy bar as the Plan
+  // Agent) — always request QUALITY_MODEL rather than whatever cheaper
+  // default is configured elsewhere. This route never applied that override
+  // before now; it was silently running on aiConfig's plain default.
+  const updateModel = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+
   let readable: ReadableStream<Uint8Array> | null;
   try {
     readable = await aiChatStream({
       system: systemPrompt,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
       maxTokens: 4000,
+      model: updateModel,
     });
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 300) : "unknown error";
-    console.error(`[update-chat] AI stream failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`);
-    return new Response(`Update Agent failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`, { status: 502 });
+    console.error(`[update-chat] AI stream failed via ${aiConfig.provider} (${updateModel}): ${detail}`);
+    return new Response(`Update Agent failed via ${aiConfig.provider} (${updateModel}): ${detail}`, { status: 502 });
   }
 
   if (!readable) {
