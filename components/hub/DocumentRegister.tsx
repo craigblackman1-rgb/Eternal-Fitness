@@ -132,25 +132,30 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
                   <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{formatDate(r.updatedAt)}</td>
                   <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{r.updatedBy}</td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
-                    {r.sourceType === "scan" ? (
-                      <Link
-                        href={`/api/documents/${r.id}/file`}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-teal hover:underline"
-                      >
-                        <IconDownload className="h-3 w-3" />
-                        Download original
-                      </Link>
-                    ) : (
+                    <div className="flex items-center justify-end gap-2.5">
+                      {r.sourceType === "scan" && (
+                        <Link
+                          href={`/api/documents/${r.id}/file`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-teal hover:underline"
+                        >
+                          <IconDownload className="h-3 w-3" />
+                          Download original
+                        </Link>
+                      )}
+                      {/* Delete works for scan docs too (they're always status
+                          "signed" so locked, meaning Send/Resend/Copy-link
+                          already correctly stay hidden) — previously this
+                          whole block was skipped for scan rows, so an
+                          uploaded-to-the-wrong-client document had no way to
+                          be removed from this screen at all. */}
                       <DocumentRowActions docId={r.id} status={r.status} hasEmail={hasEmail} clientName={clientName} />
-                    )}
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     {r.editHref && (
                       <Link href={r.editHref} className="text-teal font-medium hover:underline mr-3">Open</Link>
                     )}
-                    {r.sourceType !== "scan" && (
-                      <Link href={r.href} className="text-rose font-medium hover:underline">View</Link>
-                    )}
+                    <Link href={r.href} className="text-rose font-medium hover:underline">View</Link>
                   </td>
                 </tr>
               ))}

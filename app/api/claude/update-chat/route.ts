@@ -4,8 +4,9 @@ import { buildParqSection } from "@/lib/parq-summary";
 import { buildRecentUpdatesSection } from "@/lib/recent-updates-summary";
 import { buildSessionLogSection } from "@/lib/session-log-summary";
 import { buildComplianceSection } from "@/lib/compliance-summary";
+import { buildStrengthProgressionSection } from "@/lib/strength-progression-summary";
 import { getTemplateKind } from "@/lib/email-templates/registry";
-import type { BlockSummary, DBBlock, DBClient, DBSession, SentUpdate, SignedPARQ } from "@/types";
+import type { BlockSummary, DBBlock, DBClient, DBSession, SentUpdate, SetLog, SignedPARQ } from "@/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -19,6 +20,7 @@ function buildSystemPrompt(
   parq: SignedPARQ | null,
   recentUpdates: SentUpdate[],
   sessions: DBSession[],
+  setLogs: SetLog[],
   templateKindId: string,
 ): string {
   const kind = getTemplateKind(templateKindId);
@@ -78,6 +80,10 @@ ${buildSessionLogSection(sessions)}
 
 ---
 
+${buildStrengthProgressionSection(setLogs)}
+
+---
+
 COMPLIANCE STATUS:
 ${buildComplianceSection(client)}`;
 }
@@ -132,6 +138,11 @@ export async function POST(request: Request) {
         .order("session_number", { ascending: true })
     : { data: null };
 
+  const sessionIds = (sessions ?? []).map((s) => s.id);
+  const { data: setLogs } = sessionIds.length > 0
+    ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
+    : { data: [] as SetLog[] };
+
   const { data: parq } = await supabase
     .from("signed_parq")
     .select("*")
@@ -154,6 +165,7 @@ export async function POST(request: Request) {
     parq,
     recentUpdates ?? [],
     (sessions ?? []) as DBSession[],
+    (setLogs ?? []) as SetLog[],
     templateKind || "six_week_update",
   );
 

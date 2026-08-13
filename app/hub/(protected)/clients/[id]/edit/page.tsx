@@ -446,7 +446,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
           <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health and clearance" subtitle="What has to be adapted around, and what unblocks planning" color="rose" noBottomPadding />
           <div className="px-5 pb-5 pt-4 space-y-4">
             <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
-              <span className="relative shrink-0 w-5 h-5 mt-px">
+              <label htmlFor="gp_clearance_required" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
                 <input
                   type="checkbox"
                   id="gp_clearance_required"
@@ -457,14 +457,14 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.gp_clearance_required ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                   {(profile.health.gp_clearance_required ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
                 </span>
-              </span>
+              </label>
               <div className="min-w-0">
                 <Label htmlFor="gp_clearance_required" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance required</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">Your call — tick if this client needs written GP clearance before training. Drives the "pending medical" status below until it's obtained.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)]">
-              <span className="relative shrink-0 w-5 h-5 mt-px">
+              <label htmlFor="gp_clearance" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
                 <input
                   type="checkbox"
                   id="gp_clearance"
@@ -475,7 +475,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                   {profile.health.gp_clearance && <IconCheck className="w-3.5 h-3.5 text-white" />}
                 </span>
-              </span>
+              </label>
               <div className="min-w-0">
                 <Label htmlFor="gp_clearance" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance obtained</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">Tick once the written clearance letter is on file.</p>
@@ -483,7 +483,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
             </div>
             <div className="space-y-2 rounded-xl border border-[var(--hub-border)] p-3">
               <div className="flex items-start gap-3">
-                <span className="relative shrink-0 w-5 h-5 mt-px">
+                <label htmlFor="parq_trainer_override" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
                   <input
                     type="checkbox"
                     id="parq_trainer_override"
@@ -494,7 +494,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                     {(profile.health.parq_trainer_override ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
                   </span>
-                </span>
+                </label>
                 <div className="min-w-0">
                   <Label htmlFor="parq_trainer_override" className="text-[13px] font-semibold text-foreground cursor-pointer">PAR-Q trainer override — completed on Microsoft Forms, not yet in system</Label>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -758,7 +758,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 const enabled = resourceVisibility[r.key] === true;
                 return (
                   <div key={r.key} className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
-                    <span className="relative shrink-0 w-5 h-5 mt-px">
+                    <label htmlFor={`res-${r.key}`} className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
                       <input
                         type="checkbox"
                         id={`res-${r.key}`}
@@ -772,7 +772,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                       <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${enabled ? "bg-teal border-teal" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                         {enabled && <IconCheck className="w-3.5 h-3.5 text-white" />}
                       </span>
-                    </span>
+                    </label>
                     <div className="min-w-0">
                       <Label htmlFor={`res-${r.key}`} className="text-[13px] font-semibold text-foreground cursor-pointer">{r.name}</Label>
                       <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
