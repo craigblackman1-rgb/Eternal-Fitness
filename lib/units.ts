@@ -1,8 +1,14 @@
 export const LB_TO_KG = 0.45359237;
 
+/** True when the equipment list contains a band-tagged entry. Bands always
+ *  log in lb — the unit is locked, not just defaulted. */
+export function isBandEquipment(equipment: string[]): boolean {
+  if (!equipment || !Array.isArray(equipment)) return false;
+  return equipment.some((e) => /band/i.test(e));
+}
+
 export function defaultUnitForEquipment(equipment: string[]): 'kg' | 'lb' {
-  if (!equipment || !Array.isArray(equipment)) return 'kg';
-  return equipment.some((e) => /band/i.test(e)) ? 'lb' : 'kg';
+  return isBandEquipment(equipment) ? 'lb' : 'kg';
 }
 
 export function toKg(value: number, unit: "kg" | "lb"): number {

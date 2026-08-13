@@ -28,6 +28,9 @@ export async function checkAndUpsertPB(
   log: SetLog,
 ): Promise<boolean> {
   if (!log.completed) return false;
+  // Warm-up sets can never register as a personal best — regardless of the
+  // weight/duration logged, a warm-up is not a working set.
+  if (log.is_warmup) return false;
 
   const pool = getPool();
 

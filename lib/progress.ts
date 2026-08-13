@@ -127,12 +127,15 @@ export function buildExerciseTrends(
         .sort()[0] ?? sessionLogs[0].created_at;
 
       const completed = sessionLogs.filter((l) => l.completed);
+      // Working sets only for the trend metrics — a warm-up set's weight/reps/
+      // duration must never set the session's "top weight" or "best reps".
+      const working = completed.filter((l) => !l.is_warmup);
 
       let topWeightKg: number | null = null;
       let repsAtTopWeight: number | null = null;
       let maxReps: number | null = null;
       let maxDurationSeconds: number | null = null;
-      for (const l of completed) {
+      for (const l of working) {
         if (typeof l.weight_kg === "number") {
           if (topWeightKg === null || l.weight_kg > topWeightKg) {
             topWeightKg = l.weight_kg;

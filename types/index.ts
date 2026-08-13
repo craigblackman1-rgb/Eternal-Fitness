@@ -297,6 +297,11 @@ export interface SetLog {
   weight_kg: number | null;
   duration_seconds: number | null;
   completed: boolean;
+  /** True when this set is one of the exercise's prescribed warm-up sets
+   *  (the first N of its `sets`). Warm-up sets never register as a personal
+   *  best and are excluded from PB/trend history. Absent (undefined) on
+   *  Trainerize-imported rows — treated as false. */
+  is_warmup?: boolean;
   logged_by: "trainer" | "client";
   logged_at: string;
   notes: string | null;

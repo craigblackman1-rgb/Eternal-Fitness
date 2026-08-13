@@ -44,6 +44,7 @@ const ICO = {
   chev: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>),
   hist: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>),
   tmpl: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>),
+  replace: (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>),
   search: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>),
   close: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>),
 };
@@ -304,6 +305,17 @@ export function EditSheet({
     },
     [],
   );
+
+  const replaceWithSession = useCallback((ver: SessionVersion) => {
+    setSections(deepClone(ver));
+    const names = [
+      ...(ver.warm_up || []),
+      ...(ver.main_block || []),
+      ...(ver.cooldown || []),
+    ].map((ex) => ex.exercise_name);
+    setAdded(names);
+    setRemoved([]);
+  }, []);
 
   const handleClose = useCallback(async () => {
     if (hasChanges && data) {
@@ -569,6 +581,36 @@ export function EditSheet({
                     `${all.length} exercises added from Session ${ps.session_number}.`,
                   );
                 }}
+                onUseAsSession={() => {
+                  const ver = ps.versions[version];
+                  if (!ver) return;
+                  const count =
+                    (ver.warm_up || []).length +
+                    (ver.main_block || []).length +
+                    (ver.cooldown || []).length;
+                  if (!count) {
+                    toast.message("This session has no exercises to apply.");
+                    return;
+                  }
+                  if (
+                    !window.confirm(
+                      `Replace today's session with Session ${ps.session_number}? Everything currently prescribed will be removed.`,
+                    )
+                  ) {
+                    return;
+                  }
+                  replaceWithSession(ver);
+                  setPackPicked((prev) => {
+                    const next = { ...prev };
+                    for (const k of Object.keys(next)) {
+                      if (k.startsWith(`${ps.session_id}:`)) delete next[k];
+                    }
+                    return next;
+                  });
+                  toast.success(
+                    `Session ${ps.session_number} applied as today's session.`,
+                  );
+                }}
               />
             ))}
           </div>
@@ -682,6 +724,38 @@ export function EditSheet({
               toast.success(
                 `${all.length} exercises added from "${t.name}".`,
               );
+              // Increment usage
+              fetch(`/api/workout-templates/${t.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "increment_usage" }),
+              }).catch(() => {});
+            }}
+            onUseAsSession={() => {
+              const count =
+                (t.data.warm_up || []).length +
+                (t.data.main_block || []).length +
+                (t.data.cooldown || []).length;
+              if (!count) {
+                toast.message("This template has no exercises to apply.");
+                return;
+              }
+              if (
+                !window.confirm(
+                  `Replace today's session with "${t.name}"? Everything currently prescribed will be removed.`,
+                )
+              ) {
+                return;
+              }
+              replaceWithSession(t.data);
+              setPackPicked((prev) => {
+                const next = { ...prev };
+                for (const k of Object.keys(next)) {
+                  if (k.startsWith(`${t.id}:`)) delete next[k];
+                }
+                return next;
+              });
+              toast.success(`"${t.name}" applied as today's session.`);
               // Increment usage
               fetch(`/api/workout-templates/${t.id}`, {
                 method: "PATCH",
@@ -922,6 +996,7 @@ function PastPack({
   onPick,
   onAddPicked,
   onAddAll,
+  onUseAsSession,
 }: {
   ps: CompletedSession;
   version: string;
@@ -931,6 +1006,7 @@ function PastPack({
   onPick: (key: string) => void;
   onAddPicked: () => void;
   onAddAll: () => void;
+  onUseAsSession: () => void;
 }) {
   const isOpen = openPack === ps.session_id;
   const ver = ps.versions[version];
@@ -992,6 +1068,9 @@ function PastPack({
           <button className="btn btn-primary" onClick={onAddAll}>
             Add all {items.length}
           </button>
+          <button className="btn pack-replace" onClick={onUseAsSession}>
+            {ICO.replace}Use as today's session
+          </button>
         </div>
       </div>
     </div>
@@ -1006,6 +1085,7 @@ function TemplatePack({
   onPick,
   onAddPicked,
   onAddAll,
+  onUseAsSession,
 }: {
   tmpl: TemplateEntry;
   openPack: string | null;
@@ -1014,6 +1094,7 @@ function TemplatePack({
   onPick: (key: string) => void;
   onAddPicked: () => void;
   onAddAll: () => void;
+  onUseAsSession: () => void;
 }) {
   const isOpen = openPack === tmpl.id;
   const items: { name: string; presc: string }[] = [];
@@ -1069,6 +1150,9 @@ function TemplatePack({
           </button>
           <button className="btn btn-primary" onClick={onAddAll}>
             Add all {items.length}
+          </button>
+          <button className="btn pack-replace" onClick={onUseAsSession}>
+            {ICO.replace}Use as today's session
           </button>
         </div>
       </div>
