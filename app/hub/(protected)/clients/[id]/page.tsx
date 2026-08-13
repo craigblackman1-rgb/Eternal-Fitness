@@ -239,9 +239,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   ];
 
   const rightRail = (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <HubCard>
-        <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Status" color="slate" noBottomPadding />
+        <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Status" color="slate" />
         <div className="pb-5 space-y-0">
           <div className="flex items-center justify-between py-2 text-sm">
             <span className="text-muted-foreground">Compliance</span>
@@ -259,7 +259,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       </HubCard>
 
       <HubCard>
-        <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="slate" noBottomPadding />
+        <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="slate" />
         <div className="pb-5">
           {latestBlock ? (
             <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="flex items-center justify-between group py-1">
@@ -281,7 +281,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       </HubCard>
 
       <HubCard>
-        <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Quick Actions" color="amber" noBottomPadding />
+        <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Quick Actions" color="amber" />
         <div className="pb-5">
           <HubQuickActions divider actions={[
             { href: `/hub/clients/${client.client_number}?tab=training&view=sessions`, label: "New Session", icon: <IconCalendar className="w-4 h-4" /> },
@@ -294,7 +294,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       </HubCard>
 
       <HubCard>
-        <HubCardHeader icon={<IconPanelLeft className="w-4 h-4" />} title="Resources" action={<span className="text-xs text-muted-foreground">Portal access</span>} color="teal" noBottomPadding />
+        <HubCardHeader icon={<IconPanelLeft className="w-4 h-4" />} title="Resources" action={<span className="text-xs text-muted-foreground">Portal access</span>} color="teal" />
         <div className="pb-5">
           <div className="space-y-0">
             {RESOURCES.map((r) => (
@@ -404,11 +404,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
         </HubTabsList>
 
-        <div className="grid gap-6 lg:grid-cols-12 mt-6">
-          <div className="lg:col-span-8 space-y-6">
+        <div className="grid gap-5 lg:grid-cols-12 mt-6">
+          <div className="lg:col-span-8 space-y-5">
             <TabsContent value="overview">
               <HubCard>
-                <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="teal" noBottomPadding />
+                <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="teal" />
                 <div className="pb-5">
                   {latestBlock ? (
                     <HubDataGrid cols={3}>
@@ -430,7 +430,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </HubCard>
 
               <HubCard>
-                <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Last Session" color="slate" noBottomPadding />
+                <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Last Session" color="slate" />
                 <div className="pb-5">
                   {latestSessionLog ? (
                     <HubDataGrid cols={3}>
@@ -450,7 +450,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </HubCard>
 
               <HubCard>
-                <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Snapshot" color="navy" noBottomPadding />
+                <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Snapshot" color="navy" />
                 <div className="pb-5">
                   <HubDataGrid cols={2}>
                     {client.referral_source && (
@@ -478,7 +478,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </HubCard>
 
               <HubCard>
-                <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Training Snapshot" color="teal" noBottomPadding />
+                <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Training Snapshot" color="teal" />
                 <div className="pb-5">
                   <HubDataGrid cols={2}>
                     <HubDataField label="Blocks completed">{blocks?.length ?? 0}</HubDataField>
@@ -502,7 +502,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
                 <HubCard>
-                  <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Active Training Rules" color="amber" noBottomPadding subtitle="Applied to every generated block" />
+                  <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Active Training Rules" color="amber" subtitle="Applied to every generated block" />
                   <div className="pb-5">
                     <ul className="list-none space-y-2">
                       {p!.programming_adaptations
@@ -528,7 +528,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <TabsContent value="profile">
               <div className="grid gap-6 sm:grid-cols-2 items-start">
                 <HubCard className="sm:col-span-2">
-                  <HubCardHeader icon={<IconMail className="w-4 h-4" />} title="Client Portal" color="slate" noBottomPadding />
+                  <HubCardHeader icon={<IconMail className="w-4 h-4" />} title="Client Portal" color="slate" />
                   <PortalAccountCard
                     clientNumber={client.client_number}
                     hasEmail={!!client.email}
@@ -541,7 +541,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       title="Health"
                       color="rose"
                       action={complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : undefined}
-                      noBottomPadding
                     />
                     <div className="pb-5 space-y-4">
                       <div className="flex items-center justify-between">
@@ -615,7 +614,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
                 {p?.physical_baseline && (
                   <HubCard>
-                    <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Physical Baseline" color="teal" noBottomPadding />
+                    <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Physical Baseline" color="teal" />
                     <div className="pb-5 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">Fitness Level</span>
@@ -655,7 +654,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
                 {p?.goals && (
                   <HubCard>
-                    <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Goals" color="rose" noBottomPadding />
+                    <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Goals" color="rose" />
                     <div className="pb-5">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Primary"><span className="capitalize">{p.goals.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
@@ -684,7 +683,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
                 {p?.logistics && (
                   <HubCard>
-                    <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Logistics" color="navy" noBottomPadding />
+                    <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Logistics" color="navy" />
                     <div className="pb-5">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Location"><span className="capitalize">{p.logistics.training_location?.replace("_", " ") ?? "—"}</span></HubDataField>
@@ -700,7 +699,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
                 {(p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
                   <HubCard>
-                    <HubCardHeader icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="slate" noBottomPadding />
+                    <HubCardHeader icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="slate" />
                     <div className="pb-5 space-y-3">
                       {p.notes.esther_observations && (
                         <div>
@@ -731,7 +730,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       title="Active Training Rules"
                       color="amber"
                       action={<span className="text-xs text-muted-foreground">Applied to every generated block</span>}
-                      noBottomPadding
                     />
                     <div className="pb-5">
                       <ul className="list-none divide-y divide-[var(--hub-border)]">
@@ -756,7 +754,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 )}
 
                 <HubCard className="sm:col-span-2">
-                  <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Record" color="slate" noBottomPadding />
+                  <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Record" color="slate" />
                   <div className="pb-5">
                     <HubDataGrid cols={3}>
                       <HubDataField label="Client number">#{client.client_number}</HubDataField>
@@ -771,7 +769,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <TabsContent value="admin">
               <div className="space-y-5">
                 <HubCard>
-                  <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Compliance Status" color="teal" noBottomPadding />
+                  <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Compliance Status" color="teal" />
                   <div className="px-5 pb-5 space-y-4">
                     <div>
                       <span className="text-xs text-muted-foreground block mb-0.5">Overall status</span>
