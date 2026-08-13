@@ -197,10 +197,10 @@ export default async function MobileClientDetailPage({ params }: { params: { id:
 
   const { data: blocksData } = await supabase
     .from("blocks")
-    .select("id, block_number, status, summary, block_note")
+    .select("id, block_number, status, block_note")
     .eq("client_id", row.id)
     .order("block_number", { ascending: false });
-  const blocks = (blocksData ?? []) as { id: string; block_number: number; status: string; summary: string | null; block_note: string | null }[];
+  const blocks = (blocksData ?? []) as { id: string; block_number: number; status: string; block_note: string | null }[];
 
   const blockIds = blocks.map((b) => b.id);
   const { data: sessionsData } = blockIds.length
@@ -218,7 +218,11 @@ export default async function MobileClientDetailPage({ params }: { params: { id:
   const blockDone = currentBlockSessions.filter((s) => s.data?.session_log?.completed_at).length;
   const blockTotal = currentBlockSessions.length;
   const blockPct = blockTotal > 0 ? Math.round((blockDone / blockTotal) * 100) : 0;
-  const blockFocus = currentBlock?.summary ?? currentBlock?.block_note ?? null;
+  // block_note is the short, human-written note shown on the desktop block
+  // overview (BlockOverviewClient.tsx) — block.summary is the long raw
+  // AI-generated planning document (markdown source) and is never rendered
+  // directly anywhere, desktop included. Only block_note belongs here.
+  const blockFocus = currentBlock?.block_note ?? null;
 
   const history = sessions
     .filter((s) => s.data?.session_log?.completed_at)
