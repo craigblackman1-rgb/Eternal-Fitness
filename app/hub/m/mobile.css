@@ -254,9 +254,11 @@
 .set-row.is-skipped { background: transparent; border-style: dashed; opacity: .65; }
 .set-row.is-warmup { background: var(--card); border-color: var(--s-warning-bd); }
 .set-row.is-warmup.is-done { background: var(--s-success-bg); }
+.set-row.is-queued { background: var(--s-warning-bg); border-color: var(--s-warning-bd); }
 .set-row-top { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; flex-wrap: wrap; }
 .set-n { font-size: 11px; font-weight: 800; color: var(--ink); background: var(--card); border: 1px solid var(--border); border-radius: 999px; width: 22px; height: 22px; display: grid; place-items: center; flex-shrink: 0; }
 .wu-badge { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--s-warning); background: var(--s-warning-bg); border: 1px solid var(--s-warning-bd); border-radius: 5px; padding: 2px 6px; flex-shrink: 0; }
+.queued-badge { display: inline-flex; align-items: center; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--status-warning-text); background: var(--s-warning-bg); border: 1px solid var(--s-warning-bd); border-radius: 5px; padding: 2px 6px; flex-shrink: 0; }
 .set-target { font-size: 12px; color: var(--muted); }
 .set-row-body { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
 .set-field { display: flex; flex-direction: column; gap: 3px; width: 74px; }
