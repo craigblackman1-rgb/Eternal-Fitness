@@ -349,3 +349,40 @@ TOKEN MAP: mobile.css defines all 25 mobile token aliases (`--rose`, `--teal`, `
 
 NOT PUSHED to main, NOT merged, NOT deployed — held for Craig's review per SOP.
 
+---
+
+## 2026-08-10 20:45 — SESSION CLOSE (paused at Craig's request; he is checking EF himself first)
+
+**WO:** `wo-registry-hygiene-ef-reconciliation-2026-08-10` (GATED — paused, not blocked)
+
+Craig flagged that project plans did not reflect EF going live 2026-08-09.
+Diagnosis: work-order *statuses* were fine (16/18 EF WOs already done, incl. the
+prod cutover). The staleness came from (a) open deferred/questions orphaned under
+CLOSED work orders, and (b) 17 pre-launch `workorder-*.md` docs whose checklists
+were never re-ticked.
+
+**Merged this session (both fast-forward pushed, worktrees removed):**
+- `infrastructure` `dcdd8ba` — `wo.js` refuses to close a WO with open items
+  attached; adds `wo reparent <from> <to>`; warns on `defer`/`ask` with no `--wo`.
+- `eternal-fitness-website` `110f78b` — 17 closed `workorder-*.md` docs stamped
+  ARCHIVED, pointing at the registry as live truth. Gated GDPR doc left alone.
+
+**EF reconciliation: orphans 8 → 0.**
+- Resolved as premise-disproven: `dmsn3rmh3a4` (development blog empty — inverted,
+  development now serves all 27), `dmslr2efph1` (CTABand `imagePosition` "no-op" —
+  the prop IS wired to `objectPosition` at CTABand.tsx:31).
+- 7 reparented onto `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10`.
+
+**NEW confirmed production defect — `dmsnly4w39t`:**
+prod `/blog` renders 0 posts, `/blog/exercise-illness` → 307, `sitemap.xml` has 0
+blog URLs; development serves all 27 and returns 200. The `eternal_fitness` DB
+holds 27 rows with `published_at` set. `app/blog/page.tsx:20` does `posts ?? []`
+with no error branch, so a dead connection and an empty table are
+indistinguishable — that swallow is why it survived launch.
+
+**Could NOT verify (flagged, not assumed fine) — `dmsnm1nwyxv`:**
+WAL archive on db-vps (psql peer auth failed) and staging-on-live-email-creds
+(Coolify masks env values from the API).
+
+**Resume point:** phase 2 = 5 non-EF orphans + 4 untagged deferred (`dmsnm1nvf7o`).
+Do NOT redo lanes A/B — both merged.
