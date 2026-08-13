@@ -454,6 +454,91 @@
   .sh-body { padding-left: 20px; padding-right: 20px; }
 }
 
+/* ── Clients tab (hub-m-clients.html) ──────────────────────────── */
+.mtop-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
+.mtop-back:hover { background: var(--hover); }
+.mtop-id { min-width: 0; flex: 1; }
+.mtop-t { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mtop-s { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.searchwrap { padding: 0 14px 10px; display: flex; gap: 8px; }
+.searchwrap input { flex: 1; height: 46px; border: 1px solid var(--field-border); border-radius: 10px; padding: 0 12px; font-size: 15px; font-family: inherit; background: var(--card); color: var(--ink); }
+.searchwrap input:hover { border-color: var(--field-hover); }
+.searchwrap input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(193,131,159,.3); }
+
+/* Named .cchips/.cchip to avoid colliding with the edit-sheet .chips/.chip. */
+.cchips { display: flex; gap: 6px; padding: 0 14px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.cchip { flex: 0 0 auto; height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--body); font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.cchip:hover { background: var(--hover); color: var(--ink); }
+.cchip.on { background: var(--s-primary-bg); border-color: var(--s-primary-bd); color: var(--rose); font-weight: 700; }
+
+.clist { display: flex; flex-direction: column; gap: 10px; }
+.ccard { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 12px; font-family: inherit; cursor: pointer; text-decoration: none; color: inherit; }
+.ccard:hover { background: var(--hover); }
+.ccard.flagged { border-color: var(--s-danger-bd); }
+.cav { width: 44px; height: 44px; flex-shrink: 0; border-radius: 999px; background: var(--s-primary-bg); border: 1px solid var(--s-primary-bd); color: var(--rose); display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+.cav.flag { background: var(--s-danger-bg); border-color: var(--s-danger-bd); color: var(--s-danger); }
+.cbody { min-width: 0; flex: 1; }
+.cname { display: block; font-size: 15px; font-weight: 700; color: var(--ink); }
+.cmeta { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.cflags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.cchev { flex-shrink: 0; color: var(--muted); }
+
+.pill.ok { background: var(--s-success-bg); border: 1px solid var(--s-success-bd); color: var(--teal); }
+.pill.blk { background: var(--hover); border: 1px solid var(--border); color: var(--muted); }
+
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; }
+.panel + .panel { margin-top: 12px; }
+.panel-h { display: flex; align-items: center; gap: 10px; padding: 13px 14px; }
+.panel-h-ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; background: var(--s-primary-bg); color: var(--rose); }
+.panel-h-ic.teal { background: var(--s-success-bg); color: var(--teal); }
+.panel-h-ic.danger { background: var(--s-danger-bg); color: var(--s-danger); }
+.panel-h-ic.navy { background: rgba(40,43,56,.09); color: var(--navy); }
+.panel-h-t { display: block; font-size: 14px; font-weight: 800; color: var(--ink); }
+.panel-h-s { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+.panel-b { border-top: 1px solid var(--border); padding: 12px 14px; }
+
+.kv { display: flex; align-items: flex-start; gap: 12px; padding: 9px 0; }
+.kv + .kv { border-top: 1px dashed var(--border); }
+.kv-k { flex-shrink: 0; width: 88px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 2px; }
+.kv-v { min-width: 0; flex: 1; font-size: 14px; color: var(--ink); }
+.kv-v a { color: var(--teal); text-decoration: none; font-weight: 600; }
+.kv-v a:hover { color: color-mix(in oklab, var(--teal) 88%, var(--ink)); text-decoration: underline; }
+.callrow { display: flex; gap: 8px; margin-top: 10px; }
+.callrow a { flex: 1; height: 46px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink); font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; }
+.callrow a:hover { background: var(--hover); }
+
+.flagcard { display: flex; gap: 10px; border-radius: 12px; padding: 11px 12px; font-size: 13px; line-height: 1.5; border: 1px solid; }
+.flagcard + .flagcard { margin-top: 8px; }
+.flagcard b { display: block; color: var(--ink); }
+.flagcard.danger { background: var(--s-danger-bg); border-color: var(--s-danger-bd); color: var(--s-danger); }
+.flagcard.warning { background: var(--s-warning-bg); border-color: var(--s-warning-bd); color: var(--status-warning-text); }
+.flagcard.ok { background: var(--s-success-bg); border-color: var(--s-success-bd); color: var(--teal); }
+.flag-ic { flex-shrink: 0; margin-top: 1px; }
+
+.blockbar { height: 8px; border-radius: 999px; background: var(--hover); border: 1px solid var(--border); overflow: hidden; margin: 10px 0 6px; }
+.blockbar i { display: block; height: 100%; background: var(--rose); }
+.blockmeta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+
+.hrow { display: flex; align-items: center; gap: 11px; padding: 11px 0; text-decoration: none; color: inherit; }
+.hrow + .hrow { border-top: 1px solid var(--border); }
+.hrow:hover { background: var(--hover); }
+.hrow:hover .hname { color: var(--teal); }
+.hdate { flex-shrink: 0; width: 54px; text-align: center; border-radius: 9px; border: 1px solid var(--border); background: var(--hover); padding: 5px 0; }
+.hdate b { display: block; font-size: 14px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+.hdate span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.hbody { min-width: 0; flex: 1; }
+.hname { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.hmeta { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+.absent { margin-top: 12px; border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: var(--muted); line-height: 1.6; background: var(--card); }
+.absent b { color: var(--ink); display: block; margin-bottom: 3px; }
+.absent a { color: var(--teal); font-weight: 600; }
+
+@media (min-width: 700px) {
+  .mtop-row, .searchwrap, .cchips { padding-left: 20px; padding-right: 20px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-shell *, .mobile-shell *::before, .mobile-shell *::after {
     transition-duration: .01ms !important;
