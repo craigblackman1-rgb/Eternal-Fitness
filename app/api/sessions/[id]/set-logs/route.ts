@@ -16,6 +16,78 @@ async function getClientIdForSession(sessionId: string): Promise<string | null> 
   return res.rows[0]?.client_id ?? null;
 }
 
+// Resolve the logged_at timestamp for a write. Absent (every existing caller today)
+// → NOW(), exactly as before. Present → validate it isn't more than 5 minutes in
+// the future (clock-skew tolerance) or more than 24 hours in the past (implausible
+// for a live set log), then use it verbatim instead of NOW().
+function resolveLoggedAt(
+  loggedAt: string | null | undefined,
+): { value: string } | { error: string } {
+  if (!loggedAt) return { value: new Date().toISOString() };
+
+  const parsed = new Date(loggedAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return { error: "logged_at is not a valid date" };
+  }
+
+  const skewMs = parsed.getTime() - Date.now();
+  if (skewMs > 5 * 60 * 1000) {
+    return { error: "logged_at is more than 5 minutes in the future" };
+  }
+  if (skewMs < -24 * 60 * 60 * 1000) {
+    return { error: "logged_at is more than 24 hours in the past" };
+  }
+
+  return { value: loggedAt };
+}
+
+// Idempotent create keyed on client_op_id. On replay of the same client_op_id the
+// INSERT becomes a no-op (partial unique index, see 20260813_set_logs_idempotency.sql)
+// and the already-existing row is returned instead — same shape as a fresh insert.
+async function insertSetLogIdempotent(
+  sessionId: string,
+  row: {
+    exercise_ref: string;
+    set_number: number;
+    reps: number | null;
+    weight_kg: number | null;
+    duration_seconds: number | null;
+    completed: boolean;
+    logged_at: string;
+    notes: string | null;
+  },
+  clientOpId: string,
+): Promise<import("@/types").SetLog> {
+  const pool = getPool();
+  const inserted = await pool.query(
+    `INSERT INTO set_logs
+       (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
+        completed, logged_by, logged_at, notes, client_op_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'trainer', $8, $9, $10)
+     ON CONFLICT (client_op_id) WHERE client_op_id IS NOT NULL DO NOTHING
+     RETURNING *`,
+    [
+      sessionId,
+      row.exercise_ref,
+      row.set_number,
+      row.reps,
+      row.weight_kg,
+      row.duration_seconds,
+      row.completed,
+      row.logged_at,
+      row.notes,
+      clientOpId,
+    ],
+  );
+  if (inserted.rows.length) return inserted.rows[0];
+
+  const existing = await pool.query(
+    `SELECT * FROM set_logs WHERE client_op_id = $1 LIMIT 1`,
+    [clientOpId],
+  );
+  return existing.rows[0];
+}
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -45,6 +117,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     duration_seconds,
     completed,
     notes,
+    client_op_id,
+    logged_at,
   } = await request.json() as {
     exercise_ref: string;
     set_number: number;
@@ -53,6 +127,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     duration_seconds?: number | null;
     completed?: boolean;
     notes?: string | null;
+    client_op_id?: string | null;
+    logged_at?: string | null;
   };
 
   if (!exercise_ref?.trim()) {
@@ -62,28 +138,36 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: "set_number must be a positive integer" }, { status: 400 });
   }
 
-  const { data, error } = await supabase
-    .from("set_logs")
-    .insert({
-      session_id: params.id,
-      exercise_ref: exercise_ref.trim(),
-      set_number,
-      reps: reps ?? null,
-      weight_kg: weight_kg ?? null,
-      duration_seconds: duration_seconds ?? null,
-      completed: completed ?? true,
-      logged_by: "trainer",
-      logged_at: new Date().toISOString(),
-      notes: notes ?? null,
-    })
-    .select()
-    .single();
+  const loggedAt = resolveLoggedAt(logged_at);
+  if ("error" in loggedAt) {
+    return NextResponse.json({ error: loggedAt.error }, { status: 400 });
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const row = {
+    session_id: params.id,
+    exercise_ref: exercise_ref.trim(),
+    set_number,
+    reps: reps ?? null,
+    weight_kg: weight_kg ?? null,
+    duration_seconds: duration_seconds ?? null,
+    completed: completed ?? true,
+    logged_by: "trainer",
+    logged_at: loggedAt.value,
+    notes: notes ?? null,
+  };
+
+  let data: import("@/types").SetLog;
+  if (client_op_id) {
+    data = await insertSetLogIdempotent(params.id, row, client_op_id);
+  } else {
+    const res = await supabase.from("set_logs").insert(row).select().single();
+    if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 });
+    data = res.data;
+  }
 
   const clientId = await getClientIdForSession(params.id);
   if (clientId) {
-    const isNewPb = await checkAndUpsertPB(clientId, data as import("@/types").SetLog);
+    const isNewPb = await checkAndUpsertPB(clientId, data);
     return NextResponse.json({ ...data, is_new_pb: isNewPb }, { status: 201 });
   }
   return NextResponse.json(data, { status: 201 });
@@ -94,31 +178,38 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id, ...fields } = await request.json() as {
+  const body = await request.json() as {
     id: string;
     reps?: number | null;
     weight_kg?: number | null;
     duration_seconds?: number | null;
     completed?: boolean;
     notes?: string | null;
+    client_op_id?: string | null;
+    logged_at?: string | null;
   };
 
-  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+  if (!body.id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
   const allowed = ["reps", "weight_kg", "duration_seconds", "completed", "notes"] as const;
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
-    if (key in fields) update[key] = fields[key];
+    if (key in body) update[key] = body[key];
   }
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No editable fields supplied" }, { status: 400 });
   }
-  update.logged_at = new Date().toISOString();
+
+  const loggedAt = resolveLoggedAt(body.logged_at);
+  if ("error" in loggedAt) {
+    return NextResponse.json({ error: loggedAt.error }, { status: 400 });
+  }
+  update.logged_at = loggedAt.value;
 
   const { data, error } = await supabase
     .from("set_logs")
     .update(update)
-    .eq("id", id)
+    .eq("id", body.id)
     .eq("session_id", params.id)
     .select()
     .single();

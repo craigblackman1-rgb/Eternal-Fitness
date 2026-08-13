@@ -8,6 +8,7 @@ import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { defaultUnitForEquipment } from "@/lib/units";
+import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -25,7 +26,19 @@ interface SetState {
   savedId?: string;
   isNewPb?: boolean;
   isWarmup: boolean;
+  /** Set write is parked in the offline queue, not yet on the server. */
+  pendingSync?: boolean;
+  /** Idempotency key for the queued write — reused across re-taps so a toggle
+   *  overwrites the queued entry rather than stacking a second one. */
+  clientOpId?: string;
 }
+
+/** Three-way outcome of a set-log save: saved to server, parked for later, or a
+ *  genuine server-side failure (which must NOT be queued). */
+type SaveSetLogResult =
+  | { kind: "saved"; log: SetLog & { is_new_pb?: boolean } }
+  | { kind: "queued"; clientOpId: string }
+  | { kind: "failed" };
 
 interface ExState {
   uid: string;
@@ -184,6 +197,11 @@ export function TrainScreen({
   const [pickSection, setPickSection] = useState<SectionKey | null>(null);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
 
+  const [offline, setOffline] = useState<boolean>(() =>
+    typeof navigator !== "undefined" ? !navigator.onLine : false,
+  );
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
+
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const dataRef = useRef(data);
   const sessionLogRef = useRef(sessionLog);
@@ -304,26 +322,67 @@ export function TrainScreen({
     setNumber: number,
     fieldValues: { reps: string; weight: string; duration: string },
     completed: boolean,
-  ): Promise<(SetLog & { is_new_pb?: boolean }) | null> => {
+    reuseClientOpId?: string,
+  ): Promise<SaveSetLogResult> => {
     const key = `${exerciseRef}::${setNumber}`;
     const existing = setLogsMap[key];
     const repsVal = fieldValues.reps.trim() === "" ? null : Number(fieldValues.reps);
     const weightVal = fieldValues.weight.trim() === "" ? null : Number(fieldValues.weight);
     const durationVal = fieldValues.duration.trim() === "" ? null : Number(fieldValues.duration);
 
-    const res = await fetch(`/api/sessions/${sessionId}/set-logs`, {
-      method: existing ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        existing
-          ? { id: existing.id, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed }
-          : { exercise_ref: exerciseRef, set_number: setNumber, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed },
-      ),
-    });
-    if (!res.ok) return null;
+    const method = existing ? "PATCH" : "POST";
+    const body = existing
+      ? { id: existing.id, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed }
+      : { exercise_ref: exerciseRef, set_number: setNumber, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed };
+
+    const enqueueOffline = async (): Promise<SaveSetLogResult> => {
+      const clientOpId = reuseClientOpId ?? crypto.randomUUID();
+      try {
+        await enqueue({
+          client_op_id: clientOpId,
+          sessionId,
+          exerciseRef,
+          setNumber,
+          method,
+          body,
+          capturedAt: new Date().toISOString(),
+          queuedAt: new Date().toISOString(),
+        });
+      } catch {
+        // Couldn't even park it locally (e.g. IndexedDB unavailable) — surface a
+        // real failure rather than silently dropping the tap.
+        return { kind: "failed" };
+      }
+      return { kind: "queued", clientOpId };
+    };
+
+    // Offline shortcut — don't even attempt a fetch if the browser already knows
+    // the connection is down.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return enqueueOffline();
+    }
+
+    let res: Response;
+    try {
+      res = await fetch(`/api/sessions/${sessionId}/set-logs`, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      // fetch() itself threw — network failure, not a server rejection. Queue it.
+      return enqueueOffline();
+    }
+
+    if (!res.ok) {
+      // The request DID reach the server and was rejected — a real server failure,
+      // not an offline scenario. Never queue these.
+      return { kind: "failed" };
+    }
+
     const saved: SetLog & { is_new_pb?: boolean } = await res.json();
     setLogsMap[key] = saved;
-    return saved;
+    return { kind: "saved", log: saved };
   };
 
   const handleSetDone = async (uid: string, setIdx: number) => {
@@ -356,8 +415,8 @@ export function TrainScreen({
       }
     }
 
-    const saved = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done");
-    if (!saved) {
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.clientOpId);
+    if (result.kind === "failed") {
       toast.error("Failed to save set");
       return;
     }
@@ -366,15 +425,31 @@ export function TrainScreen({
       const st = prev[uid];
       if (!st) return prev;
       const newSets = [...st.sets];
-      newSets[setIdx] = {
-        status: newStatus,
-        reps,
-        weight,
-        duration,
-        savedId: saved.id,
-        isNewPb: saved.is_new_pb === true,
-        isWarmup: newSets[setIdx].isWarmup,
-      };
+      if (result.kind === "saved") {
+        newSets[setIdx] = {
+          status: newStatus,
+          reps,
+          weight,
+          duration,
+          savedId: result.log.id,
+          isNewPb: result.log.is_new_pb === true,
+          isWarmup: newSets[setIdx].isWarmup,
+          pendingSync: false,
+          clientOpId: undefined,
+        };
+      } else {
+        // saved-but-queued: never a PB pill (client can't know cross-session history),
+        // and no savedId yet — the row doesn't exist on the server.
+        newSets[setIdx] = {
+          status: newStatus,
+          reps,
+          weight,
+          duration,
+          isWarmup: newSets[setIdx].isWarmup,
+          pendingSync: newStatus !== "pending",
+          clientOpId: result.clientOpId,
+        };
+      }
       return { ...prev, [uid]: { ...st, sets: newSets } };
     });
   };
@@ -395,8 +470,8 @@ export function TrainScreen({
     const weight = timeBased ? "" : (set.weight || "");
     const duration = timeBased ? (set.duration || "") : "";
 
-    const saved = await saveSetLog(ref, setNumber, { reps, weight, duration }, false);
-    if (!saved) {
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.clientOpId);
+    if (result.kind === "failed") {
       toast.error("Failed to save set");
       return;
     }
@@ -405,7 +480,14 @@ export function TrainScreen({
       const st = prev[uid];
       if (!st) return prev;
       const newSets = [...st.sets];
-      newSets[setIdx] = { ...newSets[setIdx], status: newStatus, savedId: saved.id };
+      newSets[setIdx] = {
+        ...newSets[setIdx],
+        status: newStatus,
+        savedId: result.kind === "saved" ? result.log.id : newSets[setIdx].savedId,
+        isNewPb: result.kind === "saved" ? result.log.is_new_pb === true : newSets[setIdx].isNewPb,
+        pendingSync: result.kind === "queued" ? newStatus !== "pending" : false,
+        clientOpId: result.kind === "queued" ? result.clientOpId : undefined,
+      };
       return { ...prev, [uid]: { ...st, sets: newSets } };
     });
   };
@@ -628,6 +710,112 @@ export function TrainScreen({
   const findExerciseRef = useCallback((uid: string) => uidToRefMap.get(uid) ?? null, [uidToRefMap]);
   const findExerciseByUid = useCallback((uid: string) => uidToExMap.get(uid) ?? null, [uidToExMap]);
 
+  // ── Offline queue replay ───────────────────────────────────────
+  // Reconciles one replayed write back into the in-memory set state: queued →
+  // synced. Full reconciliation from the server response so a set that was queued
+  // before a reload (and so had no server row at init time) still lands correct.
+  const markSetSynced = useCallback(
+    (entry: PendingSetLogEntry, data: SetLog & { is_new_pb?: boolean }) => {
+      setExStates((prev) => {
+        let targetUid: string | null = null;
+        for (const [uid, ref] of uidToRefMap) {
+          if (ref === entry.exerciseRef) {
+            targetUid = uid;
+            break;
+          }
+        }
+        if (!targetUid) return prev;
+        const st = prev[targetUid];
+        if (!st) return prev;
+        const setIdx = entry.setNumber - 1;
+        if (setIdx < 0 || setIdx >= st.sets.length) return prev;
+        const newSets = [...st.sets];
+        newSets[setIdx] = {
+          ...newSets[setIdx],
+          status: data.completed ? "done" : "skipped",
+          reps: data.reps != null ? String(data.reps) : "",
+          weight: data.weight_kg != null ? String(data.weight_kg) : "",
+          duration: data.duration_seconds != null ? String(data.duration_seconds) : "",
+          savedId: data.id,
+          isNewPb: data.is_new_pb === true,
+          pendingSync: false,
+          clientOpId: undefined,
+        };
+        setLogsMap[`${entry.exerciseRef}::${entry.setNumber}`] = data;
+        return { ...prev, [targetUid]: { ...st, sets: newSets } };
+      });
+    },
+    [uidToRefMap, setLogsMap],
+  );
+
+  const drainQueue = useCallback(async () => {
+    const pending = await getAllPending();
+    if (pending.length === 0) return;
+
+    let synced = 0;
+    let newPbs = 0;
+    let authError = false;
+
+    for (const entry of pending) {
+      try {
+        const res = await fetch(`/api/sessions/${entry.sessionId}/set-logs`, {
+          method: entry.method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...entry.body,
+            client_op_id: entry.client_op_id,
+            logged_at: entry.capturedAt,
+          }),
+        });
+        if (res.status === 401) {
+          authError = true;
+          break;
+        }
+        if (!res.ok) break;
+        const data: SetLog & { is_new_pb?: boolean } = await res.json();
+        await remove(entry.client_op_id);
+        markSetSynced(entry, data);
+        synced += 1;
+        if (data.is_new_pb) newPbs += 1;
+      } catch {
+        break;
+      }
+    }
+
+    if (authError) {
+      const remaining = (await getAllPending()).length;
+      setSyncNotice(`Sign in to sync ${remaining} logged ${remaining === 1 ? "set" : "sets"}`);
+      return;
+    }
+
+    if (synced > 0) {
+      setSyncNotice(null);
+      toast.success(
+        `${synced} ${synced === 1 ? "set" : "sets"} synced${newPbs > 0 ? ` — ${newPbs} new PB` : ""}`,
+      );
+    }
+  }, [markSetSynced]);
+
+  // Drain once on mount (entries may persist in IndexedDB across a reload from a
+  // prior offline period) and again whenever connectivity returns.
+  useEffect(() => {
+    const onOnline = () => {
+      setOffline(false);
+      void drainQueue();
+    };
+    const onOffline = () => setOffline(true);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, [drainQueue]);
+
+  useEffect(() => {
+    void drainQueue();
+  }, [drainQueue]);
+
   // ── Exercise-complete check ─────────────────────────────────────
   const exComplete = useCallback(
     (uid: string): boolean => {
@@ -694,15 +882,23 @@ export function TrainScreen({
         </div>
       </header>
 
-      {/* ── Offline bar (structure ready, offline lane fills it) ── */}
-      <div className="offline" id="offlineBar">
-        <span className="offline-ic">{ICO.rest}</span>
-        <div>
-          <b>Offline — sets saved on this phone</b>
-          Keep logging. Everything is queued locally and syncs the moment the signal comes back. The desktop hub won&apos;t see these sets until then.
+      {/* ── Offline / sync bar ──────────────────────────────────── */}
+      {(offline || syncNotice) && (
+        <div className="offline on" id="offlineBar" role="status">
+          <span className="offline-ic">{ICO.rest}</span>
+          <div>
+            {syncNotice ? (
+              <b>{syncNotice}</b>
+            ) : (
+              <>
+                <b>Offline — sets saved on this phone</b>
+                Keep logging. Everything is queued locally and syncs the moment the signal comes back. The desktop hub won&apos;t see these sets until then.
+              </>
+            )}
+          </div>
+          <button className="offline-act" onClick={() => void drainQueue()}>Retry</button>
         </div>
-        <button className="offline-act" onClick={() => {}}>Retry</button>
-      </div>
+      )}
 
       {/* ── Content ──────────────────────────────────────────────── */}
       <main className="mcontent" style={{ paddingBottom: "calc(var(--tabbar-h) + 66px + 24px + env(safe-area-inset-bottom))" }}>
@@ -1004,6 +1200,7 @@ function SetRow({
     set.status === "done" ? "is-done" : "",
     set.status === "skipped" ? "is-skipped" : "",
     set.isWarmup && set.status !== "done" && set.status !== "skipped" ? "is-warmup" : "",
+    set.pendingSync ? "is-queued" : "",
   ].filter(Boolean).join(" ");
 
   return (
@@ -1014,6 +1211,9 @@ function SetRow({
         <span className="set-target">{targetLabel}</span>
         {set.status === "done" && set.isNewPb && (
           <span className="log-badge reps" style={{ marginLeft: "auto" }}>New PB</span>
+        )}
+        {set.pendingSync && (
+          <span className="queued-badge" style={{ marginLeft: "auto" }}>queued — will sync</span>
         )}
       </div>
       <div className="set-row-body">

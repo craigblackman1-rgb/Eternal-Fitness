@@ -62,6 +62,22 @@ const nextConfig = {
       // database (prod holds only the 27 original WordPress rows). So each rule was
       // intercepting a post that does work and 301'ing it into a 404.
       // Restore these only once that migration is actually applied.
+      // NOTE (2026-08-13): the claude/mobile-workout-features-6ddaba branch's own
+      // copy of this file still had these 3 stale rules (it predates the removal
+      // above) — deliberately dropped on merge rather than re-added, per the
+      // rationale already established here.
+
+      // --- Canonical host: www -> apex ---
+      // Coolify binds both hosts to this app, but everything canonical in the
+      // codebase (NEXT_PUBLIC_SITE_URL default, sitemap, robots, metadata canonical
+      // tags, Better Auth baseURL) uses the bare apex domain. Redirect www so the
+      // two don't serve duplicate content and split link equity.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.eternal-fitness.co.uk" }],
+        destination: "https://eternal-fitness.co.uk/:path*",
+        permanent: true,
+      },
 
       // --- Legacy WordPress site (eternal-fitness.co.uk) migration redirects ---
       // Old WP site served every blog post flat off the root (no /blog/ prefix).

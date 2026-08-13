@@ -12,10 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const { data: posts } = await supabase
+  const { data: posts, error } = await supabase
     .from("blog_posts")
     .select("*")
     .order("published_at", { ascending: false });
+
+  if (error) console.error("[blog]", error.message);
 
   return <BlogPageClient posts={posts ?? []} />;
 }
