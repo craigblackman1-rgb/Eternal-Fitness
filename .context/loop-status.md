@@ -289,3 +289,63 @@ PAR-Q pages post-deploy -- do that first if this thread reopens.
 2026-08-07T12:30Z | main | app/about, hub/tasks, hub/exercises, hub/reports/updates | Pushed to main (10ad57a): Tasks modal, exercise pagination fix, Updates header spacing fix, FitPro press mention on About page. GDPR SOPs 011-015 live in hub DB. Programming-engine scoping audit written.
 2026-08-08T08:10Z | main | Sarah Tyler draft block + workout template view/edit/delete | Craig supplied a full A/B split program (warmup/Workout A/Workout B/cooldown+stretches) for Sarah Tyler and asked for a draft training block plus reusable templates to test the workout_templates feature. Created block 2 (draft, week 1, 2 sessions: A archetype/B archetype, 7 exercises each + shared 11-exercise warm-up + 5-exercise cooldown) directly via the standing DB tunnel, unconfirmed starting weights flagged per-exercise in coaching_cue (single-arm cable row, step ups, trap bar deadlift, high cable pulldown, hip thrust, split squat). Saved 2 workout_templates rows ("Sarah Tyler — Workout A/B") with facets auto-derived against the exercises table. Craig then reported the templates library had no view/edit -- confirmed via code read that the API only supported create/list/increment-usage and the library table had no click-through. Dispatched OpenCode lane-workout-template-detail (deepseek-v4-pro, inline) to build it: extracted collectExercises/deriveFacets into lib/workout-template-facets.ts (shared by POST and the new PATCH), added GET/PATCH/DELETE to app/api/workout-templates/[id]/route.ts (increment_usage path preserved exactly), new app/hub/(protected)/workout-templates/[id]/page.tsx + TemplateEditorClient.tsx (editable name/condition-tags/exercises across warm-up/main/cooldown, delete with AlertDialog confirm), row-click navigation wired in workout-template-browser.tsx. Hand-reviewed every line of the diff (not trusted on self-report) — clean, matches the existing document-templates editor page's shell conventions. Verified live in browser: no hub login was available, so created a throwaway hub account via direct Better Auth table insert (user+account rows, better-auth/crypto hashPassword to match its own hash format) since disableSignUp blocks the normal signup path -- logged in, clicked into Sarah's real "Workout A" template (23 exercises, correct facet badges), edited a coaching_cue and confirmed the PATCH persisted to DB, reverted that test edit, then created a disposable "QA DELETE TEST" template and deleted it through the UI to confirm DELETE actually removes rows -- Sarah's 2 real templates untouched throughout. Deleted the throwaway hub account (session+account+user rows) and the one-off account-creation script as the last step. Gates: Design Parity attested explicitly as n/a (no mockup governs this net-new admin page), scope diff clean (6 files, matches intent), ownership re-checked via wo active immediately before push (no conflicting claim). Committed b4bfabc, pushed to main as fast-forward (7600c76->b4bfabc). Coolify auto-deploy should fire on the webhook. Session closed.
 2026-08-08T~11:35Z | Session close | components/BookingModal.tsx (bb57d54) | Added screen-reader-friendly "Prefer to book directly?" note above the MS Bookings iframe in the site-wide consultation modal — explains the calendar grid can be skipped, with phone/email fallback. Verified in browser (JS-driven click + dialog innerText read). Pushed to origin/claude/booking-modal-accessibility-text-9341f4, then fast-forwarded to main (9026fd4..bb57d54). Coolify auto-deploy triggered, not manually confirmed live this session.
+
+2026-08-10T19:42Z | L1 shared-logic-refactor | completed
+
+LANE: shared-logic-refactor · BRANCH: claude/mobile-workout-features-6ddaba
+UNITS DONE: all 6 call-site collapses + 3 new modules (c583ca3)
+  - lib/prescription.ts: isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds (NEW), formatPrescription (NEW)
+  - lib/exercise-groups.ts: computeGroups, normalizeGroups, nextGroupLabel (NEW)
+  - lib/units.ts: LB_TO_KG, toKg, fromKg, formatWeight (NEW)
+  - LiveSessionLog.tsx: deleted local functions + dead parseLeadingNumber, imported from shared modules
+  - page.tsx: replaced groupExercisesWithIndex+isSuperset with computeGroups, deleted local parse/time functions
+  - TrainingClient.tsx: deleted local functions, imported, fixed isTimeBased to pass log_type (INTENTIONAL BEHAVIOUR CHANGE)
+  - SessionEditor.tsx: computeBlocks wrapper calls shared computeGroups, normalizeGroupsList replaced with normalizeGroups
+  - PrescriptionTable.tsx: groupExercises/isSuperset replaced with computeGroups
+  - calorie-calculator.ts: LB_TO_KG re-exported from ./units
+  - PortalExercise gained log_type field + toPortalExercise mapping (needed for TrainingClient.tsx log_type fix)
+  - vitest.config.ts + package.json "test" script added
+  - lib/__tests__/prescription.test.ts: 17 tests covering all parse functions
+BLOCKERS: none
+TYPECHECK: clean (npx tsc --noEmit clean, no new errors)
+TESTS: 17/17 pass (npx vitest run)
+NOTE: the TrainingClient.tsx log_type fix (unit 3) is a real behaviour change — it is called out in its own paragraph in the commit message (the "FIX:" paragraph), not folded into generics. PortalExercise gained log_type in lib/portal-data.ts to support this.
+VERIFICATION GREP: zero remaining local definitions of isTimeBased/parsePrescribedSeconds/parsePrescribedReps/groupExercises in app/ or components/ (only the thin computeBlocks key-wrapper in SessionEditor.tsx remains, which calls computeGroups internally).
+
+---
+
+2026-08-10T20:30Z | L4 lane 1 — mobile shell + Today screen | worktree D:\apps\worktrees\eternal-fitness-website\web-admin-pages-dashboard-5ccf37, branch claude/mobile-workout-features-6ddaba | Built mobile bottom-tab shell + real-data Today screen per lane brief and hub-m-today.html mockup. Commit: 31b22b8.
+
+LANE: mobile-shell-today · BRANCH: claude/mobile-workout-features-6ddaba
+UNITS DONE:
+  1. Bottom tab bar (REFERENCE IMPLEMENTATION per hub-m-today.html, reuseable by later lanes) — 31b22b8
+  2. Today screen with real data (sessions → blocks → clients stitched in JS, same pattern as desktop schedule) — 31b22b8
+  3. Stub routes (train + clients) — 31b22b8
+  4. Small-screen redirect from desktop /hub to /hub/m — 31b22b8
+
+BLOCKERS: none
+TYPECHECK: clean
+
+FILES:
+  app/hub/m/layout.tsx         — auth check, renders MobileShell
+  app/hub/m/mobile.css          — scoped stylesheet, all tokens mapped to existing globals.css vars (no raw hex)
+  app/hub/m/page.tsx            — server component, 3-query stitch (sessions → blocks → clients) + tasks fetch
+  app/hub/m/TodayScreen.tsx     — client component: day paging, session cards, conflict detection, task checkboxes
+  app/hub/m/train/page.tsx      — stub ("Coming soon")
+  app/hub/m/clients/page.tsx    — stub ("Coming soon")
+  components/hub/MobileShell.tsx — client component: bottom tab bar, usePathname() active-tab detection
+  components/hub/MobileRedirect.tsx — client component: localStorage-gated redirect on small screens
+  app/hub/(protected)/layout.tsx — added MobileRedirect
+  app/layout.tsx                — added viewport export (viewport-fit=cover)
+
+PILL WIRING NOTES:
+  - clash (`.pill.clash-pill`): WIRED — findConflictIds() lifted from ScheduleCalendar.tsx, exact same logic (same-client overlaps don't count as clash)
+  - logged (`.pill.logged`): WIRED — reads session.data?.session_log?.completed_at from real data
+  - live / in-progress (`.pill.live`): CODED DEFENSIVELY — checks session.data?.session_log?.started_at but the field doesn't exist in the DB schema yet (a later lane's Train screen will write it); pill will never show until that lane lands, which is correct and expected
+  - medical flag (`.pill.med`): WIRED — uses clients.compliance_status !== 'clear' (same signal as the desktop dashboard's "Needs Attention" card and the clients-table compliance filter)
+  - No mockup placeholder data was copied — every value comes from real DB queries
+
+TOKEN MAP: mobile.css defines all 25 mobile token aliases (`--rose`, `--teal`, `--ink`, `--card`, etc.) as thin `var()` wrappers around existing globals.css custom properties. Verified via `git diff | grep '#'` — zero raw hex introduced.
+
+NOT PUSHED to main, NOT merged, NOT deployed — held for Craig's review per SOP.
+

@@ -1,14 +1,15 @@
 import { createClient } from "@/lib/supabase-server";
-import type { DBClient, DBBlock, BlockSummary, DBSession } from "@/types";
+import type { DBClient, DBBlock, BlockSummary, DBSession, SetLog } from "@/types";
 import { buildSixWeekUpdateHtml } from "@/lib/email-templates/six-week-update";
 import type { SixWeekUpdateData } from "@/lib/email-templates/six-week-update";
 import { buildFourWeekUpdateHtml } from "@/lib/email-templates/four-week-update";
 import type { FourWeekUpdateData } from "@/lib/email-templates/four-week-update";
 import { buildFlexibleUpdateHtml } from "@/lib/email-templates/flexible-update";
 import type { FlexibleSection } from "@/lib/email-templates/flexible-update";
-import { getAiConfig, aiChat } from "@/lib/ai-client";
+import { getAiConfig, aiChat, QUALITY_MODEL, type AiConfig } from "@/lib/ai-client";
 import { buildSessionLogSection } from "@/lib/session-log-summary";
 import { buildComplianceSection } from "@/lib/compliance-summary";
+import { buildStrengthProgressionSection } from "@/lib/strength-progression-summary";
 
 export interface UpdateDraft {
   subject: string;
@@ -60,6 +61,7 @@ function clientContextBlock(
   conversationSummary?: string,
   sessionLogSection?: string,
   complianceSection?: string,
+  strengthSection?: string,
 ): string {
   let text = `Client: ${clientName}
 
@@ -78,6 +80,9 @@ ${conversationSummary ? `\nEsther's notes from a chat about this update — this
 
   if (sessionLogSection) {
     text += `\n\nRECENT SESSION LOG:\n${sessionLogSection}\n`;
+  }
+  if (strengthSection) {
+    text += `\n\n${strengthSection}\n`;
   }
   if (complianceSection) {
     text += `\n\nCOMPLIANCE STATUS:\n${complianceSection}\n`;
@@ -135,6 +140,11 @@ export async function generateUpdateDraft(
     .order("block_number", { ascending: false })
     .limit(1);
 
+  const sessionIds = (sessions ?? []).map((s) => s.id);
+  const { data: setLogs } = sessionIds.length > 0
+    ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
+    : { data: [] as SetLog[] };
+
   const blocks = (completedBlocks || []) as DBBlock[];
   const nextBlock = (latestPlanned?.[0] as DBBlock) || null;
   const summaries = (dbClient.block_summaries || []) as BlockSummary[];
@@ -143,21 +153,22 @@ export async function generateUpdateDraft(
 
   const sessionLogSection = buildSessionLogSection((sessions ?? []) as DBSession[]);
   const complianceSection = buildComplianceSection(dbClient);
+  const strengthSection = buildStrengthProgressionSection((setLogs ?? []) as SetLog[]);
 
   if (templateKind === "flexible_update") {
     return aiConfig.provider
-      ? generateFlexibleViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection)
+      ? generateFlexibleViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection, strengthSection)
       : generateFlexibleFallback(dbClient.name, blockNumber);
   }
 
   if (templateKind === "four_week_update") {
     return aiConfig.provider
-      ? generateFourWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection)
+      ? generateFourWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection, strengthSection)
       : generateFourWeekFallback(profile, blocks, summaries, nextBlock, dbClient.name, blockNumber);
   }
 
   return aiConfig.provider
-    ? generateSixWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection)
+    ? generateSixWeekViaAi(aiConfig, profile, blocks, summaries, nextBlock, dbClient.name, blockNumber, options.conversationSummary, sessionLogSection, complianceSection, strengthSection)
     : generateSixWeekFallback(profile, blocks, summaries, nextBlock, dbClient.name, blockNumber);
 }
 
@@ -247,7 +258,7 @@ function generateSixWeekFallback(
 }
 
 async function generateSixWeekViaAi(
-  aiConfig: import("@/lib/ai-client").AiConfig,
+  aiConfig: AiConfig,
   profile: unknown,
   blocks: DBBlock[],
   summaries: BlockSummary[],
@@ -257,11 +268,12 @@ async function generateSixWeekViaAi(
   conversationSummary?: string,
   sessionLogSection?: string,
   complianceSection?: string,
+  strengthSection?: string,
 ): Promise<UpdateDraft> {
   const system = systemPreamble();
   const user = `Write a 6-week update email for ${clientName}. Here is what I know:
 
-${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
+${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection, strengthSection)}
 Return valid JSON with these fields:
 {
   "subject": "string",
@@ -274,7 +286,8 @@ Return valid JSON with these fields:
 
 No markdown, no preamble, no explanation.`;
 
-  const text = await aiChat({ system, user, maxTokens: 4000 });
+  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const text = await aiChat({ system, user, maxTokens: 4000, model });
   if (!text) throw new Error("AI returned no response");
   const parsed = parseAiJson(text);
 
@@ -324,7 +337,7 @@ function generateFourWeekFallback(
 }
 
 async function generateFourWeekViaAi(
-  aiConfig: import("@/lib/ai-client").AiConfig,
+  aiConfig: AiConfig,
   profile: unknown,
   blocks: DBBlock[],
   summaries: BlockSummary[],
@@ -334,11 +347,12 @@ async function generateFourWeekViaAi(
   conversationSummary?: string,
   sessionLogSection?: string,
   complianceSection?: string,
+  strengthSection?: string,
 ): Promise<UpdateDraft> {
   const system = systemPreamble();
   const user = `Write a 4-week update email for ${clientName}. Here is what I know:
 
-${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
+${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection, strengthSection)}
 Return valid JSON with these fields:
 {
   "subject": "string",
@@ -353,7 +367,8 @@ Return valid JSON with these fields:
 
 No markdown, no preamble, no explanation.`;
 
-  const text = await aiChat({ system, user, maxTokens: 4000 });
+  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const text = await aiChat({ system, user, maxTokens: 4000, model });
   if (!text) throw new Error("AI returned no response");
   const parsed = parseAiJson(text);
 
@@ -398,7 +413,7 @@ function generateFlexibleFallback(clientName: string, blockNumber: number): Upda
 }
 
 async function generateFlexibleViaAi(
-  aiConfig: import("@/lib/ai-client").AiConfig,
+  aiConfig: AiConfig,
   profile: unknown,
   blocks: DBBlock[],
   summaries: BlockSummary[],
@@ -408,6 +423,7 @@ async function generateFlexibleViaAi(
   conversationSummary?: string,
   sessionLogSection?: string,
   complianceSection?: string,
+  strengthSection?: string,
 ): Promise<UpdateDraft> {
   const system = `${systemPreamble()}
 
@@ -425,7 +441,7 @@ breakdown for X yet]" is never an acceptable section — Esther's input always h
 write something real about every topic she raised.`;
   const user = `Write a training update email for ${clientName}. Here is what I know:
 
-${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection)}
+${clientContextBlock(clientName, profile, blocks, summaries, nextBlock, conversationSummary, sessionLogSection, complianceSection, strengthSection)}
 Return valid JSON with this shape:
 {
   "subject": "string",
@@ -439,7 +455,8 @@ Return valid JSON with this shape:
 
 Use as many section entries as the conversation actually calls for. No markdown, no preamble, no explanation.`;
 
-  const text = await aiChat({ system, user, maxTokens: 4000 });
+  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const text = await aiChat({ system, user, maxTokens: 4000, model });
   if (!text) throw new Error("AI returned no response");
   const parsed = parseAiJson(text);
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getPageContentBlocks } from "@/lib/pageContent";
 import PricingPageClient from "./PricingPageClient";
 
 const pricingSchema = {
@@ -51,12 +50,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://eternal-fitness.co.uk/pricing" },
 };
 
-export default async function PricingPage() {
-  const content = await getPageContentBlocks("pricing");
+export default function PricingPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingSchema) }} />
-      <PricingPageClient content={content} />
+      <PricingPageClient />
     </>
   );
 }

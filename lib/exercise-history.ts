@@ -82,7 +82,7 @@ export function buildExerciseHistory(logs: SetLog[]): ExerciseHistoryEntry[] {
   }>();
 
   for (const log of logs) {
-    if (!log || !log.exercise_ref || !log.completed) continue;
+    if (!log || !log.exercise_ref || !log.completed || log.is_warmup) continue;
     const name = parseExerciseName(log.exercise_ref);
 
     let ex = byExercise.get(name);

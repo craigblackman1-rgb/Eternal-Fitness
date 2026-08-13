@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase-server";
-import { getAiConfig, aiChatStream } from "@/lib/ai-client";
+import { getAiConfig, aiChatStream, QUALITY_MODEL } from "@/lib/ai-client";
 import { buildParqSection } from "@/lib/parq-summary";
 import { buildRecentUpdatesSection } from "@/lib/recent-updates-summary";
 import { buildSessionLogSection } from "@/lib/session-log-summary";
 import { buildComplianceSection } from "@/lib/compliance-summary";
+import { buildStrengthProgressionSection } from "@/lib/strength-progression-summary";
 import { getTemplateKind } from "@/lib/email-templates/registry";
-import type { BlockSummary, DBBlock, DBClient, DBSession, SentUpdate, SignedPARQ } from "@/types";
+import type { BlockSummary, DBBlock, DBClient, DBSession, SentUpdate, SetLog, SignedPARQ } from "@/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -19,6 +20,7 @@ function buildSystemPrompt(
   parq: SignedPARQ | null,
   recentUpdates: SentUpdate[],
   sessions: DBSession[],
+  setLogs: SetLog[],
   templateKindId: string,
 ): string {
   const kind = getTemplateKind(templateKindId);
@@ -78,6 +80,10 @@ ${buildSessionLogSection(sessions)}
 
 ---
 
+${buildStrengthProgressionSection(setLogs)}
+
+---
+
 COMPLIANCE STATUS:
 ${buildComplianceSection(client)}`;
 }
@@ -132,6 +138,11 @@ export async function POST(request: Request) {
         .order("session_number", { ascending: true })
     : { data: null };
 
+  const sessionIds = (sessions ?? []).map((s) => s.id);
+  const { data: setLogs } = sessionIds.length > 0
+    ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
+    : { data: [] as SetLog[] };
+
   const { data: parq } = await supabase
     .from("signed_parq")
     .select("*")
@@ -154,8 +165,15 @@ export async function POST(request: Request) {
     parq,
     recentUpdates ?? [],
     (sessions ?? []) as DBSession[],
+    (setLogs ?? []) as SetLog[],
     templateKind || "six_week_update",
   );
+
+  // Quality-critical (feeds the same voice/clinical-accuracy bar as the Plan
+  // Agent) — always request QUALITY_MODEL rather than whatever cheaper
+  // default is configured elsewhere. This route never applied that override
+  // before now; it was silently running on aiConfig's plain default.
+  const updateModel = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
 
   let readable: ReadableStream<Uint8Array> | null;
   try {
@@ -163,11 +181,12 @@ export async function POST(request: Request) {
       system: systemPrompt,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
       maxTokens: 4000,
+      model: updateModel,
     });
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 300) : "unknown error";
-    console.error(`[update-chat] AI stream failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`);
-    return new Response(`Update Agent failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`, { status: 502 });
+    console.error(`[update-chat] AI stream failed via ${aiConfig.provider} (${updateModel}): ${detail}`);
+    return new Response(`Update Agent failed via ${aiConfig.provider} (${updateModel}): ${detail}`, { status: 502 });
   }
 
   if (!readable) {

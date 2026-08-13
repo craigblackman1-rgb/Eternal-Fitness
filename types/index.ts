@@ -215,6 +215,15 @@ export interface Exercise {
    *  'time' measures a single duration. Absent on legacy data; the reader
    *  falls back to a regex guess on the `reps` string for old sessions. */
   log_type?: 'reps' | 'time';
+  /** Persistent identity set by the migration and preserved by ensureUids.
+   *  Optional so nothing that constructs an Exercise object needs to change. */
+  uid?: string;
+  /** First N of `sets` are warm-up. Absent on all current data —
+   *  the badge simply won't show on existing sessions. */
+  warmup_sets?: number;
+  /** Only set when Esther manually corrects the unit for this exercise.
+   *  Absent → derived from equipment at read time (band → lb, else kg). */
+  weight_unit?: 'kg' | 'lb';
 }
 
 export interface SessionVersion {
@@ -257,10 +266,19 @@ export interface Session {
   coaching_notes: string;
   client_intro: string;
   session_log?: SessionLog;
+  /** Per-exercise notes keyed by persistent uid, saved via debounced PATCH. */
+  exercise_notes?: Record<string, string>;
+  /** Optional override for the session duration display;
+   *  absent → derived from time_tier via sessionDurationMinutes(). */
+  estimated_minutes?: number;
 }
 
 export interface SessionLog {
   completed_at: string | null;
+  /** Set when a trainer opens the live session screen and begins logging.
+   *  Absent on legacy data. Drives the "in progress" state on the mobile
+   *  Today screen and the desktop editor's "live on phone" lock banner. */
+  started_at?: string | null;
   rpe?: number | null;
   fatigue: "low" | "moderate" | "high" | null;
   notes: string;
@@ -279,6 +297,11 @@ export interface SetLog {
   weight_kg: number | null;
   duration_seconds: number | null;
   completed: boolean;
+  /** True when this set is one of the exercise's prescribed warm-up sets
+   *  (the first N of its `sets`). Warm-up sets never register as a personal
+   *  best and are excluded from PB/trend history. Absent (undefined) on
+   *  Trainerize-imported rows — treated as false. */
+  is_warmup?: boolean;
   logged_by: "trainer" | "client";
   logged_at: string;
   notes: string | null;

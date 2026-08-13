@@ -17,8 +17,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/contact`, priority: 0.8, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/faqs`, priority: 0.7, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/testimonials`, priority: 0.7, changeFrequency: "monthly" as const },
-    // First condition page re-enabled (2026-08-11) — the rest stay redirected.
-    { url: `${baseUrl}/exercise-for-health/visual-impairment`, priority: 0.7, changeFrequency: "monthly" as const },
+    // VI page (2026-08-11), at its post-restructure top-level slug.
+    { url: `${baseUrl}/visual-impairment`, priority: 0.7, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/privacy-policy`, priority: 0.5, changeFrequency: "yearly" as const },
     { url: `${baseUrl}/terms`, priority: 0.5, changeFrequency: "yearly" as const },
     { url: `${baseUrl}/cookies-policy`, priority: 0.5, changeFrequency: "yearly" as const },

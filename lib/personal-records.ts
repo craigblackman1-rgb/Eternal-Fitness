@@ -28,6 +28,9 @@ export async function checkAndUpsertPB(
   log: SetLog,
 ): Promise<boolean> {
   if (!log.completed) return false;
+  // Warm-up sets can never register as a personal best — regardless of the
+  // weight/duration logged, a warm-up is not a working set.
+  if (log.is_warmup) return false;
 
   const pool = getPool();
 
@@ -78,14 +81,21 @@ export async function checkAndUpsertPB(
 
   if (!isPb || !pbMetric || pbValue == null) return false;
 
-  // Upsert into personal_records — idempotent, last-save-wins
+  // Upsert into personal_records — idempotent, and never downgrades an existing PB:
+  // GREATEST keeps the higher of the two values, so a delayed/replayed lower write
+  // cannot silently overwrite a real higher PB (last-write-wins would). achieved_at
+  // only advances when the incoming value actually beats the stored one.
   await pool.query(
     `INSERT INTO personal_records
        (client_id, exercise, metric, value, rep_count, achieved_at, source)
      VALUES ($1, $2, $3, $4, $5, $6, 'live_log')
      ON CONFLICT (client_id, exercise, metric, rep_count)
-     DO UPDATE SET value = EXCLUDED.value,
-                   achieved_at = EXCLUDED.achieved_at`,
+     DO UPDATE SET
+       value = GREATEST(personal_records.value, EXCLUDED.value),
+       achieved_at = CASE
+         WHEN EXCLUDED.value > personal_records.value THEN EXCLUDED.achieved_at
+         ELSE personal_records.achieved_at
+       END`,
     [clientId, exerciseName, pbMetric, pbValue, pbRepCount, log.logged_at ?? log.created_at],
   );
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getPageContentBlocks } from "@/lib/pageContent";
 import HomePageClient from "./HomePageClient";
 
 const localBusinessSchema = {
@@ -64,13 +63,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://eternal-fitness.co.uk/" },
 };
 
-export default async function HomePage() {
-  const content = await getPageContentBlocks("home");
+export default function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
-      <HomePageClient content={content} />
+      <HomePageClient />
     </>
   );
 }

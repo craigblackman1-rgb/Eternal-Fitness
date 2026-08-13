@@ -1,0 +1,64 @@
+import { createClient } from "@/lib/supabase-server";
+import { notFound } from "next/navigation";
+import type { DBSession, SetLog, DeliveryMode } from "@/types";
+import { sessionDurationMinutes } from "@/lib/scheduling";
+import { TrainScreen } from "./TrainScreen";
+
+export default async function TrainSessionPage({ params }: { params: { sessionId: string } }) {
+  const supabase = createClient();
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("*")
+    .eq("id", params.sessionId)
+    .single();
+
+  if (!session) notFound();
+
+  const { data: block } = await supabase
+    .from("blocks")
+    .select("id, client_id, block_number")
+    .eq("id", session.block_id)
+    .single();
+
+  let client: { name: string; client_number: number | null; delivery_mode: DeliveryMode } | null = null;
+  if (block) {
+    const { data: c } = await supabase
+      .from("clients")
+      .select("name, client_number, delivery_mode")
+      .eq("id", block.client_id)
+      .single();
+    client = c ?? null;
+  }
+
+  const { data: setLogs } = await supabase
+    .from("set_logs")
+    .select("*")
+    .eq("session_id", params.sessionId)
+    .order("exercise_ref", { ascending: true })
+    .order("set_number", { ascending: true });
+
+  const blockNumber = block?.block_number ?? null;
+  const sessionRow = session as DBSession;
+  const sessionData = sessionRow.data ?? null;
+  const sessionLog = sessionData?.session_log ?? null;
+  const deliveryMode: DeliveryMode = client?.delivery_mode ?? "studio_1to1";
+
+  return (
+    <TrainScreen
+      sessionId={sessionRow.id}
+      sessionNumber={sessionRow.session_number}
+      archetype={sessionRow.archetype}
+      phase={sessionRow.phase}
+      week={sessionRow.week}
+      data={sessionData}
+      sessionLog={sessionLog}
+      scheduledAt={sessionRow.scheduled_at ?? null}
+      blockNumber={blockNumber}
+      clientName={client?.name ?? "Unknown client"}
+      clientNumber={client?.client_number ?? null}
+      setLogs={(setLogs ?? []) as SetLog[]}
+      deliveryMode={deliveryMode}
+    />
+  );
+}

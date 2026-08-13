@@ -21,6 +21,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise } from "@/types";
 import { IconChevronLeft } from "@/components/icons";
+import { computeGroups } from "@/lib/exercise-groups";
+import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, formatPrescription } from "@/lib/prescription";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -43,68 +45,6 @@ interface ExState {
   sets: SetState[];
   note: string;
   noteOpen: boolean;
-}
-
-interface GroupBlock {
-  type: "group";
-  label: string;
-  items: Exercise[];
-}
-
-interface SingleBlock {
-  type: "single";
-  ex: Exercise;
-}
-
-type Block = GroupBlock | SingleBlock;
-
-function computeBlocks(exercises: Exercise[]): Block[] {
-  const blocks: Block[] = [];
-  let i = 0;
-  while (i < exercises.length) {
-    const e = exercises[i];
-    if (e.group_label) {
-      const items = [e];
-      let j = i + 1;
-      while (j < exercises.length && exercises[j].group_label === e.group_label) {
-        items.push(exercises[j]);
-        j++;
-      }
-      if (items.length > 1) {
-        blocks.push({ type: "group", label: e.group_label, items });
-      } else {
-        blocks.push({ type: "single", ex: e });
-      }
-      i = j;
-    } else {
-      blocks.push({ type: "single", ex: e });
-      i++;
-    }
-  }
-  return blocks;
-}
-
-function isTimeBased(reps: string, logType?: "reps" | "time"): boolean {
-  if (logType === "time") return true;
-  if (logType === "reps") return false;
-  return /\d\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i.test(reps || "");
-}
-
-function parseLeadingNumber(str: string): number | null {
-  const m = /^(\d+)/.exec(String(str).trim());
-  return m ? parseInt(m[1], 10) : null;
-}
-
-function parsePrescribedSeconds(reps: string): number | null {
-  const m = (reps || "").match(/(\d+)\s*(s|sec|secs|second|seconds|min|mins|minute|minutes)\b/i);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return /^m/i.test(m[2]) ? n * 60 : n;
-}
-
-function parsePrescribedReps(reps: string): number | null {
-  const m = (reps || "").match(/\d+/);
-  return m ? parseInt(m[0], 10) : null;
 }
 
 function exerciseRefKey(version: string, section: SectionKey, index: number, name: string): string {
@@ -462,7 +402,7 @@ export function LiveSessionLog({
 
         {SECTION_DEFS.map((sec) => {
           const list = sections[sec.key] || [];
-          const blocks = computeBlocks(list);
+          const blocks = computeGroups(list);
           const isCollapsed = !!collapsed[sec.key];
           const doneCount = list.filter((_, idx) => {
             const ref = exerciseRefKey(version, sec.key, idx, list[idx].exercise_name);
@@ -519,10 +459,10 @@ export function LiveSessionLog({
                       </div>
                     ) : (
                       <ExerciseCard
-                        key={block.ex.exercise_name}
-                        exercise={block.ex}
-                        state={exStates[exerciseRefKey(version, sec.key, list.indexOf(block.ex), block.ex.exercise_name)]}
-                        exerciseRef={exerciseRefKey(version, sec.key, list.indexOf(block.ex), block.ex.exercise_name)}
+                        key={block.items[0].exercise_name}
+                        exercise={block.items[0]}
+                        state={exStates[exerciseRefKey(version, sec.key, list.indexOf(block.items[0]), block.items[0].exercise_name)]}
+                        exerciseRef={exerciseRefKey(version, sec.key, list.indexOf(block.items[0]), block.items[0].exercise_name)}
                         onSetDone={handleSetDone}
                         onSetSkip={handleSetSkip}
                         onSetField={handleSetField}
@@ -747,9 +687,7 @@ function ExerciseCard({
             </div>
           )}
           <p className="text-[12.5px] text-muted-foreground mt-2 pt-2 border-t border-dashed border-[var(--hub-border)]">
-            <b className="text-foreground font-bold">Prescribed:</b> {exercise.sets ?? 1} × {exercise.reps || "—"}
-            {exercise.tempo && exercise.tempo !== "—" ? ` @ tempo ${exercise.tempo}` : ""}
-            {exercise.rest && exercise.rest !== "—" ? ` · ${exercise.rest} rest` : ""}
+            <b className="text-foreground font-bold">Prescribed:</b> {formatPrescription(exercise)}
           </p>
         </div>
         <button

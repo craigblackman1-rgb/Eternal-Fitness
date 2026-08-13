@@ -15,16 +15,17 @@ const navItems: NavItem[] = [
   { label: "About", to: "/about" },
   { label: "Personal Training", to: "/personal-training" },
   {
-    // Interim single-child dropdown: the parent links straight to the one live
-    // specialist page until the /specialist-training hub ships from staging.
     label: "Specialist Training",
-    to: "/exercise-for-health/visual-impairment",
+    to: "/specialist-training",
     children: [
-      { label: "Blind & Partially Sighted", to: "/exercise-for-health/visual-impairment" },
+      { label: "Blind & Partially Sighted", to: "/visual-impairment" },
+      { label: "Cancer Rehabilitation", to: "/cancer-rehabilitation" },
+      { label: "Strength, Balance & Falls", to: "/falls-prevention" },
     ],
   },
   { label: "Pricing", to: "/pricing" },
   { label: "Client Stories", to: "/testimonials" },
+  { label: "Blog", to: "/blog" },
   { label: "FAQs", to: "/faqs" },
   { label: "Contact", to: "/contact" },
 ];
@@ -36,9 +37,13 @@ const pageTitles: Record<string, string> = {
   "/": "Home",
   "/about": "About",
   "/personal-training": "Personal Training",
-  "/exercise-for-health/visual-impairment": "Blind & Partially Sighted",
+  "/specialist-training": "Specialist Training",
+  "/visual-impairment": "Blind & Partially Sighted",
+  "/cancer-rehabilitation": "Cancer Rehabilitation",
+  "/falls-prevention": "Strength, Balance & Falls",
   "/pricing": "Pricing",
   "/testimonials": "Client Stories",
+  "/blog": "Blog",
   "/faqs": "FAQs",
   "/contact": "Contact",
 };

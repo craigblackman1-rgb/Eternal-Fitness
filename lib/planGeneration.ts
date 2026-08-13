@@ -77,7 +77,7 @@ export function getWeeklyArchetypes(spw: number, weekIndex: number, primaryGoal:
  *  provider-aware — a bare PLAN_MODEL override must use the id format of
  *  whichever provider is configured (OpenRouter: "anthropic/claude-…",
  *  Anthropic direct: "claude-…"). */
-function resolvePlanModel(): string {
+export function resolvePlanModel(): string {
   if (process.env.PLAN_MODEL) return process.env.PLAN_MODEL;
   return getAiConfig().provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
 }
@@ -106,6 +106,37 @@ function buildSessionSlots(profile: ClientProfile): SessionSlot[] {
   return slots;
 }
 
+/** Caps how many session-generation calls are in flight at once. Every call
+ *  resends the full (~35-40k token) system prompt, so unbounded concurrency
+ *  turns one "Generate Block" click into a burst of up to 18 simultaneous
+ *  full-context AI calls — this is what actually drained ~£30 of OpenRouter
+ *  credit in 5 minutes on 2026-08-13. Throttling doesn't reduce total tokens
+ *  sent, but it caps how much can be spent before Esther (or a bug) has a
+ *  chance to notice something's wrong and stop. Overridable via env for
+ *  tuning against serverless time limits. */
+const GENERATION_CONCURRENCY = Number(process.env.PLAN_GENERATION_CONCURRENCY) || 4;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      try {
+        results[i] = { status: "fulfilled", value: await fn(items[i], i) };
+      } catch (reason) {
+        results[i] = { status: "rejected", reason };
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 export async function generateViaAi(
   profile: ClientProfile,
   paceMode: string | null,
@@ -119,12 +150,8 @@ export async function generateViaAi(
   const index = buildExerciseIndex(bundle.allExercises);
   const system = buildGenerationSystemPrompt(profile, bundle, split, template);
 
-  // Generate sessions concurrently — one call each — so the route completes
-  // well within serverless limits even for a full 3x/week block (18 calls).
-  const settled = await Promise.allSettled(
-    slots.map((slot) =>
-      generateOneSession(profile, paceMode, slot, bundle, split, index, system, blockNote, previousSummary),
-    ),
+  const settled = await mapWithConcurrency(slots, GENERATION_CONCURRENCY, (slot) =>
+    generateOneSession(profile, paceMode, slot, bundle, split, index, system, blockNote, previousSummary),
   );
 
   const sessions: Session[] = [];
@@ -276,58 +303,63 @@ async function generateOneSession(
   const text = await aiChat({ system, user, model: PLAN_MODEL, maxTokens: 8000 });
   if (!text) throw new Error("AI returned no response");
 
-  let parsed: Partial<Session>;
+  // At most ONE repair round-trip, whatever the cause (bad JSON, or valid JSON
+  // that violates the exercise/equipment/muscle-group rules) — this bounds
+  // every session to a hard ceiling of 2 AI calls (was up to 3: base + a
+  // JSON-repair call + a separate validation-repair call). Each call resends
+  // the full system prompt, so removing that third call cuts the worst-case
+  // token spend per session by a third. Trade-off: a session that fails BOTH
+  // parsing and validation gets only one combined shot at fixing both before
+  // hard-failing — the whole block generation already aborts on any session
+  // failure (see generateViaAi), so failing fast here is preferable to a
+  // second silent full-context retry.
+  let parsed: Partial<Session> | undefined;
+  let parseError: string | undefined;
   try {
     parsed = parseSessionObject(text);
-  } catch (firstErr) {
-    const detail = firstErr instanceof Error ? firstErr.message : "invalid JSON";
-    const repaired = await aiChat({
-      system,
-      messages: [
-        { role: "user", content: user },
-        { role: "assistant", content: text },
-        {
-          role: "user",
-          content: `That response failed JSON parsing (${detail}). Return the same session as a single valid JSON object. Output ONLY the JSON object — no markdown fences, no commentary, no trailing commas.`,
-        },
-      ],
-      model: PLAN_MODEL,
-      maxTokens: 8000,
-    });
-    if (!repaired) throw firstErr;
-    parsed = parseSessionObject(repaired);
+  } catch (err) {
+    parseError = err instanceof Error ? err.message : "invalid JSON";
   }
 
-  // Deterministic enforcement: library membership, studio equipment, and the
-  // split's muscle-group contract. One corrective round-trip with the exact
-  // violations named; hard failure only if the model still can't comply.
-  let session = stampSession(parsed, profile, slot, archetypeFocusLabels);
-  let violations = validateGeneratedSession(session, index, studioEquipmentNames, split);
+  let session: Session | undefined;
+  let violations = parsed ? validateGeneratedSession(
+    (session = stampSession(parsed, profile, slot, archetypeFocusLabels)),
+    index,
+    studioEquipmentNames,
+    split,
+  ) : [];
 
-  if (violations.length > 0) {
-    const violationText = violations.map((v) => `- ${v.detail}`).join("\n");
+  if (parseError || violations.length > 0) {
+    const feedback = parseError
+      ? `That response failed JSON parsing (${parseError}). Return the same session as a single valid JSON object. Output ONLY the JSON object — no markdown fences, no commentary, no trailing commas.`
+      : `That session fails validation:\n${violations.map((v) => `- ${v.detail}`).join("\n")}\n\nReturn the corrected session as a single valid JSON object (same shape). Fix every violation. Replacements must be chosen ONLY from the EXERCISE LIBRARY section, copying names exactly as written (no abbreviations, no equipment suffixes); use only studio-list equipment, and cover every muscle group in the split. Output ONLY the JSON object.`;
+
     const repaired = await aiChat({
       system,
       messages: [
         { role: "user", content: user },
-        { role: "assistant", content: JSON.stringify(parsed) },
-        {
-          role: "user",
-          content: `That session fails validation:\n${violationText}\n\nReturn the corrected session as a single valid JSON object (same shape). Fix every violation. Replacements must be chosen ONLY from the EXERCISE LIBRARY section, copying names exactly as written (no abbreviations, no equipment suffixes); use only studio-list equipment, and cover every muscle group in the split. Output ONLY the JSON object.`,
-        },
+        { role: "assistant", content: parsed ? JSON.stringify(parsed) : text },
+        { role: "user", content: feedback },
       ],
       model: PLAN_MODEL,
       maxTokens: 8000,
     });
-    if (repaired) {
+
+    if (!repaired) {
+      if (!parsed) throw new Error(parseError ?? "AI returned no repaired response");
+    } else {
       try {
-        session = stampSession(parseSessionObject(repaired), profile, slot, archetypeFocusLabels);
+        parsed = parseSessionObject(repaired);
+        session = stampSession(parsed, profile, slot, archetypeFocusLabels);
         violations = validateGeneratedSession(session, index, studioEquipmentNames, split);
-      } catch {
-        // keep the original session + violations; handled below
+      } catch (err) {
+        if (!session) throw err; // never had a parseable session at all — nothing to fall back to
+        // keep the pre-repair session + violations; handled below
       }
     }
   }
+
+  if (!session) throw new Error(parseError ?? "failed to produce a parseable session");
 
   const hardViolations = violations.filter((v) => v.type === "unknown_exercise" || v.type === "missing_muscle_groups");
   if (hardViolations.length > 0) {

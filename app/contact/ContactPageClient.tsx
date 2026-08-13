@@ -42,7 +42,7 @@ const ASK_HINTS = [
   "Anything you are unsure or nervous about — no question is too small",
 ];
 
-export default function ContactPageClient({ content = {} }: { content?: Record<string, string> }) {
+export default function ContactPageClient() {
   const { openBookingModal } = useBookingModal();
   const [form, setForm] = useState<FormData>(initialForm);
   const [sent, setSent] = useState(false);
@@ -110,11 +110,11 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         imageAlt="The kettlebell rack in the private Worthing studio"
         imageObjectPosition="50% 30%"
         imageObjectPositionWide="50% 38%"
-        eyebrow={content.hero_eyebrow ?? "Contact & Booking"}
-        heading={content.hero_heading ?? <>Let&apos;s Talk About <em>Where You Are Starting From</em></>}
-        subhead={content.hero_subhead ?? "There is no question too small or too complicated. Whether you are looking to get fitter, navigating an injury, or managing a health condition, let's have a relaxed, no-obligation conversation."}
-        primaryCta={{ label: content.hero_btn_primary ?? "Book a Free Consultation", href: "#form", arrow: true }}
-        secondaryCta={{ label: content.hero_btn_secondary ?? "Find the Studio", href: "#studio", variant: "outline" }}
+        eyebrow={"Contact & Booking"}
+        heading={<>Let&apos;s Talk About <em>Where You Are Starting From</em></>}
+        subhead={"There is no question too small or too complicated. Whether you are looking to get fitter, navigating an injury, or managing a health condition, let's have a relaxed, no-obligation conversation."}
+        primaryCta={{ label: "Book a Free Consultation", href: "#form", arrow: true }}
+        secondaryCta={{ label: "Find the Studio", href: "#studio", variant: "outline" }}
         badge={
           <div className="flex gap-3.5 items-start max-w-[340px] rounded-2xl bg-white/95 backdrop-blur-md shadow-lg p-5">
             <div className="w-10 h-10 rounded-full bg-rose/15 flex items-center justify-center shrink-0">
@@ -134,10 +134,10 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
           {/* Direct contact */}
           <div>
             <SectionHeading
-              eyebrow={content.direct_eyebrow ?? "Direct"}
+              eyebrow={"Direct"}
               eyebrowColor="teal"
-              heading={content.direct_heading ?? "Prefer to book directly?"}
-              intro={content.direct_intro ?? "If you use a screen reader and find the calendar grid cumbersome to navigate, you do not have to use it. You can skip the booking widget entirely and schedule your free 30-minute consultation by contacting me directly. Let me know what days or times suit you, and I will lock your appointment in manually."}
+              heading={"Prefer to book directly?"}
+              intro={"If you use a screen reader and find the calendar grid cumbersome to navigate, you do not have to use it. You can skip the booking widget entirely and schedule your free 30-minute consultation by contacting me directly. Let me know what days or times suit you, and I will lock your appointment in manually."}
             />
 
             <ul className="border-t border-border-warm list-none p-0 m-0" style={{ marginTop: 24 }}>
@@ -175,9 +175,9 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
           {/* Book online */}
           <div>
             <SectionHeading
-              eyebrow={content.booking_eyebrow ?? "Book Online"}
-              heading={content.booking_heading ?? "Book your free consultation"}
-              intro={content.booking_intro ?? "Choose a day and time that works for you — your first conversation is always free."}
+              eyebrow={"Book Online"}
+              heading={"Book your free consultation"}
+              intro={"Choose a day and time that works for you — your first conversation is always free."}
             />
             <div className="bg-white border border-border-warm rounded-2xl shadow-[0_4px_16px_rgba(30,24,20,.04),0_20px_48px_rgba(30,24,20,.07)] p-9 max-sm:p-7" style={{ marginTop: 28 }}>
               <button
@@ -205,10 +205,10 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         <div className="grid md:grid-cols-[.85fr_1.15fr] gap-16 items-start">
           <div>
             <SectionHeading
-              eyebrow={content.message_eyebrow ?? "By Email"}
+              eyebrow={"By Email"}
               eyebrowColor="teal"
-              heading={content.message_heading ?? "Rather send a message?"}
-              intro={content.message_intro ?? "If you are not ready to put something in the diary yet, write to me here instead. It comes straight through to my inbox and I answer it myself — usually within one working day."}
+              heading={"Rather send a message?"}
+              intro={"If you are not ready to put something in the diary yet, write to me here instead. It comes straight through to my inbox and I answer it myself — usually within one working day."}
             />
             <ul className="list-none p-0 grid gap-[11px]" style={{ marginTop: 22 }}>
               {ASK_HINTS.map((hint) => (
@@ -354,9 +354,9 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
           </figure>
           <div>
             <SectionHeading
-              eyebrow={content.map_eyebrow ?? "Location"}
-              heading={content.map_heading ?? "Studio location details"}
-              intro={content.map_intro ?? "If you have successfully booked your slot via the calendar above, your appointment is confirmed. Sessions take place in a private studio in Worthing, West Sussex, used exclusively for one-to-one training — there is no public gym floor, no other clients present, and no waiting around."}
+              eyebrow={"Location"}
+              heading={"Studio location details"}
+              intro={"If you have successfully booked your slot via the calendar above, your appointment is confirmed. Sessions take place in a private studio in Worthing, West Sussex, used exclusively for one-to-one training — there is no public gym floor, no other clients present, and no waiting around."}
             />
             <ul className="border-t border-border-warm list-none p-0 m-0" style={{ marginTop: 22 }}>
               <li className="flex gap-4 py-[22px] border-b border-border-warm items-start">
@@ -386,11 +386,11 @@ export default function ContactPageClient({ content = {} }: { content?: Record<s
         image="/images/esther-headshot-smile.jpg"
         imageAlt="Esther Fair smiling"
         imagePosition="center 30%"
-        eyebrow={content.cta_eyebrow ?? "Not Sure Where to Start?"}
-        heading={content.cta_heading ?? "That is completely normal."}
-        body={content.cta_body ?? "Book online or give me a call and we can have an informal chat — no pressure, no commitment."}
-        primaryCta={{ label: content.cta_btn_primary ?? "Call me now", href: "tel:07517658128" }}
-        secondaryCta={{ label: content.cta_btn_secondary ?? "Book online", href: "#form" }}
+        eyebrow={"Not Sure Where to Start?"}
+        heading={"That is completely normal."}
+        body={"Book online or give me a call and we can have an informal chat — no pressure, no commitment."}
+        primaryCta={{ label: "Call me now", href: "tel:07517658128" }}
+        secondaryCta={{ label: "Book online", href: "#form" }}
       />
       </main>
       <Footer />

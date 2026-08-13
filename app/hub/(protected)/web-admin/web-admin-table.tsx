@@ -33,31 +33,30 @@ interface PageKeyword {
 
 type Visibility = "live" | "disabled" | "not_built";
 
-// Mirrors next.config.js's temporary (permanent: false) redirects — these
-// pages are built but bounced to "/" until the disabled block is lifted.
-// Update this alongside next.config.js if that block changes.
-const DISABLED_SLUGS = new Set([
-  "blog",
-  "cancer-rehabilitation",
-  "exercise-for-health",
-  "high-blood-pressure",
-  "bone-health",
-  "visual-impairment",
-]);
+// Mirrors next.config.js's temporary (permanent: false) redirects — pages that
+// are built but bounced to "/". The 2026-07-27 launch-scope block was lifted on
+// 2026-08-10 (blog and the specialist pages are live again), so this is empty.
+// Update this alongside next.config.js if anything is disabled again.
+const DISABLED_SLUGS = new Set<string>([]);
 
-// Condition sub-pages seeded into page_keywords for planning purposes but
-// with no page.tsx in the repo yet — see 20260721_site_content_full_inventory.sql.
+// Slugs seeded into page_keywords for planning purposes but with no page.tsx in
+// the repo — see 20260721_site_content_full_inventory.sql. The first five were
+// never built; the last three were retired in the 2026-08-10 restructure that
+// narrowed the site to three specialisms (they 301 to /specialist-training).
 const NOT_BUILT_SLUGS = new Set([
   "type-2-diabetes",
   "copd",
   "heart-conditions",
   "chronic-pain",
   "adaptive-training",
+  "exercise-for-health",
+  "high-blood-pressure",
+  "bone-health",
 ]);
 
 function getVisibility(row: PageKeyword): Visibility {
   if (NOT_BUILT_SLUGS.has(row.page_slug)) return "not_built";
-  if (row.page_type === "blog" || DISABLED_SLUGS.has(row.page_slug)) return "disabled";
+  if (DISABLED_SLUGS.has(row.page_slug)) return "disabled";
   return "live";
 }
 

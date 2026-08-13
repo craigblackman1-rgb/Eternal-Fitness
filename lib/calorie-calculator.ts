@@ -131,7 +131,8 @@ export function fmtNumber(n: number): string {
 }
 
 /** kg ↔ stone/pounds conversion */
-export const LB_TO_KG = 0.45359237;
+import { LB_TO_KG } from "./units";
+export { LB_TO_KG };
 
 export function kgToStLb(kg: number): { st: number; lb: number } {
   const lb = kg / LB_TO_KG;

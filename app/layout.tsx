@@ -1,9 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import "./design-system.css";
 import { Providers } from "@/components/Providers";
 import { Analytics } from "@/components/Analytics";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
