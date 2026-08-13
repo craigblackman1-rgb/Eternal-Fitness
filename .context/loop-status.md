@@ -386,3 +386,104 @@ WAL archive on db-vps (psql peer auth failed) and staging-on-live-email-creds
 
 **Resume point:** phase 2 = 5 non-EF orphans + 4 untagged deferred (`dmsnm1nvf7o`).
 Do NOT redo lanes A/B — both merged.
+
+---
+
+## 2026-08-13 — SESSION CLOSE: Esther's feedback (2 emails) + Plan Agent cost-runaway guardrails
+
+**Trigger:** yesterday's block generation burned ~£30 of OpenRouter credit in 5 minutes
+(no caching, no concurrency cap, Opus-tier default via OpenRouter). Same session, Craig
+then relayed two emails from Esther: direct bug/feature feedback ("hub") and a technical
+spec she drafted with Gemini's help ("gemini told me to tell you") proposing a "Coach
+Review Feed." Plan-mode investigation (two Explore agents) found the Review Feed concept
+already substantially exists as the Updates feature — the real gap was that it never used
+the client's actual `set_logs`/`personal_records` data. Later in the same session Craig
+also reported the Plan Agent was arguing with Esther's explicit instructions instead of
+just complying.
+
+**Shipped to `staging` then fast-forwarded to `main` (production) — commit `456100a`:**
+- `aec7198` — cost guardrails: `QUALITY_MODEL` default Opus 4.8 → DeepSeek V3.1 (~20x
+  cheaper, verified live on OpenRouter before committing), overridable via
+  `PLAN_QUALITY_MODEL_CLAUDE`/`PLAN_QUALITY_MODEL_OPENROUTER`; Anthropic prompt caching
+  wired (dormant until `ANTHROPIC_API_KEY` set); session-generation concurrency capped at
+  4 (was unbounded up to 18) via `PLAN_GENERATION_CONCURRENCY`; per-session repair loop
+  collapsed from up to 3 AI calls to a hard max of 2; new `lib/generationLock.ts` —
+  server-side lock stopping a second full generation firing for the same client while one
+  is in flight (survives a page refresh, unlike the old client-side disabled-button state).
+- `86f6a2d` — Esther's bug reports: scan/uploaded documents had no delete action on the
+  Compliance tab (delete already worked elsewhere, just suppressed for `source_type:
+  "scan"` rows in `DocumentRegister.tsx`); 4 checkboxes on the client edit page were
+  undraggable (decorative `<span>` sibling to a `sr-only` input, no click handler — fixed
+  by nesting the input inside the label, matching the working `SegmentedControl`
+  pattern); new `lib/strength-progression-summary.ts` feeds `set_logs`/`personal_records`
+  (via the existing `buildExerciseHistory()`) into both the update-chat draft conversation
+  and the final six/four-week/flexible generator.
+- `c225807` — found while live-verifying the above: `update-chat` and
+  `generate-six-week-update.ts` had never applied the `QUALITY_MODEL` override at all
+  (silently running the app's plain default, Claude Sonnet 5 via OpenRouter). Wired in for
+  consistency with `generate-block`/`plan-chat`.
+- `2aaedab` — Esther, separately: "Create a plan needs to be much easier – I had to have
+  an argument to get it to do what I needed it to do and still it had to have the last
+  word." Root cause: the chat prompt's programming defaults (muscle-group coverage,
+  build checklist, session formats) were worded as absolute ("must", "never", "not
+  acceptable and must not be produced") with nothing distinguishing them from the
+  genuinely non-negotiable HARD CONSTRAINTS/contraindications section — the model was
+  correctly following instructions that just didn't say Esther's live word outranks a
+  general default. Added an explicit authority hierarchy to `plan-chat/route.ts`'s system
+  prompt only (not the one-shot block generator, which has no back-and-forth to argue
+  in): her direct instruction wins, first time, no re-litigating; client-specific safety
+  constraints still get flagged, once, then followed.
+
+**Live-verified via claude-in-chrome (Craig's authenticated Chrome session) against
+`development.eternal-fitness.co.uk`, then re-confirmed after the main deploy:**
+document delete now present on all 3 rows on Anne Wareing's (#3) Compliance tab — did NOT
+click delete, presence-only check on real client data (two of her three documents are
+almost certainly the actual "Amanda's contract on Anne's profile" mistake Esther
+reported, dated 2 min apart); all 4 checkboxes toggle on click, reverted via Cancel,
+confirmed nothing persisted; strength-progression logic hand-traced against Tom Putnam's
+(#16) real `set_logs` before AI credit was available, then confirmed end-to-end once
+Craig topped up OpenRouter — live AI reply cited his exact real PBs (Barbell Back Squat
+60kg×8, DB Incline Press 18kg×12) with zero drift from the trace; plan-chat compliance
+tested twice in one live conversation with Tom, each instruction directly conflicting
+with a stated default (no core work; 2 sets not 3) — both accepted in one turn, no
+argument, no repeated objections, second test deliberately had no "don't debate me"
+framing from the operator to isolate the prompt fix from the request itself.
+
+**Found and flagged, NOT fixed (out of scope / not mine to fix):**
+- OpenRouter account hit its monthly budget cap (403) mid-session — blocked every AI
+  feature; Craig resolved it (a per-key limit distinct from account balance — topping up
+  the account alone didn't clear it). Confirms the "set a spend limit on the OpenRouter
+  key" guardrail recommended earlier is already live and did its job.
+- `set_logs.is_warmup` migration (`20260814_set_logs_is_warmup.sql`, part of `35f15b8`
+  above, a different session's work already merged to staging before this session) is
+  referenced by already-deployed code (`lib/exercise-history.ts`) but was never actually
+  run against the database — confirmed via direct query (`column "is_warmup" does not
+  exist"`). Not a crash risk (the check just silently no-ops), but the warm-up-exclusion
+  fix isn't actually active despite looking shipped. Not touched this session — belongs
+  to whoever owns that migration.
+
+**Gates:** Design Parity attested per-commit as N/A (bug fixes to existing UI + a
+prompt-only change, no governing mockup) or live-verified visually where UI changed;
+Scope diff run against re-fetched `origin/staging`/`origin/main` before every push, not
+just at session start; Ownership (`wo active`) re-checked immediately before every push,
+not once — staging moved three times under this session and was merged cleanly each
+time (zero file overlap with concurrent sessions' work, confirmed via `git show --stat`
+before each merge, not assumed). One real merge conflict resolved against `origin/main`
+(this file, append-only — kept both sessions' entries in chronological order, verified
+no conflict markers left via grep). tsc clean at every step, all the way through the
+final merge into main.
+
+**Deferred, logged as its own gated Work Order for discussion 2026-08-14:**
+`wo-templates-paste-and-assign-2026-08-14` — Esther is drafting workouts outside the hub
+with Claude directly (cut-and-paste of an agreed workout) and wants them in the hub as
+templates, then assigned to a client. Recommended shape captured in the WO note: a
+paste-box + cheap-AI-structuring entry point for templates (today only creatable via
+"Save as template" off an existing generated session), reusing the existing
+`TemplateEditorClient` for review and `rescaleTemplateSection` (already exists, just not
+exposed as a manual action) for the assign-to-client piece. Open question for the
+discussion: scope narrowly, or fold into the bigger unscoped templates/blocks/sessions
+design-consistency conversation that was also parked this session (Craig's own framing:
+too many different page designs across templates/blocks/sessions, no clear
+naming/conversion story). No code written.
+
+Session closed.
