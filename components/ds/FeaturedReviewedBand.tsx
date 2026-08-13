@@ -55,7 +55,7 @@ function Arrow() {
  * FitPro rather than that FitPro published her. `fitpro-press.png` is the
  * plain wordmark instead.
  */
-export function FeaturedReviewedBand() {
+export function FeaturedReviewedBand({ showPress = true }: { showPress?: boolean } = {}) {
   const rating = (
     <>
       <span className="fr-stars" aria-hidden="true">
@@ -79,49 +79,52 @@ export function FeaturedReviewedBand() {
   );
 
   return (
-    <section className="fr-band" aria-label="Featured in and reviewed">
+    <section className={`fr-band${showPress ? "" : " fr-band--rating-only"}`} aria-label={showPress ? "Featured in and reviewed" : "Reviewed"}>
       <div className="fr-inner">
-        <div className="fr-press">
-          <p className="fr-eyebrow">Featured in</p>
-          <div className="fr-lockups">
-            <div className="fr-item">
-              <a className="fr-link" href={FITPRO_URL} target="_blank" rel="noopener noreferrer">
+        {showPress ? (
+          <div className="fr-press">
+            <p className="fr-eyebrow">Featured in</p>
+            <div className="fr-lockups">
+              <div className="fr-item">
+                <a className="fr-link" href={FITPRO_URL} target="_blank" rel="noopener noreferrer">
+                  <span className="fr-mark">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- fixed-height logo slot, not a content image; images.unoptimized is set sitewide anyway */}
+                    <img src="/images/accreditations/fitpro-press.png" alt="FitPro" />
+                  </span>
+                  {/* Last word and the arrow are bound together so the arrow can
+                      never wrap onto a line by itself. */}
+                  <span className="fr-hook">
+                    On training blind and partially sighted{" "}
+                    <span className="fr-nowrap">
+                      clients
+                      <Arrow />
+                    </span>
+                  </span>
+                </a>
+              </div>
+
+              <div className="fr-item">
+                <p className="fr-eyebrow fr-eyebrow--repeat" aria-hidden="true">Featured in</p>
                 <span className="fr-mark">
                   {/* eslint-disable-next-line @next/next/no-img-element -- fixed-height logo slot, not a content image; images.unoptimized is set sitewide anyway */}
-                  <img src="/images/accreditations/fitpro-press.png" alt="FitPro" />
+                  <img src="/images/accreditations/storm-fitness-academy.webp" alt="Storm Fitness Academy" />
                 </span>
-                {/* Last word and the arrow are bound together so the arrow can
-                    never wrap onto a line by itself. */}
-                <span className="fr-hook">
-                  On training blind and partially sighted{" "}
-                  <span className="fr-nowrap">
-                    clients
+                <div className="fr-actions">
+                  <a className="fr-action" href={STORM_PODCAST_URL} target="_blank" rel="noopener noreferrer">
+                    <span className="fr-tag">Podcast</span>
+                    <span className="fr-action-label">Listen to the episode</span>
                     <Arrow />
-                  </span>
-                </span>
-              </a>
-            </div>
-
-            <div className="fr-item">
-              <span className="fr-mark">
-                {/* eslint-disable-next-line @next/next/no-img-element -- fixed-height logo slot, not a content image; images.unoptimized is set sitewide anyway */}
-                <img src="/images/accreditations/storm-fitness-academy.webp" alt="Storm Fitness Academy" />
-              </span>
-              <div className="fr-actions">
-                <a className="fr-action" href={STORM_PODCAST_URL} target="_blank" rel="noopener noreferrer">
-                  <span className="fr-tag">Podcast</span>
-                  <span className="fr-action-label">Listen to the episode</span>
-                  <Arrow />
-                </a>
-                <a className="fr-action" href={STORM_INTERVIEW_URL} target="_blank" rel="noopener noreferrer">
-                  <span className="fr-tag">Interview</span>
-                  <span className="fr-action-label">Read the full interview</span>
-                  <Arrow />
-                </a>
+                  </a>
+                  <a className="fr-action" href={STORM_INTERVIEW_URL} target="_blank" rel="noopener noreferrer">
+                    <span className="fr-tag">Interview</span>
+                    <span className="fr-action-label">Read the full interview</span>
+                    <Arrow />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="fr-rating-zone">
           {GOOGLE_REVIEWS_URL ? (

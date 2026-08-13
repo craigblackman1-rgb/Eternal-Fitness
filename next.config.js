@@ -54,19 +54,6 @@ const nextConfig = {
         permanent: true,
       },
 
-      // --- Renamed blog posts: REMOVED 2026-08-10 ---
-      // These three 301'd to managing-setbacks-in-your-recovery-journey,
-      // nutrition-for-energy-recovery and why-bmi-doesnt-matter-with-health-conditions.
-      // Verified against prod: none of those three slugs exist. The rename lives in
-      // 20260419_session_2_blog_repositioning.sql, which has NEVER BEEN APPLIED to the
-      // database (prod holds only the 27 original WordPress rows). So each rule was
-      // intercepting a post that does work and 301'ing it into a 404.
-      // Restore these only once that migration is actually applied.
-      // NOTE (2026-08-13): the claude/mobile-workout-features-6ddaba branch's own
-      // copy of this file still had these 3 stale rules (it predates the removal
-      // above) — deliberately dropped on merge rather than re-added, per the
-      // rationale already established here.
-
       // --- Canonical host: www -> apex ---
       // Coolify binds both hosts to this app, but everything canonical in the
       // codebase (NEXT_PUBLIC_SITE_URL default, sitemap, robots, metadata canonical
@@ -78,6 +65,15 @@ const nextConfig = {
         destination: "https://eternal-fitness.co.uk/:path*",
         permanent: true,
       },
+
+      // --- Renamed blog posts: REMOVED 2026-08-10 ---
+      // These three 301'd to managing-setbacks-in-your-recovery-journey,
+      // nutrition-for-energy-recovery and why-bmi-doesnt-matter-with-health-conditions.
+      // Verified against prod: none of those three slugs exist. The rename lives in
+      // 20260419_session_2_blog_repositioning.sql, which has NEVER BEEN APPLIED to the
+      // database (prod holds only the 27 original WordPress rows). So each rule was
+      // intercepting a post that does work and 301'ing it into a 404.
+      // Restore these only once that migration is actually applied.
 
       // --- Legacy WordPress site (eternal-fitness.co.uk) migration redirects ---
       // Old WP site served every blog post flat off the root (no /blog/ prefix).

@@ -370,7 +370,7 @@ export default function ContactPageClient() {
               </li>
             </ul>
             <p className="mt-[26px] p-5 rounded-2xl bg-warm text-[14px] leading-relaxed text-slate">
-              Note: the exact studio address and parking details will be shared with you immediately via email after booking.
+              Note: the exact studio address and parking details will be shared with you via email after booking.
             </p>
             <div className="flex gap-3 flex-wrap" style={{ marginTop: 28 }}>
               <button type="button" onClick={openBookingModal} className="ef-btn ef-btn-primary">

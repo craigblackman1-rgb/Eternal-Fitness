@@ -1,0 +1,237 @@
+/* ──────────────────────────────────────────────────────────────
+   Visual Impairment page — page-specific composition only.
+   Ported 1:1 from brand-staging-2662e9/visual-impairment.html
+   (2026-08-11). Shared shell comes from design-system.css; class
+   names are vi- prefixed because Next.js CSS imports are global.
+
+   This page also pilots the EF image treatment system from
+   image-treatment-plates.html: 01 studio grade · 02 session plate ·
+   04 focus ring · 05 mount, plus the six-rule accessibility layer.
+   Every value derives from the registered brand tokens with
+   color-mix() — no new colour literals.
+   ────────────────────────────────────────────────────────────── */
+
+.vi-page {
+  --vi-img-grade: saturate(.94) contrast(1.05) brightness(1.02);
+  --vi-img-wash: var(--color-warm);
+  --vi-img-wash-o: .05;
+  --vi-img-hair: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --vi-img-hair-w: 1px;
+  --vi-plate-o: .92;
+  --vi-vignette: color-mix(in srgb, var(--color-ink) 42%, transparent);
+  /* --rose-text / --color-muted-text ship globally in globals.css */
+}
+
+/* ── Contrast repairs on the shared shell, scoped to this page ──
+   At full strength --color-rose fails AA as a ground for white type
+   (2.98:1). Decoration keeps the registered value; anything that
+   carries or backs type uses the accessible sibling. */
+.vi-page .ef-btn-primary {
+  background: var(--rose-text);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--color-ink) 14%, transparent),
+              0 10px 24px color-mix(in srgb, var(--color-ink) 12%, transparent);
+}
+.vi-page .ef-btn-primary:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--rose-text) 84%, var(--color-ink));
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-ink) 18%, transparent),
+              0 14px 32px color-mix(in srgb, var(--color-ink) 16%, transparent);
+}
+.vi-page :focus-visible { outline-color: var(--rose-text); }
+.vi-page .ds-badge-circle { background: var(--rose-text); }
+.vi-page .ds-figcaption { color: var(--color-muted-text); }
+
+/* ── 01 · the studio grade — one filter under every photograph ── */
+.vi-plate img, .vi-tech img, .vi-mount .vi-mount-win img { filter: var(--vi-img-grade); }
+.vi-plate::after, .vi-tech::after, .vi-mount .vi-mount-win::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: var(--vi-img-wash); opacity: var(--vi-img-wash-o); mix-blend-mode: multiply;
+}
+.vi-plate::before, .vi-tech::before, .vi-mount .vi-mount-win::before {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--vi-img-hair-w) var(--vi-img-hair);
+}
+
+/* ── Hero intro emphasis line — the closing reassurance gets its
+   own line, bolder and larger than the surrounding intro copy. ── */
+.vi-hero-emphasis {
+  display: block; margin-top: 10px;
+  font-weight: 700; font-size: 1.2em; color: #fff;
+}
+
+/* ── Opening statement ──────────────────────────────────────── */
+.vi-open { max-width: 1000px; }
+.vi-open p { font-size: 17px; line-height: 1.72; color: var(--color-body); }
+.vi-open p.vi-open-say {
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(30px, 3.1vw, 44px); line-height: 1.12; letter-spacing: -.025em; color: var(--color-ink);
+  margin: 30px 0; padding-left: 26px; border-left: 2px solid var(--color-rose);
+}
+.vi-open-foot { margin-top: 34px; }
+
+/* ── Studio differentiators ─────────────────────────────────── */
+.vi-space-lead { margin-bottom: 26px; }
+.vi-page .ds-feat .ds-feat-c { max-width: 52ch; }
+
+/* text-led split — mockup's .split-r (6fr 5fr, copy first) */
+.vi-split-r { grid-template-columns: 6fr 5fr; }
+
+/* ── Coaching approach ──────────────────────────────────────── */
+.vi-coach p { font-size: 16.5px; line-height: 1.72; color: var(--color-body); }
+.vi-coach p + p { margin-top: 18px; }
+
+/* FitPro feature — a published-work note, not a decorative callout */
+.vi-fitpro {
+  margin-top: 30px; display: flex; gap: 22px; align-items: flex-start;
+  background: var(--color-cream); border: 1px solid var(--color-border-warm); border-radius: 18px; padding: 22px 24px;
+}
+.vi-fitpro-mark { width: 116px; height: auto; flex: none; margin-top: 3px; }
+.vi-fitpro p { font-size: 15px; line-height: 1.6; margin-bottom: 10px; }
+.vi-fitpro-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14.5px; font-weight: 700; color: var(--color-teal);
+  text-decoration: underline; text-underline-offset: 4px;
+  text-decoration-color: color-mix(in srgb, var(--color-teal) 38%, transparent);
+  transition: text-decoration-color .18s var(--ease);
+}
+.vi-fitpro-link:hover { text-decoration-color: var(--color-teal); }
+
+/* ── Dark statement band ────────────────────────────────────── */
+.vi-dual { display: grid; grid-template-columns: 1.15fr .85fr; gap: 0; }
+.vi-dual > div:first-child { padding-right: 72px; }
+.vi-dual > div:last-child { padding-left: 72px; border-left: 1px solid rgba(255,255,255,.12); }
+.vi-statement {
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: clamp(21px, 1.9vw, 26px); line-height: 1.22; letter-spacing: -.022em; color: #fff;
+  margin-bottom: 20px;
+}
+.vi-dual .ds-body-light { max-width: none; }
+
+/* ── Professional training ──────────────────────────────────── */
+.vi-prof { border-top: 1px solid var(--color-border-warm); margin-top: 30px; padding: 0; list-style: none; }
+.vi-prof li { padding: 22px 0; border-bottom: 1px solid var(--color-border-warm); }
+.vi-prof-t { font-size: 18px; font-weight: 700; color: var(--color-ink); letter-spacing: -.015em; line-height: 1.25; margin-bottom: 7px; }
+.vi-prof p { font-size: 14.5px; line-height: 1.64; color: var(--color-body); max-width: 54ch; }
+
+/* ── 02 · the session plate — caption on opaque ink, never on the photo ── */
+.vi-plate {
+  position: relative; overflow: hidden; isolation: isolate;
+  aspect-ratio: 4/3; border-radius: 18px; background: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+}
+.vi-plate img { width: 100%; height: 100%; object-fit: cover; }
+.vi-plate .vi-ticks { position: absolute; inset: 10px; z-index: 3; pointer-events: none; }
+.vi-plate .vi-ticks span { position: absolute; width: 14px; height: 14px;
+  border: 1.5px solid color-mix(in srgb, #fff 62%, transparent); }
+.vi-plate .vi-ticks span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.vi-plate .vi-ticks span:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.vi-plate .vi-ticks span:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+.vi-plate .vi-ticks span:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+.vi-plate .vi-cap {
+  position: absolute; left: 18px; right: 18px; bottom: 18px; z-index: 6;
+  background: color-mix(in srgb, var(--color-ink) calc(var(--vi-plate-o) * 100%), transparent);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 14px; font-weight: 600; line-height: 1.35; letter-spacing: -.005em; color: #fff;
+}
+
+/* ── 04 · the focus ring — the treatment that carries instruction ── */
+.vi-tech {
+  position: relative; overflow: hidden; isolation: isolate;
+  aspect-ratio: 4/3; border-radius: 24px; background: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+}
+.vi-tech img { width: 100%; height: 100%; object-fit: cover; }
+.vi-tech .vi-veil {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse 54% 58% at var(--fx, 46%) var(--fy, 44%),
+    transparent 0%, transparent 42%, var(--vi-vignette) 100%);
+}
+.vi-tech .vi-arc { position: absolute; z-index: 3; pointer-events: none;
+  width: 38%; aspect-ratio: 1; left: calc(var(--fx, 46%) - 19%); top: calc(var(--fy, 44%) - 19%); }
+.vi-tech .vi-arc circle { fill: none; stroke: var(--color-rose); stroke-width: 2.4; stroke-linecap: round;
+  stroke-dasharray: 104 200; opacity: .92; }
+.vi-tech .vi-pin {
+  position: absolute; z-index: 6; left: 18px; top: 18px; max-width: calc(100% - 36px);
+  background: color-mix(in srgb, var(--color-ink) 92%, transparent); color: #fff;
+  border-radius: 8px; padding: 9px 13px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
+  letter-spacing: -.005em; display: flex; gap: 9px; align-items: center;
+}
+.vi-tech .vi-pin .vi-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--color-rose); flex: none; }
+
+/* ── 05 · the mount — the caption printed below, never over ── */
+/* held back from the column edge so it reads as a mounted print
+   rather than a full-bleed picture panel */
+.vi-mount { max-width: 430px; background: var(--color-warm); border: 1px solid var(--color-border-warm); border-radius: 18px; padding: 26px 26px 0; }
+.vi-mount .vi-mount-win { position: relative; overflow: hidden; isolation: isolate; border-radius: 6px; aspect-ratio: 3/4; background: var(--color-ink); }
+.vi-mount .vi-mount-win img { width: 100%; height: 100%; object-fit: cover; }
+.vi-mount .vi-mount-mat { padding: 18px 2px 24px; }
+.vi-mount .vi-mount-mat b { display: block; font-size: 15px; font-weight: 700; line-height: 1.35; letter-spacing: -.01em; color: var(--color-ink); }
+.vi-mount .vi-mount-mat span { display: block; margin-top: 5px; font-size: 13px; line-height: 1.55; color: var(--color-muted-text); }
+
+/* ── Described images — alt serves screen readers, this serves the
+   much larger group with low vision who are not running one ── */
+details.vi-desc { margin-top: 12px; border: 1px solid var(--color-border-warm); border-radius: 12px; background: #fff; }
+details.vi-desc summary {
+  cursor: pointer; list-style: none; padding: 12px 16px; min-height: 44px;
+  display: flex; align-items: center; gap: 10px; border-radius: 12px;
+  font-size: 13.5px; font-weight: 600; color: var(--color-ink);
+}
+details.vi-desc summary::-webkit-details-marker { display: none; }
+details.vi-desc summary::before { content: ''; width: 16px; height: 16px; flex: none; border-radius: 3px;
+  border: 2px solid var(--rose-text); border-right-width: 5px; }
+details.vi-desc summary:hover { background: var(--color-warm); }
+details.vi-desc[open] summary { border-bottom: 1px solid var(--color-border-warm); border-radius: 12px 12px 0 0; }
+details.vi-desc p { padding: 14px 16px 16px; font-size: 14px; line-height: 1.6; color: var(--color-body); }
+
+/* ── Closing band ───────────────────────────────────────────── */
+.vi-cta-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 64px; align-items: center; }
+.vi-cta-grid > div:first-child p { max-width: 46ch; }
+.vi-direct {
+  background: #fff; border-radius: 18px; padding: 32px 34px;
+  box-shadow: 0 18px 52px color-mix(in srgb, var(--color-ink) 24%, transparent);
+}
+/* the band's white focus ring would vanish on this white card */
+.vi-direct :focus-visible { outline-color: var(--rose-text); }
+.vi-direct h3 { font-family: var(--font-serif); font-weight: 400; font-size: 27px; line-height: 1.14; letter-spacing: -.02em; color: var(--color-ink); margin-bottom: 10px; }
+.vi-direct > p { font-size: 15px; line-height: 1.62; color: var(--color-body); max-width: none; margin-bottom: 20px; }
+.vi-direct-row { display: flex; flex-direction: column; gap: 2px; padding: 15px 0; border-top: 1px solid var(--color-border-warm); }
+.vi-direct-row .vi-lbl { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted-text); }
+.vi-direct-row a {
+  font-family: var(--font-serif); font-size: 27px; line-height: 1.16; letter-spacing: -.025em; color: var(--color-ink);
+  text-decoration: underline; text-underline-offset: 5px; text-decoration-color: transparent;
+  transition: text-decoration-color .18s var(--ease);
+}
+.vi-direct-row a:hover { text-decoration-color: var(--rose-text); }
+.vi-direct-row.vi-is-email a { font-size: 17px; line-height: 1.4; word-break: break-word; }
+
+/* ── prefers-contrast: more — six properties, one query ── */
+@media (prefers-contrast: more) {
+  .vi-page {
+    --vi-img-grade: saturate(.9) contrast(1.2) brightness(1.02);
+    --vi-img-hair: color-mix(in srgb, var(--color-ink) 46%, transparent);
+    --vi-img-hair-w: 2px;
+    --vi-plate-o: 1;
+    --vi-vignette: color-mix(in srgb, var(--color-ink) 58%, transparent);
+    --vi-img-wash-o: 0;
+  }
+  .vi-plate .vi-ticks span { border-color: #fff; }
+  .vi-tech .vi-pin { background: var(--color-ink); }
+}
+
+@media (max-width: 1000px) {
+  /* re-assert the shared breakpoint — the desktop .vi-split-r rule above
+     loads after design-system.css and would otherwise win over its 1fr */
+  .vi-split-r { grid-template-columns: 1fr; }
+  .vi-open p.vi-open-say { padding-left: 20px; margin: 26px 0; }
+  .vi-cta-grid { grid-template-columns: 1fr; gap: 40px; }
+  .vi-direct { padding: 28px 24px; }
+  .vi-fitpro { flex-direction: column; gap: 16px; }
+  .vi-open-foot .ef-btn { width: 100%; }
+  .vi-dual { grid-template-columns: 1fr; }
+  .vi-dual > div:first-child { padding-right: 0; margin-bottom: 28px; }
+  .vi-dual > div:last-child { padding-left: 0; border-left: none; }
+  .vi-plate .vi-cap { left: 12px; right: 12px; bottom: 12px; padding: 11px 14px; font-size: 13.5px; }
+  .vi-tech .vi-pin { left: 12px; top: 12px; padding: 8px 11px; font-size: 12px; }
+  .vi-mount { padding: 18px 18px 0; }
+  .vi-mount .vi-mount-mat { padding: 15px 2px 20px; }
+}
