@@ -54,6 +54,18 @@ const nextConfig = {
         permanent: true,
       },
 
+      // --- Canonical host: www -> apex ---
+      // Coolify binds both hosts to this app, but everything canonical in the
+      // codebase (NEXT_PUBLIC_SITE_URL default, sitemap, robots, metadata canonical
+      // tags, Better Auth baseURL) uses the bare apex domain. Redirect www so the
+      // two don't serve duplicate content and split link equity.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.eternal-fitness.co.uk" }],
+        destination: "https://eternal-fitness.co.uk/:path*",
+        permanent: true,
+      },
+
       // --- Renamed blog posts (slug changed on migration) ---
       {
         source: "/blog/getting-back-on-track-when-youve-fallen-off-the-wagon",
