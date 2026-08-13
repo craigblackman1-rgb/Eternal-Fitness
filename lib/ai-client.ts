@@ -30,10 +30,25 @@ export function getAiConfig(): AiConfig {
  * Quality-critical routes (e.g. Plan Agent) should never silently fall back to a
  * cheaper/lesser model — a bad plan costs Esther more time to fix than a slower,
  * costlier good one. Use this to override the configured model for those routes.
+ *
+ * Overridable via env so a candidate model can be A/B tested against Esther's
+ * quality bar without a redeploy — see PLAN_QUALITY_MODEL_CLAUDE /
+ * PLAN_QUALITY_MODEL_OPENROUTER.
+ *
+ * 2026-08-13: was hardcoded to Opus 4.8 — one full 6-week block generation fires
+ * up to 18 concurrent calls, each resending the ~35-40k token system prompt
+ * (exercise library + rules) with no caching, at Opus rates via OpenRouter's
+ * markup. That burned ~£30 of OpenRouter credit in 5 minutes. Defaulted to
+ * DeepSeek V3.1 (~20x cheaper input/output than Opus, 164K context, built for
+ * structured/tool-calling output, and OpenRouter passes through its provider-side
+ * automatic prompt caching — no cache_control needed on our side). The existing
+ * validate-and-repair loop in planGeneration.ts is the safety net for any
+ * quality gap versus Opus; if repairs start firing constantly, that is the
+ * signal to reconsider the model before reconsidering caching/concurrency.
  */
 export const QUALITY_MODEL = {
-  claude: "claude-opus-4-8",
-  openrouter: "anthropic/claude-opus-4-8",
+  claude: process.env.PLAN_QUALITY_MODEL_CLAUDE || "claude-sonnet-5",
+  openrouter: process.env.PLAN_QUALITY_MODEL_OPENROUTER || "deepseek/deepseek-chat-v3.1",
 } as const;
 
 export interface ChatMessage {
@@ -212,6 +227,17 @@ async function openRouterChatStream(
   });
 }
 
+/** Marks the (large, static-per-call) system prompt as cacheable so a run of
+ *  calls sharing the same system text — e.g. every session in one block
+ *  generation, or every turn of a Plan Agent chat — only pays full price on
+ *  the first hit and reads from cache after. No effect on OpenRouter (a
+ *  different beast — see QUALITY_MODEL's doc comment on DeepSeek's automatic
+ *  provider-side caching instead). Below the ~1024-token minimum cacheable
+ *  prefix, the marker is silently a no-op. */
+function toSystemBlocks(system: string) {
+  return [{ type: "text" as const, text: system, cache_control: { type: "ephemeral" as const } }];
+}
+
 async function claudeChat(
   model: string,
   req: ChatRequest,
@@ -222,7 +248,7 @@ async function claudeChat(
   const response = await client.messages.create({
     model,
     max_tokens: req.maxTokens ?? 4000,
-    system: req.system,
+    system: toSystemBlocks(req.system),
     messages: toMessages(req),
   });
 
@@ -242,7 +268,7 @@ async function claudeChatStream(
   const stream = client.messages.stream({
     model,
     max_tokens: req.maxTokens ?? 4000,
-    system: req.system,
+    system: toSystemBlocks(req.system),
     messages: toMessages(req),
   });
 

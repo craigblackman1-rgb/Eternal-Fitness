@@ -177,8 +177,11 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 300) : "unknown error";
-    console.error(`[plan-chat] AI stream failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`);
-    return new Response(`Plan Agent failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`, { status: 502 });
+    // Log the model actually billed (planModel), not aiConfig.model — that's just
+    // the app's configured default and doesn't reflect the QUALITY_MODEL override
+    // above; logging it here hid the real cost driver during the 2026-08-13 incident.
+    console.error(`[plan-chat] AI stream failed via ${aiConfig.provider} (${planModel}): ${detail}`);
+    return new Response(`Plan Agent failed via ${aiConfig.provider} (${planModel}): ${detail}`, { status: 502 });
   }
 
   if (!readable) {

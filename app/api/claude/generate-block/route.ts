@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getAiConfig } from "@/lib/ai-client";
 import { loadPlanAgentBundle } from "@/lib/planAgentData";
-import { generateViaAi, weekPhases, getWeeklyArchetypes, type TemplateFramework } from "@/lib/planGeneration";
+import { generateViaAi, resolvePlanModel, weekPhases, getWeeklyArchetypes, type TemplateFramework } from "@/lib/planGeneration";
+import { tryAcquireGenerationLock, releaseGenerationLock } from "@/lib/generationLock";
 import type { ClientProfile, Session, Archetype, Phase, Exercise, SessionVersion } from "@/types";
 
 export async function POST(request: Request) {
@@ -42,6 +43,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Client not found" }, { status: 404 });
   }
 
+  // Guard against a second full (up to 18-call) generation firing for the same
+  // client while one is still in flight — e.g. a page refresh mid-generation
+  // followed by clicking "Generate" again, which the client-side "disabled
+  // while generating" button state doesn't survive. See generationLock.ts.
+  if (!tryAcquireGenerationLock(client.id)) {
+    return NextResponse.json(
+      { error: "A block is already being generated for this client — wait for it to finish before trying again." },
+      { status: 409 },
+    );
+  }
+
+  try {
+    return await generateBlockForClient(supabase, client, template, templateId, templateUsageCount, blockNote, previousSummary);
+  } finally {
+    releaseGenerationLock(client.id);
+  }
+}
+
+async function generateBlockForClient(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client: any,
+  template: TemplateFramework | null,
+  templateId: string | undefined,
+  templateUsageCount: number,
+  blockNote: string | undefined,
+  previousSummary: string | undefined,
+): Promise<NextResponse> {
   const profile = (client.profile as unknown) as ClientProfile;
   if (!profile || !profile.logistics) {
     return NextResponse.json({ error: "Client profile is incomplete" }, { status: 400 });
@@ -66,9 +96,14 @@ export async function POST(request: Request) {
       sessions = await generateViaAi(profile, client.pace_mode as string | null, bundle, blockNote, previousSummary, template);
     } catch (err) {
       const detail = err instanceof Error ? err.message.slice(0, 500) : "unknown error";
-      console.error(`[generate-block] AI generation failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}`);
+      // Log the model actually billed (resolvePlanModel(), the QUALITY_MODEL
+      // override), not aiConfig.model — that's just the app's configured
+      // default and doesn't reflect the override, which hid the real cost
+      // driver during the 2026-08-13 incident.
+      const billedModel = resolvePlanModel();
+      console.error(`[generate-block] AI generation failed via ${aiConfig.provider} (${billedModel}): ${detail}`);
       return NextResponse.json(
-        { error: `AI generation failed via ${aiConfig.provider} (${aiConfig.model}): ${detail}` },
+        { error: `AI generation failed via ${aiConfig.provider} (${billedModel}): ${detail}` },
         { status: 502 },
       );
     }
