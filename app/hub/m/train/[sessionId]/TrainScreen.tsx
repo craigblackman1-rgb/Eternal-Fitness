@@ -7,7 +7,7 @@ import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/type
 import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
-import { defaultUnitForEquipment } from "@/lib/units";
+import { defaultUnitForEquipment, isBandEquipment } from "@/lib/units";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
@@ -322,6 +322,7 @@ export function TrainScreen({
     setNumber: number,
     fieldValues: { reps: string; weight: string; duration: string },
     completed: boolean,
+    isWarmup: boolean,
     reuseClientOpId?: string,
   ): Promise<SaveSetLogResult> => {
     const key = `${exerciseRef}::${setNumber}`;
@@ -332,8 +333,8 @@ export function TrainScreen({
 
     const method = existing ? "PATCH" : "POST";
     const body = existing
-      ? { id: existing.id, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed }
-      : { exercise_ref: exerciseRef, set_number: setNumber, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed };
+      ? { id: existing.id, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed, is_warmup: isWarmup }
+      : { exercise_ref: exerciseRef, set_number: setNumber, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed, is_warmup: isWarmup };
 
     const enqueueOffline = async (): Promise<SaveSetLogResult> => {
       const clientOpId = reuseClientOpId ?? crypto.randomUUID();
@@ -415,7 +416,7 @@ export function TrainScreen({
       }
     }
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, set.clientOpId);
     if (result.kind === "failed") {
       toast.error("Failed to save set");
       return;
@@ -470,7 +471,7 @@ export function TrainScreen({
     const weight = timeBased ? "" : (set.weight || "");
     const duration = timeBased ? (set.duration || "") : "";
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, set.clientOpId);
     if (result.kind === "failed") {
       toast.error("Failed to save set");
       return;
@@ -548,6 +549,8 @@ export function TrainScreen({
   const handleSwapUnit = (uid: string) => {
     const ex = findExerciseByUid(uid);
     if (!ex) return;
+    // Bands always log in lb — the unit is locked, not just defaulted.
+    if (isBandEquipment(ex.equipment ?? [])) return;
     setExStates((prev) => {
       const st = prev[uid];
       if (!st) return prev;
@@ -1191,6 +1194,7 @@ function SetRow({
   const uid = exercise.uid ?? "";
   const timeBased = isTimeBased(exercise.reps, exercise.log_type);
   const disabled = set.status === "skipped";
+  const isBand = isBandEquipment(exercise.equipment ?? []);
   const targetLabel = timeBased
     ? `Target: ${exercise.reps}`
     : `Target: ${exercise.reps}${exercise.tempo && exercise.tempo !== "—" ? ` @ ${exercise.tempo}` : ""}${exercise.rest && exercise.rest !== "—" ? ` · ${exercise.rest} rest` : ""}`;
@@ -1247,13 +1251,19 @@ function SetRow({
             <div className="set-field">
               <span className="set-field-l">
                 Weight ({displayUnit})
-                <button
-                  className="unit-swap"
-                  onClick={() => onSwapUnit(uid)}
-                  title="Correct the unit for this exercise"
-                >
-                  switch
-                </button>
+                {isBand ? (
+                  <span className="unit-lock" title="Band exercises always log in lb — unit is locked">
+                    bands
+                  </span>
+                ) : (
+                  <button
+                    className="unit-swap"
+                    onClick={() => onSwapUnit(uid)}
+                    title="Correct the unit for this exercise"
+                  >
+                    switch
+                  </button>
+                )}
               </span>
               <input
                 className="set-input"
