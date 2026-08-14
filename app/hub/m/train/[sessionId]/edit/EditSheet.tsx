@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { Session, Exercise, SessionVersion, DeliveryMode } from "@/types";
+import type { Session, Exercise, SessionVersion, DeliveryMode, ExerciseMedia } from "@/types";
 import { computeGroups, nextGroupLabel, normalizeGroups } from "@/lib/exercise-groups";
 import { formatPrescription } from "@/lib/prescription";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
@@ -42,6 +42,9 @@ const ICO = {
   ungroup: (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6H5a2 2 0 0 0-2 2v3M16 6h3a2 2 0 0 1 2 2v3M8 18H5a2 2 0 0 1-2-2v-3M16 18h3a2 2 0 0 0 2-2v-3M2 2l20 20"/></svg>),
   img: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.7" cy="8.7" r="1.6"/><path d="m21 15-5-5L5 21"/></svg>),
   chev: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>),
+  up: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>),
+  down: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>),
+  move: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9 2 12l3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>),
   hist: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>),
   tmpl: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>),
   replace: (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>),
@@ -139,6 +142,14 @@ export function EditSheet({
 
   // Group pick for "this session"
   const [grpPicked, setGrpPicked] = useState<Record<string, boolean>>({});
+
+  // Inline per-exercise editing + actions (this session)
+  const [swapTarget, setSwapTarget] = useState<{ section: string; idx: number } | null>(null);
+  const [openEdit, setOpenEdit] = useState<string | null>(null);
+  const [moveOpen, setMoveOpen] = useState<string | null>(null);
+  const [videoDraft, setVideoDraft] = useState("");
+  const [imageDraft, setImageDraft] = useState("");
+  const [equipmentInput, setEquipmentInput] = useState("");
 
   // ── Data fetching ───────────────────────────────────────────────
 
@@ -250,6 +261,178 @@ export function EditSheet({
     },
     [],
   );
+
+  const updateField = useCallback(
+    (sectionKey: string, idx: number, field: "sets" | "reps" | "tempo" | "rest" | "coaching_cue", value: string) => {
+      setSections((prev) => {
+        const next = deepClone(prev);
+        const arr = next[sectionKey as keyof SessionVersion] as Exercise[];
+        const target = arr[idx];
+        if (!target) return next;
+        if (field === "sets") {
+          arr[idx] = { ...target, sets: Number(value) || 0 };
+        } else {
+          arr[idx] = { ...target, [field]: value };
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const updateEquipment = useCallback(
+    (sectionKey: string, idx: number, equipment: string[]) => {
+      setSections((prev) => {
+        const next = deepClone(prev);
+        const arr = next[sectionKey as keyof SessionVersion] as Exercise[];
+        const target = arr[idx];
+        if (!target) return next;
+        arr[idx] = { ...target, equipment };
+        return next;
+      });
+    },
+    [],
+  );
+
+  const moveWithinSection = useCallback(
+    (sectionKey: string, idx: number, dir: 1 | -1) => {
+      setSections((prev) => {
+        const next = deepClone(prev);
+        const arr = next[sectionKey as keyof SessionVersion] as Exercise[];
+        const i = idx;
+        if (i < 0 || i >= arr.length) return next;
+        const e = arr[i];
+        const allowGroups = sectionKey === "main_block";
+        if (allowGroups && e.group_label) {
+          const j = i + dir;
+          if (j < 0 || j >= arr.length || arr[j].group_label !== e.group_label) return next;
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        } else {
+          let j = i + dir;
+          if (j < 0 || j >= arr.length) return next;
+          if (allowGroups && arr[j].group_label) {
+            const g = arr[j].group_label;
+            let k = j;
+            while (k >= 0 && k < arr.length && arr[k].group_label === g) k += dir;
+            j = k;
+            if (j < 0 || j >= arr.length) return next;
+          }
+          arr.splice(i, 1);
+          arr.splice(j, 0, e);
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const moveToSection = useCallback(
+    (fromSection: string, idx: number, toSection: string) => {
+      setSections((prev) => {
+        const next = deepClone(prev);
+        const fromList = next[fromSection as keyof SessionVersion] as Exercise[];
+        if (idx < 0 || idx >= fromList.length) return next;
+        const [moved] = fromList.splice(idx, 1);
+        const wasGrouped = Boolean(moved.group_label);
+        const movedClean: Exercise = { ...moved, group_label: undefined };
+        (next[toSection as keyof SessionVersion] as Exercise[]).push(movedClean);
+        const norm = normalizeGroups(next.main_block);
+        next.main_block = norm.list;
+        if (wasGrouped || norm.dissolved.length > 0) {
+          toast.message(
+            `Moved "${moved.exercise_name}" to ${SECTION_LABELS[toSection]} — the superset was resolved, the remaining exercise now stands alone.`,
+          );
+        } else {
+          toast.message(`Moved "${moved.exercise_name}" to ${SECTION_LABELS[toSection]}.`);
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const swapExercise = useCallback(
+    (entry: ExerciseEntry) => {
+      if (!swapTarget) return;
+      setSections((prev) => {
+        const next = deepClone(prev);
+        const arr = next[swapTarget.section as keyof SessionVersion] as Exercise[];
+        const target = arr[swapTarget.idx];
+        if (!target) return next;
+        const media: ExerciseMedia | undefined =
+          entry.image_url || entry.video_url
+            ? {
+                ...(target.media ?? {}),
+                ...(entry.image_url ? { image_url: entry.image_url } : {}),
+                ...(entry.video_url ? { video_url: entry.video_url } : {}),
+              }
+            : target.media;
+        arr[swapTarget.idx] = {
+          ...target,
+          exercise_name: entry.name,
+          coaching_cue: entry.coaching_cue || "",
+          modification: entry.default_mod || "",
+          equipment: entry.equipment || [],
+          media,
+        };
+        return next;
+      });
+      toast.message(`Swapped to "${entry.name}".`);
+      setSwapTarget(null);
+      setMode("session");
+    },
+    [swapTarget],
+  );
+
+  const beginSwap = useCallback((sectionKey: string, idx: number) => {
+    setSwapTarget({ section: sectionKey, idx });
+    setOpenEdit(null);
+    setMoveOpen(null);
+    setMode("library");
+  }, []);
+
+  const cancelSwap = useCallback(() => {
+    setSwapTarget(null);
+    setMode("session");
+  }, []);
+
+  const saveVideo = (sectionKey: string, idx: number) => {
+    const trimmed = videoDraft.trim();
+    setSections((prev) => {
+      const next = deepClone(prev);
+      const arr = next[sectionKey as keyof SessionVersion] as Exercise[];
+      const target = arr[idx];
+      if (!target) return next;
+      arr[idx] = { ...target, media: { ...(target.media ?? {}), video_url: trimmed || undefined } };
+      return next;
+    });
+    setVideoDraft(trimmed);
+  };
+
+  const saveImage = (sectionKey: string, idx: number) => {
+    const trimmed = imageDraft.trim();
+    setSections((prev) => {
+      const next = deepClone(prev);
+      const arr = next[sectionKey as keyof SessionVersion] as Exercise[];
+      const target = arr[idx];
+      if (!target) return next;
+      arr[idx] = { ...target, media: { ...(target.media ?? {}), image_url: trimmed || undefined } };
+      return next;
+    });
+    setImageDraft(trimmed);
+  };
+
+  const toggleEdit = (uid: string, ex: Exercise) => {
+    if (openEdit === uid) {
+      setOpenEdit(null);
+    } else {
+      setVideoDraft(ex.media?.video_url || "");
+      setImageDraft(ex.media?.image_url || "");
+      setEquipmentInput("");
+      setMoveOpen(null);
+      setOpenEdit(uid);
+    }
+  };
 
   const handleGroup = useCallback(() => {
     const pickedUids = Object.keys(grpPicked);
@@ -387,17 +570,41 @@ export function EditSheet({
 
   // ── Render: Library ─────────────────────────────────────────────
 
-  const renderLibrary = () => (
-    <>
-      <div className="note">
-        <span className="note-b">i</span>
-        <div>
-          <b>Add a single exercise.</b> Straight from the library, with its
-          thumbnail so she can confirm the right movement at a glance. It lands
-          in the Main block by default — move it in the desktop editor later if
-          it belongs elsewhere.
+  const renderLibrary = () => {
+    const swapName = swapTarget
+      ? (sections[swapTarget.section as keyof SessionVersion] as Exercise[])[swapTarget.idx]?.exercise_name
+      : null;
+    return (
+      <>
+        {swapTarget && (
+          <div className="swap-banner">
+            <span>
+              <b>Swapping</b> {swapName || "exercise"} — pick a replacement.
+            </span>
+            <button className="mini" onClick={cancelSwap}>
+              Cancel
+            </button>
+          </div>
+        )}
+        <div className="note">
+          <span className="note-b">i</span>
+          <div>
+            {swapTarget ? (
+              <>
+                <b>Swap in a replacement.</b> Pick the new movement — its name,
+                cue, equipment and media replace the slot, but the prescription
+                (sets, reps, tempo, rest) is kept.
+              </>
+            ) : (
+              <>
+                <b>Add a single exercise.</b> Straight from the library, with its
+                thumbnail so she can confirm the right movement at a glance. It lands
+                in the Main block by default — move it in the desktop editor later if
+                it belongs elsewhere.
+              </>
+            )}
+          </div>
         </div>
-      </div>
       <div className="searchbar">
         <input
           type="search"
@@ -447,7 +654,11 @@ export function EditSheet({
                     {ex.equipment?.length ? ` · ${ex.equipment.join(", ")}` : ""}
                   </div>
                 </div>
-                {already ? (
+                {swapTarget ? (
+                  <button className="mini add" onClick={() => swapExercise(ex)}>
+                    {ICO.replace}Replace
+                  </button>
+                ) : already ? (
                   <button className="mini added" disabled>
                     {ICO.check}In session
                   </button>
@@ -469,6 +680,7 @@ export function EditSheet({
       )}
     </>
   );
+};
 
   // ── Render: Past sessions ───────────────────────────────────────
 
@@ -816,59 +1028,253 @@ export function EditSheet({
                 const uid = ex.uid ?? `${sk}:${idx}:${ex.exercise_name}`;
                 const picked = !!grpPicked[uid];
                 const hasMedia = !!(ex.media?.image_url || ex.media?.video_url);
+                const editing = openEdit === uid;
+                const canMoveUp = ex.group_label
+                  ? idx > 0 && list[idx - 1].group_label === ex.group_label
+                  : idx > 0;
+                const canMoveDown = ex.group_label
+                  ? idx < list.length - 1 && list[idx + 1].group_label === ex.group_label
+                  : idx < list.length - 1;
                 return (
-                  <div key={uid} className={`row${picked ? " picked" : ""}`}>
-                    <button
-                      className="pick-box"
-                      onClick={() =>
-                        setGrpPicked((prev) => {
-                          if (prev[uid]) {
-                            const next = { ...prev };
-                            delete next[uid];
-                            return next;
+                  <div key={uid} className={`erow${picked ? " picked" : ""}`}>
+                    <div className="row">
+                      <button
+                        className="pick-box"
+                        onClick={() =>
+                          setGrpPicked((prev) => {
+                            if (prev[uid]) {
+                              const next = { ...prev };
+                              delete next[uid];
+                              return next;
+                            }
+                            return { ...prev, [uid]: true };
+                          })
+                        }
+                        aria-pressed={picked}
+                        aria-label={`Select ${ex.exercise_name} for grouping`}
+                      >
+                        {ICO.checkSm}
+                      </button>
+                      <div
+                        className={`thumb ${hasMedia ? "has-img" : "no-img"}`}
+                        aria-hidden="true"
+                      >
+                        {ICO.img}
+                      </div>
+                      <div
+                        className="row-b"
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={editing}
+                        onClick={() => toggleEdit(uid, ex)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleEdit(uid, ex);
                           }
-                          return { ...prev, [uid]: true };
-                        })
-                      }
-                      aria-pressed={picked}
-                      aria-label={`Select ${ex.exercise_name} for grouping`}
-                    >
-                      {ICO.checkSm}
-                    </button>
-                    <div
-                      className={`thumb ${hasMedia ? "has-img" : "no-img"}`}
-                      aria-hidden="true"
-                    >
-                      {ICO.img}
-                    </div>
-                    <div className="row-b">
-                      <div className="row-t">{ex.exercise_name}</div>
-                      <div className="row-s">
-                        {exercisePrescription(ex)}
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div className="row-t">{ex.exercise_name}</div>
+                        <div className="row-s">{exercisePrescription(ex)}</div>
+                        {ex.group_label && (
+                          <div className="row-tags">
+                            <span className="tag grp">{ex.group_label}</span>
+                          </div>
+                        )}
                       </div>
                       {ex.group_label && (
-                        <div className="row-tags">
-                          <span className="tag grp">
-                            {ex.group_label}
-                          </span>
-                        </div>
+                        <button
+                          className="mini"
+                          onClick={() => handleUngroup(ex.group_label!)}
+                          aria-label={`Ungroup ${ex.group_label}`}
+                        >
+                          {ICO.ungroup}
+                        </button>
                       )}
+                      <button
+                        className="mini danger"
+                        onClick={() => removeExercise(sk, idx)}
+                        aria-label={`Remove ${ex.exercise_name}`}
+                      >
+                        {ICO.trash}
+                      </button>
                     </div>
-                    {ex.group_label && (
+                    <div className="erow-actions">
                       <button
                         className="mini"
-                        onClick={() => handleUngroup(ex.group_label!)}
+                        onClick={() => moveWithinSection(sk, idx, -1)}
+                        disabled={!canMoveUp}
+                        aria-label={`Move ${ex.exercise_name} up`}
                       >
-                        {ICO.ungroup}
+                        {ICO.up}
                       </button>
+                      <button
+                        className="mini"
+                        onClick={() => moveWithinSection(sk, idx, 1)}
+                        disabled={!canMoveDown}
+                        aria-label={`Move ${ex.exercise_name} down`}
+                      >
+                        {ICO.down}
+                      </button>
+                      <button
+                        className="mini"
+                        onClick={() => beginSwap(sk, idx)}
+                        aria-label={`Swap ${ex.exercise_name}`}
+                      >
+                        {ICO.replace}Swap
+                      </button>
+                      <button
+                        className="mini"
+                        onClick={() => setMoveOpen(moveOpen === uid ? null : uid)}
+                        aria-expanded={moveOpen === uid}
+                        aria-label={`Move ${ex.exercise_name} to another section`}
+                      >
+                        {ICO.move}Move
+                      </button>
+                    </div>
+                    {moveOpen === uid && (
+                      <div className="erow-move">
+                        {SECTION_KEYS.filter((s) => s !== sk).map((s) => (
+                          <button
+                            key={s}
+                            className="mini"
+                            onClick={() => {
+                              setMoveOpen(null);
+                              moveToSection(sk, idx, s);
+                            }}
+                          >
+                            {ICO.move}Move to {SECTION_LABELS[s]}
+                          </button>
+                        ))}
+                      </div>
                     )}
-                    <button
-                      className="mini danger"
-                      onClick={() => removeExercise(sk, idx)}
-                      aria-label={`Remove ${ex.exercise_name}`}
-                    >
-                      {ICO.trash}
-                    </button>
+                    {editing && (
+                      <div className="erow-editor">
+                        <div className="re-grid">
+                          <label className="re-field">
+                            <span className="re-field-l">Sets</span>
+                            <input
+                              className="set-input"
+                              type="number"
+                              value={String(ex.sets ?? "")}
+                              onChange={(e) => updateField(sk, idx, "sets", e.target.value)}
+                            />
+                          </label>
+                          <label className="re-field">
+                            <span className="re-field-l">Reps</span>
+                            <input
+                              className="set-input"
+                              value={ex.reps || ""}
+                              onChange={(e) => updateField(sk, idx, "reps", e.target.value)}
+                            />
+                          </label>
+                          <label className="re-field">
+                            <span className="re-field-l">Tempo</span>
+                            <input
+                              className="set-input"
+                              value={ex.tempo || ""}
+                              onChange={(e) => updateField(sk, idx, "tempo", e.target.value)}
+                            />
+                          </label>
+                          <label className="re-field">
+                            <span className="re-field-l">Rest</span>
+                            <input
+                              className="set-input"
+                              value={ex.rest || ""}
+                              onChange={(e) => updateField(sk, idx, "rest", e.target.value)}
+                            />
+                          </label>
+                        </div>
+                        <label className="re-field">
+                          <span className="re-field-l">Coaching cue</span>
+                          <input
+                            className="set-input"
+                            value={ex.coaching_cue || ""}
+                            onChange={(e) => updateField(sk, idx, "coaching_cue", e.target.value)}
+                            placeholder="e.g. keep your chest tall"
+                          />
+                        </label>
+                        <div className="re-field">
+                          <span className="re-field-l">Equipment</span>
+                          {(ex.equipment || []).length > 0 && (
+                            <div className="ex-tags">
+                              {(ex.equipment || []).map((tag) => (
+                                <span key={tag} className="ex-tag">
+                                  {tag}
+                                  <button
+                                    type="button"
+                                    className="ex-tag-x"
+                                    onClick={() =>
+                                      updateEquipment(
+                                        sk,
+                                        idx,
+                                        (ex.equipment || []).filter((t) => t !== tag),
+                                      )
+                                    }
+                                    aria-label={`Remove tag ${tag}`}
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <input
+                            className="set-input"
+                            type="text"
+                            value={equipmentInput}
+                            onChange={(e) => setEquipmentInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && equipmentInput.trim()) {
+                                const trimmed = equipmentInput.trim();
+                                if (!(ex.equipment || []).includes(trimmed)) {
+                                  updateEquipment(sk, idx, [...(ex.equipment || []), trimmed]);
+                                }
+                                setEquipmentInput("");
+                              }
+                            }}
+                            placeholder="Add equipment tag, press Enter"
+                          />
+                        </div>
+                        <div className="re-field">
+                          <span className="re-field-l">Video URL</span>
+                          <div className="re-media">
+                            <input
+                              className="set-input"
+                              type="url"
+                              value={videoDraft}
+                              onChange={(e) => setVideoDraft(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") saveVideo(sk, idx);
+                              }}
+                              placeholder="https://…"
+                            />
+                            <button className="mini" onClick={() => saveVideo(sk, idx)}>
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                        <div className="re-field">
+                          <span className="re-field-l">Image URL</span>
+                          <div className="re-media">
+                            <input
+                              className="set-input"
+                              type="url"
+                              value={imageDraft}
+                              onChange={(e) => setImageDraft(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") saveImage(sk, idx);
+                              }}
+                              placeholder="https://…"
+                            />
+                            <button className="mini" onClick={() => saveImage(sk, idx)}>
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -939,6 +1345,9 @@ export function EditSheet({
                 setOpenPack(null);
                 setPackPicked({});
                 setGrpPicked({});
+                setSwapTarget(null);
+                setOpenEdit(null);
+                setMoveOpen(null);
               }}
               aria-pressed={mode === m.key}
             >

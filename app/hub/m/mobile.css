@@ -427,6 +427,26 @@
 .mini.danger { border-color: var(--s-danger-bd); color: var(--s-danger); }
 .mini.danger:hover { background: var(--s-danger-bg); color: var(--s-danger); }
 
+/* Exercise row inline editing + actions (EditSheet "This session") */
+.erow { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
+.erow.picked { border-color: var(--rose); box-shadow: 0 0 0 2px var(--s-primary-bd); }
+.erow .row { border: 0; border-radius: 0; background: transparent; }
+.erow-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px 10px; border-top: 1px dashed var(--border); }
+.erow-actions .mini:disabled { opacity: .4; cursor: not-allowed; }
+.erow-move { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 10px; }
+.erow-editor { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--hover); border-top: 1px solid var(--border); }
+.re-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.re-grid .re-field { flex: 1 1 68px; min-width: 68px; }
+.re-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.re-field-l { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.re-media { display: flex; gap: 8px; }
+.re-media input { flex: 1; min-width: 0; }
+.ex-tag-x { display: inline-flex; align-items: center; justify-content: center; margin-left: 4px; border: 0; background: none; padding: 0; color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; }
+.ex-tag-x:hover { color: var(--rose); }
+.swap-banner { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 10px 12px; border-radius: 12px; background: var(--s-primary-bg); border: 1px solid var(--s-primary-bd); font-size: 12.5px; }
+.swap-banner span { flex: 1; min-width: 0; }
+.swap-banner b { color: var(--ink); }
+
 .pack { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
 .pack + .pack { margin-top: 8px; }
 .pack-h { display: flex; align-items: center; gap: 11px; width: 100%; padding: 12px; border: 0; background: transparent; font-family: inherit; text-align: left; cursor: pointer; }
