@@ -126,6 +126,7 @@ export default async function BlockViewPage({
         clientId={String(clientId)}
         blockId={params.blockId}
         clientName={client?.name || "Client"}
+        weeks={weeks}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--hub-border)] rounded-2xl overflow-hidden border border-[var(--hub-border)]">
           <div className="bg-[var(--hub-card)] px-4 py-3">

@@ -9,19 +9,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IconPencil, IconCalendar, IconPrinter, IconEllipsis } from "@/components/icons";
+import { IconPencil, IconCalendar, IconPrinter, IconEllipsis, IconPlus } from "@/components/icons";
 import { ExportSpreadsheetButton } from "./export-spreadsheet";
 import { DeleteBlockButton } from "./delete-block-button";
 
 interface BlockActionsProps {
   onEditBlock: () => void;
+  onAddWorkout: () => void;
   clientId: string;
   blockId: string;
   blockNumber: number;
   clientName: string;
 }
 
-export function BlockActions({ onEditBlock, clientId, blockId, blockNumber, clientName }: BlockActionsProps) {
+export function BlockActions({ onEditBlock, onAddWorkout, clientId, blockId, blockNumber, clientName }: BlockActionsProps) {
   return (
     <div className="flex items-center gap-2">
       <Button
@@ -30,6 +31,10 @@ export function BlockActions({ onEditBlock, clientId, blockId, blockNumber, clie
       >
         <IconPencil className="h-4 w-4" />
         Edit Block
+      </Button>
+      <Button variant="outline" className="rounded-lg gap-1.5 border-border/60" onClick={onAddWorkout}>
+        <IconPlus className="h-4 w-4" />
+        Add Workout
       </Button>
       <Link href={`/hub/clients/${clientId}/blocks/${blockId}/review`}>
         <Button variant="outline" className="rounded-lg gap-1.5 border-border/60">

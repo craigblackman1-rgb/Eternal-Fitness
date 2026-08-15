@@ -6,6 +6,7 @@ import { HubCard, HubCardHeader } from "@/components/hub";
 import { IconFileText } from "@/components/icons";
 import { BlockActions } from "./BlockActions";
 import { EditBlockDrawer } from "./EditBlockDrawer";
+import { AddWorkoutDialog } from "./AddWorkoutDialog";
 import type { BlockStatus } from "@/types";
 
 interface BlockOverviewClientProps {
@@ -20,15 +21,18 @@ interface BlockOverviewClientProps {
   clientId: string;
   blockId: string;
   clientName: string;
+  weeks: number[];
 }
 
-export function BlockOverviewClient({ children, block, clientId, blockId, clientName }: BlockOverviewClientProps) {
+export function BlockOverviewClient({ children, block, clientId, blockId, clientName, weeks }: BlockOverviewClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [addWorkoutOpen, setAddWorkoutOpen] = useState(false);
 
   return (
     <div className="space-y-6">
       <BlockActions
         onEditBlock={() => setDrawerOpen(true)}
+        onAddWorkout={() => setAddWorkoutOpen(true)}
         clientId={clientId}
         blockId={blockId}
         blockNumber={block.block_number}
@@ -61,6 +65,7 @@ export function BlockOverviewClient({ children, block, clientId, blockId, client
       )}
 
       <EditBlockDrawer open={drawerOpen} onOpenChange={setDrawerOpen} block={block} />
+      <AddWorkoutDialog open={addWorkoutOpen} onOpenChange={setAddWorkoutOpen} blockId={blockId} weeks={weeks} />
     </div>
   );
 }
