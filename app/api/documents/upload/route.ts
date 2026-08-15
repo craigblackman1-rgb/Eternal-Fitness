@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
 import { DOCUMENT_KIND_LABEL, type DocumentKind } from "@/lib/documents/types";
 
-const ALLOWED_MIME = new Set(["application/pdf", "image/png", "image/jpeg"]);
 const MAX_SIZE = 10 * 1024 * 1024;
 
 const VALID_KINDS = new Set<string>(Object.keys(DOCUMENT_KIND_LABEL));
@@ -26,10 +25,6 @@ export async function POST(request: Request) {
 
   if (!VALID_KINDS.has(kind)) {
     return NextResponse.json({ error: `Invalid kind "${kind}"` }, { status: 400 });
-  }
-
-  if (!ALLOWED_MIME.has(file.type)) {
-    return NextResponse.json({ error: "Only PDF, PNG, and JPEG files are accepted" }, { status: 400 });
   }
 
   if (file.size > MAX_SIZE) {
