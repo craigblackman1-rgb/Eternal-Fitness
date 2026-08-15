@@ -828,13 +828,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </div>
                 </HubCard>
 
-                <HubAlert severity="info" title="Compliance drives the banner.">
-                  While any document is outstanding the record resolves to a pending or action-needed
-                  status and the warning banner appears above the tabs. The status is never set by
-                  hand — it is derived by <code className="text-xs">lib/compliance.ts</code> and rendered
-                  through the shared status tokens in <code className="text-xs">lib/hubStatus.ts</code>.
-                </HubAlert>
-
                 <PackagePaymentsCard
                   clientId={client.id}
                   initial={{
