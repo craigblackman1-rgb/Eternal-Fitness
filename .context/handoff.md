@@ -1,3 +1,64 @@
+# Session Handoff: August 13, 2026 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, real-device verified
+
+## Agent
+Claude Code (worktree `web-admin-pages-dashboard-5ccf37`, branch `claude/mobile-workout-features-6ddaba`)
+
+## Session Summary
+Resumed `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` at Craig's request ("complete every and
+all lanes for this"). Full technical detail in `.context/state.md`'s 2026-08-13 entry and the WO doc
+(`C:\Users\CraigBlackman\.claude\plans\see-it-on-mobile-tingly-codd.md`) — this is the pointer/next-steps
+version.
+
+**Shipped and deployed to `development.eternal-fitness.co.uk`** (`staging` branch, synced 3× this
+session): PWA manifest+service worker for `/hub/m` install; the mid-session edit sheet (4 modes,
+superset group/ungroup, plus a new "Use as today's session" whole-session-replace action); a real
+mobile Clients tab (was a stub); Train-tab smart routing (was a stub); an offline set-logging queue
+(IndexedDB, idempotency key, sequential replay, 401-parks-not-drops); a real PB-downgrade bug fix
+(last-write-wins → `GREATEST`); warm-up-set PB/trend exclusion (`set_logs.is_warmup`); band exercises
+locked to lb; a blog error-swallow fix; a www→apex canonical redirect.
+
+**Real-device verification, partial.** Craig logged into the dev site via his own Chrome (not a
+simulated mobile viewport) and walked through Clients/Train/edit-sheet with real client data — confirmed
+working, found and fixed one real bug (client detail Focus panel rendering raw markdown instead of
+`block_note`). **Actual PWA install-to-home-screen and airplane-mode offline behaviour is still
+unverified** — needs a real phone, not something this session could do.
+
+**L3b correction, worth knowing if you touch that WO doc again:** it claimed 11 desktop screens had "no
+mockup ever done." Craig pushed back, turned out to be right — 10 of 11 were designed and shipped
+2026-08-04 (verified against real commit history, not assumed). Only the workout-templates browser is
+genuinely undesigned, and that's deliberate (the training-blocks mockup shows it disabled on purpose,
+not forgotten). Corrected in place in the WO doc.
+
+## Current State
+`origin/claude/mobile-workout-features-6ddaba` and `origin/staging` both fully pushed and up to date.
+`development.eternal-fitness.co.uk` deploy confirmed healthy after every sync. WO status set to `gated`
+(not `done` — real-device test still outstanding, several lanes deliberately deferred).
+
+## Blockers / deferred (Craig's own calls, not slippage)
+- **L6 Outlook/Graph integration** — blocked on Craig's Azure tenant-type decision (own M365 org vs
+  personal `outlook.com` account). Six-step checklist in the WO doc.
+- **L8 flagged risks** — not fixed, not actively being worked: no point-in-time DB recovery (WAL archive
+  is a no-op, highest-consequence item in the whole registry), `CTABand.imagePosition` no-op affecting
+  ~11 marketing pages, GDPR WO's DPA-signature gate.
+- **L3b remainder** — workout-templates browser mockup, the nav-restructure decision
+  (`hub-nav-restructure.html` Option A vs B, needs reconciling with the new mobile bottom-tab shell), and
+  the Part 4 toolbar/icon-badge consistency fixes. None re-checked this session — don't assume done.
+
+## Next Steps
+1. **Craig: real-device test.** Install the PWA on an actual Android phone, run a full session
+   end-to-end, test airplane-mode mid-session logging + reconnect replay. This is the one thing nothing
+   in this session could substitute for.
+2. Pick up L6 (needs Craig's Azure decision first) or L8 (needs his sign-off on the close list) whenever
+   he's ready — both deliberately parked, not broken.
+3. If picking L3b back up: only the workout-templates browser needs a mockup; check nav-restructure and
+   Part 4 status fresh rather than trusting the old doc.
+
+## Files Changed
+See `.context/state.md`'s 2026-08-13 entry for the full technical file list — spans 7 commits on
+`claude/mobile-workout-features-6ddaba` (`cb426a7` through `e3231c7`), all merged into `staging`.
+
+---
+
 # Session Handoff: August 10, 2026 (Claude Code) — www login/reset fix, set_logs audit trail, Emma Atkinson session data recovery
 
 ## Agent

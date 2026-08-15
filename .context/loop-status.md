@@ -487,3 +487,78 @@ too many different page designs across templates/blocks/sessions, no clear
 naming/conversion story). No code written.
 
 Session closed.
+
+---
+
+## 2026-08-14 — mobile EditSheet prescription editing (session close)
+
+Craig asked: merge development/staging forward to live, and flagged the PWA
+as limited — couldn't see how to edit workouts. Investigated before acting:
+
+- **Merge was a non-issue.** `origin/main` and `origin/staging` were already
+  the same commit (`ca8068f`); Coolify confirmed both `eternal-fitness` (prod)
+  and `eternal-fitness-staging` (development.eternal-fitness.co.uk) had
+  already deployed it successfully the day before. Nothing to push.
+- **PWA gap, clarified with Craig:** he meant the staff `/hub/m` mobile app,
+  and "edit workouts" meant editing the plan's structure, not just logging
+  against it. The mid-session edit sheet (`EditSheet.tsx`) already had
+  add/remove/group/apply-template; it was missing everything the desktop
+  `SessionEditor.tsx` has for editing an existing exercise: sets/reps/tempo/
+  rest, coaching cue, equipment, reorder, move-between-sections, swap, and
+  video/image URLs.
+
+Shipped that gap as one unit: `app/hub/m/train/[sessionId]/edit/EditSheet.tsx`
++ `app/hub/m/mobile.css`. Built via OpenCode lane `ef-editsheet-prescription`
+(deepseek-v4-pro), reorder/move-to-section logic ported directly from the
+already-shipped desktop `SessionEditor.tsx` (group-boundary-safe). Hand-
+reviewed the full diff line-by-line before commit — no correctness issues.
+`tsc --noEmit` clean.
+
+Design Parity Gate attested explicitly as N/A: no `hub-m-*.html` mockup
+governs this addition (unlike the L3a-approved add/remove/group/template
+flows already in this sheet) — checked against the sheet's own existing
+visual language instead (`.mini`/`.row`/`.thumb`/`.ex-tag`/`.set-input`,
+44px touch targets).
+
+Committed `caff0d7`, pushed to `staging` at Craig's explicit request
+(skipping the local mobile-viewport self-test I'd set up — dev server was
+running on :3010 but only Esther has hub credentials, which Claude doesn't
+have). Coolify webhook deployed to development.eternal-fitness.co.uk.
+
+**Not merged to `main`** at time of writing — see the 2026-08-15 entry below,
+which closes this out.
+
+---
+
+## 2026-08-15 — dev/prod reconciliation + project documentation
+
+Craig asked whether development and production were reconciled, then asked for
+a full reconciliation plus a current-features document and a scope of works.
+
+**Dev/prod: reconciled.** Craig confirmed his own click-through on
+development.eternal-fitness.co.uk held up and merged `staging` → `main`
+himself at 07:57 UTC. Verified independently rather than assumed:
+`git ls-remote` shows `refs/heads/main` == `refs/heads/staging` == `caff0d7`;
+Coolify prod deployment `e9271t8l5ty22flkvuh15qdf` finished 08:03 UTC,
+`running:healthy`. The mobile EditSheet prescription-editing unit is live on
+eternal-fitness.co.uk.
+
+**Registry hygiene done in the same pass:**
+- Rescued three uncommitted `.context` session docs (the 2026-08-13 handoff and
+  state entries, and the 2026-08-14 loop-status entry) that were stranded in the
+  shared checkout `D:\apps\eternal-fitness-website` — written there in breach of
+  DO-SOP-010, never committed, and at risk of being lost. Re-applied onto a
+  fresh worktree branch off `origin/main` and committed properly.
+- Deferred item `dmsnly4w39t` ("PRODUCTION blog is entirely non-functional
+  since go-live") **disproven and resolved** — live check of
+  eternal-fitness.co.uk/blog and an individual post
+  (`/blog/rate-of-perceived-exertion`) shows the index, category filters,
+  and full post bodies all rendering correctly from the database.
+
+**Produced this session:** `.context/features-and-functionality-2026-08-15.md`
+(what the platform does today, as shipped) and
+`.context/scope-of-works-2026-08-15.md` (everything outstanding, costed by
+effort and grouped by whether it needs Craig, Esther, or just build time).
+Both derived from the live codebase and the registry, not from prior docs.
+
+Session ongoing.

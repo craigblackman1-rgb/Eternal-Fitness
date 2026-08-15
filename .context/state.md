@@ -1,5 +1,71 @@
 # Eternal Fitness Website — State
 
+## 2026-08-13 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, edit-sheet apply-as-session, real-device verified
+Resumed `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` (worktree
+`web-admin-pages-dashboard-5ccf37`, branch `claude/mobile-workout-features-6ddaba`).
+Craig asked to complete every AUTO-able lane; full detail in that WO doc
+(`C:\Users\CraigBlackman\.claude\plans\see-it-on-mobile-tingly-codd.md`) and
+`.context/decisions.log`. Summary:
+
+- **L5 PWA install — DONE + DEPLOYED.** `public/hub.webmanifest` +
+  hand-written `public/hub/sw.js` (cache-first static assets, network-only
+  `/api/*`), scoped to `/hub/` only — marketing site's own manifest
+  untouched. Fixed a real Next.js 14 bug found in the same pass:
+  `themeColor` in `metadata` isn't supported, moved to a `viewport` export
+  (had to carry the root layout's `width`/`initialScale`/`viewportFit`
+  forward by hand since nested `viewport` exports don't deep-merge).
+- **Mid-session edit sheet — DONE + DEPLOYED.** `/hub/m/train/[sessionId]/edit`:
+  4 modes (library/past-sessions/templates/this-session), superset
+  group/ungroup via `lib/exercise-groups.ts`, plus a later addition —
+  **"Use as today's session"** (wholesale replace, not just add) on the
+  Past-sessions and Templates packs, mirroring desktop's
+  `applyTemplate()`/`rollOverPreviousSession()`.
+- **Real mobile Clients tab + Train-tab smart routing — DONE + DEPLOYED.**
+  Both were "Coming soon" stubs from the prior session. Clients tab is
+  read-only (contact/flags/block-progress/history), flags sourced from
+  `clients.profile.health`, not invented. Train tab now redirects to
+  today's in-progress or next session instead of a dead stub.
+- **Offline set-logging queue — DONE + DEPLOYED.** `set_logs.client_op_id`
+  (idempotency) + client-supplied validated `logged_at`, a hand-rolled
+  IndexedDB queue (`lib/hub/offline-set-log-queue.ts`), 3-way saved/queued/
+  failed save outcome, sequential replay on reconnect/mount, 401 parks the
+  queue rather than dropping it. Also fixed the real last-write-wins PB bug
+  flagged in the original WO scoping (`GREATEST`, not overwrite).
+- **Warm-up PB exclusion + band-unit lock — DONE + DEPLOYED**, per Esther's
+  answers (relayed by Craig): `set_logs.is_warmup` persisted at write time
+  (prescription can change mid-session, so it can't be re-derived later),
+  gates `checkAndUpsertPB`/`buildExerciseHistory`/`buildExerciseTrends`.
+  Band exercises now hard-locked to lb (was default-only, previously
+  overridable).
+- **Real-device verification — PARTIAL.** Craig logged into
+  `development.eternal-fitness.co.uk` via his own Chrome session; walked
+  through Clients tab (19 real clients), Train screen (real set-log save +
+  PB detection, confirmed then reverted), edit sheet all 4 tabs, band-lock
+  fix — all confirmed working against real data. Found and fixed one real
+  bug live: client detail's Focus panel was rendering raw markdown
+  (`blocks.summary`, never rendered anywhere on desktop either) instead of
+  `blocks.block_note`. **Still not tested: actual install-to-home-screen and
+  airplane-mode offline behaviour — needs a real phone, not done this
+  session.**
+- **`staging` synced 3×**, each time verified (`tsc` + `next build`) before
+  push, deployed to `development.eternal-fitness.co.uk`, confirmed healthy.
+  Two real merge conflicts hit and resolved by hand along the way: a stale
+  blog-redirect resurrection (kept staging's own fix, didn't reintroduce
+  known-broken redirects) and a genuine race with another session's
+  marketing-site PR landing on `staging` mid-sync (caught via the
+  operating-model's re-check-ownership-before-every-push rule).
+- **L3b correction.** Craig pushed back on the WO doc's claim that 11
+  desktop screens had "no mockup ever done" — verified against actual
+  mockup files + commit history and he was right: 10 of 11 were designed
+  *and* implemented same-day on 2026-08-04, already on `main`. Only the
+  workout-templates browser is genuinely undesigned (and that's deliberate
+  — the training-blocks mockup shows it as a disabled nav item on purpose).
+  WO doc corrected in place.
+- **Explicitly deferred, at Craig's direction, not done:** L6 Outlook
+  integration (blocked on his Azure tenant-type decision), and the L8
+  flagged risks (WAL/PITR gap, `CTABand.imagePosition` no-op affecting ~11
+  marketing pages, GDPR WO's DPA-signature gate).
+
 ## 2026-08-09 (Claude Code) — Featured & Reviewed band, Facebook link fix, Contact hero photo swap
 - **Site-wide "Featured & Reviewed" band — DONE + DEPLOYED (`9623a22`, `6337996`).** Craig wanted a
   banner promoting the FitPro press feature, the Storm Fitness Academy podcast episode + interview,
