@@ -562,3 +562,50 @@ effort and grouped by whether it needs Craig, Esther, or just build time).
 Both derived from the live codebase and the registry, not from prior docs.
 
 Session ongoing.
+
+---
+
+## 2026-08-15 (later) — Sam Gibbons workouts saved to workout_templates
+
+Craig dropped `sam_workout1_v2_4.docx` (+ `sam_workout2_final_1.docx` sitting beside
+it in the same OneDrive folder) — Esther's Workout 1 (Full Body Strength) and
+Workout 2 (Match Endurance + Full Body), authored/agreed outside the hub. Instruction:
+**save them to `workout_templates`** (explicitly *not* the block/sessions).
+
+Sam Gibbons = client #13, `studio_1to1`, with a stale draft block #1 (`738bad1f`)
+carrying 2 Trainerize auto-imported sessions from 2026-08-02 (raw-import junk —
+`***EXERCISE NOTES***` placeholders, typos, empty cues, 0 set_logs, never scheduled).
+
+**Done — 2 rows inserted and verified:**
+- `c97e2e4c-efff-42bc-a1eb-c2ea861ddbd4` — "Sam Gibbons — Workout 1 · Full Body Strength" (20 ex: 4 warm-up / 9 main / 7 cooldown)
+- `0ee4460c-0061-4f97-a2e8-02a0e028e800` — "Sam Gibbons — Workout 2 · Match Endurance + Full Body" (21 ex: 4 / 13 / 4)
+
+Structured into the `SessionVersion` shape (`warm_up`/`main_block`/`cooldown`):
+exercise names canonicalised to the library where 1:1 (so facets + media resolve),
+each exercise's **Why + VI cue** carried in `coaching_cue`, supersets/circuits
+`group_label`-ed, timed holds/mobility flagged `log_type: "time"`, rest placed on
+the last exercise of each group per the existing convention. Facets auto-derived
+against the `exercises` library (Workout 1: 14/20 matched, Workout 2: 17/21).
+`source_client_id` = Sam. `condition_tags` carry the safety flags: visual impairment,
+warfarin — confirm INR, shunt-safe — no Valsalva, right shoulder — monitor, left
+shoulder — Apley -9cm.
+
+Verified byte-correct (client_encoding UTF8; "—"/"·" stored properly, the console
+mojibake is a PowerShell display artefact only). No repo code changed, no commit —
+the one-off structuring script lived in temp, not the repo.
+
+**Not done (Craig: "no"):** block/session assignment. Sam's 2 stale draft sessions
+are untouched. When these templates are applied, the full medical line (exhale on
+effort, no Valsalva, no impact to abdomen, build slowly given Warfarin, confirm INR
+at start, reduce intensity around Peginterferon days, right shoulder full range) must
+go into the session `coaching_notes` — `workout_templates` has no notes field, so it
+only survives as `condition_tags` for now.
+
+**Flagged to Craig:** (1) W2 circuit "Dumbbell lateral step-up" heading says dumbbell
+but its description says "Light KB"; (2) the Showdown drill's week-1 pass mark
+"2×6 each side" is W1-specific — W2 says "see progression week" (left as a modifier);
+(3) unmatched custom exercises (Showdown drill, cross-body shoulder stretch, pec-minor
+rack stretch, supine hamstring, ankle/hip circles, leg swings) have no library
+equivalent so carry no facet/media.
+
+Session closed.
