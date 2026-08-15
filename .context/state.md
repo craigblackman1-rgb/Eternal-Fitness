@@ -1,5 +1,75 @@
 # Eternal Fitness Website — State
 
+## 2026-08-15 (Claude Code, worktree `add-workouts-training-block-f72141`) — Design-only session: medication log, workout-consolidation brief, calendar-sync scope, hub mockup reconciliation. CLOSED pending Open Design, no app code touched.
+
+**Nothing shipped or deployed this session — deliberately.** Everything below is `.context/` documentation
+(briefs, a CR register, a scope update, an audit) written to get four pieces of work design-ready before
+any implementation starts. Session closed at Craig's request, resuming once Open Design mockups come back
+(expected next day).
+
+- **CR-EF-001 — client medication log.** `.context/change-requests.md` bootstrapped (this repo had no CR
+  register before this). Structured `{name, dosage?, side_effects[], status, notes?}` per medication
+  (not a flat string list) — real gap found first: `health.medications_relevant` already existed in
+  `types/index.ts` but had **no edit UI anywhere** and was **never read by the Plan Agent prompt**
+  (`buildHardConstraintsSection()` only fed it contraindications). Mockups built and JS-verified live
+  (via a temporary local static server) in `hub-client-detail.html` (new Medications card) and
+  `hub-client-edit.html` (new repeater section, matching the existing injury-history pattern) — Craig
+  asked for full CR + mockup before any code, so no app changes made yet.
+- **Workout-logging consolidation brief finalized** — `.context/brief-workout-consolidation-opendesign.md`,
+  distilled from `wo-ef-workout-consolidation-pwa-2026-08-15` (drafted earlier the same day on `staging`
+  by a separate session, pulled into this worktree since it branched before that commit landed). Both
+  gates Craig needed to answer directly are resolved: **G1 naming** — Block = container (N sessions,
+  6/12-week, 2–3×/week), Session = one scheduled occurrence, Template = the reusable workout content
+  assigned into a session; **G3** — consolidate, one desktop logger replaces Session Editor's inline
+  logger + Standalone Live Log, Train Screen (mobile) untouched. A full L1 inventory (Explore agent,
+  verified against real code) is folded in: a capability matrix showing desktop today has neither
+  warm-up flagging, idempotent writes, nor correctly-PB-gated logging (Train Screen does) — flagged as a
+  real safety decision, not just a merge; the workout-templates browser already exists and works
+  (`/hub/workout-templates`) — the WO's "genuinely new design" framing for it was wrong, it's skin-only;
+  `rescaleTemplateSection` referenced in the WO doesn't exist in the codebase; two unrelated "templates"
+  systems (`document_templates` vs `workout_templates`) must not be conflated; the complete grep-verified
+  list of everything linking to `/hub/log/[sessionId]` that must keep working.
+- **Calendar-sync scope captured** — `.context/scope-of-works-2026-08-15.md` §2.1 rewritten. Corrected a
+  stale framing first: L6 Microsoft Graph calendar sync is **already code-complete and verified live**
+  (Esther's real account, 9 real sessions synced) on `staging`, held from `main`/prod by Craig's own
+  choice — not what this row is about any more. The actual new ask: an in-app **monthly** calendar
+  (confirmed by direct read that the only existing calendar, `/hub/schedule`, is single-day, and its
+  mockup `hub-schedule.html` matches — genuinely new UI, not a revision). Session/workout decoupling
+  captured precisely: `sessions.data` already supports being empty so "booked, no workout yet" isn't a
+  new DB state, but neither Train Screen nor the desktop Session Editor has any empty-state handling for
+  it (grepped, zero matches) — folded into the workout-consolidation brief as a requirement, PWA-first
+  per Craig ("edit a workout on the fly" is studio-floor, not desk-planning). Full booking→session
+  assignment algorithm specified with Craig directly: `sessions.block_id NOT NULL` stays as-is (no schema
+  change) — Esther creates the block with N sessions up front, a Bookings-form booking fills the next
+  session in **chronological** order (re-sorting existing assignments if a later booking has an earlier
+  date — by moving `scheduled_at` across rows, not renumbering `session_number`, so the block's
+  foundation→build→develop→peak→deload progression stays intact). Overbooking flags to Esther;
+  cancellations follow the existing 24-hour-notice policy (late = forfeited, not rebookable); Bookings
+  customers matched to `clients` by email. Two small items still open, non-blocking: whether an on-time
+  cancellation reopens the slot (inferred, not stated outright) and whether the monthly grid needs
+  booking creation or is read-only.
+- **Hub mockup reconciliation audit** — `.context/audit-hub-mockup-reconciliation-2026-08-15.md`, cross-
+  referencing all 46 live hub routes (2 Explore agents: one per app routes, one per mockup files) against
+  all 53 mockup files in `D:\apps\design-systems\ef-control-hub\`. Found Open Design had **already**
+  delivered on the workout-consolidation brief mid-session — `hub-session.html` (consolidated logger),
+  `hub-workout-templates.html`, `hub-template-paste-assign.html` all exist, dated the same day, with
+  `hub-session.html`'s own header confirming it replaces both predecessors. 6 mockups confirmed
+  superseded (`hub-session-editor.html`, `hub-session-log.html` — both superseded by `hub-session.html`;
+  `hub-client-detail-refined.html` — an abandoned 5-tab draft Craig didn't go with; `hub-site-content.html`
+  + `hub-site-content-editor.html` — model a feature removed from the app entirely on 2026-08-06;
+  `hub-sop.html` — orphaned since 2026-07-30, never resolved) plus 3 orphaned `.artifact.json` files with
+  no matching `.html`. One ambiguous case flagged for Craig, not decided unilaterally:
+  `hub-parq-edit.html` models redesigning the legacy PAR-Q editor that the document-engine migration was
+  supposed to retire. New brief written for the confirmed real gaps —
+  `.context/brief-hub-remaining-screens-opendesign.md`: new-client intake form, per-client documents
+  (list + detail), the progress-update composer/history (biggest gap — heavily built, never once
+  mocked), the block review/scheduler (flagged unclear, not confirmed missing), and the new monthly
+  calendar. `ef-client-portal` mockups explicitly not audited this pass — hub-only scope, flagged as a
+  follow-up if needed.
+- **Not done this session, by design:** no application code changed, nothing pushed, no Coolify deploy.
+  Purely `.context/` documentation. Resume once Open Design mockups for the workout-consolidation and
+  remaining-screens briefs come back — expected next day per Craig.
+
 ## 2026-08-13 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, edit-sheet apply-as-session, real-device verified
 Resumed `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` (worktree
 `web-admin-pages-dashboard-5ccf37`, branch `claude/mobile-workout-features-6ddaba`).

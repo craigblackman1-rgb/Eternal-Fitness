@@ -37,12 +37,114 @@ Nothing can be built on these until they're answered. All are queued or queueabl
 
 | # | Question | Who | Blocks |
 |---|---|---|---|
-| 2.1 | **Outlook/Microsoft Graph calendar integration** — needs the Azure tenant-type decision first: Esther's own M365 organisation, or a personal `outlook.com` account? It changes the authority URL and whether personal calendars work at all. Six-step Entra checklist is in the WO doc. *(`dmsroc08vys`)* | Craig | Lane L6 entirely (**L**) |
+| 2.1 | **In-app monthly calendar + session/workout decoupling** — see full write-up directly below. Supersedes the old framing of this row (Azure tenant-type question) — that part is resolved; what's open now is materially different and larger. | Craig | New, unscoped (**L**) |
 | 2.2 | **GDPR sign-off** — DPA signatures and confirmation of Esther's ICO registration. Everything else in the GDPR work order is done. | Craig + Esther | `wo-eternalfitness-gdpr-hub-documentation-2026-08-07` |
 | 2.3 | **Templates paste-and-assign scope.** Esther agrees workouts with Claude directly and wants to paste them into the hub as templates, then assign to a client. Narrow it to a paste-box + cheap-AI-structuring entry point reusing `TemplateEditorClient` and `rescaleTemplateSection`, or fold it into the bigger unscoped conversation (2.4)? | Craig | `wo-templates-paste-and-assign-2026-08-14` (**M** narrow / **L** folded) |
 | 2.4 | **Templates / blocks / sessions design consistency.** Craig's own framing: too many different page designs across templates, blocks and sessions, with no clear naming or conversion story. Currently unscoped. | Craig | Unscoped (**L**) |
 | 2.5 | **Blog repositioning migration.** `20260419_session_2_blog_repositioning.sql` has never been applied and **deletes rows**. Apply it, or formally retire it? Until it's decided, three redirect rules stay removed. *(`qmsn3c2purx`)* | Craig | **S** once decided |
 | 2.6 | **Hub navigation restructure** — `hub-nav-restructure.html` Option A vs B, now needing reconciliation with the mobile bottom-tab shell that shipped after the mockup was drawn. | Craig | **M** |
+
+### 2.1 detail — in-app monthly calendar + session/workout decoupling (raised by Craig, 2026-08-15)
+
+**What's already built (2026-08-15, on `staging`, held from `main`/prod by Craig's explicit choice —
+not this item):** L6 Microsoft Graph calendar sync is code-complete and verified end-to-end with
+Esther's real Microsoft account — a **one-way push** of `sessions.scheduled_at` from the app into her
+main Outlook calendar. It only ever touches events it created itself (tracked by
+`session_calendar_events.event_id`); Bookings-sourced appointments already sitting in that same
+calendar are never read, modified, or touched. Three steps remain purely mechanical whenever Craig
+says go: apply the migration to prod, merge `staging`→`main`, Esther reconnects live + prod cron on.
+**None of that is what this row is now about.**
+
+**The new ask:** an in-app calendar that actually looks like a calendar — a physical monthly grid,
+"as you get in Outlook", showing booked sessions — on **both desktop and the PWA**. The only calendar
+UI that exists today is `/hub/schedule` (`ScheduleCalendar.tsx`), and it is a **single-day view with
+±1-day navigation** — no week or month grid exists anywhere in the app. This is new UI, not a
+reconciliation of something already designed.
+
+**What populates it — two sources, both must keep working:**
+1. Manual entry by staff (already possible — a session's `scheduled_at` can be set directly).
+2. A client booking their own session via the Microsoft Bookings form. **Bookings writes straight into
+   Esther's Outlook calendar today and has never touched the app's own `sessions` table at all** — L6
+   only sends data the other direction (app → Outlook). For the in-app monthly calendar to show a
+   Bookings-made appointment, something has to change: either the app starts reading Bookings-origin
+   events back out of Outlook (a genuinely new, second sync direction — Graph read access, not just
+   write), or Bookings appointments get reflected into `sessions` some other way. **This wasn't
+   scoped or built as part of L6 and needs a real design decision, not an assumption.**
+
+**The session/workout decoupling — this is the part that changes the data model's meaning, not
+just adds UI:**
+
+Today, every `sessions` row already technically supports an empty workout — `data JSONB NOT NULL
+DEFAULT '{}'` — so "a session with nothing in it yet" is not a new database state. What's missing:
+1. `sessions.block_id` is `NOT NULL` — **every session must belong to a block today.** Blocks are
+   generated up front (by the Plan Agent or manually) with a full 6-or-12-week run of sessions,
+   session content included. There is currently no path to create a "bare" booking — a client + a
+   time slot — that doesn't already belong to a generated block. If a Bookings-sourced or ad hoc
+   manual booking should be able to exist before any block/workout planning has happened for that
+   client, that's a real schema/workflow question: does it get attached to an auto-created lightweight
+   block, or does the `NOT NULL` constraint on `block_id` need to be relaxed? **Needs Craig's steer —
+   this is a modelling decision, not an implementation detail.**
+2. **No surface currently handles an empty-`data` session gracefully.** Checked directly: neither
+   Train Screen (mobile PWA, `TrainScreen.tsx`) nor the desktop Session Editor has any empty-state
+   handling for a session with no warm-up/main/cooldown content — grepped, zero matches. Craig's own
+   framing is exactly this case: "the workout is not defined until the day... it's essential the PWA
+   has the ability to edit a workout on the fly." Today that would render three empty sections with no
+   guidance to build one there and then.
+3. This is the same territory as the in-flight workout-logging consolidation
+   (`.context/brief-workout-consolidation-opendesign.md` / `wo-ef-workout-consolidation-pwa-2026-08-15`)
+   — the consolidated desktop logger and the PWA's Mid-session Edit Sheet are exactly where "define a
+   workout for a session that doesn't have one yet" needs to live, not a new fourth surface. **This
+   requirement should be folded into that brief before it goes to Open Design**, rather than treated as
+   a separate design pass — Craig's own framing ("this CO needs to tie in with sessions, workouts,
+   blocks") says the same thing.
+
+**Craig's answer, 2026-08-15 — the booking↔session assignment model:**
+
+`block_id NOT NULL` stays as-is — no schema relaxation, no session ever exists outside a block. The
+workflow instead: Esther creates the block first, specifying how many sessions it contains (e.g. 10).
+That immediately creates all N session rows (`session_number` 1..N) as they already do today, unscheduled
+(`scheduled_at NULL`) and — per the decoupling above — not necessarily with workout content defined
+yet either. When a client then books online via the Microsoft Bookings form, the booking gets matched
+to that client's block and **assigned to the next unscheduled session in sequence**: the earliest
+booking fills `session_number` 1, the next fills `session_number` 2, and so on. The session's
+`scheduled_at` is set from the booking's date/time; nothing else about the session changes at that
+point (workout content is still whatever it was — empty or pre-planned).
+
+This resolves the block_id question outright (no schema change) and confirms the direction:
+**Bookings-sourced appointments do need to flow into the app** — matched to a client, matched to their
+current block, and slotted into the next open `session_number` — for the sequencing rule above to mean
+anything. That's still new inbound work (nothing today reads Bookings/Graph data into the app; L6 is
+push-only), just now with a concrete algorithm to build rather than an open question.
+
+**Edge cases — answered by Craig, 2026-08-15:**
+
+- **Ordering: chronological by session date, always — re-sort on every new booking.** If Tuesday is
+  booked first and Thursday (earlier in the week) is booked second, Thursday becomes session 1 and
+  Tuesday shifts to session 2 — the sequence re-sorts to match actual calendar order, it does not lock
+  in by order-of-booking. Esther can also manually reorder any time regardless (existing block-review
+  capability). **Implementation nuance worth flagging now rather than discovering mid-build:** `week`/
+  `phase`/`archetype` are stored per `session_number` and represent a deliberate progression
+  (foundation → build → develop → peak → deload) — a re-sort needs to reassign **`scheduled_at` across
+  the block's session rows** so session_number 1 (and its progression content) always lands on the
+  earliest date, rather than renumbering `session_number` itself and scrambling which workout content
+  is "week 1" vs "week 3". Small point, but it's the difference between a clean re-sort and a broken one.
+- **Overbooking (more bookings than sessions in the block): flag it for Esther, don't auto-extend or
+  auto-reject.** A booking beyond the block's defined session count surfaces to her for a manual call.
+- **Cancellations: governed by Esther's existing 24-hour notice policy.** Cancel with ≥24 hours' notice
+  → normal, the session presumably reopens for the next booking to fill (this is the sensible default
+  from "otherwise they lose it," but worth a one-line confirmation before build since it wasn't stated
+  outright). Cancel with <24 hours' notice → the client forfeits the session outright — it is **not**
+  rebookable and does not return to the pool for another booking to fill; it stays used/lost against
+  their block. This needs a way to record "forfeited, not just cancelled" distinct from a clean
+  cancellation — the existing `cancelled_at`/`cancel_reason` columns can likely carry this (e.g. a
+  reason value distinguishing late-forfeit from normal-reopen), not necessarily a new column.
+- **Matching a Bookings appointment to a client: by email address.** Microsoft Bookings captures the
+  customer's email at booking time — match against `clients.email`. Still worth a fallback answer for
+  no-match (new email, typo, a client who's never had a portal/hub email on file) before build, but the
+  primary key is settled.
+- Is the monthly view itself read-only (a booking overview) or does it need booking creation/edit
+  directly on the grid, the way Outlook's does? Still open, unrelated to the assignment-model questions
+  above.
 
 ---
 

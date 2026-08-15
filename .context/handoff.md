@@ -1,3 +1,48 @@
+# Session Handoff: August 15, 2026 (Claude Code) — Design-only session, closed pending Open Design
+
+## Agent
+Claude Code (worktree `add-workouts-training-block-f72141`, branch `claude/client-profile-medication-8d48b7`)
+
+## Session Summary
+Full technical detail in `.context/state.md`'s 2026-08-15 entry — this is the pointer version. **No app
+code touched, nothing deployed** — this was a documentation/design-brief session, closed at Craig's
+request pending Open Design mockups expected back the next day.
+
+Four things done: (1) `CR-EF-001` bootstrapped `.context/change-requests.md` and scoped a client
+medication log (structured entries, mockups built for `hub-client-detail.html`/`hub-client-edit.html`,
+JS-verified live, no app code yet); (2) `brief-workout-consolidation-opendesign.md` finalized with both
+gates Craig answered directly (block/session/template naming; consolidate desktop logging) plus a full
+L1 code-verified inventory; (3) `scope-of-works-2026-08-15.md` §2.1 rewritten with the monthly-calendar
+ask and a fully-specified booking→session assignment algorithm, agreed line-by-line with Craig; (4) a
+full hub mockup reconciliation audit found Open Design had *already* delivered the consolidated-logger
+mockup mid-session (`hub-session.html`), plus 6 other mockups confirmed superseded/safe to retire, and a
+new brief for the screens that genuinely have no mockup at all.
+
+## Next Steps
+1. **Craig:** Open Design mockups for `brief-workout-consolidation-opendesign.md` and
+   `brief-hub-remaining-screens-opendesign.md` — expected back next day.
+2. **Craig:** the one ambiguous case from the reconciliation audit — is `hub-parq-edit.html` (redesigning
+   the legacy PAR-Q editor) still wanted, or does it retire with the rest of the legacy PAR-Q surface?
+3. **Whoever picks this back up:** once mockups land, run the Design Parity Gate properly before building
+   anything — don't trust a green `tsc` as parity evidence (this project's own standing rule, origin
+   2026-08-01).
+4. The medication-log mockup (CR-EF-001) is sitting ready for Craig's visual sign-off independently of
+   the other three items — it doesn't need to wait for Open Design since Claude built it directly.
+5. Six confirmed-superseded mockup files (plus 3 orphaned `.artifact.json`s) are still sitting in
+   `ef-control-hub` — recommend a delete-or-archive pass once Craig confirms he's fine losing them (see
+   audit doc for the exact list).
+
+## Files Changed
+Docs only, this worktree: `.context/change-requests.md` (new), `.context/scope-of-works-2026-08-15.md`
+(edited), `.context/brief-workout-consolidation-opendesign.md` (new), `.context/workorder-ef-workout-
+consolidation-pwa-2026-08-15.md` (pulled in from `origin/staging`, then extended with ledger entries),
+`.context/audit-hub-mockup-reconciliation-2026-08-15.md` (new), `.context/brief-hub-remaining-screens-
+opendesign.md` (new). Design-system edits (separate repo, not this one):
+`D:\apps\design-systems\ef-control-hub\desktop\hub-client-detail.html` and `hub-client-edit.html`
+(new Medications sections).
+
+---
+
 # Session Handoff: August 13, 2026 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, real-device verified
 
 ## Agent
