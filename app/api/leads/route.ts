@@ -36,7 +36,52 @@ function escapeHtml(value: string): string {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const requestLog = new Map<string, number[]>();
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0].trim();
+    if (first) return first;
+  }
+  return "unknown";
+}
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const cutoff = now - RATE_LIMIT_WINDOW_MS;
+
+  for (const [k, timestamps] of requestLog) {
+    const recent = timestamps.filter((t) => t > cutoff);
+    if (recent.length === 0) requestLog.delete(k);
+    else if (recent.length !== timestamps.length) requestLog.set(k, recent);
+  }
+
+  const timestamps = (requestLog.get(key) || []).filter((t) => t > cutoff);
+  if (timestamps.length >= RATE_LIMIT_MAX) {
+    requestLog.set(key, timestamps);
+    return true;
+  }
+  timestamps.push(now);
+  requestLog.set(key, timestamps);
+  return false;
+}
+
+function truncate(value: string, max: number): string {
+  return value.length > max ? value.slice(0, max) : value;
+}
+
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please call or email us directly." },
+      { status: 429 }
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -45,13 +90,13 @@ export async function POST(request: Request) {
   }
 
   const source = typeof body.source === "string" && SOURCE_LABELS[body.source] ? body.source : "contact_form";
-  const firstName = typeof body.firstName === "string" ? body.firstName.trim() : "";
-  const lastName = typeof body.lastName === "string" ? body.lastName.trim() : "";
-  const singleName = typeof body.name === "string" ? body.name.trim() : "";
+  const firstName = typeof body.firstName === "string" ? truncate(body.firstName.trim(), 200) : "";
+  const lastName = typeof body.lastName === "string" ? truncate(body.lastName.trim(), 200) : "";
+  const singleName = typeof body.name === "string" ? truncate(body.name.trim(), 200) : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
-  const topic = typeof body.topic === "string" ? body.topic.trim() : "";
-  const message = typeof body.message === "string" ? body.message.trim() : "";
+  const topic = typeof body.topic === "string" ? truncate(body.topic.trim(), 200) : "";
+  const message = typeof body.message === "string" ? truncate(body.message.trim(), 5000) : "";
 
   const fullName = singleName || [firstName, lastName].filter(Boolean).join(" ");
 
