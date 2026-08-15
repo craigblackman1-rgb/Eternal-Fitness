@@ -16,6 +16,7 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const clientNumberRaw = form.get("client_id");
   const kind = form.get("kind") as string | null;
+  const titleRaw = form.get("title") as string | null;
   const clientSignedDate = form.get("client_signed_date") as string | null;
   const file = form.get("file");
 
@@ -45,6 +46,8 @@ export async function POST(request: Request) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
+  const title = titleRaw && titleRaw.trim() ? titleRaw.trim() : DOCUMENT_KIND_LABEL[kind as DocumentKind];
+
   const pool = getPool();
   const pg = await pool.connect();
   try {
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
       [
         client.id,
         kind,
-        DOCUMENT_KIND_LABEL[kind as DocumentKind],
+        title,
         JSON.stringify({ sections: [] }),
         "signed",
         file.name,

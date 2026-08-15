@@ -1,4 +1,4 @@
-export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire";
+export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire" | "note";
 
 export type DocumentStatus = "draft" | "sent" | "signed" | "superseded";
 
@@ -107,6 +107,9 @@ export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {
   parq: "PAR-Q",
   invoice: "Invoice",
   leg_pain_questionnaire: "Leg Pain Questionnaire",
+  // Non-template catch-all for uploaded documents (doctor's notes, ad-hoc
+  // notes, etc.) that don't fit any of the standard template kinds above.
+  note: "Note / Other document",
 };
 
 /** Whether every required signature is present — used to decide "signed" status. */
