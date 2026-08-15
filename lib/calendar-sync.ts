@@ -47,7 +47,7 @@ export interface SyncResult {
   errors: string[];
 }
 
-function siteUrl(): string {
+export function siteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL || "https://eternal-fitness.co.uk";
 }
 
