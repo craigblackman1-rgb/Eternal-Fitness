@@ -363,7 +363,7 @@ Event body carries a deep link to `/hub/m/train/[sessionId]` — tapping the cal
 2. Redirect URI: `https://eternal-fitness.co.uk/api/integrations/microsoft/callback` + a localhost URI for dev.
 3. Delegated Graph permissions: `Calendars.ReadWrite`, `offline_access`, `User.Read`. Grant admin consent. **Not Application permissions** — app-scoped `Calendars.ReadWrite` grants access to every mailbox in the tenant.
 4. Client secret (max 24-month expiry — **diary the renewal**; expiry kills the sync silently).
-5. Esther creates a dedicated "Eternal Fitness" calendar (deletable and re-syncable without touching personal events); store its `calendarId`.
+5. ~~Esther creates a dedicated "Eternal Fitness" calendar~~ — **superseded 2026-08-15**: Craig confirmed syncing into Esther's **main** Outlook calendar is intentional, not a gap. It already holds Microsoft Bookings client bookings + direct bookings; one calendar for everything is the intended UX. Safe by design — the sync only ever creates/updates/deletes events it created itself (tracked via `session_calendar_events.event_id`), never touches pre-existing Bookings-sourced entries.
 6. Coolify env: `MS_GRAPH_CLIENT_ID`, `MS_GRAPH_CLIENT_SECRET`, `MS_GRAPH_TENANT_ID`, `MS_GRAPH_REDIRECT_URI`.
 
 **Two flags:** (a) Microsoft **rotates refresh tokens on use** — persist the new one on every refresh or the integration dies after the first. (b) These are bearer credentials to her whole calendar, in plaintext in the same Postgres as client PII and PAR-Q data; the pg shim's ubiquitous `select("*")` makes accidental exposure easy. Constrain reads to a server-only `lib/graph-client.ts`; no API route may return an `integration_tokens` row.
