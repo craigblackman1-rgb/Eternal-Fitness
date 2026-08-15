@@ -26,17 +26,29 @@ export function IntegrationsManager() {
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [selectedCalendar, setSelectedCalendar] = useState("");
+  // Distinct from status.configured === false: this means the check itself
+  // failed (network error, 500, etc), not that Graph is genuinely unconfigured.
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadStatus = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await fetch("/api/integrations/microsoft/status");
-      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to load status");
+      if (!res.ok) {
+        const message = await res
+          .json()
+          .then((b) => b.error as string)
+          .catch(() => `Status check failed (${res.status})`);
+        throw new Error(message);
+      }
       const body: StatusResponse = await res.json();
       setStatus(body);
       setSelectedCalendar(body.calendarId ?? "");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to load integration status");
+      const message = err instanceof Error ? err.message : "Failed to load integration status";
+      setLoadError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -100,6 +112,13 @@ export function IntegrationsManager() {
 
   if (loading) {
     content = <p className="text-sm text-muted-foreground">Checking connection…</p>;
+  } else if (loadError) {
+    content = (
+      <div className="space-y-2">
+        <p className="text-sm text-destructive">Couldn&apos;t check the connection: {loadError}</p>
+        <Button variant="outline" size="sm" onClick={loadStatus}>Try again</Button>
+      </div>
+    );
   } else if (!status?.configured) {
     content = (
       <p className="text-sm text-muted-foreground">
