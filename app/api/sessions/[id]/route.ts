@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUids } from "@/lib/exercise-ref";
+import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
@@ -47,5 +48,16 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const { data, error } = await supabase.from("sessions").update(update).eq("id", params.id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Push the change to the Outlook calendar immediately; the 15-minute cron
+  // repairs any miss, so a sync failure must never fail the PATCH itself.
+  if ("scheduled_at" in update || "cancelled_at" in update) {
+    try {
+      await syncSessionCalendarEvent(params.id);
+    } catch (err) {
+      console.error("On-demand calendar sync failed (cron will retry):", err);
+    }
+  }
+
   return NextResponse.json(data);
 }
