@@ -20,6 +20,13 @@ function escapeHtml(value: unknown): string {
 
 export async function GET(request: Request) {
   const supabase = createClient();
+
+  // PAR-Q answers are special-category health data. Every caller is a
+  // hub-protected page, so require a staff session (there is no RLS on this
+  // instance — app-layer auth is the only gate).
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const clientName = searchParams.get("client_name");
 
