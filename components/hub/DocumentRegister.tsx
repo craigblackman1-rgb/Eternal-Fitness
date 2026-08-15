@@ -68,7 +68,7 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
     ...documents.map((d) => ({
       key: `doc-${d.id}`,
       id: d.id,
-      label: `${DOCUMENT_KIND_LABEL[d.kind as DocumentKind] ?? d.title}${d.version > 1 ? ` (v${d.version})` : ""}`,
+      label: `${d.source_type === "scan" ? d.title : (DOCUMENT_KIND_LABEL[d.kind as DocumentKind] ?? d.title)}${d.version > 1 ? ` (v${d.version})` : ""}`,
       status: d.status,
       emailed: d.emailed,
       consentSummary: consentSummary(d.consent_choices),

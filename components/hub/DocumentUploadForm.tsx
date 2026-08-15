@@ -15,6 +15,7 @@ interface DocumentUploadFormProps {
 export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormProps) {
   const router = useRouter();
   const [kind, setKind] = useState<DocumentKind>("terms");
+  const [title, setTitle] = useState("");
   const [signedDate, setSignedDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,6 +32,7 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
       const form = new FormData();
       form.append("client_id", String(clientNumber));
       form.append("kind", kind);
+      form.append("title", title);
       form.append("client_signed_date", signedDate);
       form.append("file", file);
 
@@ -60,6 +62,16 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
             <option key={k} value={k}>{v}</option>
           ))}
         </select>
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <label className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Title</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={DOCUMENT_KIND_LABEL[kind]}
+          className="h-8 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
+        />
       </div>
       <div className="flex flex-col gap-0.5">
         <label className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Signed date</label>

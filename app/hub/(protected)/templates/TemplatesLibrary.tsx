@@ -40,6 +40,7 @@ const CATEGORY_BY_KIND: Record<DocumentKind, Category> = {
   consent: "agreement",
   feedback: "feedback",
   invoice: "other",
+  note: "other",
 };
 
 const CATEGORY_META: Record<Category, { label: string; token: StatusToken }> = {
@@ -58,6 +59,7 @@ const ICON_BY_KIND: Record<DocumentKind, React.ComponentType<{ className?: strin
   consent: IconHeartHandshake,
   feedback: IconMessageCircle,
   invoice: IconFileText,
+  note: IconFileText,
 };
 
 const DESC_BY_KIND: Record<DocumentKind, string> = {
@@ -69,6 +71,7 @@ const DESC_BY_KIND: Record<DocumentKind, string> = {
   consent: "Permission for photos, video and quotes, with what the client is agreeing to and how to withdraw it.",
   feedback: "End-of-programme feedback, including the would-you-recommend question used for testimonials.",
   invoice: "Billing document sent to a client for services rendered.",
+  note: "Ad-hoc note or uploaded document kept on the client's file — not generated from a template.",
 };
 
 function who(t: DocumentTemplate): Who {
