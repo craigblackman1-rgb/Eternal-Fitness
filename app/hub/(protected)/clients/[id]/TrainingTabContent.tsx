@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { HubCard, HubCardHeader } from "@/components/hub";
@@ -20,6 +21,7 @@ import {
   IconBarChart3,
   IconActivity,
   IconPlus,
+  IconPencil,
 } from "@/components/icons";
 
 type Segment = "blocks" | "sessions" | "progress" | "history";
@@ -75,6 +77,97 @@ function SessionCheckinPill({
   return (
     <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-success)]">
       {label}
+    </span>
+  );
+}
+
+/** Stored ISO -> local "YYYY-MM-DD" for a date input. */
+function isoToLocalDate(iso: string): string {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Combine a local "YYYY-MM-DD" with the time-of-day from an existing ISO timestamp. */
+function localDateToIso(date: string, originalIso: string): string {
+  const orig = new Date(originalIso);
+  const [y, mo, d] = date.split("-").map(Number);
+  return new Date(y, mo - 1, d, orig.getHours(), orig.getMinutes(), orig.getSeconds(), orig.getMilliseconds()).toISOString();
+}
+
+/** Click-to-edit logged date for a completed session. */
+function SessionDateCell({ session }: { session: SessionRow }) {
+  const router = useRouter();
+  const log = (session.data as any)?.session_log;
+  const completedAt: string | null = log?.completed_at ?? null;
+  const [editing, setEditing] = useState(false);
+  const [dateValue, setDateValue] = useState(completedAt ? isoToLocalDate(completedAt) : "");
+  const [saving, setSaving] = useState(false);
+
+  if (!completedAt) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  const handleSave = async () => {
+    if (!dateValue || saving) return;
+    setSaving(true);
+    const updatedLog = { ...log, completed_at: localDateToIso(dateValue, completedAt) };
+    const updatedData = { ...(session.data ?? {}), session_log: updatedLog };
+    const res = await fetch(`/api/sessions/${session.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: updatedData }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      toast.error("Failed to change session date");
+      return;
+    }
+    setEditing(false);
+    toast.success("Session date updated");
+    router.refresh();
+  };
+
+  if (editing) {
+    return (
+      <input
+        type="date"
+        value={dateValue}
+        onChange={(e) => setDateValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setDateValue(isoToLocalDate(completedAt));
+            setEditing(false);
+          }
+          if (e.key === "Enter") handleSave();
+        }}
+        onClick={(e) => e.stopPropagation()}
+        autoFocus
+        disabled={saving}
+        className="w-[130px] rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 py-1 text-sm"
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={(e) => {
+        e.stopPropagation();
+        setEditing(true);
+      }}
+      title="Click to change logged date"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") setEditing(true);
+      }}
+      className="inline-flex cursor-pointer items-center gap-1 hover:text-foreground"
+    >
+      {new Date(completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+      <IconPencil className="h-3 w-3 opacity-40" />
     </span>
   );
 }
@@ -213,9 +306,7 @@ export function TrainingTabContent({
                     return (
                       <tr key={session.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
                         <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
-                          {log?.completed_at
-                            ? new Date(log.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                            : "—"}
+                          <SessionDateCell session={session} />
                         </td>
                         <td className="py-2.5 px-5 font-semibold text-foreground">
                           {blockNum != null ? `Block ${blockNum} \u00b7 S${session.session_number}` : `S${session.session_number}`}

@@ -18,6 +18,30 @@ import { SessionEditor } from "./SessionEditor";
 import { computeGroups } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
 
+function todayLocalISO(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Stored ISO -> local "YYYY-MM-DD" for a date input. */
+function isoToLocalDate(iso: string): string {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Combine a local "YYYY-MM-DD" with the time-of-day from an existing ISO timestamp. */
+function localDateToIso(date: string, originalIso: string): string {
+  const orig = new Date(originalIso);
+  const [y, mo, d] = date.split("-").map(Number);
+  return new Date(y, mo - 1, d, orig.getHours(), orig.getMinutes(), orig.getSeconds(), orig.getMilliseconds()).toISOString();
+}
+
 export default function SessionViewPage({
   params,
 }: {
@@ -32,6 +56,7 @@ export default function SessionViewPage({
   const [rpe, setRpe] = useState<string>("");
   const [fatigue, setFatigue] = useState<SessionLog["fatigue"]>(null);
   const [logNotes, setLogNotes] = useState("");
+  const [logDate, setLogDate] = useState("");
   const [savingLog, setSavingLog] = useState(false);
   // Per-set quick logs, keyed by `${exercise_ref}::${set_number}`.
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
@@ -60,6 +85,7 @@ export default function SessionViewPage({
         setRpe(log?.rpe != null ? String(log.rpe) : "");
         setFatigue(log?.fatigue ?? null);
         setLogNotes(log?.notes || "");
+        setLogDate(log?.completed_at ? isoToLocalDate(log.completed_at) : todayLocalISO());
         if (data?.id) {
           const logsRes = await fetch(`/api/sessions/${data.id}/set-logs`);
           if (logsRes.ok) {
@@ -110,8 +136,16 @@ export default function SessionViewPage({
   const saveLog = async (markComplete: boolean) => {
     if (!session) return;
     setSavingLog(true);
+    let nextCompletedAt: string | null = null;
+    if (markComplete) {
+      nextCompletedAt = logDate
+        ? localDateToIso(logDate, currentLog?.completed_at ?? new Date().toISOString())
+        : new Date().toISOString();
+    } else if (currentLog?.completed_at) {
+      nextCompletedAt = logDate ? localDateToIso(logDate, currentLog.completed_at) : currentLog.completed_at;
+    }
     const updatedLog: SessionLog = {
-      completed_at: markComplete ? new Date().toISOString() : currentLog?.completed_at ?? null,
+      completed_at: nextCompletedAt,
       rpe: rpe.trim() === "" ? null : Number(rpe),
       fatigue,
       notes: logNotes,
@@ -438,6 +472,15 @@ export default function SessionViewPage({
                     <option value="high">High</option>
                   </select>
                 </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Session date</label>
+                <input
+                  type="date"
+                  value={logDate}
+                  onChange={(e) => setLogDate(e.target.value)}
+                  className="w-full rounded-lg border border-border/60 px-3 py-2 text-sm"
+                />
               </div>
               <Textarea value={logNotes} onChange={(e) => setLogNotes(e.target.value)} rows={3} placeholder="How the session went, adjustments made, anything for next time..." />
               <div className="flex gap-2">
