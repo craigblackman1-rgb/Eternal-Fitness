@@ -562,3 +562,6 @@ effort and grouped by whether it needs Craig, Esther, or just build time).
 Both derived from the live codebase and the registry, not from prior docs.
 
 Session ongoing.
+
+## 2026-08-15 11:50 (Claude Code, workout-set-completion-bug-44f52a worktree)
+- Pushed staging 5d45076..9464362: L6 Microsoft Graph calendar sync (code complete, env vars pending) + security quick wins (7 files). Migration 20260815_microsoft_graph_integration.sql APPLIED to prod and verified. Branches claude/wo-active-microsoft-365-calendar-d3069c + lane/security-quickwins-2026-08-15 pushed. Awaiting Coolify auto-deploy of development.eternal-fitness.co.uk.
