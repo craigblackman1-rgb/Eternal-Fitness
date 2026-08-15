@@ -18,18 +18,21 @@ const nextConfig = {
         ],
       },
       {
-        source: "/api/:path*",
-        headers: [
-          { key: "Cache-Control", value: "private, no-store" },
-        ],
-      },
-      {
         // HTML must revalidate every time — a cached page from a previous
         // deployment references purged /_next chunks (unstyled pages, dead
         // Server Actions). Hashed static assets carry their own caching.
         source: "/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        // API responses carry PII / PAR-Q data — never publicly cacheable.
+        // Must come AFTER the catch-all: for a duplicate header key, the last
+        // matching rule wins (same reason the /hub rule below sits here).
+        source: "/api/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
         ],
       },
       {
