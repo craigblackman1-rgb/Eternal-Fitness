@@ -124,6 +124,8 @@ export default function SessionViewPage({
     return true;
   };
 
+  const setLogsArray = useMemo(() => Object.values(setLogs), [setLogs]);
+
   const handleSaveAsTemplate = async () => {
     if (!session || !templateName.trim()) return;
     setSavingTemplate(true);
@@ -173,8 +175,6 @@ export default function SessionViewPage({
       Not started
     </span>
   );
-
-  const setLogsArray = useMemo(() => Object.values(setLogs), [setLogs]);
 
   return (
     <div className="space-y-6">
