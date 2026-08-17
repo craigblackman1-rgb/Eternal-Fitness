@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { DOCUMENT_KIND_LABEL, type DocumentKind } from "@/lib/documents/types";
 
 // Kinds that have a template seeded.
-const AVAILABLE_KINDS: DocumentKind[] = ["parq", "terms", "risk_assessment", "annual_review", "consent", "feedback", "leg_pain_questionnaire"];
+const AVAILABLE_KINDS: DocumentKind[] = ["parq", "terms", "remote_coaching", "risk_assessment", "annual_review", "consent", "feedback", "leg_pain_questionnaire"];
 
 export function NewDocumentButton({ clientNumber }: { clientNumber: number }) {
   const router = useRouter();
