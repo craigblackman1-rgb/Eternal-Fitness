@@ -12,6 +12,7 @@ const KIND_EYEBROW: Record<DocumentKind, string> = {
   parq: "Client document 04",
   invoice: "Client document 07",
   leg_pain_questionnaire: "Client document 08",
+  remote_coaching: "Client document 09",
   note: "Client note",
 };
 
@@ -24,6 +25,7 @@ const KIND_REFERENCE: Record<DocumentKind, string> = {
   parq: "EF-PARQ-2026",
   invoice: "EF-INV-2026",
   leg_pain_questionnaire: "EF-PAIN-LEG-2026",
+  remote_coaching: "EF-REMOTE-2026",
   note: "EF-NOTE-2026",
 };
 

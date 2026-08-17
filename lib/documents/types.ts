@@ -1,4 +1,4 @@
-export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire" | "note";
+export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire" | "remote_coaching" | "note";
 
 export type DocumentStatus = "draft" | "sent" | "signed" | "superseded";
 
@@ -107,6 +107,7 @@ export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {
   parq: "PAR-Q",
   invoice: "Invoice",
   leg_pain_questionnaire: "Leg Pain Questionnaire",
+  remote_coaching: "Remote Coaching Contract",
   // Non-template catch-all for uploaded documents (doctor's notes, ad-hoc
   // notes, etc.) that don't fit any of the standard template kinds above.
   note: "Note / Other document",
