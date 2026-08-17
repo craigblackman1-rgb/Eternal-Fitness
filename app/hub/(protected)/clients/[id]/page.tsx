@@ -8,6 +8,7 @@ import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, I
 import { computeUpdateDue } from "@/lib/updates-due";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
+import { ClientNotesPanel } from "./ClientNotesPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
 import type { TrainerizeHistoryData } from "@/components/hub";
@@ -507,6 +508,11 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     {client.referral_source && (
                       <HubDataField label="Referral source">{client.referral_source}</HubDataField>
                     )}
+                    {client.start_date && (
+                      <HubDataField label="Start date">
+                        {new Date(client.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      </HubDataField>
+                    )}
                     <HubDataField label="Primary goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
                     <HubDataField label="Sessions per week">{p?.logistics?.sessions_per_week ? `${p.logistics.sessions_per_week}×` : "—"}</HubDataField>
                     <HubDataField label="Session length"><span className="capitalize">{p?.logistics?.time_tier ?? "—"}</span></HubDataField>
@@ -529,6 +535,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   />
                 </div>
               </HubCard>
+
+              <ClientNotesPanel clientId={client.id} />
 
               <HubCard>
                 <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Training Snapshot" color="teal" />

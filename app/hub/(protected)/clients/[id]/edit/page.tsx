@@ -101,6 +101,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [dirty, setDirty] = useState(false);
   const [clientNumber, setClientNumber] = useState<number | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -146,6 +147,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setDirty(false);
       setClientNumber(data.client_number ?? null);
       setCreatedAt(data.created_at ?? null);
+      setStartDate(data.start_date ?? null);
       const p = data.profile || {};
       setProfile({
         client: { ...emptyProfile.client, ...(p.client || {}) },
@@ -217,6 +219,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         pace_mode: paceMode,
         delivery_mode: deliveryMode,
         resource_visibility: resourceVisibility,
+        start_date: startDate,
       }),
     });
 
@@ -326,6 +329,19 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                     <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="start_date">Start date</Label>
+                <Input
+                  id="start_date"
+                  type="date"
+                  value={startDate ?? ""}
+                  onChange={(e) => { setDirty(true); setStartDate(e.target.value || null); }}
+                  className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                />
+                <p className="text-xs text-muted-foreground">
+                  When the client's training began — separate from record creation.
+                </p>
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">

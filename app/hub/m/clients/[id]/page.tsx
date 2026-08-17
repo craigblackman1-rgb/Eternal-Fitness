@@ -5,6 +5,7 @@ import type { ClientProfile, DBClient, SignedAgreement, SignedPARQ } from "@/typ
 import { computeComplianceFlags } from "@/lib/compliance";
 import { buildMedicalFlags, type ClientFlag } from "@/lib/mobile-client-flags";
 import { TasksPanel } from "./TasksPanel";
+import { NotesPanel } from "./NotesPanel";
 
 const ICO = {
   user: (
@@ -92,6 +93,7 @@ interface ClientRow {
   annual_review_due_date: string | null;
   exercise_modifications: string | null;
   referral_source: string | null;
+  start_date: string | null;
 }
 
 interface SessionRow {
@@ -143,7 +145,7 @@ export default async function MobileClientDetailPage({ params }: { params: { id:
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, name, client_number, email, phone, profile, compliance_status, gp_letter_status, annual_review_due_date, exercise_modifications, referral_source")
+    .select("id, name, client_number, email, phone, profile, compliance_status, gp_letter_status, annual_review_due_date, exercise_modifications, referral_source, start_date")
     .eq("client_number", clientNumber)
     .single();
 
@@ -265,6 +267,8 @@ export default async function MobileClientDetailPage({ params }: { params: { id:
       </header>
 
       <main className="mcontent">
+        <NotesPanel clientId={row.id} />
+
         {/* Contact */}
         <div className="panel">
           <div className="panel-h">
@@ -297,6 +301,18 @@ export default async function MobileClientDetailPage({ params }: { params: { id:
                   : "—"}
               </span>
             </div>
+            {row.start_date && (
+              <div className="kv">
+                <span className="kv-k">Started</span>
+                <span className="kv-v">
+                  {new Date(row.start_date).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+            )}
             {(row.phone || row.email) && (
               <div className="callrow">
                 {row.phone && (

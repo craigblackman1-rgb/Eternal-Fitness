@@ -122,6 +122,14 @@ export interface Task {
   updated_at: string;
 }
 
+/** Timestamped free-text note against a client (CR-EF-017). Append-only. */
+export interface ClientNote {
+  id: string;
+  client_id: string;
+  note: string;
+  created_at: string;
+}
+
 /** A structured, per-client instance of a TrainingRuleType — replaces bare-string
   *  programming_adaptations so the Plan Agent applies it systematically rather than
   *  parsing prose. Stored inline in ClientProfile, not a separate table. */
@@ -373,6 +381,7 @@ export interface DBClient {
   payment_method: string | null;
   payment_status: PaymentStatus;
   block_expiry_date: string | null;
+  start_date: string | null;
   client_status: ClientStatus;
   referral_source: string | null;
 }

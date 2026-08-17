@@ -1071,6 +1071,7 @@ export function TrainScreen({
                       ) : (
                         <ExerciseCard
                           key={block.items[0].uid ?? block.items[0].exercise_name}
+                          sessionId={sessionId}
                           exercise={block.items[0]}
                           state={exStates[block.items[0].uid ?? ""]}
                           restTimerKey={block.items[0].uid ?? ""}
@@ -1489,6 +1490,7 @@ function RestControl({
 }
 
 function ExerciseCard({
+  sessionId,
   exercise,
   state,
   restTimerKey,
@@ -1512,6 +1514,7 @@ function ExerciseCard({
   onRestAdjust,
   isComplete,
 }: {
+  sessionId: string;
   exercise: Exercise;
   state: ExState | undefined;
   restTimerKey: string;
@@ -1614,6 +1617,14 @@ function ExerciseCard({
           >
             {ICO.note}
           </button>
+          <Link
+            className="icon-btn"
+            href={`/hub/m/train/${sessionId}/edit`}
+            aria-label={`Edit ${exercise.exercise_name}`}
+            title="Edit workout"
+          >
+            {ICO.edit}
+          </Link>
         </div>
       </div>
 

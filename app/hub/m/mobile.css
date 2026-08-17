@@ -553,6 +553,19 @@
 .t-del { flex-shrink: 0; width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
 .t-del:hover { background: var(--s-danger-bg); color: var(--s-danger); }
 .t-empty { text-align: center; padding: 14px 0 6px; font-size: 13px; color: var(--muted); }
+.panel-h-count { flex-shrink: 0; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--hover); color: var(--muted); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.n-addrow { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.n-addrow textarea { width: 100%; resize: vertical; border-radius: 10px; border: 1px solid var(--border); background: var(--card); padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--ink); line-height: 1.4; }
+.n-addrow textarea:focus { outline: none; border-color: var(--teal); }
+.n-addrow button { align-self: flex-end; height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--rose); color: var(--color-white); font-family: inherit; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.n-addrow button:disabled { opacity: 0.5; cursor: default; }
+.n-list { display: flex; flex-direction: column; }
+.n-row { position: relative; padding: 10px 34px 10px 0; }
+.n-row + .n-row { border-top: 1px dashed var(--border); }
+.n-text { display: block; font-size: 14px; color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+.n-meta { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.n-del { position: absolute; top: 8px; right: 0; width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; cursor: pointer; }
+.n-del:hover { background: var(--s-danger-bg); color: var(--s-danger); }
 .callrow { display: flex; gap: 8px; margin-top: 10px; }
 .callrow a { flex: 1; height: 46px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--ink); font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; }
 .callrow a:hover { background: var(--hover); }
