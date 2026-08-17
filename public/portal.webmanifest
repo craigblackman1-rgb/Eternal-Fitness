@@ -1,0 +1,29 @@
+{
+  "name": "Eternal Fitness Portal",
+  "short_name": "EF Portal",
+  "start_url": "/portal",
+  "scope": "/portal/",
+  "display": "standalone",
+  "background_color": "#F4F5F7",
+  "theme_color": "#C1839F",
+  "icons": [
+    {
+      "src": "/hub-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hub-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/hub-icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
