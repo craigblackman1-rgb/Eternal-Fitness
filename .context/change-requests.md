@@ -5,7 +5,8 @@ first time 2026-08-17 — an untracked predecessor existed in the shared checkou
 but was never committed (see the resolved process-gap note below). CR-EF-001–008
 seeded from the SEO/AI-SEO/speed/spam audit run 2026-08-17; CR-EF-009–010 from a
 concurrent hub-screens session the same day; CR-EF-011–015 reconciled from the
-untracked predecessor.
+untracked predecessor; CR-EF-016–027 raised by Craig 2026-08-17 (hub/PWA
+usability pass — see the grouping note under the table).
 
 Status flow: raised → approved → briefed → built → verified.
 
@@ -32,6 +33,38 @@ else is a genuine change/improvement and lives here as a CR.
 | CR-EF-013 | Stale "Level 4 qualified trainer" framing in `public/site.webmanifest` | CR (content, small) | built | 2026-08-15 | Reconciled 2026-08-17 (was CR-EF-003). Fixed same day: manifest description now reads "...Esther Fair, qualified in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation" — matches the phrasing already used in `app/about/page.tsx`'s schema.org blocks. The wider "Level 4 Personal Trainer" retirement (2026-07-27) had fixed visible copy + 3 schema.org blocks but missed this file. |
 | CR-EF-014 | Pull-up/resistance bands prescribed and logged by colour (colour defines tension per the studio's band set), not just weight | CR (functionality) | approved | 2026-08-15 | Reconciled 2026-08-17 (was CR-EF-004). Rides the same WO/mockups as CR-EF-011 — band-colour selector is part of both design briefs, not a separate pass. Colour→tension mapping still needs confirming with Esther. FF-001 §M12 row · both Open Design briefs · WO unit. |
 | CR-EF-015 | Workout-from-template on training blocks (RETRO-CAPTURED) | CR (functionality) | built, unverified against consolidation design | 2026-08-15 | Reconciled 2026-08-17 (was CR-EF-005). Built and pushed to main (094d35f) by a session that predated CR-register adoption. Flag carried forward: this added functionality to the Session Editor family while CR-EF-011's consolidation redesign is still pending mockups — those briefs MUST account for it so the redesign doesn't regress it. |
+| CR-EF-016 | Client list should default to alphabetical (A–Z) order, not newest-first | CR (usability, S) | raised | 2026-08-17 | Verified: `app/hub/(protected)/clients/page.tsx:13` orders `created_at` descending. The desktop table's Client column *is* click-sortable (`clients-table.tsx:50-51`) — only the default is wrong. Mobile `/hub/m/clients` needs the same default. |
+| CR-EF-017 | Notes section on the client profile front page in the mobile PWA — capture "spoke to X" / free-text notes against a client, timestamped | CR (functionality) | raised | 2026-08-17 | Verified: `clients` has **no** notes column in any migration. The only note stores are `trainerize_client_notes` (imported historical, read-only) and `blocks.block_note` (per-block). Needs a new timestamped `client_notes` table + surfacing on `/hub/m/clients/[id]` (front page, above the fold) and on the desktop client page. Schema + Open Design brief before build. |
+| CR-EF-018 | Single-sided (unilateral) exercises must always be prescribed and logged per side — Left / Right | CR (functionality) | raised, needs detail | 2026-08-17 | Reading of Craig's note: any unilateral movement gets explicit L/R rather than one combined entry. Touches prescription (`lib/prescription.ts`), the Session Editor, the PWA Train Screen and `set_logs` shape. **Needs Craig confirming** whether this is a per-exercise flag on the exercise library, an always-on rule for a known unilateral list, or a per-prescription toggle. Overlaps CR-EF-011's consolidation design — should ride the same mockups. |
+| CR-EF-019 | Audible alert when the rest timer reaches zero | CR (functionality, S) | raised | 2026-08-17 | Verified: there is **no** audio anywhere in the app — no `new Audio`, `AudioContext`, or `navigator.vibrate` in `app/hub`, `components/hub` or `lib`. The rest timer (`app/hub/m/train/[sessionId]/TrainScreen.tsx:294-317`) is visual only. Implementation note: iOS PWA blocks un-gestured audio, so the sound element must be primed on the user's "start rest" tap; add a `navigator.vibrate` fallback for silent mode. |
+| CR-EF-020 | Option to change rest times | CR (functionality) | raised | 2026-08-17 | Verified: rest length is derived from the prescription string via `parseRestSeconds()` and falls back to a hard-coded `60` (`TrainScreen.tsx:990`, `:1004`). There is no in-session override, no per-exercise default and no per-client default. Scope to settle: adjust-for-this-set-only vs. edit the prescription. |
+| CR-EF-021 | Edit button against each exercise inside session logging | CR (usability) | raised | 2026-08-17 | Verified: the only edit path today is the whole-session sheet at `/hub/m/train/[sessionId]/edit` — nothing per-exercise inside the logging flow. Same surface as CR-EF-011's consolidation, so it belongs in those mockups rather than being bolted on first. |
+| CR-EF-022 | Client account start date shown against the profile | CR (functionality, S) | raised | 2026-08-17 | Verified: `clients` has **no** start-date column — the nearest existing fields are `block_expiry_date` and `trainerize_training_blocks.start_date` (imported history only). Needs a column, an intake-form field, backfill for existing clients, and display on both the desktop and PWA profile. |
+| CR-EF-023 | Update interval — allow an explicit date, or an arbitrary number of weeks | CR (functionality) | raised | 2026-08-17 | Verified: `lib/updates-due.ts:9` is a fixed enum (`4_week` / `6_week` / `12_week` / `6_session` / `flexible`) with `INTERVAL_DAYS` = 28/42/84, and `flexible` produces no due date at all (`:44-46`). Craig wants a free weeks-count and/or a pinned calendar date. Affects the updates-due dashboard, `lib/updates-due-db.ts` and the reminder email. |
+| CR-EF-024 | Quick-action task on the client page | CR (functionality) | raised, needs detail | 2026-08-17 | Reading: raise a to-do against a client without leaving their profile. **Needs Craig confirming** whether this is an EF-local task list (new table + hub UI) or should mirror into `decoded-ops-hub` tasks — the latter is blocked on the same missing `project_id` noted under the process gap below. |
+| CR-EF-025 | Client status | CR, needs detail | raised, needs detail | 2026-08-17 | Verified: `clients.client_status` already exists with a check constraint (`active` / `inactive` / `completed` / `suspended` / `archived`) — but nothing on the clients list filters or displays it; the visible status filter is `compliance_status` (`clients-table.tsx:12-17`). **Needs Craig confirming** whether the ask is (a) surface + edit the existing field, (b) filter the list by it, or (c) a different status concept entirely. |
+| CR-EF-026 | [BUG] Colin and Saffron show PAR-Q not signed, but their PAR-Qs are signed | Bug | raised | 2026-08-17 | Logic verified: `lib/compliance.ts:31-35` marks "No PAR-Q on file" unless one of three holds — a legacy `signed_parq` row, a `client_documents` row of kind `parq` with `status = 'signed'`, or `profile.health.parq_trainer_override`. Most likely a **data** state (signed on paper / Microsoft Forms and never migrated) rather than a logic fault, but that is unconfirmed — needs a DB read of both clients' `signed_parq` and `client_documents` rows. Not checkable this session: `psql` is not on PATH. Also belongs in the hub bug tracker once `project_id` is confirmed. |
+| CR-EF-027 | Session log should list in date order, be sortable, and be orderable by session number | CR (usability) | raised | 2026-08-17 | Verified: `app/hub/(protected)/clients/[id]/page.tsx:125-131` pulls sessions across **all** of a client's blocks ordered by `session_number` descending, capped at 50 — so session 12 of block 1 interleaves with session 12 of block 3, there is no date ordering, and no sort control. The mobile equivalent (`app/hub/m/clients/[id]/page.tsx:206-210`) applies **no** `.order()` at all. Fix needs a real date to sort on (`scheduled_at`, or `session_log.completed_at` for logged sessions) plus a sortable column header. |
+
+## CR-EF-016 – CR-EF-027 — raised by Craig, 2026-08-17
+
+A single hub/PWA usability pass raised verbally in chat and captured here the same
+day. Every row above was checked against the shipped code before being written —
+the "Verified:" notes are file/line reads, not assumptions. Three rows
+(CR-EF-018, CR-EF-024, CR-EF-025) are marked **needs detail** and should be
+answered as one batch, not one at a time.
+
+**Clustering for execution** — these should not become twelve separate pieces of work:
+
+- **Rides CR-EF-011's workout-surface consolidation** (same screens, same mockups
+  still pending): CR-EF-018, CR-EF-019, CR-EF-020, CR-EF-021. Building any of
+  them before those Open Design briefs exist risks work that the redesign then
+  throws away — the same trap already flagged on CR-EF-015.
+- **Client profile / record shape** (schema + both profile surfaces):
+  CR-EF-017, CR-EF-022, CR-EF-024, CR-EF-025.
+- **Independent, small, shippable now**: CR-EF-016, CR-EF-027, and CR-EF-023
+  (self-contained in the updates-due module).
+- **Bug, own path**: CR-EF-026 — diagnose from data before writing any code.
 
 ## Parked integrations (mirrored in FF-001 §M12, held in the ops registry)
 

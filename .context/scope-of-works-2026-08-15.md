@@ -91,6 +91,38 @@ Real work, deliberately parked. Nothing here is blocking.
 
 ---
 
+## 5a. Forward scope raised 2026-08-17 — hub/PWA usability pass
+
+Twelve items raised by Craig on 2026-08-17 and captured as **CR-EF-016 through
+CR-EF-027** in `.context/change-requests.md`. That register is the source of
+truth — the per-item "Verified:" notes (file and line, checked against shipped
+code) live there and are not duplicated here. This is the forward-scope index
+only. No EF `DO-FF-001` edition file exists on disk yet, so this doc is the
+project's forward-scope surface until one is generated.
+
+| CR | Item | Effort | Note |
+|---|---|---|---|
+| CR-EF-016 | Client list defaults to A–Z, not newest-first | S | Independent, shippable now |
+| CR-EF-017 | Notes section on the client profile front page (mobile PWA) | M | New table + design brief |
+| CR-EF-018 | Unilateral exercises always prescribed/logged Left / Right | M | **Needs detail**; rides §CR-EF-011 |
+| CR-EF-019 | Audible alert when the rest timer ends | S | Rides §CR-EF-011; iOS gesture-priming caveat |
+| CR-EF-020 | Adjustable rest times | S–M | Rides §CR-EF-011 |
+| CR-EF-021 | Per-exercise edit button in session logging | M | Rides §CR-EF-011 |
+| CR-EF-022 | Client account start date on the profile | S | New column + backfill |
+| CR-EF-023 | Update interval by explicit date or arbitrary weeks | M | Self-contained in the updates-due module |
+| CR-EF-024 | Quick-action task on the client page | M | **Needs detail** — EF-local vs. hub task mirror |
+| CR-EF-025 | Client status | S–M | **Needs detail** — `client_status` column already exists, unsurfaced |
+| CR-EF-026 | **[BUG]** Colin and Saffron show PAR-Q unsigned | S | Diagnose from data first; `psql` not on PATH |
+| CR-EF-027 | Session log in date order, sortable, and by session number | S–M | Independent, shippable now |
+
+**Sequencing consequence:** four of these (018–021) land on the same workout
+surfaces that CR-EF-011's consolidation redesign is still waiting on mockups
+for. Building them first repeats the CR-EF-015 mistake — functionality added to
+a surface that is about to be redesigned. They should be written into the two
+pending Open Design briefs rather than shipped ahead of them.
+
+---
+
 ## 6. Suggested sequence
 
 1. **This week** — §1.3, §1.5, §1.6 and §4.6 are all small, independent and shippable in one
