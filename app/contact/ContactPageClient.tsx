@@ -16,6 +16,9 @@ interface FormData {
   topic: string;
   message: string;
   consent: boolean;
+  // Honeypot — real visitors never see or fill this field (off-screen, no
+  // label, not tab-reachable). Bots that auto-fill every input trip it.
+  website: string;
 }
 
 const initialForm: FormData = {
@@ -25,6 +28,7 @@ const initialForm: FormData = {
   topic: "A general question",
   message: "",
   consent: false,
+  website: "",
 };
 
 const TOPIC_OPTIONS = [
@@ -237,6 +241,21 @@ export default function ContactPageClient() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Honeypot — hidden from sighted and screen-reader users alike, never
+                    tab-reachable. Bots that auto-fill every field trip it; real visitors
+                    never see it exists. */}
+                <div className="absolute left-[-9999px] top-auto w-px h-px overflow-hidden" aria-hidden="true">
+                  <label htmlFor="ct-website">Website</label>
+                  <input
+                    id="ct-website"
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={form.website}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="ct-name" className="block text-sm font-medium text-foreground mb-1.5">

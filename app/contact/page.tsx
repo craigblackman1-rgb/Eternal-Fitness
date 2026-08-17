@@ -18,7 +18,7 @@ const contactSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "Contact Eternal Fitness — Book a Free Consultation in Worthing",
+  title: "Book a Free Consultation in Worthing",
   description: "Get in touch with Esther Fair at Eternal Fitness in Worthing. Call 07517 658 128, email, or use the contact form to book your free 30-minute consultation.",
   alternates: { canonical: "https://eternal-fitness.co.uk/contact" },
 };

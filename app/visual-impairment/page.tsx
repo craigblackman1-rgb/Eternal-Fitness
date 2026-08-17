@@ -63,7 +63,7 @@ const faqSchema = {
 
 export const metadata: Metadata = {
   title: "VI-Inclusive Personal Training in Worthing",
-  description: "Accessible, one-to-one strength and movement coaching in a private Worthing studio. Trained with British Blind Sport — a predictable space, clear verbal cues, and a plan built around your baseline.",
+  description: "Accessible one-to-one strength and movement coaching in Worthing. Trained with British Blind Sport — a predictable space and clear verbal cues.",
   alternates: { canonical: "https://eternal-fitness.co.uk/visual-impairment" },
 };
 
