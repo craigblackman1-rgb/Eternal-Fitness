@@ -113,7 +113,7 @@ nothing here is gated on a decision: **eleven live items, one closed.**
 | CR-EF-021 | Per-exercise edit button in session logging | M | Rides §CR-EF-011 |
 | CR-EF-022 | Client account start date on the profile | S | New column + backfill |
 | CR-EF-023 | Update interval by explicit date or arbitrary weeks | M | Self-contained in the updates-due module |
-| CR-EF-024 | Quick-action task on the client page | M | EF-local tasks only, no hub mirror; design with CR-EF-017 |
+| CR-EF-024 | Quick-action task on the client page — **PWA only** | S | Tasks module already exists and the desktop panel already has quick-add; the gap is the PWA client profile. Design with CR-EF-017 |
 | ~~CR-EF-025~~ | ~~Client status~~ | — | **Closed 2026-08-17 — not wanted** (Craig). Listed so it isn't re-raised |
 | CR-EF-026 | **[BUG]** Colin and Saffron show PAR-Q unsigned | S | Diagnose from data first; `psql` not on PATH |
 | CR-EF-027 | Session log in date order, sortable, and by session number | S–M | Independent, shippable now |
