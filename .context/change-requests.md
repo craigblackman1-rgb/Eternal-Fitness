@@ -6,7 +6,9 @@ but was never committed (see the resolved process-gap note below). CR-EF-001–0
 seeded from the SEO/AI-SEO/speed/spam audit run 2026-08-17; CR-EF-009–010 from a
 concurrent hub-screens session the same day; CR-EF-011–015 reconciled from the
 untracked predecessor; CR-EF-016–027 raised by Craig 2026-08-17 (hub/PWA
-usability pass — see the grouping note under the table).
+usability pass — see the grouping note under the table); CR-EF-028 recovered
+2026-08-17 after an ID collision with CR-EF-016 (see the ID-collision note
+near the bottom of this file).
 
 Status flow: raised → approved → briefed → built → verified.
 
@@ -45,6 +47,7 @@ else is a genuine change/improvement and lives here as a CR.
 | CR-EF-025 | Client status | — | **closed — not wanted** | 2026-08-17 | Craig, 2026-08-17 (`qmsxbh982vf`): ignore. No work to do. Recorded rather than deleted so it isn't re-raised: `clients.client_status` exists in the schema (`active` / `inactive` / `completed` / `suspended` / `archived`) and remains deliberately unsurfaced — the client list's visible status filter is `compliance_status` (`clients-table.tsx:12-17`), which is the one that matters operationally. |
 | CR-EF-026 | [BUG] Colin and Saffron show PAR-Q not signed, but their PAR-Qs are signed | Bug | built | 2026-08-17 | Root-caused as two different bugs with the same symptom (diagnosed live against production data via the hub, not `psql`; `lib/compliance.ts:31-38`). **Colin (#18):** compliance was quietly satisfied by a **legacy `signed_parq` row**, invisible on the Document Register, which only ever listed `client_documents` rows — his one visible PAR-Q line read "Sent," reasonably misread as unsigned. **Fixed:** `page.tsx` now builds a synthetic read-only "Legacy record" row (`legacyDocumentRows`) whenever compliance is satisfied via `latestParq`/`latestAgreement` with no matching signed `client_documents` row, and `DocumentRegister.tsx` renders it with no View/Open/delete actions (nothing to open) and a distinct "Legacy record" pill. Verified live: Colin's register now shows the legacy PAR-Q alongside the still-"Sent" one. **Saffron (#12):** a stale, never-completed "Sent" PAR-Q sat next to her real signed scanned original with no relationship shown, unlike Client Feedback documents on the same page which do get marked `Superseded`. **Fixed:** both places a document can become `signed` — `app/api/documents/upload/route.ts` (scanned uploads are always created signed) and `app/api/documents/[id]/sign/route.ts` (the in-app signing flow, used far more often) — now supersede any other `draft`/`sent` row of the same `kind` for that client in the same request. **Backfilled** the existing stale data with `scripts/backfill-supersede-stale-documents.mjs` (dry-run first, then `--apply`, transaction-wrapped with a post-update recheck): found and fixed exactly 2 rows across all 21 clients — Saffron's PAR-Q as expected, plus a second instance the diagnosis hadn't caught, Sam Gibbons' stale draft Personal Training Agreement. Verified live: Saffron's old PAR-Q now shows `Superseded`. `npx tsc --noEmit` clean throughout. Still belongs in the hub bug tracker once `project_id` is confirmed — not a registry blocker, just unmirrored. |
 | CR-EF-027 | Session log should list in date order, be sortable, and be orderable by session number | CR (usability) | built | 2026-08-17 | Verified: `app/hub/(protected)/clients/[id]/page.tsx:125-131` pulled sessions across **all** of a client's blocks ordered by `session_number` descending, capped at 50 — so session 12 of block 1 interleaved with session 12 of block 3, no date ordering, no sort control. Fixed: server query now orders by `scheduled_at` (a real, sortable column — `completed_at` lives inside `data` JSONB and can't be ordered at the DB level); `TrainingTabContent.tsx`'s Session Log table now has clickable Date/Session headers with a client-side sort (Date = completed-or-scheduled, descending default; Session = block number then session number, so it doesn't reintroduce the interleaving bug). Also fixed in passing: `latestSessionLog` (drives the "Last Session"/"Last check-in" cards) used to blindly take `sessions[0]`, which under the new date-desc ordering could pick an upcoming uncompleted session; now derived by scanning for the session with the latest `completed_at`, independent of array order. Verified live against Emma Atkinson (#8, two blocks): Session sort correctly yields Block 1·S1→S3 then Block 2·S1→S2; Date sort correctly clusters dated sessions with an interleaved undated-but-scheduled row explained by the scheduled_at fallback. The mobile PWA (`app/hub/m/clients/[id]/page.tsx`) needed **no fix** — its "Recent sessions" card already sorts by `completed_at` in memory (`:227-234`); the missing `.order()` was only on the raw query, which never reached the user unsorted. It's a top-5 glance card by design, not a full sortable log, so no PWA change was made. |
+| CR-EF-028 | Confirm-before-sync gate for the Outlook calendar integration | CR (functionality) | raised | 2026-08-17 | **Recovered 2026-08-17 — originally raised same day as CR-EF-016, overwritten by an ID collision with a concurrent session's own CR-EF-016–027 batch; renumbered, content unchanged.** Root cause: the app implements a "schedule = live" design with no draft/tentative state — the moment a session's `scheduled_at` is set (via `BlockScheduler.tsx`'s pattern apply or per-session button), `PATCH /api/sessions/[id]` immediately calls `syncSessionCalendarEvent()`, pushing a real event into Esther's connected Outlook calendar. A 15-min cron (`app/api/cron/sync-calendar/route.ts`) full-resyncs any session with a non-null `scheduled_at` in a −1/+60 day window as a backstop, and will recreate a manually-deleted Outlook event if the DB still shows the session scheduled. Confirmed cause of real booking clashes from test sessions scheduled during dev. Needs a schema/UI concept of confirmed-vs-draft scheduling before build, plus cleanup of any already-live stray test events. Not yet briefed or built. |
 
 ## CR-EF-016 – CR-EF-027 — raised by Craig, 2026-08-17
 
@@ -122,12 +125,49 @@ further notice"):
 - **Still needs Craig (manual, not deferred):** §1.1 WAL/PITR archive gap, §1.2
   staging shares live email creds, §4.2/§4.4 branch & worktree cleanup.
 
-## Outstanding process gap
+## Outstanding process gap — RESOLVED 2026-08-17
 
-This project has no confirmed live `project_id` in `decoded-ops-hub`'s `tasks` table
-from this session, and no DB/API access was verified here. CR-EF-002 (contact-form
-spam) is a genuine bug and should be logged there with `task_type=bug` once that's
-confirmed — flagging rather than guessing at hub credentials or another app's data.
+The prior note here ("no confirmed live `project_id`") was wrong — there is a live,
+active project in `decoded-ops-hub` (`Eternal Fitness — Website & Tooling`,
+`project_id 33ccfd11-0a76-4170-afc4-491a51d899c2`) with a real `tasks` board that
+had simply drifted out of sync with this file. Reconciled 2026-08-17 (Craig-requested
+board review):
+
+- Deleted 2 exact-duplicate "production go-live cutover" tasks (kept the one with
+  real notes), deduped a repeated WAL/PITR `deferred_items` entry.
+- Reopened 3 tasks wrongly marked `completed` (`/exercise-for-health` hub index,
+  `/high-blood-pressure`, `/visual-impairment`) — the content pass happened, but the
+  routes are currently redirected again per the same-day re-gate (see CR-EF-003
+  note above), so "done" didn't match live reality.
+- Closed 2 stale backlog tasks whose underlying work was actually finished weeks
+  ago (£45 single-session tier removal, "Level 4 Personal Trainer" claim retirement).
+- Seeded hub tasks for every currently-open/approved CR that had no board
+  counterpart: CR-EF-006, CR-EF-008, CR-EF-011, CR-EF-012 (`in-progress`), CR-EF-014,
+  CR-EF-028 (originally raised as CR-EF-016, see the ID-collision note below) —
+  each tagged with its CR ID in `task_ref` so the two systems can be
+  cross-checked going forward.
+
+**ID collision, caught at session close 2026-08-17.** This CR was originally
+raised as CR-EF-016 (Outlook calendar confirm-before-sync gate) earlier the
+same day. A concurrent session raised its own CR-EF-016–027 batch (client-list
+sort, rest-timer sound, etc. — see the table above) without either session
+seeing the other's in-flight edit, and that batch's CR-EF-016 (client list
+A–Z) overwrote this row entirely when both were merged. Recovered from this
+session's own notes and re-added below as **CR-EF-028** — content unchanged,
+number only. Flagging as a live process gap: concurrent sessions editing the
+same git-tracked register can silently clobber each other's rows on merge,
+same failure shape as the original pre-git-tracking collision this file's
+history section already documents. No caught-in-time safeguard exists yet
+beyond careful conflict resolution at merge time.
+
+There's also a second, unrelated `decoded-ops-hub` project — `Eternal Fitness —
+Accessible Training Platform` (archived, 17 backlog tasks, created 2026-07-15) — an
+earlier multi-tenant/white-label product concept, distinct from the actual build.
+It's archived so it doesn't surface on the active board, but flagging it here in
+case anyone finds it and assumes it's live scope.
+
+CR-EF-002 (contact-form spam) is already `built` in this register — no hub bug
+task needed for it retroactively.
 
 **Register-history gap — RESOLVED 2026-08-17.** An earlier CR-EF-001 through
 CR-EF-005 series (workout-surface consolidation, PWA installability, a stale

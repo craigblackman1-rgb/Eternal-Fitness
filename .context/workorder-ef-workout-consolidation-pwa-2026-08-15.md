@@ -123,3 +123,38 @@ the two device tests together).
 - 2026-08-15 — Craig folded templates paste-and-assign into this WO
   (`wo-templates-paste-and-assign-2026-08-14` → abandoned). Brief drafted; awaiting
   Craig's review of the brief itself + G1 proposal sequencing.
+- 2026-08-17 — Craig asked for L2's mockup needs to be turned into real OpenDesign
+  briefs so he can run them and hand back for implementation. Drafted 3 functionality
+  briefs presuming G1 (naming) was still open — **wrong**: found and corrected same
+  day, see next entry.
+- 2026-08-17 (later) — Discovered `D:\apps\design-systems\ef-control-hub\brief-
+  workout-consolidation-opendesign.md`, a more thorough brief from **2026-08-15**
+  (an earlier session) that already completed L1 (full code inventory) and got
+  **G1 and G3 answered by Craig** that day. It supersedes all 3 briefs drafted
+  earlier today, which duplicated its scope without the inventory behind them and
+  got one fact wrong (called the workout-templates browser "genuinely undesigned"
+  — it's actually fully built and working, needs a skin-only pass, not new UX).
+  Deleted the 3 superseded briefs; mirrored the correct one into this repo's
+  git-tracked `.context/` as `brief-workout-consolidation-opendesign.md` (single
+  brief covering all 4 pieces: consolidated desktop logger, templates browser
+  skin pass, paste-and-assign, portal PWA states). Re-sent to Craig to run.
+  **Status check same day:** only the templates-browser skin pass mockup
+  (`hub-workout-templates.html`) has actually come back from Open Design so far —
+  the consolidated desktop logger (Craig's "unified plan editor"), paste-and-assign,
+  and portal PWA states have not, which is why nothing new is on `main` yet.
+- 2026-08-17 (later still) — Craig ran a further Open Design pass; 4 mockups came
+  back (`hub-session.html` consolidated logger, `hub-workout-templates.html` skin,
+  `hub-block-module.html`, `hub-schedule.html`). Ran a Design Parity Gate review
+  against the brief + G1/G3. `hub-block-module.html` and `hub-schedule.html`
+  **approved as-is** — both correctly route "Log" actions to
+  `hub-session.html?mode=log`, no stale `/hub/log` references. `hub-session.html`
+  and `hub-workout-templates.html` sent back for revision (see
+  `revision-request-workout-consolidation-2026-08-17.md`): consolidated logger
+  needs offline queueing + kg/lb switching added; templates browser needs its 2
+  missing filters (movement type, muscle group) restored and the archetype filter
+  values fixed (mockup invented condition-style labels; archetype is actually the
+  Plan Agent's session-type emphasis — Mobility & Movement Quality / Strength &
+  Stability / Power & Conditioning — a different, already-existing field from
+  condition). Paste-and-assign, portal PWA states, and nav-restructure
+  reconciliation still outstanding — Craig re-sent those briefs to Open Design
+  after the first pass apparently lost them.

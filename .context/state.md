@@ -16,6 +16,82 @@ CR-EF-018 (unilateral list). **Still open (Craig):** PITR/WAL gap, staging email
 **Flags:** concurrent session's 5 document-template seed migrations need confirming on prod;
 start-date backfill for 21 existing clients outstanding.
 
+## 2026-08-17 (Claude Code, afternoon/evening) — Hub task-board audit, workout-consolidation design→build, production crash found+fixed
+Craig asked for a review of the `decoded-ops-hub` project board for this project
+(duplicates from the go-live push) plus a design-parity pass on Open Design
+mockups vs. the live site. Full session, several distinct pieces:
+
+- **Hub task board cleanup (`decoded-ops-hub`, project `33ccfd11…`).** Found and
+  fixed real duplication: 2 exact-duplicate "go-live cutover" tasks deleted, a
+  duplicate WAL/PITR deferred item resolved, 3 tasks wrongly marked `completed`
+  reopened (specialist pages re-gated same day, so "done" didn't match live
+  reality), 2 stale backlog items closed (already fixed weeks ago), a duplicate
+  ICO-registration task merged, SVG→PNG task dropped (Craig: doesn't matter),
+  two vague placeholders merged into one "content queue" holding item. Seeded 6
+  hub tasks for the open CRs (CR-EF-006/008/011/012/014/016) that had no board
+  counterpart. Board went from 26/0/13 (backlog/in-progress/completed, with
+  duplicates) to a clean, CR-linked state.
+- **Design-parity scan** (`.context/` design-systems folders vs. live routes)
+  found several hub mockups with no live route and several live pages ahead of
+  their mockup. Craig asked for design briefs on the ones that needed one.
+- **Design briefs written, then corrected.** Drafted 3 new briefs (desktop
+  workout consolidation, templates browser, paste-and-assign) before
+  discovering a more thorough brief already existed
+  (`brief-workout-consolidation-opendesign.md`, from an earlier 2026-08-15
+  session, with G1/G3 already answered by Craig) — deleted the 3 redundant
+  ones, mirrored the correct brief into this repo's git-tracked `.context/`.
+  Also wrote `brief-hub-nav-restructure-reconciliation-opendesign.md` (§2.6).
+- **Design review round-trips.** Reviewed returned mockups against the brief:
+  approved `hub-block-module.html`/`hub-schedule.html` as-is; sent
+  `hub-session.html` (missing offline queue + kg/lb) and
+  `hub-workout-templates.html` (missing 2 filters, wrong archetype labels —
+  invented condition names instead of the real Plan Agent session-emphasis
+  labels) back for revision (`revision-request-workout-consolidation-2026-08-17.md`).
+  Revisions came back correct except the archetype-label fix, which Craig said
+  to proceed on as-is (the eventual OpenCode build used the correct labels
+  regardless). Nav reconciliation (`hub-nav-reconciliation-v1.html`) confirmed
+  live sidebar already matches Option A, no code change needed.
+- **Build dispatched — 3 OpenCode lanes** (`opencode-go/deepseek-v4-pro`,
+  isolated worktrees, DO-SOP-010): desktop session-logging consolidation
+  (`/hub/log` retired, offline queue + warm-up-gated PBs + kg/lb added, real
+  bug fixed along the way — exercise notes were silently not persisting),
+  workout-templates browser + paste-and-assign flow (archetype labels
+  corrected to the real values in the actual build), portal PWA
+  (`portal.webmanifest` + `portal/sw.js`, mirroring the hub PWA). All 3
+  reviewed diff-by-diff, `tsc`/build verified, merged to `staging` then `main`.
+  Caught a real divergence before pushing: `main` had 4 commits (a
+  flexible-update-interval feature) that never reached `staging` — rebased
+  onto current `main` rather than blindly pushing, which would have looked
+  like a revert.
+- **Production crash, found and root-caused via a live click-through** (Craig:
+  "it is open in chrome"). First fix (a hooks-order violation — `useMemo`
+  after an early return, React error #310) only got the page past loading into
+  a *second* bug: `SetRow`'s own prop was literally named `ref`, React's
+  reserved prop name, so a business-logic string got intercepted as a DOM ref
+  and thrown (React error #290 — "Element ref was specified as a string but no
+  owner was set"). Diagnosed by adding a temporary error boundary
+  (`error.tsx`) to surface the real, non-minified message, since the generic
+  Next.js error page and this environment's console tooling weren't
+  surfacing it. Fix (rename to `exerciseRef`) was independently found and
+  shipped by a concurrent OpenCode session at the same time — verified live,
+  matches, no unique work left to push.
+- **Verified live, post-fix:** consolidated logger (mode toggle, Studio/Home
+  tabs, timers, offline sync badge, Done/Skip), templates browser (correct
+  archetype filter labels), paste-and-assign entry point — all render clean,
+  no console errors beyond an unrelated browser-extension one.
+- **Not done this session:** templates paste-and-assign and portal PWA states
+  were re-sent to Open Design after the first pass reportedly lost the briefs;
+  unclear if that round ever came back — worth checking. `main` has 7 commits
+  from the concurrent session (CR-EF-019/020/024/017/021/022 + the crash fix)
+  not yet synced to `staging` — flagged, not actioned, in case that session is
+  still active on it. **Resolved same session close:** the "concurrent
+  session" turns out to have been another instance of this same work, resumed
+  by OpenCode after a separate session ran out of tokens — not an unrelated
+  actor. It independently fixed the same `SetRow` crash and cleared CR-EF-017
+  through 027, but its own CR-EF-016 collided with and overwrote this
+  session's earlier CR-EF-016 (Outlook calendar sync gate) on merge — recovered
+  and renumbered to CR-EF-028, see `change-requests.md`'s ID-collision note.
+
 ## 2026-08-13 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, edit-sheet apply-as-session, real-device verified
 Resumed `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` (worktree
 `web-admin-pages-dashboard-5ccf37`, branch `claude/mobile-workout-features-6ddaba`).
