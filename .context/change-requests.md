@@ -109,9 +109,12 @@ further notice"):
   templates-browser + paste-and-assign, `1a07d34` portal PWA — `portal.webmanifest`
   + `portal/sw.js` confirmed present, superseding the stale "portal PWA not built"
   note on CR-EF-012).
-- **Approved to build:** CR-EF-019 (rest-timer sound), CR-EF-020 (rest-time
-  override), CR-EF-021 (per-exercise edit), CR-EF-017 (client notes), CR-EF-022
-  (start date), CR-EF-024 (PWA tasks panel).
+- **Approved to build — BUILT 2026-08-17:** CR-EF-019 (rest-timer sound + vibrate),
+  CR-EF-020 (in-session rest-time override), CR-EF-024 (PWA client-profile tasks
+  panel, reusing the existing tasks module).
+- **Approved to build — still pending:** CR-EF-021 (per-exercise edit — rides the
+  consolidation mockups, not yet signed off), CR-EF-017 (client notes — schema +
+  design brief), CR-EF-022 (start date — schema + intake + backfill source).
 - **Deferred until further notice:** blog repositioning migration (scope-of-works
   §2.5), hub nav restructure (§2.6), GDPR DPA signature + ICO registration (§2.2),
   CR-EF-014 (band colour→tension — needs Esther), CR-EF-018 (unilateral L/R curated
