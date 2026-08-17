@@ -565,3 +565,37 @@ Session ongoing.
 
 ## 2026-08-15 11:50 (Claude Code, workout-set-completion-bug-44f52a worktree)
 - Pushed staging 5d45076..9464362: L6 Microsoft Graph calendar sync (code complete, env vars pending) + security quick wins (7 files). Migration 20260815_microsoft_graph_integration.sql APPLIED to prod and verified. Branches claude/wo-active-microsoft-365-calendar-d3069c + lane/security-quickwins-2026-08-15 pushed. Awaiting Coolify auto-deploy of development.eternal-fitness.co.uk.
+
+## 2026-08-17 — Session close
+
+Open Design mockups came back for 5 hub screens; worked the full thread through
+to close. Pushed to main+staging (final: `6be36b9`), worktree clean.
+
+**Shipped:** 4 design-parity screens (CR-EF-009), monthly calendar view for
+`/hub/schedule` (CR-EF-010, verified live against real data), L6 Outlook
+calendar sync + security quickwins promoted to production, portal logout
+origin-bug fix, re-gated Cancer Rehab/Falls Prevention/Blog (were live ahead
+of content sign-off), 38 merged branches + 4 devin/* branches deleted, 8
+cherry-picked unit tests (+ fixed a broken vitest alias config), stale
+webmanifest string fixed, CR register git-tracked for the first time and
+fully reconciled (CR-EF-001–015 + 2 parked integrations), DO-FF-001 client
+doc regenerated and renamed to match (17-aug).
+
+**Also merged in:** a concurrent session's SEO/speed/spam fixes (`bc10d51`)
+and a Training Blocks link bug fix (`930636c`) — no file overlap, verified
+before merging.
+
+**Still open, not blocking anything:**
+- WAL/PITR archiving — confirmed genuinely blocked (DB not Coolify-managed,
+  app connects as non-superuser). Needs VPS SSH or DB superuser creds.
+  `dmsx3ko0vn5`.
+- CR-EF-011 (workout consolidation) and CR-EF-014 (band colour) — approved,
+  not yet built, own WO (`wo-ef-workout-consolidation-pwa-2026-08-15`).
+- CR-EF-012 — portal PWA installability not built (staff `/hub/m` is).
+- Blind-fitness specialist copy, 2 unverified infra items — low priority.
+- Branch-cleanup admin decisions were answered and executed this session;
+  nothing left there.
+
+**Worktrees:** cleaned up 4 stale ones this session (all fully-merged).
+Two others (`clear-warbler`, `seo-audit-commands-46f31f`) appeared mid-session
+from the concurrent work — left untouched, not this session's to clean up.
