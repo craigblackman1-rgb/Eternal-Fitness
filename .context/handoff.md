@@ -1,3 +1,67 @@
+# Session Handoff: August 17, 2026, evening (OpenCode) — crash fix + delete/clone merge + CR-EF-019/020/024/022/017/021
+
+## Agent
+OpenCode (deepseek-v4-pro), worktree `equal-merlin`, branch `ef-merge-2026-08-17`
+
+## Session Summary
+Picked up a Claude session that had run out of tokens mid-task. Reconstructed the
+in-progress state from git (no `gh` auth initially — Craig authed mid-session) and
+the `.context` register, then finished the stranded work and cleared the CR backlog
+Craig approved ("yes to all", then "items 3 deferred until further notice", then
+"functional-first — designs still in progress with the client").
+
+**Shipped, all on `main` and deployed (prod `running:healthy`):**
+
+1. **Session-page crash fix** (`027c64d`). `SetRow`'s prop was named `ref` — React's
+   reserved prop, stripped from function-component props — so every handler received
+   `undefined` and the session page crashed on first interaction. Renamed to
+   `exerciseRef` throughout (component + both call sites). Follows the hooks-order fix
+   (`a5394d3`) and diagnostic error boundary (`11fbf89`) the prior session had landed.
+
+2. **Session delete/clone feature** (`51e9d27`). Was built but stranded on `staging`;
+   merged into `main`. Additive `DELETE /api/sessions/[id]` (Outlook calendar cleanup +
+   `set_logs` cascade) and `POST /api/sessions/[id]/clone`. Reviewed line-by-line first —
+   all deps verified (`deleteEvent`, `IconCopy`/`IconTrash2`, `--status-danger-solid`
+   tokens, `set_logs` ON DELETE CASCADE).
+
+3. **CR-EF-019/020/024** (`cb2d5ed`) — rest-timer audible alert (Web Audio, no asset,
+   offline-safe, `navigator.vibrate` fallback) + in-session rest-time ±15s override, and
+   a tasks panel on the PWA client profile (reuses the existing `/api/tasks`).
+
+4. **CR-EF-022/017/021** (`4191575`) — client start date (`clients.start_date` column +
+   edit-form field + desktop/PWA display), timestamped client notes (`client_notes` table
+   + `GET/POST /api/client-notes` + `DELETE /api/client-notes/[id]` + PWA NotesPanel above
+   the fold + desktop ClientNotesPanel), and a per-exercise pencil button in the Train
+   Screen linking into the existing edit sheet.
+
+**Migrations applied to prod** (transaction-wrapped via
+`scripts/run-client-startdate-notes-migration.mjs`, before/after schema verified, 21
+client rows unaffected): `clients.start_date` (DATE, nullable) and `client_notes` table.
+
+## Decisions (recorded in `.context/change-requests.md`)
+- Consolidation CR-EF-011 unblocked — G1 (naming) + G3 (desktop keeps inline logger)
+  approved. Mockups (G2) to verify against `D:\apps\design-systems\ef-control-hub`.
+- **Deferred until further notice:** blog repositioning migration (§2.5), hub nav
+  restructure (§2.6), GDPR DPA signature + ICO registration (§2.2), CR-EF-014 (band
+  colour→tension — Esther), CR-EF-018 (unilateral L/R list — Esther).
+- Functional-first for the CRs — design polish deferred to the client design pass.
+
+## Notes / flags for next session
+- **Five document-template commits landed from a concurrent session** (Remote Coaching
+  Contract, Coaching Intake Form, Fortnightly Check-In, plus earlier ones) and were
+  merged in. Their **seed migrations need confirming they've been run against prod** —
+  I merged the code but did not run their seeds.
+- One concurrent deploy failed on the known transient exit-255 infra pattern (`b2b9cbd`);
+  recovered by my later merge/rebuild — not a code issue.
+- **Start dates for the 21 existing clients are still blank** — backfill from Esther's
+  records is outstanding (field is nullable and displays only when set).
+- `tsconfig.tsbuildinfo` churn in the worktree is uncommitted build-artifact noise, not
+  to be committed.
+- Still open for Craig: §1.1 PITR/WAL archive gap (highest-consequence), §1.2 staging
+  shares live email creds + real client data, §4.2/§4.4 branch & worktree cleanup.
+
+---
+
 # Session Handoff: August 17, 2026, afternoon (Claude Code) — hub/PWA usability pass: 12 CRs captured, 3 built + migration run, PAR-Q register bug root-caused and fixed
 
 ## Agent

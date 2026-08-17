@@ -1,5 +1,21 @@
 # Eternal Fitness Website — State
 
+## 2026-08-17 (OpenCode, evening) — finished stranded work + cleared the CR backlog
+Resumed a Claude session that ran out of tokens. Reconstructed state from git + `.context`,
+finished the session-page crash fix, merged the stranded delete/clone feature, then built
+the CRs Craig approved ("yes to all" / "functional-first, designs in progress"):
+
+- **Crash fix** (`027c64d`) — `SetRow`'s prop named `ref` (React reserved) → `exerciseRef`.
+- **Delete/clone** (`51e9d27`) — merged `staging` → `main`; converged `main`/`staging`.
+- **CR-EF-019/020/024** (`cb2d5ed`) — rest-timer beep+vibrate, rest-time ±15s override, PWA tasks panel.
+- **CR-EF-022/017/021** (`4191575`) — client start date, client notes, per-exercise edit button.
+- **Migrations run on prod**: `clients.start_date` + `client_notes` table (transaction-wrapped, 21 rows unaffected).
+
+**Deferred (Craig):** blog migration, nav restructure, GDPR DPA/ICO, CR-EF-014 (band colours),
+CR-EF-018 (unilateral list). **Still open (Craig):** PITR/WAL gap, staging email creds, branch cleanup.
+**Flags:** concurrent session's 5 document-template seed migrations need confirming on prod;
+start-date backfill for 21 existing clients outstanding.
+
 ## 2026-08-13 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, edit-sheet apply-as-session, real-device verified
 Resumed `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` (worktree
 `web-admin-pages-dashboard-5ccf37`, branch `claude/mobile-workout-features-6ddaba`).
