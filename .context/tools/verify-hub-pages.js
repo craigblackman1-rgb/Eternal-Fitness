@@ -62,8 +62,8 @@ const JOIN_TABLE = [
   { route: "app/hub/(protected)/settings/plan-agent/page.tsx", mockup: "hub-plan-agent-settings.html" },
   { route: "app/hub/(protected)/tasks/page.tsx", mockup: "hub-tasks.html" },
   { route: "app/hub/(protected)/schedule/page.tsx", mockup: "hub-schedule.html" },
-  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/page.tsx", mockup: "hub-session-editor.html" },
-  { route: "app/hub/log/[sessionId]/page.tsx", mockup: "hub-session-log.html" },
+  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/page.tsx", mockup: "hub-session.html" },
+  { route: "app/hub/log/[sessionId]/page.tsx", mockup: "hub-session.html" },
   { route: "app/hub/(protected)/documents/page.tsx", mockup: "hub-documents.html" }, // hub-documents.html appeared 2026-08-01 -- previously documented as unmocked
   // Documented as real-but-deliberately-unmocked (2026-07-26 WO) -- carried forward as
   // a claim to re-verify, not an assumption: if any of these later gets a mockup, the
