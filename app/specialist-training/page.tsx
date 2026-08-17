@@ -7,7 +7,7 @@ const schema = {
   "@id": "https://eternal-fitness.co.uk/specialist-training/#service",
   "name": "Specialist Personal Training — Worthing",
   "description":
-    "Specialist one-to-one personal training in Worthing for blind and partially sighted people, people during and after cancer treatment, and older adults working on strength and balance. Exercise Referral qualified, with the Level 4 Cancer and Exercise Rehabilitation qualification.",
+    "Specialist one-to-one personal training in Worthing for blind and partially sighted people. Exercise Referral qualified, with the Level 4 Cancer and Exercise Rehabilitation qualification.",
   "url": "https://eternal-fitness.co.uk/specialist-training",
   "provider": {
     "@type": "LocalBusiness",
@@ -18,8 +18,7 @@ const schema = {
   "serviceType": "Specialist Personal Training",
   "audience": {
     "@type": "Audience",
-    "audienceType":
-      "Blind and partially sighted people, people during and after cancer treatment, and older adults working on strength and balance",
+    "audienceType": "Blind and partially sighted people",
   },
 };
 
@@ -45,10 +44,10 @@ const faqSchema = {
     },
     {
       "@type": "Question",
-      "name": "What areas does Eternal Fitness specialise in?",
+      "name": "What does Eternal Fitness specialise in?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Three areas: personal training for blind and partially sighted people; cancer rehabilitation during treatment, after surgery and into remission; and strength and balance training for older adults. Sessions are one-to-one in a private studio in Worthing.",
+        "text": "Personal training for blind and partially sighted people. Sessions are one-to-one in a private studio in Worthing.",
       },
     },
   ],
@@ -57,7 +56,7 @@ const faqSchema = {
 export const metadata: Metadata = {
   title: "Specialist Personal Training in Worthing",
   description:
-    "Specialist one-to-one personal training in Worthing for blind and partially sighted people, cancer rehabilitation, and strength and balance for older adults.",
+    "Specialist one-to-one personal training in Worthing for blind and partially sighted people.",
   alternates: { canonical: "https://eternal-fitness.co.uk/specialist-training" },
 };
 

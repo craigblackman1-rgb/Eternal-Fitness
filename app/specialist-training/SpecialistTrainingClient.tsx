@@ -18,12 +18,13 @@ import {
   IndexList,
   FaqSplit,
 } from "@/components/ds";
-import { IconEye, IconRibbon, IconMove } from "@/components/icons";
+import { IconEye } from "@/components/icons";
 
 /**
- * Specialist Training hub — the index for the three specialisms the business
- * targets (2026-08-10 restructure). Replaces the old /exercise-for-health hub,
- * which advertised 8 conditions of which only 3 were ever built.
+ * Specialist Training hub — currently covers Blind & Partially Sighted only.
+ * Cancer Rehabilitation and Strength/Balance & Falls content exists in the
+ * codebase (2026-08-10 restructure) but was re-gated 2026-08-17 pending
+ * content sign-off; their routes redirect here until cleared.
  *
  * Claims discipline: Esther holds Exercise Referral AND the Level 4 Cancer and
  * Exercise Rehabilitation (CanRehab) qualification. She is NOT a "Level 4
@@ -39,18 +40,6 @@ export default function SpecialistTrainingClient() {
       title: "Blind & Partially Sighted",
       href: "/visual-impairment",
       desc: "Training built around clear verbal instruction rather than visual demonstration, with consistent equipment placement and time to get familiar with the space.",
-    },
-    {
-      icon: IconRibbon,
-      title: "Cancer Rehabilitation",
-      href: "/cancer-rehabilitation",
-      desc: "Support during treatment, after surgery, and into remission — from a trainer holding the Level 4 Cancer and Exercise Rehabilitation qualification.",
-    },
-    {
-      icon: IconMove,
-      title: "Strength, Balance & Falls",
-      href: "/falls-prevention",
-      desc: "One-to-one strength and balance work for older adults who want to stay steady, confident and independent on their own terms.",
     },
   ];
 
@@ -79,8 +68,8 @@ export default function SpecialistTrainingClient() {
       body: "I'm qualified in Exercise Referral, and hold the Level 4 Cancer and Exercise Rehabilitation qualification. That means I understand contraindicated movements, medication effects, fatigue management, and how capacity changes from one session to the next.",
     },
     {
-      title: "What if my situation isn't one of the three?",
-      body: "Please still get in touch. These three are where my training and experience are deepest, but the first conversation is free and I would always rather tell you honestly whether I'm the right person.",
+      title: "What if my situation isn't covered here?",
+      body: "Please still get in touch. This is where my training and experience are deepest, but the first conversation is free and I would always rather tell you honestly whether I'm the right person.",
     },
     {
       title: "What if I am having a bad day when I come in?",
@@ -100,9 +89,9 @@ export default function SpecialistTrainingClient() {
           imageObjectPositionWide="50% 35%"
           eyebrow={"Specialist Training"}
           heading={<>Specialist<br />Personal Training</>}
-          subhead={"Most personal training assumes a body that works in a predictable way. Mine does not. I work with three groups of people whose needs are routinely designed around rather than designed for."}
+          subhead={"Most personal training assumes a body that works in a predictable way. Mine does not. I work with people whose needs are routinely designed around rather than designed for."}
           primaryCta={bookCta}
-          secondaryCta={{ label: "See the Three Areas", href: "#specialisms", variant: "ghost-white" }}
+          secondaryCta={{ label: "Find Out More", href: "#specialisms", variant: "ghost-white" }}
           badge={<StatBadge variant="rose" value="L4" label={"Cancer & Exercise Rehab"} />}
         />
 
@@ -147,8 +136,8 @@ export default function SpecialistTrainingClient() {
         <Section background="cream" id="specialisms">
           <SectionHeading
             eyebrow={"Where I Specialise"}
-            heading={"Three Areas, In Depth"}
-            intro={"I would rather do three things properly than ten things approximately. If your situation sits outside these, please still ask."}
+            heading={"In Depth"}
+            intro={"I would rather do one thing properly than many things approximately. If your situation sits outside this, please still ask."}
           />
           <Reveal y={40} start="top 80%" style={{ marginTop: 40 }}>
             <IndexList

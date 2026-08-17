@@ -148,6 +148,15 @@ const nextConfig = {
 
       // --- Renamed hub route (2026-08-04) ---
       { source: "/hub/plan-schedule", destination: "/hub/training-blocks", permanent: false },
+
+      // --- Content re-gated 2026-08-17: only Blind & Partially Sighted was
+      // ever cleared for launch under the 2026-08-10 specialisms restructure;
+      // Cancer Rehabilitation, Strength/Balance & Falls and the Blog were live
+      // ahead of content sign-off. Temporary — routes/components kept in repo. ---
+      { source: "/cancer-rehabilitation", destination: "/specialist-training", permanent: false },
+      { source: "/falls-prevention", destination: "/specialist-training", permanent: false },
+      { source: "/blog", destination: "/", permanent: false },
+      { source: "/blog/:path*", destination: "/", permanent: false },
     ];
   },
 };

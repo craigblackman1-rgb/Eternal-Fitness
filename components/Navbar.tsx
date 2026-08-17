@@ -19,13 +19,10 @@ const navItems: NavItem[] = [
     to: "/specialist-training",
     children: [
       { label: "Blind & Partially Sighted", to: "/visual-impairment" },
-      { label: "Cancer Rehabilitation", to: "/cancer-rehabilitation" },
-      { label: "Strength, Balance & Falls", to: "/falls-prevention" },
     ],
   },
   { label: "Pricing", to: "/pricing" },
   { label: "Client Stories", to: "/testimonials" },
-  { label: "Blog", to: "/blog" },
   { label: "FAQs", to: "/faqs" },
   { label: "Contact", to: "/contact" },
 ];
