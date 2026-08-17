@@ -87,6 +87,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
       { href: "/hub/settings/training-rules", label: "Training Rules", icon: IconClipboardCheck },
       { href: "/hub/settings/studio-equipment", label: "Studio Equipment", icon: IconDumbbell },
       { href: "/hub/settings/plan-agent", label: "Plan Agent Rules", icon: IconBot },
+      { href: "/hub/settings/integrations", label: "Integrations", icon: IconCalendar },
       { href: "/hub/web-admin", label: "Web Admin", icon: IconExternalLink },
     ],
   },

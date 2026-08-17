@@ -14,6 +14,11 @@ import { getEmailSender } from "@/lib/email";
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
 
+  // Only the hub's agreement detail page calls this; unauthenticated it would
+  // email a signed agreement PDF to the client for any guessed id.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { data: agreement } = await supabase
     .from("signed_agreements")
     .select("*")

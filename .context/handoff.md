@@ -1,3 +1,115 @@
+# Session Handoff: August 15, 2026 (Claude Code) — Microsoft Graph calendar sync (L6) shipped + verified live, security quick wins, repo audit, consolidation brief
+
+## Agent
+Claude Code (worktree `workout-set-completion-bug-44f52a`, branch `claude/wo-active-microsoft-365-calendar-d3069c`)
+
+## Session Summary
+Craig asked to pick up `wo active`, question him on priorities, and push forward with whatever
+could be completed — including L6 Outlook integration, newly unblocked by his M365 admin access.
+
+**L6 Microsoft Graph calendar sync — CODE COMPLETE, VERIFIED END-TO-END ON STAGING, HELD THERE
+by Craig's explicit choice (not merged to `main`/prod this session).** One-way sync of
+`sessions.scheduled_at` into Outlook: migration (`integration_tokens`, `session_calendar_events`),
+`lib/graph-client.ts` (server-only, single-tenant authority, rotating-refresh-token persistence),
+`lib/calendar-sync.ts` (windowed full sync + on-demand sync fired from the sessions PATCH), OAuth
+connect/callback/disconnect + status/calendar-picker routes, a 15-min Coolify cron task (enabled on
+staging, created-but-disabled on prod), and a new Settings → Integrations hub screen. Craig did the
+Entra app registration himself (single-tenant, delegated `Calendars.ReadWrite`/`offline_access`/
+`User.Read`, admin consent) and added the env vars via Coolify's UI.
+
+**Three real bugs found and fixed via live verification, not self-report:**
+1. **`next.config.js` header-order bug** — the `/api/:path*` `private, no-store` fix from the
+   security lane was silently overridden because Next.js's headers() applies the LAST matching
+   rule per key, and the catch-all `/:path*` rule sat after it. Caught by testing the live header,
+   not by tsc/build (both were green). Moved below the catch-all, matching how `/hub/:path*` already
+   handles this.
+2. **Staging runs a fully separate DB clone** (`eternal_fitness_staging`, not prod's
+   `eternal_fitness`) — the migration was only ever applied to prod via the tunnel, so staging's
+   Integrations page 500'd with `relation "integration_tokens" does not exist`. The UI also had a
+   real bug of its own: any failed status check (network error, 500) was mislabelled as "Graph isn't
+   configured" instead of showing the real error — fixed with a distinct load-error state + retry.
+   Diagnosed by SSHing directly into the Coolify host (`coolify-host` alias) and `docker exec`ing
+   into the running container to read real logs and the real env — Coolify's own `run_once`
+   scheduled-task mechanism is broken for this app (wraps commands in `sudo`, missing in the image).
+3. **OAuth callback redirect resolved to `https://0.0.0.0:3000/...`** after a real Microsoft
+   sign-in — `new URL(request.url).origin` reflects the container's internal bind address behind
+   Coolify/Traefik, not the public domain. Rebuilt from `NEXT_PUBLIC_SITE_URL` via a shared
+   `siteUrl()` helper (same pattern already used elsewhere in the codebase). Found the **identical
+   bug** in `app/api/portal/auth/logout/route.ts` — deferred (`dmsuf0uz1qo`), not fixed (out of
+   scope, didn't want to touch portal auth uninvited).
+
+**Real end-to-end proof, not just "no errors":** Esther connected her actual Microsoft account
+(`esther.fair@eternal-fitness.co.uk`), and 9 real sessions synced with genuine Graph event IDs,
+confirmed by querying `session_calendar_events` directly on the staging DB via `docker exec`.
+
+**Design decision worth remembering:** the sync targets Esther's **main** Outlook calendar, not a
+dedicated one. Initially flagged as a gap (the WO doc recommended a separate calendar), but Craig
+confirmed it's intentional — her main calendar already holds Microsoft Bookings client bookings, so
+one calendar for everything is the desired UX, not an oversight. Safe by design regardless: the sync
+only ever creates/updates/deletes events it created itself (tracked via
+`session_calendar_events.event_id`), never touching pre-existing Bookings-sourced entries. WO doc
+updated in place so a future session doesn't re-flag this as unfinished.
+
+**Explicit hold, not slippage:** Craig chose not to merge to `main`/prod this session. Three steps
+remain whenever he's ready: apply the migration to the **prod** DB (staging-only so far), merge
+`staging` → `main`, and have Esther reconnect on the live site + enable the prod Coolify cron task.
+
+**Security quick wins — DONE + DEPLOYED to staging.** `/api/*` now `private, no-store` (after the
+header-order fix above); `/api/agreements` POST retired with `410`; `/api/leads` rate-limited
+(5/10min/IP) + field caps; cron secret checks now constant-time (`timingSafeEqual`); TS build errors
+re-enabled (`ignoreBuildErrors: false`); ESLint flag left as-is (`next lint` can't run against this
+repo's ESLint 9 flat config on Next 14.2 — ran via OpenCode lane, ESLint outcome unconfirmable, not
+force-fixed). Two extra auth gates added beyond the original brief, found by the branch audit below:
+`/api/parq` GET and `/api/agreements/[id]/email` POST both now require a hub session.
+
+**Repo/branch audit — DONE (investigation only, no deletions).** 6 remote branches confirmed
+patch-equivalent to `main` (safe to delete), 4 worktrees confirmed fully merged (safe to remove),
+27 further branches found fully merged, and real recommendations on the 4 stale `devin/*` branches
+from 2026-07-05 (one's still-relevant auth-gap findings were folded into the security lane above).
+Two sign-off questions queued on `wo questions` (`qmsu91rnd09`, `qmsu91rog3s`) — nothing deleted
+without Craig's go-ahead.
+
+**Workout-consolidation Work Order brief drafted** —
+`.context/workorder-ef-workout-consolidation-pwa-2026-08-15.md`. Two staff logging designs
+(desktop + PWA) replacing the current three, `/hub/log` folded in, a templates/blocks/sessions
+naming story (gate G1), Esther's paste-a-workout-as-template flow folded in per Craig's decision
+(`wo-templates-paste-and-assign-2026-08-14` closed into this), and a portal PWA lane (the portal
+currently has no manifest at all, unlike `/hub/m`). Mockup-first — nothing builds until Craig
+reviews the brief.
+
+**Verified, not assumed:** re-confirmed the `set_logs` migrations flagged in a prior session's
+memory as possibly-unapplied are in fact live on prod (`client_op_id`, `is_warmup`,
+`exercise_uid`, `exercise_name`, `set_log_revisions` table all present).
+
+## Current State
+`staging` pushed through `b8c386b` (7 commits this session), confirmed deployed and container-swap
+verified via direct SSH each time, not deploy-status alone. `main`/prod untouched — held per Craig.
+Registry: `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10` → `gated` (explicit hold, not
+blocked); `wo-ef-security-repo-quickwins-2026-08-15` → `gated` (awaiting Craig's repo-cleanup
+sign-off); `wo-ef-workout-consolidation-pwa-2026-08-15` → `active` (brief drafted, awaiting review);
+`wo-templates-paste-and-assign-2026-08-14` → `abandoned` (folded into the consolidation WO).
+
+## Next Steps
+1. **Craig, whenever ready:** say go on the 3 remaining L6 steps (prod migration, merge to `main`,
+   Esther reconnects live + prod cron enable).
+2. **Craig:** answer the 2 queued repo-cleanup questions (`wo questions`) — both are low-risk,
+   evidence-backed recommendations, not urgent.
+3. **Craig:** review the workout-consolidation brief + its G1 (naming story) and G3 (does desktop
+   keep an inline logger) gates before any lane starts.
+4. Whoever picks this WO back up: don't re-flag the main-calendar choice as a gap — it's
+   intentional, see above and the WO doc.
+5. Scope-of-works `§1.1` (no PITR/WAL archive — still the single highest-consequence open item in
+   the whole registry) and `§1.2` (staging shares live email creds + real client data) remain
+   untouched this session — Craig's own calls, not forgotten.
+
+## Files Changed
+7 commits on `claude/wo-active-microsoft-365-calendar-d3069c` / `staging`:
+`7c30141` (L6 build) → merge of `lane/security-quickwins-2026-08-15` → `989a6e1` (header-order fix)
+→ `8c0ee72` (status-UI error-state fix) → `df74dae` (OAuth redirect fix) → `b8c386b` (WO doc update).
+Full file list and rationale for each in the commit messages themselves and this entry above.
+
+---
+
 # Session Handoff: August 13, 2026 (Claude Code) — Hub mobile PWA: offline logging, Clients tab, real-device verified
 
 ## Agent

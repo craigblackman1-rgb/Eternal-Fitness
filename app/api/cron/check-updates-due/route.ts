@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { createHash, timingSafeEqual } from "crypto";
 import { getClientsUpdateDueSoon } from "@/lib/updates-due-db";
 import { buildUpdateDueReminderEmail } from "@/lib/email-templates/update-due-reminder";
 import { getEmailSender } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
+
+function secretsMatch(provided: string, secret: string): boolean {
+  const a = createHash("sha256").update(provided).digest();
+  const b = createHash("sha256").update(secret).digest();
+  return timingSafeEqual(a, b);
+}
 
 function resolveNotifyEmail(): string {
   if (process.env.ESTHER_NOTIFY_EMAIL) {
@@ -25,7 +32,7 @@ async function handle(request: Request) {
   const auth = request.headers.get("authorization") || "";
   const url = new URL(request.url);
   const provided = auth.replace(/^Bearer\s+/i, "") || url.searchParams.get("secret") || "";
-  if (provided !== secret) {
+  if (!secretsMatch(provided, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
