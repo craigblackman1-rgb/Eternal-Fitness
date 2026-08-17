@@ -223,7 +223,7 @@ export default async function BlockViewPage({
                           </span>
                           <div className="flex items-center gap-2 shrink-0">
                             <Link
-                              href={`/hub/log/${session.id}`}
+                              href={`/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`}
                               className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
                             >
                               Log
