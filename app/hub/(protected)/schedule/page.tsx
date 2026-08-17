@@ -67,6 +67,7 @@ export default async function SchedulePage() {
         clientId: block?.client_id ?? null,
         clientName: client?.name ?? "Unknown client",
         clientNumber: client?.client_number ?? null,
+        blockId: block?.id ?? null,
         sessionNumber: s.session_number,
         archetype: s.archetype,
         blockNumber: block?.block_number ?? null,

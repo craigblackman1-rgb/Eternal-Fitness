@@ -1,14 +1,20 @@
 import { createClient } from "@/lib/supabase-server";
+import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import type { DBSession, SetLog } from "@/types";
-import { LiveSessionLog } from "./LiveSessionLog";
 
-export default async function LiveSessionLogPage({ params }: { params: { sessionId: string } }) {
+/**
+ * Retired route — the standalone Live Log (/hub/log/[sessionId]) was folded into
+ * the consolidated Session screen. This redirects every old entry point (schedule
+ * calendar, block overview) to the new surface at
+ * /hub/clients/[client_id]/blocks/[block_id]/sessions/[session_number], preserving
+ * any pre-existing links rather than 404-ing them.
+ */
+export default async function LiveSessionLogRedirect({ params }: { params: { sessionId: string } }) {
   const supabase = createClient();
 
   const { data: session } = await supabase
     .from("sessions")
-    .select("*")
+    .select("id, block_id, session_number")
     .eq("id", params.sessionId)
     .single();
 
@@ -16,45 +22,11 @@ export default async function LiveSessionLogPage({ params }: { params: { session
 
   const { data: block } = await supabase
     .from("blocks")
-    .select("id, client_id, block_number")
+    .select("id, client_id")
     .eq("id", session.block_id)
     .single();
 
-  let client: { name: string; client_number: number | null } | null = null;
-  if (block) {
-    const { data: c } = await supabase
-      .from("clients")
-      .select("name, client_number")
-      .eq("id", block.client_id)
-      .single();
-    client = c ?? null;
-  }
+  if (!block) notFound();
 
-  const { data: setLogs } = await supabase
-    .from("set_logs")
-    .select("*")
-    .eq("session_id", params.sessionId)
-    .order("exercise_ref", { ascending: true })
-    .order("set_number", { ascending: true });
-
-  const blockNumber = block?.block_number ?? null;
-  const sessionData = (session as DBSession).data ?? null;
-  const sessionLog = sessionData?.session_log ?? null;
-
-  return (
-    <LiveSessionLog
-      sessionId={session.id}
-      sessionNumber={session.session_number}
-      archetype={session.archetype}
-      phase={session.phase}
-      week={session.week}
-      data={sessionData}
-      sessionLog={sessionLog}
-      scheduledAt={session.scheduled_at ?? null}
-      blockNumber={blockNumber}
-      clientName={client?.name ?? "Unknown client"}
-      clientNumber={client?.client_number ?? null}
-      setLogs={(setLogs ?? []) as SetLog[]}
-    />
-  );
+  redirect(`/hub/clients/${block.client_id}/blocks/${block.id}/sessions/${session.session_number}`);
 }

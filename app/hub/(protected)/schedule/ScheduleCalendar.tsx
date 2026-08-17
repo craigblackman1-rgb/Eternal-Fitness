@@ -35,6 +35,8 @@ export interface ScheduledEntry {
   clientName: string;
   /** Used to link to the client detail page (/hub/clients/[client_number]). */
   clientNumber: number | null;
+  /** Block id — used to deep-link to the consolidated session screen. */
+  blockId: string | null;
   sessionNumber: number;
   archetype: string;
   blockNumber: number | null;
@@ -237,9 +239,9 @@ export function ScheduleCalendar({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          {entry.clientNumber != null ? (
+                          {entry.clientId != null && entry.blockId != null ? (
                             <Link
-                              href={`/hub/log/${entry.id}`}
+                              href={`/hub/clients/${entry.clientId}/blocks/${entry.blockId}/sessions/${entry.sessionNumber}`}
                               className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-rose"
                             >
                               {entry.clientName}
