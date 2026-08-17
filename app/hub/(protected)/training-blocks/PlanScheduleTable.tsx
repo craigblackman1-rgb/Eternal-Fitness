@@ -169,7 +169,7 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
     <HubTable
       data={sortedData}
       columns={columns}
-      getRowHref={(row) => `/hub/clients/${row.client_id}/blocks/${row.id}`}
+      getRowHref={(row) => `/hub/clients/${row.client_number ?? row.client_id}/blocks/${row.id}`}
       searchPlaceholder="Search clients…"
       searchKeys={[(row: BlockWithClient) => row.client_name ?? ""]}
       countLabel="block"
