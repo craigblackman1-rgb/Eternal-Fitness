@@ -36,6 +36,7 @@ import { RESOURCES } from "@/lib/resources";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
 import { CommsTabContent } from "./CommsTabContent";
+import { CollapsibleSection } from "./CollapsibleSection";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -367,40 +368,31 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/hub/clients" className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-md px-1 py-0.5 -ml-1 mb-3 transition-colors">
-          <IconChevronLeft className="h-3.5 w-3.5" />
-          All clients
+      <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm p-5 flex items-center gap-4">
+        <Link href="/hub/clients" aria-label="Back to clients" className="w-9 h-9 rounded-lg border border-[var(--hub-border)] flex items-center justify-center shrink-0 text-foreground hover:bg-[var(--hub-hover)] transition-colors">
+          <IconChevronLeft className="w-4 h-4" />
         </Link>
-        <div className="flex items-start gap-3.5">
-          <div className="w-12 h-12 rounded-full bg-rose/15 text-rose flex items-center justify-center text-base font-bold shrink-0" aria-hidden="true">
-            {initials}
+        <div className="w-14 h-14 rounded-full bg-rose/15 text-rose flex items-center justify-center text-lg font-bold shrink-0" aria-hidden="true">
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-foreground">{client.name}</h1>
+            <span className="text-sm text-muted-foreground font-medium">#{client.client_number}</span>
+            {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-              <div>
-                <h1 className="text-[26px] font-bold tracking-tight text-foreground inline-flex items-center gap-2.5 flex-wrap">
-                  {client.name}
-                  <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-md px-1.5 py-0.5">
-                    #{client.client_number}
-                  </span>
-                  {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
-                </h1>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Link href={`/hub/clients/${client.client_number}/edit`}>
-                  <Button variant="outline" className="border border-[var(--color-muted-text)] rounded-lg px-3.5 py-1.5 h-auto text-sm font-medium hover:bg-[var(--hub-hover)] gap-1.5">
-                    <IconPencil className="h-4 w-4" /> Edit
-                  </Button>
-                </Link>
-                <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`}>
-                  <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-                    <IconPlus className="h-4 w-4" /> Plan Block
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link href={`/hub/clients/${client.client_number}/edit`}>
+            <Button variant="outline" className="border border-[var(--color-muted-text)] rounded-lg px-3.5 py-1.5 h-auto text-sm font-medium hover:bg-[var(--hub-hover)] gap-1.5">
+              <IconPencil className="h-4 w-4" /> Edit Client
+            </Button>
+          </Link>
+          <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`}>
+            <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+              <IconPlus className="h-4 w-4" /> Plan Block
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -409,24 +401,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           Outstanding paperwork must be resolved before any further sessions.
           <OutstandingActionsInline actions={flags.autoOutstanding} />
           <OutstandingActionsInline actions={manualActions} />
-        </HubAlert>
-      )}
-      {(flags.effectiveStatus === "pending_medical" || flags.effectiveStatus === "action_needed") && (
-        <HubAlert severity="warning" title={lookupStatus(flags.effectiveStatus)?.label ?? "Action Needed"}>
-          {flags.effectiveStatus === "pending_medical"
-            ? "Do not train until clearance is confirmed."
-            : "Actions outstanding — see Admin tab."}
-          <OutstandingActionsInline actions={flags.autoOutstanding} />
-          <OutstandingActionsInline actions={manualActions} />
-        </HubAlert>
-      )}
-      {goneQuiet && (
-        <HubAlert severity="warning" title="Home-training client gone quiet">
-          No self-logged sets in the last {HOME_TRAINING_QUIET_DAYS} days
-          {lastClientLogAt
-            ? ` — last logged ${new Date(lastClientLogAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.`
-            : " — no sets logged yet."}{" "}
-          Worth checking in with {client.name.split(" ")[0]}.
         </HubAlert>
       )}
 
@@ -456,9 +430,27 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
         </HubTabsList>
 
-        <div className="grid gap-5 lg:grid-cols-12 mt-6">
-          <div className="lg:col-span-8 space-y-5">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] mt-6">
+          <div className="space-y-5">
             <TabsContent value="overview">
+              {(flags.effectiveStatus === "pending_medical" || flags.effectiveStatus === "action_needed") && (
+                <HubAlert severity="warning" title={lookupStatus(flags.effectiveStatus)?.label ?? "Action Needed"}>
+                  {flags.effectiveStatus === "pending_medical"
+                    ? "Do not train until clearance is confirmed."
+                    : "Actions outstanding — see Admin tab."}
+                  <OutstandingActionsInline actions={flags.autoOutstanding} />
+                  <OutstandingActionsInline actions={manualActions} />
+                </HubAlert>
+              )}
+              {goneQuiet && (
+                <HubAlert severity="warning" title="Home-training client gone quiet">
+                  No self-logged sets in the last {HOME_TRAINING_QUIET_DAYS} days
+                  {lastClientLogAt
+                    ? ` — last logged ${new Date(lastClientLogAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.`
+                    : " — no sets logged yet."}{" "}
+                  Worth checking in with {client.name.split(" ")[0]}.
+                </HubAlert>
+              )}
               <HubCard>
                 <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="teal" />
                 <div className="pb-5">
@@ -587,23 +579,10 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             </TabsContent>
 
             <TabsContent value="profile">
-              <div className="grid gap-6 sm:grid-cols-2 items-start">
-                <HubCard className="sm:col-span-2">
-                  <HubCardHeader icon={<IconMail className="w-4 h-4" />} title="Client Portal" color="slate" />
-                  <PortalAccountCard
-                    clientNumber={client.client_number}
-                    hasEmail={!!client.email}
-                  />
-                </HubCard>
+              <div className="space-y-3">
                 {p?.health && (
-                  <HubCard className="sm:col-span-2">
-                    <HubCardHeader
-                      icon={<IconHeart className="w-4 h-4" />}
-                      title="Health"
-                      color="rose"
-                      action={complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : undefined}
-                    />
-                    <div className="pb-5 space-y-4">
+                  <CollapsibleSection title="Health" icon={<IconHeart className="w-4 h-4" />} defaultOpen>
+                    <div className="pt-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">GP Clearance</span>
                         <YesNoPill yes={!!p.health.gp_clearance} />
@@ -670,13 +649,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </div>
                       )}
                     </div>
-                  </HubCard>
+                  </CollapsibleSection>
                 )}
 
                 {p?.physical_baseline && (
-                  <HubCard>
-                    <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Physical Baseline" color="teal" />
-                    <div className="pb-5 space-y-3">
+                  <CollapsibleSection title="Physical Baseline" icon={<IconDumbbell className="w-4 h-4" />}>
+                    <div className="pt-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">Fitness Level</span>
                         <div className="flex gap-1">
@@ -710,13 +688,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </ul>
                       )}
                     </div>
-                  </HubCard>
+                  </CollapsibleSection>
                 )}
 
                 {p?.goals && (
-                  <HubCard>
-                    <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Goals" color="rose" />
-                    <div className="pb-5">
+                  <CollapsibleSection title="Goals" icon={<IconTarget className="w-4 h-4" />}>
+                    <div className="pt-4">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Primary"><span className="capitalize">{p.goals.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
                         {p.goals.secondary?.length > 0 && (
@@ -739,13 +716,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </div>
                       )}
                     </div>
-                  </HubCard>
+                  </CollapsibleSection>
                 )}
 
                 {p?.logistics && (
-                  <HubCard>
-                    <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Logistics" color="navy" />
-                    <div className="pb-5">
+                  <CollapsibleSection title="Logistics" icon={<IconCalendar className="w-4 h-4" />}>
+                    <div className="pt-4">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Location"><span className="capitalize">{p.logistics.training_location?.replace("_", " ") ?? "—"}</span></HubDataField>
                         <HubDataField label="Sessions/week">{p.logistics.sessions_per_week ?? "—"}x</HubDataField>
@@ -753,15 +729,47 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         <HubDataField label="Package">{p.logistics.package ?? "—"}</HubDataField>
                         <HubDataField label="Pace mode"><PaceModeDisplay paceMode={client.pace_mode} /></HubDataField>
                         <HubDataField label="Group type"><GroupTypeLabel groupType={client.group_type} /></HubDataField>
-                    </HubDataGrid>
+                      </HubDataGrid>
+                    </div>
+                  </CollapsibleSection>
+                )}
+
+                <CollapsibleSection title="Client Portal" icon={<IconMail className="w-4 h-4" />}>
+                  <div className="pt-4">
+                    <PortalAccountCard
+                      clientNumber={client.client_number}
+                      hasEmail={!!client.email}
+                    />
                   </div>
-                  </HubCard>
+                </CollapsibleSection>
+
+                {p?.programming_adaptations && p.programming_adaptations.length > 0 && (
+                  <CollapsibleSection title="All Training Rules" icon={<IconAlertCircle className="w-4 h-4" />}>
+                    <div className="pt-4">
+                      <ul className="list-none divide-y divide-[var(--hub-border)]">
+                        {p.programming_adaptations.map((rule) => {
+                          const ruleType = ruleTypesById.get(rule.rule_type_id);
+                          return (
+                            <li key={rule.id} className="flex items-start gap-2 text-sm py-[9px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber mt-[7px] shrink-0" />
+                              <span className="text-foreground">
+                                <span className={rule.severity === "hard" ? "font-semibold" : "text-muted-foreground"}>
+                                  {rule.severity === "hard" ? "[HARD]" : "[soft]"}
+                                </span>{" "}
+                                {rule.detail}
+                                {ruleType && <span className="text-muted-foreground"> — {ruleType.label}</span>}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </CollapsibleSection>
                 )}
 
                 {(p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
-                  <HubCard>
-                    <HubCardHeader icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="slate" />
-                    <div className="pb-5 space-y-3">
+                  <CollapsibleSection title="Notes" icon={<IconEdit3 className="w-4 h-4" />}>
+                    <div className="pt-4 space-y-3">
                       {p.notes.esther_observations && (
                         <div>
                           <span className="text-xs text-muted-foreground block mb-0.5">Observations</span>
@@ -781,49 +789,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </div>
                       )}
                     </div>
-                  </HubCard>
+                  </CollapsibleSection>
                 )}
 
-                {p?.programming_adaptations && p.programming_adaptations.length > 0 && (
-                  <HubCard className="sm:col-span-2">
-                    <HubCardHeader
-                      icon={<IconAlertCircle className="w-4 h-4" />}
-                      title="Active Training Rules"
-                      color="amber"
-                      action={<span className="text-xs text-muted-foreground">Applied to every generated block</span>}
-                    />
-                    <div className="pb-5">
-                      <ul className="list-none divide-y divide-[var(--hub-border)]">
-                        {p.programming_adaptations.map((rule) => {
-                          const ruleType = ruleTypesById.get(rule.rule_type_id);
-                          return (
-                            <li key={rule.id} className="flex items-start gap-2 text-sm py-[9px]">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber mt-[7px] shrink-0" />
-                              <span className="text-foreground">
-                                <span className={rule.severity === "hard" ? "font-semibold" : "text-muted-foreground"}>
-                                  {rule.severity === "hard" ? "[HARD]" : "[soft]"}
-                                </span>{" "}
-                                {rule.detail}
-                                {ruleType && <span className="text-muted-foreground"> — {ruleType.label}</span>}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  </HubCard>
-                )}
-
-                <HubCard className="sm:col-span-2">
-                  <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Record" color="slate" />
-                  <div className="pb-5">
+                <CollapsibleSection title="Record" icon={<IconClipboardList className="w-4 h-4" />}>
+                  <div className="pt-4">
                     <HubDataGrid cols={3}>
                       <HubDataField label="Client number">#{client.client_number}</HubDataField>
                       <HubDataField label="Created">{new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</HubDataField>
                       <HubDataField label="Last edited">{(client as any).updated_at ? new Date((client as any).updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</HubDataField>
                     </HubDataGrid>
                   </div>
-                </HubCard>
+                </CollapsibleSection>
               </div>
             </TabsContent>
 
@@ -939,7 +916,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             </TabsContent>
           </div>
 
-          <div className="lg:col-span-4">{rightRail}</div>
+          <div>{rightRail}</div>
         </div>
       </ClientDetailTabs>
     </div>
