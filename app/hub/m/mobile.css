@@ -283,6 +283,11 @@
 .rest { margin-top: 9px; }
 .rest-start { width: 100%; height: 46px; border-radius: 10px; border: 1px solid var(--s-success-bd); background: var(--s-success-bg); color: var(--teal); font-family: inherit; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; }
 .rest-start:hover { background: rgba(8,126,139,.18); color: color-mix(in oklab, var(--teal) 88%, var(--ink)); }
+.rest-start-row { display: flex; gap: 8px; }
+.rest-start-row .rest-start { flex: 1; }
+.rest-stepper { display: flex; gap: 4px; }
+.rest-stepper button { height: 46px; width: 54px; border-radius: 10px; border: 1px solid var(--s-success-bd); background: rgba(255,255,255,.8); color: var(--ink); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.rest-stepper button:hover { background: var(--color-white); }
 .rest-panel { border: 1px solid var(--s-success-bd); background: var(--s-success-bg); border-radius: 12px; padding: 10px; }
 .rest-modes { display: flex; gap: 3px; background: rgba(255,255,255,.7); border: 1px solid var(--s-success-bd); border-radius: 9px; padding: 3px; }
 .rest-mode { flex: 1; height: 44px; border: 0; border-radius: 7px; background: transparent; font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--body); cursor: pointer; }

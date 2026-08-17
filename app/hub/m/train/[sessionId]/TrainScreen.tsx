@@ -193,6 +193,7 @@ export function TrainScreen({
   const [showComplete, setShowComplete] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [restTimers, setRestTimers] = useState<Record<string, RestTimer>>({});
+  const [restOverrides, setRestOverrides] = useState<Record<string, number>>({});
 
   const [pickSection, setPickSection] = useState<SectionKey | null>(null);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
@@ -203,6 +204,8 @@ export function TrainScreen({
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const alertedRef = useRef<Set<string>>(new Set());
   const dataRef = useRef(data);
   const sessionLogRef = useRef(sessionLog);
   dataRef.current = data;
@@ -291,6 +294,55 @@ export function TrainScreen({
     });
   }, [sessionId]);
 
+  // ── Rest alert audio (CR-EF-019) ────────────────────────────────
+  // iOS PWAs block un-gestured audio, so the AudioContext is primed on the
+  // user's "start rest" tap and the beep is generated in code (no asset, so it
+  // works offline). navigator.vibrate is the silent-mode fallback.
+  const primeRestAudio = useCallback(() => {
+    try {
+      const Ctx =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      if (audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+    } catch {
+      /* audio unsupported — vibrate fallback still applies */
+    }
+  }, []);
+
+  const playRestAlert = useCallback(() => {
+    try {
+      const ctx = audioCtxRef.current;
+      if (ctx && ctx.state === "running") {
+        const now = ctx.currentTime;
+        for (let i = 0; i < 3; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = 880;
+          const t = now + i * 0.28;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+          osc.start(t);
+          osc.stop(t + 0.26);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      if ("vibrate" in navigator) navigator.vibrate([180, 90, 180]);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   // ── Rest timer interval ────────────────────────────────────────
   useEffect(() => {
     const running = Object.keys(restTimers).length > 0;
@@ -315,6 +367,18 @@ export function TrainScreen({
       }
     };
   }, [restTimers]);
+
+  // Fire the audible/vibrate alert the moment a countdown crosses zero
+  // (CR-EF-019). alertedRef guarantees it fires once per countdown, not once
+  // per remaining tick while the "over" state is shown.
+  useEffect(() => {
+    for (const [key, t] of Object.entries(restTimers)) {
+      if (t.mode === "countdown" && t.elapsed >= t.seconds && !alertedRef.current.has(key)) {
+        alertedRef.current.add(key);
+        playRestAlert();
+      }
+    }
+  }, [restTimers, playRestAlert]);
 
   // ── Set-log API ────────────────────────────────────────────────
   const saveSetLog = async (
@@ -562,6 +626,7 @@ export function TrainScreen({
 
   // ── Rest timer actions ─────────────────────────────────────────
   const handleRestOpen = (key: string, seconds: number) => {
+    primeRestAudio();
     setRestTimers((prev) => ({
       ...prev,
       [key]: { mode: "countdown", elapsed: 0, seconds },
@@ -577,6 +642,7 @@ export function TrainScreen({
   };
 
   const handleRestReset = (key: string) => {
+    alertedRef.current.delete(key);
     setRestTimers((prev) => {
       const t = prev[key];
       if (!t) return prev;
@@ -585,11 +651,31 @@ export function TrainScreen({
   };
 
   const handleRestStop = (key: string) => {
+    alertedRef.current.delete(key);
     setRestTimers((prev) => {
       const next = { ...prev };
       delete next[key];
       return next;
     });
+  };
+
+  // In-session rest-time override (CR-EF-020). Before the timer starts the
+  // adjustment is remembered per-exercise (floored at 5s); while a countdown is
+  // running it shifts the remaining time directly. Nothing is written back to
+  // the prescription — this is for this session only.
+  const handleRestAdjust = (key: string, delta: number, fallbackSeconds: number) => {
+    if (restTimers[key]) {
+      setRestTimers((prev) => {
+        const t = prev[key];
+        if (!t) return prev;
+        return { ...prev, [key]: { ...t, elapsed: Math.max(0, t.elapsed - delta) } };
+      });
+    } else {
+      setRestOverrides((prev) => {
+        const base = prev[key] ?? fallbackSeconds;
+        return { ...prev, [key]: Math.max(5, base + delta) };
+      });
+    }
   };
 
   // ── Pick (superset grouping) ───────────────────────────────────
@@ -965,6 +1051,7 @@ export function TrainScreen({
                           inPick={inPick}
                           picked={picked}
                           restTimers={restTimers}
+                          restOverrides={restOverrides}
                           onSetDone={handleSetDone}
                           onSetSkip={handleSetSkip}
                           onSetField={handleSetField}
@@ -977,6 +1064,7 @@ export function TrainScreen({
                           onRestMode={handleRestMode}
                           onRestReset={handleRestReset}
                           onRestStop={handleRestStop}
+                          onRestAdjust={handleRestAdjust}
                           onUngroup={handleUngroup}
                           exComplete={exComplete}
                         />
@@ -988,6 +1076,7 @@ export function TrainScreen({
                           restTimerKey={block.items[0].uid ?? ""}
                           restTimer={restTimers[block.items[0].uid ?? ""]}
                           restSeconds={parseRestSeconds(block.items[0].rest ?? "") ?? 60}
+                          restOverride={restOverrides[block.items[0].uid ?? ""]}
                           inPick={inPick}
                           isPicked={!!(block.items[0].uid && picked[block.items[0].uid])}
                           onSetDone={handleSetDone}
@@ -1002,6 +1091,7 @@ export function TrainScreen({
                           onRestMode={handleRestMode}
                           onRestReset={handleRestReset}
                           onRestStop={handleRestStop}
+                          onRestAdjust={handleRestAdjust}
                           isComplete={block.items[0].uid ? exComplete(block.items[0].uid) : false}
                         />
                       )
@@ -1303,31 +1393,44 @@ function SetRow({
 function RestControl({
   timerKey,
   restSeconds,
+  restOverride,
   timer,
   onRestOpen,
   onRestMode,
   onRestReset,
   onRestStop,
+  onRestAdjust,
 }: {
   timerKey: string;
   restSeconds: number;
+  restOverride?: number;
   timer?: RestTimer;
   onRestOpen: (key: string, seconds: number) => void;
   onRestMode: (key: string, mode: "countdown" | "stopwatch") => void;
   onRestReset: (key: string) => void;
   onRestStop: (key: string) => void;
+  onRestAdjust?: (key: string, delta: number, fallbackSeconds: number) => void;
 }) {
-  if (!restSeconds && !timer) return null;
+  const effective = restOverride ?? restSeconds;
+  if (!effective && !timer) return null;
 
   if (!timer) {
     return (
       <div className="rest">
-        <button
-          className="rest-start"
-          onClick={() => onRestOpen(timerKey, restSeconds)}
-        >
-          {ICO.rest}Rest {restSeconds}s
-        </button>
+        <div className="rest-start-row">
+          <button
+            className="rest-start"
+            onClick={() => onRestOpen(timerKey, effective)}
+          >
+            {ICO.rest}Rest {effective}s
+          </button>
+          {onRestAdjust && (
+            <div className="rest-stepper">
+              <button type="button" onClick={() => onRestAdjust(timerKey, -15, restSeconds)} aria-label="Reduce rest by 15 seconds">−15</button>
+              <button type="button" onClick={() => onRestAdjust(timerKey, 15, restSeconds)} aria-label="Add 15 seconds of rest">+15</button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -1371,6 +1474,12 @@ function RestControl({
         </div>
         <div className="rest-bar"><i style={{ width: `${pct}%` }} /></div>
         <div className="rest-acts">
+          {onRestAdjust && timer.mode === "countdown" && (
+            <>
+              <button type="button" onClick={() => onRestAdjust(timerKey, 15, restSeconds)} aria-label="Add 15 seconds of rest">+15s</button>
+              <button type="button" onClick={() => onRestAdjust(timerKey, -15, restSeconds)} aria-label="Reduce rest by 15 seconds">−15s</button>
+            </>
+          )}
           <button onClick={() => onRestReset(timerKey)}>Reset</button>
           <button className="stop" onClick={() => onRestStop(timerKey)}>Stop rest</button>
         </div>
@@ -1385,6 +1494,7 @@ function ExerciseCard({
   restTimerKey,
   restTimer,
   restSeconds,
+  restOverride,
   inPick,
   isPicked,
   onSetDone,
@@ -1399,6 +1509,7 @@ function ExerciseCard({
   onRestMode,
   onRestReset,
   onRestStop,
+  onRestAdjust,
   isComplete,
 }: {
   exercise: Exercise;
@@ -1406,6 +1517,7 @@ function ExerciseCard({
   restTimerKey: string;
   restTimer?: RestTimer;
   restSeconds: number;
+  restOverride?: number;
   inPick: boolean;
   isPicked: boolean;
   onSetDone: (uid: string, setIdx: number) => void;
@@ -1420,6 +1532,7 @@ function ExerciseCard({
   onRestMode: (key: string, mode: "countdown" | "stopwatch") => void;
   onRestReset: (key: string) => void;
   onRestStop: (key: string) => void;
+  onRestAdjust: (key: string, delta: number, fallbackSeconds: number) => void;
   isComplete: boolean;
 }) {
   const uid = exercise.uid ?? "";
@@ -1539,11 +1652,13 @@ function ExerciseCard({
       <RestControl
         timerKey={restTimerKey}
         restSeconds={restSeconds}
+        restOverride={restOverride}
         timer={restTimer}
         onRestOpen={onRestOpen}
         onRestMode={onRestMode}
         onRestReset={onRestReset}
         onRestStop={onRestStop}
+        onRestAdjust={onRestAdjust}
       />
     </div>
   );
@@ -1555,6 +1670,7 @@ function SupersetBlock({
   inPick,
   picked,
   restTimers,
+  restOverrides,
   onSetDone,
   onSetSkip,
   onSetField,
@@ -1567,6 +1683,7 @@ function SupersetBlock({
   onRestMode,
   onRestReset,
   onRestStop,
+  onRestAdjust,
   onUngroup,
   exComplete,
 }: {
@@ -1575,6 +1692,7 @@ function SupersetBlock({
   inPick: boolean;
   picked: Record<string, boolean>;
   restTimers: Record<string, RestTimer>;
+  restOverrides: Record<string, number>;
   onSetDone: (uid: string, setIdx: number) => void;
   onSetSkip: (uid: string, setIdx: number) => void;
   onSetField: (uid: string, setIdx: number, field: "reps" | "weight" | "duration", value: string) => void;
@@ -1587,6 +1705,7 @@ function SupersetBlock({
   onRestMode: (key: string, mode: "countdown" | "stopwatch") => void;
   onRestReset: (key: string) => void;
   onRestStop: (key: string) => void;
+  onRestAdjust: (key: string, delta: number, fallbackSeconds: number) => void;
   onUngroup: (label: string) => void;
   exComplete: (uid: string) => boolean;
 }) {
@@ -1737,11 +1856,13 @@ function SupersetBlock({
               <RestControl
                 timerKey={roundKey}
                 restSeconds={maxRest || 60}
+                restOverride={restOverrides[roundKey]}
                 timer={restTimers[roundKey]}
                 onRestOpen={onRestOpen}
                 onRestMode={onRestMode}
                 onRestReset={onRestReset}
                 onRestStop={onRestStop}
+                onRestAdjust={onRestAdjust}
               />
             </div>
           );

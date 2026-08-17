@@ -96,6 +96,29 @@ via Graph API, replacing the iframe modal; needs Azure AD app registration +
 admin consent (registry deferred `dmsk355ygro`). Still unscoped as its own Work
 Order.
 
+## Decisions — 2026-08-17 (later), Craig
+
+Cleared in one sitting with Craig ("yes to all", then "items 3 deferred until
+further notice"):
+
+- **CR-EF-011 consolidation — unblocked.** G1 (naming story) and G3 (desktop
+  Session Editor keeps its inline logger — the single desktop logging surface)
+  approved. G2 mockups to verify against the Open Design briefs already in
+  `D:\apps\design-systems\ef-control-hub`. L3/L4/L6 were already built by
+  concurrent sessions (`62026f4` desktop consolidation, `22ff6c9`
+  templates-browser + paste-and-assign, `1a07d34` portal PWA — `portal.webmanifest`
+  + `portal/sw.js` confirmed present, superseding the stale "portal PWA not built"
+  note on CR-EF-012).
+- **Approved to build:** CR-EF-019 (rest-timer sound), CR-EF-020 (rest-time
+  override), CR-EF-021 (per-exercise edit), CR-EF-017 (client notes), CR-EF-022
+  (start date), CR-EF-024 (PWA tasks panel).
+- **Deferred until further notice:** blog repositioning migration (scope-of-works
+  §2.5), hub nav restructure (§2.6), GDPR DPA signature + ICO registration (§2.2),
+  CR-EF-014 (band colour→tension — needs Esther), CR-EF-018 (unilateral L/R curated
+  list — needs Esther).
+- **Still needs Craig (manual, not deferred):** §1.1 WAL/PITR archive gap, §1.2
+  staging shares live email creds, §4.2/§4.4 branch & worktree cleanup.
+
 ## Outstanding process gap
 
 This project has no confirmed live `project_id` in `decoded-ops-hub`'s `tasks` table
