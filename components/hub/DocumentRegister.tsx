@@ -18,6 +18,11 @@ interface RegisterDocument {
   emailed?: boolean | null;
   source_type?: "generated" | "scan";
   consent_choices?: Record<string, boolean> | null;
+  /** A pre-document-engine record (legacy signed_parq/signed_agreements)
+   *  that satisfies compliance but has no client_documents row of its own —
+   *  CR-EF-026. Rendered read-only: no View/Open/delete, since there's
+   *  nothing at /hub/clients/[n]/documents/[id] to open. */
+  legacy?: boolean;
 }
 
 interface DocumentRegisterProps {
@@ -53,11 +58,12 @@ type Row = {
   emailed?: boolean | null;
   consentSummary?: string | null;
   sourceType: "generated" | "scan";
+  legacy: boolean;
   date: string;
   version: number;
   updatedAt: string;
   updatedBy: string;
-  href: string;
+  href?: string;
   editHref?: string;
   icon: React.ReactNode;
 };
@@ -73,12 +79,13 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
       emailed: d.emailed,
       consentSummary: consentSummary(d.consent_choices),
       sourceType: (d.source_type === "scan" ? "scan" : "generated") as "generated" | "scan",
+      legacy: Boolean(d.legacy),
       date: d.created_at,
       version: d.version ?? 1,
       updatedAt: d.updated_at || d.created_at,
       updatedBy: d.client_name || d.trainer_name || "—",
-      href: `/hub/clients/${clientNumber}/documents/${d.id}`,
-      editHref: d.source_type === "scan" ? undefined : `/hub/clients/${clientNumber}/documents/${d.id}`,
+      href: d.legacy ? undefined : `/hub/clients/${clientNumber}/documents/${d.id}`,
+      editHref: d.legacy || d.source_type === "scan" ? undefined : `/hub/clients/${clientNumber}/documents/${d.id}`,
       icon: <IconFileSignature className="h-4 w-4 text-muted-foreground" />,
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -116,10 +123,13 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <StatusBadge status={r.status} />
-                      {r.sourceType === "scan" && (
+                      {r.legacy && (
+                        <TokenPill token="neutral" label="Legacy record" />
+                      )}
+                      {!r.legacy && r.sourceType === "scan" && (
                         <TokenPill token="neutral" label="Scanned original" />
                       )}
-                      {r.sourceType !== "scan" && r.status === "sent" && r.emailed === false && (
+                      {!r.legacy && r.sourceType !== "scan" && r.status === "sent" && r.emailed === false && (
                         <TokenPill token="neutral" label="Not delivered" />
                       )}
                       {r.consentSummary && (
@@ -133,7 +143,10 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
                   <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{r.updatedBy}</td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2.5">
-                      {r.sourceType === "scan" && (
+                      {r.legacy && (
+                        <span className="text-xs text-muted-foreground">No detail page — pre-dates the document engine</span>
+                      )}
+                      {!r.legacy && r.sourceType === "scan" && (
                         <Link
                           href={`/api/documents/${r.id}/file`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-teal hover:underline"
@@ -147,15 +160,20 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
                           already correctly stay hidden) — previously this
                           whole block was skipped for scan rows, so an
                           uploaded-to-the-wrong-client document had no way to
-                          be removed from this screen at all. */}
-                      <DocumentRowActions docId={r.id} status={r.status} hasEmail={hasEmail} clientName={clientName} />
+                          be removed from this screen at all. Legacy rows have
+                          no real client_documents row, so no actions apply. */}
+                      {!r.legacy && (
+                        <DocumentRowActions docId={r.id} status={r.status} hasEmail={hasEmail} clientName={clientName} />
+                      )}
                     </div>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     {r.editHref && (
                       <Link href={r.editHref} className="text-teal font-medium hover:underline mr-3">Open</Link>
                     )}
-                    <Link href={r.href} className="text-rose font-medium hover:underline">View</Link>
+                    {r.href && (
+                      <Link href={r.href} className="text-rose font-medium hover:underline">View</Link>
+                    )}
                   </td>
                 </tr>
               ))}

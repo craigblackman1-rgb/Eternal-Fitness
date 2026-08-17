@@ -72,6 +72,17 @@ export async function POST(request: Request) {
       [docId, buffer],
     );
 
+    // A scanned upload is always already signed (CR-EF-026): mark any other
+    // still-open document of the same kind for this client as superseded, so
+    // a stale "Sent" attempt doesn't keep sitting next to the real signed
+    // one in the register and reading as "not signed" at a glance.
+    await pg.query(
+      `UPDATE client_documents
+          SET status = 'superseded', updated_at = now()
+        WHERE client_id = $1 AND kind = $2 AND id != $3 AND status IN ('draft', 'sent')`,
+      [client.id, kind, docId],
+    );
+
     await pg.query("COMMIT");
     return NextResponse.json({ id: docId }, { status: 201 });
   } catch (e) {

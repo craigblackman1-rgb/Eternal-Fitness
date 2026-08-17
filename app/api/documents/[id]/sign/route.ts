@@ -55,5 +55,20 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const { error } = await admin.from("client_documents").update(update).eq("id", params.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Newly fully signed (CR-EF-026): supersede any other still-open document
+  // of the same kind for this client, so an abandoned earlier "Sent" attempt
+  // doesn't keep sitting in the register next to the one that actually got
+  // signed, reading as "not signed" at a glance.
+  if (update.status === "signed") {
+    await admin
+      .from("client_documents")
+      .update({ status: "superseded", updated_at: new Date().toISOString() })
+      .eq("client_id", doc.client_id)
+      .eq("kind", doc.kind)
+      .neq("id", doc.id)
+      .in("status", ["draft", "sent"]);
+  }
+
   return NextResponse.json({ success: true, signed: update.status === "signed" });
 }

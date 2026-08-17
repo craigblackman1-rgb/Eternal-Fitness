@@ -239,6 +239,38 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     hasSignedParqDocument,
     hasSignedAgreementDocument,
   });
+
+  // CR-EF-026: when compliance is satisfied entirely through a legacy
+  // signed_parq/signed_agreements row (pre-dating the document engine) with
+  // no corresponding signed client_documents row, the Document Register
+  // used to show nothing for that document kind at all — reading as "not
+  // signed" even though compliance was quietly fine. Surface it as a
+  // read-only row so what's satisfying compliance is visible on the same
+  // screen someone would check.
+  const legacyDocumentRows = [
+    !hasSignedParqDocument && latestParq
+      ? {
+          id: `legacy-parq-${latestParq.id}`,
+          kind: "parq",
+          title: "PAR-Q (legacy record)",
+          status: "signed",
+          version: 1,
+          created_at: latestParq.created_at,
+          legacy: true as const,
+        }
+      : null,
+    !hasSignedAgreementDocument && latestAgreement?.status === "signed"
+      ? {
+          id: `legacy-agreement-${latestAgreement.id}`,
+          kind: "terms",
+          title: "Personal Training Agreement (legacy record)",
+          status: "signed",
+          version: 1,
+          created_at: latestAgreement.created_at,
+          legacy: true as const,
+        }
+      : null,
+  ].filter((r): r is NonNullable<typeof r> => r !== null);
   const complianceLookup = lookupStatus(flags.effectiveStatus);
   const gpClearance = p?.health?.gp_clearance;
   const manualActions = client.outstanding_actions ?? [];
@@ -811,7 +843,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <div className="pt-3 border-t border-[var(--hub-border)]">
                       <DocumentRegister
                         clientNumber={client.client_number}
-                        documents={clientDocuments ?? []}
+                        documents={[...(clientDocuments ?? []), ...legacyDocumentRows]}
                         clientEmail={client.email}
                         clientName={client.name}
                       />
