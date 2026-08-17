@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { ClientProfile, DBClient, SignedAgreement, SignedPARQ } from "@/types";
 import { computeComplianceFlags } from "@/lib/compliance";
 import { buildMedicalFlags, type ClientFlag } from "@/lib/mobile-client-flags";
+import { TasksPanel } from "./TasksPanel";
 
 const ICO = {
   user: (
@@ -405,6 +406,8 @@ export default async function MobileClientDetailPage({ params }: { params: { id:
             </div>
           </div>
         )}
+
+        <TasksPanel clientId={row.id} />
 
         {nextSession && nextLabel && (
           <Link className="btn btn-primary" href={`/hub/m/train/${nextSession.id}`} style={{ width: "100%", marginTop: 12 }}>
