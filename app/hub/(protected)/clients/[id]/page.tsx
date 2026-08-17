@@ -122,12 +122,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   const { data: blocks } = await supabase.from("blocks").select("*").eq("client_id", client.id).order("block_number", { ascending: false });
   const clientBlockIds = (blocks ?? []).map((b) => b.id);
+  // Ordered by scheduled_at (a real column the pg shim can sort on) rather than
+  // session_number, which repeats per block and used to interleave block 1's
+  // session 12 with block 3's session 12 (CR-EF-027). completed_at lives inside
+  // the `data` JSONB and isn't sortable at the DB level — TrainingTabContent
+  // re-sorts client-side by completed-or-scheduled date, and independently by
+  // session number, once the rows are in memory.
   const { data: sessions } = clientBlockIds.length > 0
     ? await supabase
         .from("sessions")
         .select(`*, blocks!inner(block_number, client_id)`)
         .in("block_id", clientBlockIds)
-        .order("session_number", { ascending: false })
+        .order("scheduled_at", { ascending: false })
         .limit(50)
     : { data: [] as any[] };
 
@@ -194,6 +200,10 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const dueInfo = computeUpdateDue(
     (client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null,
     lastSentAt,
+    {
+      weeks: (client as any).update_interval_weeks ?? null,
+      fixedDate: (client as any).update_interval_next_date ?? null,
+    },
   );
   const { data: ruleTypes } = await supabase.from("training_rule_types").select("id, label, bucket");
   const ruleTypesById = new Map((ruleTypes ?? []).map((rt) => [rt.id, rt]));
@@ -203,7 +213,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const latestBlock = blocks && blocks.length > 0
     ? blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0]
     : null;
-  const latestSessionLog = sessions?.[0] ? ((sessions[0] as any).data?.session_log ?? null) : null;
+  // Most-recently-*completed* session, found by completed_at rather than by
+  // taking sessions[0] — array order now follows scheduled_at (see the query
+  // above), so an upcoming future session could otherwise sort first and this
+  // would silently pick up a session with no log at all.
+  const completedSessions = (sessions ?? []).filter((s: any) => s.data?.session_log?.completed_at);
+  const latestSessionLog = completedSessions.length > 0
+    ? completedSessions.reduce((latest: any, s: any) =>
+        new Date(s.data.session_log.completed_at) > new Date(latest.data.session_log.completed_at) ? s : latest,
+      ).data.session_log
+    : null;
 
   const blockSessionCounts: Record<number, number> = {};
   for (const s of sessions ?? []) {
@@ -472,6 +491,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   <UpdateIntervalControl
                     clientNumber={client.client_number}
                     updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
+                    updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
+                    updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
                     dueInfo={dueInfo}
                   />
                 </div>

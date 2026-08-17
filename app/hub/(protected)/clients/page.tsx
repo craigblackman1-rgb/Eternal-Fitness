@@ -10,7 +10,7 @@ export default async function ClientsPage() {
   const { data: clients } = await supabase
     .from("clients")
     .select("*, compliance_status, outstanding_actions, group_type, pace_mode")
-    .order("created_at", { ascending: false });
+    .order("name", { ascending: true });
 
   return (
     <div className="space-y-6">

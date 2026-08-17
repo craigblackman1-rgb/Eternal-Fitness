@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,38 @@ interface SessionRow {
   session_number: number;
   block_id: string;
   data?: any;
+  scheduled_at?: string | null;
   blocks?: { block_number: number };
+}
+
+type SessionSortKey = "date" | "session";
+type SortDir = "asc" | "desc";
+
+/** completed_at when logged, else scheduled_at, else null — same value the Date column displays. */
+function sessionSortDate(session: SessionRow): number | null {
+  const completedAt = (session.data as any)?.session_log?.completed_at as string | undefined;
+  const iso = completedAt ?? session.scheduled_at ?? null;
+  return iso ? new Date(iso).getTime() : null;
+}
+
+function sortSessions(sessions: SessionRow[], key: SessionSortKey, dir: SortDir): SessionRow[] {
+  const mult = dir === "asc" ? 1 : -1;
+  return [...sessions].sort((a, b) => {
+    if (key === "date") {
+      const da = sessionSortDate(a);
+      const db = sessionSortDate(b);
+      if (da === null && db === null) return 0;
+      if (da === null) return 1; // undated rows always sink to the bottom
+      if (db === null) return -1;
+      return (da - db) * mult;
+    }
+    // "session" — block number then session number within it, so a plain
+    // session_number sort doesn't interleave block 1's #12 with block 3's #12.
+    const blockA = (a as any).blocks?.block_number ?? 0;
+    const blockB = (b as any).blocks?.block_number ?? 0;
+    if (blockA !== blockB) return (blockA - blockB) * mult;
+    return (a.session_number - b.session_number) * mult;
+  });
 }
 
 interface Props {
@@ -191,6 +222,22 @@ export function TrainingTabContent({
       : "blocks";
 
   const [segment, setSegment] = useState<Segment>(initialView);
+  const [sessionSortKey, setSessionSortKey] = useState<SessionSortKey>("date");
+  const [sessionSortDir, setSessionSortDir] = useState<SortDir>("desc");
+
+  const handleSessionSort = (key: SessionSortKey) => {
+    if (key === sessionSortKey) {
+      setSessionSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSessionSortKey(key);
+      setSessionSortDir(key === "date" ? "desc" : "asc");
+    }
+  };
+
+  const sortedSessions = useMemo(
+    () => sortSessions(sessions, sessionSortKey, sessionSortDir),
+    [sessions, sessionSortKey, sessionSortDir],
+  );
 
   useEffect(() => {
     const vp = searchParams.get("view");
@@ -289,15 +336,33 @@ export function TrainingTabContent({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Date</th>
-                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Session</th>
+                    <th className="h-10 px-5 py-0 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSessionSort("date")}
+                        className="inline-flex items-center gap-1 hover:text-foreground"
+                      >
+                        Date
+                        {sessionSortKey === "date" && <span>{sessionSortDir === "asc" ? "↑" : "↓"}</span>}
+                      </button>
+                    </th>
+                    <th className="h-10 px-5 py-0 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleSessionSort("session")}
+                        className="inline-flex items-center gap-1 hover:text-foreground"
+                      >
+                        Session
+                        {sessionSortKey === "session" && <span>{sessionSortDir === "asc" ? "↑" : "↓"}</span>}
+                      </button>
+                    </th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Check-in</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
                     <th className="h-10 px-5 py-0"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sessions.map((session) => {
+                  {sortedSessions.map((session) => {
                     const log = (session.data as any)?.session_log;
                     const blockNum = (session as any).blocks?.block_number;
                     const fatigue = log?.fatigue;

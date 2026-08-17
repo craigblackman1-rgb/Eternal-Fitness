@@ -22,7 +22,10 @@ function statusBadge(client: ClientUpdateDue): string {
 }
 
 function buildClientRow(client: ClientUpdateDue): string {
-  const label = UPDATE_INTERVAL_LABELS[client.interval] || client.interval;
+  const label =
+    client.interval === "custom_weeks" && client.intervalWeeks
+      ? `Custom (${client.intervalWeeks}wk)`
+      : UPDATE_INTERVAL_LABELS[client.interval] || client.interval;
   const date = formatDate(client.nextDueDate);
   const badge = statusBadge(client);
   const isOverdue = client.status === "overdue";
