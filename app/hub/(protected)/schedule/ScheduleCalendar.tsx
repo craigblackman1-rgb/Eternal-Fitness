@@ -17,6 +17,16 @@ import {
   IconX,
   IconExternalLink,
 } from "@/components/icons";
+import {
+  todayLocalISODate,
+  isoToLocalDate,
+  isoToLocalTime,
+  localPartsToISO,
+  shiftDay,
+  formatDayHeading,
+  formatTimeRange,
+  findConflictIds,
+} from "@/lib/schedule-dates";
 
 export interface ScheduledEntry {
   /** Session id — the PATCH target. */
@@ -31,60 +41,9 @@ export interface ScheduledEntry {
   /** ISO timestamp of the booking. */
   scheduledAt: string;
   durationMinutes: number;
-}
-
-// --- date/time helpers (mirrors BlockScheduler's local<->ISO handling) ---
-
-function todayLocalISODate(): string {
-  return toLocalISODate(new Date());
-}
-
-function toLocalISODate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-/** Local "YYYY-MM-DD" for a stored ISO timestamp — used to bucket by day. */
-function isoToLocalDate(iso: string): string {
-  return toLocalISODate(new Date(iso));
-}
-
-function isoToLocalTime(iso: string): string {
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-function localPartsToISO(date: string, time: string): string {
-  const [y, mo, d] = date.split("-").map(Number);
-  const [h, min] = time.split(":").map(Number);
-  return new Date(y, mo - 1, d, h, min, 0, 0).toISOString();
-}
-
-function shiftDay(isoDate: string, delta: number): string {
-  const [y, mo, d] = isoDate.split("-").map(Number);
-  const next = new Date(y, mo - 1, d);
-  next.setDate(next.getDate() + delta);
-  return toLocalISODate(next);
-}
-
-function formatDayHeading(isoDate: string): string {
-  const [y, mo, d] = isoDate.split("-").map(Number);
-  return new Date(y, mo - 1, d).toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function formatTimeRange(iso: string, durationMinutes: number): { start: string; end: string } {
-  const start = new Date(iso);
-  const end = new Date(start.getTime() + durationMinutes * 60_000);
-  const fmt = (d: Date) =>
-    d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return { start: fmt(start), end: fmt(end) };
+  /** false when the session is booked but has no prescribed exercises yet —
+   * a first-class, expected state (see the month view), not an edge case. */
+  hasWorkout: boolean;
 }
 
 async function patchSession(id: string, body: Record<string, unknown>): Promise<boolean> {
@@ -96,37 +55,16 @@ async function patchSession(id: string, body: Record<string, unknown>): Promise<
   return res.ok;
 }
 
-/**
- * Pairwise overlap detection across DIFFERENT clients for one day's entries.
- * A session occupies `[scheduled_at, scheduled_at + duration)`. Two entries
- * conflict when their intervals overlap and they belong to different clients
- * (a client can't conflict with themselves — back-to-back own sessions are
- * fine). Returns the set of entry ids that are in at least one conflict.
- * Warn only — nothing is blocked (Work Order, Lane D).
- */
-function findConflictIds(entries: ScheduledEntry[]): Set<string> {
-  const conflicts = new Set<string>();
-  const ranges = entries.map((e) => {
-    const start = new Date(e.scheduledAt).getTime();
-    return { e, start, end: start + e.durationMinutes * 60_000 };
-  });
-  for (let i = 0; i < ranges.length; i++) {
-    for (let j = i + 1; j < ranges.length; j++) {
-      const a = ranges[i];
-      const b = ranges[j];
-      if (a.e.clientId && b.e.clientId && a.e.clientId === b.e.clientId) continue;
-      if (a.start < b.end && b.start < a.end) {
-        conflicts.add(a.e.id);
-        conflicts.add(b.e.id);
-      }
-    }
-  }
-  return conflicts;
-}
-
-export function ScheduleCalendar({ entries }: { entries: ScheduledEntry[] }) {
+export function ScheduleCalendar({
+  entries,
+  initialDay,
+}: {
+  entries: ScheduledEntry[];
+  /** Lands on a specific date instead of today — used when jumping in from the month view. */
+  initialDay?: string;
+}) {
   const router = useRouter();
-  const [day, setDay] = useState<string>(todayLocalISODate());
+  const [day, setDay] = useState<string>(initialDay ?? todayLocalISODate());
 
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");

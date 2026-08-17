@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase-server";
 import { HubPageHeader } from "@/components/hub";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import type { Session, TimeTier } from "@/types";
-import { ScheduleCalendar, type ScheduledEntry } from "./ScheduleCalendar";
+import type { ScheduledEntry } from "./ScheduleCalendar";
+import { ScheduleShell } from "./ScheduleShell";
 
 /**
  * Studio-wide calendar (Lane D2). Shows every client's scheduled sessions
@@ -58,6 +59,9 @@ export default async function SchedulePage() {
       const block = blockById.get(s.block_id);
       const client = block ? clientById.get(block.client_id) : undefined;
       const timeTier = (s.data?.time_tier ?? null) as TimeTier | null;
+      const hasWorkout = !!(
+        s.data?.versions?.studio?.main_block?.length || s.data?.versions?.home?.main_block?.length
+      );
       return {
         id: s.id,
         clientId: block?.client_id ?? null,
@@ -68,6 +72,7 @@ export default async function SchedulePage() {
         blockNumber: block?.block_number ?? null,
         scheduledAt: s.scheduled_at as string,
         durationMinutes: sessionDurationMinutes(timeTier),
+        hasWorkout,
       };
     });
 
@@ -75,9 +80,9 @@ export default async function SchedulePage() {
     <div className="space-y-6">
       <HubPageHeader
         title="Studio schedule"
-        subtitle="Every booked session across the studio. See Training Blocks for each client's block start date and approval status."
+        subtitle="Every booked session across the studio, on a month grid. Bookings that don't yet have a workout are flagged — they're expected, not an edge case."
       />
-      <ScheduleCalendar entries={entries} />
+      <ScheduleShell entries={entries} />
     </div>
   );
 }
