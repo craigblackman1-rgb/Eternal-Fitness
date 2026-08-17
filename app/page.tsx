@@ -59,7 +59,7 @@ const personSchema = {
 
 export const metadata: Metadata = {
   title: "Personal Trainer in Worthing | Eternal Fitness",
-  description: "Private one-to-one personal training in Worthing. A plan that adapts to how you actually feel, every session — with the training to adapt further if your health ever changes.",
+  description: "Private one-to-one personal training in Worthing. A plan that adapts to how you feel each session, and adapts further if your health changes.",
   alternates: { canonical: "https://eternal-fitness.co.uk/" },
 };
 

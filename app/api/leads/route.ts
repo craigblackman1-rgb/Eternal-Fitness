@@ -89,6 +89,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
+  // Honeypot: real visitors never see or fill this field. A bot that auto-fills
+  // every input trips it. Report success without sending anything, so the bot
+  // doesn't learn to retry differently.
+  if (typeof body.website === "string" && body.website.trim() !== "") {
+    return NextResponse.json({ success: true });
+  }
+
   const source = typeof body.source === "string" && SOURCE_LABELS[body.source] ? body.source : "contact_form";
   const firstName = typeof body.firstName === "string" ? truncate(body.firstName.trim(), 200) : "";
   const lastName = typeof body.lastName === "string" ? truncate(body.lastName.trim(), 200) : "";

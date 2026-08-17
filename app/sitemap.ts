@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 
-// Launch scope only (2026-07-27): the Specialist Training / condition pages and
-// Blog are disabled (see next.config.js redirects) pending separate work, so
-// they're deliberately left out of the sitemap too. Re-add them here once
-// those routes are re-enabled.
+// Blog, /cancer-rehabilitation, and /falls-prevention are currently re-gated
+// (see next.config.js redirects, commit 4f9330e, 2026-08-17) pending content
+// sign-off, so they're deliberately left out of the sitemap. Re-add them the
+// moment those routes are un-gated. /specialist-training itself is live and
+// indexable (single-specialism scope), so it stays in the sitemap.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -13,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}`, priority: 1.0, changeFrequency: "weekly" as const },
     { url: `${baseUrl}/about`, priority: 0.9, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/personal-training`, priority: 0.9, changeFrequency: "monthly" as const },
+    { url: `${baseUrl}/specialist-training`, priority: 0.8, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/pricing`, priority: 0.85, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/contact`, priority: 0.8, changeFrequency: "monthly" as const },
     { url: `${baseUrl}/faqs`, priority: 0.7, changeFrequency: "monthly" as const },
