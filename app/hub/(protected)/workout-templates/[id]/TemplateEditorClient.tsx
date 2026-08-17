@@ -59,9 +59,14 @@ function formatDate(iso: string): string {
 export function TemplateEditorClient({
   template,
   sourceClientName,
+  isNew = false,
+  onCreated,
 }: {
   template: WorkoutTemplate;
   sourceClientName: string | null;
+  /** Create mode — no row exists yet; save POSTs to /api/workout-templates. */
+  isNew?: boolean;
+  onCreated?: (t: WorkoutTemplate) => void;
 }) {
   const router = useRouter();
   const [name, setName] = useState(template.name);
@@ -70,6 +75,7 @@ export function TemplateEditorClient({
   const [saving, setSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   const [archetypes, setArchetypes] = useState(template.archetypes);
   const [movementTypes, setMovementTypes] = useState(template.movement_type);
@@ -117,7 +123,28 @@ export function TemplateEditorClient({
   const save = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/workout-templates/${template.id}`, {
+      if (isNew && !createdId) {
+        const res = await fetch("/api/workout-templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, data, condition_tags: conditionTags }),
+        });
+        if (!res.ok) throw new Error((await res.json()).error || "Failed to save");
+        const created = (await res.json()) as WorkoutTemplate;
+        setCreatedId(created.id);
+        setArchetypes(created.archetypes);
+        setMovementTypes(created.movement_type);
+        setMuscleGroups(created.muscle_groups);
+        setEquipment(created.equipment);
+        setDifficulty(created.difficulty);
+        setUsageCount(created.usage_count);
+        onCreated?.(created);
+        toast.success("Template saved");
+        return;
+      }
+
+      const id = createdId ?? template.id;
+      const res = await fetch(`/api/workout-templates/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, data, condition_tags: conditionTags }),
@@ -163,7 +190,7 @@ export function TemplateEditorClient({
             <IconChevronLeft className="h-5 w-5" />
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold tracking-tight">Edit template</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{isNew ? "New template" : "Edit template"}</h1>
             <div className="mt-1">
               <Input
                 value={name}
@@ -174,13 +201,15 @@ export function TemplateEditorClient({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            onClick={() => setDeleteOpen(true)}
-            variant="ghost"
-            className="rounded-lg gap-1.5 px-3.5 py-1.5 h-auto text-sm font-semibold text-red-500 hover:text-red-600"
-          >
-            <IconTrash2 className="h-4 w-4" />Delete
-          </Button>
+          {!isNew && (
+            <Button
+              onClick={() => setDeleteOpen(true)}
+              variant="ghost"
+              className="rounded-lg gap-1.5 px-3.5 py-1.5 h-auto text-sm font-semibold text-red-500 hover:text-red-600"
+            >
+              <IconTrash2 className="h-4 w-4" />Delete
+            </Button>
+          )}
           <Button
             onClick={save}
             disabled={saving}
@@ -242,14 +271,18 @@ export function TemplateEditorClient({
                 )}
               </div>
             </div>
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Created</div>
-              <div className="text-[var(--color-body)] text-[13px]">{formatDate(template.created_at)}</div>
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Updated</div>
-              <div className="text-[var(--color-body)] text-[13px]">{formatDate(template.updated_at)}</div>
-            </div>
+            {!isNew && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Created</div>
+                <div className="text-[var(--color-body)] text-[13px]">{formatDate(template.created_at)}</div>
+              </div>
+            )}
+            {!isNew && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Updated</div>
+                <div className="text-[var(--color-body)] text-[13px]">{formatDate(template.updated_at)}</div>
+              </div>
+            )}
           </div>
 
           <div className="mt-4 space-y-2">
