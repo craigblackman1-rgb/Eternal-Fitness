@@ -566,6 +566,11 @@ Session ongoing.
 ## 2026-08-15 11:50 (Claude Code, workout-set-completion-bug-44f52a worktree)
 - Pushed staging 5d45076..9464362: L6 Microsoft Graph calendar sync (code complete, env vars pending) + security quick wins (7 files). Migration 20260815_microsoft_graph_integration.sql APPLIED to prod and verified. Branches claude/wo-active-microsoft-365-calendar-d3069c + lane/security-quickwins-2026-08-15 pushed. Awaiting Coolify auto-deploy of development.eternal-fitness.co.uk.
 
+## 2026-08-17 (Claude Code, workout-block-hub-plan-bug-2ff0fe worktree)
+- Bug report: block/workout added to Emma Atkinson via hub Plan Agent "hasn't actually added the plan to the hub." Investigated: the Plan Agent's write path was fine (block + sessions correctly inserted, visible on Emma's own client detail page). Root cause was a broken row link on the hub-wide /hub/training-blocks page: `PlanScheduleTable.tsx` built `getRowHref` from raw `client_id` (UUID) instead of `client_number`; the client detail route resolves by `parseInt(client_number)`, so a UUID never matches and every row 404'd — looking like nothing was added. Same class of bug already worked around on the dashboard's Recent Blocks widget.
+- Fixed PlanScheduleTable.tsx:172 (`row.client_number ?? row.client_id`). Verified live: junctioned node_modules, ran dev server on :3001, logged into hub via existing Chrome session, clicked Emma Atkinson's row — now correctly loads her Block 1 detail page instead of 404ing.
+- Craig asked to push straight to main (skipped usual staging-first step for this one-line, low-risk, live-verified fix). Rebased onto latest origin/main, gate-attested (Design Parity N/A — no visual change; scope diff single file; ownership checked via `wo active`, no conflicts), pushed origin/claude/workout-block-hub-plan-bug-2ff0fe:main (930636c). Coolify auto-deploys. (Confirmed by a concurrent session's 2026-08-17 close-out below as merged in with no file overlap.)
+
 ## 2026-08-17 — Session close
 
 Open Design mockups came back for 5 hub screens; worked the full thread through
