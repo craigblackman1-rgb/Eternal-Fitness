@@ -214,10 +214,10 @@ export function BlockScheduler({
                     type="button"
                     onClick={() => toggleWeekday(wd.value)}
                     className={cn(
-                      "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                      "rounded-lg border px-3.5 py-1.5 text-sm font-semibold transition-colors",
                       active
                         ? "border-rose bg-rose text-white"
-                        : "border-border/60 bg-transparent text-foreground hover:bg-rose/5",
+                        : "border-[var(--hub-field-border)] bg-white text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground",
                     )}
                   >
                     {wd.short}
@@ -256,12 +256,12 @@ export function BlockScheduler({
         <div className="pb-5">
           <Table>
             <TableHeader>
-              <TableRow className="border-border/60">
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Scheduled for</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[280px] text-right">Actions</TableHead>
+              <TableRow className="border-[var(--hub-border)] hover:bg-transparent">
+                <TableHead className="w-12 text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">#</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Type</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Scheduled for</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Status</TableHead>
+                <TableHead className="w-[280px] text-right text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -271,9 +271,9 @@ export function BlockScheduler({
                 const isCancelling = cancelId === session.id;
                 const busy = busyId === session.id;
                 return (
-                  <TableRow key={session.id} className="border-border/60 align-top">
-                    <TableCell className="font-medium">{session.session_number}</TableCell>
-                    <TableCell>
+                  <TableRow key={session.id} className="border-[var(--hub-border)] hover:bg-[var(--hub-hover)] align-top">
+                    <TableCell className="font-medium text-sm py-2.5">{session.session_number}</TableCell>
+                    <TableCell className="text-sm py-2.5">
                       <Badge
                         variant={session.archetype === "A" ? "secondary" : session.archetype === "B" ? "default" : "outline"}
                         className="rounded-full"
@@ -281,9 +281,9 @@ export function BlockScheduler({
                         {session.archetype}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-sm py-2.5">
                       {session.scheduled_at ? (
-                        <span className={cn("flex items-center gap-1.5", isCancelled && "line-through opacity-60")}>
+                        <span className={cn("flex items-center gap-1.5 font-semibold text-foreground", isCancelled && "line-through opacity-60")}>
                           <IconClock className="h-3.5 w-3.5 text-muted-foreground" />
                           {formatScheduled(session.scheduled_at)}
                         </span>
@@ -291,7 +291,7 @@ export function BlockScheduler({
                         <span className="text-muted-foreground">Not scheduled</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-sm py-2.5">
                       {isCancelled ? (
                         <div className="space-y-0.5">
                           <Badge variant="destructive" className="rounded-full">Cancelled</Badge>
@@ -300,10 +300,10 @@ export function BlockScheduler({
                           )}
                         </div>
                       ) : (
-                        <Badge variant="outline" className="rounded-full">Active</Badge>
+                        <Badge variant="outline" className="rounded-full text-muted-foreground">Active</Badge>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-sm py-2.5">
                       {isRescheduling ? (
                         <div className="flex flex-wrap items-center justify-end gap-2">
                           <Input

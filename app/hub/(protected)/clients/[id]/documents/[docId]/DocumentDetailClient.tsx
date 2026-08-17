@@ -9,6 +9,7 @@ import { HubCard, HubCardHeader } from "@/components/hub";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/hub/StatusBadge";
 import { IconChevronLeft, IconCopy, IconSave, IconMail, IconFileText, IconTrash2 } from "@/components/icons";
 import { RichTextEditor } from "@/components/hub/RichTextEditor";
 import { toast } from "sonner";
@@ -122,7 +123,7 @@ export function DocumentDetailClient({
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{doc.title}</h1>
           <div className="flex items-center gap-2 mt-0.5">
-            <Badge variant="outline" className="rounded-full text-xs capitalize">{doc.status}</Badge>
+            <StatusBadge status={doc.status} />
             <Badge variant="outline" className="rounded-full text-xs">v{doc.version}</Badge>
             {doc.status === "sent" && doc.emailed === false && (
               <Badge variant="outline" className="rounded-full text-xs border-amber-300 bg-amber-50 text-amber-800">Not actually delivered</Badge>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { Badge } from "@/components/ui/badge";
 import { TokenPill } from "@/components/hub/StatusBadge";
-import { IconChevronLeft, IconMail, IconPlus, IconCalendar, IconClock, IconEye } from "@/components/icons";
+import { IconChevronLeft, IconMail, IconPlus, IconCalendar, IconClock, IconEye, IconChevronRight } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { UpdateRowActions } from "@/components/hub/UpdateRowActions";
 import { EmailDeliveryTimeline } from "@/components/hub/EmailDeliveryTimeline";
@@ -79,12 +79,13 @@ export default async function UpdatesHistoryPage({ params }: { params: { id: str
                 : formatUpdateTime(update.sent_at || update.created_at);
 
             return (
-              <HubCard key={update.id}>
+              <HubCard key={update.id} padded={false}>
                 <HubCardHeader
                   icon={isScheduled ? <IconClock className="w-4 h-4" /> : <IconMail className="w-4 h-4" />}
                   title={update.subject}
                   color="teal"
                   action={<UpdateRowActions clientNumber={clientNumber} updateId={update.id} status={update.status} hasEmail={!!update.client_email} subject={update.subject} body_html={update.body_html} />}
+                  className="px-5 pt-4"
                   noBottomPadding
                 />
                 <div className="px-5 pb-5">
@@ -117,11 +118,12 @@ export default async function UpdatesHistoryPage({ params }: { params: { id: str
                     )}
                   </div>
                   {update.status !== "draft" && (
-                    <details className="mt-3 group">
-                      <summary className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none">
+                    <details className="mt-3 pt-2.5 border-t border-dashed border-[var(--hub-border)] group">
+                      <summary className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none list-none [&::-webkit-details-marker]:hidden">
+                        <IconChevronRight className="h-3 w-3 shrink-0 transition-transform duration-150 group-open:rotate-90" />
                         Delivery history
                       </summary>
-                      <div className="mt-2 pl-1">
+                      <div className="mt-2.5 pl-1">
                         <EmailDeliveryTimeline entityType="update" entityId={update.id} />
                       </div>
                     </details>

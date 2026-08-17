@@ -3,17 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconChevronLeft, IconFileText, IconCalendar } from "@/components/icons";
+import { StatusBadge } from "@/components/hub/StatusBadge";
+import { IconChevronLeft, IconChevronRight, IconFileText, IconCalendar } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { NewDocumentButton } from "./NewDocumentButton";
 import { DOCUMENT_KIND_LABEL, type ClientDocument } from "@/lib/documents/types";
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  signed: "default",
-  sent: "secondary",
-  draft: "outline",
-  superseded: "outline",
-};
 
 function formatDate(v: string | null) {
   if (!v) return "—";
@@ -80,9 +74,10 @@ export default async function ClientDocumentsPage({ params }: { params: { id: st
                       </div>
                     </div>
                   </div>
-                  <Badge variant={STATUS_VARIANT[d.status] ?? "outline"} className="rounded-full text-xs capitalize">
-                    {d.status}
-                  </Badge>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusBadge status={d.status} />
+                    <IconChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </CardContent>
               </Card>
             </Link>

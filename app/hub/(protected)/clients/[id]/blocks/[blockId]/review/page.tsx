@@ -95,7 +95,7 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
       </div>
 
       {block.status === "draft" && hasMissingMods && (
-        <HubAlert severity="warning" title="Missing Modifications">
+        <HubAlert severity="warning" title="Missing modifications">
           Some exercises are missing client-specific modifications. Review each session before approving.
         </HubAlert>
       )}
@@ -103,18 +103,18 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
       <BlockScheduler sessions={sessions} onChanged={loadSessions} />
 
       <HubCard>
-        <HubCardHeader title="Session Overview" />
+        <HubCardHeader title="Session overview" />
         <div className="pb-5">
           <Table>
             <TableHeader>
-              <TableRow className="border-border/60">
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Week</TableHead>
-                <TableHead>Phase</TableHead>
-                <TableHead>Exercises (Studio)</TableHead>
-                <TableHead>Exercises (Home)</TableHead>
-                <TableHead className="w-16"></TableHead>
+              <TableRow className="border-[var(--hub-border)] hover:bg-transparent">
+                <TableHead className="w-12 text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">#</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Type</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Week</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Phase</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Exercises (Studio)</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10">Exercises (Home)</TableHead>
+                <TableHead className="w-16 text-xs uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] h-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,19 +130,19 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
                 return (
                   <TableRow
                     key={session.id}
-                    className="border-border/60 odd:bg-off-white/40 hover:bg-rose/5 transition-colors"
+                    className="border-[var(--hub-border)] hover:bg-[var(--hub-hover)] transition-colors"
                   >
-                    <TableCell className="font-medium">{session.session_number}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium text-sm py-2.5">{session.session_number}</TableCell>
+                    <TableCell className="text-sm py-2.5">
                       <Badge variant={session.archetype === "A" ? "secondary" : session.archetype === "B" ? "default" : "outline"} className="rounded-full">
                         {session.archetype}
                       </Badge>
                     </TableCell>
-                    <TableCell>{session.week}</TableCell>
-                    <TableCell className="capitalize">{session.phase}</TableCell>
-                    <TableCell>{studioCount} exercises</TableCell>
-                    <TableCell>{homeCount} exercises</TableCell>
-                    <TableCell>
+                    <TableCell className="text-sm py-2.5">{session.week}</TableCell>
+                    <TableCell className="capitalize text-sm py-2.5">{session.phase}</TableCell>
+                    <TableCell className="text-sm py-2.5">{studioCount} exercises</TableCell>
+                    <TableCell className="text-sm py-2.5">{homeCount} exercises</TableCell>
+                    <TableCell className="text-right py-2.5">
                       <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${session.session_number}`}>
                         <Button variant="ghost" size="icon" className="rounded-lg hover:bg-rose/10 hover:text-rose">
                           <IconEye className="h-4 w-4" />

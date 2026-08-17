@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { HubCard, HubCardHeader } from "@/components/hub";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -417,8 +418,8 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
             </div>
           )}
 
-          <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-            <CardContent className="pt-6 space-y-4">
+          <HubCard>
+            <div className="space-y-4">
               <UpdateChatPanel
                 clientNumber={clientNumber}
                 clientName={clientName}
@@ -444,11 +445,11 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </HubCard>
 
-          <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-            <CardContent className="pt-6 space-y-3">
+          <HubCard>
+            <div className="space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-foreground">Already have the final text?</p>
@@ -480,22 +481,22 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </HubCard>
         </>
       )}
 
       {hasDraft && (
         <>
           {/* Editable content — per-section WYSIWYG */}
-          <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-            <CardHeader>
-              <CardTitle>Edit the email</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Use the toolbar to format — no HTML needed. Changes update the preview live.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          <HubCard>
+            <HubCardHeader
+              title="Edit the email"
+              subtitle="Use the toolbar to format — no HTML needed. Changes update the preview live."
+              divider
+              className="pt-0"
+            />
+            <CardContent className="p-0 pt-4 space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject line</Label>
                 <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -584,31 +585,34 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                 </Button>
               )}
             </CardContent>
-          </Card>
+          </HubCard>
 
           {/* Preview */}
-          <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Preview</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => setShowRaw(!showRaw)} className="rounded-lg gap-1.5">
-                {showRaw ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
-                {showRaw ? "Hide HTML" : "View HTML"}
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <HubCard>
+            <HubCardHeader
+              title="Preview"
+              subtitle="This is what the client receives"
+              divider
+              className="pt-0"
+              action={
+                <Button variant="outline" size="sm" onClick={() => setShowRaw(!showRaw)} className="rounded-lg gap-1.5">
+                  {showRaw ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
+                  {showRaw ? "Hide HTML" : "View HTML"}
+                </Button>
+              }
+            />
+            <CardContent className="p-0 pt-4 space-y-4">
               <div className="border border-border/60 rounded-xl overflow-hidden bg-[#F5F5F5]">
                 <iframe srcDoc={html} title="Email preview" className="w-full" style={{ height: "640px", border: "none" }} />
               </div>
               {showRaw && <Textarea value={html} readOnly rows={16} className="font-mono text-xs" />}
             </CardContent>
-          </Card>
+          </HubCard>
 
           {/* Send / schedule */}
-          <Card className="shadow-sm bg-[var(--hub-card)] rounded-2xl border border-[var(--hub-border)]">
-            <CardHeader>
-              <CardTitle>Send or schedule</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          <HubCard>
+            <HubCardHeader title="Send or schedule" divider className="pt-0" />
+            <CardContent className="p-0 pt-4 space-y-5">
               {placeholderError && (
                 <Alert variant="destructive">
                   <IconAlertTriangle className="h-4 w-4" />
@@ -711,7 +715,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </HubCard>
         </>
       )}
     </div>
