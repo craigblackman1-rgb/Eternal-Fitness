@@ -4,9 +4,11 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: true },
   images: {
-    // Self-hosted (Coolify/Docker) — Next's built-in optimizer assumes Vercel's
-    // image infrastructure; serve originals directly instead.
-    unoptimized: true,
+    // Self-hosted (Coolify/Docker), not Vercel — but Next's built-in optimizer
+    // runs fine self-hosted via `sharp` (added 2026-08-17), no Vercel needed.
+    // It was previously disabled here on a stale assumption, which meant
+    // several multi-MB hero originals were served unresized to every device.
+    unoptimized: false,
     formats: ["image/avif", "image/webp"],
   },
   async headers() {
