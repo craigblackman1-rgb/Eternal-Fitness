@@ -1,3 +1,71 @@
+# Session Handoff: August 17, 2026, afternoon (Claude Code) — hub/PWA usability pass: 12 CRs captured, 3 built + migration run, PAR-Q register bug root-caused and fixed
+
+## Agent
+Claude Code (worktree `seo-audit-commands-46f31f`, branch `claude/client-session-logging-features-ee37a8`)
+
+## Session Summary
+Craig listed twelve hub/PWA usability points verbally in chat (alpha-order client list,
+per-client notes, unilateral L/R prescription, rest-timer sound, adjustable rest times,
+per-exercise edit in logging, client start date, flexible update interval, quick-action tasks,
+client status, a PAR-Q "shows not signed" bug, and session-log ordering). Captured all twelve as
+**CR-EF-016 through CR-EF-027** in `.context/change-requests.md`, each checked against the shipped
+code before being written (file/line "Verified:" notes, not assumptions) — one turned out to be a
+placement gap, not a missing feature (see below), and another closed as not wanted.
+
+**Decisions, same day.** Three items needed Craig's call before scoping: CR-EF-018 (unilateral
+L/R) is always-on for a known unilateral list, not a per-exercise flag or per-prescription toggle;
+CR-EF-024 (quick-action tasks) is EF-local only, no `decoded-ops-hub` mirror; CR-EF-025 (client
+status) is closed, not wanted. Queued via `wo ask`, answered same session, recorded via `wo answer`.
+
+**CR-EF-024 correction.** First written wrongly proposed building a client task system. Craig
+corrected it: the hub already has a full tasks module (`tasks`/`task_buckets` tables, `client_id`
+FK, `/api/tasks`, a kanban, and `ClientTasksPanel.tsx` already on the desktop client page with
+inline quick-add). Re-swept the rest of the batch for the same failure mode afterward — found one
+near-miss (a legacy `client_tracker.notes` field, correctly flagged as do-not-reuse) and one
+genuinely useful lead for the PAR-Q bug (see below). Real gap for CR-EF-024 is narrower: the mobile
+PWA client profile has no tasks panel at all, though tasks already surface on the PWA Today screen.
+
+**Three independent items built (commit `bb9fe27`):**
+- **CR-EF-016** — desktop client list defaulted to newest-first; mobile PWA was already A–Z. Fixed
+  the desktop query only.
+- **CR-EF-027** — Session Log ordered sessions by `session_number` across *all* of a client's
+  blocks combined, so block 1's session 12 interleaved with block 3's session 12. Reordered by
+  `scheduled_at` at the query level (the only sortable real column — `completed_at` lives in `data`
+  JSONB), added clickable Date/Session headers for client-side re-sort. Fixed a related bug in
+  passing: `latestSessionLog` (drives the "Last Session" card) used to trust `sessions[0]` blindly;
+  now found by scanning for the actual latest `completed_at`. Verified live against Emma Atkinson's
+  two blocks (both sort modes correct).
+- **CR-EF-023** — update interval gained `custom_weeks` and `fixed_date` modes alongside the fixed
+  presets. Migration `20260817_update_interval_custom.sql` **run against prod** via
+  `scripts/run-update-interval-migration.mjs` (transaction-wrapped, schema checked before/after,
+  committed clean — 21 client rows unaffected).
+
+**CR-EF-026 — the PAR-Q "shows not signed" bug, root-caused and fixed (commits `6010fd4`,
+`7081459`).** Two different bugs behind the same symptom, diagnosed live against production data
+via the hub (`psql` still not on PATH) rather than guessed: Colin's compliance was satisfied by a
+legacy `signed_parq` row the Document Register never surfaced (his one visible PAR-Q line read
+"Sent", reasonably misread as unsigned); Saffron's register showed a stale, never-completed "Sent"
+PAR-Q sitting next to her real signed scanned original with no relationship shown. Fixed both:
+`page.tsx` now synthesises a read-only "Legacy record" row when compliance is satisfied via a
+legacy record with no matching signed `client_documents` row; both places a document can become
+`signed` (the scan-upload route, the in-app signing route) now supersede any other open draft/sent
+row of the same kind for that client. **Backfilled the existing bad data**, not just the code path
+— `scripts/backfill-supersede-stale-documents.mjs`, dry-run first, found and fixed exactly 2 stale
+rows across all 21 clients: Saffron's PAR-Q as diagnosed, plus one the original diagnosis hadn't
+caught, Sam Gibbons' stale draft Personal Training Agreement. Verified live for both Colin and
+Saffron. Still belongs in the hub bug tracker once `project_id` is confirmed — not blocking, just
+unmirrored.
+
+**Merged in mid-session, no overlap:** three concurrent OpenCode lanes under
+`wo-ef-workout-consolidation-pwa-2026-08-15` landed while this session ran — desktop session-log
+consolidation (`62026f4`), portal PWA installability, and workout-templates reconciliation.
+Checked file lists before merging each time; zero overlap with anything this session touched.
+
+`npx tsc --noEmit` clean throughout. Every push gate-attested with a specific note, not a rubber
+stamp — ownership re-checked via `wo active` + `git worktree list` before every push, not just once.
+
+---
+
 # Session Handoff: August 15, 2026 (Claude Code) — Microsoft Graph calendar sync (L6) shipped + verified live, security quick wins, repo audit, consolidation brief
 
 ## Agent
