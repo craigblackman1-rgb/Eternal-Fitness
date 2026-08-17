@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HubCard } from "@/components/hub/HubCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IconDumbbell, IconMenu, IconSearch, IconChevronLeft, IconChevronRight, IconX, IconCopy } from "@/components/icons";
+import { IconDumbbell, IconMenu, IconSearch, IconChevronLeft, IconChevronRight, IconPlus } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
+import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import type { WorkoutTemplate } from "@/types";
 
 export const movementTypeLabels: Record<string, string> = {
@@ -66,6 +68,11 @@ function allExerciseNames(t: WorkoutTemplate): string[] {
   return [...(t.data.warm_up ?? []), ...(t.data.main_block ?? []), ...(t.data.cooldown ?? [])].map((ex) => ex.exercise_name);
 }
 
+function formatDate(iso: string): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export function WorkoutTemplateBrowser({
   templates,
   archetypeOptions,
@@ -73,6 +80,7 @@ export function WorkoutTemplateBrowser({
   muscleOptions,
   equipmentOptions,
   conditionTagOptions,
+  archetypeLabels = DEFAULT_ARCHETYPE_FOCUS_LABELS,
 }: {
   templates: WorkoutTemplate[];
   archetypeOptions: string[];
@@ -80,6 +88,7 @@ export function WorkoutTemplateBrowser({
   muscleOptions: string[];
   equipmentOptions: string[];
   conditionTagOptions: string[];
+  archetypeLabels?: Record<string, string>;
 }) {
   const [search, setSearch] = useState("");
   const [archetypeFilter, setArchetypeFilter] = useState<"all" | "A" | "B" | "C">("all");
@@ -129,13 +138,20 @@ export function WorkoutTemplateBrowser({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Workout Templates</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Workout templates</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {templates.length} template{templates.length === 1 ? "" : "s"} &middot; {filtered.length} match
+            Reusable sessions — assigned into a client&apos;s next block or saved back from a logged session.
           </p>
         </div>
+        <Link
+          href="/hub/workout-templates/new"
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-sm font-semibold transition-colors"
+        >
+          <IconPlus className="h-4 w-4" />
+          New template
+        </Link>
       </div>
 
       <HubCard padded={false}>
@@ -167,26 +183,18 @@ export function WorkoutTemplateBrowser({
             />
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {(["all", "A", "B", "C"] as const).map((a) => {
-              const on = archetypeFilter === a;
-              return (
-                <button
-                  key={a}
-                  onClick={() => { setArchetypeFilter(a); setPage(0); }}
-                  className={`h-9 rounded-full px-4 text-xs font-semibold transition-colors border ${
-                    on
-                      ? "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--status-primary)]"
-                      : "bg-[var(--hub-card)] border-[var(--hub-field-border)] text-[var(--color-body)] hover:border-[var(--hub-field-border-hover)] hover:text-[var(--color-ink)]"
-                  }`}
-                >
-                  {a === "all" ? "All archetypes" : `Type ${a}`}
-                </button>
-              );
-            })}
-          </div>
+          <Select value={archetypeFilter} onValueChange={(v) => { setArchetypeFilter(v as "all" | "A" | "B" | "C"); setPage(0); }}>
+            <SelectTrigger className="h-9 w-64 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
+              <SelectValue placeholder="Archetype" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All archetypes</SelectItem>
+              {(["A", "B", "C"] as const).map((a) => (
+                <SelectItem key={a} value={a}>Type {a} — {archetypeLabels[a] || a}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <span className="text-xs font-medium text-muted-foreground">Type:</span>
           <Select value={movementFilter} onValueChange={resetAndSet(setMovementFilter)}>
             <SelectTrigger className="h-9 w-44 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
               <SelectValue placeholder="Movement type" />
@@ -273,11 +281,13 @@ export function WorkoutTemplateBrowser({
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-4 py-2">Name</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-4 py-2">Template</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Exercises</th>
-                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Movement</th>
-                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Level</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Equipment</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Difficulty</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Conditions</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Used</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Updated</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -298,10 +308,13 @@ export function WorkoutTemplateBrowser({
                               <span className="font-semibold text-[var(--color-ink)] text-[13px] truncate block">{t.name}</span>
                               <div className="flex flex-wrap gap-1 mt-0.5">
                                 {t.archetypes.map((a) => (
-                                  <span key={a} className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">{a}</span>
-                                ))}
-                                {t.condition_tags.map((ct) => (
-                                  <span key={ct} className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">{ct}</span>
+                                  <span
+                                    key={a}
+                                    title={`Type ${a} — ${archetypeLabels[a] || a}`}
+                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none"
+                                  >
+                                    {a}
+                                  </span>
                                 ))}
                               </div>
                             </div>
@@ -313,8 +326,18 @@ export function WorkoutTemplateBrowser({
                             <span className="text-[11px] text-muted-foreground leading-tight line-clamp-2">{names.slice(0, 4).join(", ")}{names.length > 4 ? `, +${names.length - 4} more` : ""}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 align-middle text-[13px] text-[var(--color-body)]">
-                          {t.movement_type.length > 0 ? t.movement_type.map((mt) => movementTypeLabels[mt] || mt).join(", ") : "—"}
+                        <td className="px-3 py-2.5 align-middle">
+                          {t.equipment.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {t.equipment.map((eq) => (
+                                <span key={eq} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                                  {equipmentLabels[eq] || eq}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-[13px]">None</span>
+                          )}
                         </td>
                         <td className="px-3 py-2.5 align-middle">
                           {t.difficulty != null ? (
@@ -326,8 +349,22 @@ export function WorkoutTemplateBrowser({
                           )}
                         </td>
                         <td className="px-3 py-2.5 align-middle">
-                          <span className="tabular-nums text-[13px] text-muted-foreground">{t.usage_count}</span>
+                          {t.condition_tags.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {t.condition_tags.map((ct) => (
+                                <span key={ct} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                                  {ct}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-[13px]">—</span>
+                          )}
                         </td>
+                        <td className="px-3 py-2.5 align-middle">
+                          <span className="tabular-nums text-[13px] text-muted-foreground">{t.usage_count}×</span>
+                        </td>
+                        <td className="px-3 py-2.5 align-middle text-[13px] text-muted-foreground">{formatDate(t.updated_at)}</td>
                       </tr>
                     );
                   })}
@@ -338,7 +375,7 @@ export function WorkoutTemplateBrowser({
             {pageCount > 1 && (
               <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
                 <p className="text-xs text-muted-foreground tabular-nums">
-                  Page {safePage + 1} of {pageCount}
+                  Showing {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
                 </p>
                 <div className="flex items-center gap-1">
                   <button
