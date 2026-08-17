@@ -40,6 +40,8 @@ const CATEGORY_BY_KIND: Record<DocumentKind, Category> = {
   consent: "agreement",
   remote_coaching: "agreement",
   feedback: "feedback",
+  intake_form: "feedback",
+  fortnightly_checkin: "screening",
   invoice: "other",
   note: "other",
 };
@@ -60,6 +62,8 @@ const ICON_BY_KIND: Record<DocumentKind, React.ComponentType<{ className?: strin
   consent: IconHeartHandshake,
   remote_coaching: IconFileSignature,
   feedback: IconMessageCircle,
+  intake_form: IconMessageCircle,
+  fortnightly_checkin: IconClipboardList,
   invoice: IconFileText,
   note: IconFileText,
 };
@@ -72,6 +76,8 @@ const DESC_BY_KIND: Record<DocumentKind, string> = {
   terms: "The contract in plain English: commitments, responsibilities, payment, liability and data protection.",
   consent: "Permission for photos, video and quotes, with what the client is agreeing to and how to withdraw it.",
   remote_coaching: "The remote/online coaching contract: commitments, responsibilities, monthly retainer, liability and data protection for clients trained by call and programme rather than in person.",
+  intake_form: "One-off onboarding form covering weekly availability, diet, and goals — completed once before the first training block is built.",
+  fortnightly_checkin: "Recurring check-in sent alongside a Garmin export before each call — sessions changed, pain/soreness, sleep and energy, and what's coming up.",
   feedback: "End-of-programme feedback, including the would-you-recommend question used for testimonials.",
   invoice: "Billing document sent to a client for services rendered.",
   note: "Ad-hoc note or uploaded document kept on the client's file — not generated from a template.",

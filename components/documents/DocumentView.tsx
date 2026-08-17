@@ -13,6 +13,8 @@ const KIND_EYEBROW: Record<DocumentKind, string> = {
   invoice: "Client document 07",
   leg_pain_questionnaire: "Client document 08",
   remote_coaching: "Client document 09",
+  intake_form: "Client document 10",
+  fortnightly_checkin: "Client document 11",
   note: "Client note",
 };
 
@@ -26,6 +28,8 @@ const KIND_REFERENCE: Record<DocumentKind, string> = {
   invoice: "EF-INV-2026",
   leg_pain_questionnaire: "EF-PAIN-LEG-2026",
   remote_coaching: "EF-REMOTE-2026",
+  intake_form: "EF-INTAKE-2026",
+  fortnightly_checkin: "EF-CHECKIN-2026",
   note: "EF-NOTE-2026",
 };
 
