@@ -982,7 +982,7 @@ export function SessionWorkoutLog({
 
 function SetRow({
   exercise,
-  ref,
+  exerciseRef,
   set,
   setIdx,
   displayUnit,
@@ -993,7 +993,7 @@ function SetRow({
   onSwapUnit,
 }: {
   exercise: Exercise;
-  ref: string;
+  exerciseRef: string;
   set: SetState;
   setIdx: number;
   displayUnit: "kg" | "lb";
@@ -1023,7 +1023,7 @@ function SetRow({
         <span className="min-w-0 flex-1 text-xs text-muted-foreground">{targetLabel}</span>
         <button
           type="button"
-          onClick={() => onWarmupToggle(ref, setIdx)}
+          onClick={() => onWarmupToggle(exerciseRef, setIdx)}
           aria-pressed={set.isWarmup}
           title="Warm-up set — excluded from personal bests"
           className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
@@ -1051,7 +1051,7 @@ function SetRow({
               type="text"
               inputMode="numeric"
               value={set.duration}
-              onChange={(e) => onSetField(ref, setIdx, "duration", e.target.value)}
+              onChange={(e) => onSetField(exerciseRef, setIdx, "duration", e.target.value)}
               placeholder={exercise.reps}
               disabled={disabled}
               className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
@@ -1065,7 +1065,7 @@ function SetRow({
                 type="number"
                 inputMode="numeric"
                 value={set.reps}
-                onChange={(e) => onSetField(ref, setIdx, "reps", e.target.value)}
+                onChange={(e) => onSetField(exerciseRef, setIdx, "reps", e.target.value)}
                 placeholder={parsePrescribedReps(exercise.reps) != null ? String(parsePrescribedReps(exercise.reps)) : exercise.reps}
                 disabled={disabled}
                 className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
@@ -1077,14 +1077,14 @@ function SetRow({
                 {isBand ? (
                   <span className="font-bold normal-case tracking-normal text-muted-foreground" title="Band exercises always log in lb — unit is locked">bands</span>
                 ) : (
-                  <button type="button" onClick={() => onSwapUnit(ref, exercise)} className="font-bold normal-case tracking-normal text-teal underline" title="Correct the unit for this exercise">switch</button>
+                  <button type="button" onClick={() => onSwapUnit(exerciseRef, exercise)} className="font-bold normal-case tracking-normal text-teal underline" title="Correct the unit for this exercise">switch</button>
                 )}
               </span>
               <input
                 type="text"
                 inputMode="decimal"
                 value={set.weight}
-                onChange={(e) => onSetField(ref, setIdx, "weight", e.target.value)}
+                onChange={(e) => onSetField(exerciseRef, setIdx, "weight", e.target.value)}
                 placeholder="BW"
                 disabled={disabled}
                 className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
@@ -1095,7 +1095,7 @@ function SetRow({
         <div className="ml-auto flex gap-1.5">
           <button
             type="button"
-            onClick={() => onSetDone(ref, setIdx, exercise)}
+            onClick={() => onSetDone(exerciseRef, setIdx, exercise)}
             className={`inline-flex h-[36px] items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-bold ${
               set.status === "done" ? "border-teal bg-teal text-white" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"
             }`}
@@ -1104,7 +1104,7 @@ function SetRow({
           </button>
           <button
             type="button"
-            onClick={() => onSetSkip(ref, setIdx, exercise)}
+            onClick={() => onSetSkip(exerciseRef, setIdx, exercise)}
             className={`inline-flex h-[36px] items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-bold ${
               set.status === "skipped" ? "border-[var(--status-danger)] bg-[var(--status-danger)] text-white" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"
             }`}
@@ -1296,7 +1296,7 @@ function ExerciseCard({
               <SetRow
                 key={sIdx}
                 exercise={exercise}
-                ref={refKey}
+                exerciseRef={refKey}
                 set={set}
                 setIdx={sIdx}
                 displayUnit={displayUnit}
@@ -1443,7 +1443,7 @@ function SupersetBlock({
                     <div className="mb-1.5 px-0.5 text-[12.5px] font-bold text-foreground">{ex.exercise_name}</div>
                     <SetRow
                       exercise={ex}
-                      ref={ref}
+                      exerciseRef={ref}
                       set={set}
                       setIdx={roundIdx}
                       displayUnit={st?.displayUnit ?? "kg"}
