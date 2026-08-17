@@ -7,6 +7,7 @@ import { IconChevronLeft } from "@/components/icons";
 import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { HideExerciseTableButton } from "./HideExerciseTableButton";
+import { SessionRowActions } from "./SessionRowActions";
 import type { Session } from "@/types";
 
 const archetypeInfo: Record<string, { name: string; tint: string }> = {
@@ -234,6 +235,7 @@ export default async function BlockViewPage({
                             >
                               Edit session
                             </Link>
+                            <SessionRowActions sessionId={session.id} sessionNumber={session.session_number} />
                           </div>
                           <svg
                             width="14"

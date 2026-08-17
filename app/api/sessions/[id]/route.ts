@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUids } from "@/lib/exercise-ref";
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
+import { deleteEvent } from "@/lib/graph-client";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
@@ -60,4 +61,31 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   return NextResponse.json(data);
+}
+
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Clean up any Outlook event before dropping the mapping row (cascades on
+  // session delete) so a cancelled session doesn't leave an orphaned event.
+  const { data: mapRow } = await supabase
+    .from("session_calendar_events")
+    .select("event_id")
+    .eq("session_id", params.id)
+    .maybeSingle();
+
+  if (mapRow?.event_id) {
+    try {
+      await deleteEvent(mapRow.event_id as string);
+    } catch (err) {
+      console.error("Calendar event delete failed (session will still be removed):", err);
+    }
+  }
+
+  const { error } = await supabase.from("sessions").delete().eq("id", params.id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true });
 }
