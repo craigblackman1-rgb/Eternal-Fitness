@@ -1,3 +1,120 @@
+# Session Handoff: August 17–18, 2026, night (Claude Code) — workout field-bug investigation, unified-model proposal, hub structure/consistency audit, mockup version-control + Design Parity Gate on Open Design output
+
+## Agent
+Claude Code, worktree `seo-audit-commands-46f31f`, branch `claude/blocks-sessions-workouts-mobile-64d18f`
+
+## Session Summary
+Docs/investigation session — **no app code changed, no migrations run, nothing deployed.**
+Two threads, both starting from Craig's live field reports (Esther's mobile logging
+problems, then a follow-up ask for a hub-wide structural review) and ending with
+Open Design deliverables that were verified rather than taken on report.
+
+### Thread 1 — workout/blocks/sessions field bugs (CR-EF-029–037)
+Esther hit real problems on mobile: a triple-logged workout for Emma Atkinson, blocks
+showing 5 sessions in "week 1", desktop/mobile date and status disagreements, completed
+sessions still editable, logged data invisible on the client page. Investigated against
+**production DB** (read-only queries via the standing tunnel) plus two parallel code-
+exploration agents. Every symptom confirmed and root-caused:
+
+- **Headline finding: 0 of 247 `set_logs` rows in prod carry a `client_op_id`.** The
+  live logging write paths (desktop + mobile + portal) never send one — only the
+  offline-replay path does — so the 2026-08-13 idempotency layer has never deduped a
+  single row. Confirmed as the cause of Emma's triple-log via her actual `set_logs`
+  timestamps (two full re-logs of the same session hours apart, then a cancellation —
+  read as an undo attempt).
+- Every manually-built block has all sessions stamped `week 1` (66/92 prod sessions) —
+  `sessions.week` is a generation-time ordinal nothing maintains, and it's not even
+  PATCHable.
+- Client-detail tab shows `completed_at`, mobile shows `scheduled_at` — two different
+  columns for "the date," for the same session.
+- No status column exists on `sessions` at all — completion lives in `data.session_log`
+  JSON, and 4+ surfaces each derive "done" differently, so a session can be Completed on
+  one screen and "In progress" on another (traced to a stale-ref clobber bug on mobile).
+- No API or UI guard exists anywhere against editing/re-logging a completed session.
+
+Full writeup: `assessment-workout-unification-2026-08-17.md`. Proposed unified model
+(first-class `status`/`started_at`/`completed_at`, uid-keyed `set_logs`, mandatory
+`client_op_id`, date-derived Mon–Sun weeks, calendar-as-spine, Trainerize-informed PWA
+nav) registered as CR-EF-037, with CR-EF-029–036 as the individual confirmed bugs.
+Two decisions queued on the ops board (Emma's data cleanup — destructive, needs Esther's
+account first; and adoption of the model + hotfix authorisation) — **both still open,
+not yet answered by Craig.**
+
+Wrote `brief-workout-unification-opendesign.md` and sent it to Open Design (extends the
+existing `wo-ef-workout-consolidation-pwa-2026-08-15`).
+
+### Thread 2 — hub-wide structure/consistency audit (new WO, CR-EF-038–041)
+Craig asked for a deep-dive review of every hub module/page/tab/accordion/card plus a
+version-control pass on the Open Design mockup library. Registered
+`wo-ef-hub-structure-consistency-2026-08-17`. Two exploration agents produced a full
+pattern census and a two-way mockup↔live reconciliation:
+
+- **8 distinct accordion implementations** (the shared `HubSection` component has zero
+  usages; a page-local fork is used 9×), **5 card styles** (root cause of the card-height
+  complaint: no card anywhere uses `h-full`/`flex-1`), **6 tab/segment styles**, 28
+  hand-rolled tables vs 5 uses of the shared `HubTable`, page titles in 4 sizes, chevrons
+  rotating 3 contradictory ways, and desktop/mobile sharing **zero** components.
+- Right rail confirmed as per-page improvisation: 4 widths, 4 breakpoints, sticky on 1
+  page of 5, and the hub's only 2 Quick Actions panels use opposite variants of the same
+  component — this is why it "feels lost."
+- `verify-hub-pages.js` (the mockup-drift detector) has been **silently hard-crashing**
+  since the mockup folder reorg — non-recursive readdir finds zero mockups, then throws
+  ENOENT outside its try/catch on the first real check. It's been dead exactly while
+  drift accumulated.
+
+Wrote `audit-hub-structure-consistency-2026-08-17.md` and
+`request-opendesign-mockup-version-control-2026-08-17.md` (archive superseded/
+speculative mockups, relocate strays, regenerate `index.html` as a living register with
+standing rules), sent both to Craig.
+
+### Both sent to Open Design, both returned same night — verified, not trusted
+Craig ran both requests through Open Design and reported "both are done." Verified each
+against actual git diffs before treating that as true:
+
+- **Mockup version-control pass: fully compliant.** All 8 archive candidates archived
+  exactly as specified with a documented `_archive/README.md`, all 7 strays relocated,
+  `index.html` regenerated as a proper register — plus Open Design independently caught
+  and fixed a dead-sidebar-link side effect of the archival across every affected file.
+  Committed + pushed to `design-systems@24291ea`. CR-EF-041 marked built+verified (its
+  `verify-hub-pages.js` repair lane is still open — a code lane, not Open Design's).
+- **Workout-unification mockup revisions: real progress, not G2-ready.** A Design Parity
+  Gate review (via a dedicated verification agent, checking actual sample data and
+  literal `<h1>` text against the brief's checklist, not just section headings) found the
+  hard part solid — the shared 5-state status pill is byte-identical across all four
+  files, completed/cancelled render read-only correctly, "in progress" triggers on first
+  set logged exactly as specified — but 4 gaps survived and **none were self-flagged** by
+  Open Design's own handback notes: `hub-session.html` names itself "Session 10" (breaks
+  its own `focus_label` naming rule, on the one screen the trainer actually uses); the
+  day-view and month-view schedule mockups disagree on whether cancelled sessions are
+  hidden by default and don't cross-link; 2 of the brief's 5 named "honest data cases"
+  (an off-pattern session pile-up, an 18-session block) never made it into sample data
+  despite being named because they're what broke in production. Wrote and sent
+  `revision-request-workout-unification-2026-08-17.md` (mirrored + committed
+  `design-systems@6512f1b`). **G2 sign-off explicitly withheld pending the revision.**
+
+## What's actually shipped
+Nothing to the app. This was 100% investigation, documentation, and design-review — CRs
+raised, two Work Orders opened, one Open Design deliverable verified and accepted, one
+sent back. `design-systems` repo has two new commits on `main` (docs + the verified
+mockup changes) — that repo has no build/deploy, so pushing straight to `main` there
+follows existing convention, unlike this app repo.
+
+## Next steps for whoever picks this up
+1. **Two board questions still open** (Emma data cleanup, unified-model adoption +
+   hotfix authorisation) — `wo ask` ids `qmsxl5iz4wg` / `qmsxl5j0c7l`. Nothing in
+   Phase 0 hotfixes (CR-EF-029/030/031 code fixes) should start until Craig answers.
+2. When the workout-unification revision comes back from Open Design, re-run the same
+   Design Parity Gate check (the 4 named gaps) before signing G2 — don't rubber-stamp on
+   the section headings existing.
+3. `verify-hub-pages.js` repair (CR-EF-041 remaining lane) is a small, self-contained
+   code fix whenever someone picks up `wo-ef-hub-structure-consistency-2026-08-17`.
+4. CR-EF-038 (`?tab=profile-compliance` dead deep-link) is a trivial one-line fix, not
+   done yet.
+5. This branch (`claude/blocks-sessions-workouts-mobile-64d18f`) has not been merged to
+   `main` or `staging` — it's docs-only so low risk, but merge is Craig's call.
+
+---
+
 # Session Handoff: August 17, 2026, evening (OpenCode) — crash fix + delete/clone merge + CR-EF-019/020/024/022/017/021
 
 ## Agent
