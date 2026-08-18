@@ -13,8 +13,6 @@ const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/search/?api=1&query=Eter
 
 /**
  * Verified Google review count — confirmed by Craig 2026-08-09 (26).
- * `components/TestimonialsSection.tsx`'s schema.org `aggregateRating.reviewCount`
- * was updated to match in the same change; keep the two in sync.
  */
 const GOOGLE_REVIEW_COUNT: number | null = 26;
 
