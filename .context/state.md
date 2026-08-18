@@ -1,5 +1,84 @@
 # Eternal Fitness Website — State
 
+## 2026-08-18 (Claude Code) — design↔build reconciliation, register recovery, CR-EF-037 Phase 1
+
+Craig reviewed the Open Design mockups against dev/prod, found a large gap, and
+suspected Work Orders had "got mashed up." Root cause turned out to be four
+compounding bookkeeping/sequencing failures, not lost build work — see the full
+report at `.context/audit-hub-design-parity-2026-08-18.md`.
+
+**Register recovery.** `main`'s `change-requests.md` had silently stopped at
+CR-EF-028 while CR-EF-029–041 were raised 2026-08-17 and cited by later commits,
+but only ever committed to the unmerged branch
+`claude/blocks-sessions-workouts-mobile-64d18f` or an untracked WO doc. Third
+register-fork of the same shape (documented inline). Recovered all 13 rows plus
+their governing docs (assessment, audit, briefs). Corrected 11 rows total across
+the session where the table said `raised` while the code was actually built:
+CR-EF-017/019/020/021/022/024 (17 Aug work) and CR-EF-042/043/044/045/046 (this
+session's own parity fixes, initially logged but never flipped after building —
+caught before close). Register now runs CR-EF-001–046, contiguous, no gaps.
+
+**Mockup library committed.** The entire 18 Aug structural-consistency delivery
+(9 files, 433 insertions) had sat uncommitted in `D:\apps\design-systems` with no
+version to build against — committed (`design-systems@9032447`). Added a
+standing rule: commit before code build starts.
+
+**Design-parity findings, built same session:**
+- CR-EF-042 [BUG] — dashboard missing "Log check-in" button
+- CR-EF-043 — client-record quick-actions bar now matches the mockup's
+  explicit header/bar split (Edit Client + New Session moved into the header)
+- CR-EF-044 — block-module button reorder (Schedule primary), Add workout kept
+  non-destructively (deliberate deviation, noted)
+- CR-EF-046 — mobile Today's accordion renamed onto its own `.m-section*`
+  contract instead of reusing TrainScreen's `.sec*` classes (cosmetic-only,
+  no visual change)
+- CR-EF-045 — mockup fix (Plan Agent tab added, badge moved Comms→Admin to
+  match the live app)
+
+**CR-EF-037 Phase 1 — shipped.** `sessions.status/started_at/completed_at`
+added to production and backfilled (72 planned / 19 cancelled / 12 scheduled /
+7 completed / 0 in_progress), independently re-verified post-commit. Migration:
+`supabase/migrations/20260818_session_status_model.sql`, runner:
+`scripts/run-session-status-migration.mjs` (dry-run by default, `--apply` to
+commit — stricter default than this repo's other migration runners given how
+central this column is).
+
+**Hotfixes H1/H2/H4/H5/H6 — shipped**, hand-reviewed diff-by-diff (not lane
+self-report) before merging: CR-EF-029 (online writes now carry `client_op_id`,
+was only on the offline-queue path — this was actively corrupting production
+data), CR-EF-030 (`handleComplete` now syncs refs so a later autosave can't
+revert `completed_at`), CR-EF-033 (`scheduled_at` primary on the desktop
+Sessions tab, `NULLS LAST`), CR-EF-034 (`focus_label` naming), CR-EF-035
+(`client_number` links, was UUID).
+
+**Still open, explicitly not started:** H3 (guard writes to completed sessions
+— deliberately held until Phase 1's Reopen UI exists, or Esther loses the
+ability to fix a finished log), CR-EF-031/032/036, CR-EF-037 Phases 2–3
+(uid-keyed logs, one write path, calendar spine — the bulk of the actual
+redesign), Emma Atkinson's duplicate-log cleanup (blocked on Esther's
+confirmation, destructive). **Design-consistency scope:** only 5–6 of ~50 hub
+screens were ever briefed for CR-EF-039/040's pattern — the other ~44 are
+real, catalogued inconsistency (`audit-hub-structure-consistency-2026-08-17.md`)
+that has never been commissioned, not lost work. Told Craig this plainly —
+bringing the rest of the hub into line needs its own Work Order and its own
+Open Design brief, neither of which exist yet.
+
+**Process fix worth noting:** caught and fixed a bug in my own bulk
+status-flip script mid-session (had wrongly touched a row outside its target
+list plus two unrelated prose sentences) — found by diffing before declaring
+done, not by re-running the script. Also: my first design-library commit went
+directly through the shared checkout before the worktree-isolation hook
+caught it on a later commit — left as-is (low-risk, already pushed) but named
+here rather than glossed over.
+
+**Branch:** `claude/design-dev-hub-alignment-dcb6fb`, merged to `main`
+(`ace1535`) via a real merge (not fast-forward) — `origin/main` had genuinely
+diverged with two other sessions' work (Nathan Wadey's 12-week block, the
+document-template preview feature, a kneel-to-stand template seed) that a
+force-push would have destroyed.
+
+
+
 ## 2026-08-18 (Claude Code) — hub structure-consistency extended to client record + block module, GATED on mobile
 
 Continued CR-EF-039/040 (hub structure-consistency: shared Quick Actions bar +

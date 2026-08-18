@@ -1,3 +1,100 @@
+# Session Handoff: August 18, 2026, evening (Claude Code) — design↔build reconciliation
+
+## Agent
+Claude Code, worktree `tomes-workout-weights-carryover-4c6f75`, branch `claude/design-dev-hub-alignment-dcb6fb`
+
+## Session Summary
+Craig opened this session reviewing Open Design mockups against dev/prod, found a
+large gap, and suspected Work Orders had "got mashed up" and updates never
+implemented. Full investigation, root cause, screen-by-screen findings, and the
+CR-EF-037 status answer are all written up at
+`.context/audit-hub-design-parity-2026-08-18.md` — read that first if picking this
+up. Short version: the code mostly did get written; what broke was record-keeping
+and sequencing, in four specific places, plus one genuine gap (CR-EF-037) that
+Craig believed was built and wasn't.
+
+**Root causes found and fixed:**
+1. The entire 18 Aug design delivery sat uncommitted in `D:\apps\design-systems`
+   — committed (`design-systems@9032447`), added a commit-before-build standing
+   rule.
+2. Client-record/block-module code was committed 1h43m before the mockups
+   revising them existed, and was never re-checked once they landed — found via
+   direct diff, logged as CR-EF-043/044, both now built.
+3. The CR register had silently forked a third time — `main` stopped at
+   CR-EF-028 while CR-EF-029–041 lived only on an unmerged branch. Recovered;
+   register now runs CR-EF-001–046, no gaps.
+4. `verify-hub-pages.js` only checks existence/mapping, not visual match —
+   added `extract-mockup-structure.mjs` (reads every mockup's `data-od-id`
+   section markers) as a structural pre-pass for future reviews. Also fixed its
+   dead `SITE_ORIGIN` default.
+
+**Craig then said "get everything done and clear the decks."** Dispatched three
+parallel OpenCode lanes (hotfixes H1/H2/H4/H5/H6; CR-EF-042+046; CR-EF-043+044),
+hand-reviewed every diff before merging (not lane self-report), wrote and ran the
+CR-EF-037 Phase 1 migration myself (schema work stays with Claude per the
+delegation model). All shipped:
+
+- **CR-EF-029 [BUG]** — online set-log writes were missing the idempotency key
+  entirely (only the offline-queue fallback had one) — this was actively
+  corrupting production data (0/247 rows had a key; confirmed triple-log
+  incident). Fixed across TrainScreen, SessionWorkoutLog, and the portal.
+- **CR-EF-030 [BUG]** — completed sessions could silently revert to
+  "in progress" from a stale local ref after a later autosave. Fixed.
+- **CR-EF-033/034/035** — session dates, naming, and schedule→client
+  navigation, all built and verified.
+- **CR-EF-042/043/044/046** — the design-parity findings from this session,
+  all built and verified against the mockups.
+- **CR-EF-045** — mockup fix (Plan Agent tab + badge), not app code.
+- **CR-EF-037 Phase 1** — `sessions.status/started_at/completed_at` added to
+  production and backfilled (110 sessions, 0 mismatches on cross-check against
+  the existing `cancelled_at`/`completed_at` signals). Migration + runner
+  script committed. Independently re-verified post-commit with a separate
+  query, not just the runner's own report.
+
+**Merge note:** `origin/main` had genuinely diverged while this session ran —
+two other sessions landed real work (Nathan Wadey's 12-week block, the
+document-template preview feature, a kneel-to-stand template seed). Merged
+properly (`ace1535`) rather than fast-forwarding, which would have destroyed
+that work. No conflicts, `tsc` clean, verified.
+
+**Self-correction, named not glossed over:** a bulk find/replace script used to
+correct 6 CR statuses had a bug — it also touched a row outside its target list
+and two unrelated sentences. Caught by diffing before calling anything done, not
+by trusting the script. Fixed, documented in the commit (`be6c1f5`). Also: the
+first design-library commit went through the shared checkout before the
+worktree-isolation hook caught it on a later commit — already pushed, left as-is
+(low risk, docs/mockups only), named here rather than silently corrected.
+
+## Still open — the honest state of CR-EF-037 and the design-consistency work
+
+Craig closed the session asking why so much design work still looks missing.
+Answer, for whoever picks this up next: **only 5–6 of ~50 hub screens were ever
+briefed for CR-EF-039/040's consistency pattern.** The other ~44 (all 6 cashflow
+screens, clients list, exercise library, workout templates, training rules,
+medical tracker, PAR-Q, documents, reports, process-quality, resources, studio
+equipment, all 3 settings pages, tasks, training-blocks, the session screen
+itself, mobile clients/train/train-edit) were never commissioned — the
+inconsistency across them is real and catalogued
+(`audit-hub-structure-consistency-2026-08-17.md`) but nobody has written a brief
+asking Open Design to fix it. If Craig wants the rest of the hub consistent,
+that's a new Work Order that doesn't exist yet, not a continuation of CR-EF-039.
+
+CR-EF-037 itself: Phase 1 (data model) is done. **Phases 2–3 are the bulk of
+the actual redesign and haven't started** — uid-keyed set_logs + backfill, one
+unified write path across desktop/mobile/portal, the calendar becoming the
+navigation spine, derived Mon–Sun weeks, block-page scheduling. H3 (guard
+writes to completed sessions) is deliberately held back until Phase 1's Reopen
+UI exists — shipping the guard without an escape hatch would strand Esther
+mid-correction. Emma Atkinson's duplicate-log cleanup is still blocked on her
+own confirmation of which log is real before any row gets touched (destructive,
+not actioned).
+
+## Registered as
+`wo-ef-workout-consolidation-pwa-2026-08-15` (status: active). CR-EF-037's
+Phases 2–3 are the next real units under that WO, not a new one.
+
+---
+
 # Session Handoff: August 18, 2026, afternoon (Claude Code) — fast empty-block creation
 
 ## Agent
