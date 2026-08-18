@@ -36,7 +36,10 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const MOCKUP_DIR = process.env.MOCKUP_DIR || "D:\\apps\\design-systems\\ef-control-hub";
-const SITE_ORIGIN = process.env.SITE_ORIGIN || "https://staging.eternal-fitness.co.uk";
+// Fixed 2026-08-18: the verify environment is development.eternal-fitness.co.uk
+// (per project convention -- staging branch changes are verified there before
+// merge to main), not "staging.eternal-fitness.co.uk", which isn't a real host.
+const SITE_ORIGIN = process.env.SITE_ORIGIN || "https://development.eternal-fitness.co.uk";
 const HUB_EMAIL = process.env.HUB_EMAIL;
 const HUB_PASSWORD = process.env.HUB_PASSWORD;
 const DRY_RUN = process.argv.includes("--dry-run") || process.env.DRY_RUN === "1";
