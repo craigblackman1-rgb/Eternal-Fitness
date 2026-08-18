@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
-import { HubCard, HubCardHeader, HubQuickActions } from "@/components/hub";
+import { HubCard, HubCardHeader, HubQuickActions, HubAccordionSection } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
 import {
-  IconActivity, IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText,
+  IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText,
   IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
@@ -242,6 +242,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Quick Actions — shared top-left bar, per hub-dashboard.html. Was previously a
+          card buried in the side column below Recent Blocks; moved per Craig's
+          2026-08-18 direction (most prominent position, not the right rail). */}
+      <HubQuickActions
+        variant="bar"
+        actions={[
+          { href: "/hub/clients/new", label: "New client", icon: <IconUserPlus className="w-4 h-4" />, primary: true },
+          { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
+          { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
+        ]}
+      />
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]" style={{ fontFamily: "var(--font-body)" }}>
           {greeting}{trainerFirstName ? `, ${trainerFirstName}` : ""}
@@ -335,20 +347,54 @@ export default async function DashboardPage() {
         </HubAlert>
       )}
 
-      {/* Recent check-ins + this week's plan — the two-column layout hub-dashboard.html specifies */}
-      <div className="grid gap-6 lg:grid-cols-2 items-stretch">
-        <HubCard padded={false}>
-          <HubCardHeader
+      {/* Accordion stack + narrow side rail — the attn-grid + side-stack split
+          hub-dashboard.html specifies. One accordion pattern, closed by default;
+          Needs Attention starts open because it's the first thing to check. */}
+      <div className="grid gap-[18px] lg:grid-cols-[1fr_340px] items-start">
+        <div className="flex flex-col gap-3">
+          <HubAccordionSection
+            icon={<IconTriangleAlert className="w-4 h-4" />}
+            title="Needs attention"
+            subtitle={`${needsAttention.length} client${needsAttention.length === 1 ? "" : "s"} need${needsAttention.length === 1 ? "s" : ""} clearance or action — the first thing to check`}
+            color="amber"
+            defaultOpen
+            viewAllHref={needsAttention.length > 8 ? "/hub/tracker" : undefined}
+            viewAllLabel={`View all ${needsAttention.length}`}
+          >
+            <div className="px-5 pt-4 pb-4">
+              {needsAttention.length > 0 ? (
+                <div className="space-y-1">
+                  {needsAttention.slice(0, 8).map((client) => {
+                    const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                    return (
+                      <Link
+                        key={client.id}
+                        href={`/hub/clients/${client.client_number}`}
+                        className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)] transition-colors"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                          {initials}
+                        </div>
+                        <span className="flex-1 min-w-0 text-sm font-medium text-foreground truncate">{client.name}</span>
+                        <StatusBadge status={client.compliance_status as string} />
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">All clients clear — nothing needs attention.</p>
+              )}
+            </div>
+          </HubAccordionSection>
+
+          <HubAccordionSection
             icon={<IconCheckCircle className="w-4 h-4" />}
-            title="Recent Check-ins"
-            color="teal"
+            title="Recent check-ins"
             subtitle="Logged sessions across active blocks"
-            divider
-            className="px-5 pt-5 pb-3.5"
-          />
-          <div className="px-5 pb-5">
+            color="teal"
+          >
             {recentCheckIns.length > 0 ? (
-              <div className="overflow-x-auto -mx-5">
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
@@ -379,98 +425,195 @@ export default async function DashboardPage() {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground pt-5 pb-1">No check-ins logged yet.</p>
+              <p className="text-sm text-muted-foreground px-5 pt-4 pb-4">No check-ins logged yet.</p>
             )}
-          </div>
-        </HubCard>
+          </HubAccordionSection>
 
-        <HubCard padded={false}>
-          <HubCardHeader
+          <HubAccordionSection
             icon={<IconBot className="w-4 h-4" />}
-            title="This Week's Plan"
-            color="navy"
+            title="This week's plan"
             subtitle="Generated by the Plan Agent"
-            divider
-            className="px-5 pt-5 pb-3.5"
-          />
-          <div className="px-5 pb-2">
-            {weekPlan.length > 0 ? (
-              <div>
-                {weekPlan.map((entry, i) => (
-                  <div key={entry.id} className={`flex gap-3.5 py-3.5 ${i > 0 ? "border-t border-[var(--hub-border)]" : ""}`}>
-                    <div className="w-[26px] h-[26px] rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                      {i + 1}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <Link href={entry.clientNumber ? `/hub/clients/${entry.clientNumber}` : "#"} className="text-[13.5px] font-semibold text-foreground hover:text-rose transition-colors">
-                        {entry.dayLabel} · {entry.clientName}
-                        {entry.blockNumber !== null && ` — Block ${entry.blockNumber}, Session ${entry.sessionNumber}`}
-                      </Link>
-                      {entry.focusLabel && <p className="text-[13px] text-muted-foreground mt-0.5">{entry.focusLabel}</p>}
-                      {entry.meta && (
-                        <p className={`text-xs mt-1 ${entry.metaDanger ? "text-[var(--status-danger)] font-medium" : "text-muted-foreground"}`}>
-                          {entry.meta}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground pt-5 pb-5">No sessions scheduled this week yet.</p>
-            )}
-          </div>
-        </HubCard>
-      </div>
-
-      {/* Needs Attention paired with a narrow side-stack — the attn-grid + side-stack
-          split hub-dashboard.html specifies (wide list column, fixed-ish narrow rail),
-          rather than stacking mismatched-height cards in an even 2/3-1/3 split. */}
-      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
-        <HubCard padded={false} className="lg:col-span-2">
-          <HubCardHeader
-            icon={<IconTriangleAlert className="w-4 h-4" />}
-            title="Needs Attention"
-            color="amber"
-            action={
-              needsAttention.length > 8 ? (
-                <Link href="/hub/tracker" className="text-sm text-rose hover:underline">
-                  View all {needsAttention.length}
-                </Link>
-              ) : undefined
-            }
-            divider
-            className="px-5 pt-5 pb-3.5"
-          />
-          <div className="px-5 pt-5 pb-5">
-            {needsAttention.length > 0 ? (
-              <div className="space-y-1">
-                {needsAttention.slice(0, 8).map((client) => {
-                  const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                  return (
-                    <Link
-                      key={client.id}
-                      href={`/hub/clients/${client.client_number}`}
-                      className="flex items-center gap-3 rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)] transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                        {initials}
+            color="navy"
+          >
+            <div className="px-5 pt-1 pb-2">
+              {weekPlan.length > 0 ? (
+                <div>
+                  {weekPlan.map((entry, i) => (
+                    <div key={entry.id} className={`flex gap-3.5 py-3.5 ${i > 0 ? "border-t border-[var(--hub-border)]" : ""}`}>
+                      <div className="w-[26px] h-[26px] rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                        {i + 1}
                       </div>
-                      <span className="flex-1 min-w-0 text-sm font-medium text-foreground truncate">{client.name}</span>
-                      <StatusBadge status={client.compliance_status as string} />
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground py-2">All clients clear — nothing needs attention.</p>
-            )}
-          </div>
-        </HubCard>
+                      <div className="min-w-0 flex-1">
+                        <Link href={entry.clientNumber ? `/hub/clients/${entry.clientNumber}` : "#"} className="text-[13.5px] font-semibold text-foreground hover:text-rose transition-colors">
+                          {entry.dayLabel} · {entry.clientName}
+                          {entry.blockNumber !== null && ` — Block ${entry.blockNumber}, Session ${entry.sessionNumber}`}
+                        </Link>
+                        {entry.focusLabel && <p className="text-[13px] text-muted-foreground mt-0.5">{entry.focusLabel}</p>}
+                        {entry.meta && (
+                          <p className={`text-xs mt-1 ${entry.metaDanger ? "text-[var(--status-danger)] font-medium" : "text-muted-foreground"}`}>
+                            {entry.meta}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground pt-3 pb-4">No sessions scheduled this week yet.</p>
+              )}
+            </div>
+          </HubAccordionSection>
 
-        <div className="flex flex-col gap-6">
+          {updatesDueClients.length > 0 && (
+            <HubAccordionSection
+              icon={<IconMail className="w-4 h-4" />}
+              title="Updates due"
+              subtitle="Clients approaching or past their next update deadline — most urgent first"
+              color="amber"
+              viewAllHref="/hub/reports/updates"
+              viewAllLabel={`View all ${updatesDueClients.length}`}
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Client</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Interval</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Last sent</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Next due</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">Days</th>
+                      <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {updatesDueClients.slice(0, 8).map((row) => {
+                      const initials = row.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                      const sc = STATUS_COLORS[row.status!];
+                      const daysClass = row.status === "overdue" ? "text-[var(--status-danger)]" : row.status === "due_soon" ? "text-[var(--status-warning)]" : "text-foreground";
+                      return (
+                        <tr key={row.clientId} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
+                          <td className="px-5 py-3">
+                            <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
+                              <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
+                              <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.name}</span>
+                            </Link>
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground">{UPDATE_INTERVAL_LABELS[row.interval]}</td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.lastSentAt ? new Date(row.lastSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" }) : "—"}</td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.nextDueDate ? new Date(row.nextDueDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" }) : "—"}</td>
+                          <td className={`px-5 py-3 text-right font-semibold tabular-nums ${daysClass}`}>
+                            {row.daysUntilDue != null ? (row.daysUntilDue < 0 ? `+${Math.abs(row.daysUntilDue)}` : row.daysUntilDue) : "—"}
+                          </td>
+                          <td className="px-5 py-3">
+                            <TokenPill token={sc.token} label={sc.label} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </HubAccordionSection>
+          )}
+
+          <HubAccordionSection
+            icon={<IconCalendar className="w-4 h-4" />}
+            title="Active blocks — next session"
+            subtitle="Where each client's programme is right now"
+            color="teal"
+          >
+            <div className="px-5 pt-4 pb-4">
+              {nextUpByBlock.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {nextUpByBlock.map(({ block, nextSession, completedCount, totalCount }) => {
+                    const clientNumber = (block as any).clients?.client_number;
+                    const clientName = (block as any).clients?.name;
+                    const initials = (clientName ?? "").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                    const href = nextSession
+                      ? `/hub/clients/${clientNumber}/blocks/${block.id}/sessions/${nextSession.session_number}`
+                      : `/hub/clients/${clientNumber}/blocks/${block.id}`;
+                    return (
+                      <Link
+                        key={block.id}
+                        href={href}
+                        className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                          {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate group-hover:text-rose transition-colors">{clientName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Block {block.block_number}
+                            {nextSession ? ` · Session ${nextSession.session_number}` : " · All sessions logged"}
+                            {totalCount > 0 && ` · ${completedCount}/${totalCount} done`}
+                          </p>
+                        </div>
+                        <IconArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 py-1.5 text-sm text-muted-foreground">
+                  <IconCalendar className="w-4 h-4 shrink-0" />
+                  <span>No active blocks right now — approve a block to see it here.</span>
+                  <Link href="/hub/clients" className="text-rose hover:underline shrink-0 ml-auto">View clients</Link>
+                </div>
+              )}
+            </div>
+          </HubAccordionSection>
+
+          <HubAccordionSection
+            icon={<IconUsers className="w-4 h-4" />}
+            title="Recent clients"
+            subtitle="Last five records opened"
+            color="slate"
+            viewAllHref="/hub/clients"
+          >
+            <div className="px-5 pt-4 pb-4">
+              {clients && clients.length > 0 ? (
+                <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {clients.slice(0, 6).map((client) => {
+                    const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+                    const sessionsPerWeek = client.profile?.logistics?.sessions_per_week;
+                    const conditions = client.profile?.health?.conditions?.length ?? 0;
+                    return (
+                      <Link
+                        key={client.id}
+                        href={`/hub/clients/${client.client_number}`}
+                        className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
+                          {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {sessionsPerWeek ? `${sessionsPerWeek}x / week` : "No schedule set"}
+                            {conditions > 0 && ` · ${conditions} condition(s)`}
+                          </p>
+                        </div>
+                        <div className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">No clients yet.</p>
+              )}
+            </div>
+          </HubAccordionSection>
+        </div>
+
+        {/* Side rail — non-action content only. Quick Actions moved to the top-left
+            bar above; this keeps just Recent Blocks, per hub-dashboard.html's
+            side-stack. */}
+        <div className="flex flex-col gap-[18px]">
           <HubCard padded={false}>
-            <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Recent Blocks" divider className="px-5 pt-5 pb-3.5" />
+            <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Recent blocks" divider className="px-5 pt-5 pb-3.5" />
             <div className="px-5 pt-5 pb-5">
               {blocks && blocks.length > 0 ? (
                 <div className="space-y-2">
@@ -491,170 +634,8 @@ export default async function DashboardPage() {
               )}
             </div>
           </HubCard>
-
-          <HubCard padded={false} className="flex-1 flex flex-col">
-            <HubCardHeader icon={<IconActivity className="w-4 h-4" />} title="Quick Actions" color="navy" divider className="px-5 pt-5 pb-3.5" />
-            <div className="px-5 pt-5 pb-5">
-              <HubQuickActions actions={[
-                { href: "/hub/clients/new", label: "Add a new client", icon: <IconUserPlus className="w-4 h-4" /> },
-                { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
-                { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
-              ]} />
-            </div>
-          </HubCard>
         </div>
       </div>
-
-      {updatesDueClients.length > 0 && (
-        <HubCard padded={false}>
-          <HubCardHeader
-            icon={<IconMail className="w-4 h-4" />}
-            title="Updates due"
-            subtitle="Clients approaching or past their next update deadline — most urgent first"
-            color="amber"
-            action={
-              <Link href="/hub/reports/updates" className="text-sm text-rose hover:underline">
-                View all {updatesDueClients.length}
-              </Link>
-            }
-            divider
-            className="px-5 pt-5 pb-3.5"
-          />
-          <div className="px-5 pb-5">
-            <div className="overflow-x-auto -mx-5">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Client</th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Interval</th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Last sent</th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Next due</th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10 text-right">Days</th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-5 h-10">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {updatesDueClients.slice(0, 8).map((row) => {
-                    const initials = row.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                    const sc = STATUS_COLORS[row.status!];
-                    const daysClass = row.status === "overdue" ? "text-[var(--status-danger)]" : row.status === "due_soon" ? "text-[var(--status-warning)]" : "text-foreground";
-                    return (
-                      <tr key={row.clientId} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
-                        <td className="px-5 py-3">
-                          <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
-                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
-                            <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.name}</span>
-                          </Link>
-                        </td>
-                        <td className="px-5 py-3 text-muted-foreground">{UPDATE_INTERVAL_LABELS[row.interval]}</td>
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.lastSentAt ? new Date(row.lastSentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" }) : "—"}</td>
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">{row.nextDueDate ? new Date(row.nextDueDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" }) : "—"}</td>
-                        <td className={`px-5 py-3 text-right font-semibold tabular-nums ${daysClass}`}>
-                          {row.daysUntilDue != null ? (row.daysUntilDue < 0 ? `+${Math.abs(row.daysUntilDue)}` : row.daysUntilDue) : "—"}
-                        </td>
-                        <td className="px-5 py-3">
-                          <TokenPill token={sc.token} label={sc.label} />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </HubCard>
-      )}
-
-      {/* Active Blocks and Recent Clients — real functionality beyond the mockup's
-          daily-work view, kept per spec's "never delete a feature to reach parity",
-          now full-width rows rather than crammed into an already-uneven column. */}
-      <HubCard padded={false}>
-        <HubCardHeader icon={<IconCalendar className="w-4 h-4" />} title="Active Blocks — Next Session" divider className="px-5 pt-5 pb-3.5" />
-        <div className="px-5 pt-5 pb-5">
-          {nextUpByBlock.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {nextUpByBlock.map(({ block, nextSession, completedCount, totalCount }) => {
-                const clientNumber = (block as any).clients?.client_number;
-                const clientName = (block as any).clients?.name;
-                const initials = (clientName ?? "").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                const href = nextSession
-                  ? `/hub/clients/${clientNumber}/blocks/${block.id}/sessions/${nextSession.session_number}`
-                  : `/hub/clients/${clientNumber}/blocks/${block.id}`;
-                return (
-                  <Link
-                    key={block.id}
-                    href={href}
-                    className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                      {initials}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate group-hover:text-rose transition-colors">{clientName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Block {block.block_number}
-                        {nextSession ? ` · Session ${nextSession.session_number}` : " · All sessions logged"}
-                        {totalCount > 0 && ` · ${completedCount}/${totalCount} done`}
-                      </p>
-                    </div>
-                    <IconArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2.5 py-1.5 text-sm text-muted-foreground">
-              <IconCalendar className="w-4 h-4 shrink-0" />
-              <span>No active blocks right now — approve a block to see it here.</span>
-              <Link href="/hub/clients" className="text-rose hover:underline shrink-0 ml-auto">View clients</Link>
-            </div>
-          )}
-        </div>
-      </HubCard>
-
-      <HubCard padded={false}>
-        <HubCardHeader
-          icon={<IconUsers className="w-4 h-4" />}
-          title="Recent Clients"
-          action={<Link href="/hub/clients" className="text-sm text-rose hover:underline inline-flex items-center gap-1">View all <IconArrowUpRight className="w-3 h-3" /></Link>}
-          divider
-          className="px-5 pt-5 pb-3.5"
-        />
-        <div className="px-5 pt-5 pb-5">
-          {clients && clients.length > 0 ? (
-            <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-              {clients.slice(0, 6).map((client) => {
-                const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                const sessionsPerWeek = client.profile?.logistics?.sessions_per_week;
-                const conditions = client.profile?.health?.conditions?.length ?? 0;
-                return (
-                  <Link
-                    key={client.id}
-                    href={`/hub/clients/${client.client_number}`}
-                    className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
-                      {initials}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {sessionsPerWeek ? `${sessionsPerWeek}x / week` : "No schedule set"}
-                        {conditions > 0 && ` · ${conditions} condition(s)`}
-                      </p>
-                    </div>
-                    <div className="text-xs text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground py-2">No clients yet.</p>
-          )}
-        </div>
-      </HubCard>
     </div>
   );
 }
