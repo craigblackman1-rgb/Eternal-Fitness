@@ -129,13 +129,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // session 12 with block 3's session 12 (CR-EF-027). completed_at lives inside
   // the `data` JSONB and isn't sortable at the DB level — TrainingTabContent
   // re-sorts client-side by completed-or-scheduled date, and independently by
-  // session number, once the rows are in memory.
+  // session number, once the rows are in memory. NULLS LAST (CR-EF-033) keeps
+  // unscheduled sessions from sorting ahead of scheduled ones under DESC, which
+  // would otherwise push real dated sessions out of the capped 50-row window.
   const { data: sessions } = clientBlockIds.length > 0
     ? await supabase
         .from("sessions")
         .select(`*, blocks!inner(block_number, client_id)`)
         .in("block_id", clientBlockIds)
-        .order("scheduled_at", { ascending: false })
+        .order("scheduled_at", { ascending: false, nullsLast: true })
         .limit(50)
     : { data: [] as any[] };
 

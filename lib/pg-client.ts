@@ -44,7 +44,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
   private _count = false;
   private _head = false;
   private filters: Filter[] = [];
-  private _orderBy: { col: string; asc: boolean }[] = [];
+  private _orderBy: { col: string; asc: boolean; nullsLast?: boolean }[] = [];
   private _limit: number | null = null;
   private _offset: number | null = null;
   private action: "select" | "insert" | "update" | "delete" | "upsert" = "select";
@@ -98,7 +98,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
   contains(c: string, v: unknown) { return this.push(c, "@>", v); }
   match(obj: Record<string, unknown>) { for (const [k, v] of Object.entries(obj)) this.eq(k, v); return this; }
   or(expr: string) { this._orExpr = expr; return this; }
-  order(c: string, opts?: { ascending?: boolean }) { this._orderBy.push({ col: c, asc: opts?.ascending !== false }); return this; }
+  order(c: string, opts?: { ascending?: boolean; nullsLast?: boolean }) { this._orderBy.push({ col: c, asc: opts?.ascending !== false, nullsLast: opts?.nullsLast }); return this; }
   limit(n: number) { this._limit = n; return this; }
   range(from: number, to: number) { this._offset = from; this._limit = to - from + 1; return this; }
   single() { this._single = "single"; return this as unknown as PromiseLike<Res>; }
@@ -205,7 +205,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
           let w2 = this.where(p2);
           if (innerConds.length) w2 = w2 ? `${w2} AND ${innerConds.join(" AND ")}` : ` WHERE ${innerConds.join(" AND ")}`;
           let s2 = `SELECT ${expr} FROM ${q(this.table)}${w2}`;
-          if (this._orderBy.length) s2 += " ORDER BY " + this._orderBy.map((o) => `${q(o.col)} ${o.asc ? "ASC" : "DESC"}`).join(", ");
+          if (this._orderBy.length) s2 += " ORDER BY " + this._orderBy.map((o) => `${q(o.col)} ${o.asc ? "ASC" : "DESC"}${o.nullsLast ? " NULLS LAST" : ""}`).join(", ");
           if (this._limit != null) s2 += ` LIMIT ${this._limit}`;
           if (this._offset != null) s2 += ` OFFSET ${this._offset}`;
           const dres = await getPool().query(s2, p2);
@@ -214,7 +214,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
         const { expr, innerConds } = this.buildSelectColumns(this._selectCols);
         if (innerConds.length) whereSql = whereSql ? `${whereSql} AND ${innerConds.join(" AND ")}` : ` WHERE ${innerConds.join(" AND ")}`;
         sql = `SELECT ${expr} FROM ${q(this.table)}${whereSql}`;
-        if (this._orderBy.length) sql += " ORDER BY " + this._orderBy.map((o) => `${q(o.col)} ${o.asc ? "ASC" : "DESC"}`).join(", ");
+        if (this._orderBy.length) sql += " ORDER BY " + this._orderBy.map((o) => `${q(o.col)} ${o.asc ? "ASC" : "DESC"}${o.nullsLast ? " NULLS LAST" : ""}`).join(", ");
         if (this._limit != null) sql += ` LIMIT ${this._limit}`;
         if (this._offset != null) sql += ` OFFSET ${this._offset}`;
       } else if (this.action === "insert" || this.action === "upsert") {
