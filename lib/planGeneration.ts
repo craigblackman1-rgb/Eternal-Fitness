@@ -254,6 +254,12 @@ ${buildRecentUpdatesSection(bundle.recentUpdates)}
 
 ${blockNote ? `Esther's note for this block: ${blockNote}` : ""}
 ${previousSummary ? `Previous block summary: ${previousSummary}` : ""}
+${blockNote || previousSummary ? `
+The note/summary above is intent and context ONLY — it is written in plain language and may
+describe exercises loosely, list several options joined by "or", or use phrasing that isn't an
+exact exercise name. NEVER copy that wording into an exercise_name field. For every single
+exercise slot (including warm_up and cooldown), pick ONE specific exact name from the EXERCISE
+LIBRARY section below that best matches the intent — never the note's own words.` : ""}
 
 THIS SESSION:
 - session_number: ${slot.session_number}
