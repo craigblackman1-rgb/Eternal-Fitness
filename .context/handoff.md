@@ -1,4 +1,36 @@
-# Session Handoff: August 17, 2026, evening (OpenCode) — crash fix + delete/clone merge + CR-EF-019/020/024/022/017/021
+# Session Handoff: August 18, 2026, afternoon (Claude Code) — fast empty-block creation
+
+## Agent
+Claude Code, worktree `workout-template-assignment-perf-3d5284`, branch `claude/workout-template-assignment-perf-3d5284`
+
+## Session Summary
+Craig reported assigning Monique a template workout took ~3 minutes. Root cause:
+assigning a template to a client with **no active block** had no fast path — the
+trainer was forced through the AI Plan Agent (`PlanAgentTab.tsx` → `/api/claude/generate-block`),
+which generates a full 6-week block via up to 18 sequential AI calls (each resending
+a ~35-40k token system prompt), deliberately throttled to `GENERATION_CONCURRENCY = 4`
+after a 2026-08-13 cost incident (`lib/planGeneration.ts`). The existing fast path
+(`AddWorkoutDialog` → `POST /api/blocks/[id]/sessions`) only works once a block already
+exists.
+
+**Shipped (`7bbe3b2`), pushed to `staging` then fast-forwarded to `main`/prod:**
+
+- `POST /api/blocks` (new, `app/api/blocks/route.ts`) — creates an empty `status: "draft"`
+  block instantly (mirrors the non-AI block-number/insert logic already in
+  `generate-block/route.ts`, minus the AI generation and sessions).
+- `TrainingTabContent.tsx` Blocks tab — added a **"New Block"** button (fast, no AI)
+  alongside the existing **"Plan Block with AI"** action, plus the same choice in the
+  empty state.
+
+No mockup governed this change (additive action, not a redesign) — attested as such
+on the gate. `tsc --noEmit` clean. Not browser-verified against a live hub login (no
+creds available in-session) — worth a quick click-through by Craig/Esther to confirm
+the button matches expectations.
+
+**New trainer flow for a client with no block:** Blocks tab → "New Block" → "Add workout"
+→ pick template → done in seconds, instead of routing through AI generation.
+
+---
 
 ## Agent
 OpenCode (deepseek-v4-pro), worktree `equal-merlin`, branch `ef-merge-2026-08-17`
