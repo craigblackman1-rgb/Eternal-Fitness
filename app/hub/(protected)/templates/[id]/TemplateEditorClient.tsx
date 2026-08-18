@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IconChevronLeft, IconSave, IconPlus, IconTrash2 } from "@/components/icons";
+import { IconChevronLeft, IconSave, IconPlus, IconTrash2, IconEye } from "@/components/icons";
 import { HubCard } from "@/components/hub/HubCard";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { RichTextEditor } from "@/components/hub/RichTextEditor";
@@ -69,9 +69,19 @@ export function TemplateEditorClient({ template, clients }: { template: Document
             <p className="text-muted-foreground text-sm mt-1">Changes apply to documents created from now on. Already-signed documents keep the version they were signed against.</p>
           </div>
         </div>
-        <Button onClick={save} disabled={saving} className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white px-3.5 py-1.5 h-auto text-sm font-semibold shrink-0">
-          <IconSave className="h-4 w-4" />{saving ? "Saving…" : "Save"}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/hub/templates/${template.id}/preview`}
+            target="_blank"
+            title="Opens the last saved version — save first to preview unsaved changes"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3.5 py-1.5 text-sm font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+          >
+            <IconEye className="h-4 w-4" />Preview
+          </Link>
+          <Button onClick={save} disabled={saving} className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white px-3.5 py-1.5 h-auto text-sm font-semibold shrink-0">
+            <IconSave className="h-4 w-4" />{saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
       </div>
 
       <HubCard>
