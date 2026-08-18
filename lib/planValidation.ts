@@ -38,10 +38,24 @@ export interface ExerciseIndex {
   byName: Map<string, ExerciseLibraryRow>;
 }
 
+/** Library rows like "Yoga - Cat-Cow Stretch" or "Pilates - Plank to Pike" carry
+ *  a category label the model reads as a heading, not part of the name — it
+ *  reliably echoes back the exercise without the prefix even when told to copy
+ *  names exactly. ~200 rows (mostly Yoga/Pilates) use this pattern, so index
+ *  each under its prefix-stripped form too (never overwriting a distinct
+ *  exercise that already owns that key) to accept the model's answer. */
+const CATEGORY_PREFIX = /^[A-Za-z][A-Za-z ]{1,24}-\s+/;
+
 export function buildExerciseIndex(rows: ExerciseLibraryRow[]): ExerciseIndex {
   const byName = new Map<string, ExerciseLibraryRow>();
   for (const row of rows) {
     byName.set(normalizeExerciseName(row.name), row);
+  }
+  for (const row of rows) {
+    const stripped = row.name.replace(CATEGORY_PREFIX, "");
+    if (stripped === row.name) continue;
+    const strippedKey = normalizeExerciseName(stripped);
+    if (!byName.has(strippedKey)) byName.set(strippedKey, row);
   }
   return { byName };
 }

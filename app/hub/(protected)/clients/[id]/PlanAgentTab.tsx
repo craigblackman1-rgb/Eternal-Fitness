@@ -43,8 +43,28 @@ const STARTER_PROMPTS = [
   "What adaptations does this client need in every session?",
 ];
 
+/** Esther has lost an in-progress Plan Agent conversation before by navigating
+ *  away or getting logged out mid-draft — nothing persisted it anywhere. This
+ *  is a client-local safety net, not a synced draft: it survives a refresh or
+ *  an accidental tab close on the same browser, not a switch to another
+ *  device. Cleared once the conversation actually becomes a block. */
+function draftStorageKey(clientNumber: number) {
+  return `plan-agent-draft-${clientNumber}`;
+}
+
+function loadDraft(clientNumber: number): Message[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(draftStorageKey(clientNumber));
+    return raw ? (JSON.parse(raw) as Message[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTabProps) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [draftRestored, setDraftRestored] = useState(false);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [generatingBlock, setGeneratingBlock] = useState(false);
@@ -87,6 +107,27 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Restore any draft conversation for this client on mount / client switch.
+  useEffect(() => {
+    setMessages(loadDraft(clientNumber));
+    setDraftRestored(true);
+  }, [clientNumber]);
+
+  // Persist on every change, once the initial restore has happened (so we
+  // never overwrite a saved draft with the empty initial state).
+  useEffect(() => {
+    if (!draftRestored || typeof window === "undefined") return;
+    try {
+      if (messages.length === 0) {
+        window.localStorage.removeItem(draftStorageKey(clientNumber));
+      } else {
+        window.localStorage.setItem(draftStorageKey(clientNumber), JSON.stringify(messages));
+      }
+    } catch {
+      // localStorage unavailable/full — draft safety net is best-effort only
+    }
+  }, [messages, clientNumber, draftRestored]);
 
   async function sendMessage(content: string) {
     if (!content.trim() || streaming) return;
@@ -167,6 +208,9 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
       }
 
       const { blockId } = await response.json();
+      try {
+        window.localStorage.removeItem(draftStorageKey(clientNumber));
+      } catch { /* best-effort */ }
       router.push(`/hub/clients/${clientNumber}/blocks/${blockId}/review`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate block");
