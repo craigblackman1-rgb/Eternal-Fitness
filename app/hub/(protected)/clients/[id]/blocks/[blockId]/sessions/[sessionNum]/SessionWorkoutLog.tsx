@@ -100,6 +100,7 @@ export function SessionWorkoutLog({
   data,
   sessionLog,
   setLogs,
+  bestWeights,
   onSessionLogChange,
 }: {
   sessionId: string;
@@ -108,6 +109,9 @@ export function SessionWorkoutLog({
   data: Session | null;
   sessionLog: SessionLog | null;
   setLogs: SetLog[];
+  /** Client's best-ever weight_kg per exercise name — prefills a set's weight
+   *  field when this session has no log for it yet. */
+  bestWeights?: Record<string, number>;
   onSessionLogChange: (log: SessionLog) => void;
 }) {
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };
@@ -136,12 +140,15 @@ export function SessionWorkoutLog({
         const totalSets = Math.max(1, ex.sets || 1);
         const warmupCount = ex.warmup_sets ?? 0;
         const sets: SetState[] = [];
+        const carriedWeight = bestWeights?.[ex.exercise_name];
         for (let s = 1; s <= totalSets; s++) {
           const log = setLogsMap[`${ref}::${s}`];
           sets.push({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
-            weight: log?.weight_kg != null ? String(log.weight_kg) : "",
+            weight: log?.weight_kg != null
+              ? String(log.weight_kg)
+              : carriedWeight != null ? String(carriedWeight) : "",
             duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
@@ -162,7 +169,7 @@ export function SessionWorkoutLog({
       });
       return map;
     },
-    [version, setLogsMap, data],
+    [version, setLogsMap, data, bestWeights],
   );
 
   const [exStates, setExStates] = useState<Record<string, ExState>>(() => {

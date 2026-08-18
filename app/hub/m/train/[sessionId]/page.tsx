@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import type { DBSession, SetLog, DeliveryMode } from "@/types";
 import { sessionDurationMinutes } from "@/lib/scheduling";
+import { getBestWeightsForClient } from "@/lib/exercise-best-weights";
 import { TrainScreen } from "./TrainScreen";
 
 export default async function TrainSessionPage({ params }: { params: { sessionId: string } }) {
@@ -38,6 +39,8 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
     .order("exercise_ref", { ascending: true })
     .order("set_number", { ascending: true });
 
+  const bestWeights = block ? await getBestWeightsForClient(block.client_id) : {};
+
   const blockNumber = block?.block_number ?? null;
   const sessionRow = session as DBSession;
   const sessionData = sessionRow.data ?? null;
@@ -59,6 +62,7 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
       clientNumber={client?.client_number ?? null}
       setLogs={(setLogs ?? []) as SetLog[]}
       deliveryMode={deliveryMode}
+      bestWeights={bestWeights}
     />
   );
 }

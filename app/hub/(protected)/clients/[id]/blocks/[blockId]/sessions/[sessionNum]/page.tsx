@@ -28,6 +28,9 @@ export default function SessionViewPage({
   const [totalSessions, setTotalSessions] = useState(0);
   // Per-set logs keyed by `${exercise_ref}::${set_number}` — initial data for the logger.
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
+  // Client's best-ever weight per exercise (from personal_records) — prefills a set's
+  // weight field when this session has no log for it yet, so weight carries forward.
+  const [bestWeights, setBestWeights] = useState<Record<string, number>>({});
   // Consolidated screen mode — "log" is the quick logger, "edit" is the prescription editor.
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<"log" | "edit">("log");
@@ -41,10 +44,14 @@ export default function SessionViewPage({
 
   useEffect(() => {
     async function load() {
-      const [sessionRes, countRes] = await Promise.all([
+      const [sessionRes, countRes, bestWeightsRes] = await Promise.all([
         fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
         fetch(`/api/blocks/${params.blockId}/sessions?count=true`),
+        fetch(`/api/clients/${params.id}/best-weights`),
       ]);
+      if (bestWeightsRes.ok) {
+        setBestWeights(await bestWeightsRes.json());
+      }
       if (sessionRes.ok) {
         const data = await sessionRes.json();
         setSession(data);
@@ -66,7 +73,7 @@ export default function SessionViewPage({
       setLoading(false);
     }
     load();
-  }, [params.blockId, sessionNum]);
+  }, [params.id, params.blockId, sessionNum]);
 
   // Legacy entry points land here with ?edit=1 (block overview's "Edit session") or
   // ?mode=edit (the retired /hub/log redirect) — both open straight into the editor.
@@ -342,6 +349,7 @@ export default function SessionViewPage({
             data={session.data}
             sessionLog={currentLog ?? null}
             setLogs={setLogsArray}
+            bestWeights={bestWeights}
             onSessionLogChange={handleSessionLogChange}
           />
         )}

@@ -29,9 +29,13 @@ interface SetLogSavePayload {
 export default function TrainingClient({
   plan,
   initialLogs,
+  bestWeights,
 }: {
   plan: PortalTrainingPlan;
   initialLogs: SetLog[];
+  /** Client's best-ever weight_kg per exercise name — prefills a set's weight
+   *  field when this session has no log for it yet. */
+  bestWeights?: Record<string, number>;
 }) {
   const [logs, setLogs] = useState<Record<string, SetLog>>(() => {
     const map: Record<string, SetLog> = {};
@@ -145,6 +149,7 @@ export default function TrainingClient({
           exercises={session.warm_up}
           session={session}
           logs={logs}
+          bestWeights={bestWeights}
           onSave={saveSetLog}
         />
         <SessionSection
@@ -153,6 +158,7 @@ export default function TrainingClient({
           exercises={session.main_block}
           session={session}
           logs={logs}
+          bestWeights={bestWeights}
           onSave={saveSetLog}
         />
         <SessionSection
@@ -161,6 +167,7 @@ export default function TrainingClient({
           exercises={session.cooldown}
           session={session}
           logs={logs}
+          bestWeights={bestWeights}
           onSave={saveSetLog}
         />
       </section>
@@ -174,6 +181,7 @@ function SessionSection({
   exercises,
   session,
   logs,
+  bestWeights,
   onSave,
 }: {
   title: string;
@@ -181,6 +189,7 @@ function SessionSection({
   exercises: PortalExercise[];
   session: PortalSessionPlan;
   logs: Record<string, SetLog>;
+  bestWeights?: Record<string, number>;
   onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   if (exercises.length === 0) return null;
@@ -198,6 +207,7 @@ function SessionSection({
             exerciseRef={exerciseRefFor(sectionKey, i, ex.exercise_name)}
             session={session}
             logs={logs}
+            bestWeights={bestWeights}
             onSave={onSave}
           />
         ))}
@@ -211,12 +221,14 @@ function ExerciseCard({
   exerciseRef,
   session,
   logs,
+  bestWeights,
   onSave,
 }: {
   exercise: PortalExercise;
   exerciseRef: string;
   session: PortalSessionPlan;
   logs: Record<string, SetLog>;
+  bestWeights?: Record<string, number>;
   onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   const [open, setOpen] = useState(false);
@@ -290,6 +302,7 @@ function ExerciseCard({
             exerciseRef={exerciseRef}
             session={session}
             logs={logs}
+            bestWeights={bestWeights}
             onSave={onSave}
           />
         </div>
@@ -306,18 +319,21 @@ function ExerciseSetLogger({
   exerciseRef,
   session,
   logs,
+  bestWeights,
   onSave,
 }: {
   exercise: PortalExercise;
   exerciseRef: string;
   session: PortalSessionPlan;
   logs: Record<string, SetLog>;
+  bestWeights?: Record<string, number>;
   onSave: (sessionId: string, payload: SetLogSavePayload) => Promise<{ ok: boolean; isNewPb: boolean }>;
 }) {
   const totalSets = Math.max(1, exercise.sets || 1);
   const timeBased = isTimeBased(exercise.reps, exercise.log_type);
   const prescribedSeconds = parsePrescribedSeconds(exercise.reps);
   const prescribedReps = parsePrescribedReps(exercise.reps);
+  const carriedWeight = bestWeights?.[exercise.exercise_name];
 
   const [drafts, setDrafts] = useState<Record<number, { main: string; weight: string }>>(() => {
     const init: Record<number, { main: string; weight: string }> = {};
@@ -329,7 +345,9 @@ function ExerciseSetLogger({
             ? log.duration_seconds != null ? String(log.duration_seconds) : ""
             : log.reps != null ? String(log.reps) : ""
           : "",
-        weight: log?.weight_kg != null ? String(log.weight_kg) : "",
+        weight: log?.weight_kg != null
+          ? String(log.weight_kg)
+          : carriedWeight != null ? String(carriedWeight) : "",
       };
     }
     return init;
