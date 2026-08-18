@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconCheckSquare, IconActivity, IconPanelLeft, IconCalendar, IconBarChart3 } from "@/components/icons";
@@ -10,7 +9,7 @@ import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { ClientNotesPanel } from "./ClientNotesPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
+import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubAccordionSection, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
 import type { TrainerizeHistoryData } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
@@ -334,19 +333,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       </HubCard>
 
       <HubCard>
-        <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Quick Actions" color="amber" />
-        <div className="pb-5">
-          <HubQuickActions divider actions={[
-            { href: `/hub/clients/${client.client_number}?tab=training&view=sessions`, label: "New Session", icon: <IconCalendar className="w-4 h-4" /> },
-            { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconFileText className="w-4 h-4" /> },
-            { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
-            { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },
-            { href: `/hub/clients/${client.client_number}/edit`, label: "Edit Client", icon: <IconPencil className="w-4 h-4" /> },
-          ]} />
-        </div>
-      </HubCard>
-
-      <HubCard>
         <HubCardHeader icon={<IconPanelLeft className="w-4 h-4" />} title="Resources" action={<span className="text-xs text-muted-foreground">Portal access</span>} color="teal" />
         <div className="pb-5">
           <div className="space-y-0">
@@ -368,6 +354,22 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   return (
     <div className="space-y-6">
+      {/* Quick Actions — shared top-left bar, matches hub-dashboard.html's pattern.
+          Sits above the identity header rather than beside it: this page's header
+          carries identity + compliance status (not actions), so the bar owns every
+          action including the two ("Edit Client", "Plan Block") that used to be
+          inline buttons on the header itself — one action surface, not two. */}
+      <HubQuickActions
+        variant="bar"
+        actions={[
+          { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" />, primary: true },
+          { href: `/hub/clients/${client.client_number}?tab=training&view=sessions`, label: "New Session", icon: <IconCalendar className="w-4 h-4" /> },
+          { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
+          { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },
+          { href: `/hub/clients/${client.client_number}/edit`, label: "Edit Client", icon: <IconPencil className="w-4 h-4" /> },
+        ]}
+      />
+
       <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm p-5 flex items-center gap-4">
         <Link href="/hub/clients" aria-label="Back to clients" className="w-9 h-9 rounded-lg border border-[var(--hub-border)] flex items-center justify-center shrink-0 text-foreground hover:bg-[var(--hub-hover)] transition-colors">
           <IconChevronLeft className="w-4 h-4" />
@@ -381,18 +383,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <span className="text-sm text-muted-foreground font-medium">#{client.client_number}</span>
             {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
           </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href={`/hub/clients/${client.client_number}/edit`}>
-            <Button variant="outline" className="border border-[var(--color-muted-text)] rounded-lg px-3.5 py-1.5 h-auto text-sm font-medium hover:bg-[var(--hub-hover)] gap-1.5">
-              <IconPencil className="h-4 w-4" /> Edit Client
-            </Button>
-          </Link>
-          <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`}>
-            <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-              <IconPlus className="h-4 w-4" /> Plan Block
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -451,9 +441,20 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   Worth checking in with {client.name.split(" ")[0]}.
                 </HubAlert>
               )}
-              <HubCard>
-                <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="teal" />
-                <div className="pb-5">
+              {/* Accordion stack — same HubAccordionSection primitive as the dashboard,
+                  closed by default. "Active Block" opens first: it's the single most-
+                  checked fact on a client record (what's their programme doing right
+                  now), and the real compliance signal already has its own alert banner
+                  above rather than needing to live in the accordion. ClientNotesPanel
+                  stays outside the stack — it's an editable panel, not a collapsible
+                  info section. */}
+              <HubAccordionSection
+                icon={<IconFileText className="w-4 h-4" />}
+                title="Active block"
+                color="teal"
+                defaultOpen
+              >
+                <div className="px-5 pt-4 pb-4">
                   {latestBlock ? (
                     <HubDataGrid cols={3}>
                       <HubDataField label="Block">
@@ -471,11 +472,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     </div>
                   )}
                 </div>
-              </HubCard>
+              </HubAccordionSection>
 
-              <HubCard>
-                <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Last Session" color="slate" />
-                <div className="pb-5">
+              <HubAccordionSection
+                icon={<IconClipboardList className="w-4 h-4" />}
+                title="Last session"
+                color="slate"
+              >
+                <div className="px-5 pt-4 pb-4">
                   {latestSessionLog ? (
                     <HubDataGrid cols={3}>
                       <HubDataField label="Completed">
@@ -491,11 +495,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <p className="text-sm text-muted-foreground">No sessions logged yet.</p>
                   )}
                 </div>
-              </HubCard>
+              </HubAccordionSection>
 
-              <HubCard>
-                <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Snapshot" color="navy" />
-                <div className="pb-5">
+              <HubAccordionSection
+                icon={<IconClipboardList className="w-4 h-4" />}
+                title="Snapshot"
+                color="navy"
+              >
+                <div className="px-5 pt-4 pb-4">
                   <HubDataGrid cols={2}>
                     {client.referral_source && (
                       <HubDataField label="Referral source">{client.referral_source}</HubDataField>
@@ -526,13 +533,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     dueInfo={dueInfo}
                   />
                 </div>
-              </HubCard>
+              </HubAccordionSection>
 
               <ClientNotesPanel clientId={client.id} />
 
-              <HubCard>
-                <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Training Snapshot" color="teal" />
-                <div className="pb-5">
+              <HubAccordionSection
+                icon={<IconDumbbell className="w-4 h-4" />}
+                title="Training snapshot"
+                color="teal"
+              >
+                <div className="px-5 pt-4 pb-4">
                   <HubDataGrid cols={2}>
                     <HubDataField label="Blocks completed">{blocks?.length ?? 0}</HubDataField>
                     <HubDataField label="Current block">
@@ -551,12 +561,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     </HubDataField>
                   </HubDataGrid>
                 </div>
-              </HubCard>
+              </HubAccordionSection>
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
-                <HubCard>
-                  <HubCardHeader icon={<IconAlertCircle className="w-4 h-4" />} title="Active Training Rules" color="amber" subtitle="Applied to every generated block" />
-                  <div className="pb-5">
+                <HubAccordionSection
+                  icon={<IconAlertCircle className="w-4 h-4" />}
+                  title="Active training rules"
+                  subtitle="Applied to every generated block"
+                  color="amber"
+                >
+                  <div className="px-5 pt-4 pb-4">
                     <ul className="list-none space-y-2">
                       {p!.programming_adaptations
                         .filter((rule: { severity: string }) => rule.severity === "hard")
@@ -574,7 +588,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         })}
                     </ul>
                   </div>
-                </HubCard>
+                </HubAccordionSection>
               )}
             </TabsContent>
 

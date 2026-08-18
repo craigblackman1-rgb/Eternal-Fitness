@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HubQuickActions } from "@/components/hub";
 import { IconPencil, IconCalendar, IconPrinter, IconEllipsis, IconPlus } from "@/components/icons";
 import { ExportSpreadsheetButton } from "./export-spreadsheet";
 import { DeleteBlockButton } from "./delete-block-button";
@@ -22,29 +23,27 @@ interface BlockActionsProps {
   clientName: string;
 }
 
+/**
+ * Quick Actions — same top-left .qa-bar primitive as the dashboard and
+ * client record. "Edit Block"/"Add Workout" open drawers rather than
+ * navigating, so the bar's onClick variant carries them; "Schedule" is a
+ * real link. Print/Export/Delete stay in the "..." overflow menu — they're
+ * secondary/destructive actions, not the page's quick actions.
+ */
 export function BlockActions({ onEditBlock, onAddWorkout, clientId, blockId, blockNumber, clientName }: BlockActionsProps) {
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        className="rounded-lg bg-rose hover:bg-rose/90 text-white gap-1.5"
-        onClick={onEditBlock}
-      >
-        <IconPencil className="h-4 w-4" />
-        Edit Block
-      </Button>
-      <Button variant="outline" className="rounded-lg gap-1.5 border-border/60" onClick={onAddWorkout}>
-        <IconPlus className="h-4 w-4" />
-        Add Workout
-      </Button>
-      <Link href={`/hub/clients/${clientId}/blocks/${blockId}/review`}>
-        <Button variant="outline" className="rounded-lg gap-1.5 border-border/60">
-          <IconCalendar className="h-4 w-4" />
-          Schedule
-        </Button>
-      </Link>
+    <div className="flex items-center justify-between gap-2">
+      <HubQuickActions
+        variant="bar"
+        actions={[
+          { onClick: onEditBlock, label: "Edit block", icon: <IconPencil className="w-4 h-4" />, primary: true },
+          { onClick: onAddWorkout, label: "Add workout", icon: <IconPlus className="w-4 h-4" /> },
+          { href: `/hub/clients/${clientId}/blocks/${blockId}/review`, label: "Schedule", icon: <IconCalendar className="w-4 h-4" /> },
+        ]}
+      />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-lg h-9 w-9">
+          <Button variant="ghost" size="icon" className="rounded-lg h-9 w-9 shrink-0">
             <IconEllipsis className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

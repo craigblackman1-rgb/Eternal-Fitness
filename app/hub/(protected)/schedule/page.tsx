@@ -79,6 +79,11 @@ export default async function SchedulePage() {
 
   return (
     <div className="space-y-6">
+      {/* No .qa-bar here, deliberately: this page has no real quick actions of its
+          own today (day/month toggle and cancelled-visibility live inside
+          ScheduleShell; bookings are made from a client record, not from here).
+          Per the structure-consistency brief's own allowance, inventing filler
+          buttons just to match the pattern would be worse than skipping it. */}
       <HubPageHeader
         title="Studio schedule"
         subtitle="Every booked session across the studio, on a month grid. Bookings that don't yet have a workout are flagged — they're expected, not an edge case."

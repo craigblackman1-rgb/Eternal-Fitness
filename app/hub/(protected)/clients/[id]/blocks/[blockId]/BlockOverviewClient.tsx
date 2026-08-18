@@ -41,6 +41,11 @@ export function BlockOverviewClient({ children, block, clientId, blockId, client
 
       {children}
 
+      {/* Block Note stays a plain HubCard, not a HubAccordionSection: it's the
+          only optional info section on this page (everything else is the
+          week/session `<details>` structure, a genuinely different kind of
+          collapsible per the structure-consistency brief) — an accordion adds
+          nothing when there's only ever one section to open/close. */}
       {block.block_note && (
         <HubCard>
           <HubCardHeader

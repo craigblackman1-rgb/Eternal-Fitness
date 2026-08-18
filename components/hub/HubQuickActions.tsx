@@ -2,7 +2,9 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface HubQuickAction {
-  href: string;
+  /** Either href (navigates) or onClick (e.g. opens a drawer/dialog) — exactly one. */
+  href?: string;
+  onClick?: () => void;
   label: string;
   icon: React.ReactNode;
   /** Bar variant only — fills the button as the primary action. At most one per bar. */
@@ -31,21 +33,30 @@ export function HubQuickActions({ actions, className, divider = false, variant =
         <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground mr-0.5">
           Quick actions
         </span>
-        {actions.map((action) => (
-          <Link
-            key={action.href}
-            href={action.href}
-            className={cn(
-              "inline-flex items-center gap-2 min-h-10 px-3.5 rounded-lg border text-[13px] font-semibold transition-colors",
-              action.primary
-                ? "bg-rose text-white border-rose hover:bg-rose/90"
-                : "bg-[var(--hub-card)] text-foreground border-[var(--hub-field-border)] hover:border-rose hover:bg-[var(--status-primary-bg)]",
-            )}
-          >
-            <span className={cn("w-4 h-4 shrink-0", action.primary ? "text-white" : "text-rose")}>{action.icon}</span>
-            {action.label}
-          </Link>
-        ))}
+        {actions.map((action) => {
+          const key = action.href ?? action.label;
+          const classes = cn(
+            "inline-flex items-center gap-2 min-h-10 px-3.5 rounded-lg border text-[13px] font-semibold transition-colors",
+            action.primary
+              ? "bg-rose text-white border-rose hover:bg-rose/90"
+              : "bg-[var(--hub-card)] text-foreground border-[var(--hub-field-border)] hover:border-rose hover:bg-[var(--status-primary-bg)]",
+          );
+          const content = (
+            <>
+              <span className={cn("w-4 h-4 shrink-0", action.primary ? "text-white" : "text-rose")}>{action.icon}</span>
+              {action.label}
+            </>
+          );
+          return action.href ? (
+            <Link key={key} href={action.href} className={classes}>
+              {content}
+            </Link>
+          ) : (
+            <button key={key} type="button" onClick={action.onClick} className={classes}>
+              {content}
+            </button>
+          );
+        })}
       </div>
     );
   }
@@ -55,7 +66,7 @@ export function HubQuickActions({ actions, className, divider = false, variant =
       {actions.map((action, i) => (
         <Link
           key={action.href}
-          href={action.href}
+          href={action.href as string}
           className={cn(
             "text-sm font-medium flex items-center gap-2.5 transition-colors",
             divider
