@@ -781,6 +781,11 @@ export function TrainScreen({
       toast.error("Failed to mark session complete");
       return;
     }
+    // CR-EF-030: sync the in-memory refs to the now-completed state so a later
+    // autosave (note edit, add-set) re-reads the completed session_log instead of
+    // the stale pre-completion blob and silently reverts completed_at on the server.
+    dataRef.current = { ...d, session_log: updatedLog, exercise_notes: savedNotesRef.current };
+    sessionLogRef.current = updatedLog;
     setShowComplete(false);
     toast.success(`Session ${sessionNumber} marked complete.`);
   };
