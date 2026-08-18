@@ -30,3 +30,4 @@ dist-ssr
 .next/
 .next2/
 .context/tools/verify_hub_results.json
+.context/tools/mockup-structure-manifest.json
