@@ -239,9 +239,9 @@ export function ScheduleCalendar({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          {entry.clientId != null && entry.blockId != null ? (
+                          {entry.clientNumber != null && entry.blockId != null ? (
                             <Link
-                              href={`/hub/clients/${entry.clientId}/blocks/${entry.blockId}/sessions/${entry.sessionNumber}`}
+                              href={`/hub/clients/${entry.clientNumber}/blocks/${entry.blockId}/sessions/${entry.sessionNumber}`}
                               className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-rose"
                             >
                               {entry.clientName}

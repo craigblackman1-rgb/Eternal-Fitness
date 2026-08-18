@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconCheckSquare, IconActivity, IconPanelLeft, IconCalendar, IconBarChart3 } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
@@ -128,13 +129,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // session 12 with block 3's session 12 (CR-EF-027). completed_at lives inside
   // the `data` JSONB and isn't sortable at the DB level — TrainingTabContent
   // re-sorts client-side by completed-or-scheduled date, and independently by
-  // session number, once the rows are in memory.
+  // session number, once the rows are in memory. NULLS LAST (CR-EF-033) keeps
+  // unscheduled sessions from sorting ahead of scheduled ones under DESC, which
+  // would otherwise push real dated sessions out of the capped 50-row window.
   const { data: sessions } = clientBlockIds.length > 0
     ? await supabase
         .from("sessions")
         .select(`*, blocks!inner(block_number, client_id)`)
         .in("block_id", clientBlockIds)
-        .order("scheduled_at", { ascending: false })
+        .order("scheduled_at", { ascending: false, nullsLast: true })
         .limit(50)
     : { data: [] as any[] };
 
@@ -355,18 +358,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   return (
     <div className="space-y-6">
       {/* Quick Actions — shared top-left bar, matches hub-dashboard.html's pattern.
-          Sits above the identity header rather than beside it: this page's header
-          carries identity + compliance status (not actions), so the bar owns every
-          action including the two ("Edit Client", "Plan Block") that used to be
-          inline buttons on the header itself — one action surface, not two. */}
+          Sits above the identity header, not inside it, so the compliance/status
+          badge stays the clean, glanceable first thing on the page. Edit Client
+          and New Session live in the header itself (contextual primary actions);
+          the bar carries the cross-navigation shortcuts. */}
       <HubQuickActions
         variant="bar"
         actions={[
           { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" />, primary: true },
-          { href: `/hub/clients/${client.client_number}?tab=training&view=sessions`, label: "New Session", icon: <IconCalendar className="w-4 h-4" /> },
           { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
           { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },
-          { href: `/hub/clients/${client.client_number}/edit`, label: "Edit Client", icon: <IconPencil className="w-4 h-4" /> },
         ]}
       />
 
@@ -383,6 +384,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <span className="text-sm text-muted-foreground font-medium">#{client.client_number}</span>
             {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
           </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <Link href={`/hub/clients/${client.client_number}/edit`}>
+            <Button variant="outline" className="bg-[var(--hub-card)] border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+              <IconPencil className="w-4 h-4" /> Edit Client
+            </Button>
+          </Link>
+          <Link href={`/hub/clients/${client.client_number}?tab=training&view=sessions`}>
+            <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+              <IconCalendar className="w-4 h-4" /> New Session
+            </Button>
+          </Link>
         </div>
       </div>
 

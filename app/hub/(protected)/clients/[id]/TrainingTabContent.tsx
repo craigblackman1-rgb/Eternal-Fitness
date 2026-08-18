@@ -128,21 +128,34 @@ function localDateToIso(date: string, originalIso: string): string {
   return new Date(y, mo - 1, d, orig.getHours(), orig.getMinutes(), orig.getSeconds(), orig.getMilliseconds()).toISOString();
 }
 
-/** Click-to-edit logged date for a completed session. */
+/** Date cell for a session row. Primary display is the booking date
+ *  (scheduled_at), with the logged date shown secondarily when it differs —
+ *  matching mobile, which never renders a scheduled session as "—" (CR-EF-033).
+ *  Click-to-edit still targets the logged date, and only when one exists. */
 function SessionDateCell({ session }: { session: SessionRow }) {
   const router = useRouter();
   const log = (session.data as any)?.session_log;
   const completedAt: string | null = log?.completed_at ?? null;
+  const scheduledAt: string | null = session.scheduled_at ?? null;
   const [editing, setEditing] = useState(false);
   const [dateValue, setDateValue] = useState(completedAt ? isoToLocalDate(completedAt) : "");
   const [saving, setSaving] = useState(false);
 
-  if (!completedAt) {
+  const primaryAt = scheduledAt ?? completedAt;
+  const completedLabel = completedAt
+    ? new Date(completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+    : "";
+  const completedDiffers =
+    completedAt != null &&
+    scheduledAt != null &&
+    isoToLocalDate(completedAt) !== isoToLocalDate(scheduledAt);
+
+  if (!primaryAt) {
     return <span className="text-muted-foreground">—</span>;
   }
 
   const handleSave = async () => {
-    if (!dateValue || saving) return;
+    if (!completedAt || !dateValue || saving) return;
     setSaving(true);
     const updatedLog = { ...log, completed_at: localDateToIso(dateValue, completedAt) };
     const updatedData = { ...(session.data ?? {}), session_log: updatedLog };
@@ -170,7 +183,7 @@ function SessionDateCell({ session }: { session: SessionRow }) {
         onBlur={handleSave}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
-            setDateValue(isoToLocalDate(completedAt));
+            setDateValue(completedAt ? isoToLocalDate(completedAt) : "");
             setEditing(false);
           }
           if (e.key === "Enter") handleSave();
@@ -186,19 +199,25 @@ function SessionDateCell({ session }: { session: SessionRow }) {
   return (
     <span
       onClick={(e) => {
+        if (!completedAt) return;
         e.stopPropagation();
         setEditing(true);
       }}
-      title="Click to change logged date"
-      role="button"
-      tabIndex={0}
+      title={completedAt ? "Click to change logged date" : undefined}
+      role={completedAt ? "button" : undefined}
+      tabIndex={completedAt ? 0 : undefined}
       onKeyDown={(e) => {
-        if (e.key === "Enter") setEditing(true);
+        if (completedAt && e.key === "Enter") setEditing(true);
       }}
-      className="inline-flex cursor-pointer items-center gap-1 hover:text-foreground"
+      className={`inline-flex items-center gap-1${completedAt ? " cursor-pointer hover:text-foreground" : ""}`}
     >
-      {new Date(completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-      <IconPencil className="h-3 w-3 opacity-40" />
+      <span>{new Date(primaryAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+      {completedDiffers && (
+        <span className="text-muted-foreground" title={`Logged ${completedLabel}`}>
+          · {completedLabel}
+        </span>
+      )}
+      {completedAt && <IconPencil className="h-3 w-3 opacity-40" />}
     </span>
   );
 }

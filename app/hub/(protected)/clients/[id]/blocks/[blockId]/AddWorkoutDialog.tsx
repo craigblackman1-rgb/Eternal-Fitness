@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { IconSearch, IconDumbbell } from "@/components/icons";
 import { toast } from "sonner";
-import type { SessionVersion } from "@/types";
+import { MAX_BLOCK_WEEKS, type SessionVersion } from "@/types";
 
 interface TemplateOption {
   id: string;
@@ -35,7 +35,7 @@ export function AddWorkoutDialog({ open, onOpenChange, blockId, weeks }: AddWork
   const [search, setSearch] = useState("");
   const [adding, setAddingId] = useState<string | null>(null);
 
-  const weekOptions = Array.from(new Set([...weeks, ...(weeks.length && weeks[weeks.length - 1] < 6 ? [weeks[weeks.length - 1] + 1] : weeks.length === 0 ? [1] : [])])).sort(
+  const weekOptions = Array.from(new Set([...weeks, ...(weeks.length && weeks[weeks.length - 1] < MAX_BLOCK_WEEKS ? [weeks[weeks.length - 1] + 1] : weeks.length === 0 ? [1] : [])])).sort(
     (a, b) => a - b
   );
 

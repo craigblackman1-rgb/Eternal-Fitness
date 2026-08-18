@@ -79,6 +79,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     duration_seconds?: number | null;
     completed?: boolean;
     notes?: string | null;
+    client_op_id?: string | null;
   };
   try {
     body = await request.json();
@@ -99,25 +100,63 @@ export async function POST(request: Request, { params }: { params: { id: string 
   }
 
   const pool = getPool();
-  const res = await pool.query(
-    `INSERT INTO set_logs
-       (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
-        completed, logged_by, logged_at, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, 'client', NOW(), $8)
-     RETURNING *`,
-    [
-      params.id,
-      exerciseRef,
-      body.set_number,
-      body.reps ?? null,
-      body.weight_kg ?? null,
-      body.duration_seconds ?? null,
-      body.completed ?? true,
-      body.notes ?? null,
-    ],
-  );
+  const clientOpId = body.client_op_id ?? null;
 
-  const saved = res.rows[0];
+  // Idempotent create keyed on client_op_id (CR-EF-029). A retried POST carrying
+  // the same key is a no-op on the partial unique index and returns the existing
+  // row instead of double-logging — mirroring the staff route, with logged_by
+  // hardcoded to 'client' server-side.
+  let saved: import("@/types").SetLog;
+  if (clientOpId) {
+    const inserted = await pool.query(
+      `INSERT INTO set_logs
+         (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
+          completed, logged_by, logged_at, notes, client_op_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'client', NOW(), $8, $9)
+       ON CONFLICT (client_op_id) WHERE client_op_id IS NOT NULL DO NOTHING
+       RETURNING *`,
+      [
+        params.id,
+        exerciseRef,
+        body.set_number,
+        body.reps ?? null,
+        body.weight_kg ?? null,
+        body.duration_seconds ?? null,
+        body.completed ?? true,
+        body.notes ?? null,
+        clientOpId,
+      ],
+    );
+    if (inserted.rows.length) {
+      saved = inserted.rows[0];
+    } else {
+      const existing = await pool.query(
+        `SELECT * FROM set_logs WHERE client_op_id = $1 LIMIT 1`,
+        [clientOpId],
+      );
+      saved = existing.rows[0];
+    }
+  } else {
+    const res = await pool.query(
+      `INSERT INTO set_logs
+         (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
+          completed, logged_by, logged_at, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'client', NOW(), $8)
+       RETURNING *`,
+      [
+        params.id,
+        exerciseRef,
+        body.set_number,
+        body.reps ?? null,
+        body.weight_kg ?? null,
+        body.duration_seconds ?? null,
+        body.completed ?? true,
+        body.notes ?? null,
+      ],
+    );
+    saved = res.rows[0];
+  }
+
   const isNewPb = await checkAndUpsertPB(session.clientId, saved);
   return NextResponse.json({ ...saved, is_new_pb: isNewPb }, { status: 201 });
 }

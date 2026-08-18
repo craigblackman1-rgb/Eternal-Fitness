@@ -87,6 +87,13 @@ export default function SessionViewPage({
     setModeInitDone(true);
   }, [searchParams, modeInitDone, session]);
 
+  // Browser tab title mirrors the header name (CR-EF-034) — "Workout A", not
+  // "Session 3".
+  useEffect(() => {
+    if (!session) return;
+    document.title = session.data?.focus_label || `Session ${sessionNum}`;
+  }, [session, sessionNum]);
+
   const saveNotes = async () => {
     if (!session) return;
     const updatedData = { ...session.data, coaching_notes: coachingNotes };
@@ -168,6 +175,9 @@ export default function SessionViewPage({
   };
 
   const durationMinutes = session.data?.estimated_minutes ?? sessionDurationMinutes(session.data?.time_tier);
+  // Session is named by its focus_label, never a bare "Session N" (CR-EF-034) —
+  // matching the block page and the consolidated mockup header.
+  const focusLabel = session.data?.focus_label || `Session ${sessionNum}`;
   const statusBadge = completedAt ? (
     <span className="inline-flex items-center gap-1 rounded-full border border-teal/20 bg-teal/10 px-2.5 py-0.5 text-xs font-semibold text-teal">
       <IconCheckCircle className="h-3 w-3" />
@@ -192,7 +202,7 @@ export default function SessionViewPage({
         <div className="mt-2 flex flex-wrap items-center gap-4">
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-semibold tracking-tight">Session {sessionNum}</h1>
+              <h1 className="text-xl font-semibold tracking-tight">{focusLabel}</h1>
               <Badge variant="outline" className="text-sm">{session.archetype}</Badge>
               <span className="text-sm capitalize text-muted-foreground">Week {session.week} · {session.phase}</span>
               {statusBadge}
@@ -204,7 +214,7 @@ export default function SessionViewPage({
                 ~{durationMinutes} min · guide
               </span>
             </div>
-            <p className="text-muted-foreground">{archetypeNames[session.archetype]}</p>
+            <p className="text-muted-foreground">{archetypeNames[session.archetype]} · Session {sessionNum}</p>
           </div>
           <div className="flex gap-2">
             {showTemplateSave ? (

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { MAX_BLOCK_WEEKS } from "@/types";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -51,8 +52,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
   if (!template_id || typeof template_id !== "string") {
     return NextResponse.json({ error: "template_id is required" }, { status: 400 });
   }
-  if (!week || typeof week !== "number" || week < 1 || week > 6) {
-    return NextResponse.json({ error: "week must be between 1 and 6" }, { status: 400 });
+  // Upper bound matches sessions_week_check — blocks are no longer assumed to be
+  // 6 weeks (Nathan Wadey's supplied plan is 12), and clients.package allows 24.
+  if (!week || typeof week !== "number" || week < 1 || week > MAX_BLOCK_WEEKS) {
+    return NextResponse.json({ error: `week must be between 1 and ${MAX_BLOCK_WEEKS}` }, { status: 400 });
   }
 
   const { data: block, error: blockError } = await supabase

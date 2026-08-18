@@ -25,6 +25,7 @@ import {
   IconArrowRight,
   IconSearch,
   IconExternalLink,
+  IconEye,
 } from "@/components/icons";
 import { DOCUMENT_KIND_LABEL, type DocumentTemplate, type DocumentKind } from "@/lib/documents/types";
 
@@ -234,36 +235,46 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
                 const c = getStatusClasses(meta.token);
                 const Icon = ICON_BY_KIND[t.kind];
                 return (
-                  <Link
+                  <div
                     key={t.id}
-                    href={`/hub/templates/${t.id}`}
-                    className="flex flex-col rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] hover:bg-[var(--hub-hover)] transition-colors"
+                    className="flex flex-col rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors"
                   >
-                    <div className="flex items-center gap-2.5 mb-2.5">
-                      <span className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${c.bg} ${c.text}`}>
-                        <Icon className="w-4 h-4" />
-                      </span>
-                      <span className={`ml-auto inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${c.bg} ${c.text} ${c.border}`}>
-                        {meta.label.split(" & ")[0]}
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-bold text-foreground leading-tight mb-1">{t.name}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">{DESC_BY_KIND[t.kind]}</p>
-                    <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-body)] mb-3">
-                      <IconUsers className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                      {WHO_LABEL[who(t)]}
-                      <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-foreground">
-                        Open <IconArrowRight className="w-3 h-3" />
-                      </span>
-                    </p>
+                    <Link href={`/hub/templates/${t.id}`} className="contents">
+                      <div className="flex items-center gap-2.5 mb-2.5">
+                        <span className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${c.bg} ${c.text}`}>
+                          <Icon className="w-4 h-4" />
+                        </span>
+                        <span className={`ml-auto inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${c.bg} ${c.text} ${c.border}`}>
+                          {meta.label.split(" & ")[0]}
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-bold text-foreground leading-tight mb-1">{t.name}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{DESC_BY_KIND[t.kind]}</p>
+                      <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-body)] mb-3">
+                        <IconUsers className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        {WHO_LABEL[who(t)]}
+                        <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-foreground">
+                          Open <IconArrowRight className="w-3 h-3" />
+                        </span>
+                      </p>
+                    </Link>
                     <div className="mt-auto pt-2.5 border-t border-[var(--hub-border)] flex items-center gap-2 flex-wrap">
                       <StatusBadge status={t.is_active ? "active" : "draft"} />
                       <span className="text-[var(--hub-field-border)]">·</span>
                       <span className="text-xs text-muted-foreground">v{t.version}</span>
                       <span className="text-[var(--hub-field-border)]">·</span>
                       <span className="text-xs text-muted-foreground">{sectionCount(t)} {sectionCount(t) === 1 ? "section" : "sections"}</span>
+                      <Link
+                        href={`/hub/templates/${t.id}/preview`}
+                        target="_blank"
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
+                      >
+                        <IconEye className="w-3.5 h-3.5" />
+                        Preview
+                      </Link>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -277,6 +288,7 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
                     <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10">Completed by</th>
                     <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10">Version</th>
                     <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10">Status</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10 text-right">Preview</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -303,6 +315,16 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">v{t.version}</td>
                         <td className="px-4 py-3">
                           <StatusBadge status={t.is_active ? "active" : "draft"} />
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/hub/templates/${t.id}/preview`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
+                          >
+                            <IconEye className="w-3.5 h-3.5" />
+                            Preview
+                          </Link>
                         </td>
                       </tr>
                     );
