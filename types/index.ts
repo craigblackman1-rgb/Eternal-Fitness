@@ -9,6 +9,11 @@ export type Archetype = "A" | "B" | "C";
 export type Phase = "foundation" | "build" | "develop" | "peak" | "deload";
 export type BlockStatus = "draft" | "approved" | "active" | "complete";
 
+/** Highest week number a session may sit on — mirrors the sessions_week_check
+ *  constraint. Esther's standard block is 6 weeks, but supplied programmes run
+ *  longer (Nathan Wadey's is 12) and Package allows a 24-week engagement. */
+export const MAX_BLOCK_WEEKS = 24;
+
 export type ProfileOptionCategory = "condition" | "movement_quality_flag" | "milestone" | "adaptation" | "contraindication" | "pain_point";
 
 export interface ProfileOption {
