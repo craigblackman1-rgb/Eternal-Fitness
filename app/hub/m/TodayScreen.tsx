@@ -155,6 +155,18 @@ const ICO = {
       <path d="M8 21h8M12 17v4"/>
     </svg>
   ),
+  calSm: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <path d="M16 2v4M8 2v4M3 10h18"/>
+    </svg>
+  ),
+  checkSm: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M9 11l3 3L22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  ),
 };
 
 // ── Main component ─────────────────────────────────────────────
@@ -169,6 +181,10 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
   const [day, setDay] = useState<string>(todayISO());
   const [sheetOpen, setSheetOpen] = useState(false);
   const [taskBusy, setTaskBusy] = useState<Set<string>>(new Set());
+  // Same .sec/.sec-h/.sec-b accordion primitive as TrainScreen's exercise
+  // sections — closed by default, top section open. Tasks starts collapsed
+  // since Sessions is the reason a trainer opens this screen.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ tasks: true });
 
   const dayEntries = useMemo(
     () =>
@@ -276,96 +292,125 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
           </div>
         )}
 
-        <div className="sec-label">
-          <h2>Sessions</h2>
-          <span>{dayEntries.length === 0 ? "Nothing booked" : `${dayEntries.length} ${dayEntries.length === 1 ? "session" : "sessions"}`}</span>
+        <div className={`sec${collapsed.sessions ? " collapsed" : ""}`}>
+          <button
+            type="button"
+            className="sec-h"
+            onClick={() => setCollapsed((p) => ({ ...p, sessions: !p.sessions }))}
+            aria-expanded={!collapsed.sessions}
+          >
+            <div className="sec-h-ic ic-rose">{ICO.calSm}</div>
+            <div>
+              <div className="sec-h-t">Sessions</div>
+              <div className="sec-h-s">{dayEntries.length === 0 ? "Nothing booked" : `${dayEntries.length} ${dayEntries.length === 1 ? "session" : "sessions"}`}</div>
+            </div>
+            <span className="sec-h-chev">{ICO.chev}</span>
+          </button>
+
+          {!collapsed.sessions && (
+            <div className="sec-b">
+              {dayEntries.length === 0 ? (
+                <div className="empty">
+                  <div className="empty-ic">{ICO.cal}</div>
+                  <p className="empty-t">Nothing booked {isToday ? "today" : "this day"}</p>
+                  <p className="empty-d">No sessions scheduled. Bookings are made on the desktop hub — this screen is for delivering them.</p>
+                  <button className="btn btn-outline" onClick={goToday}>Back to today</button>
+                </div>
+              ) : (
+                <div className="slist">
+                  {dayEntries.map((entry) => {
+                    const clash = conflictIds.has(entry.id);
+                    const isLogged = !!entry.sessionLogCompletedAt;
+                    const isLive = !!entry.sessionLogStartedAt && !entry.sessionLogCompletedAt;
+                    const { start, end } = formatTimeRange(entry.scheduledAt, entry.durationMinutes);
+                    const hasMedicalFlag = entry.complianceStatus && entry.complianceStatus !== "clear";
+
+                    return (
+                      <Link
+                        key={entry.id}
+                        className={`scard${clash ? " clash" : ""}${isLogged ? " done" : ""}`}
+                        href={`/hub/m/train/${entry.id}`}
+                      >
+                        <div className="stime">
+                          <b>{start}</b>
+                          <span>{end}</span>
+                        </div>
+                        <div className="sbody">
+                          <div className="sname-row">
+                            <span className="sname">{entry.clientName}</span>
+                          </div>
+                          <div className="smeta">
+                            Session {entry.sessionNumber}
+                            {entry.blockNumber != null && ` · Block ${entry.blockNumber}`}
+                            {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
+                          </div>
+                          {(clash || isLive || isLogged || hasMedicalFlag) && (
+                            <div className="sflags">
+                              {clash && <span className="pill clash-pill">{ICO.warnSm}Clash</span>}
+                              {isLive && <span className="pill live">{ICO.live}In progress</span>}
+                              {isLogged && <span className="pill logged">{ICO.check}Logged</span>}
+                              {hasMedicalFlag && <span className="pill med">{ICO.med}Medical flag</span>}
+                            </div>
+                          )}
+                        </div>
+                        <span className="schev">{ICO.chev}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {dayEntries.length === 0 ? (
-          <div className="empty">
-            <div className="empty-ic">{ICO.cal}</div>
-            <p className="empty-t">Nothing booked {isToday ? "today" : "this day"}</p>
-            <p className="empty-d">No sessions scheduled. Bookings are made on the desktop hub — this screen is for delivering them.</p>
-            <button className="btn btn-outline" onClick={goToday}>Back to today</button>
-          </div>
-        ) : (
-          <div className="slist">
-            {dayEntries.map((entry) => {
-              const clash = conflictIds.has(entry.id);
-              const isLogged = !!entry.sessionLogCompletedAt;
-              const isLive = !!entry.sessionLogStartedAt && !entry.sessionLogCompletedAt;
-              const { start, end } = formatTimeRange(entry.scheduledAt, entry.durationMinutes);
-              const hasMedicalFlag = entry.complianceStatus && entry.complianceStatus !== "clear";
-
-              return (
-                <Link
-                  key={entry.id}
-                  className={`scard${clash ? " clash" : ""}${isLogged ? " done" : ""}`}
-                  href={`/hub/m/train/${entry.id}`}
-                >
-                  <div className="stime">
-                    <b>{start}</b>
-                    <span>{end}</span>
-                  </div>
-                  <div className="sbody">
-                    <div className="sname-row">
-                      <span className="sname">{entry.clientName}</span>
-                    </div>
-                    <div className="smeta">
-                      Session {entry.sessionNumber}
-                      {entry.blockNumber != null && ` · Block ${entry.blockNumber}`}
-                      {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
-                    </div>
-                    {(clash || isLive || isLogged || hasMedicalFlag) && (
-                      <div className="sflags">
-                        {clash && <span className="pill clash-pill">{ICO.warnSm}Clash</span>}
-                        {isLive && <span className="pill live">{ICO.live}In progress</span>}
-                        {isLogged && <span className="pill logged">{ICO.check}Logged</span>}
-                        {hasMedicalFlag && <span className="pill med">{ICO.med}Medical flag</span>}
-                      </div>
-                    )}
-                  </div>
-                  <span className="schev">{ICO.chev}</span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-
         {dayTasks.length > 0 && (
-          <div>
-            <div className="sec-label">
-              <h2>Tasks due</h2>
-              <span>{openTaskCount} open</span>
-            </div>
-            <div className="tlist">
-              {dayTasks.map((task) => {
-                const isDone = task.status === "done";
-                const due = task.due_date ? dueLabel(task.due_date, day) : null;
-                const busy = taskBusy.has(task.id);
-                return (
-                  <div key={task.id} className={`trow${isDone ? " is-done" : ""}`}>
-                    <button
-                      className="tcheck"
-                      onClick={() => toggleTask(task.id, task.status)}
-                      disabled={busy}
-                      aria-label={isDone ? "Mark task undone" : "Mark task done"}
-                      aria-pressed={isDone}
-                    >
-                      {ICO.check}
-                    </button>
-                    <div className="tbody">
-                      <div className="ttitle">{task.title}</div>
-                      <div className="tmeta">
-                        {task.client_name ? `${task.client_name} · ` : ""}
-                        Studio admin
+          <div className={`sec${collapsed.tasks ? " collapsed" : ""}`}>
+            <button
+              type="button"
+              className="sec-h"
+              onClick={() => setCollapsed((p) => ({ ...p, tasks: !p.tasks }))}
+              aria-expanded={!collapsed.tasks}
+            >
+              <div className="sec-h-ic ic-teal">{ICO.checkSm}</div>
+              <div>
+                <div className="sec-h-t">Tasks due</div>
+                <div className="sec-h-s">{openTaskCount} open</div>
+              </div>
+              <span className="sec-h-chev">{ICO.chev}</span>
+            </button>
+
+            {!collapsed.tasks && (
+              <div className="sec-b">
+                <div className="tlist">
+                  {dayTasks.map((task) => {
+                    const isDone = task.status === "done";
+                    const due = task.due_date ? dueLabel(task.due_date, day) : null;
+                    const busy = taskBusy.has(task.id);
+                    return (
+                      <div key={task.id} className={`trow${isDone ? " is-done" : ""}`}>
+                        <button
+                          className="tcheck"
+                          onClick={() => toggleTask(task.id, task.status)}
+                          disabled={busy}
+                          aria-label={isDone ? "Mark task undone" : "Mark task done"}
+                          aria-pressed={isDone}
+                        >
+                          {ICO.check}
+                        </button>
+                        <div className="tbody">
+                          <div className="ttitle">{task.title}</div>
+                          <div className="tmeta">
+                            {task.client_name ? `${task.client_name} · ` : ""}
+                            Studio admin
+                          </div>
+                        </div>
+                        {due && <span className={`tdue ${due.cls}`}>{due.text}</span>}
                       </div>
-                    </div>
-                    {due && <span className={`tdue ${due.cls}`}>{due.text}</span>}
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

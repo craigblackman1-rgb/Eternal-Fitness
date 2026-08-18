@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
-import { HubPageHeader } from "@/components/hub";
+import { HubPageHeader, HubQuickActions } from "@/components/hub";
+import { IconUserPlus, IconFileText, IconUsers } from "@/components/icons";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import type { Session, TimeTier } from "@/types";
 import type { ScheduledEntry } from "./ScheduleCalendar";
@@ -79,11 +80,19 @@ export default async function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      {/* No .qa-bar here, deliberately: this page has no real quick actions of its
-          own today (day/month toggle and cancelled-visibility live inside
-          ScheduleShell; bookings are made from a client record, not from here).
-          Per the structure-consistency brief's own allowance, inventing filler
-          buttons just to match the pattern would be worse than skipping it. */}
+      {/* Craig's 2026-08-18 call: give this page the same cross-navigation
+          shortcuts as dashboard/client record/block module rather than
+          leaving it as the one surface with none — supersedes the prior
+          "no genuine quick actions here" read. Day/month toggle and
+          cancelled-visibility stay inside ScheduleShell, untouched. */}
+      <HubQuickActions
+        variant="bar"
+        actions={[
+          { href: "/hub/clients/new", label: "New client", icon: <IconUserPlus className="w-4 h-4" />, primary: true },
+          { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
+          { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
+        ]}
+      />
       <HubPageHeader
         title="Studio schedule"
         subtitle="Every booked session across the studio, on a month grid. Bookings that don't yet have a workout are flagged — they're expected, not an edge case."
