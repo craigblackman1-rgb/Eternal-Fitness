@@ -113,8 +113,11 @@ function buildSessionSlots(profile: ClientProfile): SessionSlot[] {
  *  credit in 5 minutes on 2026-08-13. Throttling doesn't reduce total tokens
  *  sent, but it caps how much can be spent before Esther (or a bug) has a
  *  chance to notice something's wrong and stop. Overridable via env for
- *  tuning against serverless time limits. */
-const GENERATION_CONCURRENCY = Number(process.env.PLAN_GENERATION_CONCURRENCY) || 4;
+ *  tuning against serverless time limits. Raised 4 -> 8 on 2026-08-18 (Craig's
+ *  call) to speed up generation now that a failing session gets a fresh retry
+ *  instead of aborting the whole block — failures cost less to absorb, so a
+ *  higher burst ceiling is a reasonable trade for faster wall-clock. */
+const GENERATION_CONCURRENCY = Number(process.env.PLAN_GENERATION_CONCURRENCY) || 8;
 
 async function mapWithConcurrency<T, R>(
   items: T[],
@@ -284,7 +287,16 @@ The "home" version must substitute bodyweight/band alternatives where studio equ
 Return ONLY the JSON object — no markdown fences, no commentary.`;
 }
 
-async function generateOneSession(
+interface SessionAttemptResult {
+  session?: Session;
+  violations: import("@/lib/planValidation").PlanViolation[];
+  parseError?: string;
+}
+
+/** One fresh generation + at most one in-context repair round-trip. Bounds a
+ *  single attempt to 2 AI calls, same as before — the outer retry loop in
+ *  generateOneSession is what changed, not this per-attempt cost. */
+async function attemptSession(
   profile: ClientProfile,
   paceMode: string | null,
   slot: SessionSlot,
@@ -292,27 +304,17 @@ async function generateOneSession(
   split: SplitDefinition,
   index: ExerciseIndex,
   system: string,
+  archetypeFocusLabels: Record<string, string>,
+  studioEquipmentNames: string[],
+  planModel: string,
   blockNote?: string,
   previousSummary?: string,
-): Promise<Session> {
-  const archetypeFocusLabels = resolveArchetypeFocusLabels(bundle.settings);
+): Promise<SessionAttemptResult> {
   const user = sessionPrompt(profile, paceMode, slot, bundle, blockNote, previousSummary);
-  const studioEquipmentNames = bundle.equipmentRows.map((e) => e.name);
-  const PLAN_MODEL = resolvePlanModel();
 
-  const text = await aiChat({ system, user, model: PLAN_MODEL, maxTokens: 8000 });
-  if (!text) throw new Error("AI returned no response");
+  const text = await aiChat({ system, user, model: planModel, maxTokens: 8000 });
+  if (!text) return { violations: [], parseError: "AI returned no response" };
 
-  // At most ONE repair round-trip, whatever the cause (bad JSON, or valid JSON
-  // that violates the exercise/equipment/muscle-group rules) — this bounds
-  // every session to a hard ceiling of 2 AI calls (was up to 3: base + a
-  // JSON-repair call + a separate validation-repair call). Each call resends
-  // the full system prompt, so removing that third call cuts the worst-case
-  // token spend per session by a third. Trade-off: a session that fails BOTH
-  // parsing and validation gets only one combined shot at fixing both before
-  // hard-failing — the whole block generation already aborts on any session
-  // failure (see generateViaAi), so failing fast here is preferable to a
-  // second silent full-context retry.
   let parsed: Partial<Session> | undefined;
   let parseError: string | undefined;
   try {
@@ -341,45 +343,89 @@ async function generateOneSession(
         { role: "assistant", content: parsed ? JSON.stringify(parsed) : text },
         { role: "user", content: feedback },
       ],
-      model: PLAN_MODEL,
+      model: planModel,
       maxTokens: 8000,
     });
 
-    if (!repaired) {
-      if (!parsed) throw new Error(parseError ?? "AI returned no repaired response");
-    } else {
+    if (repaired) {
       try {
         parsed = parseSessionObject(repaired);
         session = stampSession(parsed, profile, slot, archetypeFocusLabels);
         violations = validateGeneratedSession(session, index, studioEquipmentNames, split);
       } catch (err) {
-        if (!session) throw err; // never had a parseable session at all — nothing to fall back to
-        // keep the pre-repair session + violations; handled below
+        if (!session) parseError = err instanceof Error ? err.message : "invalid JSON";
+        // else: keep the pre-repair session + violations, handled by the caller
       }
     }
   }
 
-  if (!session) throw new Error(parseError ?? "failed to produce a parseable session");
+  return { session, violations, parseError };
+}
 
-  const hardViolations = violations.filter((v) => v.type === "unknown_exercise" || v.type === "missing_muscle_groups");
+/** Sessions occasionally fail validation even after their in-context repair —
+ *  most often the model inventing a near-miss exercise name instead of copying
+ *  the library exactly. Previously that hard-failed the session, which in turn
+ *  aborted the ENTIRE block (see generateViaAi) — with up to 18 independent
+ *  sessions per block, even a modest per-session failure rate compounds into
+ *  near-certain block failure (a ~15% per-session rate is a ~93% chance at
+ *  least one of 18 fails). A second, fully fresh attempt (new generation, not
+ *  just a repair of the same bad output) gives a session a second independent
+ *  roll before giving up, which squares the failure rate instead of just
+ *  padding it — 15% × 15% ≈ 2%. Only the sessions that actually fail pay for
+ *  the extra calls; a session that succeeds on the first attempt costs the
+ *  same as before. */
+const MAX_SESSION_ATTEMPTS = 2;
+
+async function generateOneSession(
+  profile: ClientProfile,
+  paceMode: string | null,
+  slot: SessionSlot,
+  bundle: PlanAgentBundle,
+  split: SplitDefinition,
+  index: ExerciseIndex,
+  system: string,
+  blockNote?: string,
+  previousSummary?: string,
+): Promise<Session> {
+  const archetypeFocusLabels = resolveArchetypeFocusLabels(bundle.settings);
+  const studioEquipmentNames = bundle.equipmentRows.map((e) => e.name);
+  const PLAN_MODEL = resolvePlanModel();
+
+  let last: SessionAttemptResult = { violations: [] };
+  for (let attempt = 1; attempt <= MAX_SESSION_ATTEMPTS; attempt++) {
+    last = await attemptSession(
+      profile, paceMode, slot, bundle, split, index, system,
+      archetypeFocusLabels, studioEquipmentNames, PLAN_MODEL,
+      blockNote, previousSummary,
+    );
+
+    const hardViolations = (last.violations ?? []).filter(
+      (v) => v.type === "unknown_exercise" || v.type === "missing_muscle_groups",
+    );
+    if (last.session && hardViolations.length === 0) {
+      const equipmentWarnings = last.violations.filter((v) => v.type === "unknown_equipment");
+      if (equipmentWarnings.length > 0) {
+        console.warn(`[generate-block] session ${slot.session_number} equipment warnings: ${equipmentWarnings.map((v) => v.detail).join("; ")}`);
+        last.session.coaching_notes = [
+          last.session.coaching_notes,
+          `EQUIPMENT CHECK NEEDED: ${equipmentWarnings.map((v) => v.detail).join("; ")}`,
+        ].filter(Boolean).join(" — ");
+      }
+      return last.session;
+    }
+
+    if (attempt < MAX_SESSION_ATTEMPTS) {
+      console.warn(`[generate-block] session ${slot.session_number} attempt ${attempt} failed (${last.parseError ?? hardViolations.map((v) => v.detail).join("; ")}) — retrying fresh`);
+    }
+  }
+
+  const hardViolations = (last.violations ?? []).filter((v) => v.type === "unknown_exercise" || v.type === "missing_muscle_groups");
   if (hardViolations.length > 0) {
     throw new Error(
-      `failed validation after retry: ${hardViolations.map((v) => v.detail).join("; ").slice(0, 300)}`,
+      `failed validation after ${MAX_SESSION_ATTEMPTS} attempts: ${hardViolations.map((v) => v.detail).join("; ").slice(0, 300)}`,
     );
   }
-
-  // Equipment mismatches after a retry are surfaced for Esther rather than
-  // failing the block — the matcher is deliberately fuzzy and can false-positive.
-  const equipmentWarnings = violations.filter((v) => v.type === "unknown_equipment");
-  if (equipmentWarnings.length > 0) {
-    console.warn(`[generate-block] session ${slot.session_number} equipment warnings: ${equipmentWarnings.map((v) => v.detail).join("; ")}`);
-    session.coaching_notes = [
-      session.coaching_notes,
-      `EQUIPMENT CHECK NEEDED: ${equipmentWarnings.map((v) => v.detail).join("; ")}`,
-    ].filter(Boolean).join(" — ");
-  }
-
-  return session;
+  throw new Error(last.parseError ?? `failed to produce a parseable session after ${MAX_SESSION_ATTEMPTS} attempts`);
 }
 
 function stampSession(
