@@ -224,6 +224,29 @@ export function TrainingTabContent({
   const [segment, setSegment] = useState<Segment>(initialView);
   const [sessionSortKey, setSessionSortKey] = useState<SessionSortKey>("date");
   const [sessionSortDir, setSessionSortDir] = useState<SortDir>("desc");
+  const [creatingBlock, setCreatingBlock] = useState(false);
+
+  const handleNewEmptyBlock = async () => {
+    if (creatingBlock) return;
+    setCreatingBlock(true);
+    try {
+      const res = await fetch("/api/blocks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: clientNumber }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to create block");
+      }
+      const block = await res.json();
+      toast.success(`Block ${block.block_number} created`);
+      router.push(`/hub/clients/${clientNumber}/blocks/${block.id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create block");
+      setCreatingBlock(false);
+    }
+  };
 
   const handleSessionSort = (key: SessionSortKey) => {
     if (key === sessionSortKey) {
@@ -279,12 +302,23 @@ export function TrainingTabContent({
             title="Training Blocks"
             color="slate"
             action={
-              <Link
-                href={`/hub/clients/${clientNumber}?tab=plan-agent`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-rose px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-rose/90 transition-colors"
-              >
-                <IconPlus className="h-4 w-4" /> Plan Block
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleNewEmptyBlock}
+                  disabled={creatingBlock}
+                  title="Create an empty block instantly, then add sessions from templates — skips AI generation"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] px-3.5 py-1.5 text-sm font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors disabled:opacity-50"
+                >
+                  <IconPlus className="h-4 w-4" /> {creatingBlock ? "Creating…" : "New Block"}
+                </button>
+                <Link
+                  href={`/hub/clients/${clientNumber}?tab=plan-agent`}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-rose px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-rose/90 transition-colors"
+                >
+                  <IconPlus className="h-4 w-4" /> Plan Block with AI
+                </Link>
+              </div>
             }
             className="px-5 pt-5"
           />
@@ -321,7 +355,17 @@ export function TrainingTabContent({
             <div className="px-5 pb-5">
               <div className="flex items-center justify-between rounded-lg py-2 px-1 text-sm">
                 <span className="text-muted-foreground">No blocks yet</span>
-                <Link href={`/hub/clients/${clientNumber}?tab=plan-agent`} className="text-rose font-medium hover:underline">Create Block</Link>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleNewEmptyBlock}
+                    disabled={creatingBlock}
+                    className="text-rose font-medium hover:underline disabled:opacity-50"
+                  >
+                    {creatingBlock ? "Creating…" : "New Block"}
+                  </button>
+                  <Link href={`/hub/clients/${clientNumber}?tab=plan-agent`} className="text-rose font-medium hover:underline">Plan with AI</Link>
+                </div>
               </div>
             </div>
           )}
