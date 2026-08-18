@@ -30,6 +30,19 @@ the button matches expectations.
 **New trainer flow for a client with no block:** Blocks tab → "New Block" → "Add workout"
 → pick template → done in seconds, instead of routing through AI generation.
 
+**Second fix same session (`ba63b29`, also on `staging`+`main`):** Craig reported
+"New workout template" (paste a workout → AI structures it) intermittently failed
+with a JSON error. Root cause: `/api/workout-templates/structure` had no repair path —
+a truncated (4000-token cap) or malformed (trailing comma) AI JSON response hard-failed
+the whole paste with a raw parse error. Raised the cap to 8000 tokens and added one
+bounded repair round-trip on parse failure (ask the AI to fix and resend once), matching
+the existing pattern in `lib/planGeneration.ts`'s session generation. Two merge commits
+(`0583638`, `0065247`) reconciling with a concurrent session's plan-agent fix
+(`b104d79`, exercise-matching + chat draft persistence) — no conflicts, unrelated files.
+
+Dev server (port 3001) stopped at session close. `.env.local` copied into this worktree
+from the shared checkout for local testing — not committed (gitignored).
+
 ---
 
 ## Agent
