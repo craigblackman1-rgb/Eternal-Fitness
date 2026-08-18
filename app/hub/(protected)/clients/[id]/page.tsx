@@ -461,6 +461,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   above rather than needing to live in the accordion. ClientNotesPanel
                   stays outside the stack — it's an editable panel, not a collapsible
                   info section. */}
+              <div className="flex flex-col gap-3">
               <HubAccordionSection
                 icon={<IconFileText className="w-4 h-4" />}
                 title="Active block"
@@ -603,6 +604,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </div>
                 </HubAccordionSection>
               )}
+              </div>
             </TabsContent>
 
             <TabsContent value="profile">
