@@ -1,5 +1,69 @@
 # Eternal Fitness Website — State
 
+## 2026-08-18 (Claude Code) — hub structure-consistency extended to client record + block module, GATED on mobile
+
+Continued CR-EF-039/040 (hub structure-consistency: shared Quick Actions bar +
+accordion primitives) from the morning session, which had shipped the
+dashboard only (`d0c7d6d`) and queued a follow-up request to Open Design for
+the remaining 3 desktop surfaces + mobile
+(`.context/revision-request-hub-structure-consistency-2026-08-18.md`).
+
+- **Open Design MCP still broken.** Craig opened the app to wake the active
+  context (`get_active_context` then returned `active:true`), but every data
+  call (`list_files`/`search_files`/`get_file`) still threw
+  `WORKSPACE_CONTEXT_REQUIRED` — a daemon-side bug, not fixed by having a
+  project open. Cross-checked the design register directly
+  (`D:\apps\design-systems\ef-control-hub\index.html`): confirmed the other 3
+  surfaces + mobile genuinely hadn't been touched (version stamps unchanged,
+  no `.qa-bar`/`.hub-section` change notes) — the follow-up request was still
+  sitting unactioned.
+- **Craig's call: build from the written spec rather than keep waiting.**
+- **Client record — DONE + DEPLOYED (`fafa4f9`).** `app/hub/(protected)/clients/[id]/page.tsx`:
+  Quick Actions moved from a right-rail `HubCard` to the top `.qa-bar`,
+  absorbing the header's inline "Edit Client"/"Plan Block" buttons (one action
+  surface, not two). Overview tab's 5 info cards (Active Block/Last
+  Session/Snapshot/Training Snapshot/Active Training Rules) converted to a
+  `HubAccordionSection` stack, "Active Block" open by default (most-checked
+  fact on a client record; the real compliance signal already has its own
+  alert banner). `ClientNotesPanel` left outside the stack — editable panel,
+  not a collapsible info section.
+- **Block module — DONE + DEPLOYED (`fafa4f9`).** `HubQuickActions` extended
+  to support `onClick` actions alongside `href` (Edit Block/Add Workout open
+  drawers, not links — needed a real primitive change, not a look-alike
+  duplicate). `BlockActions.tsx` now renders the shared `.qa-bar`; Print/
+  Export/Delete stay in the "..." overflow menu (secondary/destructive, not
+  quick actions). Week/session `<details>` collapse and the single optional
+  Block Note card left as their own patterns — genuinely different kind of
+  collapsible / no real multi-section case for `.hub-section`, flagged in a
+  code comment per the brief's own instruction.
+- **Schedule — deliberately no `.qa-bar`.** Audited the live page and mockup:
+  no genuine quick actions exist there today (day/month toggle and
+  cancelled-visibility already live inside `ScheduleShell`; bookings happen
+  from a client record, not from the schedule page). Flagged in code rather
+  than inventing filler buttons.
+- **Mobile (`hub-m-today`) — not touched, deferred.** Entirely different CSS
+  system (`.mtop`/`.sec-label`/`.slist` etc., not Tailwind) with no direct
+  component reuse — genuinely needs real Open Design work once the MCP bug is
+  fixed or mockups are hand-delivered another way, not a mechanical port.
+  Work order left `GATED` on this.
+- **Concurrent-session reconciliation.** A different session pushed 2 commits
+  straight to `main` mid-session (`2b7415a`/`f683042`, client-assessment
+  workout template seed) — no registry entry, zero file overlap with this
+  work (confirmed via `git diff --stat`). Merged cleanly into this branch
+  before the final push so `main` didn't regress.
+- **Verified:** `tsc --noEmit` clean throughout. Both surfaces click-through
+  verified twice — once on local dev via Craig's real hub session (accordion
+  toggle, Edit Block drawer opening via the new `onClick` action), again live
+  on production post-deploy (`https://eternal-fitness.co.uk/hub/clients/1`,
+  hard-reloaded to rule out cache). Design Parity Gate attested as "no
+  mockup governs this change" (Open Design hadn't returned one) — built and
+  verified against the written spec instead.
+- **Note for next session:** if Open Design's daemon is still throwing
+  `WORKSPACE_CONTEXT_REQUIRED` on every call, don't retry the same way — it's
+  a real bug, not a stale-context issue. Mobile structure-consistency and the
+  Design Parity Gate proper (mockup vs. code, not spec vs. code) are still
+  owed once the daemon is fixed or mockups arrive another way.
+
 ## 2026-08-17 (OpenCode, evening) — finished stranded work + cleared the CR backlog
 Resumed a Claude session that ran out of tokens. Reconstructed state from git + `.context`,
 finished the session-page crash fix, merged the stranded delete/clone feature, then built
