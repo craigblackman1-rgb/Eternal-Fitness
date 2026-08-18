@@ -60,8 +60,23 @@ export function buildExerciseIndex(rows: ExerciseLibraryRow[]): ExerciseIndex {
   return { byName };
 }
 
+/** The model sometimes pluralises/singularises relative to the library (e.g.
+ *  "Band pull-aparts" vs the library's "Band Pull-Apart") — try the query both
+ *  with and without a trailing "s" before giving up. Lookup-side, so it needs
+ *  no re-indexing and can't introduce the collision risk a stored variant
+ *  would. */
 export function findLibraryExercise(index: ExerciseIndex, name: string): ExerciseLibraryRow | null {
-  return index.byName.get(normalizeExerciseName(name)) ?? null;
+  const key = normalizeExerciseName(name);
+  const direct = index.byName.get(key);
+  if (direct) return direct;
+  if (key.endsWith("s")) {
+    const singular = index.byName.get(key.slice(0, -1));
+    if (singular) return singular;
+  } else {
+    const plural = index.byName.get(`${key}s`);
+    if (plural) return plural;
+  }
+  return null;
 }
 
 /** Equipment tokens that don't need to appear on the studio list. */
