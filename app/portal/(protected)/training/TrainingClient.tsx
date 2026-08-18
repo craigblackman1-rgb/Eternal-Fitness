@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { SetLog } from "@/types";
 import type { PortalExercise, PortalSessionPlan, PortalTrainingPlan } from "@/lib/portal-data";
@@ -63,26 +63,35 @@ export default function TrainingClient({
     return ids;
   }, [logs]);
 
+  // Idempotency keys for in-flight creates, keyed by the same log key. A retried
+  // POST (network dropped after the server committed but before the ack came back)
+  // reuses the same client_op_id so the API dedupes instead of double-logging
+  // (CR-EF-029). Cleared once a row exists — subsequent taps are PATCHes.
+  const opIdByKey = useRef<Record<string, string>>({});
+
   const saveSetLog = async (
     sessionId: string,
     payload: SetLogSavePayload,
   ): Promise<{ ok: boolean; isNewPb: boolean }> => {
     const key = logKey(sessionId, payload.exercise_ref, payload.set_number);
     const existing = logs[key];
+    const body: Record<string, unknown> = existing
+      ? {
+          id: existing.id,
+          reps: payload.reps,
+          weight_kg: payload.weight_kg,
+          duration_seconds: payload.duration_seconds,
+          completed: payload.completed,
+        }
+      : (() => {
+          const clientOpId = opIdByKey.current[key] ?? crypto.randomUUID();
+          opIdByKey.current[key] = clientOpId;
+          return { ...payload, client_op_id: clientOpId };
+        })();
     const res = await fetch(`/api/portal/sessions/${sessionId}/set-logs`, {
       method: existing ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        existing
-          ? {
-              id: existing.id,
-              reps: payload.reps,
-              weight_kg: payload.weight_kg,
-              duration_seconds: payload.duration_seconds,
-              completed: payload.completed,
-            }
-          : payload,
-      ),
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       toast.error("That didn't save — check your connection and try again.");
@@ -90,6 +99,7 @@ export default function TrainingClient({
     }
     const saved: SetLog & { is_new_pb?: boolean } = await res.json();
     setLogs((prev) => ({ ...prev, [key]: saved }));
+    delete opIdByKey.current[key];
     return { ok: true, isNewPb: saved.is_new_pb === true };
   };
 

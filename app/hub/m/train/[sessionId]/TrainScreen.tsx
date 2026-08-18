@@ -402,13 +402,18 @@ export function TrainScreen({
     const weightVal = fieldValues.weight.trim() === "" ? null : Number(fieldValues.weight);
     const durationVal = fieldValues.duration.trim() === "" ? null : Number(fieldValues.duration);
 
+    // Idempotency key minted once per logical write and reused across retries
+    // (CR-EF-029). The live POST carries it so a retried create dedupes at the
+    // DB; if the write instead falls back to the offline queue, the SAME key is
+    // replayed, so a committed-but-unacked POST can't become a duplicate row.
+    const clientOpId = reuseClientOpId ?? crypto.randomUUID();
+
     const method = existing ? "PATCH" : "POST";
     const body = existing
       ? { id: existing.id, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed, is_warmup: isWarmup }
-      : { exercise_ref: exerciseRef, set_number: setNumber, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed, is_warmup: isWarmup };
+      : { exercise_ref: exerciseRef, set_number: setNumber, reps: repsVal, weight_kg: weightVal, duration_seconds: durationVal, completed, is_warmup: isWarmup, client_op_id: clientOpId };
 
     const enqueueOffline = async (): Promise<SaveSetLogResult> => {
-      const clientOpId = reuseClientOpId ?? crypto.randomUUID();
       try {
         await enqueue({
           client_op_id: clientOpId,
