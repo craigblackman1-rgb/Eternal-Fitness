@@ -145,7 +145,7 @@ export async function POST(req: Request) {
 
   let raw: string | null;
   try {
-    raw = await aiChat({ system: SYSTEM, user: text, maxTokens: 4000, model, temperature: 0.2 });
+    raw = await aiChat({ system: SYSTEM, user: text, maxTokens: 8000, model, temperature: 0.2 });
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 300) : "unknown error";
     return NextResponse.json({ error: `Structuring failed: ${detail}` }, { status: 502 });
@@ -153,22 +153,62 @@ export async function POST(req: Request) {
 
   if (!raw) return NextResponse.json({ error: "AI returned no response" }, { status: 502 });
 
-  let draft: StructuredDraft;
+  let parsed: Record<string, unknown> | undefined;
+  let parseError: string | undefined;
   try {
-    const parsed = extractJson(raw);
-    const data = normalizeSessionVersion(parsed.data);
-    const name = asString(parsed.name).trim() || "Pasted workout";
-    if (data.warm_up.length === 0 && data.main_block.length === 0 && data.cooldown.length === 0) {
-      return NextResponse.json(
-        { error: "No exercises could be parsed from the pasted text. Try cleaning up the paste and structuring again." },
-        { status: 422 },
-      );
-    }
-    draft = { name, data };
+    parsed = extractJson(raw);
   } catch (err) {
-    const detail = err instanceof Error ? err.message.slice(0, 300) : "unknown error";
-    return NextResponse.json({ error: `Could not parse the AI response: ${detail}` }, { status: 502 });
+    parseError = err instanceof Error ? err.message : "unknown error";
   }
+
+  // One repair round-trip for bad JSON (truncated output, trailing commas,
+  // stray commentary around the object) — same bounded-retry shape as the
+  // Plan Agent's session generation in planGeneration.ts.
+  if (!parsed) {
+    let repaired: string | null = null;
+    try {
+      repaired = await aiChat({
+        system: SYSTEM,
+        messages: [
+          { role: "user", content: text },
+          { role: "assistant", content: raw },
+          {
+            role: "user",
+            content: `That response failed JSON parsing (${parseError}). Return the same structured workout as a single valid JSON object matching the schema. Output ONLY the JSON object — no markdown fences, no commentary, no trailing commas.`,
+          },
+        ],
+        maxTokens: 8000,
+        model,
+        temperature: 0.2,
+      });
+    } catch {
+      // fall through — reported below via parseError
+    }
+    if (repaired) {
+      try {
+        parsed = extractJson(repaired);
+      } catch (err) {
+        parseError = err instanceof Error ? err.message : parseError;
+      }
+    }
+  }
+
+  if (!parsed) {
+    return NextResponse.json(
+      { error: `Could not parse the AI response: ${parseError ?? "unknown error"}. Try structuring again.` },
+      { status: 502 },
+    );
+  }
+
+  const data = normalizeSessionVersion(parsed.data);
+  const name = asString(parsed.name).trim() || "Pasted workout";
+  if (data.warm_up.length === 0 && data.main_block.length === 0 && data.cooldown.length === 0) {
+    return NextResponse.json(
+      { error: "No exercises could be parsed from the pasted text. Try cleaning up the paste and structuring again." },
+      { status: 422 },
+    );
+  }
+  const draft: StructuredDraft = { name, data };
 
   return NextResponse.json(draft);
 }
