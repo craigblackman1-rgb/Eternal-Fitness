@@ -181,9 +181,10 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
   const [day, setDay] = useState<string>(todayISO());
   const [sheetOpen, setSheetOpen] = useState(false);
   const [taskBusy, setTaskBusy] = useState<Set<string>>(new Set());
-  // Same .sec/.sec-h/.sec-b accordion primitive as TrainScreen's exercise
-  // sections — closed by default, top section open. Tasks starts collapsed
-  // since Sessions is the reason a trainer opens this screen.
+  // Same accordion primitive as TrainScreen's exercise sections, but named for
+  // this screen's own .m-section* contract (hub-m-today.html) — closed by
+  // default, top section open. Tasks starts collapsed since Sessions is the
+  // reason a trainer opens this screen.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ tasks: true });
 
   const dayEntries = useMemo(
@@ -292,10 +293,10 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
           </div>
         )}
 
-        <div className={`sec${collapsed.sessions ? " collapsed" : ""}`}>
+        <div className={`m-section${collapsed.sessions ? " collapsed" : ""}`}>
           <button
             type="button"
-            className="sec-h"
+            className="m-section-h"
             onClick={() => setCollapsed((p) => ({ ...p, sessions: !p.sessions }))}
             aria-expanded={!collapsed.sessions}
           >
@@ -304,11 +305,11 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
               <div className="sec-h-t">Sessions</div>
               <div className="sec-h-s">{dayEntries.length === 0 ? "Nothing booked" : `${dayEntries.length} ${dayEntries.length === 1 ? "session" : "sessions"}`}</div>
             </div>
-            <span className="sec-h-chev">{ICO.chev}</span>
+            <span className="m-section-chev">{ICO.chev}</span>
           </button>
 
           {!collapsed.sessions && (
-            <div className="sec-b">
+            <div className="m-section-b">
               {dayEntries.length === 0 ? (
                 <div className="empty">
                   <div className="empty-ic">{ICO.cal}</div>
@@ -364,10 +365,10 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
         </div>
 
         {dayTasks.length > 0 && (
-          <div className={`sec${collapsed.tasks ? " collapsed" : ""}`}>
+          <div className={`m-section${collapsed.tasks ? " collapsed" : ""}`}>
             <button
               type="button"
-              className="sec-h"
+              className="m-section-h"
               onClick={() => setCollapsed((p) => ({ ...p, tasks: !p.tasks }))}
               aria-expanded={!collapsed.tasks}
             >
@@ -376,11 +377,11 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
                 <div className="sec-h-t">Tasks due</div>
                 <div className="sec-h-s">{openTaskCount} open</div>
               </div>
-              <span className="sec-h-chev">{ICO.chev}</span>
+              <span className="m-section-chev">{ICO.chev}</span>
             </button>
 
             {!collapsed.tasks && (
-              <div className="sec-b">
+              <div className="m-section-b">
                 <div className="tlist">
                   {dayTasks.map((task) => {
                     const isDone = task.status === "done";
