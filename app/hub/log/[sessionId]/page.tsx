@@ -28,5 +28,15 @@ export default async function LiveSessionLogRedirect({ params }: { params: { ses
 
   if (!block) notFound();
 
-  redirect(`/hub/clients/${block.client_id}/blocks/${block.id}/sessions/${session.session_number}`);
+  // Client routes resolve by client_number (an integer), not the client's UUID id
+  // (CR-EF-035) — a link built from block.client_id would silently 404.
+  const { data: client } = await supabase
+    .from("clients")
+    .select("client_number")
+    .eq("id", block.client_id)
+    .single();
+
+  if (!client || client.client_number == null) notFound();
+
+  redirect(`/hub/clients/${client.client_number}/blocks/${block.id}/sessions/${session.session_number}`);
 }
