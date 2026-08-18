@@ -1,20 +1,29 @@
 // Ground-truth verification for the Trainer Hub against its ef-control-hub mockups.
-// Derives both sides at run time (git ls-tree for routes, readdir for mockups) so a
-// new page.tsx or a new hub-*.html mockup shows up automatically next run instead of
+// Derives both sides at run time (git ls-tree for routes, recursive readdir for mockups)
+// so a new page.tsx or a new mockup .html shows up automatically next run instead of
 // silently being left off a hand-typed list -- see [[feedback-derived-verification]].
 //
 // The mockup<->route join is NOT a mechanical filename convention here (unlike a
 // marketing site's route-to-slug mapping) -- "hub-client-detail.html" doesn't derive
 // from "/hub/clients/[id]" by any regex. So the join itself is a small, hand-authored
 // table (JOIN_TABLE below) -- that's fine per the proportionality rule, because a
-// ~20-entry table doesn't drift on its own. What DOES drift is the *set* of routes and
+// ~50-entry table doesn't drift on its own. What DOES drift is the *set* of routes and
 // mockups on each side, and that set is what's derived every run: any route or mockup
 // not present in JOIN_TABLE is reported as an explicit UNMAPPED finding, not silently
 // assumed to be "intentionally unmocked" -- that assumption is exactly what went stale
 // here (hub-documents.html appeared 2026-08-01, contradicting a 2026-07-26 WO's
 // documented "real, not mocked" note for /hub/documents).
 //
-// Usage: HUB_EMAIL=... HUB_PASSWORD=... node .context/tools/verify-hub-pages.js
+// Mockups are referenced by path RELATIVE to MOCKUP_DIR (forward slashes), because the
+// library was reorganised into category subfolders on 2026-08-17
+// (see request-opendesign-mockup-version-control-2026-08-17.md in the library root).
+//
+// Usage:
+//   # full run (live fetch against the hub, needs a disposable staff account):
+//   HUB_EMAIL=... HUB_PASSWORD=... node .context/tools/verify-hub-pages.js
+//   # dry run (no credentials, no network -- only the route/mockup reconciliation):
+//   node .context/tools/verify-hub-pages.js --dry-run     # or: DRY_RUN=1 node ...
+//
 // (credentials for a disposable staff account -- create one per the standing
 // disposable-verify-account rule, run this, then delete it. This script never creates
 // or deletes accounts itself -- that stays a separate, auditable step.)
@@ -30,6 +39,7 @@ const MOCKUP_DIR = process.env.MOCKUP_DIR || "D:\\apps\\design-systems\\ef-contr
 const SITE_ORIGIN = process.env.SITE_ORIGIN || "https://staging.eternal-fitness.co.uk";
 const HUB_EMAIL = process.env.HUB_EMAIL;
 const HUB_PASSWORD = process.env.HUB_PASSWORD;
+const DRY_RUN = process.argv.includes("--dry-run") || process.env.DRY_RUN === "1";
 
 // ---- derive both sides at run time, not hand-maintained ----
 
@@ -40,52 +50,146 @@ const ROUTE_FILES = execSync("git ls-tree -r HEAD --name-only", { cwd: REPO_ROOT
   .filter((l) => /^app\/hub\/.*page\.tsx$/.test(l))
   .filter((l) => !/^app\/hub\/(login|forgot-password|reset-password)\//.test(l)); // auth screens, no design mockup set
 
-const mockupFiles = fs
-  .readdirSync(MOCKUP_DIR)
-  .filter((f) => f.startsWith("hub-") && f.endsWith(".html"));
+// Recursive mockup enumeration. A flat readdir no longer works since the library was
+// reorganised into category subfolders (desktop/clients, mobile/today, ...). Skip the
+// top-level folders that are out of scope for route reconciliation (request doc §5/§7):
+//   _archive/   superseded + speculative files (archived, never deleted)
+//   documents/  client-facing document *templates* -- not hub mockups (note: the
+//               mockup category folder `desktop/documents/` is NOT this folder and is
+//               in scope)
+//   .od-skills/ tooling scaffolding
+//   assets/, preview/  images/screenshots, not mockups
+// index.html is the register itself, not a mockup. Paths are stored forward-slash
+// relative to MOCKUP_DIR so they round-trip into JOIN_TABLE and back out on any OS.
+const OUT_OF_SCOPE_TOP = new Set(["_archive", "documents", ".od-skills", "assets", "preview"]);
+
+function collectMockups(dir, base = "") {
+  const out = [];
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out; // dir missing/renamed -- treat as empty rather than crash the run
+  }
+  for (const entry of entries) {
+    if (entry.name === "index.html") continue; // the register, not a mockup
+    const rel = base ? `${base}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      if (base === "" && OUT_OF_SCOPE_TOP.has(entry.name)) continue;
+      out.push(...collectMockups(path.join(dir, entry.name), rel));
+    } else if (entry.name.endsWith(".html")) {
+      out.push(rel.replace(/\\/g, "/"));
+    }
+  }
+  return out;
+}
+
+const mockupFiles = collectMockups(MOCKUP_DIR);
 
 // ---- the join table (hand-authored, small, doesn't drift on its own) ----
-// route glob -> mockup filename. `null` mockup = documented-intentional no-mockup route.
+// route file -> mockup path (relative to MOCKUP_DIR). `null` mockup = documented
+// intentional no-mockup route. An ARRAY of mockups = one route rendering more than one
+// canonical surface (e.g. Schedule day + month views share /hub/schedule); the first
+// element is the primary surface used for live title checks, the rest are mapped so
+// they don't false-positive as UNMAPPED-MOCKUP.
 
 const JOIN_TABLE = [
-  { route: "app/hub/(protected)/page.tsx", mockup: "hub-dashboard.html" },
-  { route: "app/hub/(protected)/clients/page.tsx", mockup: "hub-clients.html" },
-  { route: "app/hub/(protected)/clients/[id]/page.tsx", mockup: "hub-client-detail.html" },
-  { route: "app/hub/(protected)/clients/[id]/edit/page.tsx", mockup: "hub-client-edit.html" },
-  { route: "app/hub/(protected)/clients/new/page.tsx", mockup: "hub-client-edit.html" },
-  { route: "app/hub/(protected)/clients/[id]/parq/[parqId]/edit/page.tsx", mockup: "hub-parq-edit.html" },
-  { route: "app/hub/(protected)/exercises/page.tsx", mockup: "hub-exercise-library.html" },
-  { route: "app/hub/(protected)/process-quality/page.tsx", mockup: "hub-process-quality.html" },
-  { route: "app/hub/(protected)/reports/updates/page.tsx", mockup: "hub-reports-updates.html" },
-  { route: "app/hub/(protected)/settings/studio-equipment/page.tsx", mockup: "hub-studio-equipment.html" },
-  { route: "app/hub/(protected)/settings/training-rules/page.tsx", mockup: "hub-training-rules.html" },
-  { route: "app/hub/(protected)/settings/plan-agent/page.tsx", mockup: "hub-plan-agent-settings.html" },
-  { route: "app/hub/(protected)/tasks/page.tsx", mockup: "hub-tasks.html" },
-  { route: "app/hub/(protected)/schedule/page.tsx", mockup: "hub-schedule.html" },
-  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/page.tsx", mockup: "hub-session.html" },
-  { route: "app/hub/log/[sessionId]/page.tsx", mockup: "hub-session.html" },
-  { route: "app/hub/(protected)/documents/page.tsx", mockup: "hub-documents.html" }, // hub-documents.html appeared 2026-08-01 -- previously documented as unmocked
-  // Documented as real-but-deliberately-unmocked (2026-07-26 WO) -- carried forward as
-  // a claim to re-verify, not an assumption: if any of these later gets a mockup, the
-  // "mockup with no route in JOIN_TABLE" check below will catch it same as it caught
-  // hub-documents.html, regardless of what this list says.
+  // Daily use
+  { route: "app/hub/(protected)/page.tsx", mockup: "desktop/dashboard/hub-dashboard.html" },
+  { route: "app/hub/(protected)/schedule/page.tsx", mockup: ["desktop/scheduling/hub-schedule.html", "desktop/scheduling/hub-schedule-month.html"] },
+  { route: "app/hub/(protected)/tasks/page.tsx", mockup: "desktop/tasks/hub-tasks.html" },
+
+  // Clients
+  { route: "app/hub/(protected)/clients/page.tsx", mockup: "desktop/clients/hub-clients.html" },
+  { route: "app/hub/(protected)/clients/[id]/page.tsx", mockup: ["desktop/clients/hub-client-detail-refined.html", "desktop/clients/hub-client-sessions-tab.html"] },
+  { route: "app/hub/(protected)/clients/[id]/edit/page.tsx", mockup: "desktop/clients/hub-client-edit.html" },
+  { route: "app/hub/(protected)/clients/new/page.tsx", mockup: "desktop/clients/hub-client-new.html" },
+  { route: "app/hub/(protected)/clients/[id]/documents/page.tsx", mockup: "desktop/clients/hub-client-documents.html" },
+  { route: "app/hub/(protected)/clients/[id]/documents/[docId]/page.tsx", mockup: "desktop/clients/hub-client-document-detail.html" },
+  { route: "app/hub/(protected)/clients/[id]/updates/page.tsx", mockup: "desktop/clients/hub-updates.html" },
+  { route: "app/hub/(protected)/clients/[id]/updates/new/page.tsx", mockup: "desktop/clients/hub-update-composer.html" },
+
+  // Training & workouts
+  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/page.tsx", mockup: "desktop/training/hub-block-module.html" },
+  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/review/page.tsx", mockup: "desktop/training/hub-block-review.html" },
+  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/page.tsx", mockup: "desktop/training/hub-session.html" },
+  { route: "app/hub/log/[sessionId]/page.tsx", mockup: "desktop/training/hub-session.html" }, // retired redirect stub -> same consolidated session screen (2026-08-15)
+  { route: "app/hub/(protected)/training-blocks/page.tsx", mockup: "desktop/training/hub-training-blocks.html" },
+  { route: "app/hub/(protected)/workout-templates/page.tsx", mockup: "desktop/training/hub-workout-templates.html" },
+  { route: "app/hub/(protected)/workout-templates/new/page.tsx", mockup: "desktop/training/hub-template-paste-assign.html" },
+  { route: "app/hub/(protected)/exercises/page.tsx", mockup: "desktop/training/hub-exercise-library.html" },
+  { route: "app/hub/(protected)/settings/training-rules/page.tsx", mockup: "desktop/training/hub-training-rules.html" },
+
+  // Finance
+  { route: "app/hub/(protected)/cashflow/page.tsx", mockup: "desktop/finance/hub-cashflow-overview.html" },
+  { route: "app/hub/(protected)/cashflow/invoices/page.tsx", mockup: "desktop/finance/hub-cashflow-invoices.html" },
+  { route: "app/hub/(protected)/cashflow/transactions/page.tsx", mockup: "desktop/finance/hub-cashflow-transactions.html" },
+  { route: "app/hub/(protected)/cashflow/forecast/page.tsx", mockup: "desktop/finance/hub-cashflow-forecast.html" },
+  { route: "app/hub/(protected)/cashflow/tax/page.tsx", mockup: "desktop/finance/hub-cashflow-tax.html" },
+  { route: "app/hub/(protected)/cashflow/reconciliation/page.tsx", mockup: "desktop/finance/hub-cashflow-reconciliation.html" },
+
+  // Clinical, reports, quality & settings
+  { route: "app/hub/(protected)/tracker/page.tsx", mockup: "desktop/medical/hub-medical-tracker.html" }, // medical/compliance tracker lives at /hub/tracker, not /hub/reports/medical-tracker
+  { route: "app/hub/(protected)/reports/updates/page.tsx", mockup: "desktop/reports/hub-reports-updates.html" },
+  { route: "app/hub/(protected)/process-quality/page.tsx", mockup: "desktop/quality/hub-process-quality.html" },
+  { route: "app/hub/(protected)/resources/page.tsx", mockup: "desktop/resources/hub-resources.html" },
+  { route: "app/hub/(protected)/documents/page.tsx", mockup: "desktop/documents/hub-documents.html" }, // appeared 2026-08-01 -- previously documented as unmocked
+  { route: "app/hub/(protected)/settings/studio-equipment/page.tsx", mockup: "desktop/studio/hub-studio-equipment.html" },
+  { route: "app/hub/(protected)/settings/plan-agent/page.tsx", mockup: "desktop/settings/hub-plan-agent-settings.html" },
+  { route: "app/hub/(protected)/settings/integrations/page.tsx", mockup: "desktop/settings/hub-settings-integrations.html" },
+
+  // Mobile (phone) -- the hub's trainer-facing PWA
+  { route: "app/hub/m/page.tsx", mockup: "mobile/today/hub-m-today.html" },
+  { route: "app/hub/m/clients/page.tsx", mockup: "mobile/clients/hub-m-clients.html" },
+  { route: "app/hub/m/train/page.tsx", mockup: "mobile/training/hub-m-train.html" },
+  { route: "app/hub/m/train/[sessionId]/page.tsx", mockup: "mobile/training/hub-m-train.html" },
+  { route: "app/hub/m/train/[sessionId]/edit/page.tsx", mockup: "mobile/training/hub-m-train-edit.html" },
+
+  // Documented as deliberately-unmocked (request doc §7 "for awareness -- missing
+  // mockups") -- carried forward as a claim to re-verify, not an assumption: if any of
+  // these later gets a mockup, the "mockup with no route in JOIN_TABLE" check below will
+  // catch it same as it caught hub-documents.html, regardless of what this list says.
   { route: "app/hub/(protected)/templates/page.tsx", mockup: null },
   { route: "app/hub/(protected)/templates/[id]/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/tracker/page.tsx", mockup: null },
   { route: "app/hub/(protected)/agreements/page.tsx", mockup: null },
   { route: "app/hub/(protected)/agreements/[id]/page.tsx", mockup: null },
+  { route: "app/hub/(protected)/web-admin/page.tsx", mockup: null },
+  { route: "app/hub/(protected)/workout-templates/[id]/page.tsx", mockup: null },
+  { route: "app/hub/(protected)/cashflow/invoices/new/page.tsx", mockup: null },
+  { route: "app/hub/(protected)/cashflow/invoices/[id]/page.tsx", mockup: null },
+  { route: "app/hub/(protected)/cashflow/transactions/[id]/page.tsx", mockup: null },
   { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/print/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/review/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/parq/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/documents/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/documents/[docId]/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/updates/page.tsx", mockup: null },
-  { route: "app/hub/(protected)/clients/[id]/updates/new/page.tsx", mockup: null },
   { route: "app/hub/(protected)/clients/[id]/updates/[updateId]/edit/page.tsx", mockup: null },
+  { route: "app/hub/m/clients/[id]/page.tsx", mockup: null },
+  { route: "app/hub/(protected)/resources/preview/[key]/page.tsx", mockup: null }, // staff preview of a client-facing resource (sample-name render), not a designed hub screen
 ];
 
+// Mockups in the library that are NOT hub-route mockups, so they're excluded from the
+// UNMAPPED-MOCKUP check rather than reported as orphans. Both lists are hand-kept and
+// deliberately small; the index.html register is their source of truth.
+//
+// 1. REFERENCE_DOCS -- design-system / document-system / portal-PWA reference docs the
+//    register marks "reference -- no route".
+const REFERENCE_DOCS = new Set([
+  "desktop/design-system/admin-design-system.html",
+  "desktop/design-system/hub-nav-reconciliation-v1.html",
+  "desktop/documents/client-documents-system.html",
+  "mobile/portal-pwa-states.html",
+]);
+// 2. ORPHANED_MOCKUPS -- canonical mockups whose route no longer exists. These should be
+//    re-homed or archived in a future register pass; until then they're flagged here so
+//    they don't masquerade as a clean "unmapped new mockup" finding.
+const ORPHANED_MOCKUPS = new Set([
+  // PAR-Q editor. The register still lists it at /hub/clients/[id]/parq/[parqId]/edit,
+  // but that route was removed when PAR-Q moved into the document engine (kind "parq",
+  // edited via the generic document detail surface). Left unmapped rather than guessed.
+  "desktop/medical/hub-parq-edit.html",
+]);
+
 const DYNAMIC = /\[[a-zA-Z]+\]/;
+
+const flattenMockups = (m) => (Array.isArray(m) ? m : m ? [m] : []);
+const primaryMockup = (m) => (Array.isArray(m) ? m[0] : m);
 
 function fileToUrlPath(f, sample) {
   // sample: object of {paramName: value} for dynamic segments, e.g. {id: '1', blockId: '...'}
@@ -178,7 +282,17 @@ async function checkPage(urlPath, mockupFile, cookie) {
     return { urlPath, mockupFile: null, verdict: "OK-NO-MOCKUP", detail: `loads fine, no mockup expected -- rawHexOutsideSvg:${rawHex.length}` };
   }
 
-  const mockupHtml = fs.readFileSync(path.join(MOCKUP_DIR, mockupFile), "utf8");
+  let mockupHtml;
+  try {
+    mockupHtml = fs.readFileSync(path.join(MOCKUP_DIR, mockupFile), "utf8");
+  } catch (e) {
+    return {
+      urlPath,
+      mockupFile,
+      verdict: "ERROR",
+      detail: `mockup "${mockupFile}" could not be read from ${MOCKUP_DIR} (${e.code || e.message}) -- archived/renamed since JOIN_TABLE was last updated?`,
+    };
+  }
   const mockupTitle = extractTitleish(mockupHtml);
   const liveTitle = extractTitleish(liveHtml);
   const titleMatch = fuzzyMatch(mockupTitle, liveTitle);
@@ -198,7 +312,8 @@ async function main() {
   const results = [];
   const routeSet = new Set(ROUTE_FILES);
   const mappedRouteSet = new Set(JOIN_TABLE.map((r) => r.route));
-  const mappedMockupSet = new Set(JOIN_TABLE.filter((r) => r.mockup).map((r) => r.mockup));
+  const mappedMockupSet = new Set(JOIN_TABLE.flatMap((r) => flattenMockups(r.mockup)));
+  const ignoredMockupSet = new Set([...REFERENCE_DOCS, ...ORPHANED_MOCKUPS]);
 
   // orphan direction 1: a real route file with no JOIN_TABLE entry at all
   for (const f of ROUTE_FILES) {
@@ -213,27 +328,35 @@ async function main() {
     }
   }
   // orphan direction 3: a mockup file that exists but no JOIN_TABLE entry points to it
+  // (reference docs and the known-orphaned PAR-Q editor are skipped -- see lists above)
   for (const m of mockupFiles) {
-    if (!mappedMockupSet.has(m)) {
+    if (!mappedMockupSet.has(m) && !ignoredMockupSet.has(m)) {
       results.push({ urlPath: null, mockupFile: m, verdict: "UNMAPPED-MOCKUP", detail: `${m} exists in ${MOCKUP_DIR} but no JOIN_TABLE entry references it -- new mockup, needs a route mapped or explicit review` });
     }
   }
 
-  const cookie = await login();
-
-  for (const { route, mockup } of JOIN_TABLE) {
-    if (!routeSet.has(route)) continue; // already reported as STALE-TABLE-ENTRY
-    if (DYNAMIC.test(route)) {
-      results.push({ urlPath: fileToUrlPath(route), mockupFile: mockup, verdict: "DYNAMIC-SKIPPED", detail: "dynamic segment(s) -- needs a real id, not derivable generically; spot-check manually" });
-      continue;
+  if (DRY_RUN) {
+    console.log("=== DRY RUN -- no login, no live fetch; reconciliation checks only ===");
+  } else {
+    const cookie = await login();
+    for (const { route, mockup } of JOIN_TABLE) {
+      if (!routeSet.has(route)) continue; // already reported as STALE-TABLE-ENTRY
+      if (DYNAMIC.test(route)) {
+        results.push({ urlPath: fileToUrlPath(route), mockupFile: primaryMockup(mockup), verdict: "DYNAMIC-SKIPPED", detail: "dynamic segment(s) -- needs a real id, not derivable generically; spot-check manually" });
+        continue;
+      }
+      results.push(await checkPage(fileToUrlPath(route), primaryMockup(mockup), cookie));
     }
-    results.push(await checkPage(fileToUrlPath(route), mockup, cookie));
   }
 
   const counts = {};
   for (const r of results) counts[r.verdict] = (counts[r.verdict] || 0) + 1;
 
   console.log("=== SUMMARY ===");
+  console.log(
+    `routes:${ROUTE_FILES.length} mockups:${mockupFiles.length} joinTable:${JOIN_TABLE.length}` +
+      (DRY_RUN ? " (dry run -- live checks skipped)" : ""),
+  );
   console.log(JSON.stringify(counts, null, 2));
   console.log("\n=== everything that isn't a clean PASS/OK ===");
   for (const r of results) {
