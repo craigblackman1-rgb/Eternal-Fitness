@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { HubCard, HubCardHeader } from "@/components/hub";
+import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
 import { Toolbar, toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { IconChevronLeft, IconChevronRight, IconDumbbell, IconMenu, IconPlus, IconVideo, IconEdit3, IconX } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
@@ -193,22 +193,24 @@ export function ExerciseBrowser({
   return (
     <div className="space-y-5">
       {/* ── Page header ── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Exercise library</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+      <HubPageHeader
+        title="Exercise library"
+        subtitle={
+          <>
             {exercises.length} exercises &middot; {filtered.length} match
-          </p>
-        </div>
-        <ExerciseFormDialog
-          trigger={
-            <button className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-rose px-3.5 text-sm font-semibold text-white hover:bg-rose/90 transition-colors">
-              <IconPlus className="h-4 w-4" />
-              Add Exercise
-            </button>
-          }
-        />
-      </div>
+          </>
+        }
+        actions={
+          <ExerciseFormDialog
+            trigger={
+              <button className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-rose px-3.5 text-sm font-semibold text-white hover:bg-rose/90 transition-colors">
+                <IconPlus className="h-4 w-4" />
+                Add Exercise
+              </button>
+            }
+          />
+        }
+      />
 
       {/* ── Bulk-edit bar ── */}
       {selectedIds.size > 0 && (

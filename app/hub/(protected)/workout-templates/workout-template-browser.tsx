@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { HubCard } from "@/components/hub/HubCard";
+import { HubCard, HubPageHeader } from "@/components/hub";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IconDumbbell, IconMenu, IconSearch, IconChevronLeft, IconChevronRight, IconPlus } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
@@ -138,21 +138,19 @@ export function WorkoutTemplateBrowser({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Workout templates</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Reusable sessions — assigned into a client&apos;s next block or saved back from a logged session.
-          </p>
-        </div>
-        <Link
-          href="/hub/workout-templates/new"
-          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-sm font-semibold transition-colors"
-        >
-          <IconPlus className="h-4 w-4" />
-          New template
-        </Link>
-      </div>
+      <HubPageHeader
+        title="Workout templates"
+        subtitle="Reusable sessions — assigned into a client's next block or saved back from a logged session."
+        actions={
+          <Link
+            href="/hub/workout-templates/new"
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-sm font-semibold transition-colors"
+          >
+            <IconPlus className="h-4 w-4" />
+            New template
+          </Link>
+        }
+      />
 
       <HubCard padded={false}>
         <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-[var(--hub-border)]">

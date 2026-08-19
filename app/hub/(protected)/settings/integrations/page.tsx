@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { IntegrationsManager } from "./IntegrationsManager";
+import { HubPageHeader } from "@/components/hub";
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +12,10 @@ export default async function IntegrationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Integrations</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Connect the studio calendar so every scheduled session appears in Outlook automatically.
-          The calendar is a view of the training plan — sessions are still scheduled in the hub.
-        </p>
-      </div>
+      <HubPageHeader
+        title="Integrations"
+        subtitle="Connect the studio calendar so every scheduled session appears in Outlook automatically. The calendar is a view of the training plan — sessions are still scheduled in the hub."
+      />
       <IntegrationsManager />
     </div>
   );

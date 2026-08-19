@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
-import { HubPageHeader, HubCard, HubCardHeader, KpiTile, StatusBadge } from "@/components/hub";
+import { HubPageHeader, HubCard, HubCardHeader, KpiTile, StatusBadge, HubRail } from "@/components/hub";
 import {
   IconFileText,
   IconClock,
@@ -168,9 +168,11 @@ export default async function CashflowOverviewPage() {
         />
       </div>
 
-      <div className="grid gap-[18px] grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] items-start">
-        {/* Recent activity — left column */}
-        <HubCard padded={false}>
+      <HubRail
+        main={
+          <>
+            {/* Recent activity — left column */}
+            <HubCard padded={false}>
           <HubCardHeader
             icon={<IconBarChart3 className="w-4 h-4" />}
             title="Recent activity"
@@ -266,10 +268,12 @@ export default async function CashflowOverviewPage() {
               </p>
             )}
           </div>
-        </HubCard>
-
-        {/* Right rail — Tax, Forecast, Quick actions */}
-        <div className="flex flex-col gap-[18px]">
+          </HubCard>
+        </>
+        }
+        side={
+          <>
+          {/* Right rail — Tax, Forecast, Quick actions */}
           {/* Tax estimate */}
           <HubCard padded={false}>
             <HubCardHeader
@@ -398,8 +402,9 @@ export default async function CashflowOverviewPage() {
               </Link>
             </div>
           </HubCard>
-        </div>
-      </div>
+          </>
+        }
+      />
     </div>
   );
 }
