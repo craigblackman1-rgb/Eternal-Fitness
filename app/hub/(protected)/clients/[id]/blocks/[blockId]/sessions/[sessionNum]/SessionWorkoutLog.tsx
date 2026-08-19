@@ -710,7 +710,7 @@ export function SessionWorkoutLog({
   return (
     <div className="space-y-4">
       {/* ── Progress bar + session stopwatch ────────────────────── */}
-      <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-3 shadow-sm">
+      <div className="rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-3 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <span className="text-[13px] font-semibold text-foreground">
@@ -747,7 +747,7 @@ export function SessionWorkoutLog({
 
       {/* ── Offline / sync banner ────────────────────────────────── */}
       {(offline || syncNotice) && (
-        <div className="flex items-start gap-3 rounded-xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-4 py-3 text-[13px] leading-relaxed text-[var(--status-warning-text)]">
+        <div className="flex items-start gap-3 rounded-[12px] border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-4 py-3 text-[13px] leading-relaxed text-[var(--status-warning-text)]">
           <span className="mt-0.5 flex-shrink-0">{ICO.rest}</span>
           <div className="min-w-0 flex-1">
             {syncNotice ? (
@@ -778,7 +778,7 @@ export function SessionWorkoutLog({
         }).length;
 
         return (
-          <div key={sec.key} className="overflow-hidden rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm">
+          <div key={sec.key} className="overflow-hidden rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm">
             <button
               type="button"
               onClick={() => setCollapsed((p) => ({ ...p, [sec.key]: !p[sec.key] }))}
@@ -794,7 +794,7 @@ export function SessionWorkoutLog({
             {!isCollapsed && (
               <div className="p-3">
                 {list.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-[var(--hub-border)] py-4 text-center text-sm text-muted-foreground">
+                  <p className="rounded-[12px] border border-dashed border-[var(--hub-border)] py-4 text-center text-sm text-muted-foreground">
                     No exercises in {sec.label.toLowerCase()} yet.
                   </p>
                 ) : (
@@ -865,7 +865,7 @@ export function SessionWorkoutLog({
       })}
 
       {/* ── Session summary ──────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 shadow-sm">
+      <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 shadow-sm">
         <h2 className="text-[15px] font-extrabold text-foreground">Session summary</h2>
         <p className="mb-4 mt-0.5 text-[12.5px] text-muted-foreground">Logged once, at the end — covers how the whole session felt, not one exercise.</p>
 
@@ -1165,7 +1165,7 @@ function RestControl({
     : Math.min(100, (timer.elapsed / Math.max(1, timer.seconds)) * 100);
 
   return (
-    <div className="mt-2.5 rounded-xl border border-teal/20 bg-teal/10 p-2.5">
+    <div className="mt-2.5 rounded-[12px] border border-teal/20 bg-teal/10 p-2.5">
       <div className="flex gap-1 rounded-lg border border-teal/20 bg-white/70 p-[3px]">
         <button type="button" onClick={() => onRestMode(timerKey, "countdown")} className={`h-[34px] flex-1 rounded-md text-[12.5px] font-bold ${timer.mode === "countdown" ? "bg-teal text-white" : "text-[var(--color-body)] hover:text-foreground"}`}>Countdown</button>
         <button type="button" onClick={() => onRestMode(timerKey, "stopwatch")} className={`h-[34px] flex-1 rounded-md text-[12.5px] font-bold ${timer.mode === "stopwatch" ? "bg-teal text-white" : "text-[var(--color-body)] hover:text-foreground"}`}>Stopwatch</button>
@@ -1411,7 +1411,7 @@ function SupersetBlock({
               const note = st?.note ?? "";
               const noteOpen = st?.noteOpen ?? false;
               return (
-                <div key={`leg-${ref}`} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
+                <div key={`leg-${ref}`} className="rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-[14px] font-bold text-foreground">{ex.exercise_name}</span>
                     <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${timeBased ? "border-teal/20 bg-teal/10 text-teal" : "border-rose/20 bg-rose/5 text-rose"}`}>
@@ -1471,7 +1471,7 @@ function SupersetBlock({
               if (!anyPresent) return null;
               const roundKey = `grp:${label}:${roundIdx}`;
               return (
-                <div key={roundIdx} className="rounded-xl border border-rose/20 bg-white/55 p-2.5">
+                <div key={roundIdx} className="rounded-[12px] border border-rose/20 bg-white/55 p-2.5">
                   <div className="mb-2 px-0.5 text-[10.5px] font-extrabold uppercase tracking-wider text-rose">Round {roundIdx + 1} of {totalRounds}</div>
                   <div className="flex flex-col gap-2">{rows}</div>
                   <RestControl

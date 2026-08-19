@@ -311,7 +311,7 @@ export default function SessionViewPage({
       </div>
 
       {session.status === "completed" && (
-        <div className="flex items-start gap-3 rounded-xl border border-teal/20 bg-teal/10 px-4 py-3 text-[13px] leading-relaxed text-foreground">
+        <div className="flex items-start gap-3 rounded-[12px] border border-teal/20 bg-teal/10 px-4 py-3 text-[13px] leading-relaxed text-foreground">
           <span className="mt-0.5 flex-shrink-0 text-teal"><IconCheckCircle className="h-4 w-4" /></span>
           <div className="min-w-0 flex-1">
             <b>Session completed — read-only</b>
@@ -325,7 +325,7 @@ export default function SessionViewPage({
       )}
 
       {session.data?.client_intro && (
-        <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-2xl">
+        <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-[16px]">
           <CardContent className="pt-4">
             <p className="text-sm italic text-muted-foreground">Client intro</p>
             <p className="mt-1">{session.data.client_intro}</p>
