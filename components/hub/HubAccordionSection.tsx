@@ -10,7 +10,7 @@ interface HubAccordionSectionProps {
   title: string;
   subtitle?: React.ReactNode;
   /** Semantic color for the icon badge. Defaults to "rose". */
-  color?: "rose" | "teal" | "navy" | "slate" | "amber" | "neutral";
+  color?: "rose" | "teal" | "navy" | "slate" | "amber" | "neutral" | "danger";
   children: React.ReactNode;
   className?: string;
   /** Starts open. Callers set this explicitly per section — never inferred from render order. */
@@ -27,6 +27,7 @@ const badgeColors: Record<string, { bg: string; text: string }> = {
   slate: { bg: "bg-slate/10", text: "text-slate" },
   amber: { bg: "bg-amber/10", text: "text-[var(--color-amber-text)]" },
   neutral: { bg: "bg-[var(--hub-hover)]", text: "text-muted-foreground" },
+  danger: { bg: "bg-[var(--status-danger-bg)]", text: "text-[var(--status-danger)]" },
 };
 
 /**

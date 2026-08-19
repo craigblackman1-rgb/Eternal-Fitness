@@ -6,7 +6,7 @@ import { TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
 import {
-  IconArrowUpRight, IconCalendar, IconCheck, IconCheckCircle, IconFileText,
+  IconAlertCircle, IconArrowUpRight, IconCalendar, IconCheck, IconCheckCircle, IconFileText,
   IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
 
   const { data: blocks } = await supabase
     .from("blocks")
-    .select("id, client_id, block_number, status, created_at, clients!inner(client_number, name)")
+    .select("id, client_id, block_number, status, created_at, block_note, clients!inner(client_number, name)")
     .order("created_at", { ascending: false });
 
   const activeBlocks = (blocks ?? []).filter((b) => b.status === "active");
@@ -127,6 +127,16 @@ export default async function DashboardPage() {
   const pendingReview = needsAttention.filter(
     (c) => c.compliance_status === "pending_medical" || c.compliance_status === "action_needed",
   );
+
+  // Alerts accordion — hub-dashboard.html collapses every flat status banner
+  // into one collapsible section ("3 alerts" + a breakdown) so they cost a
+  // single row of chrome instead of stacking four banners above the fold.
+  const alertSummaries: string[] = [];
+  if (doNotTrain.length > 0) alertSummaries.push(`${doNotTrain.length} Do Not Train`);
+  if (pendingReview.length > 0) alertSummaries.push(`${pendingReview.length} client${pendingReview.length === 1 ? "" : "s"} need action`);
+  if (quietClients.length > 0) alertSummaries.push(`${quietClients.length} gone quiet`);
+  if (updatesDueSoon.length > 0) alertSummaries.push(`${updatesDueSoon.length} update${updatesDueSoon.length === 1 ? "" : "s"} due in 7 days`);
+  const totalAlerts = doNotTrain.length + pendingReview.length + quietClients.length + updatesDueSoon.length;
 
   // Reviews due — same real signal as the Process & Quality "Reviews due" tile
   // (annual_review_due_date elapsed), not a separately-invented definition.
@@ -305,47 +315,58 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {doNotTrain.length > 0 && (
-        <HubAlert severity="danger" title={`Do Not Train — ${doNotTrain.length} client${doNotTrain.length > 1 ? "s" : ""}`}>
-          {doNotTrain.map((c) => c.name).join(", ")}
-          {doNotTrain.length === 1 ? " has" : " have"} outstanding paperwork that must be resolved before any further sessions.
-        </HubAlert>
-      )}
-      {pendingReview.length > 0 && (
-        <HubAlert severity="warning" title={`Action needed — ${pendingReview.length} client${pendingReview.length > 1 ? "s" : ""}`}>
-          {pendingReview.map((c) => c.name).join(", ")}
-          {pendingReview.length === 1 ? " needs" : " need"} clearance or outstanding actions resolved.
-        </HubAlert>
-      )}
-      {quietClients.length > 0 && (
-        <HubAlert severity="warning" title={`Gone quiet — ${quietClients.length} home-training client${quietClients.length > 1 ? "s" : ""}`}>
-          <span>
-            {quietClients.map((c, i) => (
-              <span key={c.clientId}>
-                {i > 0 && ", "}
-                <Link href={`/hub/clients/${c.clientNumber}`} className="font-medium underline underline-offset-2 hover:no-underline">
-                  {c.name}
-                </Link>
-              </span>
-            ))}{" "}
-            {quietClients.length === 1 ? "has" : "have"} not logged any sets in the last {HOME_TRAINING_QUIET_DAYS} days — worth checking in.
-          </span>
-        </HubAlert>
-      )}
-      {updatesDueSoon.length > 0 && (
-        <HubAlert severity="warning" title={`${updatesDueSoon.length} update${updatesDueSoon.length === 1 ? "" : "s"} due in the next 7 days`}>
-          <span>
-            {updatesDueSoon.map((c, i) => (
-              <span key={c.clientId}>
-                {i > 0 && ", "}
-                <Link href={`/hub/clients/${c.clientNumber}`} className="font-medium underline underline-offset-2 hover:no-underline">
-                  {c.name}
-                </Link>
-              </span>
-            ))}{" "}
-            {updatesDueSoon.length === 1 ? "is" : "are"} approaching {updatesDueSoon.length === 1 ? "their" : ""} next update deadline. Updates are derived from each client's interval schedule — send the update to advance the due date.
-          </span>
-        </HubAlert>
+      {totalAlerts > 0 && (
+        <HubAccordionSection
+          icon={<IconAlertCircle className="w-4 h-4" />}
+          title={`${totalAlerts} alert${totalAlerts === 1 ? "" : "s"}`}
+          subtitle={alertSummaries.join(" · ")}
+          color="danger"
+        >
+          <div className="px-4 pt-4 pb-4 space-y-3">
+            {doNotTrain.length > 0 && (
+              <HubAlert severity="danger" title={`Do Not Train — ${doNotTrain.length} client${doNotTrain.length > 1 ? "s" : ""}`}>
+                {doNotTrain.map((c) => c.name).join(", ")}
+                {doNotTrain.length === 1 ? " has" : " have"} outstanding paperwork that must be resolved before any further sessions.
+              </HubAlert>
+            )}
+            {pendingReview.length > 0 && (
+              <HubAlert severity="warning" title={`Action needed — ${pendingReview.length} client${pendingReview.length > 1 ? "s" : ""}`}>
+                {pendingReview.map((c) => c.name).join(", ")}
+                {pendingReview.length === 1 ? " needs" : " need"} clearance or outstanding actions resolved.
+              </HubAlert>
+            )}
+            {quietClients.length > 0 && (
+              <HubAlert severity="warning" title={`Gone quiet — ${quietClients.length} home-training client${quietClients.length > 1 ? "s" : ""}`}>
+                <span>
+                  {quietClients.map((c, i) => (
+                    <span key={c.clientId}>
+                      {i > 0 && ", "}
+                      <Link href={`/hub/clients/${c.clientNumber}`} className="font-medium underline underline-offset-2 hover:no-underline">
+                        {c.name}
+                      </Link>
+                    </span>
+                  ))}{" "}
+                  {quietClients.length === 1 ? "has" : "have"} not logged any sets in the last {HOME_TRAINING_QUIET_DAYS} days — worth checking in.
+                </span>
+              </HubAlert>
+            )}
+            {updatesDueSoon.length > 0 && (
+              <HubAlert severity="warning" title={`${updatesDueSoon.length} update${updatesDueSoon.length === 1 ? "" : "s"} due in the next 7 days`}>
+                <span>
+                  {updatesDueSoon.map((c, i) => (
+                    <span key={c.clientId}>
+                      {i > 0 && ", "}
+                      <Link href={`/hub/clients/${c.clientNumber}`} className="font-medium underline underline-offset-2 hover:no-underline">
+                        {c.name}
+                      </Link>
+                    </span>
+                  ))}{" "}
+                  {updatesDueSoon.length === 1 ? "is" : "are"} approaching {updatesDueSoon.length === 1 ? "their" : ""} next update deadline. Updates are derived from each client's interval schedule — send the update to advance the due date.
+                </span>
+              </HubAlert>
+            )}
+          </div>
+        </HubAccordionSection>
       )}
 
       {/* Accordion stack + narrow side rail — the attn-grid + side-stack split
@@ -618,17 +639,26 @@ export default async function DashboardPage() {
             <div className="px-5 pt-5 pb-5">
               {blocks && blocks.length > 0 ? (
                 <div className="space-y-2">
-                  {blocks.slice(0, 5).map((block) => (
-                    <Link
-                      key={block.id}
-                      href={`/hub/clients/${(block as any).clients?.client_number || block.client_id}/blocks/${block.id}`}
-                      className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[var(--hub-hover)] group"
-                    >
-                      <span className="flex-1 text-sm font-medium text-foreground">Block {block.block_number}</span>
-                      <StatusBadge status={block.status} />
-                      <IconArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    </Link>
-                  ))}
+                  {blocks.slice(0, 5).map((block) => {
+                    const clientName = (block as any).clients?.name ?? "Unknown client";
+                    const blockNote = (block as any).block_note;
+                    return (
+                      <Link
+                        key={block.id}
+                        href={`/hub/clients/${(block as any).clients?.client_number || block.client_id}/blocks/${block.id}`}
+                        className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[var(--hub-hover)] group"
+                      >
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm font-medium text-foreground truncate group-hover:text-rose transition-colors">
+                            {clientName} — Block {block.block_number}
+                          </span>
+                          {blockNote && <span className="block text-xs text-muted-foreground truncate">{blockNote}</span>}
+                        </span>
+                        <StatusBadge status={block.status} />
+                        <IconArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      </Link>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground py-2">No blocks generated yet.</p>
