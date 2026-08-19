@@ -6,6 +6,16 @@ SCOPE: eternal-fitness-website (app/hub/(protected)/** + components/hub/** —
        duration, minor styling remnants. NOT the CR-EF-037 core — already built.)
 
 ## LEDGER
+- 2026-08-19 (later) — **Premise contradicted by Craig's live re-check.** This
+  WO's "why it exists" section claims "all six mockups are already correct for
+  this scope" and that the remaining gap is narrow (training-blocks list,
+  templates browser, Est. duration, styling remnants). Craig's live walkthrough
+  the same day found the block-module page (CR-EF-059) and session page
+  (CR-EF-060) still don't match `hub-block-module.html`/`hub-session.html` at
+  the whole-page/logic level, post-G1-promotion. See the new sibling WO
+  `wo-ef-hub-dashboard-client-training-parity-2026-08-19`, Lane 0, which
+  re-verifies via full `data-od-id` enumeration before Lanes A–D below proceed.
+  Do not start Lane A–D on the "already built" assumption until Lane 0 reports back.
 - 2026-08-19 — **G1 (promote staging → main) DONE.** Craig approved promotion.
   Merged staging (`4844c72`) into a fresh worktree branch and pushed to origin/main
   as `2c6c63d` (`ee1c21b..2c6c63d`). 44 files, +1597/−516. All 7 redesign lanes
