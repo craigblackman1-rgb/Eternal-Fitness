@@ -9,17 +9,31 @@ interface KpiTileProps {
   trendUp?: boolean;
   statusToken?: StatusToken;
   className?: string;
+  /** When set, the tile renders as a button (e.g. the medical tracker's click-to-filter KPIs). */
+  onClick?: () => void;
+  /** Selected state for interactive tiles. */
+  active?: boolean;
 }
 
 /**
  * Stat card — single anatomy for every KPI band in the Hub (dashboard,
  * tracker, agreements). Horizontal: icon badge | label-over-value | trend.
+ * Pass `onClick` to make it an interactive filter tile (with `active` for the
+ * selected state); omit it for a plain, non-interactive stat card.
  */
-export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "primary", className }: KpiTileProps) {
+export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "primary", className, onClick, active }: KpiTileProps) {
   const c = getStatusClasses(statusToken);
+  const interactive = typeof onClick === "function";
 
-  return (
-    <div className={cn("bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm p-4 flex items-center gap-3.5", className)}>
+  const classes = cn(
+    "bg-[var(--hub-card)] rounded-[16px] border p-4 flex items-center gap-3.5 shadow-sm",
+    interactive && "text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]",
+    active ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]",
+    className,
+  );
+
+  const content = (
+    <>
       <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", c.bg, c.text)}>
         {icon}
       </div>
@@ -39,6 +53,16 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
           {trendUp === false ? "↓" : "↑"}{trend}
         </span>
       )}
-    </div>
+    </>
   );
+
+  if (interactive) {
+    return (
+      <button type="button" onClick={onClick} aria-pressed={active} className={classes}>
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={classes}>{content}</div>;
 }
