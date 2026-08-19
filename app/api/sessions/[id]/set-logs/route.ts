@@ -2,7 +2,22 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
 import { checkAndUpsertPB } from "@/lib/personal-records";
-import { markSessionInProgress } from "@/lib/session-transitions";
+import { markSessionInProgress, getSessionStatus } from "@/lib/session-transitions";
+
+// CR-EF-031 — a completed session is read-only. Reject the write with a clear
+// 403 rather than silently mutating a finished workout (the bug this guard kills:
+// sets logged / prescription edited / Complete re-pressed after the session was
+// done). Reopening is the only escape hatch, via POST /api/sessions/[id]/reopen.
+async function rejectIfCompleted(sessionId: string): Promise<NextResponse | null> {
+  const status = await getSessionStatus(sessionId);
+  if (status === "completed") {
+    return NextResponse.json(
+      { error: "This session is completed and read-only. Reopen it before logging or editing sets." },
+      { status: 403 },
+    );
+  }
+  return null;
+}
 
 async function getClientIdForSession(sessionId: string): Promise<string | null> {
   const pool = getPool();
@@ -112,6 +127,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const guarded = await rejectIfCompleted(params.id);
+  if (guarded) return guarded;
+
   const {
     exercise_ref,
     set_number,
@@ -184,6 +202,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const guarded = await rejectIfCompleted(params.id);
+  if (guarded) return guarded;
 
   const body = await request.json() as {
     id: string;
