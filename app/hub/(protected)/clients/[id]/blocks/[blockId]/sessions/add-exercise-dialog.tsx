@@ -148,7 +148,7 @@ export function AddExerciseDialog({
               <p className="py-4 text-center text-sm text-muted-foreground">Loading exercises...</p>
             )}
             {!loading && filtered.length === 0 && search && (
-              <p className="rounded-xl border border-dashed border-[var(--hub-border)] py-4 text-center text-sm text-muted-foreground">
+              <p className="rounded-[12px] border border-dashed border-[var(--hub-border)] py-4 text-center text-sm text-muted-foreground">
                 No exercises match &ldquo;{search}&rdquo;
               </p>
             )}

@@ -50,7 +50,7 @@ export function DeleteBlockButton({
           <IconTrash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-lg">
+      <AlertDialogContent className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[var(--color-ink)]">Delete this block?</AlertDialogTitle>
           <AlertDialogDescription>
