@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ import type { TrainerizeHistoryData } from "@/components/hub";
 
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
+import type { SetLog } from "@/types";
+import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
 import {
   IconFileText,
   IconClipboardList,
@@ -22,6 +24,7 @@ import {
   IconActivity,
   IconPlus,
   IconPencil,
+  IconChevronDown,
 } from "@/components/icons";
 
 type Segment = "blocks" | "sessions" | "progress" | "history";
@@ -76,6 +79,7 @@ interface Props {
   clientNumber: number;
   blocks: BlockRow[];
   sessions: SessionRow[];
+  setLogs: SetLog[];
   blockSessionCounts: Record<number, number>;
   exerciseTrends: ExerciseTrend[];
   exerciseHistory: ExerciseHistoryEntry[];
@@ -222,10 +226,41 @@ function SessionDateCell({ session }: { session: SessionRow }) {
   );
 }
 
+/** Inline, expandable logged-set breakdown for one session row (CR-EF-036).
+ *  Keyed by exercise_uid, so logs stay attributed across prescription edits. */
+function SessionSetEvidenceTable({ evidence }: { evidence: SessionSetEvidence }) {
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="border-b border-[var(--hub-border)]">
+          <th className="py-1.5 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Exercise</th>
+          <th className="py-1.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Set · load · reps</th>
+        </tr>
+      </thead>
+      <tbody>
+        {evidence.exercises.map((ex) => (
+          <tr key={ex.key} className="border-b border-[var(--hub-border)] align-top last:border-0">
+            <td className="py-1.5 pr-3 font-semibold text-foreground">{ex.name}</td>
+            <td className="py-1.5 text-muted-foreground tabular-nums">
+              {ex.sets.map((s) => (
+                <div key={s.setNumber}>
+                  Set {s.setNumber} · {s.summary}
+                  {s.isWarmup && <span className="text-muted-foreground/70"> (warm-up)</span>}
+                </div>
+              ))}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export function TrainingTabContent({
   clientNumber,
   blocks,
   sessions,
+  setLogs,
   blockSessionCounts,
   exerciseTrends,
   exerciseHistory,
@@ -244,6 +279,7 @@ export function TrainingTabContent({
   const [sessionSortKey, setSessionSortKey] = useState<SessionSortKey>("date");
   const [sessionSortDir, setSessionSortDir] = useState<SortDir>("desc");
   const [creatingBlock, setCreatingBlock] = useState(false);
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
   const handleNewEmptyBlock = async () => {
     if (creatingBlock) return;
@@ -279,6 +315,13 @@ export function TrainingTabContent({
   const sortedSessions = useMemo(
     () => sortSessions(sessions, sessionSortKey, sessionSortDir),
     [sessions, sessionSortKey, sessionSortDir],
+  );
+
+  // CR-EF-036: set_logs grouped per session, keyed by exercise_uid so logged
+  // data survives a prescription edit (see lib/session-sets.ts).
+  const setEvidenceBySession = useMemo(
+    () => groupSetLogsBySession(setLogs),
+    [setLogs],
   );
 
   useEffect(() => {
@@ -419,6 +462,7 @@ export function TrainingTabContent({
                         {sessionSortKey === "session" && <span>{sessionSortDir === "asc" ? "↑" : "↓"}</span>}
                       </button>
                     </th>
+                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Logged</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Check-in</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
                     <th className="h-10 px-5 py-0"></th>
@@ -430,32 +474,58 @@ export function TrainingTabContent({
                     const blockNum = (session as any).blocks?.block_number;
                     const fatigue = log?.fatigue;
                     const rpe = log?.rpe != null ? Number(log.rpe) : null;
-                    const checkinLabel = !log ? "—" : fatigue === "high" || (rpe !== null && rpe >= 8) ? "Fatigue flagged" : "Good";
+                    const evidence = setEvidenceBySession[session.id];
+                    const hasSets = !!evidence && evidence.setCount > 0;
+                    const isExpanded = expandedSession === session.id;
                     return (
-                      <tr key={session.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
-                        <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
-                          <SessionDateCell session={session} />
-                        </td>
-                        <td className="py-2.5 px-5 font-semibold text-foreground">
-                          {blockNum != null ? `Block ${blockNum} \u00b7 S${session.session_number}` : `S${session.session_number}`}
-                        </td>
-                        <td className="py-2.5 px-5">
-                          {log ? (
-                            <SessionCheckinPill fatigue={fatigue} rpe={rpe} />
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="py-2.5 px-5 text-muted-foreground max-w-[240px] truncate">{log?.notes || "—"}</td>
-                        <td className="py-2.5 px-5 text-right whitespace-nowrap">
-                          <Link
-                            href={`/hub/clients/${clientNumber}/blocks/${session.block_id}/sessions/${session.session_number}`}
-                            className="text-teal font-medium hover:underline"
-                          >
-                            Open
-                          </Link>
-                        </td>
-                      </tr>
+                      <Fragment key={session.id}>
+                        <tr className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
+                          <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
+                            <SessionDateCell session={session} />
+                          </td>
+                          <td className="py-2.5 px-5 font-semibold text-foreground">
+                            {blockNum != null ? `Block ${blockNum} \u00b7 S${session.session_number}` : `S${session.session_number}`}
+                          </td>
+                          <td className="py-2.5 px-5 whitespace-nowrap">
+                            {hasSets ? (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedSession(isExpanded ? null : session.id)}
+                                aria-expanded={isExpanded}
+                                className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-teal"
+                              >
+                                {evidence.setCount} {evidence.setCount === 1 ? "set" : "sets"}
+                                <IconChevronDown className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                              </button>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-5">
+                            {log ? (
+                              <SessionCheckinPill fatigue={fatigue} rpe={rpe} />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-5 text-muted-foreground max-w-[240px] truncate">{log?.notes || "—"}</td>
+                          <td className="py-2.5 px-5 text-right whitespace-nowrap">
+                            <Link
+                              href={`/hub/clients/${clientNumber}/blocks/${session.block_id}/sessions/${session.session_number}`}
+                              className="text-teal font-medium hover:underline"
+                            >
+                              Open
+                            </Link>
+                          </td>
+                        </tr>
+                        {isExpanded && hasSets && (
+                          <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]/50">
+                            <td colSpan={6} className="px-5 py-3">
+                              <SessionSetEvidenceTable evidence={evidence} />
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     );
                   })}
                 </tbody>

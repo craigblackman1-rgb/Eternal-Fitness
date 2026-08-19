@@ -916,6 +916,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 clientNumber={client.client_number}
                 blocks={blocks ?? []}
                 sessions={sessions ?? []}
+                setLogs={(setLogs ?? []) as SetLog[]}
                 blockSessionCounts={blockSessionCounts}
                 exerciseTrends={exerciseTrends}
                 exerciseHistory={exerciseHistory}
