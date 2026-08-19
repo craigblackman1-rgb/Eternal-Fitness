@@ -22,7 +22,14 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN corepack enable pnpm && pnpm run build
+RUN corepack enable pnpm
+# Persist Next's build cache so unchanged routes are not recompiled from scratch.
+# Matches decoded-data-app and decoded-ops-hub, which both already do this; this app
+# was the outlier and built in 191s vs their 128s/30s. Note decoded-ops-site
+# deliberately does NOT do this (its Dockerfile documents a stale-prerender problem);
+# that app prerenders marketing pages, this one does not.
+RUN --mount=type=cache,target=/app/.next/cache \
+    pnpm run build
 
 # Production image — minimal
 FROM base AS runner
