@@ -186,7 +186,7 @@ export default async function BlockViewPage({
         scheduledStartIso={scheduledStartIso}
         weekdays={weekdays}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--hub-border)] rounded-2xl overflow-hidden border border-[var(--hub-border)]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--hub-border)] rounded-[16px] overflow-hidden border border-[var(--hub-border)]">
           <div className="bg-[var(--hub-card)] px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sessions</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{completedSessions} of {totalSessions} done</p>
@@ -227,7 +227,7 @@ export default async function BlockViewPage({
             <details
               key={group.key}
               open={weekOpen}
-              className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden group"
+              className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden group"
             >
               <summary className="list-none cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-[var(--hub-hover)] transition-colors">
                 <span
