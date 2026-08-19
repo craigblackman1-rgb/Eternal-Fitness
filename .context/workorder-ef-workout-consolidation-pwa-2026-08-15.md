@@ -185,3 +185,26 @@ the two device tests together).
   path, calendar spine — are now buildable lanes off this WO. Emma Atkinson's
   duplicate-log data question (`qmsxl5iz4wg`) also answered: clean up as
   proposed in CR-EF-029's reconstruction, backup taken first.
+- **2026-08-19 (same day, later) — Phase 2 started, real progress shipped to
+  `staging`.** Found and fixed a live risk while starting: the 18 Aug status
+  migration shipped without the "transition API" its own comments call for,
+  so nothing had written the new `status`/`started_at`/`completed_at` columns
+  since — verified 0 sessions had drifted yet, but every completion from today
+  onward would have started the exact bug CR-EF-037 exists to kill, again.
+  Shipped: `lib/session-transitions.ts` (`markSessionInProgress`, idempotent,
+  called from both set-log insert paths); `app/api/sessions/[id]/route.ts`
+  syncing `completed_at`/`status` on the existing PATCH both loggers already
+  call (no frontend changes needed); `scripts/backfill-exercise-uid.mjs`
+  (156 rows backfilled, 100% `exercise_uid` coverage, applied to prod);
+  `components/hub/SessionStatusPill.tsx` (Lane B, dispatched to OpenCode,
+  hand-reviewed, render-verified against all 5 mockup states). All on
+  `staging` (`79c5d3f`), verified via `tsc --noEmit` + a synthetic
+  throwaway-session test (zero real data touched) + direct code-path review.
+  **Not yet on `main`/live** — Craig's call, per today's staging-only decision.
+  **Still open, explicitly deferred (not silently dropped):** wiring
+  SessionStatusPill into live screens; CR-EF-036's actual fix (client Sessions
+  view reading `set_logs`); H3's write-guard + Reopen UI (needs a read of the
+  mockup's `reopen-dialog` section before building — UI-dependent, didn't fit
+  today); Phase 3 (calendar spine); the wider CR-EF-039/040 ~50-screen sweep
+  (HubRail, HubCard height contract, single accordion, single tab still open
+  Lane B units before the sweep itself can start).
