@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getPortalSessionFromCookies } from "@/lib/portal-session";
 import { getPool } from "@/lib/pg-client";
 import { checkAndUpsertPB } from "@/lib/personal-records";
-import { markSessionInProgress } from "@/lib/session-transitions";
+import { markSessionInProgress, getSessionStatus } from "@/lib/session-transitions";
 
 /**
  * Portal set-log routes — the client-authored counterpart to the staff route at
@@ -48,6 +48,19 @@ function accessResponse(access: "not_found" | "wrong_mode"): NextResponse {
   return NextResponse.json({ error: "Session not found" }, { status: 404 });
 }
 
+// CR-EF-031 — a completed session is read-only, staff and portal alike. Same
+// guard as the staff set-logs route; reopening is a staff-only action.
+async function rejectIfCompleted(sessionId: string): Promise<NextResponse | null> {
+  const status = await getSessionStatus(sessionId);
+  if (status === "completed") {
+    return NextResponse.json(
+      { error: "This session is completed and read-only. Logging or editing sets is no longer possible." },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const session = await getPortalSessionFromCookies();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -71,6 +84,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const access = await checkSessionAccess(params.id, session.clientId);
   if (access !== "ok") return accessResponse(access);
+
+  const guarded = await rejectIfCompleted(params.id);
+  if (guarded) return guarded;
 
   let body: {
     exercise_ref?: string;
@@ -169,6 +185,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const access = await checkSessionAccess(params.id, session.clientId);
   if (access !== "ok") return accessResponse(access);
+
+  const guarded = await rejectIfCompleted(params.id);
+  if (guarded) return guarded;
 
   let body: {
     id?: string;

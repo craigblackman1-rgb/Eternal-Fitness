@@ -454,6 +454,15 @@ export interface DBSession {
   cancelled_at?: string | null;
   /** Optional free-text reason for the cancellation. */
   cancel_reason?: string | null;
+  /** First-class lifecycle state (CR-EF-037 Phase 1) — the single source of truth.
+   *  Surfaces read this, never re-derive it from data.session_log / scheduled_at /
+   *  cancelled_at. Absent only on rows created before the Phase 1 migration backfill. */
+  status?: "planned" | "scheduled" | "in_progress" | "completed" | "cancelled";
+  /** When the first set was logged (NOT screen-mount time). NULL if nothing logged. */
+  started_at?: string | null;
+  /** Real, indexable copy of data.session_log.completed_at — kept in sync by the
+   *  transition API. */
+  completed_at?: string | null;
 }
 
 export type DocumentStatus = "draft" | "sent" | "received" | "signed" | "expired" | "needs_update" | "superseded";

@@ -39,6 +39,9 @@ export default function SessionViewPage({
   const [showTemplateSave, setShowTemplateSave] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [showReopen, setShowReopen] = useState(false);
+  const [reopening, setReopening] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -73,7 +76,7 @@ export default function SessionViewPage({
       setLoading(false);
     }
     load();
-  }, [params.id, params.blockId, sessionNum]);
+  }, [params.id, params.blockId, sessionNum, refreshKey]);
 
   // Legacy entry points land here with ?edit=1 (block overview's "Edit session") or
   // ?mode=edit (the retired /hub/log redirect) — both open straight into the editor.
@@ -139,6 +142,20 @@ export default function SessionViewPage({
   };
 
   const setLogsArray = useMemo(() => Object.values(setLogs), [setLogs]);
+
+  const handleReopen = async () => {
+    if (!session) return;
+    setReopening(true);
+    const res = await fetch(`/api/sessions/${session.id}/reopen`, { method: "POST" });
+    setReopening(false);
+    if (!res.ok) {
+      toast.error("Failed to reopen session");
+      return;
+    }
+    setShowReopen(false);
+    setRefreshKey((k) => k + 1);
+    toast.success("Session reopened — changes are audited from here.");
+  };
 
   const handleSaveAsTemplate = async () => {
     if (!session || !templateName.trim()) return;
@@ -271,6 +288,20 @@ export default function SessionViewPage({
         </div>
       </div>
 
+      {session.status === "completed" && (
+        <div className="flex items-start gap-3 rounded-xl border border-teal/20 bg-teal/10 px-4 py-3 text-[13px] leading-relaxed text-foreground">
+          <span className="mt-0.5 flex-shrink-0 text-teal"><IconCheckCircle className="h-4 w-4" /></span>
+          <div className="min-w-0 flex-1">
+            <b>Session completed — read-only</b>
+            <br />
+            Logged sets, prescription and summary are locked so a finished workout can&rsquo;t be re-logged by accident. Reopening is the only way to change anything, and it&rsquo;s audited.
+          </div>
+          <Button variant="ghost" size="sm" className="shrink-0 rounded-lg" onClick={() => setShowReopen(true)}>
+            Reopen session
+          </Button>
+        </div>
+      )}
+
       {session.data?.client_intro && (
         <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-2xl">
           <CardContent className="pt-4">
@@ -387,6 +418,31 @@ export default function SessionViewPage({
           )}
         </div>
       </HubCard>
+
+      {showReopen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[var(--hub-sidebar)]/50 p-5 backdrop-blur-[2px]" onClick={() => setShowReopen(false)}>
+          <div className="w-full max-w-[400px] rounded-[20px] bg-[var(--hub-card)] p-7 shadow-[0_24px_64px_rgba(16,24,40,.24)]" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-rose/10 text-rose">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+            </div>
+            <h3 className="mb-1.5 text-lg font-extrabold text-foreground">Reopen this session?</h3>
+            <p className="mb-5 text-[13.5px] text-muted-foreground">
+              This lets the logged data and the prescription be changed again.
+            </p>
+            <p className="mb-5 text-[13.5px] text-muted-foreground">
+              Reopening is recorded and audited, so it stays clear that a finished session was changed after completion.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button type="button" onClick={() => setShowReopen(false)} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-[18px] text-sm font-bold text-foreground hover:bg-[var(--hub-hover)]">
+                Keep it read-only
+              </button>
+              <button type="button" onClick={handleReopen} disabled={reopening} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] px-[18px] text-sm font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] disabled:cursor-not-allowed disabled:opacity-50">
+                Reopen session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
