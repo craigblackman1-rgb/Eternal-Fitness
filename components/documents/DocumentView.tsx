@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { ClientDocument, DocumentKind } from "@/lib/documents/types";
 import { DocumentAccessibilityControls } from "@/components/documents/DocumentAccessibilityControls";
 import { DocumentBodyView } from "@/lib/documents/render";
+import { cn } from "@/lib/utils";
 
 const KIND_EYEBROW: Record<DocumentKind, string> = {
   terms: "Client document 01",
@@ -94,7 +95,7 @@ export function DocumentView({
     <div className="doc-page">
       {showToolbar && <DocumentAccessibilityControls />}
 
-      <main className="doc-sheet" id="doc-start">
+      <main className={cn("doc-sheet", doc.kind === "endurance_block" && "doc-sheet--wide")} id="doc-start">
         <header className="doc-masthead">
           <div className="doc-brandline">
             <EfLogo />

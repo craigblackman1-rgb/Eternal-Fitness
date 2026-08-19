@@ -479,6 +479,15 @@
   overflow: hidden;
 }
 
+/* Wider variant for document kinds whose content is a data table, not prose
+   — the endurance_block calendar (6 columns) reads as one word per line at
+   the standard 780px prose width. Every other kind (agreements, PAR-Q,
+   consent) stays narrow on purpose; this is opt-in per kind, not a global
+   bump. */
+.doc-sheet--wide {
+  max-width: 1180px;
+}
+
 /* ----- Masthead ----- */
 .doc-masthead {
   padding: 40px 40px 32px;
