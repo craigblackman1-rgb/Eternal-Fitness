@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getComplianceStatus } from "@/lib/hubStatus";
-import { HubCard, HubPageHeader, StatusBadge, EmptyState } from "@/components/hub";
+import { HubCard, HubPageHeader, StatusBadge, EmptyState, KpiTile } from "@/components/hub";
 import { IconSearch, IconX, IconClock, IconAlertTriangle, IconShieldCheck } from "@/components/icons";
 
 /* ─── types ─────────────────────────────────────────────────── */
@@ -432,51 +432,11 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
 
       {/* ── KPI band ─────────────────────────────────── */}
       <div className="grid grid-cols-5 gap-3.5 max-[1100px]:grid-cols-2 max-[620px]:grid-cols-1" role="group" aria-label="Compliance summary — select a tile to filter">
-        <button type="button" className={cn("bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-3.5 text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]", isKpiActive("do_not_train") ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]")} onClick={() => handleKpiClick("do_not_train")}>
-          <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[var(--status-danger-bg)] text-[var(--status-danger)]">
-            <IconCircleSlash className="w-5 h-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-medium text-muted-foreground">Do Not Train</span>
-            <span className="block text-2xl font-bold tabular-nums text-foreground leading-tight">{kpis.dnt}</span>
-          </span>
-        </button>
-        <button type="button" className={cn("bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-3.5 text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]", isKpiActive("pending_medical") ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]")} onClick={() => handleKpiClick("pending_medical")}>
-          <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning)]">
-            <IconClock className="w-5 h-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-medium text-muted-foreground">Pending clearance</span>
-            <span className="block text-2xl font-bold tabular-nums text-foreground leading-tight">{kpis.pend}</span>
-          </span>
-        </button>
-        <button type="button" className={cn("bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-3.5 text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]", isKpiActive("__overdue") ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]")} onClick={() => handleKpiClick("__overdue")}>
-          <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[var(--status-danger-bg)] text-[var(--status-danger)]">
-            <IconCalendarClock className="w-5 h-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-medium text-muted-foreground">Reviews overdue</span>
-            <span className="block text-2xl font-bold tabular-nums text-foreground leading-tight">{kpis.over}</span>
-          </span>
-        </button>
-        <button type="button" className={cn("bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-3.5 text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]", isKpiActive("__soon") ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]")} onClick={() => handleKpiClick("__soon")}>
-          <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning)]">
-            <IconDocClock className="w-5 h-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-medium text-muted-foreground">Expiring ≤ 30 days</span>
-            <span className="block text-2xl font-bold tabular-nums text-foreground leading-tight">{kpis.soon}</span>
-          </span>
-        </button>
-        <button type="button" className={cn("bg-white border rounded-2xl shadow-sm p-4 flex items-center gap-3.5 text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]", isKpiActive("clear") ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]")} onClick={() => handleKpiClick("clear")}>
-          <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[var(--status-success-bg)] text-[var(--status-success)]">
-            <IconCheckSquare className="w-5 h-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-medium text-muted-foreground">Fully compliant</span>
-            <span className="block text-2xl font-bold tabular-nums text-foreground leading-tight">{kpis.clr}</span>
-          </span>
-        </button>
+        <KpiTile icon={<IconCircleSlash className="w-5 h-5" />} label="Do Not Train" value={kpis.dnt} statusToken="danger" active={isKpiActive("do_not_train")} onClick={() => handleKpiClick("do_not_train")} />
+        <KpiTile icon={<IconClock className="w-5 h-5" />} label="Pending clearance" value={kpis.pend} statusToken="warning" active={isKpiActive("pending_medical")} onClick={() => handleKpiClick("pending_medical")} />
+        <KpiTile icon={<IconCalendarClock className="w-5 h-5" />} label="Reviews overdue" value={kpis.over} statusToken="danger" active={isKpiActive("__overdue")} onClick={() => handleKpiClick("__overdue")} />
+        <KpiTile icon={<IconDocClock className="w-5 h-5" />} label="Expiring ≤ 30 days" value={kpis.soon} statusToken="warning" active={isKpiActive("__soon")} onClick={() => handleKpiClick("__soon")} />
+        <KpiTile icon={<IconCheckSquare className="w-5 h-5" />} label="Fully compliant" value={kpis.clr} statusToken="success" active={isKpiActive("clear")} onClick={() => handleKpiClick("clear")} />
       </div>
 
       {/* ── Card ──────────────────────────────────────── */}
