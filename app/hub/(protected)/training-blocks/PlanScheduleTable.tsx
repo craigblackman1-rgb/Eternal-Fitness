@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { HubTable, TokenPill } from "@/components/hub";
 import { toolbarSelectClasses } from "@/components/hub/Toolbar";
-import { getScheduleStatus } from "@/lib/hubStatus";
+import type { StatusToken } from "@/lib/hubStatus";
 import type { BlockWithClient } from "./page";
 
 function formatDate(d: string | null): string {
@@ -15,6 +16,37 @@ function formatDate(d: string | null): string {
     month: "short",
     year: "numeric",
   });
+}
+
+function initialsFor(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+const blockApprovalMap: Record<string, { token: StatusToken; label: string }> = {
+  draft: { token: "warning", label: "Awaiting review" },
+  approved: { token: "success", label: "Approved" },
+  active: { token: "primary", label: "Active" },
+  complete: { token: "success", label: "Completed" },
+};
+
+function actionLabel(row: BlockWithClient): string {
+  if (row.compliance_status === "do_not_train") return "Open";
+  switch (row.status) {
+    case "active":
+      return "Open";
+    case "complete":
+      return "Review";
+    case "draft":
+      return "Continue";
+    case "approved":
+    default:
+      return "Open";
+  }
 }
 
 function EditableDateCell({
@@ -122,13 +154,18 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
         const name = row.client_name ?? "Unknown";
         const num = row.client_number;
         return (
-          <div>
-            <span className="font-medium text-foreground">{name}</span>
-            {num != null && (
-              <span className="text-xs text-muted-foreground ml-1.5">
-                #{num}
-              </span>
-            )}
+          <div className="flex items-center gap-2.5">
+            <span className="inline-grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--status-primary-bg)] text-[var(--color-rose)] text-xs font-bold">
+              {initialsFor(name)}
+            </span>
+            <div className="min-w-0">
+              <span className="font-medium text-foreground">{name}</span>
+              {num != null && (
+                <span className="text-xs text-muted-foreground ml-1.5">
+                  #{num}
+                </span>
+              )}
+            </div>
           </div>
         );
       },
@@ -144,6 +181,17 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
       ),
     },
     {
+      key: "programme",
+      header: "Programme",
+      sortable: true,
+      sortValue: (row: BlockWithClient) => row.programme ?? "",
+      render: (row: BlockWithClient) => (
+        <span className={row.programme ? "text-muted-foreground" : "text-muted-foreground italic"}>
+          {row.programme ?? "—"}
+        </span>
+      ),
+    },
+    {
       key: "due",
       header: "Scheduled start",
       sortable: true,
@@ -153,15 +201,59 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
       ),
     },
     {
+      key: "progress",
+      header: "Progress",
+      sortable: true,
+      sortValue: (row: BlockWithClient) => row.sessions_completed,
+      render: (row: BlockWithClient) => {
+        if (row.compliance_status === "do_not_train") {
+          return <span className="text-muted-foreground italic">Blocked</span>;
+        }
+        if (!row.scheduled_start) {
+          return <span className="text-muted-foreground italic">Not started</span>;
+        }
+        const total = row.sessions_total;
+        const done = row.sessions_completed;
+        const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+        return (
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-1.5 w-[90px] rounded-full bg-[var(--hub-border)] overflow-hidden align-middle">
+              <span
+                className="block h-full rounded-full bg-[var(--color-teal)]"
+                style={{ width: `${pct}%` }}
+              />
+            </span>
+            <span className="tabular-nums whitespace-nowrap">{done} of {total}</span>
+          </div>
+        );
+      },
+    },
+    {
       key: "status",
       header: "Approval",
       sortable: true,
       sortValue: (row: BlockWithClient) => row.status,
       className: "w-[120px]",
       render: (row: BlockWithClient) => {
-        const lookup = getScheduleStatus(row.status);
+        if (row.compliance_status === "do_not_train") {
+          return <TokenPill token="danger" label="Do Not Train" />;
+        }
+        const lookup = blockApprovalMap[row.status];
         return lookup ? <TokenPill token={lookup.token} label={lookup.label} /> : null;
       },
+    },
+    {
+      key: "action",
+      header: "",
+      render: (row: BlockWithClient) => (
+        <Link
+          href={`/hub/clients/${row.client_number ?? row.client_id}/blocks/${row.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-teal font-medium hover:underline whitespace-nowrap"
+        >
+          {actionLabel(row)}
+        </Link>
+      ),
     },
   ];
 
