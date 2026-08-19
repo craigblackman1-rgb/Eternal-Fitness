@@ -51,7 +51,8 @@ const ROUTE_FILES = execSync("git ls-tree -r HEAD --name-only", { cwd: REPO_ROOT
   .split("\n")
   .map((l) => l.trim())
   .filter((l) => /^app\/hub\/.*page\.tsx$/.test(l))
-  .filter((l) => !/^app\/hub\/(login|forgot-password|reset-password)\//.test(l)); // auth screens, no design mockup set
+  .filter((l) => !/^app\/hub\/(login|forgot-password|reset-password)\//.test(l)) // auth screens, no design mockup set
+  .filter((l) => !/^app\/hub\/log\//.test(l)); // retired /hub/log redirect stub (2026-08-15) -- 302s to the consolidated session screen, no surface of its own to verify
 
 // Recursive mockup enumeration. A flat readdir no longer works since the library was
 // reorganised into category subfolders (desktop/clients, mobile/today, ...). Skip the
@@ -116,7 +117,6 @@ const JOIN_TABLE = [
   { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/page.tsx", mockup: "desktop/training/hub-block-module.html" },
   { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/review/page.tsx", mockup: "desktop/training/hub-block-review.html" },
   { route: "app/hub/(protected)/clients/[id]/blocks/[blockId]/sessions/[sessionNum]/page.tsx", mockup: "desktop/training/hub-session.html" },
-  { route: "app/hub/log/[sessionId]/page.tsx", mockup: "desktop/training/hub-session.html" }, // retired redirect stub -> same consolidated session screen (2026-08-15)
   { route: "app/hub/(protected)/training-blocks/page.tsx", mockup: "desktop/training/hub-training-blocks.html" },
   { route: "app/hub/(protected)/workout-templates/page.tsx", mockup: "desktop/training/hub-workout-templates.html" },
   { route: "app/hub/(protected)/workout-templates/new/page.tsx", mockup: "desktop/training/hub-template-paste-assign.html" },
@@ -154,6 +154,7 @@ const JOIN_TABLE = [
   // catch it same as it caught hub-documents.html, regardless of what this list says.
   { route: "app/hub/(protected)/templates/page.tsx", mockup: null },
   { route: "app/hub/(protected)/templates/[id]/page.tsx", mockup: null },
+  { route: "app/hub/templates/[id]/preview/page.tsx", mockup: null }, // standalone document-template preview render (unprotected), not a designed hub screen
   { route: "app/hub/(protected)/agreements/page.tsx", mockup: null },
   { route: "app/hub/(protected)/agreements/[id]/page.tsx", mockup: null },
   { route: "app/hub/(protected)/web-admin/page.tsx", mockup: null },

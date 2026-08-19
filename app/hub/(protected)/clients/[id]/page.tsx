@@ -10,7 +10,7 @@ import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { ClientNotesPanel } from "./ClientNotesPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubSection, HubDataGrid, HubDataField, HubQuickActions, HubAccordionSection, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
+import { HubCard, HubCardHeader, HubDataGrid, HubDataField, HubQuickActions, HubAccordionSection, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
 import type { TrainerizeHistoryData } from "@/components/hub";
 import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
@@ -36,7 +36,6 @@ import { RESOURCES } from "@/lib/resources";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
 import { CommsTabContent } from "./CommsTabContent";
-import { CollapsibleSection } from "./CollapsibleSection";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -461,6 +460,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   above rather than needing to live in the accordion. ClientNotesPanel
                   stays outside the stack — it's an editable panel, not a collapsible
                   info section. */}
+              <div className="flex flex-col gap-3">
               <HubAccordionSection
                 icon={<IconFileText className="w-4 h-4" />}
                 title="Active block"
@@ -603,13 +603,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </div>
                 </HubAccordionSection>
               )}
+              </div>
             </TabsContent>
 
             <TabsContent value="profile">
               <div className="space-y-3">
                 {p?.health && (
-                  <CollapsibleSection title="Health" icon={<IconHeart className="w-4 h-4" />} defaultOpen>
-                    <div className="pt-4 space-y-4">
+                  <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="neutral" defaultOpen>
+                    <div className="px-5 pt-4 pb-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">GP Clearance</span>
                         <YesNoPill yes={!!p.health.gp_clearance} />
@@ -676,12 +677,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </div>
                       )}
                     </div>
-                  </CollapsibleSection>
+                  </HubAccordionSection>
                 )}
 
                 {p?.physical_baseline && (
-                  <CollapsibleSection title="Physical Baseline" icon={<IconDumbbell className="w-4 h-4" />}>
-                    <div className="pt-4 space-y-3">
+                  <HubAccordionSection icon={<IconDumbbell className="w-4 h-4" />} title="Physical Baseline" color="neutral">
+                    <div className="px-5 pt-4 pb-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">Fitness Level</span>
                         <div className="flex gap-1">
@@ -715,12 +716,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </ul>
                       )}
                     </div>
-                  </CollapsibleSection>
+                  </HubAccordionSection>
                 )}
 
                 {p?.goals && (
-                  <CollapsibleSection title="Goals" icon={<IconTarget className="w-4 h-4" />}>
-                    <div className="pt-4">
+                  <HubAccordionSection icon={<IconTarget className="w-4 h-4" />} title="Goals" color="neutral">
+                    <div className="px-5 pt-4 pb-4">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Primary"><span className="capitalize">{p.goals.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
                         {p.goals.secondary?.length > 0 && (
@@ -743,12 +744,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </div>
                       )}
                     </div>
-                  </CollapsibleSection>
+                  </HubAccordionSection>
                 )}
 
                 {p?.logistics && (
-                  <CollapsibleSection title="Logistics" icon={<IconCalendar className="w-4 h-4" />}>
-                    <div className="pt-4">
+                  <HubAccordionSection icon={<IconCalendar className="w-4 h-4" />} title="Logistics" color="neutral">
+                    <div className="px-5 pt-4 pb-4">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Location"><span className="capitalize">{p.logistics.training_location?.replace("_", " ") ?? "—"}</span></HubDataField>
                         <HubDataField label="Sessions/week">{p.logistics.sessions_per_week ?? "—"}x</HubDataField>
@@ -758,21 +759,21 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         <HubDataField label="Group type"><GroupTypeLabel groupType={client.group_type} /></HubDataField>
                       </HubDataGrid>
                     </div>
-                  </CollapsibleSection>
+                  </HubAccordionSection>
                 )}
 
-                <CollapsibleSection title="Client Portal" icon={<IconMail className="w-4 h-4" />}>
-                  <div className="pt-4">
+                <HubAccordionSection icon={<IconMail className="w-4 h-4" />} title="Client Portal" color="neutral">
+                  <div className="px-5 pt-4 pb-4">
                     <PortalAccountCard
                       clientNumber={client.client_number}
                       hasEmail={!!client.email}
                     />
                   </div>
-                </CollapsibleSection>
+                </HubAccordionSection>
 
                 {p?.programming_adaptations && p.programming_adaptations.length > 0 && (
-                  <CollapsibleSection title="All Training Rules" icon={<IconAlertCircle className="w-4 h-4" />}>
-                    <div className="pt-4">
+                  <HubAccordionSection icon={<IconAlertCircle className="w-4 h-4" />} title="All Training Rules" color="neutral">
+                    <div className="px-5 pt-4 pb-4">
                       <ul className="list-none divide-y divide-[var(--hub-border)]">
                         {p.programming_adaptations.map((rule) => {
                           const ruleType = ruleTypesById.get(rule.rule_type_id);
@@ -791,12 +792,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         })}
                       </ul>
                     </div>
-                  </CollapsibleSection>
+                  </HubAccordionSection>
                 )}
 
                 {(p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
-                  <CollapsibleSection title="Notes" icon={<IconEdit3 className="w-4 h-4" />}>
-                    <div className="pt-4 space-y-3">
+                  <HubAccordionSection icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="neutral">
+                    <div className="px-5 pt-4 pb-4 space-y-3">
                       {p.notes.esther_observations && (
                         <div>
                           <span className="text-xs text-muted-foreground block mb-0.5">Observations</span>
@@ -816,18 +817,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </div>
                       )}
                     </div>
-                  </CollapsibleSection>
+                  </HubAccordionSection>
                 )}
 
-                <CollapsibleSection title="Record" icon={<IconClipboardList className="w-4 h-4" />}>
-                  <div className="pt-4">
+                <HubAccordionSection icon={<IconClipboardList className="w-4 h-4" />} title="Record" color="neutral">
+                  <div className="px-5 pt-4 pb-4">
                     <HubDataGrid cols={3}>
                       <HubDataField label="Client number">#{client.client_number}</HubDataField>
                       <HubDataField label="Created">{new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</HubDataField>
                       <HubDataField label="Last edited">{(client as any).updated_at ? new Date((client as any).updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</HubDataField>
                     </HubDataGrid>
                   </div>
-                </CollapsibleSection>
+                </HubAccordionSection>
               </div>
             </TabsContent>
 
@@ -916,6 +917,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 clientNumber={client.client_number}
                 blocks={blocks ?? []}
                 sessions={sessions ?? []}
+                setLogs={(setLogs ?? []) as SetLog[]}
                 blockSessionCounts={blockSessionCounts}
                 exerciseTrends={exerciseTrends}
                 exerciseHistory={exerciseHistory}

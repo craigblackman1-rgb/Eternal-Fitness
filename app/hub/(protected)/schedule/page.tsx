@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import { HubPageHeader, HubQuickActions } from "@/components/hub";
 import { IconUserPlus, IconFileText, IconUsers } from "@/components/icons";
 import { sessionDurationMinutes } from "@/lib/scheduling";
+import { deriveSessionStatus } from "@/lib/session-status";
 import type { Session, TimeTier } from "@/types";
 import type { ScheduledEntry } from "./ScheduleCalendar";
 import { ScheduleShell } from "./ScheduleShell";
@@ -9,11 +10,13 @@ import { ScheduleShell } from "./ScheduleShell";
 /**
  * Studio-wide calendar (Lane D2). Shows every client's scheduled sessions
  * across the whole studio — a session is "on the calendar" when
- * `scheduled_at IS NOT NULL AND cancelled_at IS NULL`.
+ * `scheduled_at IS NOT NULL`. Cancelled sessions are included here but hidden
+ * by default behind each view's "Show cancelled" toggle, matching
+ * hub-schedule.html / hub-schedule-month.html (they stay visible/undo-able in
+ * the per-block scheduler too).
  *
  * This is a separate, studio-wide view distinct from the per-block
- * BlockScheduler on the block review page. Cancelled sessions are never
- * shown here (they remain visible/undo-able in the per-block scheduler).
+ * BlockScheduler on the block review page.
  *
  * The join sessions → blocks → clients is done in three queries and stitched
  * in JS because the pg-client shim only supports single-level to-one embeds.
@@ -25,9 +28,8 @@ export default async function SchedulePage() {
 
   const { data: sessionRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at")
+    .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, cancel_reason, status, completed_at")
     .not("scheduled_at", "is", null)
-    .is("cancelled_at", null)
     .order("scheduled_at", { ascending: true });
 
   const sessions: Array<{
@@ -37,6 +39,10 @@ export default async function SchedulePage() {
     archetype: string;
     data: Session | null;
     scheduled_at: string | null;
+    cancelled_at: string | null;
+    cancel_reason: string | null;
+    status: string | null;
+    completed_at: string | null;
   }> = sessionRows ?? [];
 
   // Resolve blocks → clients for the sessions we have.
@@ -60,9 +66,6 @@ export default async function SchedulePage() {
       const block = blockById.get(s.block_id);
       const client = block ? clientById.get(block.client_id) : undefined;
       const timeTier = (s.data?.time_tier ?? null) as TimeTier | null;
-      const hasWorkout = !!(
-        s.data?.versions?.studio?.main_block?.length || s.data?.versions?.home?.main_block?.length
-      );
       return {
         id: s.id,
         clientId: block?.client_id ?? null,
@@ -74,7 +77,14 @@ export default async function SchedulePage() {
         blockNumber: block?.block_number ?? null,
         scheduledAt: s.scheduled_at as string,
         durationMinutes: sessionDurationMinutes(timeTier),
-        hasWorkout,
+        status: deriveSessionStatus({
+          status: s.status,
+          cancelled_at: s.cancelled_at,
+          completed_at: s.completed_at,
+          scheduled_at: s.scheduled_at,
+          session_log: s.data?.session_log,
+        }),
+        cancelReason: s.cancel_reason ?? null,
       };
     });
 
@@ -95,7 +105,7 @@ export default async function SchedulePage() {
       />
       <HubPageHeader
         title="Studio schedule"
-        subtitle="Every booked session across the studio, on a month grid. Bookings that don't yet have a workout are flagged — they're expected, not an edge case."
+        subtitle="Every booked session across the studio, colour-coded by its lifecycle state — from planned through completed."
       />
       <ScheduleShell entries={entries} />
     </div>

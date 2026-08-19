@@ -1,7 +1,7 @@
 export { HubCard } from "./HubCard";
 export { HubCardHeader } from "./HubCardHeader";
 export { HubPageHeader } from "./HubPageHeader";
-export { HubSection, type HubSectionProps } from "./HubSection";
+export { HubRail } from "./HubRail";
 export { HubAccordionSection } from "./HubAccordionSection";
 export { HubDataGrid, HubDataField } from "./HubDataGrid";
 export { HubQuickActions } from "./HubQuickActions";

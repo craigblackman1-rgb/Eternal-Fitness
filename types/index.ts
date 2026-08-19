@@ -8,6 +8,7 @@ export type PrimaryGoal = "strength" | "mobility" | "weight_loss" | "rehabilitat
 export type Archetype = "A" | "B" | "C";
 export type Phase = "foundation" | "build" | "develop" | "peak" | "deload";
 export type BlockStatus = "draft" | "approved" | "active" | "complete";
+export type SessionStatus = "planned" | "scheduled" | "in_progress" | "completed" | "cancelled";
 
 /** Highest week number a session may sit on — mirrors the sessions_week_check
  *  constraint. Esther's standard block is 6 weeks, but supplied programmes run
@@ -305,6 +306,12 @@ export interface SetLog {
   id: string;
   session_id: string;
   exercise_ref: string;
+  /** Stable per-exercise identity (from the prescription JSON's `uid`) —
+   *  survives reorders/swaps/edits where the positional exercise_ref breaks.
+   *  Null only on rows predating the backfill that couldn't be resolved. */
+  exercise_uid?: string | null;
+  /** Exercise name at the time the set was logged. */
+  exercise_name?: string | null;
   set_number: number;
   reps: number | null;
   weight_kg: number | null;
@@ -454,6 +461,15 @@ export interface DBSession {
   cancelled_at?: string | null;
   /** Optional free-text reason for the cancellation. */
   cancel_reason?: string | null;
+  /** First-class lifecycle state (CR-EF-037 Phase 1) — the single source of truth.
+   *  Surfaces read this, never re-derive it from data.session_log / scheduled_at /
+   *  cancelled_at. Absent only on rows created before the Phase 1 migration backfill. */
+  status?: "planned" | "scheduled" | "in_progress" | "completed" | "cancelled";
+  /** When the first set was logged (NOT screen-mount time). NULL if nothing logged. */
+  started_at?: string | null;
+  /** Real, indexable copy of data.session_log.completed_at — kept in sync by the
+   *  transition API. */
+  completed_at?: string | null;
 }
 
 export type DocumentStatus = "draft" | "sent" | "received" | "signed" | "expired" | "needs_update" | "superseded";

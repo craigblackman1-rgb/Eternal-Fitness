@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 import { ensureUids } from "@/lib/exercise-ref";
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
+import { getSessionStatus } from "@/lib/session-transitions";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
@@ -25,6 +26,23 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No updatable fields provided" }, { status: 400 });
+  }
+
+  // CR-EF-031 — a completed session's prescription (`data`) is locked. Editing it
+  // silently orphans the logged sets (assessment §1.5) and re-pressing Complete
+  // overwrites the recorded RPE/fatigue/notes. The only escape hatch is the
+  // dedicated reopen endpoint (POST /api/sessions/[id]/reopen), so no `data` PATCH
+  // against a completed session is ever the reopen transition. Scheduling fields
+  // (scheduled_at/cancelled_at/cancel_reason) stay allowed — cancelling a completed
+  // booking still takes precedence, matching the migration's backfill rule.
+  if (Object.prototype.hasOwnProperty.call(update, "data")) {
+    const status = await getSessionStatus(params.id);
+    if (status === "completed") {
+      return NextResponse.json(
+        { error: "This session is completed and read-only. Reopen it before editing the prescription or session log." },
+        { status: 403 },
+      );
+    }
   }
 
   // CR-EF-037 Phase 2 — keep the first-class status/completed_at columns

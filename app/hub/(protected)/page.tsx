@@ -6,7 +6,7 @@ import { TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
 import {
-  IconArrowUpRight, IconCalendar, IconCheckCircle, IconFileText,
+  IconArrowUpRight, IconCalendar, IconCheck, IconCheckCircle, IconFileText,
   IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
@@ -249,6 +249,7 @@ export default async function DashboardPage() {
         variant="bar"
         actions={[
           { href: "/hub/clients/new", label: "New client", icon: <IconUserPlus className="w-4 h-4" />, primary: true },
+          { href: "/hub/schedule", label: "Log check-in", icon: <IconCheck className="w-4 h-4" /> },
           { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
           { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
         ]}
