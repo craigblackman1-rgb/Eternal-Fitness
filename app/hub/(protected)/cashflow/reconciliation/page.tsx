@@ -233,7 +233,7 @@ export default function ReconciliationPage() {
       />
 
       {error && (
-        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--status-danger)]/20 rounded-2xl shadow-sm p-4">
+        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--status-danger)]/20 rounded-[16px] shadow-sm p-4">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] flex items-center justify-center shrink-0 mt-0.5">
               <IconX className="w-4 h-4" />
@@ -247,14 +247,14 @@ export default function ReconciliationPage() {
       )}
 
       {loading ? (
-        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-sm p-8">
+        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm p-8">
           <div className="flex items-center gap-3">
             <IconRefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Loading suggestions…</p>
           </div>
         </div>
       ) : !hasData ? (
-        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-sm">
+        <div className="mt-6 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm">
           <div className="px-5 py-12">
             <EmptyState
               icon={<IconCheckCircle className="w-9 h-9" />}
@@ -302,7 +302,7 @@ export default function ReconciliationPage() {
                     return (
                       <div
                         key={key}
-                        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-sm p-[18px_20px] flex items-center gap-[18px] flex-wrap"
+                        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm p-[18px_20px] flex items-center gap-[18px] flex-wrap"
                       >
                         <div
                           className="shrink-0 w-[30px] h-[30px] rounded-full grid place-items-center"
@@ -384,7 +384,7 @@ export default function ReconciliationPage() {
                 {filteredUnmatched.map((txn) => (
                   <div
                     key={txn.id}
-                    className="bg-[var(--hub-card)] border border-dashed border-[var(--hub-border)] rounded-2xl p-[14px_20px] flex items-center gap-[14px] flex-wrap"
+                    className="bg-[var(--hub-card)] border border-dashed border-[var(--hub-border)] rounded-[16px] p-[14px_20px] flex items-center gap-[14px] flex-wrap"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-[13.5px] font-semibold text-foreground">

@@ -73,11 +73,11 @@ export function InvoicesPageClient({ invoices, outstandingTotal }: InvoicesPageC
       </Toolbar>
 
       {filtered.length > 0 ? (
-        <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,0.04),0_1px_3px_rgba(16,24,40,0.07)] overflow-hidden">
+        <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_1px_3px_rgba(16,24,40,0.07)] overflow-hidden">
           <InvoicesTable data={filtered} />
         </div>
       ) : (
-        <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,0.04),0_1px_3px_rgba(16,24,40,0.07)] py-16 text-center">
+        <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_1px_3px_rgba(16,24,40,0.07)] py-16 text-center">
           <p className="text-sm text-muted-foreground">
             {invoices.length === 0
               ? "No invoices yet — create your first one above"

@@ -577,7 +577,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
       <HubCard>
         <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Client Management" />
         <div className="space-y-4">
-          <div className="flex items-start gap-3 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-canvas)] p-3">
+          <div className="flex items-start gap-3 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-canvas)] p-3">
             <IconAlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
             <div className="text-sm">
               <p className="text-foreground font-medium">Package, payments and compliance are managed on the client profile.</p>

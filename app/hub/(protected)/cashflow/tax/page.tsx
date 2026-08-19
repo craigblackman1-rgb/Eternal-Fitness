@@ -322,7 +322,7 @@ function BandTile({
   sub: string;
 }) {
   return (
-    <div className="border border-[var(--hub-border)] rounded-xl p-3.5">
+    <div className="border border-[var(--hub-border)] rounded-[12px] p-3.5">
       <p className="text-[11px] font-bold uppercase tracking-[.05em] text-[var(--color-muted-text)] m-0 mb-1.5">{label}</p>
       <p className="text-lg font-bold text-[var(--color-ink)] m-0 tabular-nums">{value}</p>
       <p className="text-[11.5px] text-[var(--color-muted-text)] mt-1 m-0">{sub}</p>
