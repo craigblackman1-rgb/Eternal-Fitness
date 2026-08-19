@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
+import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
+import { deriveSessionStatus } from "@/lib/session-status";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
@@ -114,8 +116,6 @@ export default function SessionViewPage({
   };
 
   const currentLog: SessionLog | undefined = session?.data?.session_log;
-  const completedAt: string | null = currentLog?.completed_at ?? null;
-  const startedAt: string | null = currentLog?.started_at ?? null;
 
   const handleSessionLogChange = (log: SessionLog) => {
     setSession((prev) => (prev ? { ...prev, data: { ...prev.data, session_log: log } } : prev));
@@ -195,20 +195,15 @@ export default function SessionViewPage({
   // Session is named by its focus_label, never a bare "Session N" (CR-EF-034) —
   // matching the block page and the consolidated mockup header.
   const focusLabel = session.data?.focus_label || `Session ${sessionNum}`;
-  const statusBadge = completedAt ? (
-    <span className="inline-flex items-center gap-1 rounded-full border border-teal/20 bg-teal/10 px-2.5 py-0.5 text-xs font-semibold text-teal">
-      <IconCheckCircle className="h-3 w-3" />
-      Completed {new Date(completedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-    </span>
-  ) : startedAt ? (
-    <span className="inline-flex items-center rounded-full border border-rose/20 bg-rose/5 px-2.5 py-0.5 text-xs font-semibold text-rose">
-      In progress
-    </span>
-  ) : (
-    <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">
-      Not started
-    </span>
-  );
+  // First-class `status` column is the source of truth; derive defensively only
+  // as a fallback for legacy rows created before the Phase 1 backfill.
+  const status = deriveSessionStatus({
+    status: session.status,
+    cancelled_at: session.cancelled_at,
+    completed_at: session.completed_at,
+    scheduled_at: session.scheduled_at,
+    session_log: session.data?.session_log,
+  });
 
   return (
     <div className="space-y-6">
@@ -222,7 +217,7 @@ export default function SessionViewPage({
               <h1 className="text-xl font-semibold tracking-tight">{focusLabel}</h1>
               <Badge variant="outline" className="text-sm">{session.archetype}</Badge>
               <span className="text-sm capitalize text-muted-foreground">Week {session.week} · {session.phase}</span>
-              {statusBadge}
+              <SessionStatusPill status={status} />
               <span
                 className="inline-flex items-center gap-1 rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-[11.5px] font-semibold text-muted-foreground"
                 title="A guide from the prescription — not a live countdown"
