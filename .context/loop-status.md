@@ -607,6 +607,57 @@ from the concurrent work — left untouched, not this session's to clean up.
 
 2026-08-17T~15:12-16:15Z | seo-audit-commands-46f31f, branch claude/client-session-logging-features-ee37a8 | Hub/PWA usability pass — 12 CRs captured (CR-EF-016–027), 3 open questions resolved same day, CR-EF-024 corrected after Craig flagged the hub already has a tasks module. Built and pushed: CR-EF-016 (client list A-Z default), CR-EF-027 (Session Log date/session sortable, fixed the block-interleaving bug + a related latestSessionLog bug), CR-EF-023 (update_interval custom_weeks/fixed_date modes — migration run on prod via scripts/run-update-interval-migration.mjs, transaction-checked, committed clean). CR-EF-026 (PAR-Q "shows not signed") root-caused as two separate document-register display gaps (not a data problem) and fixed: legacy signed_parq/signed_agreements records now surface as a read-only row in the Document Register; documents auto-supersede older open copies of the same kind on signing. Backfilled existing stale data via scripts/backfill-supersede-stale-documents.mjs (dry-run then --apply) — found and fixed 2 rows (Saffron Somerset's stale PAR-Q as diagnosed, plus Sam Gibbons' stale draft Agreement not caught in the original diagnosis). All fixes verified live in the hub against production data. tsc clean throughout. Commits bb9fe27, 6010fd4, 7081459, merged clean with a concurrent desktop-consolidation push (62026f4, zero file overlap, checked before merging) at c7cac58. Pushed to main; Coolify auto-deploys.
 
+<<<<<<< Updated upstream
 2026-08-18T~19:20-20:45Z | queue-dispatch-tasks-fc128c, branch claude/document-template-preview-abb989 | Ran scripts/run-client-assessment-template-migration.mjs against prod (already-applied no-op, confirmed template existed). Built document-template preview: new read-only route /hub/templates/[id]/preview (outside the (protected) group, so it renders full-bleed like the real doc-sign page) reuses DocumentView/DocumentBodyView with sample data — same shell every real client document goes through. Preview links added to the templates grid, list view, and editor toolbar. Verified live against both a rich-text template (Personal Training Agreement) and a questionnaire template (PAR-Q) via claude-in-chrome on the real hub session. Pushed to staging then main (c97c71b — also carried forward a concurrent session's Nathan Wadey 12-week block work, 72446ac, no file overlap). Separately: pulled in and ran a "Kneel-to-Stand Progression" workout-template seed (branch claude/kneel-to-stand-workout-template-62552a, commit e77fdd9) that Craig had committed on a different device but not pushed — took several turns of dead-end DB investigation before Craig clarified it was a separate uncommitted branch, not a bug in this session's work. 34-exercise fall-recovery/rehab progression, verified BEFORE/AFTER via the branch's own transaction-wrapped runner script, committed live. Merged and pushed to staging + main (dc736b1). Session closed, worktree clean.
 
 2026-08-18T~18:36-21:20Z | tomes-workout-weights-carryover-4c6f75, branch claude/design-dev-hub-alignment-dcb6fb | Craig found a large design<->build gap and suspected WOs had "got mashed up." Root-caused to 4 bookkeeping/sequencing failures (uncommitted mockup library, code built ahead of its mockup, CR register forked a 3rd time at CR-EF-028, drift detector blind to visual match) -- not lost build work. Committed the mockup library (design-systems@9032447), recovered CR-EF-029-041 onto main's register, added a structural pre-pass tool. Craig then authorized a full build ("clear the decks"): dispatched 3 OpenCode lanes (hand-reviewed every diff before merging), built CR-EF-042/043/044/046 + hotfixes H1/H2/H4/H5/H6 (CR-EF-029/030/033/034/035), wrote+ran CR-EF-037 Phase 1 migration (sessions.status/started_at/completed_at, applied to prod, backfilled, independently re-verified). Caught and fixed a bug in my own status-flip script mid-session. Merged properly (not fast-forward) after origin/main diverged with 2 other sessions' work (Nathan Wadey block, doc-template preview, kneel-to-stand seed) -- ace1535. Register now CR-EF-001-046, no gaps, all statuses reconciled with what's actually built. Told Craig plainly: only 5-6 of ~50 hub screens were ever briefed for the design-consistency pass; the other ~44 are real catalogued inconsistency, never commissioned -- not lost work. CR-EF-037 Phases 2-3 (the bulk of the redesign) not started. Session closed clean, all worktrees removed.
+=======
+## 2026-08-18 (Claude Code, queue-dispatch-tasks-fc128c worktree) — swept all 6 GATED EF work orders, dispatched everything AUTO-able
+Craig asked to queue up and dispatch everything left to do. Surveyed `wo active` (6 GATED EF
+work orders) + change-requests.md + the two fresh OPEN gate questions (Emma Atkinson duplicate
+logs, Part-3 unified-model adoption). Found almost all previously-AUTO work already shipped across
+prior sessions; three genuinely unblocked items remained:
+- **CR-EF-038** (broken `?tab=profile-compliance` deep link, 5 occurrences across PAR-Q edit +
+  both agreements screens) — trivial fix, done directly, tsc clean, pushed to `staging`
+  (`7e55084`). Needs a dev-verify click-through + merge to `main` before it's live.
+- **Lane D** (`verify-hub-pages.js` repair, `wo-ef-hub-structure-consistency-2026-08-17`) —
+  dispatched to OpenCode (`lane-verify-hub-pages-repair`, deepseek-v4-pro, worktree-isolated),
+  running.
+- **CR-EF-006** (Review/AggregateRating schema, `wo-ef-seo-speed-spam-2026-08-17`) — dispatched to
+  OpenCode (`lane-cr-ef-006-review-schema`), running; briefed to research Google's current
+  eligibility rules before implementing, not just add schema blindly.
+
+Everything else across all 6 WOs is genuinely gated on Craig/Esther (data-destructive Emma
+cleanup, Part-3 data-model adoption + hotfix pre-authorisation, band-colour/unilateral-list
+Esther input, WAL/PITR + staging email creds + HSTS/redirect infra, GDPR DPA signature/ICO,
+blog/nav restructure) — already queued on the board via prior sessions' `wo ask`/`wo defer`, not
+re-asked here. Also cleaned up 7 bogus registry entries (`list` literal) created by my own CLI
+syntax mistakes early this session (`wo defer`/`wo ask` need a real message, not a subcommand
+name) — all resolved with a note, no real data lost.
+
+## 2026-08-18 (Claude Code, queue-dispatch-tasks-fc128c worktree) — session close
+Continued from the earlier dispatch sweep this session. Additional work:
+- **Design brief + revised scope for CR-EF-039/040** — captured Craig's live direction
+  (Quick Actions to top-left not just promoted-in-rail, one accordion pattern closed-by-
+  default with top section open, desktop/mobile unification as a real target not deferred).
+  Open Design MCP hit a daemon `WORKSPACE_CONTEXT_REQUIRED` bug even with active-context
+  resolved -- fell back to the standard markdown-brief handoff. Craig ran it; dashboard
+  came back as a proven single-page pilot (register itself flagged the other 3 surfaces +
+  mobile as still queued) -- verified this directly rather than trusting "finished" at
+  face value. Sent a follow-up request for the remaining surfaces.
+- **Dashboard shared-primitives build** (`d0c7d6d`, merged main, deployed `running:healthy`)
+  -- HubQuickActions `variant="bar"`, new HubAccordionSection component, dashboard
+  rebuilt against both, data logic untouched. OpenCode-go was out of balance (billing gate
+  raised, `wo ask` queued) so written directly instead of via a lane. Verified via full
+  element-by-element mockup diff (no hub credentials this session for live click-through --
+  flagged to Craig to check himself).
+- Also fixed a real mistake mid-session: briefly edited the shared checkout directly
+  instead of the isolated worktree (DO-SOP-010 violation) -- caught immediately, reverted,
+  redone in the correct worktree before anything was committed.
+
+**Session close.** All work pushed to main+staging, deploys confirmed healthy. Remaining
+gated items unchanged from earlier in the session (Emma Atkinson data cleanup, Part-3
+unified-model adoption, OpenCode-go billing top-up, client record/block module/schedule
+design pass, GDPR/WAL-PITR/email-creds/HSTS-redirect infra items) -- all on the board via
+`wo ask`/`wo defer`, not re-litigated here.
+>>>>>>> Stashed changes

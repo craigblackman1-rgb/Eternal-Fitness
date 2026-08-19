@@ -158,6 +158,7 @@ the two device tests together).
   condition). Paste-and-assign, portal PWA states, and nav-restructure
   reconciliation still outstanding — Craig re-sent those briefs to Open Design
   after the first pass apparently lost them.
+<<<<<<< Updated upstream
 - **2026-08-17 (later still) — L3/L4/L6 actually shipped, ledger never updated
   until now (found during the 2026-08-19 reconciliation pass).** Correcting the
   record:
@@ -208,3 +209,56 @@ the two device tests together).
   today); Phase 3 (calendar spine); the wider CR-EF-039/040 ~50-screen sweep
   (HubRail, HubCard height contract, single accordion, single tab still open
   Lane B units before the sweep itself can start).
+=======
+- 2026-08-17 (evening) — Craig reported live field problems from Esther (Emma
+  triple-logged workout, 5 workouts in one "week", desktop/mobile date and
+  status disagreements, completed sessions editable, logged data invisible on
+  the client page, calendar disconnect). Full investigation run against prod
+  data + code: every symptom confirmed and root-caused. Headline: **0 of 247
+  `set_logs` rows carry a `client_op_id`** (the live write paths never send
+  one — the 2026-08-13 idempotency layer has never deduped anything), and
+  every manually-built block has all sessions stamped `week 1` (66/92 prod
+  sessions). Registered as CR-EF-029–036 (bugs) + CR-EF-037 (umbrella
+  architecture CR). Assessment + unified-model proposal (first-class session
+  status, uid-keyed logs, mandatory idempotency, date-derived Mon–Sun weeks,
+  calendar-as-spine, Trainerize-informed PWA):
+  `eternal-fitness-website/.context/assessment-workout-unification-2026-08-17.md`.
+  **Proposed scope amendment:** Phases 1–3 of that doc become lanes of this WO
+  (or a sibling WO — Craig's call, question on the board). Phase 0 hotfixes
+  (H1–H6) are small [AUTO]-shaped bug lanes awaiting Craig's go-ahead on the
+  two behaviour-changing ones (H1 reject keyless writes, H3 block writes to
+  completed sessions). The approved `hub-block-module.html` / `hub-schedule.html`
+  mockups need a functional revision pass against the state model before build.
+  Emma data cleanup queued as a gated decision — destructive, needs Esther's
+  account first.
+- 2026-08-17 (later) — Craig asked for an Open Design brief to visualise the
+  unified-model proposal. Drafted `brief-workout-unification-opendesign.md`
+  (repo `.context/` + mirrored to `D:\apps\design-systems\ef-control-hub\`):
+  functional revision pass on the approved `hub-block-module.html` (date-derived
+  Mon–Sun weeks, block-page scheduling) and `hub-schedule.html` (completion
+  states), session-state additions folded into the already-open
+  `hub-session.html` revision, plus a client-detail Sessions-tab redesign
+  (logged-data visibility). Mobile PWA IA explicitly deferred to a post-
+  Trainerize-walkthrough brief. Sent to Craig to run.
+- 2026-08-17 (night) — Craig confirmed Open Design ran the unification brief.
+  Revisions landed on `hub-block-module.html`, `hub-schedule.html`, `hub-session.html`
+  + new `hub-client-sessions-tab.html` (400+ line diffs, not cosmetic). Ran a Design
+  Parity Gate review before treating this as G2-ready — **verdict: not yet, 4 gaps**.
+  What's solid (don't rework): the shared 5-state status pill is byte-identical
+  across all four files, completed/cancelled render read-only correctly, the audited
+  Reopen flow matches the brief, and "in progress" correctly triggers on the first
+  set logged rather than on opening the screen (verified against the exact trigger
+  condition, not just the section heading). What's missing: (1) `hub-session.html`'s
+  own `<h1>`/breadcrumb reads "Session 10," a bare `S{n}` — breaks the brief's own
+  `focus_label` naming rule, on the one screen the trainer is actually using; (2)
+  `hub-schedule.html` (day) and the pre-existing `hub-schedule-month.html` weren't
+  reconciled as the pair the brief asked for — they disagree on whether cancelled
+  sessions are hidden by default, and don't cross-link; (3) 2 of the brief's 5 named
+  "honest data cases" (an off-pattern 4–5-session week, an 18-session block) aren't
+  in the sample data anywhere, despite being named specifically because they're what
+  broke in production; (4) none of the four files' own handback notes flagged any of
+  this — they read as fully confirmatory. Revision request written and sent:
+  `.context/revision-request-workout-unification-2026-08-17.md` (mirrored + committed
+  `design-systems@6512f1b`). CR-EF-037 updated to reflect gate status. **Do not sign
+  G2 until the revision lands and gets re-checked.**
+>>>>>>> Stashed changes

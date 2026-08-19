@@ -83,6 +83,7 @@ all major surfaces; all verified on development.eternal-fitness.co.uk then live.
   workout-unification mockup work (that WO's scope, not this one's) — Design Parity
   Gate review found it not yet G2-ready; revision request sent, see
   `wo-ef-workout-consolidation-pwa-2026-08-15`'s ledger for detail.
+<<<<<<< Updated upstream
 - **2026-08-18 — mobile deferred, not recorded here until now.** `hub-m-today` and
   the wider mobile sweep were held back: mobile runs an entirely different CSS
   system (`.mtop`/`.sec-label`/`.slist`, not Tailwind), with no component reuse
@@ -112,3 +113,5 @@ all major surfaces; all verified on development.eternal-fitness.co.uk then live.
   Actions bar now shows 4 buttons incl. "Log check-in"; mobile Today confirmed via
   `document.querySelectorAll` to render `.m-section*` classes. Not promoted to
   main/live — Craig's call, separate decision.
+=======
+>>>>>>> Stashed changes
