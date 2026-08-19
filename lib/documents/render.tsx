@@ -1,4 +1,6 @@
-import type { DocumentBody, ConsentGroup, FeedbackSection, FeedbackConsent } from "./types";
+import type { DocumentBody, ConsentGroup, FeedbackSection, FeedbackConsent, EnduranceBlockData } from "./types";
+import { cn } from "@/lib/utils";
+import { IconMessageCircle } from "@/components/icons";
 
 /**
  * Renders a document body (intro + sections) as branded, read-only HTML.
@@ -40,6 +42,7 @@ export function DocumentBodyView({
           dangerouslySetInnerHTML={{ __html: body.intro }}
         />
       )}
+      {body.enduranceBlock && <EnduranceBlockView block={body.enduranceBlock} />}
       {body.sections.map((s, i) => (
         <section key={s.id} className="doc-section" aria-labelledby={`sec-${s.id}`}>
           <p className="doc-section__num">
@@ -190,6 +193,106 @@ function FeedbackConsentsView({
           <span>{c.label}</span>
         </label>
       ))}
+    </div>
+  );
+}
+
+const EB_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function fmtEnduranceDate(iso?: string): string {
+  if (!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return `${d.getUTCDate()} ${EB_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/**
+ * Read-only rendering for the "endurance_block" kind — shared by DocumentView
+ * (client-facing) and the public sign page (which reuses DocumentView). Mirrors
+ * the editor's treatment: week-summary rows shaded, brick/race rows tinted, but
+ * with no inputs. Plain text only — no dangerouslySetInnerHTML, since the block
+ * is authored by Esther in the hub and rendered here for the client.
+ */
+function EnduranceBlockView({ block }: { block: EnduranceBlockData }) {
+  const targets = block.disciplineTargets ?? [];
+  const rows = block.rows ?? [];
+  const hasEventMeta = Boolean(block.targetEvent || block.startDate || block.endDate);
+  const dateRange = [fmtEnduranceDate(block.startDate), fmtEnduranceDate(block.endDate)].filter(Boolean).join(" – ");
+
+  return (
+    <div className="eb-view">
+      {hasEventMeta && (
+        <div className="eb-event">
+          {block.targetEvent && (
+            <div><span className="eb-event-k">Target event</span><span className="eb-event-v">{block.targetEvent}</span></div>
+          )}
+          {dateRange && (
+            <div><span className="eb-event-k">Dates</span><span className="eb-event-v">{dateRange}</span></div>
+          )}
+        </div>
+      )}
+
+      <h3 className="eb-heading">Direction</h3>
+      {block.directionIntro && <p className="eb-intro">{block.directionIntro}</p>}
+      {targets.length > 0 && (
+        <ul className="eb-bullets">
+          {targets.map((t) => (
+            <li key={t.id}>
+              {t.discipline}
+              {t.discipline && t.detail ? ": " : ""}
+              {t.detail}
+            </li>
+          ))}
+        </ul>
+      )}
+      {block.coachingNotes && (
+        <div className="eb-callout">
+          <div className="eb-callout-top">
+            <span className="eb-callout-ic"><IconMessageCircle className="h-3.5 w-3.5" /></span>
+            <span className="eb-callout-title">Coaching note</span>
+          </div>
+          <div className="eb-callout-body">{block.coachingNotes}</div>
+        </div>
+      )}
+
+      <h3 className="eb-heading" style={{ marginTop: 28 }}>Calendar</h3>
+      <div className="eb-table-wrap">
+        <table className="eb-table">
+          <thead>
+            <tr><th>Date</th><th>Day</th><th>Run</th><th>Bike</th><th>Swim</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((r) =>
+              r.type === "week_summary" ? (
+                <tr key={r.id} className="eb-sum">
+                  <td colSpan={2} className="eb-sum-label">{r.weekLabel}</td>
+                  <td>{r.run}</td>
+                  <td>{r.bike}</td>
+                  <td>{r.swim}</td>
+                  <td className="eb-sum-notes">{r.notes ? <>Week total: <strong>{r.notes}</strong></> : null}</td>
+                </tr>
+              ) : (
+                <tr key={r.id} className={cn(r.highlight === "brick" && "eb-brick", r.highlight === "race" && "eb-race")}>
+                  <td className="eb-date-cell">{r.date}</td>
+                  <td className="eb-day-cell">{r.dayLabel}</td>
+                  <td>{r.run}</td>
+                  <td>{r.bike}</td>
+                  <td>{r.swim}</td>
+                  <td>
+                    {r.highlight && (
+                      <span className={cn("eb-tag", r.highlight === "race" && "eb-tag--race")}>
+                        {r.highlight === "race" ? "Race day" : "Brick"}
+                      </span>
+                    )}
+                    {r.notes}
+                  </td>
+                </tr>
+              ),
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

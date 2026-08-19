@@ -1,4 +1,4 @@
-export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire" | "remote_coaching" | "intake_form" | "fortnightly_checkin" | "note";
+export type DocumentKind = "terms" | "risk_assessment" | "annual_review" | "consent" | "feedback" | "parq" | "invoice" | "leg_pain_questionnaire" | "remote_coaching" | "intake_form" | "fortnightly_checkin" | "endurance_block" | "note";
 
 export type DocumentStatus = "draft" | "sent" | "signed" | "superseded";
 
@@ -38,6 +38,35 @@ export interface FeedbackConsent {
   label: string;
 }
 
+export interface EnduranceDisciplineTarget {
+  id: string;
+  discipline: string; // e.g. "Swim", "Bike", "Run", "Strength/mobility"
+  detail: string;      // e.g. "~1-1.5 hrs/week, open water"
+}
+
+export interface EnduranceCalendarRow {
+  id: string;
+  type: "day" | "week_summary";
+  date?: string;       // ISO date, "day" rows only
+  dayLabel?: string;    // e.g. "Wed" — "day" rows only
+  weekLabel?: string;   // e.g. "Week 1 (19-23 Aug, partial)" — "week_summary" rows only
+  run?: string;
+  bike?: string;
+  swim?: string;
+  notes?: string;
+  highlight?: "brick" | "race" | null; // visual emphasis, "day" rows only
+}
+
+export interface EnduranceBlockData {
+  targetEvent?: string;         // e.g. "Cross Triatlon Vorden, 1/8th distance"
+  startDate: string;            // ISO date
+  endDate: string;              // ISO date
+  directionIntro: string;       // free paragraph, plain text or simple HTML
+  disciplineTargets: EnduranceDisciplineTarget[];
+  coachingNotes?: string;       // e.g. "Two brick sessions" callout, plain text or simple HTML
+  rows: EnduranceCalendarRow[];
+}
+
 export interface DocumentBody {
   intro?: string;
   sections: DocumentSection[];
@@ -45,6 +74,8 @@ export interface DocumentBody {
   /** Free-text/choice questionnaire content — used by the "feedback" kind. */
   feedbackSections?: FeedbackSection[];
   feedbackConsents?: FeedbackConsent[];
+  /** Calendar-based training block for endurance/multi-discipline clients — used by the "endurance_block" kind. */
+  enduranceBlock?: EnduranceBlockData;
 }
 
 export interface DocumentTemplate {
@@ -110,6 +141,7 @@ export const DOCUMENT_KIND_LABEL: Record<DocumentKind, string> = {
   remote_coaching: "Remote Coaching Contract",
   intake_form: "Coaching Intake Form",
   fortnightly_checkin: "Fortnightly Check-In",
+  endurance_block: "Endurance Training Block",
   // Non-template catch-all for uploaded documents (doctor's notes, ad-hoc
   // notes, etc.) that don't fit any of the standard template kinds above.
   note: "Note / Other document",

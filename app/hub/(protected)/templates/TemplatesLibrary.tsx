@@ -26,6 +26,7 @@ import {
   IconSearch,
   IconExternalLink,
   IconEye,
+  IconCalendar,
 } from "@/components/icons";
 import { DOCUMENT_KIND_LABEL, type DocumentTemplate, type DocumentKind } from "@/lib/documents/types";
 
@@ -44,6 +45,7 @@ const CATEGORY_BY_KIND: Record<DocumentKind, Category> = {
   intake_form: "feedback",
   fortnightly_checkin: "screening",
   invoice: "other",
+  endurance_block: "other",
   note: "other",
 };
 
@@ -66,6 +68,7 @@ const ICON_BY_KIND: Record<DocumentKind, React.ComponentType<{ className?: strin
   intake_form: IconMessageCircle,
   fortnightly_checkin: IconClipboardList,
   invoice: IconFileText,
+  endurance_block: IconCalendar,
   note: IconFileText,
 };
 
@@ -81,6 +84,7 @@ const DESC_BY_KIND: Record<DocumentKind, string> = {
   fortnightly_checkin: "Recurring check-in sent alongside a Garmin export before each call — sessions changed, pain/soreness, sleep and energy, and what's coming up.",
   feedback: "End-of-programme feedback, including the would-you-recommend question used for testimonials.",
   invoice: "Billing document sent to a client for services rendered.",
+  endurance_block: "Calendar-based training block for endurance and multi-discipline clients — edited per client in the document, not from this template.",
   note: "Ad-hoc note or uploaded document kept on the client's file — not generated from a template.",
 };
 

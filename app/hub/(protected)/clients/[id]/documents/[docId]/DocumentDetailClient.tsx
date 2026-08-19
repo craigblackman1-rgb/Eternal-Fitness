@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/hub/StatusBadge";
-import { IconChevronLeft, IconCopy, IconSave, IconMail, IconFileText, IconTrash2 } from "@/components/icons";
+import { IconChevronLeft, IconCopy, IconSave, IconMail, IconFileText, IconTrash2, IconRefreshCw } from "@/components/icons";
 import { RichTextEditor } from "@/components/hub/RichTextEditor";
 import { toast } from "sonner";
-import type { ClientDocument, DocumentBody } from "@/lib/documents/types";
+import type { ClientDocument, DocumentBody, EnduranceBlockData } from "@/lib/documents/types";
+import { EnduranceBlockEditor } from "./EnduranceBlockEditor";
 
 const readOnlyStatuses = ["signed", "superseded"];
 
@@ -41,6 +42,16 @@ export function DocumentDetailClient({
   const locked = readOnlyStatuses.includes(doc.status);
   const signUrl = typeof window !== "undefined" ? `${window.location.origin}/documents/${doc.id}/sign` : "";
   const hasClientEmail = Boolean(clientEmail && clientEmail.trim());
+
+  const enduranceBlock: EnduranceBlockData = body.enduranceBlock ?? {
+    targetEvent: "",
+    startDate: "",
+    endDate: "",
+    directionIntro: "",
+    disciplineTargets: [],
+    coachingNotes: "",
+    rows: [],
+  };
 
   const setSection = (id: string, html: string) =>
     setBody((prev) => ({ ...prev, sections: prev.sections.map((s) => (s.id === id ? { ...s, html } : s)) }));
@@ -106,6 +117,10 @@ export function DocumentDetailClient({
     act("version", () => fetch(`/api/documents/${doc.id}/version`, { method: "POST" }),
       (data) => router.push(`/hub/clients/${clientNumber}/documents/${(data as { id: string }).id}`));
 
+  const renewBlock = () =>
+    act("renew", () => fetch(`/api/documents/${doc.id}/renew`, { method: "POST" }),
+      (data) => router.push(`/hub/clients/${clientNumber}/documents/${(data as { id: string }).id}`));
+
   const deleteDoc = () => {
     if (!confirm(`Delete this ${doc.status} document? This can't be undone.`)) return;
     act("delete", () => fetch(`/api/documents/${doc.id}`, { method: "DELETE" }), () => {
@@ -134,6 +149,12 @@ export function DocumentDetailClient({
           <Button variant="outline" onClick={newVersion} disabled={busy !== null} className="rounded-lg gap-1.5">
             <IconFileText className="h-4 w-4" />
             {busy === "version" ? "…" : "New version"}
+          </Button>
+        )}
+        {doc.kind === "endurance_block" && (
+          <Button variant="outline" onClick={renewBlock} disabled={busy !== null} className="rounded-lg gap-1.5 text-teal hover:text-teal">
+            <IconRefreshCw className="h-4 w-4" />
+            {busy === "renew" ? "…" : "Renew — start next block"}
           </Button>
         )}
         <Button
@@ -169,22 +190,32 @@ export function DocumentDetailClient({
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} disabled={locked} />
           </div>
-          {body.intro && (
-            <div
-              className="text-sm text-muted-foreground rounded-lg bg-background border border-[var(--hub-border)] p-3 [&_strong]:text-foreground"
-              dangerouslySetInnerHTML={{ __html: body.intro }}
+          {doc.kind === "endurance_block" ? (
+            <EnduranceBlockEditor
+              data={enduranceBlock}
+              locked={locked}
+              onChange={(eb) => setBody((prev) => ({ ...prev, enduranceBlock: eb }))}
             />
-          )}
-          {body.sections.map((s) => (
-            <div key={s.id} className="space-y-2">
-              <Label>{s.title}</Label>
-              {locked ? (
-                <div className="text-sm text-muted-foreground rounded-lg bg-background border border-[var(--hub-border)] p-3" dangerouslySetInnerHTML={{ __html: s.html }} />
-              ) : (
-                <RichTextEditor value={s.html} onChange={(html) => setSection(s.id, html)} />
+          ) : (
+            <>
+              {body.intro && (
+                <div
+                  className="text-sm text-muted-foreground rounded-lg bg-background border border-[var(--hub-border)] p-3 [&_strong]:text-foreground"
+                  dangerouslySetInnerHTML={{ __html: body.intro }}
+                />
               )}
-            </div>
-          ))}
+              {body.sections.map((s) => (
+                <div key={s.id} className="space-y-2">
+                  <Label>{s.title}</Label>
+                  {locked ? (
+                    <div className="text-sm text-muted-foreground rounded-lg bg-background border border-[var(--hub-border)] p-3" dangerouslySetInnerHTML={{ __html: s.html }} />
+                  ) : (
+                    <RichTextEditor value={s.html} onChange={(html) => setSection(s.id, html)} />
+                  )}
+                </div>
+              ))}
+            </>
+          )}
         </CardContent>
       </HubCard>
 

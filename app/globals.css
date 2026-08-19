@@ -991,3 +991,263 @@
   }
 }
 
+/* ==========================================================================
+   ENDURANCE TRAINING BLOCK (CR-EF-048)
+   Calendar-based training block for endurance/multi-discipline clients.
+   Shared by the hub editor (EnduranceBlockEditor) and the client/sign read
+   view (EnduranceBlockView in lib/documents/render.tsx), so both surfaces
+   keep the same treatment. Bound to the EF token set (rose/teal/amber/warm/
+   cream/ink) — no seventh colour. The mockup's own :root block is NOT
+   duplicated; the repo's tokens differ slightly (--color-amber is a soft
+   peach #E8A87C, not the mockup's gold), and the repo's values win.
+   ========================================================================== */
+
+/* --- Direction heading (read view section label) --- */
+.eb-heading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--rose-text);
+  font-weight: 700;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eb-heading::after { content: ""; flex: 1; height: 1px; background: var(--color-warm); }
+
+/* --- Event strip (read view meta line) --- */
+.eb-event {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  background: #fff;
+  border: 1px solid var(--color-border-warm);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 0 0 28px;
+}
+.eb-event > div { display: flex; flex-direction: column; gap: 2px; }
+.eb-event-k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted-text); font-weight: 700; }
+.eb-event-v { font-size: 14px; font-weight: 600; color: var(--color-ink); }
+
+/* --- Intro paragraph --- */
+.eb-intro { font-size: 15.5px; line-height: 1.7; color: var(--color-ink); margin: 0 0 18px; }
+
+/* --- Discipline target bullets --- */
+.eb-bullets { list-style: none; margin: 0 0 6px; padding: 0; }
+.eb-bullets li {
+  position: relative;
+  padding: 5px 6px 5px 22px;
+  font-size: 14.5px;
+  color: var(--color-ink);
+  line-height: 1.55;
+}
+.eb-bullets li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 13px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--color-rose);
+}
+.eb-bullets li.eb-bullet-edit { padding-right: 34px; }
+.eb-bullet-rm {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-muted-text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .12s;
+}
+.eb-bullets li:hover .eb-bullet-rm,
+.eb-bullet-rm:focus-visible { opacity: 1; }
+.eb-bullet-rm:hover { background: color-mix(in oklch, var(--color-rose) 14%, #fff); color: var(--rose-text); }
+
+/* --- Coaching note callout --- */
+.eb-callout {
+  background: color-mix(in oklch, var(--color-amber) 14%, #fff);
+  border: 1px solid color-mix(in oklch, var(--color-amber) 30%, #fff);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 14px 0 6px;
+}
+.eb-callout-top { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.eb-callout-ic {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: color-mix(in oklch, var(--color-amber) 26%, #fff);
+  color: var(--color-amber-text);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.eb-callout-title { font-size: 13px; font-weight: 700; color: var(--color-amber-text); }
+.eb-callout-x {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-muted-text);
+  cursor: pointer;
+}
+.eb-callout-x:hover { background: color-mix(in oklch, var(--color-amber) 26%, #fff); color: var(--color-amber-text); }
+.eb-callout-body { font-size: 14px; line-height: 1.6; color: var(--color-ink); }
+
+/* --- Dashed add button --- */
+.eb-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px dashed var(--color-border-warm);
+  color: var(--color-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.eb-add:hover { border-color: var(--color-teal); color: var(--color-teal); background: color-mix(in oklch, var(--color-teal) 10%, #fff); }
+.eb-add:disabled { opacity: .5; cursor: not-allowed; }
+
+/* --- Calendar table --- */
+.eb-table-wrap { overflow-x: auto; border-top: 1px solid var(--color-warm); }
+table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
+.eb-table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-cream);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--color-body);
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-warm);
+}
+.eb-table td { padding: 8px 14px; border-bottom: 1px solid var(--color-warm); vertical-align: top; }
+.eb-table tr:last-child td { border-bottom: none; }
+
+/* week summary — shaded, bold */
+.eb-table tr.eb-sum td {
+  background: var(--color-cream);
+  font-weight: 700;
+  color: var(--color-ink);
+  padding: 12px 14px;
+  border-top: 1px solid var(--color-border-warm);
+  border-bottom: 1px solid var(--color-border-warm);
+}
+.eb-table tr.eb-sum .eb-cell { font-weight: 700; }
+.eb-sum-label { display: block; font-weight: 700; color: var(--color-ink); }
+.eb-sum-notes { color: var(--color-amber-text); font-size: 13.5px; white-space: nowrap; }
+
+/* brick / race — tinted day rows */
+.eb-table tr.eb-brick td { background: color-mix(in oklch, var(--color-amber) 13%, #fff); }
+.eb-table tr.eb-race td { background: color-mix(in oklch, var(--color-amber) 24%, #fff); font-weight: 600; }
+.eb-table tr.eb-race td.eb-date-cell { color: var(--color-amber-text); font-weight: 800; }
+.eb-table tr.eb-race td.eb-day-cell { color: var(--color-amber-text); }
+
+/* tags */
+.eb-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: color-mix(in oklch, var(--color-amber) 14%, #fff);
+  color: var(--color-amber-text);
+  margin-right: 8px;
+  vertical-align: middle;
+  flex: none;
+}
+.eb-tag--race { background: var(--color-amber); color: var(--color-ink); }
+
+/* spreadsheet-style editable cell (editor only) */
+.eb-cell {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font: inherit;
+  color: inherit;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: 6px;
+  min-height: 24px;
+  resize: none;
+  line-height: 1.5;
+}
+.eb-cell:hover { background: color-mix(in oklch, var(--color-ink) 5%, #fff); }
+.eb-cell:focus { background: #fff; box-shadow: 0 0 0 2px var(--color-teal); }
+.eb-cell::placeholder { color: var(--color-muted-text); }
+.eb-table tr.eb-brick .eb-cell:hover,
+.eb-table tr.eb-race .eb-cell:hover { background: color-mix(in oklch, var(--color-amber) 11%, #fff); }
+.eb-date-cell { white-space: nowrap; color: var(--color-body); font-weight: 600; font-size: 13px; width: 1%; }
+.eb-day-cell { white-space: nowrap; color: var(--color-muted-text); font-weight: 700; font-size: 12px; width: 1%; }
+.eb-notes-cell { position: relative; min-width: 200px; }
+.eb-row-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  border-radius: 5px;
+  color: var(--color-muted-text);
+  cursor: pointer;
+  flex: none;
+}
+.eb-row-del:hover { background: color-mix(in oklch, var(--color-rose) 14%, #fff); color: var(--rose-text); }
+
+/* highlight select (day rows) */
+.eb-hl {
+  appearance: none;
+  font: 600 11px inherit;
+  color: var(--color-amber-text);
+  background: transparent;
+  border: 1px solid color-mix(in oklch, var(--color-amber) 30%, #fff);
+  border-radius: 999px;
+  padding: 2px 8px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+.eb-hl:focus { outline: 2px solid var(--color-teal); outline-offset: 1px; }
+
+/* --- Read-view scoping (inside .doc-prose / .doc-body) --- */
+.eb-view { margin: 0; }
+.eb-view .eb-bullets li { padding-right: 6px; }
+.eb-view .eb-table-wrap { border-top: 1px solid var(--color-warm); }
+
+@media print {
+  .eb-table th { position: static; }
+  .eb-table tr.eb-sum td,
+  .eb-table tr.eb-brick td,
+  .eb-table tr.eb-race td { background: none !important; }
+  .eb-table tr.eb-brick td,
+  .eb-table tr.eb-race td { border-bottom: 1pt solid #131313; }
+}
+

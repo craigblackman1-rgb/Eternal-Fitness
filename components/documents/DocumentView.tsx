@@ -15,6 +15,7 @@ const KIND_EYEBROW: Record<DocumentKind, string> = {
   remote_coaching: "Client document 09",
   intake_form: "Client document 10",
   fortnightly_checkin: "Client document 11",
+  endurance_block: "Training plan",
   note: "Client note",
 };
 
@@ -30,6 +31,7 @@ const KIND_REFERENCE: Record<DocumentKind, string> = {
   remote_coaching: "EF-REMOTE-2026",
   intake_form: "EF-INTAKE-2026",
   fortnightly_checkin: "EF-CHECKIN-2026",
+  endurance_block: "EF-ENDURO-2026",
   note: "EF-NOTE-2026",
 };
 
