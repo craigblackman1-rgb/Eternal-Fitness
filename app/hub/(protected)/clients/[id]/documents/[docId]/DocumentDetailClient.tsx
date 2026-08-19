@@ -286,16 +286,22 @@ export function DocumentDetailClient({
         </HubCard>
       )}
 
-      {/* Signatures */}
+      {/* Signatures — only for kinds that actually require one. Some kinds
+          (endurance_block, invoice) need neither client nor trainer signature;
+          showing "Awaiting client signature" there implied one was pending
+          when none was ever required. */}
+      {(doc.requires_client_signature || doc.requires_trainer_signature) && (
       <HubCard padded={false}>
         <HubCardHeader title="Signatures" className="px-5 pt-5" />
         <CardContent className="space-y-4">
+          {doc.requires_client_signature && (
           <div className="text-sm">
             <span className="text-muted-foreground">Client: </span>
             {doc.client_signature
               ? <span className="text-foreground font-medium">Signed by {doc.client_name} on {doc.client_signed_date}</span>
               : <span className="text-muted-foreground">Awaiting client signature</span>}
           </div>
+          )}
           {doc.requires_trainer_signature && (
             <div className="space-y-2">
               <div className="text-sm">
@@ -319,6 +325,7 @@ export function DocumentDetailClient({
           )}
         </CardContent>
       </HubCard>
+      )}
 
       {/* Send */}
       {!locked && (
