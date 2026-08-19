@@ -104,3 +104,11 @@ all major surfaces; all verified on development.eternal-fitness.co.uk then live.
   past today's session — will be tracked via `wo defer`/`wo status`, not held
   open in chat. Lane B (SessionStatusPill, HubRail, HubCard, single accordion,
   single tab) sequenced first since CR-EF-037 Phase 2's UI consumes the pill.
+- **2026-08-19 — CR-EF-042/046 un-stranded.** Merged `origin/claude/lane-cr-042-046-parity`
+  into `staging` (`a50029d`), diff hand-reviewed before merge, `tsc --noEmit` clean,
+  no file overlap with staging's own pending commit. Deployed via Coolify
+  (`eternal-fitness-staging`, deployment `f736zfu3sb77tfjbrgfarm1j`) and verified
+  live on development.eternal-fitness.co.uk via claude-in-chrome: dashboard Quick
+  Actions bar now shows 4 buttons incl. "Log check-in"; mobile Today confirmed via
+  `document.querySelectorAll` to render `.m-section*` classes. Not promoted to
+  main/live — Craig's call, separate decision.
