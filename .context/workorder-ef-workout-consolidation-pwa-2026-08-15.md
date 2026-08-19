@@ -158,3 +158,30 @@ the two device tests together).
   condition). Paste-and-assign, portal PWA states, and nav-restructure
   reconciliation still outstanding — Craig re-sent those briefs to Open Design
   after the first pass apparently lost them.
+- **2026-08-17 (later still) — L3/L4/L6 actually shipped, ledger never updated
+  until now (found during the 2026-08-19 reconciliation pass).** Correcting the
+  record:
+  - **L3 (staff surface consolidation) — BUILT.** `347145c`. `LiveSessionLog.tsx`
+    deleted; `app/hub/log/[sessionId]/page.tsx` is now a real redirect into
+    `/hub/clients/[id]/blocks/[blockId]/sessions/[sessionNum]`. `/hub/log` is no
+    longer a third design.
+  - **L4 (templates paste-and-assign + browser) — BUILT.** `626952f`.
+    `app/hub/(protected)/workout-templates/new/TemplatePasteClient.tsx` +
+    `/api/workout-templates/structure` are live; Esther can paste a workout and
+    get a structured, assignable template without leaving the hub.
+  - **L6 (portal PWA) — BUILT.** `b328e52`. `public/portal.webmanifest` +
+    `public/portal/sw.js` present, scoped to `/portal/` per the brief.
+  - **L2 (mockups) — delivered, revised, verified.** All 4 lane mockups
+    (`hub-session.html`, `hub-block-module.html`, `hub-schedule.html`,
+    `hub-workout-templates.html`) came back, the two sent for revision were
+    revised and re-verified against the brief on 2026-08-18 (see
+    `.context/audit-hub-design-parity-2026-08-18.md`).
+  - L5 (naming/conversion rollout) — not evidenced as done; still open.
+  - G4 (portal PWA client-facing copy) — standing gate, not yet asked.
+- **2026-08-19 — G2 signed by Craig.** Also approved adopting
+  `.context/assessment-workout-unification-2026-08-17.md` Part 3's unified
+  session state model (clears queued decision `qmsxl5j0c7l`; all hotfixes AUTO).
+  CR-EF-037 Phases 2–3 — the state-model build, uid-keyed set_logs, one write
+  path, calendar spine — are now buildable lanes off this WO. Emma Atkinson's
+  duplicate-log data question (`qmsxl5iz4wg`) also answered: clean up as
+  proposed in CR-EF-029's reconstruction, backup taken first.
