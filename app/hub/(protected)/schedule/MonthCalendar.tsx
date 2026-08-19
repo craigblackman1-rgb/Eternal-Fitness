@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { HubCard } from "@/components/hub";
+import { sessionStatusColors } from "@/components/hub/SessionStatusPill";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { toLocalISODate, findConflictIds } from "@/lib/schedule-dates";
 import type { ScheduledEntry } from "./ScheduleCalendar";
@@ -41,6 +42,7 @@ export function MonthCalendar({
     d.setDate(1);
     return d;
   });
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const byDate = useMemo(() => {
     const map = new Map<string, ScheduledEntry[]>();
@@ -59,7 +61,7 @@ export function MonthCalendar({
   const clashDates = useMemo(() => {
     const dates = new Set<string>();
     for (const [date, dayEntries] of byDate) {
-      if (findConflictIds(dayEntries).size > 0) dates.add(date);
+      if (findConflictIds(dayEntries.filter((e) => e.status !== "cancelled")).size > 0) dates.add(date);
     }
     return dates;
   }, [byDate]);
@@ -139,17 +141,38 @@ export function MonthCalendar({
 
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm bg-[var(--status-success)]" />
-          Booked · workout ready
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("planned").color }} />
+          Planned
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm border-[1.5px] border-dashed border-[var(--status-warning)] bg-white" />
-          Booked · no workout yet
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("scheduled").color }} />
+          Scheduled
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("in_progress").color }} />
+          In progress
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("completed").color }} />
+          Completed
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("cancelled").color }} />
+          Cancelled
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-[var(--status-warning)]" />
           Clash between clients
         </span>
+        <label className="ml-auto inline-flex cursor-pointer select-none items-center gap-2 font-semibold">
+          <input
+            type="checkbox"
+            checked={showCancelled}
+            onChange={(e) => setShowCancelled(e.target.checked)}
+            className="h-3.5 w-3.5 accent-teal"
+          />
+          Show cancelled
+        </label>
       </div>
 
       <HubCard>
@@ -165,7 +188,8 @@ export function MonthCalendar({
             const iso = toLocalISODate(d);
             const inMonth = d.getMonth() === viewDate.getMonth();
             const isToday = iso === today;
-            const dayEntries = byDate.get(iso) ?? [];
+            const allEntries = byDate.get(iso) ?? [];
+            const dayEntries = showCancelled ? allEntries : allEntries.filter((e) => e.status !== "cancelled");
             const hasClash = clashDates.has(iso);
             const shown = dayEntries.slice(0, MAX_CHIPS);
             const overflow = dayEntries.length - shown.length;
@@ -198,34 +222,35 @@ export function MonthCalendar({
                   )}
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
-                  {shown.map((e) => (
-                    <div
-                      key={e.id}
-                      className={cn(
-                        "flex items-baseline gap-1.5 overflow-hidden rounded-md px-1.5 py-0.5 text-[11px] leading-tight",
-                        e.hasWorkout
-                          ? "bg-[var(--status-success-bg)] shadow-[inset_3px_0_0_var(--status-success)]"
-                          : "border border-dashed border-[var(--status-warning-border)] bg-white shadow-[inset_3px_0_0_var(--status-warning)]",
-                      )}
-                    >
-                      <span
+                  {shown.map((e) => {
+                    const sc = sessionStatusColors(e.status);
+                    const cancelled = e.status === "cancelled";
+                    return (
+                      <div
+                        key={e.id}
                         className={cn(
-                          "shrink-0 font-bold tabular-nums",
-                          e.hasWorkout ? "text-foreground" : "text-muted-foreground",
+                          "flex items-baseline gap-1.5 overflow-hidden rounded-md px-1.5 py-0.5 text-[11px] leading-tight",
+                          cancelled && "line-through",
                         )}
+                        style={{
+                          backgroundColor: sc.background,
+                          boxShadow: `inset 3px 0 0 ${sc.color}`,
+                        }}
                       >
-                        {isoToTime(e.scheduledAt)}
-                      </span>
-                      <span className={cn("truncate", e.hasWorkout ? "text-[var(--color-body)]" : "text-muted-foreground")}>
-                        {e.clientName}
-                      </span>
-                      {!e.hasWorkout && (
-                        <span className="ml-auto shrink-0 whitespace-nowrap text-[10px] font-bold text-[var(--status-warning)]">
-                          needs workout
+                        <span
+                          className={cn(
+                            "shrink-0 font-bold tabular-nums",
+                            cancelled ? "text-muted-foreground" : "text-foreground",
+                          )}
+                        >
+                          {isoToTime(e.scheduledAt)}
                         </span>
-                      )}
-                    </div>
-                  ))}
+                        <span className={cn("truncate", cancelled ? "text-muted-foreground" : "text-[var(--color-body)]")}>
+                          {e.clientName}
+                        </span>
+                      </div>
+                    );
+                  })}
                   {overflow > 0 && (
                     <span className="px-0.5 text-[11px] font-semibold text-muted-foreground">+{overflow} more</span>
                   )}

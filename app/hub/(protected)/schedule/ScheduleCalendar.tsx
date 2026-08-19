@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HubCard, HubCardHeader, HubAlert, EmptyState } from "@/components/hub";
+import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
+import type { SessionStatus } from "@/types";
 import {
   IconCalendar,
   IconChevronLeft,
@@ -43,9 +45,11 @@ export interface ScheduledEntry {
   /** ISO timestamp of the booking. */
   scheduledAt: string;
   durationMinutes: number;
-  /** false when the session is booked but has no prescribed exercises yet —
-   * a first-class, expected state (see the month view), not an edge case. */
-  hasWorkout: boolean;
+  /** Lifecycle state (CR-EF-037) — the 5-state pill this entry renders. */
+  status: SessionStatus;
+  /** Free-text cancellation reason — shown on the day view when a cancelled
+   *  entry is revealed via the "Show cancelled" toggle. */
+  cancelReason: string | null;
 }
 
 async function patchSession(id: string, body: Record<string, unknown>): Promise<boolean> {
@@ -74,13 +78,15 @@ export function ScheduleCalendar({
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const dayEntries = useMemo(
     () =>
       entries
         .filter((e) => isoToLocalDate(e.scheduledAt) === day)
+        .filter((e) => showCancelled || e.status !== "cancelled")
         .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()),
-    [entries, day],
+    [entries, day, showCancelled],
   );
 
   const conflictIds = useMemo(() => findConflictIds(dayEntries), [dayEntries]);
@@ -201,9 +207,20 @@ export function ScheduleCalendar({
           <HubCardHeader
             icon={<IconCalendar className="h-4 w-4" />}
             title="Sessions"
-            subtitle="Sorted by start time"
+            subtitle="Sorted by start time · cancelled hidden by default"
             color="teal"
             noBottomPadding
+            action={
+              <label className="inline-flex cursor-pointer select-none items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={showCancelled}
+                  onChange={(e) => setShowCancelled(e.target.checked)}
+                  className="h-3.5 w-3.5 accent-teal"
+                />
+                Show cancelled
+              </label>
+            }
           />
         </div>
         {dayEntries.length === 0 ? (
@@ -220,6 +237,12 @@ export function ScheduleCalendar({
               const isRescheduling = rescheduleId === entry.id;
               const isCancelling = cancelId === entry.id;
               const busy = busyId === entry.id;
+              const cancelled = entry.status === "cancelled";
+              const settled = entry.status === "completed" || cancelled;
+              const sessionUrl =
+                entry.clientNumber != null && entry.blockId != null
+                  ? `/hub/clients/${entry.clientNumber}/blocks/${entry.blockId}/sessions/${entry.sessionNumber}`
+                  : null;
               return (
                 <li
                   key={entry.id}
@@ -239,17 +262,23 @@ export function ScheduleCalendar({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          {entry.clientNumber != null && entry.blockId != null ? (
+                          {sessionUrl ? (
                             <Link
-                              href={`/hub/clients/${entry.clientNumber}/blocks/${entry.blockId}/sessions/${entry.sessionNumber}`}
-                              className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-rose"
+                              href={sessionUrl}
+                              className={cn(
+                                "inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-rose",
+                                cancelled && "text-muted-foreground line-through",
+                              )}
                             >
                               {entry.clientName}
                               <IconExternalLink className="h-3 w-3 text-muted-foreground" />
                             </Link>
                           ) : (
-                            <span className="text-sm font-semibold text-foreground">{entry.clientName}</span>
+                            <span className={cn("text-sm font-semibold text-foreground", cancelled && "text-muted-foreground line-through")}>
+                              {entry.clientName}
+                            </span>
                           )}
+                          <SessionStatusPill status={entry.status} />
                           {conflicted && (
                             <span className="inline-flex items-center gap-1 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
                               <IconTriangleAlert className="h-3 w-3" />
@@ -261,6 +290,7 @@ export function ScheduleCalendar({
                           {entry.blockNumber != null && `Block ${entry.blockNumber} · `}
                           Session {entry.sessionNumber}
                           {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
+                          {cancelled && entry.cancelReason && ` · ${entry.cancelReason}`}
                         </p>
                       </div>
                     </div>
@@ -268,24 +298,37 @@ export function ScheduleCalendar({
                     {/* Actions */}
                     {!isRescheduling && !isCancelling && (
                       <div className="flex items-center gap-2 shrink-0">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => startReschedule(entry)}
-                          className="gap-1.5 rounded-lg"
-                        >
-                          <IconCalendar className="h-3.5 w-3.5" />
-                          Reschedule
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startCancel(entry)}
-                          className="gap-1.5 rounded-lg text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] hover:text-[var(--status-danger)]"
-                        >
-                          <IconX className="h-3.5 w-3.5" />
-                          Cancel
-                        </Button>
+                        {settled ? (
+                          sessionUrl ? (
+                            <Link
+                              href={sessionUrl}
+                              className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                            >
+                              View
+                            </Link>
+                          ) : null
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => startReschedule(entry)}
+                              className="gap-1.5 rounded-lg"
+                            >
+                              <IconCalendar className="h-3.5 w-3.5" />
+                              Reschedule
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => startCancel(entry)}
+                              className="gap-1.5 rounded-lg text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] hover:text-[var(--status-danger)]"
+                            >
+                              <IconX className="h-3.5 w-3.5" />
+                              Cancel
+                            </Button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>

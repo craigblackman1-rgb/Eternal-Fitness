@@ -75,6 +75,13 @@ const CONFIG: Record<SessionStatus, SessionStatusConfig> = {
   },
 };
 
+/** The shared 5-state colour contract — used by the pill and by the schedule
+ *  month view's colour-coded chips so the two never drift apart. */
+export function sessionStatusColors(status: SessionStatus): Pick<SessionStatusConfig, "color" | "background" | "border"> {
+  const cfg = CONFIG[status];
+  return { color: cfg.color, background: cfg.background, border: cfg.border };
+}
+
 export function SessionStatusPill({ status, className }: SessionStatusPillProps) {
   const cfg = CONFIG[status];
   return (

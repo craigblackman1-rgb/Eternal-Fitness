@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/hub/StatusBadge";
+import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
@@ -17,6 +18,7 @@ import type { ExerciseTrend } from "@/lib/progress";
 import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
 import type { SetLog } from "@/types";
 import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
+import { deriveSessionStatus } from "@/lib/session-status";
 import {
   IconFileText,
   IconClipboardList,
@@ -42,6 +44,9 @@ interface SessionRow {
   block_id: string;
   data?: any;
   scheduled_at?: string | null;
+  status?: string | null;
+  cancelled_at?: string | null;
+  completed_at?: string | null;
   blocks?: { block_number: number };
 }
 
@@ -72,6 +77,16 @@ function sortSessions(sessions: SessionRow[], key: SessionSortKey, dir: SortDir)
     const blockB = (b as any).blocks?.block_number ?? 0;
     if (blockA !== blockB) return (blockA - blockB) * mult;
     return (a.session_number - b.session_number) * mult;
+  });
+}
+
+function sessionStatus(session: SessionRow) {
+  return deriveSessionStatus({
+    status: session.status,
+    cancelled_at: session.cancelled_at,
+    completed_at: session.completed_at,
+    scheduled_at: session.scheduled_at,
+    session_log: (session.data as any)?.session_log,
   });
 }
 
@@ -462,6 +477,7 @@ export function TrainingTabContent({
                         {sessionSortKey === "session" && <span>{sessionSortDir === "asc" ? "↑" : "↓"}</span>}
                       </button>
                     </th>
+                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Status</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Logged</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Check-in</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
@@ -485,6 +501,9 @@ export function TrainingTabContent({
                           </td>
                           <td className="py-2.5 px-5 font-semibold text-foreground">
                             {blockNum != null ? `Block ${blockNum} \u00b7 S${session.session_number}` : `S${session.session_number}`}
+                          </td>
+                          <td className="py-2.5 px-5">
+                            <SessionStatusPill status={sessionStatus(session)} />
                           </td>
                           <td className="py-2.5 px-5 whitespace-nowrap">
                             {hasSets ? (
@@ -520,7 +539,7 @@ export function TrainingTabContent({
                         </tr>
                         {isExpanded && hasSets && (
                           <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]/50">
-                            <td colSpan={6} className="px-5 py-3">
+                            <td colSpan={7} className="px-5 py-3">
                               <SessionSetEvidenceTable evidence={evidence} />
                             </td>
                           </tr>

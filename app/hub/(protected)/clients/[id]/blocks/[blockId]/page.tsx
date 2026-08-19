@@ -2,44 +2,21 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/hub/StatusBadge";
+import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
 import { IconChevronLeft } from "@/components/icons";
 import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { HideExerciseTableButton } from "./HideExerciseTableButton";
 import { SessionRowActions } from "./SessionRowActions";
 import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
+import { deriveSessionStatus } from "@/lib/session-status";
 import type { Weekday } from "@/lib/scheduling";
-import type { Session } from "@/types";
+import type { Session, SessionStatus } from "@/types";
 
 const archetypeInfo: Record<string, { name: string; tint: string }> = {
   A: { name: "Mobility & Movement", tint: "bg-teal/10 text-teal" },
   B: { name: "Strength & Stability", tint: "bg-rose/10 text-rose" },
   C: { name: "Power & Conditioning", tint: "bg-dark-navy/10 text-dark-navy" },
-};
-
-type SessionStatus = "planned" | "scheduled" | "in_progress" | "completed" | "cancelled";
-
-const STATUS_META: Record<SessionStatus, { label: string; cls: string }> = {
-  planned: {
-    label: "Planned",
-    cls: "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)]",
-  },
-  scheduled: {
-    label: "Scheduled",
-    cls: "bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border-[var(--status-primary-border)]",
-  },
-  in_progress: {
-    label: "In progress",
-    cls: "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]",
-  },
-  completed: {
-    label: "Completed",
-    cls: "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]",
-  },
-  cancelled: {
-    label: "Cancelled",
-    cls: "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]",
-  },
 };
 
 interface SessionRow {
@@ -65,11 +42,12 @@ interface SessionRow {
  * cancelled session never reads as "Completed".
  */
 function sessionStatus(s: SessionRow): SessionStatus {
-  if (s.cancelled_at || s.status === "cancelled") return "cancelled";
-  if (s.data?.session_log?.completed_at || s.status === "completed") return "completed";
-  if (s.status === "in_progress") return "in_progress";
-  if (s.scheduled_at || s.status === "scheduled") return "scheduled";
-  return "planned";
+  return deriveSessionStatus({
+    status: s.status,
+    cancelled_at: s.cancelled_at,
+    scheduled_at: s.scheduled_at,
+    session_log: s.data?.session_log,
+  });
 }
 
 export default async function BlockViewPage({
@@ -278,7 +256,6 @@ export default async function BlockViewPage({
                   const info = archetypeInfo[session.archetype];
                   const focusLabel = session.data?.focus_label || info?.name || "—";
                   const status = sessionStatus(session);
-                  const statusMeta = STATUS_META[status];
                   const settled = status === "completed" || status === "cancelled";
                   const sessionOpen = weekOpen && session.session_number === targetSessionNum;
                   const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
@@ -303,9 +280,7 @@ export default async function BlockViewPage({
                         </div>
                         <div className="flex items-center gap-3.5 w-full justify-end sm:w-auto sm:contents">
                           <span className="w-[150px] shrink-0 flex justify-end">
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusMeta.cls}`}>
-                              {statusMeta.label}
-                            </span>
+                            <SessionStatusPill status={status} />
                           </span>
                           <div className="flex items-center gap-2 shrink-0">
                             {settled ? (
