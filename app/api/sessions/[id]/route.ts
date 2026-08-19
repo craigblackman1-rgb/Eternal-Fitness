@@ -27,6 +27,25 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: "No updatable fields provided" }, { status: 400 });
   }
 
+  // CR-EF-037 Phase 2 — keep the first-class status/completed_at columns
+  // (added by 20260818_session_status_model.sql) in sync with whatever this
+  // PATCH is doing, since the migration shipped without the "transition API"
+  // its own comments call for: nothing has written these columns since, so
+  // every session completed after 2026-08-18 was silently drifting back into
+  // the exact four-surfaces-disagree bug CR-EF-037 exists to kill. This is
+  // the single place both TrainScreen.tsx and SessionWorkoutLog.tsx's
+  // handleComplete already PATCH through — no frontend change needed.
+  // Precedence matches the migration's backfill: cancelled beats completed.
+  const incomingData = update.data as { session_log?: { completed_at?: string | null } } | undefined;
+  const completingNow = typeof incomingData?.session_log?.completed_at === "string";
+  const cancellingNow = "cancelled_at" in update && update.cancelled_at != null;
+  if (cancellingNow) {
+    update.status = "cancelled";
+  } else if (completingNow) {
+    update.completed_at = incomingData!.session_log!.completed_at;
+    update.status = "completed";
+  }
+
   const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
 
   if (update.data && typeof update.data === "object" && !Array.isArray(update.data)) {

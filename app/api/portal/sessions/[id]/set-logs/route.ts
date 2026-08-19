@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPortalSessionFromCookies } from "@/lib/portal-session";
 import { getPool } from "@/lib/pg-client";
 import { checkAndUpsertPB } from "@/lib/personal-records";
+import { markSessionInProgress } from "@/lib/session-transitions";
 
 /**
  * Portal set-log routes — the client-authored counterpart to the staff route at
@@ -156,6 +157,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     );
     saved = res.rows[0];
   }
+  await markSessionInProgress(params.id);
 
   const isNewPb = await checkAndUpsertPB(session.clientId, saved);
   return NextResponse.json({ ...saved, is_new_pb: isNewPb }, { status: 201 });
