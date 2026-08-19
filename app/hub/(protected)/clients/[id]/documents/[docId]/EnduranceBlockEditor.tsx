@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,50 @@ function uid(): string {
     return crypto.randomUUID();
   }
   return `eb-${Date.now()}-${uidCounter++}`;
+}
+
+/**
+ * Single-line-looking cell that wraps and grows instead of truncating —
+ * a plain <input> clips/scrolls long content out of view with no visual
+ * sign anything is hidden, and rows/weekly-target details regularly run
+ * well past one line (e.g. "~1-1.5 hrs/week (2-3 sessions), open water —
+ * good long-term exposure for Venice-Jesolo..."). Auto-resizes on mount
+ * (so pasted/loaded long values render fully, not just after a keystroke)
+ * and on every change.
+ */
+function AutoCell({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+  useEffect(resize, [value]);
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      className={cn("eb-cell", className)}
+      style={{ overflow: "hidden", resize: "none" }}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+    />
+  );
 }
 
 function newDayRow(): EnduranceCalendarRow {
@@ -107,10 +152,9 @@ export function EnduranceBlockEditor({
                   placeholder="Swim"
                   disabled={locked}
                 />
-                <input
-                  className="eb-cell"
+                <AutoCell
                   value={t.detail}
-                  onChange={(e) => updateTarget(t.id, { detail: e.target.value })}
+                  onChange={(v) => updateTarget(t.id, { detail: v })}
                   placeholder="~1–1.5 hrs/week, open water"
                   disabled={locked}
                 />
@@ -176,19 +220,18 @@ export function EnduranceBlockEditor({
                 r.type === "week_summary" ? (
                   <tr key={r.id} className="eb-sum">
                     <td colSpan={2}>
-                      <input
-                        className="eb-cell"
+                      <AutoCell
                         value={r.weekLabel ?? ""}
-                        onChange={(e) => updateRow(r.id, { weekLabel: e.target.value })}
+                        onChange={(v) => updateRow(r.id, { weekLabel: v })}
                         placeholder="Week 1 (19–23 Aug, partial)"
                         disabled={locked}
                       />
                     </td>
-                    <td><input className="eb-cell" value={r.run ?? ""} onChange={(e) => updateRow(r.id, { run: e.target.value })} placeholder="—" disabled={locked} /></td>
-                    <td><input className="eb-cell" value={r.bike ?? ""} onChange={(e) => updateRow(r.id, { bike: e.target.value })} placeholder="—" disabled={locked} /></td>
-                    <td><input className="eb-cell" value={r.swim ?? ""} onChange={(e) => updateRow(r.id, { swim: e.target.value })} placeholder="—" disabled={locked} /></td>
+                    <td><AutoCell value={r.run ?? ""} onChange={(v) => updateRow(r.id, { run: v })} placeholder="—" disabled={locked} /></td>
+                    <td><AutoCell value={r.bike ?? ""} onChange={(v) => updateRow(r.id, { bike: v })} placeholder="—" disabled={locked} /></td>
+                    <td><AutoCell value={r.swim ?? ""} onChange={(v) => updateRow(r.id, { swim: v })} placeholder="—" disabled={locked} /></td>
                     <td className="eb-sum-notes">
-                      <input className="eb-cell" value={r.notes ?? ""} onChange={(e) => updateRow(r.id, { notes: e.target.value })} placeholder="Week total" disabled={locked} />
+                      <AutoCell value={r.notes ?? ""} onChange={(v) => updateRow(r.id, { notes: v })} placeholder="Week total" disabled={locked} />
                     </td>
                     {!locked && (
                       <td className="text-right align-top">
@@ -206,23 +249,16 @@ export function EnduranceBlockEditor({
                     <td className="eb-day-cell">
                       <input className="eb-cell" value={r.dayLabel ?? ""} onChange={(e) => updateRow(r.id, { dayLabel: e.target.value })} placeholder="—" disabled={locked} />
                     </td>
-                    <td><input className="eb-cell" value={r.run ?? ""} onChange={(e) => updateRow(r.id, { run: e.target.value })} placeholder="—" disabled={locked} /></td>
-                    <td><input className="eb-cell" value={r.bike ?? ""} onChange={(e) => updateRow(r.id, { bike: e.target.value })} placeholder="—" disabled={locked} /></td>
-                    <td><input className="eb-cell" value={r.swim ?? ""} onChange={(e) => updateRow(r.id, { swim: e.target.value })} placeholder="—" disabled={locked} /></td>
+                    <td><AutoCell value={r.run ?? ""} onChange={(v) => updateRow(r.id, { run: v })} placeholder="—" disabled={locked} /></td>
+                    <td><AutoCell value={r.bike ?? ""} onChange={(v) => updateRow(r.id, { bike: v })} placeholder="—" disabled={locked} /></td>
+                    <td><AutoCell value={r.swim ?? ""} onChange={(v) => updateRow(r.id, { swim: v })} placeholder="—" disabled={locked} /></td>
                     <td className="eb-notes-cell">
                       {r.highlight && (
                         <span className={cn("eb-tag", r.highlight === "race" && "eb-tag--race")}>
                           {r.highlight === "race" ? "Race day" : "Brick"}
                         </span>
                       )}
-                      <textarea
-                        className="eb-cell"
-                        rows={1}
-                        value={r.notes ?? ""}
-                        onChange={(e) => updateRow(r.id, { notes: e.target.value })}
-                        placeholder="Notes"
-                        disabled={locked}
-                      />
+                      <AutoCell value={r.notes ?? ""} onChange={(v) => updateRow(r.id, { notes: v })} placeholder="Notes" disabled={locked} />
                     </td>
                     {!locked && (
                       <td className="text-right align-top whitespace-nowrap">
