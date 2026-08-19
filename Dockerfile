@@ -22,14 +22,17 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN corepack enable pnpm
-# Persist Next's build cache so unchanged routes are not recompiled from scratch.
-# Matches decoded-data-app and decoded-ops-hub, which both already do this; this app
-# was the outlier and built in 191s vs their 128s/30s. Note decoded-ops-site
-# deliberately does NOT do this (its Dockerfile documents a stale-prerender problem);
-# that app prerenders marketing pages, this one does not.
-RUN --mount=type=cache,target=/app/.next/cache \
-    pnpm run build
+# Deliberately NO --mount=type=cache,target=/app/.next/cache here. It was tried and
+# measured on 2026-08-19 (CR-EF-047) on the theory that this app was slow because it
+# lacked the mount decoded-data-app and decoded-ops-hub both have. It does not help:
+# build step was 179.9-227.6s across 10 deploys BEFORE the change (mean ~205s) and
+# 234.2 / 235.9 / 214.8s across 3 deploys after (mean ~228s) -- at or above the top of
+# the pre-existing range, including one clean solo run on an otherwise-idle builder.
+# Every deploy does a full `COPY . .`, so this build is dominated by fresh compilation
+# rather than by cacheable artifacts, and the extra RUN layer costs more than the mount
+# returns. The 30s/128s/191s spread across hub/data-app/this app is app size, not
+# caching. Do not re-add without re-measuring.
+RUN corepack enable pnpm && pnpm run build
 
 # Production image — minimal
 FROM base AS runner
