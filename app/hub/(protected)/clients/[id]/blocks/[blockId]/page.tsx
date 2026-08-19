@@ -67,7 +67,7 @@ export default async function BlockViewPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("name, client_number")
+    .select("name, client_number, profile")
     .eq("client_number", parseInt(params.id))
     .single();
 
@@ -82,6 +82,12 @@ export default async function BlockViewPage({
 
   const totalSessions = sessions.length;
   const completedSessions = sessions.filter((s) => sessionStatus(s) === "completed").length;
+
+  // Client context descriptor for the header line — the primary declared
+  // condition, reused from the profile rather than a new field (matches the
+  // hub's medical tracker, which also surfaces `conditions[0]` as the short
+  // client descriptor).
+  const clientCondition = client?.profile?.health?.conditions?.[0] ?? null;
 
   // Weeks are DERIVED from dates, not read from the stored `week` ordinal
   // (CR-EF-032: hand-built blocks pile everything into "week 1"). Scheduled
@@ -169,7 +175,7 @@ export default async function BlockViewPage({
             <StatusBadge status={block.status} />
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {client?.name || "Client"} · {totalSessions} sessions · {weekGroups.length} week{weekGroups.length === 1 ? "" : "s"}
+            {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {totalSessions}-session block
           </p>
         </div>
       </div>

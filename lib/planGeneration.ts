@@ -451,7 +451,7 @@ function stampSession(
     phase: slot.phase,
     focus_label:
       parsed.focus_label ||
-      `${archetypeFocusLabels[slot.archetype]} (Week ${slot.week})`,
+      archetypeFocusLabels[slot.archetype],
     time_tier: profile.logistics.time_tier,
     versions: parsed.versions as Session["versions"],
     coaching_notes: parsed.coaching_notes,

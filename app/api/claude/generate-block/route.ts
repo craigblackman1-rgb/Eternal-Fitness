@@ -388,7 +388,7 @@ function generateFallback(profile: ClientProfile, blockNumber: number, exerciseP
         archetype,
         week: wp.week,
         phase: wp.phase,
-        focus_label: `${archetypeFocus[archetype]} — ${phaseLabel} (Week ${wp.week})`,
+        focus_label: `${archetypeFocus[archetype]} — ${phaseLabel}`,
         time_tier: profile.logistics.time_tier,
         versions: template
           ? {

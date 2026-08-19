@@ -717,7 +717,7 @@ export function SessionWorkoutLog({
               <b className="tabular-nums text-rose">{progress.doneExCount}</b> of {allExerciseRefs.length} exercises logged
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-              {progress.doneExCount === allExerciseRefs.length ? "All logged" : progress.started ? "In progress" : "Not started"}
+              {progress.doneExCount === allExerciseRefs.length ? "All logged" : progress.started ? "Partially logged" : "Not started"}
             </span>
             {queuedSetsCount > 0 ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]" title={`${queuedSetsCount} set${queuedSetsCount === 1 ? "" : "s"} saved on this device — will sync when the connection is back`}>
