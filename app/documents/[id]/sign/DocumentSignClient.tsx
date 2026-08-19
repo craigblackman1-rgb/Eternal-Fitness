@@ -27,7 +27,11 @@ export function DocumentSignClient({ doc }: { doc: ClientDocument }) {
     (doc.feedback_responses?.consents as Record<string, boolean>) ?? {},
   );
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(doc.status === "signed" && !!doc.client_signature);
+  // Only true right after a successful submit in *this* session — the
+  // celebratory "thank you" screen replaces the document entirely, so it
+  // must never show on a later visit to an already-signed document (the
+  // client should see the real content then, not just a confirmation card).
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Only "feedback" skips a real signature — a survey, not an attestation. PAR-Q
@@ -77,7 +81,7 @@ export function DocumentSignClient({ doc }: { doc: ClientDocument }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to sign");
-      setDone(true);
+      setJustSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -86,7 +90,7 @@ export function DocumentSignClient({ doc }: { doc: ClientDocument }) {
     }
   };
 
-  if (done) {
+  if (justSubmitted) {
     return (
       <div className="doc-signed-page">
         <div className="doc-signed-card">
