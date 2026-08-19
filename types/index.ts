@@ -8,6 +8,7 @@ export type PrimaryGoal = "strength" | "mobility" | "weight_loss" | "rehabilitat
 export type Archetype = "A" | "B" | "C";
 export type Phase = "foundation" | "build" | "develop" | "peak" | "deload";
 export type BlockStatus = "draft" | "approved" | "active" | "complete";
+export type SessionStatus = "planned" | "scheduled" | "in_progress" | "completed" | "cancelled";
 
 /** Highest week number a session may sit on — mirrors the sessions_week_check
  *  constraint. Esther's standard block is 6 weeks, but supplied programmes run
