@@ -490,6 +490,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       </HubDataField>
                       <HubDataField label="Started">{new Date(latestBlock.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</HubDataField>
                       <HubDataField label="Progress">{blockSessionCounts[latestBlock.block_number] ?? 0} sessions</HubDataField>
+                      {latestBlock.block_note && (
+                        <HubDataField label="Focus" span>{latestBlock.block_note}</HubDataField>
+                      )}
                     </HubDataGrid>
                   ) : (
                     <div className="flex items-center justify-between py-1 text-sm">
@@ -595,6 +598,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   title="Active training rules"
                   subtitle="Applied to every generated block"
                   color="amber"
+                  defaultOpen
                 >
                   <div className="px-5 pt-4 pb-4">
                     <ul className="list-none space-y-2">
