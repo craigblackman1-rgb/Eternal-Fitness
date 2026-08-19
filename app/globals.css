@@ -483,10 +483,16 @@
    — the endurance_block calendar (6 columns) reads as one word per line at
    the standard 780px prose width. Every other kind (agreements, PAR-Q,
    consent) stays narrow on purpose; this is opt-in per kind, not a global
-   bump. */
+   bump. Sized to fill a laptop screen: the calendar's session descriptions
+   ("10 min easy, straight off the bike") need real column width, and the
+   sheet is the only thing constraining them. */
 .doc-sheet--wide {
-  max-width: 1180px;
+  max-width: min(1560px, calc(100vw - 48px));
 }
+/* Prose inside a wide sheet still reads at a comfortable measure — only the
+   calendar table should use the full width. */
+.doc-sheet--wide .eb-intro,
+.doc-sheet--wide .doc-section__intro { max-width: 90ch; }
 
 /* ----- Masthead ----- */
 .doc-masthead {
@@ -1139,7 +1145,19 @@
 
 /* --- Calendar table --- */
 .eb-table-wrap { overflow-x: auto; border-top: 1px solid var(--color-warm); }
-table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
+table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 940px; }
+
+/* Column proportions. Without these the browser splits the six columns by
+   content, so a busy Run cell wraps to five lines while an empty Swim cell
+   sits half the table wide. Widths are set on the header cells only — the
+   week-summary rows colspan their first two cells, so td-level widths would
+   disagree row to row. */
+.eb-table th:nth-child(1) { width: 76px; }   /* Date */
+.eb-table th:nth-child(2) { width: 56px; }   /* Day */
+.eb-table th:nth-child(3),
+.eb-table th:nth-child(4),
+.eb-table th:nth-child(5) { width: 16%; }    /* Run / Bike / Swim */
+.eb-table th:nth-child(6) { width: auto; }   /* Notes takes the remainder */
 .eb-table th {
   position: sticky;
   top: 0;
@@ -1167,7 +1185,13 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
   border-bottom: 1px solid var(--color-border-warm);
 }
 .eb-table tr.eb-sum .eb-cell { font-weight: 700; }
-.eb-sum-label { display: block; font-weight: 700; color: var(--color-ink); }
+/* NB: never give this `display: block`. It is a <td colspan="2">, and a
+   block-level table cell drops out of the row's cell sequence entirely —
+   the colspan collapses to one column and every following value shifts one
+   column left, so the week's run hours printed under "Day", bike under
+   "Run", and so on. Read-view only bug (the editor's summary cell carries
+   no class), caught 2026-08-19. */
+.eb-sum-label { font-weight: 700; color: var(--color-ink); }
 .eb-sum-notes { color: var(--color-amber-text); font-size: 13.5px; white-space: nowrap; }
 
 /* brick / race — tinted day rows */
@@ -1251,6 +1275,14 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
 .eb-view .eb-bullets li { padding-right: 6px; }
 .eb-view .eb-table-wrap { border-top: 1px solid var(--color-warm); }
 
+/* A wide (table-based) document prints landscape. Portrait A4 leaves ~180mm
+   of printable width, which the calendar cannot fit — the scroll container
+   simply clipped the Notes column off the page. A named page keeps this
+   scoped to wide docs; every other document kind keeps the portrait @page
+   defined above. */
+.doc-sheet--wide { page: eb-wide; }
+@page eb-wide { size: A4 landscape; margin: 10mm 10mm 12mm; }
+
 @media print {
   .eb-table th { position: static; }
   .eb-table tr.eb-sum td,
@@ -1258,5 +1290,41 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
   .eb-table tr.eb-race td { background: none !important; }
   .eb-table tr.eb-brick td,
   .eb-table tr.eb-race td { border-bottom: 1pt solid #131313; }
+
+  /* The on-screen table is a horizontally scrollable min-width block. On
+     paper there is nothing to scroll, so that clipped the right-hand columns
+     entirely. Release both constraints and lay the columns out to the page. */
+  .eb-table-wrap {
+    overflow: visible !important;
+    border-top: none;
+  }
+  table.eb-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    table-layout: fixed;
+    font-size: 8.5pt;
+  }
+  .eb-table th,
+  .eb-table td {
+    padding: 3px 5px;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+  }
+  /* Fixed layout takes its widths from the header row, so these govern every
+     row including the colspanned week summaries. */
+  .eb-table th:nth-child(1) { width: 8%; }
+  .eb-table th:nth-child(2) { width: 6%; }
+  .eb-table th:nth-child(3),
+  .eb-table th:nth-child(4),
+  .eb-table th:nth-child(5) { width: 17%; }
+  .eb-table th:nth-child(6) { width: 35%; }
+
+  /* Keep a day's row intact across a page break where possible, and repeat
+     the header on each page so a 3-week block stays readable. */
+  .eb-table thead { display: table-header-group; }
+  .eb-table tr { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Editor-only chrome must never reach paper. */
+  .eb-add, .eb-row-del, .eb-hl, .eb-bullet-rm, .eb-callout-x { display: none !important; }
 }
 

@@ -270,7 +270,10 @@ function EnduranceBlockView({ block }: { block: EnduranceBlockData }) {
                   <td>{r.run}</td>
                   <td>{r.bike}</td>
                   <td>{r.swim}</td>
-                  <td className="eb-sum-notes">{r.notes ? <>Week total: <strong>{r.notes}</strong></> : null}</td>
+                  {/* No hardcoded "Week total:" prefix — Esther types the whole
+                      label into the cell (the editor placeholder shows the
+                      expected shape), so prefixing here double-printed it. */}
+                  <td className="eb-sum-notes">{r.notes ? <strong>{r.notes}</strong> : null}</td>
                 </tr>
               ) : (
                 <tr key={r.id} className={cn(r.highlight === "brick" && "eb-brick", r.highlight === "race" && "eb-race")}>
