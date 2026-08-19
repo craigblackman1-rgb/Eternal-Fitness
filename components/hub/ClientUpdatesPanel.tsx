@@ -79,7 +79,7 @@ export function ClientUpdatesPanel({
           const excerpt = stripHtml(u.body_html || "").trim();
 
           return (
-            <div key={u.id} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
+            <div key={u.id} className="rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground">{u.subject}</p>

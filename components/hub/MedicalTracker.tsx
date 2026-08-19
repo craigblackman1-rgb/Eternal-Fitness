@@ -418,7 +418,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
 
       {/* ── DNT alert ───────────────────────────────── */}
       {dntClients.length > 0 && (
-        <div className="flex items-start gap-3 rounded-xl p-3.5 bg-[var(--status-danger-solid)] text-white" role="alert">
+        <div className="flex items-start gap-3 rounded-[12px] p-3.5 bg-[var(--status-danger-solid)] text-white" role="alert">
           <IconAlertTriangle className="w-[18px] h-[18px] shrink-0 mt-px" />
           <div>
             <p className="text-[13.5px] font-bold">Do Not Train — {dntClients.length} {dntClients.length === 1 ? "client" : "clients"}</p>

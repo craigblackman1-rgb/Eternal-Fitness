@@ -34,7 +34,7 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
 
   const content = (
     <>
-      <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", c.bg, c.text)}>
+      <div className={cn("w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0", c.bg, c.text)}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">

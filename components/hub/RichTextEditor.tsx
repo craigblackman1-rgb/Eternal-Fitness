@@ -64,7 +64,7 @@ export function RichTextEditor({ value, onChange, placeholder, minHeight = 96 }:
   }, [emit]);
 
   return (
-    <div className="rounded-xl border border-[var(--hub-border)] bg-background overflow-hidden focus-within:ring-2 focus-within:ring-rose/40 focus-within:border-rose/60 transition">
+    <div className="rounded-[12px] border border-[var(--hub-border)] bg-background overflow-hidden focus-within:ring-2 focus-within:ring-rose/40 focus-within:border-rose/60 transition">
       <div className="flex items-center gap-1 border-b border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1.5">
         {TOOLBAR.map((action) => (
           <button

@@ -120,7 +120,7 @@ export function UpdateRowActions({ clientNumber, updateId, status, hasEmail, sub
               <StatusBadge status={status} />
             </div>
           </DialogHeader>
-          <div className="border border-border/60 rounded-xl overflow-hidden bg-[#F5F5F5]">
+          <div className="border border-border/60 rounded-[12px] overflow-hidden bg-[#F5F5F5]">
             <iframe
               srcDoc={body_html || "<p>No content</p>"}
               title="Update preview"
