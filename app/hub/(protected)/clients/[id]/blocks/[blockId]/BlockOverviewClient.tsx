@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { IconFileText } from "@/components/icons";
+import type { Weekday } from "@/lib/scheduling";
 import { BlockActions } from "./BlockActions";
+import { BlockSchedulePanel } from "./BlockSchedulePanel";
 import { EditBlockDrawer } from "./EditBlockDrawer";
 import { AddWorkoutDialog } from "./AddWorkoutDialog";
 import type { BlockStatus } from "@/types";
@@ -22,17 +24,32 @@ interface BlockOverviewClientProps {
   blockId: string;
   clientName: string;
   weeks: number[];
+  sessionCount: number;
+  scheduledStartIso: string | null;
+  weekdays: Weekday[];
 }
 
-export function BlockOverviewClient({ children, block, clientId, blockId, clientName, weeks }: BlockOverviewClientProps) {
+export function BlockOverviewClient({
+  children,
+  block,
+  clientId,
+  blockId,
+  clientName,
+  weeks,
+  sessionCount,
+  scheduledStartIso,
+  weekdays,
+}: BlockOverviewClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addWorkoutOpen, setAddWorkoutOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   return (
     <div className="space-y-6">
       <BlockActions
         onEditBlock={() => setDrawerOpen(true)}
         onAddWorkout={() => setAddWorkoutOpen(true)}
+        onSchedule={() => setScheduleOpen(true)}
         clientId={clientId}
         blockId={blockId}
         blockNumber={block.block_number}
@@ -40,6 +57,15 @@ export function BlockOverviewClient({ children, block, clientId, blockId, client
       />
 
       {children}
+
+      <BlockSchedulePanel
+        blockId={blockId}
+        sessionCount={sessionCount}
+        scheduledStartIso={scheduledStartIso}
+        weekdays={weekdays}
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+      />
 
       {/* Block Note stays a plain HubCard, not a HubAccordionSection: it's the
           only optional info section on this page (everything else is the
