@@ -133,7 +133,7 @@ export function ClientTasksPanel({
     dueInfo.nextDueDate && updateInterval && dueInfo.status;
 
   return (
-        <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)]">
+        <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)]">
           <div className="px-5 pt-5 pb-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
@@ -158,7 +158,7 @@ export function ClientTasksPanel({
 
           <div className="px-5 pb-5 pt-3">
             {adding && (
-              <div className="flex items-center gap-2 mb-3 p-3 rounded-xl border border-dashed border-[var(--hub-border)] bg-[var(--hub-canvas)]">
+              <div className="flex items-center gap-2 mb-3 p-3 rounded-[12px] border border-dashed border-[var(--hub-border)] bg-[var(--hub-canvas)]">
                 <input
                   autoFocus
                   type="text"
@@ -196,7 +196,7 @@ export function ClientTasksPanel({
             <div className="flex flex-col gap-2.5">
               {showDerived && (
                 <div
-                  className="flex items-start gap-3 p-[13px] rounded-xl border border-[var(--hub-border)]"
+                  className="flex items-start gap-3 p-[13px] rounded-[12px] border border-[var(--hub-border)]"
                   style={{ background: "rgba(var(--color-amber-rgb, 176, 138, 62), 0.04)" }}
                 >
                   <span
@@ -270,7 +270,7 @@ export function ClientTasksPanel({
                   return (
                     <div
                       key={task.id}
-                      className="flex items-start gap-3 p-[13px] rounded-xl border border-[var(--hub-border)] group"
+                      className="flex items-start gap-3 p-[13px] rounded-[12px] border border-[var(--hub-border)] group"
                     >
                       <span className="inline-flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-[var(--hub-hover)] text-muted-foreground">
                         <IconClipboardList className="w-[13px] h-[13px] stroke-[2.5]" />

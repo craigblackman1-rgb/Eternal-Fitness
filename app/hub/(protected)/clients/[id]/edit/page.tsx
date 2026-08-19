@@ -497,7 +497,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 <p className="text-xs text-muted-foreground mt-0.5">Tick once the written clearance letter is on file.</p>
               </div>
             </div>
-            <div className="space-y-2 rounded-xl border border-[var(--hub-border)] p-3">
+            <div className="space-y-2 rounded-[12px] border border-[var(--hub-border)] p-3">
               <div className="flex items-start gap-3">
                 <label htmlFor="parq_trainer_override" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
                   <input
@@ -801,7 +801,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         </HubCard>
 
         {/* Sticky save bar — mirrors the reference edit mockup */}
-        <div className="sticky bottom-0 z-15 flex items-center gap-3 mt-6 rounded-xl border border-[var(--hub-border)] bg-white/90 backdrop-blur px-5 py-3 shadow-[0_-1px_3px_rgba(16,24,40,0.05)]">
+        <div className="sticky bottom-0 z-15 flex items-center gap-3 mt-6 rounded-[12px] border border-[var(--hub-border)] bg-white/90 backdrop-blur px-5 py-3 shadow-[0_-1px_3px_rgba(16,24,40,0.05)]">
           <p className="m-0 text-xs text-muted-foreground">
             {dirty ? <span><b className="text-foreground font-semibold">Unsaved changes.</b> Saving records this against the client's audit trail.</span> : <span><b className="text-foreground font-semibold">No changes yet.</b></span>}
           </p>

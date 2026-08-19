@@ -42,7 +42,7 @@ export function ClientNotesPanel({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)]">
+    <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)]">
       <div className="px-5 pt-5 pb-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
@@ -86,7 +86,7 @@ export function ClientNotesPanel({ clientId }: { clientId: string }) {
             {notes.map((n) => (
               <div
                 key={n.id}
-                className="flex items-start gap-3 p-[13px] rounded-xl border border-[var(--hub-border)] group"
+                className="flex items-start gap-3 p-[13px] rounded-[12px] border border-[var(--hub-border)] group"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground whitespace-pre-wrap overflow-wrap-anywhere">{n.note}</p>

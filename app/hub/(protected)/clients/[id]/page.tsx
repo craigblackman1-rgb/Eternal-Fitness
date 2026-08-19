@@ -383,7 +383,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         ]}
       />
 
-      <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm p-5 flex items-center gap-4">
+      <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm p-5 flex items-center gap-4">
         <Link href="/hub/clients" aria-label="Back to clients" className="w-9 h-9 rounded-lg border border-[var(--hub-border)] flex items-center justify-center shrink-0 text-foreground hover:bg-[var(--hub-hover)] transition-colors">
           <IconChevronLeft className="w-4 h-4" />
         </Link>

@@ -113,7 +113,7 @@ export function UpdateChatPanel({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-dark-navy/10 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-[12px] bg-dark-navy/10 flex items-center justify-center">
             <IconBot className="w-4 h-4 text-dark-navy" />
           </div>
           <div>
@@ -137,7 +137,7 @@ export function UpdateChatPanel({
             <button
               key={prompt}
               onClick={() => sendMessage(prompt)}
-              className="text-left p-3 rounded-xl border border-border/60 text-sm text-muted-foreground hover:border-rose/20 hover:text-foreground hover:bg-off-white transition-all"
+              className="text-left p-3 rounded-[12px] border border-border/60 text-sm text-muted-foreground hover:border-rose/20 hover:text-foreground hover:bg-off-white transition-all"
             >
               {prompt}
             </button>
@@ -158,7 +158,7 @@ export function UpdateChatPanel({
                   {message.role === "user" ? "E" : <IconBot className="w-3.5 h-3.5" />}
                 </div>
                 <div
-                  className={`flex-1 rounded-xl px-4 py-3 text-sm ${
+                  className={`flex-1 rounded-[12px] px-4 py-3 text-sm ${
                     message.role === "user" ? "bg-rose/8 text-foreground max-w-[80%] ml-auto" : "bg-off-white/60 text-foreground"
                   }`}
                 >
@@ -217,12 +217,12 @@ export function UpdateChatPanel({
           placeholder="Tell the agent what happened this block, what's worth saying, what's next..."
           rows={2}
           disabled={streaming}
-          className="flex-1 resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:border-rose/40 disabled:opacity-50 transition-colors"
+          className="flex-1 resize-none rounded-[12px] border border-border/60 bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:border-rose/40 disabled:opacity-50 transition-colors"
         />
         <Button
           onClick={() => sendMessage(input)}
           disabled={!input.trim() || streaming}
-          className="rounded-xl bg-rose hover:bg-rose/90 text-white h-[68px] w-[52px] shrink-0"
+          className="rounded-[12px] bg-rose hover:bg-rose/90 text-white h-[68px] w-[52px] shrink-0"
         >
           {streaming ? <IconLoader2 className="h-4 w-4 animate-spin" /> : <IconSend className="h-4 w-4" />}
         </Button>

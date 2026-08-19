@@ -287,7 +287,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
               <button
                 key={prompt}
                 onClick={() => sendMessage(prompt)}
-                className="text-left p-3 rounded-xl border border-[var(--hub-border)] text-sm text-muted-foreground hover:border-rose/30 hover:text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                className="text-left p-3 rounded-[12px] border border-[var(--hub-border)] text-sm text-muted-foreground hover:border-rose/30 hover:text-foreground hover:bg-[var(--hub-hover)] transition-colors"
               >
                 {prompt}
               </button>
@@ -368,12 +368,12 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
           placeholder="Ask about this client's programme, or describe what you want to build..."
           rows={2}
           disabled={streaming}
-          className="flex-1 resize-none rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:border-rose/40 disabled:opacity-50 transition-colors"
+          className="flex-1 resize-none rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:border-rose/40 disabled:opacity-50 transition-colors"
         />
         <Button
           onClick={() => sendMessage(input)}
           disabled={!input.trim() || streaming}
-          className="rounded-xl bg-rose hover:bg-rose/90 text-white h-[68px] w-[52px] shrink-0"
+          className="rounded-[12px] bg-rose hover:bg-rose/90 text-white h-[68px] w-[52px] shrink-0"
         >
           {streaming ? (
             <IconLoader2 className="h-4 w-4 animate-spin" />
@@ -385,7 +385,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
       <p className="text-xs text-muted-foreground px-6 pb-4">Enter to send &middot; Shift+Enter for new line</p>
 
       <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
-        <DialogContent className="max-w-lg bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-lg">
+        <DialogContent className="max-w-lg bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
           <DialogHeader>
             <DialogTitle className="text-[var(--color-ink)]">Use a template as the framework</DialogTitle>
           </DialogHeader>
