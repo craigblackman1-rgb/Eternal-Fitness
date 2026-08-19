@@ -106,6 +106,11 @@ function formatSessionDuration(minutes: number | null): string {
   return `${minutes}min`;
 }
 
+function formatHubDate(value: string | null | undefined): string {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode, resource_visibility").eq("client_number", parseInt(params.id)).single();
@@ -242,6 +247,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     hasSignedParqDocument,
     hasSignedAgreementDocument,
   });
+
+  // Completion dates for the flat Compliance Status summary — resolved from the
+  // legacy signed_parq/signed_agreements tables first, then the document engine.
+  const signedParqDoc = (clientDocuments ?? []).find((d) => d.kind === "parq" && d.status === "signed");
+  const signedTermsDoc = (clientDocuments ?? []).find((d) => d.kind === "terms" && d.status === "signed");
+  const parqCompletedDate = latestParq?.parq_date ?? latestParq?.created_at ?? signedParqDoc?.updated_at ?? signedParqDoc?.created_at ?? null;
+  const agreementDate = latestAgreement?.client_signature_date ?? latestAgreement?.created_at ?? signedTermsDoc?.updated_at ?? signedTermsDoc?.created_at ?? null;
+  const gpClearanceDate = client.gp_letter_status === "received" ? client.gp_letter_received_date : null;
 
   // CR-EF-026: when compliance is satisfied entirely through a legacy
   // signed_parq/signed_agreements row (pre-dating the document engine) with
@@ -835,12 +848,28 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <TabsContent value="admin">
               <div className="space-y-5">
                 <HubCard>
-                  <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Compliance Status" color="teal" />
+                  <HubCardHeader icon={<IconTriangleAlert className="w-4 h-4" />} title="Compliance Status" color="amber" />
                   <div className="px-5 pb-5 space-y-4">
-                    <div>
-                      <span className="text-xs text-muted-foreground block mb-0.5">Overall status</span>
-                      {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="font-medium text-foreground">—</span>}
-                    </div>
+                    <HubDataGrid cols={3}>
+                      <HubDataField label="Overall status">
+                        {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="font-medium text-foreground">—</span>}
+                      </HubDataField>
+                      <HubDataField label="PAR-Q completed">
+                        {parqCompletedDate ? formatHubDate(parqCompletedDate) : <span className="text-[var(--status-warning)]">Not on file</span>}
+                      </HubDataField>
+                      <HubDataField label="GP clearance">
+                        {gpClearanceDate ? formatHubDate(gpClearanceDate) : <span className="text-[var(--status-warning)]">Not received</span>}
+                      </HubDataField>
+                      <HubDataField label="Training agreement">
+                        {agreementDate ? formatHubDate(agreementDate) : <span className="text-[var(--status-warning)]">Not signed</span>}
+                      </HubDataField>
+                      <HubDataField label="Outstanding">
+                        {outstandingCount > 0
+                          ? <span className="text-[var(--status-warning)]">{outstandingCount} item{outstandingCount === 1 ? "" : "s"}</span>
+                          : <span className="text-[var(--status-success)]">None</span>}
+                      </HubDataField>
+                      <HubDataField label="Next review">{formatHubDate(client.annual_review_due_date)}</HubDataField>
+                    </HubDataGrid>
 
                     <div className="pt-3 border-t border-[var(--hub-border)]">
                       <ClinicalComplianceCard
@@ -850,15 +879,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                           risk_level: client.risk_level ?? "low",
                           exercise_modifications: client.exercise_modifications ?? null,
                         }}
-                      />
-                    </div>
-
-                    <div className="pt-3 border-t border-[var(--hub-border)]">
-                      <DocumentRegister
-                        clientNumber={client.client_number}
-                        documents={[...(clientDocuments ?? []), ...legacyDocumentRows]}
-                        clientEmail={client.email}
-                        clientName={client.name}
                       />
                     </div>
 
@@ -891,6 +911,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </ul>
                       </div>
                     )}
+                  </div>
+                </HubCard>
+
+                <HubCard>
+                  <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Documents" color="slate" />
+                  <div className="px-5 pb-5">
+                    <DocumentRegister
+                      clientNumber={client.client_number}
+                      documents={[...(clientDocuments ?? []), ...legacyDocumentRows]}
+                      clientEmail={client.email}
+                      clientName={client.name}
+                    />
                   </div>
                 </HubCard>
 

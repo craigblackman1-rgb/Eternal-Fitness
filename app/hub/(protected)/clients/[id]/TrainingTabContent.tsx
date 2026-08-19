@@ -406,7 +406,7 @@ export function TrainingTabContent({
                   <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Block</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Started</th>
-                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Sessions</th>
+                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Progress</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Status</th>
                     <th className="h-10 px-5 py-0"></th>
                   </tr>
@@ -418,7 +418,7 @@ export function TrainingTabContent({
                       <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
                         {new Date(block.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </td>
-                      <td className="py-2.5 px-5 text-foreground">{blockSessionCounts[block.block_number] ?? 0}</td>
+                      <td className="py-2.5 px-5 text-foreground">{blockSessionCounts[block.block_number] ?? 0} sessions</td>
                       <td className="py-2.5 px-5"><StatusBadge status={block.status} /></td>
                       <td className="py-2.5 px-5 text-right whitespace-nowrap">
                         <Link href={`/hub/clients/${clientNumber}/blocks/${block.id}`} className="text-teal font-medium hover:underline">Open</Link>

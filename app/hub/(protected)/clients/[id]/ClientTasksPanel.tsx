@@ -132,58 +132,7 @@ export function ClientTasksPanel({
   const showDerived =
     dueInfo.nextDueDate && updateInterval && dueInfo.status;
 
-  const todoCount = tasks.filter((t) => t.status === "todo").length;
-  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
-  const doneCount = tasks.filter((t) => t.status === "done").length;
-
-  const summaryRail = (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
-            <IconCheckSquare className="w-4 h-4" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">Summary</span>
-        </div>
-        <div className="space-y-0">
-          <div className="flex items-center justify-between py-2 text-sm">
-            <span className="text-muted-foreground">Due / upcoming</span>
-            <span className="font-medium text-foreground">
-              {showDerived ? 1 : 0}
-            </span>
-          </div>
-          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
-            <span className="text-muted-foreground">To do</span>
-            {todoCount > 0 ? (
-              <TokenPill token="neutral" label={String(todoCount)} />
-            ) : (
-              <span className="font-medium text-foreground">0</span>
-            )}
-          </div>
-          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
-            <span className="text-muted-foreground">In progress</span>
-            {inProgressCount > 0 ? (
-              <TokenPill token="warning" label={String(inProgressCount)} />
-            ) : (
-              <span className="font-medium text-foreground">0</span>
-            )}
-          </div>
-          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
-            <span className="text-muted-foreground">Done</span>
-            {doneCount > 0 ? (
-              <TokenPill token="success" label={String(doneCount)} />
-            ) : (
-              <span className="font-medium text-foreground">0</span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
-      <div className="lg:col-span-8">
         <div className="rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)]">
           <div className="px-5 pt-5 pb-0">
             <div className="flex items-center gap-2 mb-1">
@@ -381,8 +330,5 @@ export function ClientTasksPanel({
             </div>
           </div>
         </div>
-      </div>
-      <div className="lg:col-span-4">{summaryRail}</div>
-    </div>
   );
 }
