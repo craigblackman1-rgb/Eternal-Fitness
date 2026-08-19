@@ -490,7 +490,7 @@ function ExerciseSection({
         {exercises.map((ex, idx) => (
           <div
             key={idx}
-            className="flex items-start gap-2.5 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5"
+            className="flex items-start gap-2.5 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5"
           >
             <div className="mt-0.5 flex flex-col gap-0.5">
               <button

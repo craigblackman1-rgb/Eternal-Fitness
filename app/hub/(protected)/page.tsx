@@ -558,7 +558,7 @@ export default async function DashboardPage() {
                       <Link
                         key={block.id}
                         href={href}
-                        className="flex items-center gap-3 rounded-xl border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
+                        className="flex items-center gap-3 rounded-[12px] border border-[var(--hub-border)] p-3 transition-all hover:bg-[var(--hub-hover)] hover:border-rose/20 group"
                       >
                         <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
@@ -604,7 +604,7 @@ export default async function DashboardPage() {
                       <Link
                         key={client.id}
                         href={`/hub/clients/${client.client_number}`}
-                        className="flex items-center gap-3 rounded-xl py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
+                        className="flex items-center gap-3 rounded-[12px] py-2 px-3 transition-colors hover:bg-[var(--hub-hover)] group"
                       >
                         <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] flex items-center justify-center text-xs font-bold shrink-0">
                           {initials}
@@ -646,7 +646,7 @@ export default async function DashboardPage() {
                       <Link
                         key={block.id}
                         href={`/hub/clients/${(block as any).clients?.client_number || block.client_id}/blocks/${block.id}`}
-                        className="flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[var(--hub-hover)] group"
+                        className="flex items-center gap-3 rounded-[12px] p-2.5 transition-colors hover:bg-[var(--hub-hover)] group"
                       >
                         <span className="flex-1 min-w-0">
                           <span className="block text-sm font-medium text-foreground truncate group-hover:text-rose transition-colors">

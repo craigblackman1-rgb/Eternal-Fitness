@@ -141,7 +141,7 @@ export function TrainingRuleTypesManager({ initialRuleTypes }: TrainingRuleTypes
       />
       <div className="px-5 py-4 space-y-4">
         {adding && (
-          <div className="space-y-3 rounded-xl border border-[var(--hub-border)] p-4">
+          <div className="space-y-3 rounded-[12px] border border-[var(--hub-border)] p-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-foreground">Label</Label>

@@ -571,20 +571,20 @@ export function ExerciseBrowser({
                       <img
                         src={selectedExercise.image_url}
                         alt={selectedExercise.name}
-                        className="w-full h-[168px] rounded-xl object-cover"
+                        className="w-full h-[168px] rounded-[12px] object-cover"
                       />
                     ) : selectedExercise.video_url ? (
                       <a
                         href={selectedExercise.video_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 h-[168px] rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] text-teal hover:opacity-90 transition-opacity"
+                        className="flex items-center justify-center gap-2 h-[168px] rounded-[12px] bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] text-teal hover:opacity-90 transition-opacity"
                       >
                         <IconVideo className="h-8 w-8" />
                         <span className="text-sm font-semibold">Watch demo video</span>
                       </a>
                     ) : (
-                      <div className="h-[168px] rounded-xl bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] flex items-center justify-center">
+                      <div className="h-[168px] rounded-[12px] bg-gradient-to-br from-[var(--status-success-bg)] to-[var(--status-primary-bg)] flex items-center justify-center">
                         <IconDumbbell className="h-10 w-10 text-teal/40" />
                       </div>
                     )}

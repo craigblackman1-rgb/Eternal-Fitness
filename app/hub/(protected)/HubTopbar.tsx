@@ -72,7 +72,7 @@ function ClientSearch() {
         className="w-full rounded-lg bg-[var(--hub-canvas)] border border-[var(--hub-border)] py-1.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-rose/30 focus:bg-white transition-colors"
       />
       {open && term.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 z-30 mt-1.5 rounded-xl border border-[var(--hub-border)] bg-white shadow-lg overflow-hidden">
+        <div className="absolute left-0 right-0 z-30 mt-1.5 rounded-[12px] border border-[var(--hub-border)] bg-white shadow-lg overflow-hidden">
           {results.length > 0 ? (
             results.map((c) => (
               <button

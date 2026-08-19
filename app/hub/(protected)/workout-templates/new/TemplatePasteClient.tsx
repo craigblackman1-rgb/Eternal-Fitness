@@ -199,7 +199,7 @@ export function TemplatePasteClient() {
 
       {draft && (
         <>
-          <div className="flex items-center justify-between rounded-xl border border-[var(--hub-border)] bg-[var(--status-success-bg)] p-4">
+          <div className="flex items-center justify-between rounded-[12px] border border-[var(--hub-border)] bg-[var(--status-success-bg)] p-4">
             <div className="flex items-center gap-2 text-sm text-[var(--color-ink)]">
               <IconCheckCircle className="h-4 w-4 text-teal" />
               Structured from your paste — review and correct before saving.
@@ -219,7 +219,7 @@ export function TemplatePasteClient() {
           </div>
 
           {createdTemplate && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
               <div className="flex items-center gap-2 text-sm text-[var(--color-ink)]">
                 <IconCheckCircle className="h-4 w-4 text-teal" />
                 Template saved — &ldquo;{createdTemplate.name}&rdquo; is in your workout templates.
@@ -255,7 +255,7 @@ export function TemplatePasteClient() {
       {assignOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center p-6">
           <div className="absolute inset-0 bg-black/40" onClick={() => !assigning && setAssignOpen(false)} />
-          <div className="relative w-full max-w-md rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-6 shadow-xl">
             <h3 className="text-lg font-bold text-[var(--color-ink)]">Assign template to a client</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Grounds this workout into the client&apos;s next block through the Plan Agent.

@@ -237,7 +237,7 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
                 return (
                   <div
                     key={t.id}
-                    className="flex flex-col rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors"
+                    className="flex flex-col rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors"
                   >
                     <Link href={`/hub/templates/${t.id}`} className="contents">
                       <div className="flex items-center gap-2.5 mb-2.5">

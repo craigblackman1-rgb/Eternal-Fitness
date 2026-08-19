@@ -293,7 +293,7 @@ function RegisterSection({ initial }: { initial: ProcessEntry[] }) {
 
       {showForm && (
         <div className="px-5 pb-5">
-          <div className="mb-5 space-y-3 rounded-xl border border-[var(--hub-border)] p-4">
+          <div className="mb-5 space-y-3 rounded-[12px] border border-[var(--hub-border)] p-4">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="space-y-2">
                 <Label>Ref</Label>
@@ -565,7 +565,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
 
       {showForm && (
         <div className="px-5 pb-5">
-          <div className="mb-5 space-y-3 rounded-xl border border-[var(--hub-border)] p-4">
+          <div className="mb-5 space-y-3 rounded-[12px] border border-[var(--hub-border)] p-4">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="space-y-2">
                 <Label>Ref</Label>
@@ -669,7 +669,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
         <div className="px-5 pb-5">
           <div className="grid gap-4 md:grid-cols-2">
             {items.map((item) => (
-              <div key={item.id} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors">
+              <div key={item.id} className="rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <span className="font-mono text-xs text-teal">{item.ref}</span>
@@ -712,7 +712,7 @@ function SopDetailModal({ sop, onClose, onDuplicate }: { sop: Sop; onClose: () =
       aria-label={`SOP detail ${sop.ref}`}
     >
       <div
-        className="my-4 w-full max-w-[680px] overflow-hidden rounded-2xl border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-xl"
+        className="my-4 w-full max-w-[680px] overflow-hidden rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-[var(--hub-border)] px-5 py-4">
@@ -917,7 +917,7 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
 
       {showForm && (
         <div className="px-5 pb-5">
-          <div className="mb-5 space-y-3 rounded-xl border border-[var(--hub-border)] p-4">
+          <div className="mb-5 space-y-3 rounded-[12px] border border-[var(--hub-border)] p-4">
             <div className="grid gap-3 md:grid-cols-3">
               <div className="space-y-2">
                 <Label>Ref</Label>
@@ -965,7 +965,7 @@ function LogSection({ initial }: { initial: ImprovementEntry[] }) {
       ) : (
         <div className="px-5 pb-5 space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors">
+            <div key={item.id} className="rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs text-amber">{item.ref}</span>
                 <span className="font-semibold text-foreground flex-1 truncate">{item.title}</span>

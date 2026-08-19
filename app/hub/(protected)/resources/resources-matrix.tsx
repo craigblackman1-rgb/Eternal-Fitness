@@ -104,11 +104,11 @@ export function ResourcesMatrix({
           return (
             <div
               key={r.key}
-              className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] p-4 flex items-center gap-3.5"
+              className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] p-4 flex items-center gap-3.5"
             >
               <div
                 className={cn(
-                  "w-11 h-11 rounded-xl grid place-items-center shrink-0",
+                  "w-11 h-11 rounded-[12px] grid place-items-center shrink-0",
                   col === "teal"
                     ? "bg-[var(--status-success-bg)] text-teal"
                     : "bg-[var(--status-primary-bg)] text-rose",
@@ -234,7 +234,7 @@ export function ResourcesMatrix({
       </HubCard>
 
       {/* Note */}
-      <div className="flex gap-3 rounded-xl p-3.5 text-[12.5px] leading-[1.55] bg-[var(--status-primary-bg)] border border-[var(--status-primary-border)]">
+      <div className="flex gap-3 rounded-[12px] p-3.5 text-[12.5px] leading-[1.55] bg-[var(--status-primary-bg)] border border-[var(--status-primary-border)]">
         <span className="w-[22px] h-[22px] rounded-full bg-rose text-white grid place-items-center text-[11px] font-extrabold shrink-0">
           i
         </span>
