@@ -2,13 +2,10 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/hub/StatusBadge";
-import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
 import { IconChevronLeft } from "@/components/icons";
-import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
 import { BlockOverviewClient } from "./BlockOverviewClient";
-import { HideExerciseTableButton } from "./HideExerciseTableButton";
-import { SessionRowActions } from "./SessionRowActions";
-import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
+import { SessionRow } from "./SessionRow";
+import { groupSessionsByWeek, isoToMonday, isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus } from "@/types";
@@ -106,8 +103,6 @@ export default async function BlockViewPage({
       ? isoToMonday(firstIncomplete.scheduled_at)
       : `p${firstIncomplete.week}`
     : null;
-  const targetSessionNum = firstIncomplete?.session_number ?? null;
-
   const scheduledStartIso =
     (block.scheduled_start as string | null) ??
     (sessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort()[0] ?? null);
@@ -123,7 +118,8 @@ export default async function BlockViewPage({
   const formatDayLabel = (session: SessionRow, dayIndex: number): string => {
     if (session.scheduled_at) {
       const d = new Date(session.scheduled_at);
-      return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+      const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+      return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
     }
     return `Day ${dayIndex + 1}`;
   };
@@ -262,84 +258,22 @@ export default async function BlockViewPage({
                   const info = archetypeInfo[session.archetype];
                   const focusLabel = session.data?.focus_label || info?.name || "—";
                   const status = sessionStatus(session);
-                  const settled = status === "completed" || status === "cancelled";
-                  const sessionOpen = weekOpen && session.session_number === targetSessionNum;
                   const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
-                  const studioVersion = session.data?.versions?.studio;
                   const dayLabel = formatDayLabel(session, dayIndex);
 
                   return (
-                    <details
+                    <SessionRow
                       key={session.id}
-                      open={sessionOpen}
-                      className="border-t border-[var(--hub-border)] first:border-t-0 group/sess"
-                    >
-                      <summary className="list-none cursor-pointer flex flex-wrap items-center gap-x-3.5 gap-y-2 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
-                        <span className="w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                          {dayLabel}
-                        </span>
-                        <div className="flex-1 min-w-0 flex items-center gap-2.5 flex-wrap">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold shrink-0 ${info?.tint || "bg-muted text-muted-foreground"}`}>
-                            {session.archetype} · {info?.name || "Session"}
-                          </span>
-                          <span className={`text-sm font-semibold text-foreground truncate ${settled ? "text-muted-foreground" : ""}`}>{focusLabel}</span>
-                        </div>
-                        <div className="flex items-center gap-3.5 w-full justify-end sm:w-auto sm:contents">
-                          <span className="w-[150px] shrink-0 flex justify-end">
-                            <SessionStatusPill status={status} />
-                          </span>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {settled ? (
-                              <Link
-                                href={sessionUrl}
-                                className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] transition-colors"
-                              >
-                                View
-                              </Link>
-                            ) : (
-                              <>
-                                <Link
-                                  href={sessionUrl}
-                                  className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-                                >
-                                  {status === "in_progress" ? "Resume" : "Log"}
-                                </Link>
-                                <Link
-                                  href={`${sessionUrl}?edit=1`}
-                                  className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-                                >
-                                  Edit session
-                                </Link>
-                              </>
-                            )}
-                            <SessionRowActions sessionId={session.id} sessionNumber={session.session_number} />
-                          </div>
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            className="text-muted-foreground transition-transform duration-200 group-open/sess:rotate-90 shrink-0"
-                          >
-                            <path d="m6 9 6 6 6-6" />
-                          </svg>
-                        </div>
-                      </summary>
-                      <div className="px-4 pb-4 overflow-x-auto">
-                        {status === "cancelled" && session.cancel_reason && (
-                          <p className="text-sm text-muted-foreground mb-3">Cancelled — {session.cancel_reason}</p>
-                        )}
-                        <HideExerciseTableButton />
-                        {studioVersion ? (
-                          <PrescriptionTable version={studioVersion} />
-                        ) : (
-                          <p className="text-sm text-muted-foreground">No exercise data for this session.</p>
-                        )}
-                      </div>
-                    </details>
+                      sessionId={session.id}
+                      archetypeLabel={`${session.archetype} · ${info?.name || "Session"}`}
+                      archetypeTint={info?.tint || "bg-muted text-muted-foreground"}
+                      focusLabel={focusLabel}
+                      status={status}
+                      dayLabel={dayLabel}
+                      sessionUrl={sessionUrl}
+                      scheduledAt={session.scheduled_at}
+                      cancelReason={session.cancel_reason}
+                    />
                   );
                 })}
               </div>
