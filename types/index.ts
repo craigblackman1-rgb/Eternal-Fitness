@@ -306,6 +306,12 @@ export interface SetLog {
   id: string;
   session_id: string;
   exercise_ref: string;
+  /** Stable per-exercise identity (from the prescription JSON's `uid`) —
+   *  survives reorders/swaps/edits where the positional exercise_ref breaks.
+   *  Null only on rows predating the backfill that couldn't be resolved. */
+  exercise_uid?: string | null;
+  /** Exercise name at the time the set was logged. */
+  exercise_name?: string | null;
   set_number: number;
   reps: number | null;
   weight_kg: number | null;
