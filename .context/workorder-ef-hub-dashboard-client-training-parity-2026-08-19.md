@@ -207,6 +207,43 @@ ASK FIRST (gates):
   **Not yet promoted to main/live** — per the standing G1-style gate (deploy
   to the real production site is Craig's call, not an autonomous action),
   holding here pending his answer.
+- 2026-08-19 (evening) — **Craig approved promotion, all pending CRs merged
+  to main** (`903b07f`, confirmed live and healthy via spot-check). Also
+  built and merged the CR-EF-065 hub-wide border-radius sweep (6 parts,
+  93 files, `git grep` confirmed 0 remaining `rounded-xl`/`rounded-2xl` in
+  the hub) and CR-EF-066/067/068 Overview/Profile/rail reconciliation (app
+  fixes + mockup updates). A concurrent session's real CR-EF-047/048 work
+  (Docker cache revert, endurance-block document kind) collided with this
+  session's own CR-EF-048/049 IDs — reconciled by renumbering this WO's
+  pair to CR-EF-069/070, documented as the register's fourth such
+  collision. Post-promotion, Craig found two more real gaps via direct
+  inspection: CR-EF-071 (tab badge — traced to correct dynamic per-tab
+  behaviour, mockup updated, no code bug) and CR-EF-072 (tab strip
+  rendered as a filled pill panel instead of the mockup's underline tabs —
+  real bug, `HubTabsList`/`HubTabsTrigger` built against a stale mockup
+  filename reference; fixed hub-wide since it's the one shared tab
+  component, verified live on development). CR-EF-072 pushed to staging
+  (`897386b`) but **not yet promoted to main** — session closing with this
+  one item outstanding on staging only.
+
+## SESSION CLOSE — 2026-08-19 evening
+
+**DONE:** CR-EF-048/049(→069/070)/052-072 built and verified (mockup fixes
+where the mockup was stale, code fixes where the app was wrong); CR-EF-065
+border-radius root-cause + full 6-part hub sweep; CR-EF-054/055/056 closed
+as non-defects (live functionality exceeds the mockup); main/production
+promoted once (`903b07f`) and confirmed healthy live.
+**GATED:** none open.
+**DEFERRED:** CR-EF-057's email-template-boilerplate excerpt bleed (not a
+regression, just newly visible); CR-EF-059/063's retroactive "(Week 1)"
+suffix on already-generated sessions (fix only applies going forward, no
+backfill run); CR-EF-061's `client_intro` data-source (needs a real field
+decision); CR-EF-067's Profile-tab Health field set (mockup vs live
+diverge on content, not just structure — needs Craig's call on what
+Esther actually wants tracked).
+**NEXT:** promote CR-EF-072 (staging `897386b`) to main whenever Craig's
+ready — it's the only unpromoted item; everything else from this session
+is already live. Owner released.
 
 CONTEXT: Craig's live page-by-page walkthrough, 2026-08-19 afternoon —
 `.context/change-requests.md` CR-EF-069/070/052-060. Cross-reference:
