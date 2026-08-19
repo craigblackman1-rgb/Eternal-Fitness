@@ -83,3 +83,32 @@ all major surfaces; all verified on development.eternal-fitness.co.uk then live.
   workout-unification mockup work (that WO's scope, not this one's) — Design Parity
   Gate review found it not yet G2-ready; revision request sent, see
   `wo-ef-workout-consolidation-pwa-2026-08-15`'s ledger for detail.
+- **2026-08-18 — mobile deferred, not recorded here until now.** `hub-m-today` and
+  the wider mobile sweep were held back: mobile runs an entirely different CSS
+  system (`.mtop`/`.sec-label`/`.slist`, not Tailwind), with no component reuse
+  possible from the desktop primitives — this genuinely needs its own Open
+  Design work, not a mechanical port of Lane B/C. `.context/state.md` carries
+  the call; this WO's ledger had gone stale past 2026-08-17 night, which is why
+  it looked unrecorded during the 2026-08-19 reconciliation. Also outstanding
+  from that date: `.context/revision-request-hub-structure-consistency-2026-08-18.md`
+  (asking Open Design for the 3 remaining desktop surfaces + mobile) — confirmed
+  sitting unactioned.
+- **2026-08-18 — a Lane B dispatch attempt hit OpenCode-go "Insufficient
+  balance."** (`qmsyjc5cuxv`.) Billing, not a model/lane defect — check the
+  opencode-go plan balance before redispatching Lane B; pull inline if it
+  recurs (never fall back to Claude/OpenRouter models on lanes).
+- **2026-08-19 — Craig approved the CR-EF-039/040 approach: build Lane B, then
+  commission the full ~50-screen consistency sweep as Lane C** (only 5–6
+  screens had ever been briefed; the rest is genuinely uncommissioned work,
+  not something previously lost). Sweep is expected to run as grinding lanes
+  past today's session — will be tracked via `wo defer`/`wo status`, not held
+  open in chat. Lane B (SessionStatusPill, HubRail, HubCard, single accordion,
+  single tab) sequenced first since CR-EF-037 Phase 2's UI consumes the pill.
+- **2026-08-19 — CR-EF-042/046 un-stranded.** Merged `origin/claude/lane-cr-042-046-parity`
+  into `staging` (`a50029d`), diff hand-reviewed before merge, `tsc --noEmit` clean,
+  no file overlap with staging's own pending commit. Deployed via Coolify
+  (`eternal-fitness-staging`, deployment `f736zfu3sb77tfjbrgfarm1j`) and verified
+  live on development.eternal-fitness.co.uk via claude-in-chrome: dashboard Quick
+  Actions bar now shows 4 buttons incl. "Log check-in"; mobile Today confirmed via
+  `document.querySelectorAll` to render `.m-section*` classes. Not promoted to
+  main/live — Craig's call, separate decision.

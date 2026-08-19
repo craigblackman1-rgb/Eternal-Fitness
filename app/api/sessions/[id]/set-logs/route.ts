@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
 import { checkAndUpsertPB } from "@/lib/personal-records";
+import { markSessionInProgress } from "@/lib/session-transitions";
 
 async function getClientIdForSession(sessionId: string): Promise<string | null> {
   const pool = getPool();
@@ -169,6 +170,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 });
     data = res.data;
   }
+  await markSessionInProgress(params.id);
 
   const clientId = await getClientIdForSession(params.id);
   if (clientId) {
