@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
@@ -17,6 +16,14 @@ import type { DBSession, SessionLog, SessionVersion, SetLog } from "@/types";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
 import { sessionDurationMinutes } from "@/lib/scheduling";
+
+// Minimal shape of the client record this header needs — the GET /api/clients/[id]
+// response returns the full client, but only these fields feed the subtitle line.
+type ClientHeader = {
+  name?: string | null;
+  profile?: { health?: { conditions?: string[] } } | null;
+  session_duration?: number | null;
+};
 
 export default function SessionViewPage({
   params,
@@ -33,6 +40,9 @@ export default function SessionViewPage({
   // Client's best-ever weight per exercise (from personal_records) — prefills a set's
   // weight field when this session has no log for it yet, so weight carries forward.
   const [bestWeights, setBestWeights] = useState<Record<string, number>>({});
+  // Client record for the header subtitle (name / condition / session duration) —
+  // this page previously never fetched the client at all (CR-EF-062).
+  const [client, setClient] = useState<ClientHeader | null>(null);
   // Consolidated screen mode — "log" is the quick logger, "edit" is the prescription editor.
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<"log" | "edit">("log");
@@ -49,11 +59,15 @@ export default function SessionViewPage({
 
   useEffect(() => {
     async function load() {
-      const [sessionRes, countRes, bestWeightsRes] = await Promise.all([
+      const [sessionRes, countRes, bestWeightsRes, clientRes] = await Promise.all([
         fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
         fetch(`/api/blocks/${params.blockId}/sessions?count=true`),
         fetch(`/api/clients/${params.id}/best-weights`),
+        fetch(`/api/clients/${params.id}`),
       ]);
+      if (clientRes.ok) {
+        setClient(await clientRes.json());
+      }
       if (bestWeightsRes.ok) {
         setBestWeights(await bestWeightsRes.json());
       }
@@ -185,12 +199,6 @@ export default function SessionViewPage({
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   if (!session) return <div className="p-8 text-center text-muted-foreground">Session not found</div>;
 
-  const archetypeNames: Record<string, string> = {
-    A: "Mobility & Movement Quality",
-    B: "Strength & Stability",
-    C: "Power & Conditioning",
-  };
-
   const durationMinutes = session.data?.estimated_minutes ?? sessionDurationMinutes(session.data?.time_tier);
   // Session is named by its focus_label, never a bare "Session N" (CR-EF-034) —
   // matching the block page and the consolidated mockup header.
@@ -205,6 +213,22 @@ export default function SessionViewPage({
     session_log: session.data?.session_log,
   });
 
+  // Header subtitle — client name · condition · date · duration slot (CR-EF-062).
+  // Null-handling mirrors the block page: condition is `conditions?.[0]` and may be
+  // absent for clients with no declared condition; scheduled_at may be null for
+  // unscheduled sessions, in which case the date segment is omitted entirely.
+  const clientName = client?.name || "Client";
+  const clientCondition = client?.profile?.health?.conditions?.[0] ?? null;
+  const sessionSlotMinutes = client?.session_duration ?? 60;
+  const dateLabel = session.scheduled_at
+    ? new Date(session.scheduled_at).toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -215,9 +239,13 @@ export default function SessionViewPage({
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-xl font-semibold tracking-tight">{focusLabel}</h1>
-              <Badge variant="outline" className="text-sm">{session.archetype}</Badge>
-              <span className="text-sm capitalize text-muted-foreground">Week {session.week} · {session.phase}</span>
               <SessionStatusPill status={status} />
+            </div>
+            <p className="text-muted-foreground">
+              {clientName}
+              {clientCondition ? ` · ${clientCondition}` : ""}
+              {dateLabel ? ` · ${dateLabel}` : ""}
+              {` · ${sessionSlotMinutes} min slot`}{" "}
               <span
                 className="inline-flex items-center gap-1 rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-[11.5px] font-semibold text-muted-foreground"
                 title="A guide from the prescription — not a live countdown"
@@ -225,8 +253,7 @@ export default function SessionViewPage({
                 <IconClock className="h-3.5 w-3.5" />
                 ~{durationMinutes} min · guide
               </span>
-            </div>
-            <p className="text-muted-foreground">{archetypeNames[session.archetype]} · Session {sessionNum}</p>
+            </p>
           </div>
           <div className="flex gap-2">
             {showTemplateSave ? (
