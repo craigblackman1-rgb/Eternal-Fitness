@@ -1,5 +1,38 @@
 # Eternal Fitness Website — State
 
+## 2026-08-19 (Claude Code) — CR-EF-037 redesign promoted to main; remaining-gap WO opened
+
+Craig reported the block/session/workout routes looked nothing like the design templates.
+Cross-referenced `D:\apps\design-systems\ef-control-hub\desktop\training\*` against the live
+hub. Root finding: the bulk of the deviance was NOT unbuilt work — it was the CR-EF-037
+redesign, fully built and merged to `staging` (`4844c72`, 7 lanes, 46 files) but never
+promoted to `main`/live.
+
+**Promoted to main (`2c6c63d`), Craig-approved.** Merged `staging` into a fresh worktree
+branch and pushed (`ee1c21b..2c6c63d`, 44 files, +1597/−516). Auto-deploy triggered. All of
+it now live: SessionStatusPill wired into session/block/schedule/client-tab screens, H3
+write-guard + audited Reopen, CR-EF-036 Sessions logged-data visibility, Phase 3 calendar
+spine (derived Mon–Sun weeks + block-page schedule panel), HubRail + 8-screen sweep. Only
+merge conflict was the append-only `loop-status.md` ledger (resolved keeping both sides).
+Answered open question `qmszxi7xx6u` (leave Phase 2 code live — now formally promoted).
+
+**New WO: `.context/workorder-hub-workout-parity-2026-08-19.md`** (registered active) for
+the genuinely-remaining gaps, which staging did NOT contain:
+- **Training-blocks list** (`PlanScheduleTable.tsx`) — untouched by staging; needs the
+  status-map fix (getScheduleStatus → block vocab incl. Do Not Train), Programme + Progress
+  columns, avatar, Open/Review/Continue action link.
+- **Workout-templates deeper parity** — staging only re-skinned the header; detail drawer +
+  assign-from-browser, paste 3-step stepper + success pane + save dialog, start-blank entry,
+  and difficulty→Seated/Supported/Standing (Craig confirmed position/adaptation; G2 data
+  source investigation owned by Lane E) are NOT built.
+- **Derived Est. duration** on the session screen — staging still shows static `~N min · guide`.
+- **Minor styling remnants** — back-link text labels, avatar initials, cancelled-row dimming,
+  archetype label-map reconciliation ("Mobility & Movement Quality" everywhere).
+
+Also this session: resolved the long-standing merge conflict in
+`wo-ef-workout-consolidation-pwa-2026-08-15.md`'s ledger (both-sides-kept, chronologically
+ordered, verified against the register).
+
 ## 2026-08-18 (Claude Code) — design↔build reconciliation, register recovery, CR-EF-037 Phase 1
 
 Craig reviewed the Open Design mockups against dev/prod, found a large gap, and

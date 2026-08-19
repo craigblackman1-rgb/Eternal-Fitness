@@ -158,58 +158,6 @@ the two device tests together).
   condition). Paste-and-assign, portal PWA states, and nav-restructure
   reconciliation still outstanding — Craig re-sent those briefs to Open Design
   after the first pass apparently lost them.
-<<<<<<< Updated upstream
-- **2026-08-17 (later still) — L3/L4/L6 actually shipped, ledger never updated
-  until now (found during the 2026-08-19 reconciliation pass).** Correcting the
-  record:
-  - **L3 (staff surface consolidation) — BUILT.** `347145c`. `LiveSessionLog.tsx`
-    deleted; `app/hub/log/[sessionId]/page.tsx` is now a real redirect into
-    `/hub/clients/[id]/blocks/[blockId]/sessions/[sessionNum]`. `/hub/log` is no
-    longer a third design.
-  - **L4 (templates paste-and-assign + browser) — BUILT.** `626952f`.
-    `app/hub/(protected)/workout-templates/new/TemplatePasteClient.tsx` +
-    `/api/workout-templates/structure` are live; Esther can paste a workout and
-    get a structured, assignable template without leaving the hub.
-  - **L6 (portal PWA) — BUILT.** `b328e52`. `public/portal.webmanifest` +
-    `public/portal/sw.js` present, scoped to `/portal/` per the brief.
-  - **L2 (mockups) — delivered, revised, verified.** All 4 lane mockups
-    (`hub-session.html`, `hub-block-module.html`, `hub-schedule.html`,
-    `hub-workout-templates.html`) came back, the two sent for revision were
-    revised and re-verified against the brief on 2026-08-18 (see
-    `.context/audit-hub-design-parity-2026-08-18.md`).
-  - L5 (naming/conversion rollout) — not evidenced as done; still open.
-  - G4 (portal PWA client-facing copy) — standing gate, not yet asked.
-- **2026-08-19 — G2 signed by Craig.** Also approved adopting
-  `.context/assessment-workout-unification-2026-08-17.md` Part 3's unified
-  session state model (clears queued decision `qmsxl5j0c7l`; all hotfixes AUTO).
-  CR-EF-037 Phases 2–3 — the state-model build, uid-keyed set_logs, one write
-  path, calendar spine — are now buildable lanes off this WO. Emma Atkinson's
-  duplicate-log data question (`qmsxl5iz4wg`) also answered: clean up as
-  proposed in CR-EF-029's reconstruction, backup taken first.
-- **2026-08-19 (same day, later) — Phase 2 started, real progress shipped to
-  `staging`.** Found and fixed a live risk while starting: the 18 Aug status
-  migration shipped without the "transition API" its own comments call for,
-  so nothing had written the new `status`/`started_at`/`completed_at` columns
-  since — verified 0 sessions had drifted yet, but every completion from today
-  onward would have started the exact bug CR-EF-037 exists to kill, again.
-  Shipped: `lib/session-transitions.ts` (`markSessionInProgress`, idempotent,
-  called from both set-log insert paths); `app/api/sessions/[id]/route.ts`
-  syncing `completed_at`/`status` on the existing PATCH both loggers already
-  call (no frontend changes needed); `scripts/backfill-exercise-uid.mjs`
-  (156 rows backfilled, 100% `exercise_uid` coverage, applied to prod);
-  `components/hub/SessionStatusPill.tsx` (Lane B, dispatched to OpenCode,
-  hand-reviewed, render-verified against all 5 mockup states). All on
-  `staging` (`79c5d3f`), verified via `tsc --noEmit` + a synthetic
-  throwaway-session test (zero real data touched) + direct code-path review.
-  **Not yet on `main`/live** — Craig's call, per today's staging-only decision.
-  **Still open, explicitly deferred (not silently dropped):** wiring
-  SessionStatusPill into live screens; CR-EF-036's actual fix (client Sessions
-  view reading `set_logs`); H3's write-guard + Reopen UI (needs a read of the
-  mockup's `reopen-dialog` section before building — UI-dependent, didn't fit
-  today); Phase 3 (calendar spine); the wider CR-EF-039/040 ~50-screen sweep
-  (HubRail, HubCard height contract, single accordion, single tab still open
-  Lane B units before the sweep itself can start).
-=======
 - 2026-08-17 (evening) — Craig reported live field problems from Esther (Emma
   triple-logged workout, 5 workouts in one "week", desktop/mobile date and
   status disagreements, completed sessions editable, logged data invisible on
@@ -261,4 +209,64 @@ the two device tests together).
   `.context/revision-request-workout-unification-2026-08-17.md` (mirrored + committed
   `design-systems@6512f1b`). CR-EF-037 updated to reflect gate status. **Do not sign
   G2 until the revision lands and gets re-checked.**
->>>>>>> Stashed changes
+- **2026-08-17 (later still) — L3/L4/L6 actually shipped, ledger never updated
+  until now (found during the 2026-08-19 reconciliation pass).** Correcting the
+  record:
+  - **L3 (staff surface consolidation) — BUILT.** `347145c`. `LiveSessionLog.tsx`
+    deleted; `app/hub/log/[sessionId]/page.tsx` is now a real redirect into
+    `/hub/clients/[id]/blocks/[blockId]/sessions/[sessionNum]`. `/hub/log` is no
+    longer a third design.
+  - **L4 (templates paste-and-assign + browser) — BUILT.** `626952f`.
+    `app/hub/(protected)/workout-templates/new/TemplatePasteClient.tsx` +
+    `/api/workout-templates/structure` are live; Esther can paste a workout and
+    get a structured, assignable template without leaving the hub.
+  - **L6 (portal PWA) — BUILT.** `b328e52`. `public/portal.webmanifest` +
+    `public/portal/sw.js` present, scoped to `/portal/` per the brief.
+  - **L2 (mockups) — delivered, revised, verified.** All 4 lane mockups
+    (`hub-session.html`, `hub-block-module.html`, `hub-schedule.html`,
+    `hub-workout-templates.html`) came back, the two sent for revision were
+    revised and re-verified against the brief on 2026-08-18 (see
+    `.context/audit-hub-design-parity-2026-08-18.md`).
+  - L5 (naming/conversion rollout) — not evidenced as done; still open.
+  - G4 (portal PWA client-facing copy) — standing gate, not yet asked.
+- **2026-08-19 — G2 signed by Craig.** Also approved adopting
+  `.context/assessment-workout-unification-2026-08-17.md` Part 3's unified
+  session state model (clears queued decision `qmsxl5j0c7l`; all hotfixes AUTO).
+  CR-EF-037 Phases 2–3 — the state-model build, uid-keyed set_logs, one write
+  path, calendar spine — are now buildable lanes off this WO. Emma Atkinson's
+  duplicate-log data question (`qmsxl5iz4wg`) also answered: clean up as
+  proposed in CR-EF-029's reconstruction, backup taken first.
+- **2026-08-19 (same day, later) — Phase 2 started, real progress shipped to
+  `staging`.** Found and fixed a live risk while starting: the 18 Aug status
+  migration shipped without the "transition API" its own comments call for,
+  so nothing had written the new `status`/`started_at`/`completed_at` columns
+  since — verified 0 sessions had drifted yet, but every completion from today
+  onward would have started the exact bug CR-EF-037 exists to kill, again.
+  Shipped: `lib/session-transitions.ts` (`markSessionInProgress`, idempotent,
+  called from both set-log insert paths); `app/api/sessions/[id]/route.ts`
+  syncing `completed_at`/`status` on the existing PATCH both loggers already
+  call (no frontend changes needed); `scripts/backfill-exercise-uid.mjs`
+  (156 rows backfilled, 100% `exercise_uid` coverage, applied to prod);
+  `components/hub/SessionStatusPill.tsx` (Lane B, dispatched to OpenCode,
+  hand-reviewed, render-verified against all 5 mockup states). All on
+  `staging` (`79c5d3f`), verified via `tsc --noEmit` + a synthetic
+  throwaway-session test (zero real data touched) + direct code-path review.
+  **Not yet on `main`/live** — Craig's call, per today's staging-only decision.
+  **Still open, explicitly deferred (not silently dropped):** wiring
+  SessionStatusPill into live screens; CR-EF-036's actual fix (client Sessions
+  view reading `set_logs`); H3's write-guard + Reopen UI (needs a read of the
+  mockup's `reopen-dialog` section before building — UI-dependent, didn't fit
+  today); Phase 3 (calendar spine); the wider CR-EF-039/040 ~50-screen sweep
+  (HubRail, HubCard height contract, single accordion, single tab still open
+  Lane B units before the sweep itself can start).
+- **2026-08-19 (same day, even later) — wo-ef-sessions-blocks-full-build-2026-08-19
+  dispatched and completed on staging.** All 7 lanes (A: shared primitives remainder,
+  B: wire SessionStatusPill into live screens, C: CR-EF-036 Sessions visibility,
+  D: CR-EF-031 write-guard + Reopen, E: Phase 3 calendar spine, F: verify-hub-pages.js,
+  G: CR-EF-039/040 8-screen consistency sweep) merged to `staging` (`4844c72`), 46 files,
+  1594 insertions, deployed to development, spot-verified live. **Not promoted to main** —
+  standing decision pending. This WO's Phase 2–3 scope is now materially delivered on
+  staging; only the genuinely-remaining gaps (training-blocks list, workout-templates
+  deeper parity incl. the position/adaptation difficulty facet, derived Est. duration,
+  minor sweep remnants) are tracked by the follow-on
+  `.context/workorder-hub-workout-parity-2026-08-19.md`.
