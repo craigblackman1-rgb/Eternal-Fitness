@@ -17,6 +17,7 @@ import { DeleteBlockButton } from "./delete-block-button";
 interface BlockActionsProps {
   onEditBlock: () => void;
   onAddWorkout: () => void;
+  onSchedule: () => void;
   clientId: string;
   blockId: string;
   blockNumber: number;
@@ -25,19 +26,19 @@ interface BlockActionsProps {
 
 /**
  * Quick Actions — same top-left .qa-bar primitive as the dashboard and
- * client record. "Schedule" is the primary action (a real link); "Edit
- * Block"/"Add Workout" open drawers rather than navigating, so the bar's
- * onClick variant carries them. Print/Export/Delete stay in the "..."
- * overflow menu — they're secondary/destructive actions, not the page's
- * quick actions.
+ * client record. "Schedule" is the primary action (opens the inline schedule
+ * panel on the block page, per hub-block-module.html); "Edit Block"/"Add
+ * Workout" open drawers rather than navigating, so the bar's onClick variant
+ * carries them. Print/Export/Delete stay in the "..." overflow menu — they're
+ * secondary/destructive actions, not the page's quick actions.
  */
-export function BlockActions({ onEditBlock, onAddWorkout, clientId, blockId, blockNumber, clientName }: BlockActionsProps) {
+export function BlockActions({ onEditBlock, onAddWorkout, onSchedule, clientId, blockId, blockNumber, clientName }: BlockActionsProps) {
   return (
     <div className="flex items-center justify-between gap-2">
       <HubQuickActions
         variant="bar"
         actions={[
-          { href: `/hub/clients/${clientId}/blocks/${blockId}/review`, label: "Schedule", icon: <IconCalendar className="w-4 h-4" />, primary: true },
+          { onClick: onSchedule, label: "Schedule", icon: <IconCalendar className="w-4 h-4" />, primary: true },
           { onClick: onEditBlock, label: "Edit block", icon: <IconPencil className="w-4 h-4" /> },
           { onClick: onAddWorkout, label: "Add workout", icon: <IconPlus className="w-4 h-4" /> },
         ]}
