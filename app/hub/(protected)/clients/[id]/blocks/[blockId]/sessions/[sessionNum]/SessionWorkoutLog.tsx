@@ -10,6 +10,8 @@ import {
   parsePrescribedReps,
   parseRestSeconds,
   formatPrescription,
+  estimateSectionSeconds,
+  formatDurationEstimate,
 } from "@/lib/prescription";
 import { defaultUnitForEquipment, isBandEquipment } from "@/lib/units";
 import {
@@ -776,6 +778,7 @@ export function SessionWorkoutLog({
           const st = exStates[ref];
           return st && st.sets.every((s) => s.status !== "pending");
         }).length;
+        const estSeconds = estimateSectionSeconds(list);
 
         return (
           <div key={sec.key} className="overflow-hidden rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm">
@@ -787,7 +790,9 @@ export function SessionWorkoutLog({
               {secIconEl(sec.color)}
               <div>
                 <div className="text-[14px] font-bold text-foreground">{sec.label}</div>
-                <div className="text-xs text-muted-foreground">{doneCount} of {list.length} logged</div>
+                <div className="text-xs text-muted-foreground">
+                  {doneCount} of {list.length} logged{list.length > 0 ? ` · est. ${formatDurationEstimate(estSeconds)}` : ""}
+                </div>
               </div>
               <span className={`ml-auto text-muted-foreground transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}>{ICO.chev}</span>
             </button>

@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import type { DBSession, SessionLog, SessionVersion, SetLog } from "@/types";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
-import { sessionDurationMinutes } from "@/lib/scheduling";
+import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";
 
 // Minimal shape of the client record this header needs — the GET /api/clients/[id]
 // response returns the full client, but only these fields feed the subtitle line.
@@ -157,6 +157,18 @@ export default function SessionViewPage({
 
   const setLogsArray = useMemo(() => Object.values(setLogs), [setLogs]);
 
+  // Derived live estimate of the session duration (CR-EF-037 — Lane C): per-set
+  // work time plus rest, computed from the prescription on every render so edits
+  // to sets/reps/tempo/rest move the figure live. Coaching, setup and changeover
+  // are deliberately excluded, so it reads under the booked slot.
+  const estSeconds = useMemo(
+    () =>
+      estimateSessionSeconds(
+        session?.data?.versions?.[activeTab] ?? { warm_up: [], main_block: [], cooldown: [] },
+      ),
+    [session?.data?.versions, activeTab],
+  );
+
   const handleReopen = async () => {
     if (!session) return;
     setReopening(true);
@@ -199,7 +211,6 @@ export default function SessionViewPage({
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   if (!session) return <div className="p-8 text-center text-muted-foreground">Session not found</div>;
 
-  const durationMinutes = session.data?.estimated_minutes ?? sessionDurationMinutes(session.data?.time_tier);
   // Session is named by its focus_label, never a bare "Session N" (CR-EF-034) —
   // matching the block page and the consolidated mockup header.
   const focusLabel = session.data?.focus_label || `Session ${sessionNum}`;
@@ -220,6 +231,9 @@ export default function SessionViewPage({
   const clientName = client?.name || "Client";
   const clientCondition = client?.profile?.health?.conditions?.[0] ?? null;
   const sessionSlotMinutes = client?.session_duration ?? 60;
+  // Flag when the derived estimate already runs past the booked slot, so the chip
+  // reads as an amber warning instead of a neutral figure.
+  const overSlot = estSeconds > sessionSlotMinutes * 60;
   const dateLabel = session.scheduled_at
     ? new Date(session.scheduled_at).toLocaleDateString("en-GB", {
         weekday: "long",
@@ -247,11 +261,17 @@ export default function SessionViewPage({
               {dateLabel ? ` · ${dateLabel}` : ""}
               {` · ${sessionSlotMinutes} min slot`}{" "}
               <span
-                className="inline-flex items-center gap-1 rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-[11.5px] font-semibold text-muted-foreground"
-                title="A guide from the prescription — not a live countdown"
+                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold ${
+                  overSlot
+                    ? "border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]"
+                    : "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground"
+                }`}
+                title={`Estimated from the prescription — work time plus rest. Excludes coaching, setup and changeover${
+                  overSlot ? `, and already runs past the ${sessionSlotMinutes}-minute slot` : ""
+                }.`}
               >
                 <IconClock className="h-3.5 w-3.5" />
-                ~{durationMinutes} min · guide
+                Est. {formatDurationEstimate(estSeconds)}
               </span>
             </p>
           </div>
