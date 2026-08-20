@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ClientUpdatesPanel } from "@/components/hub/ClientUpdatesPanel";
 import { ClientTasksPanel } from "./ClientTasksPanel";
+import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import type { UpdateInterval, UpdateDueInfo } from "@/lib/updates-due";
 import type { SentUpdate } from "@/types";
 
@@ -17,6 +18,8 @@ interface Props {
   updateInterval: UpdateInterval | null;
   dueInfo: UpdateDueInfo;
   lastSentAt: string | null;
+  updateIntervalWeeks: number | null;
+  updateIntervalNextDate: string | null;
 }
 
 const SEGMENTS: { key: Segment; label: string }[] = [
@@ -31,6 +34,8 @@ export function CommsTabContent({
   updateInterval,
   dueInfo,
   lastSentAt,
+  updateIntervalWeeks,
+  updateIntervalNextDate,
 }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -72,11 +77,26 @@ export function CommsTabContent({
       </div>
 
       {segment === "updates" && (
-        <ClientUpdatesPanel
-          clientNumber={clientNumber}
-          updates={updates}
-          reportHref={`/hub/clients/${clientNumber}/updates`}
-        />
+        <>
+          {/* CR-EF-073: the update-cadence control moved here from Overview's
+              Snapshot card. It sets how often this client is due a written
+              update, so it belongs beside the updates it schedules rather than
+              on a top-level summary. */}
+          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
+            <UpdateIntervalControl
+              clientNumber={clientNumber}
+              updateInterval={updateInterval}
+              updateIntervalWeeks={updateIntervalWeeks}
+              updateIntervalNextDate={updateIntervalNextDate}
+              dueInfo={dueInfo}
+            />
+          </div>
+          <ClientUpdatesPanel
+            clientNumber={clientNumber}
+            updates={updates}
+            reportHref={`/hub/clients/${clientNumber}/updates`}
+          />
+        </>
       )}
 
       {segment === "tasks" && (

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconCheckSquare, IconActivity, IconPanelLeft, IconCalendar, IconBarChart3 } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
-import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { ClientNotesPanel } from "./ClientNotesPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
@@ -378,6 +377,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         variant="bar"
         actions={[
           { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" />, primary: true },
+          { href: `/hub/clients/${client.client_number}?tab=comms&view=tasks`, label: "Tasks", icon: <IconCheckSquare className="w-4 h-4" />, badgeCount: pendingTaskCount },
           { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
           { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },
         ]}
@@ -429,9 +429,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           <HubTabsTrigger value="profile">
             <IconUser /> Profile
           </HubTabsTrigger>
-          <HubTabsTrigger value="admin">
-            <IconClipboardCheck /> Admin
+          <HubTabsTrigger value="compliance">
+            <IconClipboardCheck /> Compliance
             {outstandingCount > 0 && <TabCountBadge count={outstandingCount} tone={flags.effectiveStatus === "do_not_train" ? "danger" : "warning"} />}
+          </HubTabsTrigger>
+          <HubTabsTrigger value="documents">
+            <IconFileText /> Documents
           </HubTabsTrigger>
           <HubTabsTrigger value="training">
             <IconDumbbell /> Training
@@ -448,11 +451,20 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] mt-6">
           <div className="space-y-5">
             <TabsContent value="overview">
-              {(flags.effectiveStatus === "pending_medical" || flags.effectiveStatus === "action_needed") && (
+              {flags.effectiveStatus === "pending_medical" && (
                 <HubAlert severity="warning" title={lookupStatus(flags.effectiveStatus)?.label ?? "Action Needed"}>
-                  {flags.effectiveStatus === "pending_medical"
-                    ? "Do not train until clearance is confirmed."
-                    : "Actions outstanding — see Admin tab."}
+                  Do not train until clearance is confirmed.
+                  <OutstandingActionsInline actions={flags.autoOutstanding} />
+                  <OutstandingActionsInline actions={manualActions} />
+                </HubAlert>
+              )}
+              {flags.effectiveStatus === "action_needed" && (
+                <HubAlert
+                  severity="warning"
+                  title={`${outstandingCount} outstanding action${outstandingCount === 1 ? "" : "s"}`}
+                  summary="Actions outstanding — see Compliance tab."
+                  collapsible
+                >
                   <OutstandingActionsInline actions={flags.autoOutstanding} />
                   <OutstandingActionsInline actions={manualActions} />
                 </HubAlert>
@@ -526,71 +538,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </div>
               </HubAccordionSection>
 
-              <HubAccordionSection
-                icon={<IconClipboardList className="w-4 h-4" />}
-                title="Snapshot"
-                color="navy"
-              >
-                <div className="px-5 pt-4 pb-4">
-                  <HubDataGrid cols={2}>
-                    {client.referral_source && (
-                      <HubDataField label="Referral source">{client.referral_source}</HubDataField>
-                    )}
-                    {client.start_date && (
-                      <HubDataField label="Start date">
-                        {new Date(client.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                      </HubDataField>
-                    )}
-                    <HubDataField label="Primary goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
-                    <HubDataField label="Sessions per week">{p?.logistics?.sessions_per_week ? `${p.logistics.sessions_per_week}×` : "—"}</HubDataField>
-                    <HubDataField label="Session length"><span className="capitalize">{p?.logistics?.time_tier ?? "—"}</span></HubDataField>
-                    {p?.health?.conditions && (
-                      <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
-                    )}
-                    <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
-                    <HubDataField label="Last check-in">
-                      {latestSessionLog?.completed_at
-                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-                        : "—"}
-                    </HubDataField>
-                  </HubDataGrid>
-                  <UpdateIntervalControl
-                    clientNumber={client.client_number}
-                    updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
-                    updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
-                    updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
-                    dueInfo={dueInfo}
-                  />
-                </div>
-              </HubAccordionSection>
-
               <ClientNotesPanel clientId={client.id} />
-
-              <HubAccordionSection
-                icon={<IconDumbbell className="w-4 h-4" />}
-                title="Training snapshot"
-                color="teal"
-              >
-                <div className="px-5 pt-4 pb-4">
-                  <HubDataGrid cols={2}>
-                    <HubDataField label="Blocks completed">{blocks?.length ?? 0}</HubDataField>
-                    <HubDataField label="Current block">
-                      {latestBlock ? (
-                        <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="font-semibold text-foreground hover:text-rose transition-colors">
-                          Block {latestBlock.block_number}
-                        </Link>
-                      ) : "—"}
-                    </HubDataField>
-                    <HubDataField label="Sessions logged">{sessions?.length ?? 0}</HubDataField>
-                    <HubDataField label="Pace mode"><span className="capitalize">{client.pace_mode ?? "—"}</span></HubDataField>
-                    <HubDataField label="Last session">
-                      {latestSessionLog?.completed_at
-                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-                        : "—"}
-                    </HubDataField>
-                  </HubDataGrid>
-                </div>
-              </HubAccordionSection>
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
                 <HubAccordionSection
@@ -625,6 +573,40 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
             <TabsContent value="profile">
               <div className="space-y-3">
+                {/* CR-EF-073: Snapshot moved down from Overview — every field
+                    in it is a profile fact, so it belongs on the tab that owns
+                    them rather than competing with "what's happening now". */}
+                <HubAccordionSection
+                  icon={<IconClipboardList className="w-4 h-4" />}
+                  title="Snapshot"
+                  color="teal"
+                >
+                  <div className="px-5 pt-4 pb-4">
+                    <HubDataGrid cols={2}>
+                      {client.referral_source && (
+                        <HubDataField label="Referral source">{client.referral_source}</HubDataField>
+                      )}
+                      {client.start_date && (
+                        <HubDataField label="Start date">
+                          {new Date(client.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </HubDataField>
+                      )}
+                      <HubDataField label="Primary goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
+                      <HubDataField label="Sessions per week">{p?.logistics?.sessions_per_week ? `${p.logistics.sessions_per_week}×` : "—"}</HubDataField>
+                      <HubDataField label="Session length"><span className="capitalize">{p?.logistics?.time_tier ?? "—"}</span></HubDataField>
+                      {p?.health?.conditions && (
+                        <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
+                      )}
+                      <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
+                      <HubDataField label="Last check-in">
+                        {latestSessionLog?.completed_at
+                          ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                          : "—"}
+                      </HubDataField>
+                    </HubDataGrid>
+                  </div>
+                </HubAccordionSection>
+
                 {p?.health && (
                   <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="neutral" defaultOpen>
                     <div className="px-5 pt-4 pb-4 space-y-4">
@@ -849,7 +831,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </div>
             </TabsContent>
 
-            <TabsContent value="admin">
+            <TabsContent value="compliance">
               <div className="space-y-5">
                 <HubCard>
                   <HubCardHeader icon={<IconTriangleAlert className="w-4 h-4" />} title="Compliance Status" color="amber" />
@@ -918,18 +900,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </div>
                 </HubCard>
 
-                <HubCard>
-                  <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Documents" color="slate" />
-                  <div className="px-5 pb-5">
-                    <DocumentRegister
-                      clientNumber={client.client_number}
-                      documents={[...(clientDocuments ?? []), ...legacyDocumentRows]}
-                      clientEmail={client.email}
-                      clientName={client.name}
-                    />
-                  </div>
-                </HubCard>
-
                 <PackagePaymentsCard
                   clientId={client.id}
                   initial={{
@@ -948,7 +918,57 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </div>
             </TabsContent>
 
+            {/* CR-EF-073: Documents promoted out of the old Admin tab. The
+                register carries version / last-updated / last-updated-by
+                columns, per-row actions, create-and-upload flows and read-only
+                legacy rows — it was the largest card on a tab it didn't
+                belong to. */}
+            <TabsContent value="documents">
+              <HubCard>
+                <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Documents" color="slate" />
+                <div className="px-5 pb-5">
+                  <DocumentRegister
+                    clientNumber={client.client_number}
+                    documents={[...(clientDocuments ?? []), ...legacyDocumentRows]}
+                    clientEmail={client.email}
+                    clientName={client.name}
+                  />
+                </div>
+              </HubCard>
+            </TabsContent>
+
             <TabsContent value="training">
+              {/* CR-EF-073: Training snapshot moved down from Overview — it
+                  summarises this tab's own contents, so it reads as a header
+                  for the blocks below rather than a second block card
+                  competing with "Active block" on Overview. */}
+              <div className="mb-5">
+              <HubAccordionSection
+                icon={<IconDumbbell className="w-4 h-4" />}
+                title="Training snapshot"
+                color="teal"
+              >
+                <div className="px-5 pt-4 pb-4">
+                  <HubDataGrid cols={2}>
+                    <HubDataField label="Blocks completed">{blocks?.length ?? 0}</HubDataField>
+                    <HubDataField label="Current block">
+                      {latestBlock ? (
+                        <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="font-semibold text-foreground hover:text-rose transition-colors">
+                          Block {latestBlock.block_number}
+                        </Link>
+                      ) : "—"}
+                    </HubDataField>
+                    <HubDataField label="Sessions logged">{sessions?.length ?? 0}</HubDataField>
+                    <HubDataField label="Pace mode"><span className="capitalize">{client.pace_mode ?? "—"}</span></HubDataField>
+                    <HubDataField label="Last session">
+                      {latestSessionLog?.completed_at
+                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                        : "—"}
+                    </HubDataField>
+                  </HubDataGrid>
+                </div>
+              </HubAccordionSection>
+              </div>
               <TrainingTabContent
                 clientNumber={client.client_number}
                 blocks={blocks ?? []}
@@ -969,6 +989,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
                 dueInfo={dueInfo}
                 lastSentAt={lastSentAt}
+                updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
+                updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
               />
             </TabsContent>
 
