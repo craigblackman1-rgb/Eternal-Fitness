@@ -59,11 +59,20 @@ not the first commit's, as authoritative.
   2026-08-20: "retire it." BUILT** — see DONE checklist, 2026-08-20 9d2db8a (real fix
   was deeper than described — see note there).
 - G5 — CR-EF-008 (HTTP→HTTPS 301 + HSTS): Coolify/Traefik domain config, not app code.
-  **ANSWERED 2026-08-20: "go ahead." BLOCKED ON TOOLING** — Coolify's Readonly-labels
-  toggle isn't exposed via the available MCP tools, so a custom_labels edit would be
-  silently wiped on the next auto-deploy. Needs Craig to flip it in the Coolify UI
-  first (Configuration → Advanced on the eternal-fitness app), or do the label edit
-  himself. Deferred: dmt1jcxvkh5.
+  **ANSWERED 2026-08-20: "go ahead." DONE** — Craig unchecked Readonly labels himself
+  (only reachable via the Coolify UI, not any available tool), pasted the updated
+  Traefik label set Claude gave him (redirectscheme.permanent=true + a new
+  security-headers middleware for HSTS), restarted the app. Verified: HTTPS response
+  now carries `Strict-Transport-Security: max-age=31536000; includeSubDomains` on all
+  3 domains. **False alarm during verification, named so it isn't repeated:** Claude's
+  sandboxed environment can't reach outbound port 80 at all, got a 404 on
+  `http://eternal-fitness.co.uk` AND on an unrelated site (`decodedops.co.uk`) it never
+  touched, and misread that as a server-wide Traefik outage. Traefik was never down —
+  confirmed via the Coolify proxy screen ("Running", "Saved and running configuration
+  are synchronized") and by Craig checking both URLs from his own machine (both
+  redirect fine). Exact 301-vs-307 status code not independently re-confirmed after the
+  false alarm, but the redirect and HSTS are both live. Deferred item dmt1jcxvkh5
+  resolved.
 - G6 — any new migration or DB write outside listed scope (generic, not yet triggered
   beyond G2's own migration, which was covered by G2's own answer).
 
