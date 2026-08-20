@@ -462,7 +462,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 <HubAlert
                   severity="warning"
                   title={`${outstandingCount} outstanding action${outstandingCount === 1 ? "" : "s"}`}
-                  summary="Actions outstanding — see Admin tab."
+                  summary="Actions outstanding — see Compliance tab."
                   collapsible
                 >
                   <OutstandingActionsInline actions={flags.autoOutstanding} />
@@ -579,7 +579,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 <HubAccordionSection
                   icon={<IconClipboardList className="w-4 h-4" />}
                   title="Snapshot"
-                  color="navy"
+                  color="teal"
                 >
                   <div className="px-5 pt-4 pb-4">
                     <HubDataGrid cols={2}>
@@ -608,7 +608,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </HubAccordionSection>
 
                 {p?.health && (
-                  <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="teal" defaultOpen>
+                  <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="neutral" defaultOpen>
                     <div className="px-5 pt-4 pb-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">GP Clearance</span>
