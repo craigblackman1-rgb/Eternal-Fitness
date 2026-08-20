@@ -45,7 +45,7 @@ export function NewDocumentButton({ clientNumber }: { clientNumber: number }) {
       </Select>
       <Button onClick={create} disabled={creating} className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
         <IconPlus className="h-4 w-4" />
-        {creating ? "Creating…" : "Create & send"}
+        {creating ? "Creating…" : "Create document"}
       </Button>
     </div>
   );
