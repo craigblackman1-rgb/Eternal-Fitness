@@ -28,14 +28,36 @@ DECIDE YOURSELF:
   Est. duration estimator factoring (derived from prescription, per-section, amber over slot).
 
 ASK FIRST (gates):
+NOTE: the numbering below was corrected 2026-08-20 to match the actual `wo ask`
+queue Craig answered against (the original draft's G2/G5 were swapped, and G2
+below didn't exist in the first draft — it surfaced mid-build). Treat this list,
+not the first commit's, as authoritative.
+
 - G1 — WAL/PITR archiving: requires either a superuser DB role change or accepting
   archive_mode=off — infra decision, not code (carried from wo-eternalfitness-hub-mobile-
-  session-pwa-2026-08-10).
-- G2 — CR-EF-008 (HTTP→HTTPS 301 + HSTS): Coolify/Traefik domain config, not app code.
+  session-pwa-2026-08-10). **ANSWERED 2026-08-20: "implement properly, get superuser
+  access."** Not yet actioned — needs Craig to actually grant/arrange the superuser DB
+  role before Claude can configure WAL archiving; current app role (ef_app) can't
+  ALTER SYSTEM.
+- G2 — workout-templates difficulty facet → Seated/Supported/Standing: surfaced during
+  Lane B's build, not in the original gate list. **ANSWERED 2026-08-20: "confirmed
+  Seated/Supported/Standing, add whatever's needed." BUILT** — see DONE checklist,
+  2026-08-20 ab4c765.
 - G3 — Lane F rail-as-navigation IA: needs a fresh Open Design brief before any build.
+  **ANSWERED 2026-08-20: Craig will write/submit the brief himself — no action from
+  Claude.**
 - G4 — legacy /api/parq POST retirement: full scope of the §4.3 legacy-surface migration
-  needs confirming with Craig before touching the unlinked-but-live route.
-- G5 — any new migration or DB write outside listed scope.
+  needs confirming with Craig before touching the unlinked-but-live route. **ANSWERED
+  2026-08-20: "retire it." BUILT** — see DONE checklist, 2026-08-20 9d2db8a (real fix
+  was deeper than described — see note there).
+- G5 — CR-EF-008 (HTTP→HTTPS 301 + HSTS): Coolify/Traefik domain config, not app code.
+  **ANSWERED 2026-08-20: "go ahead." BLOCKED ON TOOLING** — Coolify's Readonly-labels
+  toggle isn't exposed via the available MCP tools, so a custom_labels edit would be
+  silently wiped on the next auto-deploy. Needs Craig to flip it in the Coolify UI
+  first (Configuration → Advanced on the eternal-fitness app), or do the label edit
+  himself. Deferred: dmt1jcxvkh5.
+- G6 — any new migration or DB write outside listed scope (generic, not yet triggered
+  beyond G2's own migration, which was covered by G2's own answer).
 
 ## LEDGER
 - 2026-08-20 — Work Order raised, consolidating 6 predecessor WOs per Craig's instruction
@@ -59,22 +81,34 @@ ASK FIRST (gates):
 - [x] Training-blocks list: Programme+Progress columns, block-status vocab, avatar,
       context-aware action link. (2026-08-20, c77ebcd — merged unmodified real work found
       already built on branch lane-a-training-blocks)
-- [~] Workout-templates browser: detail drawer + assign-from-browse, paste 3-step stepper.
-      difficulty facet → Seated/Supported/Standing NOT DONE — no schema source exists
-      (workout_templates.difficulty + exercises.difficulty are both INTEGER 1-5, no
-      position/adaptation column); G2 stop-and-report, needs a schema decision from Craig
-      before this can go further. (2026-08-20, 1bda9a1 — reconciled against a competing
-      assign-to-client flow already on main; also caught and removed a decorative
-      "next available block / new block" selector with no backend support)
+- [x] Workout-templates browser: detail drawer + assign-from-browse, paste 3-step stepper.
+      (2026-08-20, 1bda9a1 — reconciled against a competing assign-to-client flow already
+      on main; also caught and removed a decorative "next available block / new block"
+      selector with no backend support)
+- [x] Difficulty facet → Seated/Supported/Standing (G2). Built as a new, separate
+      `position` facet (exercises.position + derived workout_templates.position) rather
+      than repurposing the genuine 1-5 difficulty scale, which stays live on the exercise
+      library's own filter. No values backfilled — no existing signal to derive
+      Seated/Supported/Standing from; all exercises start untagged, Esther tags them via a
+      new Position field on the exercise editor. Migration run on prod + staging, verified.
+      (2026-08-20, ab4c765)
 - [x] Session screen: derived Est. duration estimator live from prescription. (2026-08-20,
       7c6d762 — reconciled against the CR-EF-062 header restructure, extended to
       per-section chips, fixed a Rules-of-Hooks bug found in the original attempt)
-- [ ] Minor styling sweep: back-link labels, avatar initials, cancelled-row dimming, single
-      archetype label map. (in progress — lane-d-reconcile dispatched 2026-08-20)
+- [x] Minor styling sweep: back-link labels, avatar initials, cancelled-row dimming, single
+      archetype label map. (2026-08-20, d8a254e — reconciled lane-d-minor-sweep onto
+      current main; avatar initials were already covered by a later lane)
 - [ ] exercise_uid backfill run + verified against session-transitions logic on both DBs.
-- [ ] CR-EF-047 (block module exercise-table / Next-session nav) scope confirmed with Craig
-      and fixed.
-- [ ] Legacy /api/parq POST retirement scoped and resolved (post-G4).
+- [x] CR-EF-047 — Craig confirmed 2026-08-20 this was already fixed (the label was a
+      register mismatch; CR-EF-047 is actually the rejected Docker build-cache CR). No
+      build needed.
+- [x] Legacy /api/parq POST retirement scoped and resolved (G4). Real fix was deeper than
+      the deferred item described: POST never verified the signed exp/sig link at all —
+      only the page render did — so anyone with a signed_parq id could write to it,
+      signature or not. First-draft fix (hub-session-only + delete /parq/edit/[id]) would
+      have broken the Agreement page's live "Copy PAR-Q edit link" feature; corrected to
+      require a hub session OR a valid unexpired signature. Only the dead blank /parq form
+      was deleted. (2026-08-20, 9d2db8a)
 - [x] CR-EF-006 Review schema added to /testimonials. AggregateRating deliberately NOT
       added — no real rating data exists anywhere on the site; the first OpenCode draft
       fabricated ratingValue 5.0/reviewCount 4, caught on review and removed before merge.
