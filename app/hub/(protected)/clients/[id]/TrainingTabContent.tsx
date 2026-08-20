@@ -19,6 +19,7 @@ import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
 import type { SetLog } from "@/types";
 import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { isoToLocalTime, localPartsToISO, todayLocalISODate } from "@/lib/schedule-dates";
 import {
   IconFileText,
   IconClipboardList,
@@ -295,6 +296,42 @@ export function TrainingTabContent({
   const [sessionSortDir, setSessionSortDir] = useState<SortDir>("desc");
   const [creatingBlock, setCreatingBlock] = useState(false);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [schedulingSession, setSchedulingSession] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("10:00");
+  const [savingSchedule, setSavingSchedule] = useState(false);
+
+  const startSchedule = (session: SessionRow) => {
+    if (session.scheduled_at) {
+      setScheduleDate(isoToLocalDate(session.scheduled_at));
+      setScheduleTime(isoToLocalTime(session.scheduled_at));
+    } else {
+      setScheduleDate(todayLocalISODate());
+      setScheduleTime("10:00");
+    }
+    setSchedulingSession(session.id);
+  };
+
+  const saveSchedule = async (session: SessionRow) => {
+    if (!scheduleDate || !scheduleTime) {
+      toast.error("Set a date and time");
+      return;
+    }
+    setSavingSchedule(true);
+    const res = await fetch(`/api/sessions/${session.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scheduled_at: localPartsToISO(scheduleDate, scheduleTime) }),
+    });
+    setSavingSchedule(false);
+    if (!res.ok) {
+      toast.error("Failed to save session date");
+      return;
+    }
+    toast.success(session.scheduled_at ? "Session rescheduled" : "Session scheduled");
+    setSchedulingSession(null);
+    router.refresh();
+  };
 
   const handleNewEmptyBlock = async () => {
     if (creatingBlock) return;
@@ -493,6 +530,9 @@ export function TrainingTabContent({
                     const evidence = setEvidenceBySession[session.id];
                     const hasSets = !!evidence && evidence.setCount > 0;
                     const isExpanded = expandedSession === session.id;
+                    const status = sessionStatus(session);
+                    const isScheduling = schedulingSession === session.id;
+                    const canSchedule = status !== "completed" && status !== "cancelled";
                     return (
                       <Fragment key={session.id}>
                         <tr className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
@@ -503,7 +543,7 @@ export function TrainingTabContent({
                             {blockNum != null ? `Block ${blockNum} \u00b7 S${session.session_number}` : `S${session.session_number}`}
                           </td>
                           <td className="py-2.5 px-5">
-                            <SessionStatusPill status={sessionStatus(session)} />
+                            <SessionStatusPill status={status} />
                           </td>
                           <td className="py-2.5 px-5 whitespace-nowrap">
                             {hasSets ? (
@@ -529,18 +569,65 @@ export function TrainingTabContent({
                           </td>
                           <td className="py-2.5 px-5 text-muted-foreground max-w-[240px] truncate">{log?.notes || "—"}</td>
                           <td className="py-2.5 px-5 text-right whitespace-nowrap">
-                            <Link
-                              href={`/hub/clients/${clientNumber}/blocks/${session.block_id}/sessions/${session.session_number}`}
-                              className="text-teal font-medium hover:underline"
-                            >
-                              Open
-                            </Link>
+                            <div className="inline-flex items-center gap-3">
+                              {canSchedule && (
+                                <button
+                                  type="button"
+                                  onClick={() => startSchedule(session)}
+                                  className="text-muted-foreground font-medium hover:text-foreground hover:underline"
+                                >
+                                  {session.scheduled_at ? "Reschedule" : "Schedule"}
+                                </button>
+                              )}
+                              <Link
+                                href={`/hub/clients/${clientNumber}/blocks/${session.block_id}/sessions/${session.session_number}`}
+                                className="text-teal font-medium hover:underline"
+                              >
+                                Open
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                         {isExpanded && hasSets && (
                           <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]/50">
                             <td colSpan={7} className="px-5 py-3">
                               <SessionSetEvidenceTable evidence={evidence} />
+                            </td>
+                          </tr>
+                        )}
+                        {isScheduling && (
+                          <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]/50">
+                            <td colSpan={7} className="px-5 py-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Move to</span>
+                                <input
+                                  type="date"
+                                  value={scheduleDate}
+                                  onChange={(e) => setScheduleDate(e.target.value)}
+                                  className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                                />
+                                <input
+                                  type="time"
+                                  value={scheduleTime}
+                                  onChange={(e) => setScheduleTime(e.target.value)}
+                                  className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => saveSchedule(session)}
+                                  disabled={savingSchedule}
+                                  className="inline-flex h-8 items-center rounded-lg bg-rose px-3 text-xs font-semibold text-white hover:bg-rose/90 disabled:opacity-50"
+                                >
+                                  {savingSchedule ? "Saving..." : "Save"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSchedulingSession(null)}
+                                  className="inline-flex h-8 items-center rounded-lg px-2.5 text-xs font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )}

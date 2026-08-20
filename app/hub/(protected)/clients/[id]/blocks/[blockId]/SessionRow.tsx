@@ -118,12 +118,21 @@ export function SessionRow({
               </Link>
             )}
             {status === "planned" && (
-              <Link
-                href={`${sessionUrl}?edit=1`}
-                className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-              >
-                Edit
-              </Link>
+              <>
+                <Link
+                  href={`${sessionUrl}?edit=1`}
+                  className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                >
+                  Edit
+                </Link>
+                <button
+                  type="button"
+                  onClick={startReschedule}
+                  className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground transition-colors"
+                >
+                  Schedule
+                </button>
+              </>
             )}
             {(status === "scheduled" || status === "in_progress") && (
               <>
