@@ -13,6 +13,9 @@ export interface ExerciseEntry {
   equipment: string[];
   tags: string[];
   difficulty: number | null;
+  /** Physical position during the exercise — Seated/Supported/Standing.
+   *  Feeds the workout-templates browser's position facet (G2, 2026-08-20). */
+  position: "seated" | "supported" | "standing" | null;
   intensity_tiers: string[];
   coaching_cue: string | null;
   default_mod: string | null;

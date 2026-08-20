@@ -88,6 +88,7 @@ export function ExerciseBrowser({
   const [equipmentFilter, setEquipmentFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState<ExerciseEntry["source"] | "all">("all");
   const [difficultyFilter, setDifficultyFilter] = useState<number>(0);
+  const [positionFilter, setPositionFilter] = useState<ExerciseEntry["position"] | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -108,9 +109,10 @@ export function ExerciseBrowser({
       if (equipmentFilter !== "all" && !ex.equipment.includes(equipmentFilter)) return false;
       if (sourceFilter !== "all" && ex.source !== sourceFilter) return false;
       if (difficultyFilter > 0 && (ex.difficulty == null || ex.difficulty > difficultyFilter)) return false;
+      if (positionFilter !== "all" && ex.position !== positionFilter) return false;
       return true;
     }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [exercises, search, archetypeFilter, movementFilter, muscleFilter, equipmentFilter, sourceFilter, difficultyFilter]);
+  }, [exercises, search, archetypeFilter, movementFilter, muscleFilter, equipmentFilter, sourceFilter, difficultyFilter, positionFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
@@ -134,10 +136,11 @@ export function ExerciseBrowser({
     setEquipmentFilter("all");
     setSourceFilter("all");
     setDifficultyFilter(0);
+    setPositionFilter("all");
     setPage(0);
   };
 
-  const hasFilters = search || archetypeFilter !== "all" || movementFilter !== "all" || muscleFilter !== "all" || equipmentFilter !== "all" || sourceFilter !== "all" || difficultyFilter > 0;
+  const hasFilters = search || archetypeFilter !== "all" || movementFilter !== "all" || muscleFilter !== "all" || equipmentFilter !== "all" || sourceFilter !== "all" || difficultyFilter > 0 || positionFilter !== "all";
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -378,6 +381,13 @@ export function ExerciseBrowser({
               <option value="3">Intermediate (3)</option>
               <option value="4">Advanced (4)</option>
               <option value="5">Expert (5)</option>
+            </select>
+
+            <select value={positionFilter ?? "all"} onChange={(e) => { setPositionFilter(e.target.value as ExerciseEntry["position"] | "all"); setPage(0); }} className={toolbarSelectClasses} aria-label="Filter by position">
+              <option value="all">All positions</option>
+              <option value="seated">Seated</option>
+              <option value="supported">Supported</option>
+              <option value="standing">Standing</option>
             </select>
           </Toolbar>
         </div>
@@ -634,6 +644,16 @@ export function ExerciseBrowser({
                       {selectedExercise.difficulty != null
                         ? difficultyLabel(selectedExercise.difficulty)
                         : "Unrated"}
+                    </p>
+                  </div>
+
+                  {/* Position */}
+                  <div>
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                      Position
+                    </h4>
+                    <p className="text-sm text-[var(--color-body)] capitalize">
+                      {selectedExercise.position ?? "Untagged"}
                     </p>
                   </div>
 

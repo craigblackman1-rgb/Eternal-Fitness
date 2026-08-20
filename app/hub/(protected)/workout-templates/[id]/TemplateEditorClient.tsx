@@ -31,13 +31,11 @@ import { movementTypeLabels } from "../workout-template-browser";
 import { toast } from "sonner";
 import type { WorkoutTemplate, Exercise, SessionVersion } from "@/types";
 
-function difficultyLabel(d: number): string {
-  if (d <= 1) return "Beginner";
-  if (d <= 2) return "Easy";
-  if (d <= 3) return "Intermediate";
-  if (d <= 4) return "Advanced";
-  return "Expert";
-}
+const positionLabels: Record<string, string> = {
+  seated: "Seated",
+  supported: "Supported",
+  standing: "Standing",
+};
 
 function blankExercise(): Exercise {
   return {
@@ -92,6 +90,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
   const [muscleGroups, setMuscleGroups] = useState(template.muscle_groups);
   const [equipment, setEquipment] = useState(template.equipment);
   const [difficulty, setDifficulty] = useState(template.difficulty);
+  const [position, setPosition] = useState(template.position);
   const [usageCount, setUsageCount] = useState(template.usage_count);
 
   const updateExercise = (
@@ -154,6 +153,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
           setMuscleGroups(created.muscle_groups);
           setEquipment(created.equipment);
           setDifficulty(created.difficulty);
+          setPosition(created.position);
           setUsageCount(created.usage_count);
           onCreated?.(created);
           toast.success("Template saved");
@@ -174,6 +174,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
         setMuscleGroups(updated.muscle_groups);
         setEquipment(updated.equipment);
         setDifficulty(updated.difficulty);
+        setPosition(updated.position);
         setUsageCount(updated.usage_count);
         toast.success("Template saved");
         return updated;
@@ -288,12 +289,14 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
               <div className="tabular-nums text-[var(--color-ink)]">{totalExercises}</div>
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Difficulty</div>
-              <div>
-                {difficulty != null ? (
-                  <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
-                    {difficultyLabel(difficulty)}
-                  </span>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Position</div>
+              <div className="flex flex-wrap gap-1">
+                {position.length > 0 ? (
+                  position.map((p) => (
+                    <span key={p} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
+                      {positionLabels[p] || p}
+                    </span>
+                  ))
                 ) : (
                   <span className="text-muted-foreground">—</span>
                 )}

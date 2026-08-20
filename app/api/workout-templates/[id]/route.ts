@@ -78,7 +78,7 @@ export async function PATCH(
     if (exerciseNames.length > 0) {
       const { data: rows } = await supabase
         .from("exercises")
-        .select("name, archetypes, movement_type, muscle_groups, equipment, difficulty")
+        .select("name, archetypes, movement_type, muscle_groups, equipment, difficulty, position")
         .eq("active", true)
         .in("name", exerciseNames);
       const facets = deriveFacets(exercises, (rows ?? []) as ExercisesRow[]);
@@ -87,12 +87,14 @@ export async function PATCH(
       update.muscle_groups = facets.muscle_groups;
       update.equipment = facets.equipment;
       update.difficulty = facets.difficulty;
+      update.position = facets.position;
     } else {
       update.archetypes = [];
       update.movement_type = [];
       update.muscle_groups = [];
       update.equipment = [];
       update.difficulty = null;
+      update.position = [];
     }
   }
 

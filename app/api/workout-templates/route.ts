@@ -25,13 +25,14 @@ export async function POST(req: NextRequest) {
     movement_type: [] as string[],
     muscle_groups: [] as string[],
     equipment: [] as string[],
+    position: [] as string[],
     difficulty: null as number | null,
   };
 
   if (exerciseNames.length > 0) {
     const { data: rows } = await supabase
       .from("exercises")
-      .select("name, archetypes, movement_type, muscle_groups, equipment, difficulty")
+      .select("name, archetypes, movement_type, muscle_groups, equipment, difficulty, position")
       .eq("active", true)
       .in("name", exerciseNames);
     facets = deriveFacets(exercises, (rows ?? []) as ExercisesRow[]);
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
     muscle_groups: facets.muscle_groups,
     equipment: facets.equipment,
     difficulty: facets.difficulty,
+    position: facets.position,
     condition_tags: condition_tags ?? [],
     source_client_id: source_client_id ?? null,
     source_session_id: source_session_id ?? null,

@@ -255,6 +255,10 @@ export interface WorkoutTemplate {
   muscle_groups: string[];
   equipment: string[];
   difficulty: number | null;
+  /** Derived set across the composed exercises' own `position` (Seated/
+   *  Supported/Standing) — a template can mix positions, so this is a set
+   *  like archetypes/muscle_groups, not a single max like difficulty. */
+  position: string[];
   condition_tags: string[];
   source_client_id: string | null;
   source_session_id: string | null;

@@ -30,6 +30,7 @@ interface ExerciseEntry {
   equipment: string[];
   tags: string[];
   difficulty: number | null;
+  position: "seated" | "supported" | "standing" | null;
   intensity_tiers: string[];
   coaching_cue: string | null;
   default_mod: string | null;
@@ -75,6 +76,7 @@ export function ExerciseFormDialog({ trigger, exercise, open: controlledOpen, on
   const [equipment, setEquipment] = useState("");
   const [tags, setTags] = useState("");
   const [difficulty, setDifficulty] = useState<string>("");
+  const [position, setPosition] = useState<string>("");
   const [coachingCue, setCoachingCue] = useState("");
   const [defaultMod, setDefaultMod] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -91,6 +93,7 @@ export function ExerciseFormDialog({ trigger, exercise, open: controlledOpen, on
       setEquipment(joinArrayField(exercise.equipment));
       setTags(joinArrayField(exercise.tags));
       setDifficulty(exercise.difficulty != null ? String(exercise.difficulty) : "");
+      setPosition(exercise.position ?? "");
       setCoachingCue(exercise.coaching_cue ?? "");
       setDefaultMod(exercise.default_mod ?? "");
       setImageUrl(exercise.image_url ?? "");
@@ -112,6 +115,7 @@ export function ExerciseFormDialog({ trigger, exercise, open: controlledOpen, on
     setEquipment("");
     setTags("");
     setDifficulty("");
+    setPosition("");
     setCoachingCue("");
     setDefaultMod("");
     setImageUrl("");
@@ -132,6 +136,7 @@ export function ExerciseFormDialog({ trigger, exercise, open: controlledOpen, on
         equipment: splitCommaField(equipment),
         tags: splitCommaField(tags),
         difficulty: difficulty ? Number(difficulty) : null,
+        position: position || null,
         coaching_cue: coachingCue.trim() || null,
         default_mod: defaultMod.trim() || null,
         image_url: imageUrl.trim() || null,
@@ -259,6 +264,21 @@ export function ExerciseFormDialog({ trigger, exercise, open: controlledOpen, on
                 <SelectItem value="3">3 — Intermediate</SelectItem>
                 <SelectItem value="4">4 — Advanced</SelectItem>
                 <SelectItem value="5">5 — Expert</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="position">Position</Label>
+            <Select value={position} onValueChange={setPosition}>
+              <SelectTrigger id="position">
+                <SelectValue placeholder="Select position" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Untagged</SelectItem>
+                <SelectItem value="seated">Seated</SelectItem>
+                <SelectItem value="supported">Supported</SelectItem>
+                <SelectItem value="standing">Standing</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -7,6 +7,7 @@ export interface ExercisesRow {
   muscle_groups: string[];
   equipment: string[];
   difficulty: number | null;
+  position: string | null;
 }
 
 export function collectExercises(data: { warm_up?: Exercise[]; main_block?: Exercise[]; cooldown?: Exercise[] }): Exercise[] {
@@ -21,6 +22,7 @@ export function deriveFacets(allEx: Exercise[], exerciseRows: ExercisesRow[]) {
   const movementType = new Set<string>();
   const muscleGroups = new Set<string>();
   const equipment = new Set<string>();
+  const position = new Set<string>();
   let maxDifficulty: number | null = null;
 
   for (const ex of allEx) {
@@ -30,6 +32,7 @@ export function deriveFacets(allEx: Exercise[], exerciseRows: ExercisesRow[]) {
     if (matched.movement_type) movementType.add(matched.movement_type);
     for (const m of matched.muscle_groups) muscleGroups.add(m);
     for (const e of matched.equipment) equipment.add(e);
+    if (matched.position) position.add(matched.position);
     if (matched.difficulty != null) {
       if (maxDifficulty === null || matched.difficulty > maxDifficulty) maxDifficulty = matched.difficulty;
     }
@@ -40,6 +43,12 @@ export function deriveFacets(allEx: Exercise[], exerciseRows: ExercisesRow[]) {
     movement_type: [...movementType].sort(),
     muscle_groups: [...muscleGroups].sort(),
     equipment: [...equipment].sort(),
+    // Sorted seated -> supported -> standing (roughly least to most upright),
+    // not alphabetically -- alphabetical would read "seated, standing,
+    // supported", which is a meaningless order for this facet.
+    position: [...position].sort(
+      (a, b) => ["seated", "supported", "standing"].indexOf(a) - ["seated", "supported", "standing"].indexOf(b),
+    ),
     difficulty: maxDifficulty,
   };
 }

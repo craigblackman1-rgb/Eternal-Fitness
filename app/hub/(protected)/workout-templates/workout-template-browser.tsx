@@ -53,13 +53,11 @@ const equipmentLabels: Record<string, string> = {
   "foam roller": "Foam Roller",
 };
 
-function difficultyLabel(d: number): string {
-  if (d <= 1) return "Beginner";
-  if (d <= 2) return "Easy";
-  if (d <= 3) return "Intermediate";
-  if (d <= 4) return "Advanced";
-  return "Expert";
-}
+const positionLabels: Record<string, string> = {
+  seated: "Seated",
+  supported: "Supported",
+  standing: "Standing",
+};
 
 function exerciseCount(t: WorkoutTemplate): number {
   return (t.data.warm_up?.length ?? 0) + (t.data.main_block?.length ?? 0) + (t.data.cooldown?.length ?? 0);
@@ -113,7 +111,7 @@ export function WorkoutTemplateBrowser({
   const [movementFilter, setMovementFilter] = useState("all");
   const [muscleFilter, setMuscleFilter] = useState("all");
   const [equipmentFilter, setEquipmentFilter] = useState("all");
-  const [difficultyFilter, setDifficultyFilter] = useState<number>(0);
+  const [positionFilter, setPositionFilter] = useState("all");
   const [conditionFilter, setConditionFilter] = useState("all");
   const [page, setPage] = useState(0);
   const router = useRouter();
@@ -141,11 +139,11 @@ export function WorkoutTemplateBrowser({
       if (movementFilter !== "all" && !t.movement_type.includes(movementFilter)) return false;
       if (muscleFilter !== "all" && !t.muscle_groups.includes(muscleFilter)) return false;
       if (equipmentFilter !== "all" && !t.equipment.includes(equipmentFilter)) return false;
-      if (difficultyFilter > 0 && (t.difficulty == null || t.difficulty > difficultyFilter)) return false;
+      if (positionFilter !== "all" && !t.position.includes(positionFilter)) return false;
       if (conditionFilter !== "all" && !t.condition_tags.includes(conditionFilter)) return false;
       return true;
     }).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
-  }, [templates, search, archetypeFilter, movementFilter, muscleFilter, equipmentFilter, difficultyFilter, conditionFilter]);
+  }, [templates, search, archetypeFilter, movementFilter, muscleFilter, equipmentFilter, positionFilter, conditionFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
@@ -162,17 +160,17 @@ export function WorkoutTemplateBrowser({
     setMovementFilter("all");
     setMuscleFilter("all");
     setEquipmentFilter("all");
-    setDifficultyFilter(0);
+    setPositionFilter("all");
     setConditionFilter("all");
     setPage(0);
   };
 
-  const hasFilters = search || archetypeFilter !== "all" || movementFilter !== "all" || muscleFilter !== "all" || equipmentFilter !== "all" || difficultyFilter > 0 || conditionFilter !== "all";
+  const hasFilters = search || archetypeFilter !== "all" || movementFilter !== "all" || muscleFilter !== "all" || equipmentFilter !== "all" || positionFilter !== "all" || conditionFilter !== "all";
 
   const drawerSubtitle = (t: WorkoutTemplate) => {
     const arche = t.archetypes.length ? t.archetypes.map((a) => `Type ${a}`).join(" + ") : "";
-    const diff = t.difficulty != null ? difficultyLabel(t.difficulty) : "";
-    return [arche, diff, `used ${t.usage_count}×`].filter(Boolean).join(" · ");
+    const pos = t.position.length ? t.position.map((p) => positionLabels[p] || p).join(" + ") : "";
+    return [arche, pos, `used ${t.usage_count}×`].filter(Boolean).join(" · ");
   };
 
   return (
@@ -313,17 +311,15 @@ export function WorkoutTemplateBrowser({
             </SelectContent>
           </Select>
 
-          <Select value={String(difficultyFilter)} onValueChange={(v) => { setDifficultyFilter(Number(v)); setPage(0); }}>
+          <Select value={positionFilter} onValueChange={resetAndSet(setPositionFilter)}>
             <SelectTrigger className="h-9 w-36 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] text-xs focus:border-rose focus:ring-rose/30">
-              <SelectValue placeholder="Max difficulty" />
+              <SelectValue placeholder="Position" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="0">Any level</SelectItem>
-              <SelectItem value="1">Beginner (1)</SelectItem>
-              <SelectItem value="2">Easy (2)</SelectItem>
-              <SelectItem value="3">Intermediate (3)</SelectItem>
-              <SelectItem value="4">Advanced (4)</SelectItem>
-              <SelectItem value="5">Expert (5)</SelectItem>
+              <SelectItem value="all">All positions</SelectItem>
+              <SelectItem value="seated">Seated</SelectItem>
+              <SelectItem value="supported">Supported</SelectItem>
+              <SelectItem value="standing">Standing</SelectItem>
             </SelectContent>
           </Select>
 
@@ -366,7 +362,7 @@ export function WorkoutTemplateBrowser({
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-4 py-2">Template</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Exercises</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Equipment</th>
-                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Difficulty</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Position</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Conditions</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Used</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Updated</th>
@@ -422,10 +418,14 @@ export function WorkoutTemplateBrowser({
                           )}
                         </td>
                         <td className="px-3 py-2.5 align-middle">
-                          {t.difficulty != null ? (
-                            <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
-                              {difficultyLabel(t.difficulty)}
-                            </span>
+                          {t.position.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {t.position.map((p) => (
+                                <span key={p} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
+                                  {positionLabels[p] || p}
+                                </span>
+                              ))}
+                            </div>
                           ) : (
                             <span className="text-muted-foreground text-[13px]">—</span>
                           )}
@@ -527,11 +527,14 @@ export function WorkoutTemplateBrowser({
                     {ct}
                   </span>
                 ))}
-                {selected.difficulty != null && (
-                  <span className="inline-flex rounded-full bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border border-[var(--status-neutral-border)] px-2 py-0.5 text-[11px] font-semibold">
-                    {difficultyLabel(selected.difficulty)}
+                {selected.position.map((p) => (
+                  <span
+                    key={p}
+                    className="inline-flex rounded-full bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border border-[var(--status-neutral-border)] px-2 py-0.5 text-[11px] font-semibold"
+                  >
+                    {positionLabels[p] || p}
                   </span>
-                )}
+                ))}
               </div>
 
               {SECTION_LABELS.map(([label, key]) => {

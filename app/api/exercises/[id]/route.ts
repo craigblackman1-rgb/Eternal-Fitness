@@ -19,6 +19,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     equipment: string[];
     tags: string[];
     difficulty: number | null;
+    position: "seated" | "supported" | "standing" | null;
     intensity_tiers: string[];
     coaching_cue: string | null;
     default_mod: string | null;

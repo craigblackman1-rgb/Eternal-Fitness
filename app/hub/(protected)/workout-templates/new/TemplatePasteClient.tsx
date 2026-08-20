@@ -55,6 +55,7 @@ function draftToTemplate(draft: StructuredDraft): WorkoutTemplate {
     muscle_groups: [],
     equipment: [],
     difficulty: null,
+    position: [],
     condition_tags: [],
     source_client_id: null,
     source_session_id: null,

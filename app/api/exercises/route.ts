@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     equipment,
     tags,
     difficulty,
+    position,
     coaching_cue,
     default_mod,
     image_url,
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
     equipment?: string[];
     tags?: string[];
     difficulty?: number | null;
+    position?: "seated" | "supported" | "standing" | null;
     coaching_cue?: string | null;
     default_mod?: string | null;
     image_url?: string | null;
@@ -69,6 +71,7 @@ export async function POST(request: Request) {
       equipment: equipment ?? [],
       tags: tags ?? [],
       difficulty: difficulty ?? null,
+      position: position ?? null,
       coaching_cue: coaching_cue ?? null,
       default_mod: default_mod ?? null,
       image_url: image_url ?? null,
