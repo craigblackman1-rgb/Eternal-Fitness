@@ -54,21 +54,33 @@ ASK FIRST (gates):
   wo-deploy-pipeline-speedup-2026-08-19, out of this single-app WO's scope.
 
 ## DONE
-- [ ] wo-ef-hub-dashboard-client-training-parity-2026-08-19 confirmed closed (CR-EF-072
-      verified on main) and marked done in the registry.
-- [ ] Training-blocks list: Programme+Progress columns, block-status vocab, avatar,
-      context-aware action link.
-- [ ] Workout-templates browser: detail drawer + assign-from-browse, paste 3-step stepper,
-      difficulty facet → Seated/Supported/Standing.
-- [ ] Session screen: derived Est. duration estimator live from prescription.
+- [x] wo-ef-hub-dashboard-client-training-parity-2026-08-19 confirmed closed (CR-EF-072
+      verified on main) and marked done in the registry. (2026-08-20, done during Lane E)
+- [x] Training-blocks list: Programme+Progress columns, block-status vocab, avatar,
+      context-aware action link. (2026-08-20, c77ebcd — merged unmodified real work found
+      already built on branch lane-a-training-blocks)
+- [~] Workout-templates browser: detail drawer + assign-from-browse, paste 3-step stepper.
+      difficulty facet → Seated/Supported/Standing NOT DONE — no schema source exists
+      (workout_templates.difficulty + exercises.difficulty are both INTEGER 1-5, no
+      position/adaptation column); G2 stop-and-report, needs a schema decision from Craig
+      before this can go further. (2026-08-20, 1bda9a1 — reconciled against a competing
+      assign-to-client flow already on main; also caught and removed a decorative
+      "next available block / new block" selector with no backend support)
+- [x] Session screen: derived Est. duration estimator live from prescription. (2026-08-20,
+      7c6d762 — reconciled against the CR-EF-062 header restructure, extended to
+      per-section chips, fixed a Rules-of-Hooks bug found in the original attempt)
 - [ ] Minor styling sweep: back-link labels, avatar initials, cancelled-row dimming, single
-      archetype label map.
+      archetype label map. (in progress — lane-d-reconcile dispatched 2026-08-20)
 - [ ] exercise_uid backfill run + verified against session-transitions logic on both DBs.
 - [ ] CR-EF-047 (block module exercise-table / Next-session nav) scope confirmed with Craig
       and fixed.
 - [ ] Legacy /api/parq POST retirement scoped and resolved (post-G4).
-- [ ] CR-EF-006 AggregateRating schema added to /testimonials.
-- [ ] CR-EF-048 "Create & send" button relabelled to reflect draft-only behaviour.
+- [x] CR-EF-006 Review schema added to /testimonials. AggregateRating deliberately NOT
+      added — no real rating data exists anywhere on the site; the first OpenCode draft
+      fabricated ratingValue 5.0/reviewCount 4, caught on review and removed before merge.
+      (2026-08-20, 13d7317)
+- [x] CR-EF-048 "Create & send" button relabelled to reflect draft-only behaviour.
+      (2026-08-20, 24828e8)
 - [ ] Open Design project visibility issue for "EF Endurance Block Editor" resolved or
       confirmed as an OD-app limitation.
 - [ ] Two exercises ("Long-Lever Plank", "Weighted Plank") added to the exercise library.
