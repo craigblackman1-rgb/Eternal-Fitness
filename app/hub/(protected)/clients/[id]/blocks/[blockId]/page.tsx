@@ -7,13 +7,14 @@ import { BlockOverviewClient } from "./BlockOverviewClient";
 import { SessionRow } from "./SessionRow";
 import { groupSessionsByWeek, isoToMonday, isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus } from "@/types";
 
-const archetypeInfo: Record<string, { name: string; tint: string }> = {
-  A: { name: "Mobility & Movement", tint: "bg-teal/10 text-teal" },
-  B: { name: "Strength & Stability", tint: "bg-rose/10 text-rose" },
-  C: { name: "Power & Conditioning", tint: "bg-dark-navy/10 text-dark-navy" },
+const archetypeTint: Record<string, string> = {
+  A: "bg-teal/10 text-teal",
+  B: "bg-rose/10 text-rose",
+  C: "bg-dark-navy/10 text-dark-navy",
 };
 
 interface SessionRow {
@@ -160,8 +161,9 @@ export default async function BlockViewPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href={`/hub/clients/${clientId}`} className="text-muted-foreground hover:text-foreground transition-colors">
+        <Link href={`/hub/clients/${clientId}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
           <IconChevronLeft className="h-5 w-5" />
+          Back to {client?.name || "Client"}
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-3">
@@ -255,8 +257,8 @@ export default async function BlockViewPage({
               </summary>
               <div className="border-t border-[var(--hub-border)]">
                 {group.sessions.map((session, dayIndex) => {
-                  const info = archetypeInfo[session.archetype];
-                  const focusLabel = session.data?.focus_label || info?.name || "—";
+                  const archetypeName = DEFAULT_ARCHETYPE_FOCUS_LABELS[session.archetype];
+                  const focusLabel = session.data?.focus_label || archetypeName || "—";
                   const status = sessionStatus(session);
                   const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
                   const dayLabel = formatDayLabel(session, dayIndex);
@@ -265,8 +267,8 @@ export default async function BlockViewPage({
                     <SessionRow
                       key={session.id}
                       sessionId={session.id}
-                      archetypeLabel={`${session.archetype} · ${info?.name || "Session"}`}
-                      archetypeTint={info?.tint || "bg-muted text-muted-foreground"}
+                      archetypeLabel={`${session.archetype} · ${archetypeName || "Session"}`}
+                      archetypeTint={archetypeTint[session.archetype] || "bg-muted text-muted-foreground"}
                       focusLabel={focusLabel}
                       status={status}
                       dayLabel={dayLabel}

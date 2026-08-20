@@ -246,8 +246,9 @@ export default function SessionViewPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}`} className="text-muted-foreground hover:text-foreground">
+        <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
           <IconChevronLeft className="h-5 w-5" />
+          Back to Block
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-4">
           <div className="flex-1">
