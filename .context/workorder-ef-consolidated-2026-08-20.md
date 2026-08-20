@@ -35,10 +35,18 @@ not the first commit's, as authoritative.
 
 - G1 — WAL/PITR archiving: requires either a superuser DB role change or accepting
   archive_mode=off — infra decision, not code (carried from wo-eternalfitness-hub-mobile-
-  session-pwa-2026-08-10). **ANSWERED 2026-08-20: "implement properly, get superuser
-  access."** Not yet actioned — needs Craig to actually grant/arrange the superuser DB
-  role before Claude can configure WAL archiving; current app role (ef_app) can't
-  ALTER SYSTEM.
+  session-pwa-2026-08-10). **ANSWERED + FIXED + VERIFIED 2026-08-20.** archive_mode was
+  already 'on' but archive_command was '/bin/true' -- a no-op reporting fake success on
+  13984 "archived" segments that never existed on disk. ef_app (the app's DB role) can't
+  ALTER SYSTEM and pg_hba.conf blocks postgres-role connections from the tunnel's source
+  IP entirely (confirmed by testing, not assumed) -- Claude has no path to superuser via
+  any available tool. Craig ran it himself via direct psql access: set a real cp-based
+  archive_command to /var/lib/postgresql/wal_archive/, reloaded config (no restart
+  needed). Verified end-to-end over the ef_app tunnel + Craig's psql session together:
+  forced pg_switch_wal(), pg_stat_archiver showed a genuinely new segment
+  (000000010000003E000000C6) archived with 0 failures, and `ls -la` on the target
+  directory confirmed a real 16MB file, correct owner (postgres:postgres) and perms.
+  See dmsne8f7y99.
 - G2 — workout-templates difficulty facet → Seated/Supported/Standing: surfaced during
   Lane B's build, not in the original gate list. **ANSWERED 2026-08-20: "confirmed
   Seated/Supported/Standing, add whatever's needed." BUILT** — see DONE checklist,
