@@ -9,6 +9,8 @@ interface HubQuickAction {
   icon: React.ReactNode;
   /** Bar variant only — fills the button as the primary action. At most one per bar. */
   primary?: boolean;
+  /** Bar variant only — small count pill after the label. Omit or 0 hides it. */
+  badgeCount?: number;
 }
 
 interface HubQuickActionsProps {
@@ -45,6 +47,11 @@ export function HubQuickActions({ actions, className, divider = false, variant =
             <>
               <span className={cn("w-4 h-4 shrink-0", action.primary ? "text-white" : "text-rose")}>{action.icon}</span>
               {action.label}
+              {!!action.badgeCount && (
+                <span className="inline-grid place-items-center min-w-[18px] h-[18px] px-[5px] rounded-full border text-[11px] font-bold leading-none tabular-nums bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]">
+                  {action.badgeCount}
+                </span>
+              )}
             </>
           );
           return action.href ? (

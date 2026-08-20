@@ -377,6 +377,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         variant="bar"
         actions={[
           { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" />, primary: true },
+          { href: `/hub/clients/${client.client_number}?tab=comms&view=tasks`, label: "Tasks", icon: <IconCheckSquare className="w-4 h-4" />, badgeCount: pendingTaskCount },
           { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
           { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },
         ]}
@@ -450,11 +451,20 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] mt-6">
           <div className="space-y-5">
             <TabsContent value="overview">
-              {(flags.effectiveStatus === "pending_medical" || flags.effectiveStatus === "action_needed") && (
+              {flags.effectiveStatus === "pending_medical" && (
                 <HubAlert severity="warning" title={lookupStatus(flags.effectiveStatus)?.label ?? "Action Needed"}>
-                  {flags.effectiveStatus === "pending_medical"
-                    ? "Do not train until clearance is confirmed."
-                    : "Actions outstanding — see Admin tab."}
+                  Do not train until clearance is confirmed.
+                  <OutstandingActionsInline actions={flags.autoOutstanding} />
+                  <OutstandingActionsInline actions={manualActions} />
+                </HubAlert>
+              )}
+              {flags.effectiveStatus === "action_needed" && (
+                <HubAlert
+                  severity="warning"
+                  title={`${outstandingCount} outstanding action${outstandingCount === 1 ? "" : "s"}`}
+                  summary="Actions outstanding — see Admin tab."
+                  collapsible
+                >
                   <OutstandingActionsInline actions={flags.autoOutstanding} />
                   <OutstandingActionsInline actions={manualActions} />
                 </HubAlert>
@@ -598,7 +608,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </HubAccordionSection>
 
                 {p?.health && (
-                  <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="neutral" defaultOpen>
+                  <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="teal" defaultOpen>
                     <div className="px-5 pt-4 pb-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">GP Clearance</span>
