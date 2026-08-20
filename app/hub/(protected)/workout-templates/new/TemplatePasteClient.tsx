@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { RichTextEditor } from "@/components/hub/RichTextEditor";
-import { TemplateEditorClient } from "../[id]/TemplateEditorClient";
+import { TemplateEditorClient, type TemplateEditorHandle } from "../[id]/TemplateEditorClient";
+import { TemplateAssignDialog, useAssignableClients } from "../assign-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 import {
   IconChevronLeft,
   IconSparkles,
@@ -15,6 +17,8 @@ import {
   IconCheckCircle,
   IconArrowLeft,
   IconAlertTriangle,
+  IconSave,
+  IconCheck,
 } from "@/components/icons";
 import { toast } from "sonner";
 import type { SessionVersion, WorkoutTemplate } from "@/types";
@@ -24,11 +28,10 @@ interface StructuredDraft {
   data: SessionVersion;
 }
 
-interface ClientOption {
-  id: string;
-  name: string;
-  client_number: number | null;
-}
+const blankDraft: StructuredDraft = {
+  name: "",
+  data: { warm_up: [], main_block: [], cooldown: [] },
+};
 
 /** Strip pasted HTML down to plain text with line breaks intact (block
  *  elements render as newlines), so the AI sees a clean, structure-preserving
@@ -61,30 +64,63 @@ function draftToTemplate(draft: StructuredDraft): WorkoutTemplate {
   };
 }
 
-export function TemplatePasteClient() {
+function Stepper({ step }: { step: 1 | 2 | 3 }) {
+  const steps = [
+    { n: 1 as const, label: "Paste" },
+    { n: 2 as const, label: "Review & edit" },
+    { n: 3 as const, label: "Save or assign" },
+  ];
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      {steps.map((s, i) => (
+        <Fragment key={s.n}>
+          {i > 0 && <span className="w-6 h-px bg-[var(--hub-border)]" />}
+          <div
+            className={cn(
+              "inline-flex items-center gap-2 text-[13px] font-semibold",
+              step >= s.n ? "text-[var(--color-ink)]" : "text-muted-foreground",
+            )}
+          >
+            <span
+              className={cn(
+                "w-[26px] h-[26px] rounded-full border grid place-items-center text-xs font-bold",
+                step === s.n
+                  ? "bg-rose border-rose text-white"
+                  : step > s.n
+                    ? "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-teal"
+                    : "border-[var(--hub-field-border)] bg-[var(--hub-card)] text-muted-foreground",
+              )}
+            >
+              {step > s.n ? <IconCheck className="h-3.5 w-3.5" /> : s.n}
+            </span>
+            {s.label}
+          </div>
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+export function TemplatePasteClient({ startBlank = false }: { startBlank?: boolean }) {
   const [pasteHtml, setPasteHtml] = useState("");
   const [structuring, setStructuring] = useState(false);
   const [structureError, setStructureError] = useState<string | null>(null);
-  const [draft, setDraft] = useState<StructuredDraft | null>(null);
+  const [draft, setDraft] = useState<StructuredDraft | null>(startBlank ? blankDraft : null);
   const [createdTemplate, setCreatedTemplate] = useState<WorkoutTemplate | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3>(startBlank ? 2 : 1);
+
+  // Save dialog state
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Assign dialog state
-  const [clients, setClients] = useState<ClientOption[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [assignClientNumber, setAssignClientNumber] = useState<string>("");
-  const [assigning, setAssigning] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/clients")
-      .then((r) => r.json())
-      .then((rows: ClientOption[]) => setClients(Array.isArray(rows) ? rows : []))
-      .catch(() => {});
-  }, []);
+  const [success, setSuccess] = useState<{ title: string; body: string } | null>(null);
 
-  const assignableClients = useMemo(
-    () => clients.filter((c) => typeof c.client_number === "number"),
-    [clients],
-  );
+  const editorRef = useRef<TemplateEditorHandle>(null);
+  const clients = useAssignableClients();
 
   const structure = async () => {
     const text = htmlToPlainText(pasteHtml);
@@ -103,6 +139,7 @@ export function TemplatePasteClient() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Structuring failed");
       setDraft(data as StructuredDraft);
+      setStep(2);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setStructureError(msg);
@@ -112,27 +149,50 @@ export function TemplatePasteClient() {
     }
   };
 
-  const assign = async () => {
-    if (!createdTemplate || !assignClientNumber) return;
-    setAssigning(true);
-    try {
-      const res = await fetch("/api/claude/generate-block", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: assignClientNumber, templateId: createdTemplate.id }),
+  const backToPaste = () => {
+    setDraft(null);
+    setStructureError(null);
+    setCreatedTemplate(null);
+    setStep(1);
+  };
+
+  const openSave = () => {
+    setSaveName(editorRef.current?.getName() ?? "");
+    setSaveOpen(true);
+  };
+
+  const confirmSave = async () => {
+    setSaving(true);
+    const saved = await editorRef.current?.save(saveName);
+    setSaving(false);
+    if (saved) {
+      setSaveOpen(false);
+      setSuccess({
+        title: "Template saved",
+        body: `"${saved.name}" is now in your workout templates, ready to assign.`,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Assignment failed");
-      const client = assignableClients.find((c) => String(c.client_number) === assignClientNumber);
-      toast.success(
-        `Assigned to ${client?.name ?? "the client"} — block generated via the Plan Agent.`,
-      );
-      setAssignOpen(false);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Assignment failed");
-    } finally {
-      setAssigning(false);
+      setStep(3);
     }
+  };
+
+  const openAssign = async () => {
+    if (createdTemplate) {
+      setAssignOpen(true);
+      return;
+    }
+    // Assigning before saving persists the reviewed template first, then grounds
+    // a block against its id — assign implies save, so nothing is lost.
+    const saved = await editorRef.current?.save();
+    if (saved) setAssignOpen(true);
+  };
+
+  const handleAssigned = (clientName: string) => {
+    const name = createdTemplate?.name ?? editorRef.current?.getName() ?? "This workout";
+    setSuccess({
+      title: `Assigned to ${clientName}`,
+      body: `"${name}" is grounded into ${clientName}'s next block via the Plan Agent.`,
+    });
+    setStep(3);
   };
 
   return (
@@ -144,12 +204,16 @@ export function TemplatePasteClient() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">New workout template</h1>
           <p className="text-muted-foreground">
-            Paste a workout you&apos;ve agreed outside the app, let it structure, then review before saving.
+            {startBlank
+              ? "Start from an empty editor and build the session by hand."
+              : "Paste a workout you've agreed outside the app, let it structure, then review before saving."}
           </p>
         </div>
       </div>
 
-      {!draft && (
+      <Stepper step={step} />
+
+      {step === 1 && (
         <HubCard>
           <HubCardHeader
             title="Paste your workout"
@@ -197,100 +261,97 @@ export function TemplatePasteClient() {
         </HubCard>
       )}
 
-      {draft && (
+      {step === 2 && draft && (
         <>
-          <div className="flex items-center justify-between rounded-[12px] border border-[var(--hub-border)] bg-[var(--status-success-bg)] p-4">
-            <div className="flex items-center gap-2 text-sm text-[var(--color-ink)]">
-              <IconCheckCircle className="h-4 w-4 text-teal" />
-              Structured from your paste — review and correct before saving.
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setDraft(null);
-                setStructureError(null);
-              }}
-            >
-              <IconArrowLeft className="h-4 w-4" />
-              Back to paste
-            </Button>
+          <div className="flex items-center gap-2 rounded-[12px] border border-[var(--hub-border)] bg-[var(--status-success-bg)] p-4 text-sm text-[var(--color-ink)]">
+            <IconCheckCircle className="h-4 w-4 text-teal shrink-0" />
+            Structured from your paste — review and correct before saving. Nothing is saved yet.
           </div>
 
-          {createdTemplate && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
-              <div className="flex items-center gap-2 text-sm text-[var(--color-ink)]">
-                <IconCheckCircle className="h-4 w-4 text-teal" />
-                Template saved — &ldquo;{createdTemplate.name}&rdquo; is in your workout templates.
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/hub/workout-templates"
-                  className="inline-flex items-center h-8 px-3 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-xs font-medium hover:bg-[var(--hub-hover)] transition-colors"
-                >
-                  Go to workout templates
-                </Link>
-                <Button
-                  type="button"
-                  onClick={() => setAssignOpen(true)}
-                  className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white text-xs h-8 px-3"
-                >
-                  <IconZap className="h-3.5 w-3.5" />
-                  Assign to client
-                </Button>
-              </div>
-            </div>
-          )}
-
           <TemplateEditorClient
+            ref={editorRef}
             template={draftToTemplate(draft)}
             sourceClientName={null}
             isNew
             onCreated={setCreatedTemplate}
           />
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {!startBlank && (
+              <Button type="button" variant="outline" onClick={backToPaste}>
+                <IconArrowLeft className="h-4 w-4" />
+                Back to paste
+              </Button>
+            )}
+            <span className="ml-auto" />
+            <Button type="button" variant="outline" onClick={openAssign}>
+              <IconZap className="h-4 w-4" />
+              Assign to client
+            </Button>
+            <Button type="button" onClick={openSave} className="gap-1.5 bg-rose hover:bg-rose/90 text-white">
+              <IconSave className="h-4 w-4" />
+              Save as template
+            </Button>
+          </div>
         </>
       )}
 
-      {assignOpen && (
+      {step === 3 && success && (
+        <HubCard padded={false}>
+          <div className="px-8 py-12 flex flex-col items-center text-center">
+            <div className="w-[60px] h-[60px] rounded-full bg-[var(--status-success-bg)] text-teal flex items-center justify-center mb-4">
+              <IconCheckCircle className="h-7 w-7" />
+            </div>
+            <h3 className="text-lg font-extrabold text-[var(--color-ink)]">{success.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1.5 mb-5 max-w-md">{success.body}</p>
+            <Link
+              href="/hub/workout-templates"
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-[13px] font-semibold transition-colors"
+            >
+              Go to workout templates
+            </Link>
+          </div>
+        </HubCard>
+      )}
+
+      {saveOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center p-6">
-          <div className="absolute inset-0 bg-black/40" onClick={() => !assigning && setAssignOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => !saving && setSaveOpen(false)} />
           <div className="relative w-full max-w-md rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-[var(--color-ink)]">Assign template to a client</h3>
+            <h3 className="text-lg font-bold text-[var(--color-ink)]">Save as template</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Grounds this workout into the client&apos;s next block through the Plan Agent.
+              This saves a new reusable workout in workout_templates — the reviewed structure above is what gets stored.
             </p>
             <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-              Client
+              Template name
             </label>
-            <select
-              value={assignClientNumber}
-              onChange={(e) => setAssignClientNumber(e.target.value)}
+            <input
+              type="text"
+              value={saveName}
+              onChange={(e) => setSaveName(e.target.value)}
               className="h-9 w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-sm outline-none focus:border-rose"
-            >
-              <option value="">Select a client…</option>
-              {assignableClients.map((c) => (
-                <option key={c.id} value={String(c.client_number)}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <div className="mt-5 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setAssignOpen(false)} disabled={assigning}>
+            />
+            <div className="mt-6 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setSaveOpen(false)} disabled={saving}>
                 Cancel
               </Button>
-              <Button
-                type="button"
-                onClick={assign}
-                disabled={assigning || !assignClientNumber}
-                className="gap-1.5 bg-rose hover:bg-rose/90 text-white"
-              >
-                {assigning ? <IconLoader2 className="h-4 w-4 animate-spin" /> : <IconZap className="h-4 w-4" />}
-                {assigning ? "Generating block…" : "Assign"}
+              <Button type="button" onClick={confirmSave} disabled={saving || !saveName.trim()} className="bg-rose hover:bg-rose/90 text-white">
+                {saving ? <IconLoader2 className="h-4 w-4 animate-spin" /> : null}
+                Save template
               </Button>
             </div>
           </div>
         </div>
+      )}
+
+      {assignOpen && (
+        <TemplateAssignDialog
+          templateId={createdTemplate?.id ?? ""}
+          templateName={createdTemplate?.name ?? ""}
+          clients={clients}
+          onClose={() => setAssignOpen(false)}
+          onAssigned={handleAssigned}
+        />
       )}
     </div>
   );

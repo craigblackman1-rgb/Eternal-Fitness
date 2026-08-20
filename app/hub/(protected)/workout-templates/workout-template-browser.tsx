@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubPageHeader } from "@/components/hub";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IconDumbbell, IconMenu, IconSearch, IconChevronLeft, IconChevronRight, IconPlus } from "@/components/icons";
+import { IconDumbbell, IconMenu, IconSearch, IconChevronLeft, IconChevronRight, IconPlus, IconChevronDown, IconFileText, IconX, IconZap, IconPencil } from "@/components/icons";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
-import type { WorkoutTemplate } from "@/types";
+import { TemplateAssignDialog, useAssignableClients } from "./assign-dialog";
+import type { WorkoutTemplate, Exercise } from "@/types";
 
 export const movementTypeLabels: Record<string, string> = {
   spinal_mobility: "Spinal Mobility",
@@ -73,6 +74,23 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** Prescription line for the read-only detail drawer — sets × reps, with tempo
+ *  and rest appended when the exercise carries them (mirrors the mockup's `rx`). */
+function exerciseRx(ex: Exercise): string {
+  const parts: string[] = [];
+  const reps = (ex.reps ?? "").trim();
+  if (ex.sets > 0 || reps) parts.push(`${ex.sets} × ${reps || "—"}`);
+  if (ex.tempo && ex.tempo !== "-") parts.push(`@ ${ex.tempo}`);
+  if (ex.rest && ex.rest !== "-") parts.push(ex.rest);
+  return parts.join(" · ");
+}
+
+const SECTION_LABELS: [string, "warm_up" | "main_block" | "cooldown"][] = [
+  ["Warm-up", "warm_up"],
+  ["Main block", "main_block"],
+  ["Cooldown", "cooldown"],
+];
+
 export function WorkoutTemplateBrowser({
   templates,
   archetypeOptions,
@@ -100,6 +118,21 @@ export function WorkoutTemplateBrowser({
   const [page, setPage] = useState(0);
   const router = useRouter();
   const PAGE_SIZE = 60;
+
+  const [selected, setSelected] = useState<WorkoutTemplate | null>(null);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const splitRef = useRef<HTMLDivElement>(null);
+  const clients = useAssignableClients();
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (splitRef.current && !splitRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [menuOpen]);
 
   const filtered = useMemo(() => {
     return templates.filter((t) => {
@@ -136,19 +169,70 @@ export function WorkoutTemplateBrowser({
 
   const hasFilters = search || archetypeFilter !== "all" || movementFilter !== "all" || muscleFilter !== "all" || equipmentFilter !== "all" || difficultyFilter > 0 || conditionFilter !== "all";
 
+  const drawerSubtitle = (t: WorkoutTemplate) => {
+    const arche = t.archetypes.length ? t.archetypes.map((a) => `Type ${a}`).join(" + ") : "";
+    const diff = t.difficulty != null ? difficultyLabel(t.difficulty) : "";
+    return [arche, diff, `used ${t.usage_count}×`].filter(Boolean).join(" · ");
+  };
+
   return (
     <div className="space-y-5">
       <HubPageHeader
         title="Workout templates"
         subtitle="Reusable sessions — assigned into a client's next block or saved back from a logged session."
         actions={
-          <Link
-            href="/hub/workout-templates/new"
-            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-sm font-semibold transition-colors"
-          >
-            <IconPlus className="h-4 w-4" />
-            New template
-          </Link>
+          <div ref={splitRef} className="relative inline-flex">
+            <Link
+              href="/hub/workout-templates/new"
+              className="inline-flex items-center gap-1.5 h-9 pl-4 pr-3 rounded-l-lg bg-rose hover:bg-rose/90 text-white text-sm font-semibold transition-colors"
+            >
+              <IconPlus className="h-4 w-4" />
+              New template
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-label="More new-template options"
+              className="inline-flex items-center justify-center h-9 w-8 rounded-r-lg bg-rose hover:bg-rose/90 text-white border-l border-white/30 transition-colors"
+            >
+              <IconChevronDown className="h-3.5 w-3.5" />
+            </button>
+            {menuOpen && (
+              <div className="absolute top-full right-0 mt-2 w-72 z-50 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-lg p-1.5">
+                <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Create a template
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); router.push("/hub/workout-templates/new"); }}
+                  className="flex items-start gap-2.5 w-full text-left rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)]"
+                >
+                  <IconFileText className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <span className="text-[13px] font-semibold text-[var(--color-ink)]">
+                    Paste &amp; structure
+                    <span className="block text-[11.5px] font-normal text-muted-foreground mt-0.5">
+                      Paste a workout you agreed outside the app; AI turns it into a template.
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); router.push("/hub/workout-templates/new?blank=1"); }}
+                  className="flex items-start gap-2.5 w-full text-left rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)]"
+                >
+                  <IconPlus className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <span className="text-[13px] font-semibold text-[var(--color-ink)]">
+                    Start blank
+                    <span className="block text-[11.5px] font-normal text-muted-foreground mt-0.5">
+                      Open the template editor empty and build it by hand.
+                    </span>
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         }
       />
 
@@ -295,7 +379,7 @@ export function WorkoutTemplateBrowser({
                       <tr
                         key={t.id}
                         className="border-b border-[var(--hub-border)] transition-colors hover:bg-[var(--hub-hover)] cursor-pointer"
-                        onClick={() => router.push(`/hub/workout-templates/${t.id}`)}
+                        onClick={() => setSelected(t)}
                       >
                         <td className="px-4 py-2.5 align-middle">
                           <div className="flex items-center gap-2 min-w-0">
@@ -398,6 +482,110 @@ export function WorkoutTemplateBrowser({
           </>
         )}
       </HubCard>
+
+      {selected && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
+            onClick={() => setSelected(null)}
+          />
+          <aside className="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] flex flex-col bg-[var(--hub-canvas)] shadow-2xl">
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--hub-border)] bg-[var(--hub-card)]">
+              <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center bg-[var(--status-primary-bg)] text-rose shrink-0">
+                <IconDumbbell className="w-[18px] h-[18px]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[15px] font-bold text-[var(--color-ink)] truncate">{selected.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{drawerSubtitle(selected)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                aria-label="Close"
+                className="ml-auto w-[34px] h-[34px] rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:text-[var(--color-ink)] flex items-center justify-center shrink-0"
+              >
+                <IconX className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              <div className="flex flex-wrap gap-1.5 mb-5">
+                {selected.archetypes.map((a) => (
+                  <span
+                    key={a}
+                    title={`Type ${a} — ${archetypeLabels[a] || a}`}
+                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-2 py-0.5 text-[11px] font-semibold"
+                  >
+                    Type {a} — {archetypeLabels[a] || a}
+                  </span>
+                ))}
+                {selected.condition_tags.map((ct) => (
+                  <span
+                    key={ct}
+                    className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] px-2 py-0.5 text-[11px] font-semibold"
+                  >
+                    {ct}
+                  </span>
+                ))}
+                {selected.difficulty != null && (
+                  <span className="inline-flex rounded-full bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border border-[var(--status-neutral-border)] px-2 py-0.5 text-[11px] font-semibold">
+                    {difficultyLabel(selected.difficulty)}
+                  </span>
+                )}
+              </div>
+
+              {SECTION_LABELS.map(([label, key]) => {
+                const list = selected.data[key] ?? [];
+                if (!list.length) return null;
+                return (
+                  <div key={key} className="mb-4">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                      {label}
+                    </h4>
+                    {list.map((ex, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[13px] py-1.5 border-b border-[var(--hub-border)] last:border-b-0">
+                        <span className="text-muted-foreground tabular-nums w-4 shrink-0">{i + 1}</span>
+                        <span className="text-[var(--color-ink)] font-semibold">{ex.exercise_name}</span>
+                        <span className="ml-auto text-xs text-muted-foreground whitespace-nowrap">{exerciseRx(ex)}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-2.5 px-6 py-4 border-t border-[var(--hub-border)] bg-[var(--hub-card)]">
+              <button
+                type="button"
+                onClick={() => router.push(`/hub/workout-templates/${selected.id}`)}
+                className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-[var(--color-ink)] text-[13px] font-semibold hover:border-[var(--hub-field-border-hover)] transition-colors"
+              >
+                <IconPencil className="h-4 w-4" />
+                Open in editor
+              </button>
+              <span className="ml-auto" />
+              <button
+                type="button"
+                onClick={() => setAssignOpen(true)}
+                className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-[13px] font-semibold transition-colors"
+              >
+                <IconZap className="h-4 w-4" />
+                Assign to client
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
+
+      {assignOpen && selected && (
+        <TemplateAssignDialog
+          templateId={selected.id}
+          templateName={selected.name}
+          clients={clients}
+          onClose={() => setAssignOpen(false)}
+          onAssigned={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }

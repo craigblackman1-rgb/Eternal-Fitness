@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -56,18 +56,28 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function TemplateEditorClient({
-  template,
-  sourceClientName,
-  isNew = false,
-  onCreated,
-}: {
+export interface TemplateEditorClientProps {
   template: WorkoutTemplate;
   sourceClientName: string | null;
   /** Create mode — no row exists yet; save POSTs to /api/workout-templates. */
   isNew?: boolean;
   onCreated?: (t: WorkoutTemplate) => void;
-}) {
+}
+
+/** Imperative surface the paste flow uses to persist from outside the editor
+ *  (e.g. a save dialog that overrides the name, or an assign-from-review that
+ *  must save before it can ground a block against a template id). */
+export interface TemplateEditorHandle {
+  save: (nameOverride?: string) => Promise<WorkoutTemplate | null>;
+  getName: () => string;
+}
+
+export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEditorClientProps>(function TemplateEditorClient({
+  template,
+  sourceClientName,
+  isNew = false,
+  onCreated,
+}, ref) {
   const router = useRouter();
   const [name, setName] = useState(template.name);
   const [data, setData] = useState<SessionVersion>(template.data);
@@ -120,50 +130,68 @@ export function TemplateEditorClient({
     });
   };
 
-  const save = async () => {
-    setSaving(true);
-    try {
-      if (isNew && !createdId) {
-        const res = await fetch("/api/workout-templates", {
-          method: "POST",
+  const save = useCallback(
+    async (nameOverride?: string): Promise<WorkoutTemplate | null> => {
+      const effectiveName = (nameOverride ?? name).trim();
+      if (!effectiveName) {
+        toast.error("Template name is required");
+        return null;
+      }
+      setSaving(true);
+      try {
+        if (isNew && !createdId) {
+          const res = await fetch("/api/workout-templates", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: effectiveName, data, condition_tags: conditionTags }),
+          });
+          if (!res.ok) throw new Error((await res.json()).error || "Failed to save");
+          const created = (await res.json()) as WorkoutTemplate;
+          setCreatedId(created.id);
+          setName(created.name);
+          setArchetypes(created.archetypes);
+          setMovementTypes(created.movement_type);
+          setMuscleGroups(created.muscle_groups);
+          setEquipment(created.equipment);
+          setDifficulty(created.difficulty);
+          setUsageCount(created.usage_count);
+          onCreated?.(created);
+          toast.success("Template saved");
+          return created;
+        }
+
+        const id = createdId ?? template.id;
+        const res = await fetch(`/api/workout-templates/${id}`, {
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, data, condition_tags: conditionTags }),
+          body: JSON.stringify({ name: effectiveName, data, condition_tags: conditionTags }),
         });
         if (!res.ok) throw new Error((await res.json()).error || "Failed to save");
-        const created = (await res.json()) as WorkoutTemplate;
-        setCreatedId(created.id);
-        setArchetypes(created.archetypes);
-        setMovementTypes(created.movement_type);
-        setMuscleGroups(created.muscle_groups);
-        setEquipment(created.equipment);
-        setDifficulty(created.difficulty);
-        setUsageCount(created.usage_count);
-        onCreated?.(created);
+        const updated = (await res.json()) as WorkoutTemplate;
+        setName(updated.name);
+        setArchetypes(updated.archetypes);
+        setMovementTypes(updated.movement_type);
+        setMuscleGroups(updated.muscle_groups);
+        setEquipment(updated.equipment);
+        setDifficulty(updated.difficulty);
+        setUsageCount(updated.usage_count);
         toast.success("Template saved");
-        return;
+        return updated;
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Something went wrong");
+        return null;
+      } finally {
+        setSaving(false);
       }
+    },
+    [name, data, conditionTags, isNew, createdId, template.id, onCreated],
+  );
 
-      const id = createdId ?? template.id;
-      const res = await fetch(`/api/workout-templates/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, data, condition_tags: conditionTags }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error || "Failed to save");
-      const updated = await res.json();
-      setArchetypes(updated.archetypes);
-      setMovementTypes(updated.movement_type);
-      setMuscleGroups(updated.muscle_groups);
-      setEquipment(updated.equipment);
-      setDifficulty(updated.difficulty);
-      setUsageCount(updated.usage_count);
-      toast.success("Template saved");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setSaving(false);
-    }
-  };
+  useImperativeHandle(
+    ref,
+    () => ({ save, getName: () => name }),
+    [save, name],
+  );
 
   const deleteTemplate = async () => {
     setDeleting(true);
@@ -211,7 +239,7 @@ export function TemplateEditorClient({
             </Button>
           )}
           <Button
-            onClick={save}
+            onClick={() => save()}
             disabled={saving}
             className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white px-3.5 py-1.5 h-auto text-sm font-semibold"
           >
@@ -371,7 +399,7 @@ export function TemplateEditorClient({
       />
     </div>
   );
-}
+});
 
 function TagInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
   const [input, setInput] = useState("");
