@@ -1,3 +1,80 @@
+# Session Handoff: August 20, 2026 (Claude Code) — wo-ef-consolidated raised, all 5 gates closed
+
+## Agent
+Claude Code, worktree `eternal-fitness-feature-request-f3bea2`, branch `claude/nifty-wilson-becadb`
+
+## Session Summary
+Craig opened asking for status, then said he wanted one Work Order to cover everything
+open on the project rather than the 6 stale/overlapping ones scattered across the
+registry. Raised `wo-ef-consolidated-2026-08-20` (`.context/workorder-ef-consolidated-
+2026-08-20.md`), retired the 6 predecessors (5 abandoned, 1 marked done), reparented
+their 13 open deferred items onto the new WO. Then said "push out to opencode as much
+as you can now" — dispatched 5 OpenCode lanes in parallel; discovered 4 of Lane A's
+units already had real, unmerged, uncommitted-to-registry work sitting in worktrees
+from Aug 19 that needed reconciling against newer main structure rather than
+re-building from scratch.
+
+## Shipped this session (all pushed to main, tsc clean throughout)
+- **Lane A, all 4 units**: training-blocks list (Programme/Progress columns, `c77ebcd`),
+  workout-templates browser (detail drawer, assign-from-browse, paste stepper,
+  `1bda9a1`), derived Est. duration estimator (`7c6d762`), minor styling sweep
+  (back-links, cancelled-row dimming, shared archetype label map, `d8a254e`). Each had
+  to be reconciled against main structure that changed after the original attempts were
+  built (a competing assign-to-client flow, the CR-EF-062 header restructure) — none
+  were safe to cherry-pick blind.
+- **CR-EF-006**: Review schema.org JSON-LD on `/testimonials` (`13d7317`). The OpenCode
+  lane's first draft fabricated a `ratingValue: 5.0` with zero real rating data behind
+  it — caught on review, stripped before merge.
+- **CR-EF-048 button relabel**: "Create & send" → "Create document" (`24828e8`).
+- **CR-EF-047**: turned out to be a register mismatch (the number actually belongs to a
+  rejected Docker build-cache CR) — Craig confirmed the real underlying issue was
+  already fixed, no build needed.
+- **G2 — position facet** (Seated/Supported/Standing, `ab4c765`): new `exercises.position`
+  (Esther tags per-exercise) + derived `workout_templates.position` (a set, not a max
+  like difficulty — a template can mix positions). Migrated on prod + staging, verified.
+  Deliberately additive — the exercise library's own genuine 1-5 difficulty scale stays
+  untouched. No values backfilled/guessed.
+- **G4 — `/api/parq` retirement** (`9d2db8a`): the deferred item undersold the real
+  problem. `POST /api/parq` never verified the signed exp/sig link at all — only the
+  page render did — so anyone with a `signed_parq` id could write to that health record
+  with or without a valid link. First-draft fix (hub-session-only + delete
+  `/parq/edit/[id]`) would have broken the Agreement page's live "Copy PAR-Q edit link"
+  feature — caught before merging. Corrected: session OR valid signature required; only
+  the genuinely dead blank `/parq` form was deleted.
+- **G1 — WAL/PITR archiving**: `archive_command` was `/bin/true` — a no-op that had
+  been silently reporting fake success on ~14,000 "archived" segments since 2026-07-29
+  that never existed on disk. Craig ran the real fix himself (Claude has no path to
+  superuser — `pg_hba.conf` blocks the `postgres` role from the tunnel's source IP
+  entirely, confirmed by testing, not assumed). Verified together: forced a WAL switch,
+  confirmed a real 16MB file landed on disk with correct ownership.
+- **G5 — HSTS/301**: Coolify auto-regenerates Traefik labels on every deploy unless
+  "Readonly labels" is off — that toggle isn't exposed via any available MCP tool, so
+  Craig did it in the Coolify UI. HSTS confirmed live on all 3 domains. **Named, not
+  hidden**: mid-verification Claude saw 404s on plain HTTP for eternal-fitness.co.uk
+  *and* an unrelated site (decodedops.co.uk) and wrongly concluded Traefik was down
+  server-wide — it was Claude's own sandbox unable to reach outbound port 80, not a
+  real outage. Traefik was "Running, synchronized" the whole time per Coolify's own
+  proxy screen; Craig confirmed both URLs worked fine from his own machine. Recorded in
+  loop-status.md as a standing lesson: port-80 checks from this environment aren't
+  trustworthy evidence on their own.
+
+## Still open on wo-ef-consolidated-2026-08-20
+- `exercise_uid` backfill + verify against session-transitions logic (both DBs) —
+  script exists (`scripts/backfill-exercise-uid.mjs`), not yet run.
+- Add "Long-Lever Plank" and "Weighted Plank" to `/hub/exercises`.
+- Open Design project visibility issue ("EF Endurance Block Editor" not showing in the
+  OD app) — investigate or confirm as an OD-app limitation.
+- Swap staging off live email credentials.
+- Blind-fitness/cancer-rehab specialist copy — blocked on the Specialist Training
+  catalogue pages existing (currently redirected away).
+- Two cross-project registry-reconciliation items (decoded-ops-ai / infrastructure
+  scope, not really EF-website work) still sitting on this WO from the reparent.
+
+## Registered as
+`wo-ef-consolidated-2026-08-20` (status: active — real work remains, no single blocker).
+
+---
+
 # Session Handoff: August 18, 2026, evening (Claude Code) — design↔build reconciliation
 
 ## Agent
