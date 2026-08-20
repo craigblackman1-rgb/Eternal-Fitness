@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash, timingSafeEqual } from "crypto";
 import { syncCalendar } from "@/lib/calendar-sync";
+import { syncOutlookBookings } from "@/lib/outlook-bookings";
 import { GraphReconnectError } from "@/lib/graph-client";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,23 @@ async function handle(request: Request) {
 
   try {
     const result = await syncCalendar();
-    return NextResponse.json(result);
+
+    // CR-EF-050 — read-back for Microsoft Bookings appointments, same 15-min
+    // cadence, separate try/catch so a failure here never blocks the (older,
+    // higher-stakes) app->Outlook push sync above.
+    let outlookBookings: unknown = null;
+    try {
+      outlookBookings = await syncOutlookBookings();
+    } catch (bookingsErr) {
+      if (bookingsErr instanceof GraphReconnectError) {
+        outlookBookings = { skipped: "reconnect-required", detail: (bookingsErr as Error).message };
+      } else {
+        console.error("Outlook Bookings sync failed:", bookingsErr);
+        outlookBookings = { error: (bookingsErr as Error).message };
+      }
+    }
+
+    return NextResponse.json({ ...result, outlookBookings });
   } catch (err) {
     if (err instanceof GraphReconnectError) {
       // Not an outage — the connection needs Esther to reconnect. Surface as a

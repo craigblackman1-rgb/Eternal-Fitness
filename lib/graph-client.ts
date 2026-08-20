@@ -288,6 +288,45 @@ export async function updateEvent(eventId: string, input: CalendarEventInput): P
   return true;
 }
 
+export interface GraphCalendarEvent {
+  id: string;
+  subject: string;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  organizer?: { emailAddress?: { address?: string; name?: string } };
+  createdDateTime?: string;
+}
+
+/**
+ * Read-back for CR-EF-050 — lists the connected calendar's events over a
+ * window, paging through @odata.nextLink. Read-only; never used by the
+ * app->Outlook sync (lib/calendar-sync.ts), which never reads anything back.
+ */
+export async function listCalendarView(
+  calendarId: string,
+  startUtc: string,
+  endUtc: string
+): Promise<GraphCalendarEvent[]> {
+  const events: GraphCalendarEvent[] = [];
+  let path: string | null =
+    `/me/calendars/${encodeURIComponent(calendarId)}/calendarView` +
+    `?startDateTime=${encodeURIComponent(startUtc)}&endDateTime=${encodeURIComponent(endUtc)}` +
+    `&$select=id,subject,start,end,organizer,createdDateTime&$top=100`;
+  while (path) {
+    const res = await graphFetch(path.startsWith("http") ? path.replace(GRAPH_BASE, "") : path);
+    if (!res.ok) {
+      if (res.status === 401) throw new GraphReconnectError("Graph rejected the access token");
+      const body = await res.text();
+      throw new Error(`listCalendarView failed (${res.status}): ${body.slice(0, 300)}`);
+    }
+    const body = await res.json();
+    events.push(...(body.value ?? []));
+    const next = body["@odata.nextLink"] as string | undefined;
+    path = next ? next.replace(GRAPH_BASE, "") : null;
+  }
+  return events;
+}
+
 /** 404 is success — the event is already gone. */
 export async function deleteEvent(eventId: string): Promise<void> {
   const res = await graphFetch(`/me/events/${encodeURIComponent(eventId)}`, { method: "DELETE" });

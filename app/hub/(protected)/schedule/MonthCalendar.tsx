@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { HubCard } from "@/components/hub";
+import { HubCard, OutlookBookingsBadge } from "@/components/hub";
 import { sessionStatusColors } from "@/components/hub/SessionStatusPill";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { toLocalISODate, findConflictIds } from "@/lib/schedule-dates";
@@ -128,14 +128,17 @@ export function MonthCalendar({
               </p>
             </div>
           </div>
-          <Button
-            variant={isCurrentMonth ? "secondary" : "outline"}
-            onClick={goToday}
-            disabled={isCurrentMonth}
-            className="rounded-lg"
-          >
-            Today
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isCurrentMonth ? "secondary" : "outline"}
+              onClick={goToday}
+              disabled={isCurrentMonth}
+              className="rounded-lg"
+            >
+              Today
+            </Button>
+            <OutlookBookingsBadge />
+          </div>
         </div>
       </HubCard>
 
