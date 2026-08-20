@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import TestimonialsPageClient from "./TestimonialsPageClient";
 
+// No numeric star rating exists anywhere on this site or in the testimonial
+// data — these are text-only quotes, not a review-collection widget. An
+// aggregateRating/ratingValue block was deliberately NOT added: fabricating a
+// rating number for schema.org markup risks a Google manual action for review
+// markup abuse. If a real rating source exists (e.g. Google Business Profile),
+// wire it in from there instead of inventing one here.
 const testimonialsSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "@id": "https://eternal-fitness.co.uk/#business",
   "name": "Eternal Fitness",
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "5.0",
-    "bestRating": "5",
-    "worstRating": "1",
-    "reviewCount": "4"
-  },
   "review": [
     {
       "@type": "Review",
