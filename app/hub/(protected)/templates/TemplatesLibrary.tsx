@@ -26,9 +26,11 @@ import {
   IconSearch,
   IconExternalLink,
   IconEye,
+  IconSend,
   IconCalendar,
 } from "@/components/icons";
 import { DOCUMENT_KIND_LABEL, type DocumentTemplate, type DocumentKind } from "@/lib/documents/types";
+import { AssignTemplateDialog, type ClientOption } from "./AssignTemplateDialog";
 
 type Category = "screening" | "agreement" | "feedback" | "other";
 type Who = "Client" | "Trainer" | "Both";
@@ -104,7 +106,8 @@ function sectionCount(t: DocumentTemplate): number {
   return t.body?.feedbackSections?.length ?? t.body?.sections?.length ?? 0;
 }
 
-export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] }) {
+export function TemplatesLibrary({ templates, clients }: { templates: DocumentTemplate[]; clients: ClientOption[] }) {
+  const [assigning, setAssigning] = useState<DocumentTemplate | null>(null);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
   const [whoFilter, setWhoFilter] = useState<Who | "all">("all");
@@ -268,11 +271,19 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
                       <span className="text-xs text-muted-foreground">v{t.version}</span>
                       <span className="text-[var(--hub-field-border)]">·</span>
                       <span className="text-xs text-muted-foreground">{sectionCount(t)} {sectionCount(t) === 1 ? "section" : "sections"}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setAssigning(t); }}
+                        className="ml-auto inline-flex items-center gap-1 rounded-lg border border-[var(--hub-field-border)] px-2 h-[26px] text-xs font-bold text-foreground hover:border-rose hover:text-rose transition-colors"
+                      >
+                        <IconSend className="w-3.5 h-3.5" />
+                        Assign
+                      </button>
                       <Link
                         href={`/hub/templates/${t.id}/preview`}
                         target="_blank"
                         onClick={(e) => e.stopPropagation()}
-                        className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
                       >
                         <IconEye className="w-3.5 h-3.5" />
                         Preview
@@ -369,6 +380,15 @@ export function TemplatesLibrary({ templates }: { templates: DocumentTemplate[] 
           </div>
         </div>
       </HubCard>
+      {assigning && (
+        <AssignTemplateDialog
+          open={!!assigning}
+          onOpenChange={(o) => { if (!o) setAssigning(null); }}
+          kind={assigning.kind as DocumentKind}
+          templateName={assigning.name}
+          clients={clients}
+        />
+      )}
     </div>
   );
 }
