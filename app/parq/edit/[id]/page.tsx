@@ -55,5 +55,8 @@ export default async function ParqEditPage({
 
   if (!parq) notFound();
 
-  return <ParqEditClient parq={parq} />;
+  // The save action re-verifies this same signature server-side (G4, 2026-08-20)
+  // -- the page render check above only gated whether the form was SHOWN, not
+  // whether a save was accepted, so the client must carry exp/sig through to POST.
+  return <ParqEditClient parq={parq} linkExp={Number(searchParams.exp)} linkSig={searchParams.sig!} />;
 }

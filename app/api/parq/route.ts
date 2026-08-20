@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { resolveClientId } from "@/lib/resolve-client-id";
 import { getEmailSender } from "@/lib/email";
 import { diffParq } from "@/lib/parq-diff";
-import { mintParqLinkParams } from "@/lib/parq-link";
+import { mintParqLinkParams, verifyParqLink } from "@/lib/parq-link";
 import type { SignedPARQ } from "@/types";
 
 const COACH_EMAIL = "esther.fair@eternal-fitness.co.uk";
@@ -63,6 +63,8 @@ export async function POST(request: Request) {
     admin_save,
     client_name,
     client_number,
+    exp,
+    sig,
     full_name,
     date_of_birth,
     address,
@@ -90,6 +92,29 @@ export async function POST(request: Request) {
     client_signature,
     client_typed_signature,
   } = body;
+
+  // PAR-Q answers are special-category health data. Two legitimate callers exist:
+  // a hub-authenticated save (Esther, e.g. the Agreement page's inline PAR-Q
+  // editor) and the anonymous client-facing edit link, whose page render was
+  // already gated on the signed exp/sig (lib/parq-link.ts) but whose save action
+  // never re-checked it -- meaning anyone with a signed_parq id could write to
+  // that record with no signature at all. Fixed 2026-08-20 (G4): a hub session
+  // is sufficient on its own; without one, id + a valid, unexpired signature are
+  // required. The one remaining legitimate no-id flow (a blank, unauthenticated
+  // first submission) was the standalone /parq page, retired the same day.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    if (!id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const check = verifyParqLink(id, exp, sig);
+    if (!check.ok) {
+      return NextResponse.json(
+        { error: check.reason === "expired" ? "This link has expired" : "Unauthorized" },
+        { status: 401 },
+      );
+    }
+  }
 
   const clientId = id ? undefined : await resolveClientId(supabase, client_number);
 

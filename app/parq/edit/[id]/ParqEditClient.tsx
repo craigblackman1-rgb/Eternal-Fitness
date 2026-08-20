@@ -266,6 +266,12 @@ export default function ParqEditClient({
         body: JSON.stringify({
           id: parq.id,
           admin_save: adminMode || undefined,
+          // Server re-verifies these against the same HMAC the page-render check
+          // already used (G4, 2026-08-20) -- the anonymous client-facing save has
+          // no other credential, so without this the API accepted writes from
+          // anyone who had the id, signature or not.
+          exp: linkExp,
+          sig: linkSig,
           full_name: formData.fullName,
           date_of_birth: formData.dateOfBirth,
           address: formData.address,

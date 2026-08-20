@@ -159,6 +159,14 @@ const nextConfig = {
       { source: "/falls-prevention", destination: "/specialist-training", permanent: false },
       { source: "/blog", destination: "/", permanent: false },
       { source: "/blog/:path*", destination: "/", permanent: false },
+
+      // --- Blank standalone PAR-Q form retired 2026-08-20 (G4) ---
+      // Only reachable via a direct bare /parq hit; nothing in the app links to
+      // it since PAR-Q moved onto the document engine (2026-07-21). NOTE: this
+      // does NOT cover /parq/edit/[id] -- that page is still live and used by
+      // the Agreement page's "Copy PAR-Q edit link" button; its save action now
+      // re-verifies the signed link server-side instead (see app/api/parq/route.ts).
+      { source: "/parq", destination: "/", permanent: false },
     ];
   },
 };
