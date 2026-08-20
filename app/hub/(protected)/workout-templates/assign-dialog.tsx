@@ -71,7 +71,6 @@ export function TemplateAssignDialog({
   onAssigned?: (clientName: string) => void;
 }) {
   const [clientNumber, setClientNumber] = useState("");
-  const [intoBlock, setIntoBlock] = useState<"next" | "new">("next");
   const [assigning, setAssigning] = useState(false);
 
   const assign = async () => {
@@ -124,18 +123,6 @@ export function TemplateAssignDialog({
               {c.conditions.length ? ` — ${c.conditions.join(", ")}` : ""}
             </option>
           ))}
-        </select>
-
-        <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-          Into block
-        </label>
-        <select
-          value={intoBlock}
-          onChange={(e) => setIntoBlock(e.target.value as "next" | "new")}
-          className="h-9 w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-sm outline-none focus:border-rose"
-        >
-          <option value="next">Next available block</option>
-          <option value="new">New block</option>
         </select>
 
         <div className="mt-6 flex justify-end gap-2">
