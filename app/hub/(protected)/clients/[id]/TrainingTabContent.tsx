@@ -81,6 +81,27 @@ function sortSessions(sessions: SessionRow[], key: SessionSortKey, dir: SortDir)
   });
 }
 
+function formatShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/**
+ * CR-EF-073 — a block is a dated period, so its list row shows the real span
+ * derived from its sessions' scheduled_at (earliest–latest), never a
+ * fabricated end date. "Not yet scheduled" when no session in the block has
+ * a date yet.
+ */
+function blockDateRangeLabel(blockId: string, sessions: SessionRow[]): string {
+  const dates = sessions
+    .filter((s) => s.block_id === blockId && s.scheduled_at)
+    .map((s) => s.scheduled_at as string)
+    .sort();
+  if (dates.length === 0) return "Not yet scheduled";
+  const start = formatShortDate(dates[0]);
+  const end = formatShortDate(dates[dates.length - 1]);
+  return start === end ? start : `${start} – ${end}`;
+}
+
 function sessionStatus(session: SessionRow) {
   return deriveSessionStatus({
     status: session.status,
@@ -442,7 +463,7 @@ export function TrainingTabContent({
                 <thead>
                   <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Block</th>
-                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Started</th>
+                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Dates</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Progress</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Status</th>
                     <th className="h-10 px-5 py-0"></th>
@@ -453,7 +474,7 @@ export function TrainingTabContent({
                     <tr key={block.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
                       <td className="py-2.5 px-5 font-semibold text-foreground">Block {block.block_number}</td>
                       <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
-                        {new Date(block.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        {blockDateRangeLabel(block.id, sessions)}
                       </td>
                       <td className="py-2.5 px-5 text-foreground">{blockSessionCounts[block.block_number] ?? 0} sessions</td>
                       <td className="py-2.5 px-5"><StatusBadge status={block.status} /></td>
@@ -540,7 +561,7 @@ export function TrainingTabContent({
                             <SessionDateCell session={session} />
                           </td>
                           <td className="py-2.5 px-5 font-semibold text-foreground">
-                            {blockNum != null ? `Block ${blockNum} \u00b7 S${session.session_number}` : `S${session.session_number}`}
+                            {blockNum != null ? `Block ${blockNum} \u00b7 Session ${session.session_number}` : `Session ${session.session_number}`}
                           </td>
                           <td className="py-2.5 px-5">
                             <SessionStatusPill status={status} />

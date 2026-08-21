@@ -468,7 +468,7 @@ export default async function DashboardPage() {
                       <div className="min-w-0 flex-1">
                         <Link href={entry.clientNumber ? `/hub/clients/${entry.clientNumber}` : "#"} className="text-[13.5px] font-semibold text-foreground hover:text-rose transition-colors">
                           {entry.dayLabel} · {entry.clientName}
-                          {entry.blockNumber !== null && ` — Block ${entry.blockNumber}, Session ${entry.sessionNumber}`}
+                          {entry.blockNumber !== null && ` · Block ${entry.blockNumber} · Session ${entry.sessionNumber}`}
                         </Link>
                         {entry.focusLabel && <p className="text-[13px] text-muted-foreground mt-0.5">{entry.focusLabel}</p>}
                         {entry.meta && (

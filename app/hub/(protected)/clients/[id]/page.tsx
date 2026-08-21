@@ -237,6 +237,25 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     if (bn != null) blockSessionCounts[bn] = (blockSessionCounts[bn] ?? 0) + 1;
   }
 
+  /**
+   * CR-EF-073 — a block is a dated period, so its card shows the real span
+   * derived from its own sessions' scheduled_at (earliest–latest), never a
+   * fabricated end date. Falls back to "Not yet scheduled" when none of the
+   * block's sessions carry a date yet.
+   */
+  const latestBlockDateRangeLabel = (() => {
+    if (!latestBlock) return "Not yet scheduled";
+    const dates = (sessions ?? [])
+      .filter((s: any) => s.block_id === latestBlock.id && s.scheduled_at)
+      .map((s: any) => s.scheduled_at as string)
+      .sort();
+    if (dates.length === 0) return "Not yet scheduled";
+    const fmt = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    const start = fmt(dates[0]);
+    const end = fmt(dates[dates.length - 1]);
+    return start === end ? start : `${start} – ${end}`;
+  })();
+
   const hasSignedParqDocument = (clientDocuments ?? []).some((d) => d.kind === "parq" && d.status === "signed");
   const hasSignedAgreementDocument = (clientDocuments ?? []).some((d) => d.kind === "terms" && d.status === "signed");
   const flags = computeComplianceFlags({
@@ -331,9 +350,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="flex items-center justify-between group py-1">
               <div>
                 <p className="font-semibold text-sm text-foreground group-hover:text-rose transition-colors">Block {latestBlock.block_number}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(latestBlock.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
+                <p className="text-xs text-muted-foreground">{latestBlockDateRangeLabel}</p>
               </div>
               <StatusBadge status={latestBlock.status} />
             </Link>
@@ -500,7 +517,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                           Block {latestBlock.block_number}
                         </Link>
                       </HubDataField>
-                      <HubDataField label="Started">{new Date(latestBlock.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</HubDataField>
+                      <HubDataField label="Dates">{latestBlockDateRangeLabel}</HubDataField>
                       <HubDataField label="Progress">{blockSessionCounts[latestBlock.block_number] ?? 0} sessions</HubDataField>
                       {latestBlock.block_note && (
                         <HubDataField label="Focus" span>{latestBlock.block_note}</HubDataField>

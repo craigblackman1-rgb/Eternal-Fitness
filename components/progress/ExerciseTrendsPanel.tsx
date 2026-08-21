@@ -129,6 +129,7 @@ export function ExerciseTrendsPanel({
 
   const data = trend.points.map((p) => ({
     label: p.label,
+    fullLabel: p.fullLabel,
     dateLabel: p.dateLabel,
     weight: p.topWeightKg,
     reps: trend.metric === "weight" ? p.repsAtTopWeight : p.maxReps,
@@ -187,7 +188,7 @@ export function ExerciseTrendsPanel({
                 labelFormatter={(_, payload) => {
                   const row = payload?.[0]?.payload;
                   if (!row) return null;
-                  return `${row.label} · ${row.dateLabel} · ${row.sets} sets completed`;
+                  return `${row.fullLabel} · ${row.dateLabel} · ${row.sets} sets completed`;
                 }}
               />
             }

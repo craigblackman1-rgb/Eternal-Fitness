@@ -104,9 +104,12 @@ export default async function BlockViewPage({
       ? isoToMonday(firstIncomplete.scheduled_at)
       : `p${firstIncomplete.week}`
     : null;
-  const scheduledStartIso =
-    (block.scheduled_start as string | null) ??
-    (sessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort()[0] ?? null);
+  const scheduledDates = sessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort();
+  const scheduledStartIso = (block.scheduled_start as string | null) ?? (scheduledDates[0] ?? null);
+  // CR-EF-073 — a block is a dated period: derive its end from the latest
+  // scheduled session, never fabricated. Null until at least one session has
+  // a date.
+  const scheduledEndIso = scheduledDates.length > 0 ? scheduledDates[scheduledDates.length - 1] : null;
 
   const weekdays: Weekday[] = Array.from(
     new Set(
@@ -116,13 +119,15 @@ export default async function BlockViewPage({
     ),
   ).sort((a, b) => a - b);
 
-  const formatDayLabel = (session: SessionRow, dayIndex: number): string => {
+  // CR-EF-073 — a session's identity is its booking (date + time); an
+  // unbooked session leads with its ordinal instead of a meaningless "Day N".
+  const formatDayLabel = (session: SessionRow): string => {
     if (session.scheduled_at) {
       const d = new Date(session.scheduled_at);
       const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
       return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
     }
-    return `Day ${dayIndex + 1}`;
+    return `Session ${session.session_number} of ${totalSessions} · not yet booked`;
   };
 
   const formatShortDate = (iso: string): string =>
@@ -137,9 +142,19 @@ export default async function BlockViewPage({
 
   const nextSessionLabel = firstIncomplete
     ? firstIncomplete.scheduled_at
-      ? `${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · S${firstIncomplete.session_number}`
-      : `S${firstIncomplete.session_number}`
+      ? `${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · Session ${firstIncomplete.session_number} of ${totalSessions}`
+      : `Session ${firstIncomplete.session_number} of ${totalSessions} · not yet booked`
     : "All sessions done";
+
+  // CR-EF-073 — the block's own header names its dated period ("6 Aug – 12
+  // Sep"), never a fabricated range: unscheduled blocks fall back to plain text.
+  const formatShortDateFull = (iso: string): string =>
+    new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const blockDateSpanLabel = scheduledStartIso
+    ? scheduledEndIso && scheduledEndIso !== scheduledStartIso
+      ? `${formatShortDateFull(scheduledStartIso)} – ${formatShortDateFull(scheduledEndIso)}`
+      : formatShortDateFull(scheduledStartIso)
+    : "not yet scheduled";
 
   const scheduledStartLabel = scheduledStartIso
     ? new Date(scheduledStartIso).toLocaleDateString("en-GB", {
@@ -173,7 +188,7 @@ export default async function BlockViewPage({
             <StatusBadge status={block.status} />
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {totalSessions}-session block
+            {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {blockDateSpanLabel} · {totalSessions}-session block
           </p>
         </div>
       </div>
@@ -256,12 +271,12 @@ export default async function BlockViewPage({
                 </svg>
               </summary>
               <div className="border-t border-[var(--hub-border)]">
-                {group.sessions.map((session, dayIndex) => {
+                {group.sessions.map((session) => {
                   const archetypeName = DEFAULT_ARCHETYPE_FOCUS_LABELS[session.archetype];
                   const focusLabel = session.data?.focus_label || archetypeName || "—";
                   const status = sessionStatus(session);
                   const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
-                  const dayLabel = formatDayLabel(session, dayIndex);
+                  const dayLabel = formatDayLabel(session);
 
                   return (
                     <SessionRow
@@ -272,6 +287,8 @@ export default async function BlockViewPage({
                       focusLabel={focusLabel}
                       status={status}
                       dayLabel={dayLabel}
+                      sessionNumber={session.session_number}
+                      totalSessions={totalSessions}
                       sessionUrl={sessionUrl}
                       scheduledAt={session.scheduled_at}
                       cancelReason={session.cancel_reason}
