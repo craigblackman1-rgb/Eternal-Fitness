@@ -173,77 +173,81 @@ export function OutlookTriageClient({
         Book session
       </Link>
 
-      <div className={`sheet-overlay${sheetOpen ? " open" : ""}`} onClick={() => setSheetOpen(false)} />
-      <div className={`sheet${sheetOpen ? " open" : ""}`} aria-hidden={!sheetOpen} data-od-id="triage-sheet">
-        <div className="sh-grab" />
-        <div className="sh-h">
-          <span className="sh-t">Unmatched bookings</span>
-          <button className="sh-close" onClick={() => setSheetOpen(false)} aria-label="Close">
-            {ICO.close}
-          </button>
-        </div>
-        <div className="sh-s">
-          Booked through Microsoft Bookings — tap one to confirm it against a client and block.
-        </div>
-        <div className="sh-b">
-          {count === 0 ? (
-            <div className="t-empty">No bookings waiting — you&apos;re all caught up.</div>
-          ) : (
-            <>
-              {bookings.map((b) => {
-                const matched = b.client_id && b.clients;
-                return (
-                  <div
-                    key={b.id}
-                    className="sh-opt"
-                    style={{ flexDirection: "column", alignItems: "stretch", gap: "2px" }}
-                    onClick={() => router.push(`/hub/m/book?scope=trainer&booking=${b.id}`)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") router.push(`/hub/m/book?scope=trainer&booking=${b.id}`); }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <span className="sh-opt-ic">{ICO.calendarDot}</span>
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span className="sh-opt-t" style={{ display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {b.subject}
-                        </span>
-                        <span className="sh-opt-d">{formatBookingWhen(b.start_at)}</span>
-                      </span>
-                      <button
-                        className="mini danger"
-                        onClick={(e) => dismissBooking(b.id, e)}
-                        disabled={dismissingIds.has(b.id)}
-                        aria-label="Dismiss booking"
-                        title="Dismiss"
-                      >
-                        {ICO.trash}
-                      </button>
-                      {ICO.chev}
-                    </div>
-                    {matched ? (
-                      <span className="s-pill scheduled" style={{ margin: "4px 0 0" }}>
-                        Matched to {b.clients?.name}
-                      </span>
-                    ) : (
-                      <span className="s-pill planned" style={{ margin: "4px 0 0" }}>
-                        No client matched
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-              <button
-                className="sh-opt"
-                style={{ borderStyle: "dashed", justifyContent: "center", color: "var(--muted)" }}
-                onClick={() => setSheetOpen(false)}
-              >
-                Done for now
+      {sheetOpen && (
+        <>
+          <div className="sheet-overlay open" onClick={() => setSheetOpen(false)} />
+          <div className="sheet open" data-od-id="triage-sheet">
+            <div className="sh-grab" />
+            <div className="sh-h">
+              <span className="sh-t">Unmatched bookings</span>
+              <button className="sh-close" onClick={() => setSheetOpen(false)} aria-label="Close">
+                {ICO.close}
               </button>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+            <div className="sh-s">
+              Booked through Microsoft Bookings — tap one to confirm it against a client and block.
+            </div>
+            <div className="sh-b">
+              {count === 0 ? (
+                <div className="t-empty">No bookings waiting — you&apos;re all caught up.</div>
+              ) : (
+                <>
+                  {bookings.map((b) => {
+                    const matched = b.client_id && b.clients;
+                    return (
+                      <div
+                        key={b.id}
+                        className="sh-opt"
+                        style={{ flexDirection: "column", alignItems: "stretch", gap: "2px" }}
+                        onClick={() => router.push(`/hub/m/book?scope=trainer&booking=${b.id}`)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") router.push(`/hub/m/book?scope=trainer&booking=${b.id}`); }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span className="sh-opt-ic">{ICO.calendarDot}</span>
+                          <span style={{ flex: 1, minWidth: 0 }}>
+                            <span className="sh-opt-t" style={{ display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {b.subject}
+                            </span>
+                            <span className="sh-opt-d">{formatBookingWhen(b.start_at)}</span>
+                          </span>
+                          <button
+                            className="mini danger"
+                            onClick={(e) => dismissBooking(b.id, e)}
+                            disabled={dismissingIds.has(b.id)}
+                            aria-label="Dismiss booking"
+                            title="Dismiss"
+                          >
+                            {ICO.trash}
+                          </button>
+                          {ICO.chev}
+                        </div>
+                        {matched ? (
+                          <span className="s-pill scheduled" style={{ margin: "4px 0 0" }}>
+                            Matched to {b.clients?.name}
+                          </span>
+                        ) : (
+                          <span className="s-pill planned" style={{ margin: "4px 0 0" }}>
+                            No client matched
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <button
+                    className="sh-opt"
+                    style={{ borderStyle: "dashed", justifyContent: "center", color: "var(--muted)" }}
+                    onClick={() => setSheetOpen(false)}
+                  >
+                    Done for now
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
