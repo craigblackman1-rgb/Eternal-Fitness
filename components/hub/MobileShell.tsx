@@ -4,12 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
-function TabIcon({ type }: { type: "today" | "train" | "clients" }) {
+function TabIcon({ type }: { type: "today" | "calendar" | "train" | "clients" }) {
   if (type === "today") {
     return (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2"/>
         <path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+    );
+  }
+  if (type === "calendar") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+        <path d="M3 15h18M12 15v3"/>
       </svg>
     );
   }
@@ -34,6 +43,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   const activeTab = useMemo(() => {
     if (pathname === "/hub/m") return "today";
+    if (pathname.startsWith("/hub/m/calendar")) return "calendar";
     if (pathname.startsWith("/hub/m/train")) return "train";
     if (pathname.startsWith("/hub/m/clients")) return "clients";
     return "today";
@@ -41,8 +51,12 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   // Client mode (`/hub/m/clients/[client_number]`) owns its own bottom tab
   // bar (Overview / Calendar / Workouts / Notes) — the trainer bar is replaced
-  // while scoped into a client, matching hub-m-client-mode.html.
-  const inClientMode = useMemo(() => /^\/hub\/m\/clients\/[^/]+/.test(pathname), [pathname]);
+  // while scoped into a client, matching hub-m-client-mode.html. Book Session
+  // is a focused task flow with no tab bar of its own in the mockup either.
+  const inClientMode = useMemo(
+    () => /^\/hub\/m\/clients\/[^/]+/.test(pathname) || pathname.startsWith("/hub/m/book"),
+    [pathname],
+  );
 
   return (
     <div className="mobile-shell">
@@ -56,6 +70,14 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
         >
           <TabIcon type="today" />
           Today
+        </Link>
+        <Link
+          className={`tab${activeTab === "calendar" ? " on" : ""}`}
+          href="/hub/m/calendar"
+          {...(activeTab === "calendar" ? { "aria-current": "page" as const } : {})}
+        >
+          <TabIcon type="calendar" />
+          Calendar
         </Link>
         <Link
           className={`tab${activeTab === "train" ? " on" : ""}`}

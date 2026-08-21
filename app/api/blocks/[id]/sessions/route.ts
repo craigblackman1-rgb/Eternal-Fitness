@@ -43,20 +43,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { template_id, week, archetype } = body as {
+  const { template_id, week, archetype, scheduled_at } = body as {
     template_id?: string;
     week?: number;
     archetype?: string;
+    scheduled_at?: string;
   };
-
-  if (!template_id || typeof template_id !== "string") {
-    return NextResponse.json({ error: "template_id is required" }, { status: 400 });
-  }
-  // Upper bound matches sessions_week_check — blocks are no longer assumed to be
-  // 6 weeks (Nathan Wadey's supplied plan is 12), and clients.package allows 24.
-  if (!week || typeof week !== "number" || week < 1 || week > MAX_BLOCK_WEEKS) {
-    return NextResponse.json({ error: `week must be between 1 and ${MAX_BLOCK_WEEKS}` }, { status: 400 });
-  }
 
   const { data: block, error: blockError } = await supabase
     .from("blocks")
@@ -65,83 +57,146 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .single();
   if (blockError || !block) return NextResponse.json({ error: "Block not found" }, { status: 404 });
 
-  const { data: template, error: templateError } = await supabase
-    .from("workout_templates")
-    .select("*")
-    .eq("id", template_id)
-    .single();
-  if (templateError || !template) return NextResponse.json({ error: "Template not found" }, { status: 404 });
-
   const { data: existingSessions, error: existingError } = await supabase
     .from("sessions")
     .select("session_number, week, phase")
     .eq("block_id", params.id);
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
 
-  const rows = (existingSessions ?? []) as { session_number: number; week: number; phase: string | null }[];
+  const rows = (existingSessions ?? []) as { session_number: number; week: number | null; phase: string | null }[];
   const sessionNumber = rows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) {
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
   }
 
-  const resolvedArchetype =
-    archetype && ["A", "B", "C"].includes(archetype)
-      ? archetype
-      : template.archetypes?.[0] && ["A", "B", "C"].includes(template.archetypes[0])
-        ? template.archetypes[0]
-        : null;
+  let resolvedWeek = week ?? null;
+  let resolvedPhase: string | null = null;
+  let sessionData: Record<string, unknown>;
 
-  const resolvedPhase = rows.find((s) => s.week === week)?.phase ?? null;
+  if (template_id) {
+    if (typeof template_id !== "string") {
+      return NextResponse.json({ error: "template_id must be a string" }, { status: 400 });
+    }
+    // Upper bound matches sessions_week_check — blocks are no longer assumed to be
+    // 6 weeks (Nathan Wadey's supplied plan is 12), and clients.package allows 24.
+    if (!resolvedWeek || typeof resolvedWeek !== "number" || resolvedWeek < 1 || resolvedWeek > MAX_BLOCK_WEEKS) {
+      return NextResponse.json({ error: `week must be between 1 and ${MAX_BLOCK_WEEKS}` }, { status: 400 });
+    }
 
-  const templateData = template.data as { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
-  const stripEquipment = (exercises: unknown[]) =>
-    (exercises as Record<string, unknown>[]).map((ex) => ({ ...ex, equipment: [] }));
+    const { data: template, error: templateError } = await supabase
+      .from("workout_templates")
+      .select("*")
+      .eq("id", template_id)
+      .single();
+    if (templateError || !template) return NextResponse.json({ error: "Template not found" }, { status: 404 });
 
-  const sessionData = {
+    const resolvedArchetype =
+      archetype && ["A", "B", "C"].includes(archetype)
+        ? archetype
+        : template.archetypes?.[0] && ["A", "B", "C"].includes(template.archetypes[0])
+          ? template.archetypes[0]
+          : null;
+
+    resolvedPhase = rows.find((s) => s.week === resolvedWeek)?.phase ?? null;
+
+    const templateData = template.data as { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
+    const stripEquipment = (exercises: unknown[]) =>
+      (exercises as Record<string, unknown>[]).map((ex) => ({ ...ex, equipment: [] }));
+
+    sessionData = {
+      session_id: crypto.randomUUID(),
+      block_id: params.id,
+      client_id: block.client_id,
+      session_number: sessionNumber,
+      archetype: resolvedArchetype,
+      week: resolvedWeek,
+      phase: resolvedPhase,
+      focus_label: template.name,
+      time_tier: "standard",
+      versions: {
+        studio: {
+          warm_up: templateData.warm_up ?? [],
+          main_block: templateData.main_block ?? [],
+          cooldown: templateData.cooldown ?? [],
+        },
+        home: {
+          warm_up: stripEquipment(templateData.warm_up ?? []),
+          main_block: stripEquipment(templateData.main_block ?? []),
+          cooldown: stripEquipment(templateData.cooldown ?? []),
+        },
+      },
+      coaching_notes: `Added from template "${template.name}".`,
+      client_intro: "",
+    };
+
+    const { data: created, error: insertError } = await supabase
+      .from("sessions")
+      .insert({
+        block_id: params.id,
+        session_number: sessionNumber,
+        archetype: resolvedArchetype,
+        week: resolvedWeek,
+        phase: resolvedPhase,
+        data: sessionData,
+        ...(scheduled_at ? { scheduled_at: scheduled_at } : {}),
+      })
+      .select()
+      .single();
+
+    if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+
+    await supabase
+      .from("workout_templates")
+      .update({ usage_count: (template.usage_count ?? 0) + 1, updated_at: new Date().toISOString() })
+      .eq("id", template_id);
+
+    return NextResponse.json(created, { status: 201 });
+  }
+
+  // Booking path: a session is a booked calendar slot with no prescription
+  // content. The block supplies the client/week context.
+  const maxWeek = rows.reduce((max, s) => (s.week != null && s.week > max ? s.week : max), 0);
+  resolvedWeek = resolvedWeek ?? (maxWeek > 0 ? maxWeek : 1);
+  if (resolvedWeek < 1 || resolvedWeek > MAX_BLOCK_WEEKS) {
+    return NextResponse.json({ error: `week must be between 1 and ${MAX_BLOCK_WEEKS}` }, { status: 400 });
+  }
+  resolvedPhase = rows.find((s) => s.week === resolvedWeek)?.phase ?? null;
+
+  sessionData = {
     session_id: crypto.randomUUID(),
     block_id: params.id,
     client_id: block.client_id,
     session_number: sessionNumber,
-    archetype: resolvedArchetype,
-    week,
+    archetype: null,
+    week: resolvedWeek,
     phase: resolvedPhase,
-    focus_label: template.name,
+    focus_label: null,
     time_tier: "standard",
     versions: {
-      studio: {
-        warm_up: templateData.warm_up ?? [],
-        main_block: templateData.main_block ?? [],
-        cooldown: templateData.cooldown ?? [],
-      },
-      home: {
-        warm_up: stripEquipment(templateData.warm_up ?? []),
-        main_block: stripEquipment(templateData.main_block ?? []),
-        cooldown: stripEquipment(templateData.cooldown ?? []),
-      },
+      studio: { warm_up: [], main_block: [], cooldown: [] },
+      home: { warm_up: [], main_block: [], cooldown: [] },
     },
-    coaching_notes: `Added from template "${template.name}".`,
+    coaching_notes: "Booked session (no content yet).",
     client_intro: "",
   };
 
+  const insertPayload: Record<string, unknown> = {
+    block_id: params.id,
+    session_number: sessionNumber,
+    archetype: null,
+    week: resolvedWeek,
+    phase: resolvedPhase,
+    data: sessionData,
+  };
+  if (scheduled_at) insertPayload.scheduled_at = scheduled_at;
+
   const { data: created, error: insertError } = await supabase
     .from("sessions")
-    .insert({
-      block_id: params.id,
-      session_number: sessionNumber,
-      archetype: resolvedArchetype,
-      week,
-      phase: resolvedPhase,
-      data: sessionData,
-    })
+    .insert(insertPayload)
     .select()
     .single();
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
-
-  await supabase
-    .from("workout_templates")
-    .update({ usage_count: (template.usage_count ?? 0) + 1, updated_at: new Date().toISOString() })
-    .eq("id", template_id);
 
   return NextResponse.json(created, { status: 201 });
 }

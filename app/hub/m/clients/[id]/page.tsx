@@ -172,6 +172,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   // rendered directly anywhere, desktop included.
   const blockView: BlockView | null = currentBlock
     ? {
+        id: currentBlock.id,
         number: currentBlock.block_number,
         focus: currentBlock.block_note ?? null,
         done: blockDone,
@@ -214,7 +215,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   const trainTargetId = upcoming[0]?.id ?? currentBlockSessions[0]?.id ?? null;
 
   const calendarSessions: CalendarSessionView[] = sessions
-    .filter((s) => s.scheduled_at && !s.cancelled_at)
+    .filter((s) => s.scheduled_at)
     .sort((a, b) => new Date(a.scheduled_at as string).getTime() - new Date(b.scheduled_at as string).getTime())
     .map((s) => {
       const d = new Date(s.scheduled_at as string);
@@ -223,6 +224,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         day: d.getDate(),
         month: d.toLocaleDateString("en-GB", { month: "short" }),
         time: d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+        scheduledAt: s.scheduled_at as string,
         name: sessionName(s),
         status: deriveSessionStatus({
           status: s.status,
