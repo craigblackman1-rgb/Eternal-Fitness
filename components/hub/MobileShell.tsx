@@ -39,9 +39,15 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
     return "today";
   }, [pathname]);
 
+  // Client mode (`/hub/m/clients/[client_number]`) owns its own bottom tab
+  // bar (Overview / Calendar / Workouts / Notes) — the trainer bar is replaced
+  // while scoped into a client, matching hub-m-client-mode.html.
+  const inClientMode = useMemo(() => /^\/hub\/m\/clients\/[^/]+/.test(pathname), [pathname]);
+
   return (
     <div className="mobile-shell">
       {children}
+      {!inClientMode && (
       <nav className="tabbar" aria-label="Primary">
         <Link
           className={`tab${activeTab === "today" ? " on" : ""}`}
@@ -68,6 +74,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
           Clients
         </Link>
       </nav>
+      )}
     </div>
   );
 }
