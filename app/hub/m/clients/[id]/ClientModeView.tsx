@@ -27,6 +27,7 @@ export interface CalendarSessionView {
 }
 
 export interface WorkoutView {
+  id: string;
   key: string;
   letter: string;
   name: string;
@@ -47,6 +48,11 @@ export interface BlockView {
 type TabKey = "overview" | "calendar" | "workouts" | "notes";
 
 const ICO = {
+  plus: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  ),
   med: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
       <path d="M12 3v18M3 12h18" />
@@ -312,7 +318,7 @@ export function ClientModeView({
           </Link>
         </section>
 
-        {/* ── WORKOUTS (read-only — add flow is L5) ── */}
+        {/* ── WORKOUTS ── */}
         <section className={`pane${tab === "workouts" ? " on" : ""}`}>
           <div className="note">
             <span className="note-b">i</span>
@@ -321,6 +327,12 @@ export function ClientModeView({
               Adding a workout from the template library, this client&apos;s block, or scratch lands with
               the add flow. No phase concept — Esther works at the workout level.
             </div>
+          </div>
+          <div className="actbar" style={{ marginBottom: 12 }}>
+            <Link className="btn btn-primary" href={`/hub/m/clients/${clientNumber}/add-workout`}>
+              {ICO.plus}
+              Add workout
+            </Link>
           </div>
           {workouts.length === 0 ? (
             <div className="empty">
