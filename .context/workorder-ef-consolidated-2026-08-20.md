@@ -211,8 +211,23 @@ not the first commit's, as authoritative.
       `origin/main` before committing (this worktree's branch was 3 commits stale). Not yet
       pushed — next step is `staging`, verify on development.eternal-fitness.co.uk, then main,
       per this project's standard deploy flow.
-
-## LANES
+- [x] **Lane G: promoted to `main`, live in production, CR-EF-050 CLOSED.** Pushed to `staging`
+      (`c3103d6`), deployed, verified live on development.eternal-fitness.co.uk (real page render,
+      correct empty state — staging's Microsoft integration wasn't yet disconnected at that point).
+      **Craig then asked how to test without a real Bookings appointment reaching Esther's actual
+      calendar — investigating found staging's `integration_tokens` had a live Microsoft connection
+      to Esther's real account/calendar since 2026-08-15** (unrelated to this feature, root cause of
+      the still-open CR-EF-028), which explained why staging's queue showed all 17 real prod
+      bookings mixed with synthetic test rows. Fixed: disconnected staging's Microsoft integration
+      (cleared `integration_tokens`, 7 stale `session_calendar_events` rows, 17 stale real-event
+      queue rows), re-verified the empty state, then seeded 3 clearly-fake test bookings — safe
+      because staging can no longer reach Graph in either direction. Craig approved promoting to
+      main; merged `origin/main` twice (two concurrent unrelated pushes landed mid-promotion,
+      both clean docs/code merges, `tsc --noEmit` clean each time), pushed `b923a6d`. **Deploy
+      verified**: Coolify deployment `ygdbskumwhxejd7krqh2yspw` finished healthy on commit
+      `b923a6d` (matches the push exactly), confirmed live by loading
+      `eternal-fitness.co.uk/hub/schedule/outlook` directly — real 16 remaining unmatched bookings
+      render correctly (17 minus the one already confirmed during local verification).
 - Lane A — Workout/training-block parity   · depends on: none
 - Lane B — Compliance/SEO/security cleanup · depends on: none
 - Lane C — Infra decisions (GATE-only)     · depends on: none
@@ -280,11 +295,10 @@ not the first commit's, as authoritative.
   lib/graph-client.ts (new function only, no other changes), a one-off script under scripts/ —
   VERIFY: report run against the real connected calendar, count of unmatched events sized and
   shared before any further build.
-- [GATE] Raise the Open Design brief for the reconciliation UI (unmatched-Outlook-bookings
-  queue on/near `/hub/schedule`, match-to-client action, "flagged — no match" state) once the
-  diagnostic above sizes the real gap — new hub surface, no design-parity exemption.
-- [GATE] New `outlook_bookings` (or similar) staging table + email-match logic — schema change,
-  needs a migration GATE per FORBIDDEN above; scope once the design brief lands.
+- [x] Open Design brief raised and mockup delivered (`hub-schedule-outlook.html`) — see DONE.
+- [x] `outlook_booking_events` migration + name-parsed-from-subject matching logic (revised from
+  email-matching, disproven by the diagnostic) — built, migrated on prod+staging, live on main.
+  See DONE checklist above for full build/verification/promotion detail. **Lane G complete.**
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
