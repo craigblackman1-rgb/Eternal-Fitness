@@ -103,13 +103,13 @@ Surface the unmatched-bookings queue on the trainer PWA; mobile confirm/link/dis
 
 ## DONE
 
-- Esther can open a client on her phone and land in client mode, with no doubt whose record she's in.
-- A day-agenda calendar exists in the PWA in both trainer and client scope.
-- A workout can be put on a specific day from the phone, via preview-then-confirm.
-- A session can be booked from the phone and the Outlook event verifiably appears.
-- A note captured from a session is titled with that session and reads correctly on desktop too.
-- Unmatched Outlook bookings are visible and triageable on mobile.
-- All verified on development.eternal-fitness.co.uk, then live on `main`, ledger updated.
+- [x] Esther can open a client on her phone and land in client mode, with no doubt whose record she's in.
+- [x] A day-agenda calendar exists in the PWA in both trainer and client scope.
+- [x] A workout can be put on a specific day from the phone, via preview-then-confirm.
+- [x] A session can be booked from the phone and the Outlook event verifiably appears.
+- [x] A note captured from a session is titled with that session and reads correctly on desktop too.
+- [x] Unmatched Outlook bookings are visible and triageable on mobile.
+- [x] All verified on development.eternal-fitness.co.uk, then live on `main`, ledger updated.
 
 ## SCOPE (declared, for overlap checking)
 
@@ -334,3 +334,32 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   session. **L6 done, live-verified on staging. All of L3, L4, L5, L6 are now live-verified on
   development.eternal-fitness.co.uk.** Promotion of `staging` → `main` for this WO's full scope is
   the one remaining step — not yet executed, see next entry.
+- 2026-08-21 (session close) — **L6 promoted to `main`, live-verified in production. CR-EF-079
+  (L3–L6) complete.** `staging` was not fast-forwarded wholesale — it also carried `195228c`
+  ("schedule/reschedule a workout from the session detail view"), a different, unrelated feature
+  from another concurrent session, not part of this WO's declared SCOPE and not verified by this
+  session. Diffing `origin/main` against `origin/staging` first (`git diff --stat`) showed only 4
+  files differed; confirmed the base L6 feature (badge, triage, book-confirm mode) was *already* on
+  `main` from an earlier promotion by another session — the real remaining delta was just this
+  session's 2 live-found bug fixes plus the WO ledger. Cherry-picked those 3 commits
+  (`1d0cd88`/`31059d1`/`f35c154`) onto a fresh branch off `origin/main`, `tsc --noEmit` clean, gate
+  attested, fast-forward pushed to `main` (`aa3df30..f35c154`) — deliberately excluding the unrelated
+  commit rather than vouching for work outside this WO's scope. Coolify's production app
+  (`eternal-fitness`, `sbzxkdejcmb5ahw3ai42on8q`) deployed it automatically
+  (`teqit83osb91tkgc0nkhwike`, finished). **Deploy Verification Gate run properly, not assumed from a
+  green push**: confirmed via `mcp__coolify__deployment get` that the finished deployment's commit
+  matched, then a read-only live check on `eternal-fitness.co.uk/hub/m/calendar` with the real hub
+  session — page loads clean, the sheet stays closed by default (first fix holds), badge shows the
+  real production count (16 open bookings). No writes attempted against real production booking/
+  client data — the staging round-trip already proved dismiss/confirm work end-to-end.
+  **Worth flagging as a non-bug**: Coolify's `get_application` shows the production app's
+  `git_repository` as `craigblackman1-rgb/Eternal-Fitness` (no "-Website"), which looks at first
+  glance like it's tracking a different, stale GitHub repo from this worktree's actual remote
+  (`Eternal-Fitness-Website`). Confirmed harmless — both the prod and staging Coolify apps report the
+  identical numeric `repository_project_id: 1193495505`, meaning Coolify resolves the deploy source
+  by GitHub's stable repo ID via the GithubApp integration, not by the cached display-name string;
+  the mismatch is just a leftover label from a GitHub repo rename that Coolify never refreshed. Not
+  a misconfiguration, not a reason to re-point anything — flagged here so a future session doesn't
+  waste time chasing it.
+  **Temp branch `l6-promote-to-main` deleted** (fully merged into `main`, no dangling work). Local
+  worktree back on `claude/trainerize-mobile-pwa-366869`, clean. WO status set to `done`.
