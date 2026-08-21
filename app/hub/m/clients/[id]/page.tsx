@@ -250,6 +250,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
     if (!list) continue;
     const done = list.filter((s) => s.data?.session_log?.completed_at).length;
     workouts.push({
+      id: list[0].id,
       key: a,
       letter: a,
       name: sessionName(list[0]),

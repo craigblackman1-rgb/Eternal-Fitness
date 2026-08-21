@@ -378,6 +378,20 @@
   .fatigue-seg { flex-wrap: nowrap; }
 }
 
+/* ── Quick note sheet (Train Screen) ───────────────────────────── */
+.sheet-overlay { position: fixed; inset: 0; background: rgba(40,43,56,.4); opacity: 0; pointer-events: none; transition: opacity 200ms; z-index: 70; }
+.sheet-overlay.open { opacity: 1; pointer-events: auto; }
+.note-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 71; background: var(--card); border-radius: 20px 20px 0 0; box-shadow: 0 -12px 40px rgba(16,24,40,.16); padding-bottom: env(safe-area-inset-bottom); }
+.sh-grab { width: 40px; height: 4px; border-radius: 999px; background: var(--border); margin: 8px auto 0; }
+.note-sheet .sh-h { display: flex; align-items: center; gap: 10px; padding: 12px 18px 2px; }
+.note-sheet .sh-t { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+.note-sheet .sh-s { font-size: 12px; color: var(--muted); padding: 0 18px 10px; }
+.note-sheet .sh-close { margin-left: auto; width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.note-sheet .sh-note { padding: 0 18px 18px; }
+.note-sheet .sh-note textarea { width: 100%; min-height: 96px; resize: vertical; border: 1px solid var(--field-border); border-radius: 10px; padding: 10px 12px; font-size: 15px; line-height: 1.5; font-family: inherit; color: var(--ink); background: var(--card); }
+.note-sheet .sh-note textarea:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(193,131,159,.3); }
+.note-sheet .sh-note-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+
 /* ── Edit sheet ────────────────────────────────────────────────── */
 .scrim { position: fixed; inset: 0; background: rgba(40,43,56,.52); backdrop-filter: blur(2px); z-index: 50; }
 
@@ -634,6 +648,63 @@
 .wmeta { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 .wchev { flex-shrink: 0; color: var(--muted); }
 
+/* ── Scoped context bar (add workout) ─────────────────────────── */
+.scope-bar { display: flex; align-items: center; gap: 11px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--card); }
+.scope-av { width: 36px; height: 36px; border-radius: 999px; background: var(--s-primary-bg); color: var(--rose); display: grid; place-items: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+.scope-txt { min-width: 0; flex: 1; }
+.scope-lbl { font-size: 11px; color: var(--muted); }
+.scope-name { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scope-exit { display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-size: 12px; font-weight: 600; text-decoration: none; }
+.scope-exit:hover { background: var(--s-danger-bg); color: var(--s-danger); border-color: var(--s-danger-bd); }
+
+/* ── Add workout (hub-m-add-workout.html) ─────────────────────── */
+.pane { display: none; }
+.pane.on { display: block; }
+.t-empty { text-align: center; padding: 32px 20px; color: var(--muted); font-size: 13px; }
+.step-title { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.015em; margin: 0 0 2px; }
+.step-sub { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.src { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 13px; font-family: inherit; cursor: pointer; }
+.src + .src { margin-top: 10px; }
+.src:hover { background: var(--hover); border-color: var(--rose); }
+.src:disabled { opacity: .5; cursor: not-allowed; }
+.src-ic { width: 42px; height: 42px; border-radius: 11px; background: var(--s-primary-bg); color: var(--rose); display: grid; place-items: center; flex-shrink: 0; }
+.src-t { font-size: 14.5px; font-weight: 700; color: var(--ink); display: block; }
+.src-d { font-size: 12px; color: var(--muted); margin-top: 1px; display: block; }
+.src-chev { margin-left: auto; color: var(--muted); flex-shrink: 0; }
+.wlist { display: flex; flex-direction: column; gap: 8px; }
+.witem { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 13px; padding: 11px 12px; font-family: inherit; cursor: pointer; }
+.witem:hover { background: var(--hover); border-color: var(--rose); }
+.witem-av { width: 40px; height: 40px; border-radius: 10px; background: var(--hover); color: var(--muted); display: grid; place-items: center; flex-shrink: 0; }
+.witem-av em { font-style: normal; font-weight: 800; }
+.witem-b { min-width: 0; flex: 1; }
+.witem-t { font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.witem-m { font-size: 11.5px; color: var(--muted); margin-top: 1px; display: block; }
+.witem-chev { color: var(--muted); flex-shrink: 0; }
+.preview-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 12px; }
+.pc-h { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.pc-t { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -.015em; }
+.pc-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pc-chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 10px; font-size: 11.5px; font-weight: 700; background: var(--hover); border: 1px solid var(--border); color: var(--body); }
+.pc-chip svg { color: var(--rose); flex-shrink: 0; }
+.pc-b { padding: 8px 16px 14px; }
+.ex-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+.ex-row + .ex-row { border-top: 1px dashed var(--border); }
+.ex-n { flex-shrink: 0; font-size: 12px; font-weight: 800; color: var(--muted); width: 20px; }
+.ex-b { min-width: 0; flex: 1; }
+.ex-t { font-size: 13.5px; font-weight: 700; color: var(--ink); display: block; }
+.ex-p { font-size: 11.5px; color: var(--muted); display: block; }
+.confirmbar { position: fixed; left: 0; right: 0; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); z-index: 42; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); border-top: 1px solid var(--border); padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+.confirm-row { display: flex; gap: 8px; max-width: 640px; margin: 0 auto; }
+.confirm-row .btn-primary { flex: 1; }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn-ghost:hover { background: var(--hover); color: var(--ink); }
+.btn-icon { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; flex-shrink: 0; }
+.bs-panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 14px; }
+.bs-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.bs-row:last-child { margin-bottom: 0; }
+.bs-input { flex: 1; height: 46px; border: 1px solid var(--field-border); border-radius: 10px; padding: 0 12px; font-size: 15px; font-family: inherit; background: var(--card); color: var(--ink); }
+.bs-input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(193,131,159,.3); }
+
 /* Notes pane (compose + search + filter pills + list) */
 .ncompose { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 12px; margin-bottom: 14px; }
 .ncompose textarea { width: 100%; border: 0; background: none; resize: none; font-family: inherit; font-size: 15px; line-height: 1.5; color: var(--ink); min-height: 64px; padding: 4px 2px 8px; outline: none; }
@@ -649,6 +720,7 @@
 .note-item { display: flex; gap: 10px; padding: 12px 14px; }
 .note-item + .note-item { border-top: 1px solid var(--border); }
 .note-body { min-width: 0; flex: 1; }
+.note-t { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); }
 .note-when { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 .note-txt { font-size: 13.5px; line-height: 1.55; color: var(--body); margin-top: 6px; overflow-wrap: anywhere; white-space: pre-wrap; }
 .note-pin { flex-shrink: 0; width: 38px; height: 38px; border-radius: 9px; border: 0; background: none; color: var(--muted); cursor: pointer; display: grid; place-items: center; }

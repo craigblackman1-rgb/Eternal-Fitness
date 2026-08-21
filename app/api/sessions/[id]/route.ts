@@ -11,6 +11,20 @@ import { getSessionStatus } from "@/lib/session-transitions";
 // ignored so this route can't be used to touch columns it shouldn't.
 const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason"] as const;
 
+// Single-session read (CR-EF-079 L5 — the mobile "add workout from this
+// client's block" preview needs one session's full data by id; nothing else
+// in the codebase exposed this by UUID before).
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { data, error } = await supabase.from("sessions").select("*").eq("id", params.id).single();
+  if (error || !data) return NextResponse.json({ error: "Session not found" }, { status: 404 });
+
+  return NextResponse.json(data);
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
