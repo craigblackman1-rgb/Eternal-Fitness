@@ -298,7 +298,7 @@ export function ClientModeView({
             windowStart={shiftDay(todayLocalISODate(), -2)}
             windowEnd={shiftDay(todayLocalISODate(), 4)}
             scope="client"
-            bookHrefForDay={(day) => `/hub/m/book?scope=client&client=${clientNumber}&day=${day}`}
+            clientNumber={clientNumber}
           />
           <Link
             className="btn btn-outline agenda-add"

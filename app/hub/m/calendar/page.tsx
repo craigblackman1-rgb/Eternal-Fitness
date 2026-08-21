@@ -121,7 +121,6 @@ export default async function MobileCalendarPage() {
           windowStart={start}
           windowEnd={end}
           scope="trainer"
-          bookHrefForDay={(day) => `/hub/m/book?scope=trainer&day=${day}`}
         />
       </main>
 

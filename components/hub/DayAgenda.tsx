@@ -55,7 +55,8 @@ interface DayAgendaProps {
   windowStart: string;
   windowEnd: string;
   scope: "trainer" | "client";
-  bookHrefForDay: (day: string) => string;
+  /** Required when scope is "client" — included in the booking link so it lands on the right client. */
+  clientNumber?: number;
 }
 
 function fmtDayShort(d: Date): string {
@@ -83,9 +84,13 @@ export function DayAgenda({
   windowStart,
   windowEnd,
   scope,
-  bookHrefForDay,
+  clientNumber,
 }: DayAgendaProps) {
   const router = useRouter();
+  const bookHrefForDay = (day: string) =>
+    scope === "client" && clientNumber != null
+      ? `/hub/m/book?scope=client&client=${clientNumber}&day=${day}`
+      : `/hub/m/book?scope=${scope}&day=${day}`;
   const byDay = new Map<string, AgendaSession[]>();
   for (const s of sessions) {
     const day = isoToLocalDate(s.scheduledAt);
