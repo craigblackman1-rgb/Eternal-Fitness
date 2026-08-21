@@ -20,6 +20,8 @@ interface SessionRowProps {
   focusLabel: string;
   status: SessionStatus;
   dayLabel: string;
+  sessionNumber: number;
+  totalSessions: number;
   sessionUrl: string;
   scheduledAt: string | null;
   cancelReason: string | null;
@@ -38,6 +40,8 @@ export function SessionRow({
   focusLabel,
   status,
   dayLabel,
+  sessionNumber,
+  totalSessions,
   sessionUrl,
   scheduledAt,
   cancelReason,
@@ -85,7 +89,7 @@ export function SessionRow({
   return (
     <div className="border-t border-[var(--hub-border)] first:border-t-0">
       <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-2 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors ${status === "cancelled" ? "opacity-55" : ""}`}>
-        <span className="w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <span className="min-w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           {dayLabel}
         </span>
         <div className="flex-1 min-w-0 flex items-center gap-2.5 flex-wrap">
@@ -95,6 +99,11 @@ export function SessionRow({
           <span className={`text-sm font-semibold truncate ${settled ? "text-muted-foreground" : "text-foreground"}`}>
             {focusLabel}
           </span>
+          {scheduledAt && (
+            <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
+              Session {sessionNumber} of {totalSessions}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3.5 w-full justify-end sm:w-auto sm:contents">
           <span className="w-[150px] shrink-0 flex justify-end">
