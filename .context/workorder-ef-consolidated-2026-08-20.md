@@ -89,6 +89,12 @@ not the first commit's, as authoritative.
   real email); revised to name-parsed-from-subject matching, Craig re-confirmed. Design brief
   raised and mockup delivered same day. **G7 CLOSED — full build shipped and live-verified**,
   see Lane G's DONE entries below.
+- G8 — CR-EF-028 (Outlook duplicate-event reconciliation) new-surface Open Design brief: same
+  "new hub surface needs a mockup" rule as G7 — no build before one lands. **RAISED 2026-08-21**,
+  brief written (`.context/brief-outlook-duplicate-reconciliation-opendesign.md`), but the Open
+  Design MCP server was disconnected at the time — run not yet started. Craig confirmed the fix
+  approach (human-confirmed link-or-keep-separate queue, mirroring Lane G's UI) before this was
+  raised; only the mockup itself is outstanding.
 
 ## LEDGER
 - 2026-08-20 — Work Order raised, consolidating 6 predecessor WOs per Craig's instruction
@@ -236,6 +242,8 @@ not the first commit's, as authoritative.
   do first (cheap, unblocks accurate `wo active` reporting for the rest)
 - Lane G — Outlook Bookings reconciliation (CR-EF-050) · depends on: none for the diagnostic
   unit; the reconciliation UI/schema units depend on G7's Open Design brief landing
+- Lane H — Outlook duplicate-event reconciliation (CR-EF-028) · depends on: an Open Design brief
+  (G8) — mirror of Lane G's UI pattern, no build before a mockup lands
 
 ## UNITS
 ### Lane E (registry housekeeping — do first)
@@ -299,6 +307,20 @@ not the first commit's, as authoritative.
 - [x] `outlook_booking_events` migration + name-parsed-from-subject matching logic (revised from
   email-matching, disproven by the diagnostic) — built, migrated on prod+staging, live on main.
   See DONE checklist above for full build/verification/promotion detail. **Lane G complete.**
+
+### Lane H (Outlook duplicate-event reconciliation — CR-EF-028)
+- [x] Diagnostic: `scripts/diagnose-outlook-duplicate-events.mjs` (read-only) — for every
+  app-synced session, check same-day Outlook events for a first-name subject match against a
+  *different* event than the app's own. Found 5/12 (42%) app-synced sessions in the sync window
+  collide with a pre-existing Esther-typed personal entry (Emma Atkinson, Monique Weardon ×4
+  dates) — every personal entry predates the app's own sync event, confirming this is Esther's
+  long-standing manual habit colliding with the (already-live, unrelated-to-today) push-sync, not
+  a new bug from CR-EF-050's work. See CR-EF-028 for full detail.
+- [GATE] G8 — Open Design brief for the reconciliation queue (mirrors Lane G's UI: link-existing
+  vs keep-separate, per session about to sync) — brief written, run not yet started (Open Design
+  MCP was disconnected when raised). No build before a mockup lands.
+- [BLOCKED] Migration (new table for duplicate-candidate rows) + push-sync collision-check logic
+  + UI — waiting on: G8's mockup.
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
