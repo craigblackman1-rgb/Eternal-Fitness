@@ -130,3 +130,40 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   Craig scoped it to the trainer PWA; client portal deferred (`dmt2qo93nzo`). WO registered.
   Confirmed hub→Outlook push already fires on any `scheduled_at` PATCH, so L5's booking needs no new
   Outlook plumbing — mobile just has never sent that field. Awaiting Craig's Open Design run (G1).
+- 2026-08-21 (later) — Craig: designs done and returned. All 6 mockups present under
+  `design-systems/ef-control-hub/mobile/` (`today/hub-m-today.html` revised,
+  `calendar/hub-m-calendar.html`, `clients/hub-m-clients.html`, `clients/hub-m-client-mode.html`,
+  `clients/hub-m-add-workout.html`, `clients/hub-m-book-session.html`). Ran the Design Parity Gate —
+  section-by-section against the brief's §3.1–3.5 and §4 constraints (full detail:
+  `wo attest amt2s0ghiai`). **Verdict: strong return, matches or exceeds the brief** — scope
+  indicator, derived Mon–Sun agenda in both scopes, scope-aware add (3 sources, preview-then-confirm,
+  Start now), session-titled/pinned/searchable notes, Outlook badge + triage + client/block confirm
+  flow, one verbatim shared status pill, no phase concept, `focus_label` naming throughout, honest
+  hard-case data (cancelled-with-logged-data, 2-session day, 200-char note, non-demo-client banner).
+  **2 real gaps found, queued to Craig as a batched G1 decision (`qmt2s0l3m0m`)** rather than
+  blocking: (1) `hub-m-clients.html` carries ~100 lines of orphaned detail-view JS that live
+  navigation never reaches — the "true admin stays on desktop" panel content only exists there, not
+  in the reachable client-mode file; (2) no mockup shows the note quick-capture entry point from
+  inside the Train Screen, which is the headline case for session-aware notes (§3.4). L3–L6 build
+  hold until G1 answered — dead-code cleanup and the missing entry point don't block the client-mode
+  shell or the calendar work regardless of which option Craig picks, so build can start on those the
+  moment he answers even if he sends part of it back.
+- 2026-08-21 (later still) — Craig: fix the 2 gaps directly rather than round-tripping through Open
+  Design. Done: (1) `hub-m-clients.html` — stripped the orphaned `detailHtml()` state machine
+  (~100 lines: `view`/`current` state, dead `data-action="open"`/`"back"` handlers, unused ICOs);
+  the file now only ever renders the list, matching what the live `ccard` links actually do.
+  (2) `hub-m-client-mode.html` — added the "true admin stays on desktop" panel to the reachable
+  Overview pane (it only existed in the dead code removed in (1)). (3) `hub-m-train.html` — added
+  the missing note quick-capture entry point: a "Quick note" icon button in the action bar opens a
+  bottom-sheet composer (sheet pattern copied verbatim from hub-m-calendar.html), auto-titled with
+  the session's `focus_label`, writing to the same `client_notes` store the client-mode Notes tab
+  reads — distinct from the existing per-exercise note toggle, documented as such in the screen's
+  own design-notes callout. **Verified via a local static server + programmatic click** (the
+  Browser pane's coordinate-click tool wasn't landing since the pane isn't displayed in this
+  session — confirmed via `element.click()` in devtools instead): client list renders with no dead
+  code, client-mode Overview shows the admin-stays-on-desktop notice, and the Train Screen sheet
+  opens/saves/toasts correctly with the right session + client name. Committed narrowly to the
+  shared `design-systems` repo (12 files — the 6 CR-EF-079 mockups + the 3 fixed files; left every
+  unrelated in-flight file from other concurrent sessions untouched) and pushed: `47ea922`.
+  **G1 effectively resolved** — mockups now match the brief with no open gaps. L3–L6 build can
+  start.
