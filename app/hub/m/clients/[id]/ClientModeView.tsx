@@ -4,8 +4,9 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { SessionStatus } from "@/types";
 import type { ClientFlag } from "@/lib/mobile-client-flags";
-import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
+import { DayAgenda, type AgendaSession } from "@/components/hub/DayAgenda";
 import { ClientNotesPane } from "./ClientNotesPane";
+import { todayLocalISODate, shiftDay } from "@/lib/schedule-dates";
 
 export interface RecentSessionView {
   id: string;
@@ -20,6 +21,7 @@ export interface CalendarSessionView {
   day: number;
   month: string;
   time: string;
+  scheduledAt: string;
   name: string;
   status: SessionStatus;
 }
@@ -34,6 +36,7 @@ export interface WorkoutView {
 }
 
 export interface BlockView {
+  id: string;
   number: number;
   focus: string | null;
   done: number;
@@ -280,46 +283,33 @@ export function ClientModeView({
           </div>
         </section>
 
-        {/* ── CALENDAR (client scope — stub until L4 day-agenda) ── */}
+        {/* ── CALENDAR (client scope — shared DayAgenda) ── */}
         <section className={`pane${tab === "calendar" ? " on" : ""}`}>
-          <div className="note">
-            <span className="note-b">i</span>
-            <div>
-              <b>The day-agenda calendar lands next.</b>
-              This is a read of {firstName}&apos;s booked sessions for now — the full day-by-day agenda
-              arrives in the calendar lane.
-            </div>
-          </div>
-          <div className="panel">
-            <div className="panel-h">
-              <span className="panel-h-ic teal">{ICO.cal}</span>
-              <span>
-                <span className="panel-h-t">Booked sessions</span>
-                <span className="panel-h-s">
-                  {calendarSessions.length} scheduled
-                </span>
-              </span>
-            </div>
-            <div className="panel-b" style={{ paddingTop: 2, paddingBottom: 4 }}>
-              {calendarSessions.length === 0 ? (
-                <div className="t-empty">Nothing booked yet.</div>
-              ) : (
-                calendarSessions.map((s) => (
-                  <div key={s.id} className="hrow">
-                    <span className="hdate">
-                      <b>{s.day}</b>
-                      <span>{s.month}</span>
-                    </span>
-                    <span className="hbody">
-                      <span className="hname">{s.name}</span>
-                      <span className="hmeta">{s.time}</span>
-                    </span>
-                    <SessionStatusPill status={s.status} />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <DayAgenda
+            sessions={calendarSessions.map(
+              (s): AgendaSession => ({
+                id: s.id,
+                scheduledAt: s.scheduledAt,
+                name: s.name,
+                status: s.status,
+              })
+            )}
+            today={todayLocalISODate()}
+            windowStart={shiftDay(todayLocalISODate(), -2)}
+            windowEnd={shiftDay(todayLocalISODate(), 4)}
+            scope="client"
+            bookHrefForDay={(day) => `/hub/m/book?scope=client&client=${clientNumber}&day=${day}`}
+          />
+          <Link
+            className="btn btn-outline agenda-add"
+            href={`/hub/m/book?scope=client&client=${clientNumber}&day=${todayLocalISODate()}`}
+            style={{ width: "100%" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Book for {firstName}
+          </Link>
         </section>
 
         {/* ── WORKOUTS (read-only — add flow is L5) ── */}
