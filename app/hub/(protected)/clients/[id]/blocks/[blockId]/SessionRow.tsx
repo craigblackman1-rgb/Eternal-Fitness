@@ -149,7 +149,7 @@ export function SessionRow({
                   href={sessionUrl}
                   className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
                 >
-                  {status === "in_progress" ? "Resume" : "Log"}
+                  {status === "in_progress" ? "Resume" : "View"}
                 </Link>
                 <button
                   type="button"

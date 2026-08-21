@@ -103,13 +103,13 @@ Surface the unmatched-bookings queue on the trainer PWA; mobile confirm/link/dis
 
 ## DONE
 
-- Esther can open a client on her phone and land in client mode, with no doubt whose record she's in.
-- A day-agenda calendar exists in the PWA in both trainer and client scope.
-- A workout can be put on a specific day from the phone, via preview-then-confirm.
-- A session can be booked from the phone and the Outlook event verifiably appears.
-- A note captured from a session is titled with that session and reads correctly on desktop too.
-- Unmatched Outlook bookings are visible and triageable on mobile.
-- All verified on development.eternal-fitness.co.uk, then live on `main`, ledger updated.
+- [x] Esther can open a client on her phone and land in client mode, with no doubt whose record she's in.
+- [x] A day-agenda calendar exists in the PWA in both trainer and client scope.
+- [x] A workout can be put on a specific day from the phone, via preview-then-confirm.
+- [x] A session can be booked from the phone and the Outlook event verifiably appears.
+- [x] A note captured from a session is titled with that session and reads correctly on desktop too.
+- [x] Unmatched Outlook bookings are visible and triageable on mobile.
+- [x] All verified on development.eternal-fitness.co.uk, then live on `main`, ledger updated.
 
 ## SCOPE (declared, for overlap checking)
 
@@ -276,3 +276,90 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   2026-08-17 migration all along — only staging was missing it). No write test on prod (real client
   data; the staging round-trip already proved the write path). L3 is genuinely done on both
   environments now, not just staging.
+- 2026-08-21 (later) — **L6 (Outlook badge + mobile triage) dispatched and landed on its first real
+  attempt.** Badge card on Today (links to Calendar) and Calendar (opens inline), triage sheet listing
+  the open queue, dismiss action, and `OutlookBookingRow` type shared with the extended Book page.
+  **The lane left its own last planned step undone and didn't say so** — its brief's central ask,
+  extending `app/hub/m/book/page.tsx` with a `booking=<id>` confirm mode, was never written; `git
+  status` showed the file untouched despite the triage sheet already linking to
+  `?booking=<id>` URLs it couldn't handle. No handback note flagged the gap — caught only by checking
+  the diff against the brief's own checklist, the exact "OpenCode diffs must be hand-reviewed, never
+  trusted on self-report" failure pattern this project has hit 4 times before. Completed directly
+  (not re-dispatched — the remaining work was a bounded, already-understood extension of a file
+  already read in full): `bookingId` from `searchParams`, fetch + match against
+  `GET /api/outlook-bookings?status=all` (no single-booking route exists, listed and filtered
+  client-side as the brief said was fine at this scale), case-insensitive `parsed_name` pre-select,
+  hidden date/time fields, and a branched submit to `POST /api/outlook-bookings/[id]/confirm` with
+  409 handling (bounces back to Calendar with a toast rather than retrying).
+  **Design Parity Gate — one flagged deviation.** Read `hub-m-book-session.html` in full for the
+  confirm-mode state: the mockup renders the Outlook context as an `a-warning` banner ("From
+  Microsoft Bookings — ... Confirm who and which block it belongs to") on top of the *same* editable
+  date/time panel used for a fresh booking, not a separate read-only panel. Matched the banner style
+  exactly. Kept date/time hidden anyway — the confirm API (`clientId`/`blockId` only, server derives
+  `scheduled_at` from the Outlook event) makes editable fields there functionally dead, so pixel
+  parity would have shipped a control that silently does nothing. Flagged to Craig rather than
+  silently resolved either way.
+  **`tsc --noEmit` and a full `next build`** both clean before every push (per this WO's standing
+  rule — a prior lane already proved tsc alone misses real production build failures).
+  **Live verification on development.eternal-fitness.co.uk found 2 more real bugs, both invisible to
+  tsc and a green build** — same class of gap as L3/L4/L5's live-only findings, worth calling out as
+  a pattern: three lanes in a row in this WO shipped code that compiled clean and built clean but was
+  still broken until driven by a real browser against real data.
+  1. **The triage sheet covered the entire Calendar tab on every page load**, not just after tapping
+     Review. `.sheet` (the "Edit sheet" component reused per the brief) has no CSS closed state at
+     all — unlike `.note-sheet`, which TrainScreen's quick-note sheet uses, `.sheet` is meant to be
+     conditionally *mounted*, not toggled via an `.open` class; only `.sheet-overlay` has that
+     toggle. The lane rendered `<div className={\`sheet\${sheetOpen ? " open" : ""}\`}>` unconditionally,
+     assuming a CSS rule that doesn't exist. Fixed by conditionally rendering the whole sheet+overlay
+     block, matching how `EditSheet.tsx` and `TrainScreen`'s note sheet are actually built. Pushed
+     (`09e6d08`), redeployed, re-verified — sheet now closed by default, Calendar fully visible.
+  2. **The dismiss button and row-tap were unclickable** — a second bug in the same component,
+     surfaced only once bug 1 was fixed and the sheet could be interacted with at all. `.sheet-overlay`
+     is `z-index: 70`, `.sheet` is `z-index: 60` — the full-viewport dimming overlay sat *above* the
+     sheet's own content in stacking order, so every click meant for the sheet (dismiss, row tap) was
+     silently intercepted by the overlay's own `onClick={() => setSheetOpen(false)}`, just closing the
+     sheet with no API call and no navigation. Confirmed by checking the two other real consumers of
+     this component family: `EditSheet.tsx` correctly pairs `.sheet` (60) with `.scrim` (50, below
+     it); `TrainScreen`'s note sheet correctly pairs `.sheet-overlay` (70) with `.note-sheet` (71,
+     above it) — the lane had mixed a `.sheet` with the wrong-tier overlay. Fixed by switching the
+     backdrop to `.scrim`. Pushed (`828981a`), redeployed.
+  **Final live pass, both fixes confirmed**: badge shows the real open-booking count on Today and
+  Calendar; triage sheet opens only via Review, lists real queue rows (subject/time/matched-state);
+  dismiss on a genuinely-unmatched test booking fired `POST /api/outlook-bookings/<id>/dismiss` (200,
+  confirmed via network inspection) and removed the row with a toast, no reload; tapping a real
+  matched row (Becky Price) reached the confirm page with no date/time fields, the exact mockup
+  banner copy showing the real subject + formatted time, her client row pre-selected via the
+  `parsed_name` match, and her current block auto-selected. Did not submit — real client/booking
+  data, and the UI + wiring were already enough to confirm the flow works without writing a real
+  session. **L6 done, live-verified on staging. All of L3, L4, L5, L6 are now live-verified on
+  development.eternal-fitness.co.uk.** Promotion of `staging` → `main` for this WO's full scope is
+  the one remaining step — not yet executed, see next entry.
+- 2026-08-21 (session close) — **L6 promoted to `main`, live-verified in production. CR-EF-079
+  (L3–L6) complete.** `staging` was not fast-forwarded wholesale — it also carried `195228c`
+  ("schedule/reschedule a workout from the session detail view"), a different, unrelated feature
+  from another concurrent session, not part of this WO's declared SCOPE and not verified by this
+  session. Diffing `origin/main` against `origin/staging` first (`git diff --stat`) showed only 4
+  files differed; confirmed the base L6 feature (badge, triage, book-confirm mode) was *already* on
+  `main` from an earlier promotion by another session — the real remaining delta was just this
+  session's 2 live-found bug fixes plus the WO ledger. Cherry-picked those 3 commits
+  (`1d0cd88`/`31059d1`/`f35c154`) onto a fresh branch off `origin/main`, `tsc --noEmit` clean, gate
+  attested, fast-forward pushed to `main` (`aa3df30..f35c154`) — deliberately excluding the unrelated
+  commit rather than vouching for work outside this WO's scope. Coolify's production app
+  (`eternal-fitness`, `sbzxkdejcmb5ahw3ai42on8q`) deployed it automatically
+  (`teqit83osb91tkgc0nkhwike`, finished). **Deploy Verification Gate run properly, not assumed from a
+  green push**: confirmed via `mcp__coolify__deployment get` that the finished deployment's commit
+  matched, then a read-only live check on `eternal-fitness.co.uk/hub/m/calendar` with the real hub
+  session — page loads clean, the sheet stays closed by default (first fix holds), badge shows the
+  real production count (16 open bookings). No writes attempted against real production booking/
+  client data — the staging round-trip already proved dismiss/confirm work end-to-end.
+  **Worth flagging as a non-bug**: Coolify's `get_application` shows the production app's
+  `git_repository` as `craigblackman1-rgb/Eternal-Fitness` (no "-Website"), which looks at first
+  glance like it's tracking a different, stale GitHub repo from this worktree's actual remote
+  (`Eternal-Fitness-Website`). Confirmed harmless — both the prod and staging Coolify apps report the
+  identical numeric `repository_project_id: 1193495505`, meaning Coolify resolves the deploy source
+  by GitHub's stable repo ID via the GithubApp integration, not by the cached display-name string;
+  the mismatch is just a leftover label from a GitHub repo rename that Coolify never refreshed. Not
+  a misconfiguration, not a reason to re-point anything — flagged here so a future session doesn't
+  waste time chasing it.
+  **Temp branch `l6-promote-to-main` deleted** (fully merged into `main`, no dangling work). Local
+  worktree back on `claude/trainerize-mobile-pwa-366869`, clean. WO status set to `done`.
