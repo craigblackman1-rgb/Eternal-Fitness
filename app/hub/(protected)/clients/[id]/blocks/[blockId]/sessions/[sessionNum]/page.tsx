@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock, IconCalendar } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
 import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
@@ -16,6 +16,12 @@ import type { DBSession, SessionLog, SessionVersion, SetLog } from "@/types";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
 import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";
+import {
+  isoToLocalDate,
+  isoToLocalTime,
+  localPartsToISO,
+  todayLocalISODate,
+} from "@/lib/schedule-dates";
 
 // Minimal shape of the client record this header needs — the GET /api/clients/[id]
 // response returns the full client, but only these fields feed the subtitle line.
@@ -54,6 +60,10 @@ export default function SessionViewPage({
   const [showReopen, setShowReopen] = useState(false);
   const [reopening, setReopening] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [reschedDate, setReschedDate] = useState("");
+  const [reschedTime, setReschedTime] = useState("10:00");
+  const [scheduling, setScheduling] = useState(false);
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -183,6 +193,39 @@ export default function SessionViewPage({
     toast.success("Session reopened — changes are audited from here.");
   };
 
+  const startReschedule = () => {
+    if (session?.scheduled_at) {
+      setReschedDate(isoToLocalDate(session.scheduled_at));
+      setReschedTime(isoToLocalTime(session.scheduled_at));
+    } else {
+      setReschedDate(todayLocalISODate());
+      setReschedTime("10:00");
+    }
+    setRescheduling(true);
+  };
+
+  const saveReschedule = async () => {
+    if (!session || !reschedDate || !reschedTime) {
+      toast.error("Set a date and time");
+      return;
+    }
+    setScheduling(true);
+    const scheduled_at = localPartsToISO(reschedDate, reschedTime);
+    const res = await fetch(`/api/sessions/${session.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scheduled_at }),
+    });
+    setScheduling(false);
+    if (!res.ok) {
+      toast.error("Failed to schedule session");
+      return;
+    }
+    setSession({ ...session, scheduled_at });
+    setRescheduling(false);
+    toast.success(session.scheduled_at ? "Session rescheduled" : "Session scheduled");
+  };
+
   const handleSaveAsTemplate = async () => {
     if (!session || !templateName.trim()) return;
     setSavingTemplate(true);
@@ -278,6 +321,17 @@ export default function SessionViewPage({
             </p>
           </div>
           <div className="flex gap-2">
+            {status !== "completed" && status !== "cancelled" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg gap-1.5"
+                onClick={startReschedule}
+              >
+                <IconCalendar className="h-4 w-4" />
+                {session.scheduled_at ? "Reschedule" : "Schedule"}
+              </Button>
+            )}
             {showTemplateSave ? (
               <div className="flex items-center gap-1.5">
                 <input
@@ -330,6 +384,29 @@ export default function SessionViewPage({
             )}
           </div>
         </div>
+        {rescheduling && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 py-2.5">
+            <span className="text-xs font-medium text-muted-foreground">Move to</span>
+            <input
+              type="date"
+              value={reschedDate}
+              onChange={(e) => setReschedDate(e.target.value)}
+              className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+            />
+            <input
+              type="time"
+              value={reschedTime}
+              onChange={(e) => setReschedTime(e.target.value)}
+              className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+            />
+            <Button size="sm" className="rounded-lg" onClick={saveReschedule} disabled={scheduling}>
+              {scheduling ? "Saving..." : "Save"}
+            </Button>
+            <Button variant="ghost" size="sm" className="rounded-lg" onClick={() => setRescheduling(false)}>
+              Cancel
+            </Button>
+          </div>
+        )}
       </div>
 
       {session.status === "completed" && (
