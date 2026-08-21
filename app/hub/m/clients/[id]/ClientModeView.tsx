@@ -336,7 +336,11 @@ export function ClientModeView({
             <div className="empty">
               <div className="empty-ic">{ICO.workouts}</div>
               <p className="empty-t">No workouts</p>
-              <p className="empty-d">This client has no current block yet.</p>
+              <p className="empty-d">
+                {block
+                  ? `Block ${block.number} has no sessions yet.`
+                  : "This client has no current block yet."}
+              </p>
             </div>
           ) : (
             workouts.map((w) => (
