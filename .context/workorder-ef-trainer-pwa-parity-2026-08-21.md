@@ -167,3 +167,34 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   unrelated in-flight file from other concurrent sessions untouched) and pushed: `47ea922`.
   **G1 effectively resolved** — mockups now match the brief with no open gaps. L3–L6 build can
   start.
+- 2026-08-21 (later) — Craig confirmed designs signed off in chat. L3 (client-mode shell) dispatched
+  to an OpenCode lane (`opencode-go/deepseek-v4-pro`) in worktree
+  `D:\apps\worktrees\eternal-fitness-website\trainer-pwa-client-mode-l3`. **First run wrote zero
+  files** — burned its entire turn budget on exploration (60+ reads/greps) then stopped cleanly
+  (exit 0), the known deepseek-reliability failure mode where a green exit isn't evidence of
+  progress. Not silently re-run: tightened the brief with the exact facts it wasted its budget
+  rediscovering (`SessionStatusPill`/`deriveSessionStatus` already exist, real `client_notes`
+  schema, `focus_label` convention) plus a hard budget guardrail. Relaunched as
+  `l3-client-mode-retry` — this run produced real code.
+- 2026-08-21 (later still) — **L3 shipped to staging (`9ad67a6`), verified live.** Hand-review of
+  the retry's diff found it reused real existing helpers (not hallucinated) — `SessionStatusPill`,
+  `deriveSessionStatus`, `computeComplianceFlags`, `DEFAULT_ARCHETYPE_FOCUS_LABELS`, the
+  `--color-white` token — and honestly labelled its 3 stubs (Calendar tab = plain read not the real
+  agenda, Workouts = read-only, notes pin/session-title = UI-only pending the L5 migration). Deleted
+  2 now-orphaned files (`NotesPanel.tsx`/`TasksPanel.tsx`, zero importers left). tsc clean. Rebased
+  cleanly onto `origin/staging` (no file overlap with its divergence, checked before rebasing).
+  Design Parity Gate + scope-diff attested, pushed to staging. **Deploy Verification Gate run
+  properly** — `mcp__coolify__deployment get` on the actual deployment (not just a push) confirmed
+  `status: finished`, commit matches exactly, not just assumed from a green push.
+  **Live click-through with Craig's real Chrome session** (claude-in-chrome, not a faked/bypassed
+  hub session — the sandboxed Browser pane has no path to real hub auth, per standing project rule):
+  client mode works end-to-end for a real client, banner/tabs/panel order all match the mockup.
+  Found and fixed 2 real issues live: (1) `client_notes` 500'd — the 2026-08-17 migration was
+  applied to prod but never run against the separate `eternal_fitness_staging` DB clone (pre-existing
+  drift, not caused by this lane — the same table/route predates it, just never previously exercised
+  on staging). Fixed by running the migration against staging only
+  (`scripts/run-client-notes-migration-staging.mjs`, committed for the record); verified the table
+  now exists, then a real note POST/GET/delete round-trip through the actual UI, test note cleaned
+  up after. (2) Workouts empty-state said "no current block" for a block that exists with zero
+  sessions — fixed to say so honestly. Second gate attestation covers both the live verification and
+  the fix, pushed as `9ad67a6`. **L3 done.** L4 (day-agenda calendar) next.
