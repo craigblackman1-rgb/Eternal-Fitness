@@ -2,7 +2,9 @@
 
 OWNER: (empty until claimed)
 SCOPE: eternal-fitness-website (app/hub/(protected)/**, components/hub/**, app/api/parq/**,
-       app/(marketing) schema/meta only for Lane B's SEO items — no other marketing-site scope)
+       app/(marketing) schema/meta only for Lane B's SEO items — no other marketing-site scope;
+       Lane G adds lib/graph-client.ts, lib/calendar-sync.ts, app/api/cron/sync-calendar/**,
+       app/api/integrations/microsoft/**, app/hub/(protected)/schedule/**)
 
 GOAL: Every currently open eternal-fitness-website item — workout/training-block parity,
       compliance/SEO/security cleanup, infra decisions, and document-engine/hub housekeeping —
@@ -75,6 +77,18 @@ not the first commit's, as authoritative.
   resolved.
 - G6 — any new migration or DB write outside listed scope (generic, not yet triggered
   beyond G2's own migration, which was covered by G2's own answer).
+- G7 — CR-EF-050 (Outlook Bookings reconciliation) new-surface Open Design brief: a client
+  booking via Microsoft Bookings lands in the same Outlook calendar the app already syncs to,
+  with no `sessions` row — needs a reconciliation UI in the hub (unmatched-bookings queue,
+  match/link-to-client action) before any build, per the project's "new user-facing surface
+  needs a CR + mockup" rule (CR-EF-048 precedent). **ANSWERED 2026-08-20 (scope, not design):**
+  Craig confirmed (a) Bookings appointments land in the *same* calendar already selected under
+  Settings → Integrations — no separate calendar/mailbox to poll; (b) match to `clients.email`,
+  auto-link on match, flag unmatched for manual review. **Superseded 2026-08-20 by the live
+  diagnostic** — email-matching is provably wrong (0/17 real Bookings events carry the client's
+  real email); revised to name-parsed-from-subject matching, Craig re-confirmed. Design brief
+  raised and mockup delivered same day. **G7 CLOSED — full build shipped and live-verified**,
+  see Lane G's DONE entries below.
 
 ## LEDGER
 - 2026-08-20 — Work Order raised, consolidating 6 predecessor WOs per Craig's instruction
@@ -139,6 +153,64 @@ not the first commit's, as authoritative.
 - [ ] tsc --noEmit clean; every lane's git diff --stat reviewed against FORBIDDEN/MUST.
 - [ ] All 6 predecessor WOs marked done/abandoned in the registry with a note pointing here;
       their still-open deferred items reparented via `wo reparent`.
+- [x] Lane G diagnostic (CR-EF-050): live Outlook-vs-`sessions` gap sized and reported.
+      (2026-08-20) 221 events in window, 217 unmapped; only 17 are real Bookings
+      appointments (7 clients, organizer EternalFitnessBookings@...), the other 200 are
+      Esther's own long-standing personal calendar entries (unrelated to Bookings/the app).
+      **Overturned the 2026-08-19 email-match decision**: 0/17 real Bookings events carry
+      the client's actual email anywhere (organizer/attendees are internal addresses only)
+      — verified against clients.email for all 7. Name-parsed-from-subject matched
+      clients.name for all 7/7. See CR-EF-050 for full detail. Craig needs to re-confirm
+      the revised name-based matching approach before G7's design brief is written.
+- [x] Lane G: Craig confirmed the revised name-parsed-from-subject matching approach
+      2026-08-20. Open Design brief written (`.context/brief-outlook-bookings-reconciliation-
+      opendesign.md`) and a run started against the "EF Business Hub" project
+      (360da9b0-11a7-4a96-b2dd-7ea28e0033eb) — runId `e002769f-df87-463a-be9c-6c0497f4d0d9`.
+      **Mockup delivered 2026-08-20** — `D:\apps\design-systems\ef-control-hub\desktop\
+      scheduling\hub-schedule-outlook.html` (new reconciliation queue, 3 row states:
+      auto-suggested/confirm, manual link, dismissed; raw event subject shown per row;
+      confirm opens a block-picker dialog reusing the existing block-choice pattern) plus
+      small additive route-in diffs to hub-schedule.html/hub-schedule-month.html (an
+      "Outlook bookings" count-badge button in the day/month nav, calendar views themselves
+      untouched — diff reviewed directly, 25 lines total across both files). Verified via
+      get_page_text + read_page (real content, real nav, real interactive elements render);
+      OD's own pass caught and fixed a real JS ternary/precedence bug and a stale count
+      before delivering. Note: OD couldn't find the brief file at the path given in the
+      prompt (project isn't linked to this worktree, only to the shared eternal-fitness-
+      website checkout) and worked from the inline prompt spec instead — worth mirroring
+      future briefs into the shared checkout's .context/ too, not just the worktree's.
+      **Not yet reviewed by Craig** — reconciliation UI/schema build stays gated until he
+      signs off on the mockup.
+- [x] Lane G: **Craig approved the mockup and said "proceed" 2026-08-20 — full build shipped
+      and live-verified same session.** Delivered: migration `20260820_outlook_booking_events.sql`
+      (`outlook_booking_events` table, run against **both** prod `eternal_fitness` and
+      `eternal_fitness_staging` — this project's separate-staging-DB gotcha); `listCalendarView`
+      read-back added to `lib/graph-client.ts`; `lib/outlook-bookings.ts` (name-parsed-from-subject
+      matching with an exact-then-surname-fallback heuristic — every suggestion still requires
+      Esther's click, so a wrong surname guess costs one extra click, never a bad write) wired
+      into the existing 15-min cron (`app/api/cron/sync-calendar/route.ts`, separate try/catch so
+      a Bookings-sync failure can't block the older app→Outlook push sync); `GET/POST
+      /api/outlook-bookings*` routes + `GET /api/clients/[id]/blocks`; the reconciliation queue UI
+      at `/hub/schedule/outlook` (`OutlookBookingsQueue.tsx`) matching the mockup's 3 row states;
+      `OutlookBookingsBadge` wired into both `ScheduleCalendar.tsx` and `MonthCalendar.tsx`.
+      `npx tsc --noEmit` clean throughout.
+      **Live-verified end-to-end against real production data** (not staging fixtures) via a
+      local dev server on the prod DB/Graph tunnel + claude-in-chrome under Esther's real hub
+      session: seeded the queue with the real 17 Bookings events (all 7 clients auto-matched
+      correctly, including the surname-fallback case "Thomas Putnam"→"Tom Putnam"); confirmed a
+      real appointment (Nathan Wadey, 25 Aug) end-to-end — session created with the correct
+      `block_id`/`session_number`(13)/`scheduled_at`, and the *existing* Outlook event was adopted
+      into `session_calendar_events` rather than duplicated; verified the new session renders
+      correctly on `/hub/schedule`'s month view. Dismiss/undismiss and manual search-and-link both
+      verified working. **Found and fixed one real bug during verification**: the `link` route's
+      `.update().select("*, clients(...)").single()` 500'd because this project's pg-client shim
+      resolves relation embeds into a subquery referencing the target table by name, which
+      Postgres's `UPDATE ... RETURNING` doesn't allow — split into an update then a separate
+      select, re-verified 200. Test data cleanup: none needed — the confirmed session (Nathan
+      Wadey) is real, correct, desired output, not a throwaway. Branch fast-forwarded onto
+      `origin/main` before committing (this worktree's branch was 3 commits stale). Not yet
+      pushed — next step is `staging`, verify on development.eternal-fitness.co.uk, then main,
+      per this project's standard deploy flow.
 
 ## LANES
 - Lane A — Workout/training-block parity   · depends on: none
@@ -147,6 +219,8 @@ not the first commit's, as authoritative.
 - Lane D — Document-engine/hub housekeeping · depends on: none
 - Lane E — Registry housekeeping (close predecessor WOs, reparent items) · depends on: none,
   do first (cheap, unblocks accurate `wo active` reporting for the rest)
+- Lane G — Outlook Bookings reconciliation (CR-EF-050) · depends on: none for the diagnostic
+  unit; the reconciliation UI/schema units depend on G7's Open Design brief landing
 
 ## UNITS
 ### Lane E (registry housekeeping — do first)
@@ -197,6 +271,21 @@ not the first commit's, as authoritative.
 - [GATE] G3 — Lane F rail-as-navigation IA concept — needs a fresh Open Design brief before
   any build; raise the brief request as a GATE item, don't build speculatively.
 
+### Lane G (Outlook Bookings reconciliation — CR-EF-050)
+- [AUTO] Diagnostic: add a read-only `listCalendarEvents` (Graph `GET /me/calendars/{id}/
+  calendarView`) to lib/graph-client.ts, pull the selected calendar's events for the existing
+  sync window (−1/+60 days per calendar-sync.ts), and diff against `sessions.scheduled_at` +
+  `session_calendar_events` to produce a report: which live Outlook events have no app-side
+  mapping at all (the actual Bookings-gap population) vs. events the app itself created — files:
+  lib/graph-client.ts (new function only, no other changes), a one-off script under scripts/ —
+  VERIFY: report run against the real connected calendar, count of unmatched events sized and
+  shared before any further build.
+- [GATE] Raise the Open Design brief for the reconciliation UI (unmatched-Outlook-bookings
+  queue on/near `/hub/schedule`, match-to-client action, "flagged — no match" state) once the
+  diagnostic above sizes the real gap — new hub surface, no design-parity exemption.
+- [GATE] New `outlook_bookings` (or similar) staging table + email-match logic — schema change,
+  needs a migration GATE per FORBIDDEN above; scope once the design brief lands.
+
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
 Live status: eternal-fitness-website/.context/loop-status.md
@@ -206,4 +295,14 @@ parity-2026-08-19, wo-ef-workout-consolidation-pwa-2026-08-15, wo-ef-hub-structu
 consistency-2026-08-17, wo-ef-seo-speed-spam-2026-08-17, wo-ef-security-repo-quickwins-
 2026-08-15, wo-eternalfitness-hub-mobile-session-pwa-2026-08-10. Full source detail for each
 carried-over unit lives in those WOs' original .context/ files (not rewritten here) and this
-session's registry sweep. CRs referenced: CR-EF-006, 008, 037, 047, 048.
+session's registry sweep. CRs referenced: CR-EF-006, 008, 037, 047, 048, 050.
+
+Lane G (2026-08-20): Craig confirmed live that clients book sessions via a Microsoft Bookings
+form, and those bookings land in Outlook but never appear in `/hub/schedule` — the app's
+Outlook sync is one-way (app→Outlook only, `lib/calendar-sync.ts:14-19`), so a Bookings
+appointment has no `sessions` row and is structurally invisible. Scoped via AskUserQuestion:
+same calendar as the existing sync (no separate Bookings mailbox to poll), match to
+`clients.email` with unmatched flagged for manual review, and treat as a CR + this WO rather
+than a quick fix given the new Graph read-back path, matching logic, and reconciliation UI.
+See CR-EF-050 for full detail. Diagnostic unit is safe to run now (read-only, no schema); the
+reconciliation UI and any new table are gated behind an Open Design brief (G7) not yet raised.

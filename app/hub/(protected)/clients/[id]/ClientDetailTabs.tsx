@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs } from "@/components/ui/tabs";
 
-const VALID_TABS = ["overview", "profile", "admin", "training", "comms", "plan-agent"];
+const VALID_TABS = ["overview", "profile", "compliance", "documents", "training", "comms", "plan-agent"];
 
 const VALID_VIEWS: Record<string, string[]> = {
   training: ["blocks", "sessions", "progress", "history"],
@@ -17,7 +17,7 @@ const DEFAULT_VIEWS: Record<string, string> = {
 };
 
 const TAB_ALIASES: Record<string, string> = {
-  compliance: "admin",
+  admin: "compliance",
   progress: "training",
   history: "training",
   "training-history": "training",
