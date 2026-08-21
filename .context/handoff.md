@@ -3720,3 +3720,37 @@ the same WiFi. Full session flow works end to end for a `studio_1to1` or `home_t
 a scheduled session today. Every commit `tsc --noEmit` clean; every OpenCode lane hand-reviewed
 line-by-line per this repo's standing rule, not trusted on self-report — every lane's own report had
 at least one real inaccuracy or gap this session, all caught before commit stood as "done."
+
+---
+
+## 2026-08-21 — CR-EF-073 naming convention: session close
+
+Craig raised (voice) that block/session/workout naming didn't follow through across
+the app — same session showed as "Session 3"/"S3"/"B2 S3"/"Block 2 · S3"/"Workout A"/
+"Day 2" depending on the screen. First proposal draft got the domain model wrong;
+Craig corrected it directly ("we have been over this") — **block = dated period,
+session = booked calendar slot (date+time is its identity), workout = attached on
+the day, never in advance** — now saved to cross-session memory
+(`project_block_session_workout_model`) so it can't be relitigated next time.
+
+v2 proposal (`.context/proposal-naming-convention-2026-08-20.md`) approved same day.
+Mockups updated first — Open Design's MCP was disconnected mid-session, so the two
+governing `.html` files (`hub-block-module.html`, `hub-client-detail-refined.html`
+under `D:\apps\design-systems\ef-control-hub\desktop\`) were edited directly on disk,
+same Design Parity requirement either way.
+
+Shipped: block cards/tables/header now show a real dated span derived from the
+block's own sessions (never fabricated); session rows lead with date+time, unbooked
+sessions read "Session N of M · not yet booked"; every "S3"/"B2 S3" abbreviation
+replaced with the spelled-out form outside chart ticks (which keep a short tick but
+spell the point out fully in the tooltip via a new `fullLabel` field).
+
+Mid-build, found a concurrent worktree (`cr-ef-076-078-client-detail-polish`) had
+already restructured the exact same two files and was already merged into
+`origin/staging` — merged clean, verified both sets of changes survived intact.
+Pushed `staging` → verified live on development.eternal-fitness.co.uk → merged
+`main` (pulling in 2 unrelated docs-only commits from a concurrent CR-EF-079 lane,
+zero file overlap, checked first) → Coolify auto-deployed → verified live on
+production eternal-fitness.co.uk against real client data. No console errors either
+environment. Nothing left open on this unit; worktree has no unmerged/uncommitted
+work.
