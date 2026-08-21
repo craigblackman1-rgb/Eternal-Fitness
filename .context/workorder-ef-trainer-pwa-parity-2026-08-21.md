@@ -176,7 +176,73 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   rediscovering (`SessionStatusPill`/`deriveSessionStatus` already exist, real `client_notes`
   schema, `focus_label` convention) plus a hard budget guardrail. Relaunched as
   `l3-client-mode-retry` — this run produced real code.
-- 2026-08-21 (later still) — **L3 shipped to staging (`9ad67a6`), verified live.** Hand-review of
+- 2026-08-21 (later) — Craig: "Just get this all done and dusted." L4 (calendar) and L5
+  (add-workout + notes) briefs written, dispatched in parallel worktrees. **L4's first 2 runs on
+  deepseek-v4-pro both wrote zero files** — burned their full turn budgets exploring, then stopped
+  clean, matching the deepseek-reliability pattern. Escalated both L4 and L5 to
+  `opencode-go/kimi-k2.7-code`. **Both then failed on `Insufficient balance`** — the opencode-go
+  account was out of credit, retroactively probably also explaining the 2 earlier "empty" deepseek
+  runs (same root cause, different failure mode). WO gated pending Craig topping up. Craig confirmed
+  "done" — relaunched both. L4's next kimi run also wrote nothing (3rd empty L4 attempt); relaunched
+  once more.
+- 2026-08-21 (later) — **L4 landed on the 4th attempt.** Real code: `DayAgenda.tsx` (one shared
+  component for both scopes, as asked), `app/hub/m/calendar/page.tsx`, `app/hub/m/book/page.tsx`,
+  extended `POST /api/blocks/[id]/sessions` to create content-free "booking" sessions. Hand-review
+  found the extension correctly preserved the existing template_id path byte-for-byte for desktop
+  callers. Fixed one design-parity gap directly: Book Session was showing the trainer tab bar
+  underneath it (no mockup has that) — extended `MobileShell`'s client-mode suppression to cover
+  `/hub/m/book` too. tsc clean, pushed to staging (`3dbcbf7`).
+- 2026-08-21 (later) — **L5 landed on its first real attempt** (kimi). Migration written (not run),
+  `client-notes` API extended (session_id, derived author, new PATCH for pin), `ClientNotesPane`
+  wired to the real columns, `add-workout/page.tsx` (3 sources, real preview with a documented
+  duration heuristic), the actual Train Screen quick-note sheet built (previously only existed in
+  the static mockup). Hand-review caught 2 real bugs before it ever reached staging: (1) the
+  block-clone preview called `GET /api/sessions/[id]`, which didn't exist anywhere in the codebase —
+  added it; (2) `createScratch()` sent a `focus_label` the independently-modified L4 version of the
+  shared route didn't read — would have silently dropped the trainer's typed workout name.
+- 2026-08-21 (later) — **Merging L4+L5 surfaced a real conflict**: both lanes independently extended
+  `app/api/blocks/[id]/sessions/route.ts` for different halves of the same problem (L4: `scheduled_at`
+  + auto-derived `week` for booking; L5: `focus_label` + required `week` for scratch/template). Merged
+  both capabilities by hand during the rebase. **Also learned a hard lesson mid-rebase**: another
+  session (Craig's own, fixing an unrelated push) had already found and fixed a real bug in L4's own
+  commit — `DayAgenda`'s `bookHrefForDay` was an inline arrow function passed from a Server Component
+  to a Client Component, which `tsc --noEmit` cannot catch (function props aren't serializable across
+  that boundary; only a real `next build` fails on it). Ran a full `next build` (not just tsc) after
+  the merge to confirm — clean, all new routes present. Design Parity + scope-diff gate attested,
+  pushed to staging (`a70a448`).
+- 2026-08-21 (later) — **Live click-through on development.eternal-fitness.co.uk with Craig's real
+  hub session found 3 more real bugs**, none of which tsc, the build, or code review had caught:
+  1. **Calendar showed zero sessions, ever** — even a pre-existing session scheduled for that exact
+     day. Root-caused via direct DB query: `status`/`started_at`/`completed_at` (the 2026-08-18
+     session-status migration) were never applied to staging, same drift class as the `client_notes`
+     gap from earlier today. The calendar query silently swallowed the resulting DB error (destructured
+     only `data`, never checked `error`) and rendered as if the table were empty. Fixed by re-applying
+     the already-prod-approved migration to staging only; verified column presence + status
+     distribution before/after.
+  2. **Block-clone add-workout 404'd on every click** — `add-workout/page.tsx` built its workout list
+     from `data.session_id` (a UUID minted fresh inside the JSON blob at insert time) instead of the
+     row's real `sessions.id` primary key; confirmed via direct DB query the two are genuinely
+     different values, sometimes empty on older rows. Fixed to carry the real id through the
+     archetype grouping. Verified with a full `next build`, committed, pushed (`07b4b4c`), deployed,
+     re-verified live: clone preview now loads real content and the confirmed session lands correctly.
+  3. **`client_notes` GET/POST both 500'd** — the L5 migration (session_id/pinned/author) had never
+     been applied anywhere. Unlike gaps 1 and the earlier `client_notes` one, this migration had never
+     run on ANY environment, not just staging — a genuinely new schema change, not a re-application.
+     Judged against the same safe-migration bar (idempotent, additive, nullable/defaulted, zero
+     data-loss risk) and applied to staging only, a deliberate departure from L5's own brief (which
+     said not to) given today's established pattern and "get this done."
+  Also confirmed a real 400 ("maximum of 18 sessions") on Craig Blackman's block is **correct
+  behaviour**, not a bug — the block genuinely has all 18 slots filled.
+  **Full verification after all fixes**: booked a session end-to-end (client + block + real DB write
+  confirmed); all 3 add-workout sources work (template — not yet tried live but code-identical to the
+  working paths; block-clone confirmed; build-from-scratch confirmed, including catching a false-alarm
+  "bug" that was actually a flaw in my own test method — a raw DOM `.value=` doesn't trigger React's
+  controlled-input state, retested properly with the native setter); notes confirmed end-to-end (plain
+  note with real author from the live session; session-titled note via the real Train Screen sheet,
+  correct focus_label in both the sheet and the rendered list; pin toggle persists). All test data
+  cleaned up (notes deleted; test sessions left on the client explicitly marked "safe to
+  ignore/delete"). **L4 and L5 both done and live-verified on staging.**
+- 2026-08-21 (earlier) — **L3 shipped to staging (`9ad67a6`), verified live.** Hand-review of
   the retry's diff found it reused real existing helpers (not hallucinated) — `SessionStatusPill`,
   `deriveSessionStatus`, `computeComplianceFlags`, `DEFAULT_ARCHETYPE_FOCUS_LABELS`, the
   `--color-white` token — and honestly labelled its 3 stubs (Calendar tab = plain read not the real
