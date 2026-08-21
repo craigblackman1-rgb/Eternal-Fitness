@@ -344,9 +344,17 @@ not the first commit's, as authoritative.
 - [x] Pushed to `staging`, deployed (commit `4585d09`), verified live on
   development.eternal-fitness.co.uk via claude-in-chrome (real render, real Link/Keep
   separate/Undo clicks, DB-confirmed each time).
-- [ ] Promote to `main` — **awaiting Craig's go-ahead** (asked, not yet answered): this changes
-  live push-sync behaviour going forward (a colliding new session pauses instead of syncing), so
-  flagged rather than auto-promoted despite the earlier "you can merge this to main" for Lane G.
+- [x] **Promoted to `main`, live in production. CR-EF-028 CLOSED.** Craig approved ("can you push
+  and merge any outstanding updates to main"). Merged origin/main twice and origin/staging three
+  times during promotion (concurrent unrelated lanes: trainer-PWA docs, a client-notes feature, an
+  independently-built "Outlook triage" mobile lane that rewrote `app/hub/m/calendar/page.tsx` and
+  removed its `DayAgenda` usage entirely — confirmed no regression of the build fix below, full
+  `next build` re-verified clean each time). Coolify deployment `ffdkcfytnowfv0vxhnmyjriu` finished
+  healthy on commit `e65ad3c` (matches the push). **Verified live**: eternal-fitness.co.uk's
+  `/hub/schedule/outlook/duplicates` loads correctly, "0 possible duplicates" — matching the
+  dry-run's prediction exactly (nothing currently scheduled collides, so today's deploy is a
+  behavioural no-op; the pause logic only engages the next time Esther books a session that
+  collides with one of her own personal Outlook entries).
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
