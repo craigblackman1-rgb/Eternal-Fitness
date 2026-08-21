@@ -316,11 +316,37 @@ not the first commit's, as authoritative.
   dates) — every personal entry predates the app's own sync event, confirming this is Esther's
   long-standing manual habit colliding with the (already-live, unrelated-to-today) push-sync, not
   a new bug from CR-EF-050's work. See CR-EF-028 for full detail.
-- [GATE] G8 — Open Design brief for the reconciliation queue (mirrors Lane G's UI: link-existing
-  vs keep-separate, per session about to sync) — brief written, run not yet started (Open Design
-  MCP was disconnected when raised). No build before a mockup lands.
-- [BLOCKED] Migration (new table for duplicate-candidate rows) + push-sync collision-check logic
-  + UI — waiting on: G8's mockup.
+- [x] G8 — Open Design brief raised; **Craig ran the mockup himself 2026-08-21** (OD MCP stayed
+  disconnected from this session throughout) — `hub-schedule-outlook-duplicates.html`, a shared
+  tab bar with the Bookings queue, existing-event comparison with a same/off-time flag. **G8
+  CLOSED.**
+- [x] Migration `20260821_outlook_duplicate_candidates.sql` — run + verified on prod and staging.
+- [x] Collision detection wired into `lib/calendar-sync.ts`'s batch cron AND immediate
+  on-schedule push (`syncSessionCalendarEvent`, fired from the sessions PATCH — this is the path
+  that actually caused Emma's collision, not just the cron backstop). `lib/outlook-duplicates.ts`
+  holds the shared detection/link/keep-separate/unresolve logic.
+- [x] `/hub/schedule/outlook/duplicates` queue + `OutlookReconciliationTabs` shared tab bar +
+  combined route-in badge count — matches the mockup 1:1 (tab bar, note callout, summary strip,
+  existing-event flag copy, link/keep-separate/undo actions).
+- [x] Verification: read-only dry-run (`scripts/dry-run-outlook-duplicate-detection.mjs`) against
+  real prod data — confirms detection matches the 5 known collisions from the diagnostic, and
+  critically that shipping today pauses **zero** currently-scheduled sessions (everything in the
+  window is already synced) — this fix only prevents new duplicates going forward; the 5 already
+  in Esther's calendar are untouched by it. Link/keep-separate/undo all verified via real UI
+  clicks on staging against synthetic data (session/candidate seeded directly, no real Outlook
+  reachable from staging), each DB-confirmed.
+- [x] **Unrelated build-blocker found and fixed**: `app/hub/m/calendar/page.tsx` (concurrent
+  mobile-calendar lane) passed a function prop across the Server→Client boundary to `DayAgenda`,
+  failing `next build` (not caught by `tsc --noEmit`) and blocking every deploy on this branch.
+  Fixed by deriving the booking href inside `DayAgenda` from its existing `scope`/new
+  `clientNumber` prop instead. Verified with a full local `next build` — clean, all routes
+  present.
+- [x] Pushed to `staging`, deployed (commit `4585d09`), verified live on
+  development.eternal-fitness.co.uk via claude-in-chrome (real render, real Link/Keep
+  separate/Undo clicks, DB-confirmed each time).
+- [ ] Promote to `main` — **awaiting Craig's go-ahead** (asked, not yet answered): this changes
+  live push-sync behaviour going forward (a colliding new session pauses instead of syncing), so
+  flagged rather than auto-promoted despite the earlier "you can merge this to main" for Lane G.
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
