@@ -601,6 +601,58 @@
   .mtop-row, .searchwrap, .cchips { padding-left: 20px; padding-right: 20px; }
 }
 
+/* ── Client mode (hub-m-client-mode.html) ──────────────────────── */
+.pane { display: none; }
+.pane.on { display: block; }
+
+/* Persistent scope indicator — the rose banner that stays fixed under the
+   top bar the whole time you're inside a client, so you can't log against the
+   wrong client (CR-EF-079 G2). */
+.scope-bar { position: sticky; top: calc(env(safe-area-inset-top) + 60px); z-index: 29; display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 6px 10px 6px 12px; background: var(--s-primary-bg); border-bottom: 1px solid var(--s-primary-bd); }
+.scope-av { width: 34px; height: 34px; flex-shrink: 0; border-radius: 999px; background: var(--rose); color: var(--color-white); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+.scope-txt { min-width: 0; flex: 1; }
+.scope-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--rose); }
+.scope-name { font-size: 14.5px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scope-exit { flex-shrink: 0; height: 38px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--s-primary-bd); background: var(--card); color: var(--ink); font-family: inherit; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; text-decoration: none; }
+.scope-exit:hover { background: var(--color-white); }
+.scope-exit svg { color: var(--rose); }
+
+/* Action row inside the Medical & compliance panel ("Train {name}") */
+.actbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.actbar .btn { grid-column: 1 / -1; }
+
+/* Pinned note stub (no `pinned` column on client_notes yet — L5) */
+.pin-empty { color: var(--muted); font-size: 13px; }
+
+/* Workout list (read-only — add flow is L5) */
+.wcard { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); padding: 12px; font-family: inherit; }
+.wcard + .wcard { margin-top: 10px; }
+.wav { width: 42px; height: 42px; flex-shrink: 0; border-radius: 999px; background: var(--s-primary-bg); border: 1px solid var(--s-primary-bd); color: var(--rose); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+.wbody { min-width: 0; flex: 1; }
+.wtitle { display: block; font-size: 14px; font-weight: 700; color: var(--ink); }
+.wmeta { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.wchev { flex-shrink: 0; color: var(--muted); }
+
+/* Notes pane (compose + search + filter pills + list) */
+.ncompose { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 12px; margin-bottom: 14px; }
+.ncompose textarea { width: 100%; border: 0; background: none; resize: none; font-family: inherit; font-size: 15px; line-height: 1.5; color: var(--ink); min-height: 64px; padding: 4px 2px 8px; outline: none; }
+.ncompose-foot { display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.ncompose-foot .btn { height: 40px; margin-left: auto; }
+.notes-search { display: flex; gap: 8px; margin-bottom: 10px; }
+.notes-search input { flex: 1; height: 46px; border: 1px solid var(--field-border); border-radius: 10px; padding: 0 12px; font-size: 15px; font-family: inherit; background: var(--card); color: var(--ink); }
+.notes-search input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(193,131,159,.3); }
+.npills { display: flex; gap: 6px; margin-bottom: 12px; }
+.npill { flex: 0 0 auto; height: 36px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--body); font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.npill:hover { background: var(--hover); color: var(--ink); }
+.npill.on { background: var(--s-primary-bg); border-color: var(--s-primary-bd); color: var(--rose); font-weight: 700; }
+.note-item { display: flex; gap: 10px; padding: 12px 14px; }
+.note-item + .note-item { border-top: 1px solid var(--border); }
+.note-body { min-width: 0; flex: 1; }
+.note-when { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.note-txt { font-size: 13.5px; line-height: 1.55; color: var(--body); margin-top: 6px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.note-pin { flex-shrink: 0; width: 38px; height: 38px; border-radius: 9px; border: 0; background: none; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.note-pin:hover { background: var(--s-danger-bg); color: var(--s-danger); }
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-shell *, .mobile-shell *::before, .mobile-shell *::after {
     transition-duration: .01ms !important;
