@@ -174,9 +174,10 @@ const ICO = {
 interface TodayScreenProps {
   entries: TodayEntry[];
   tasks: Task[];
+  openBookingCount: number;
 }
 
-export function TodayScreen({ entries, tasks }: TodayScreenProps) {
+export function TodayScreen({ entries, tasks, openBookingCount }: TodayScreenProps) {
   const router = useRouter();
   const [day, setDay] = useState<string>(todayISO());
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -291,6 +292,21 @@ export function TodayScreen({ entries, tasks }: TodayScreenProps) {
               Two different clients are booked over each other. Nothing is blocked — check the times before you start.
             </div>
           </div>
+        )}
+
+        {openBookingCount > 0 && (
+          <Link
+            className="alert a-warning"
+            href="/hub/m/calendar"
+            data-od-id="bookings-alert"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <span className="alert-ic">{ICO.warn}</span>
+            <div>
+              <b>{openBookingCount} booking{openBookingCount !== 1 ? "s" : ""} waiting to be matched</b>
+              Booked through Microsoft Bookings and not yet linked to a client or block — they&apos;re on the calendar.
+            </div>
+          </Link>
         )}
 
         <div className={`m-section${collapsed.sessions ? " collapsed" : ""}`}>

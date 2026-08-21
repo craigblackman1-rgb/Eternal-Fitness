@@ -22,6 +22,14 @@ interface BlockOption {
   block_note: string | null;
 }
 
+interface OutlookBookingRow {
+  id: string;
+  subject: string;
+  start_at: string;
+  parsed_name: string | null;
+  status: string;
+}
+
 const ICO = {
   back: (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -84,6 +92,8 @@ export default function BookSessionPage() {
   const scope = (searchParams.get("scope") as "trainer" | "client") || "client";
   const preselectClientNumber = searchParams.get("client");
   const preselectDay = searchParams.get("day") || todayLocalISODate();
+  const bookingId = searchParams.get("booking");
+  const isBookingConfirm = !!bookingId;
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [blocks, setBlocks] = useState<BlockOption[]>([]);
@@ -94,6 +104,9 @@ export default function BookSessionPage() {
   const [loadingClients, setLoadingClients] = useState(scope === "trainer");
   const [loadingBlocks, setLoadingBlocks] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [booking, setBooking] = useState<OutlookBookingRow | null>(null);
+  const [loadingBooking, setLoadingBooking] = useState(isBookingConfirm);
+  const [bookingGone, setBookingGone] = useState<string | null>(null);
 
   const isTrainerScope = scope === "trainer";
   const selectedClient = useMemo(
@@ -102,8 +115,11 @@ export default function BookSessionPage() {
   );
 
   // Load clients in trainer scope; resolve preselected client in client scope.
+  // In booking-confirm mode the client picker is always the full trainer list
+  // (this triage flow is trainer-scope only, per the mockup) — pre-select
+  // happens separately once the booking's parsed_name is known.
   useEffect(() => {
-    if (isTrainerScope) {
+    if (isTrainerScope || isBookingConfirm) {
       setLoadingClients(true);
       fetch("/api/clients")
         .then((res) => (res.ok ? res.json() : []))
@@ -125,7 +141,36 @@ export default function BookSessionPage() {
           }
         });
     }
-  }, [isTrainerScope, preselectClientNumber]);
+  }, [isTrainerScope, isBookingConfirm, preselectClientNumber]);
+
+  // Booking-confirm mode: fetch the queue and find this row (no single-booking
+  // GET route exists — filtering the list client-side is fine at this scale).
+  // Once clients have loaded, pre-select on an exact case-insensitive
+  // parsed_name match.
+  useEffect(() => {
+    if (!bookingId) return;
+    setLoadingBooking(true);
+    fetch("/api/outlook-bookings?status=all")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list: OutlookBookingRow[]) => {
+        const found = list.find((b) => b.id === bookingId) ?? null;
+        if (!found) {
+          setBookingGone("This booking no longer exists.");
+        } else if (found.status !== "open") {
+          setBookingGone(`This booking has already been ${found.status}.`);
+        } else {
+          setBooking(found);
+        }
+      })
+      .finally(() => setLoadingBooking(false));
+  }, [bookingId]);
+
+  useEffect(() => {
+    if (!booking?.parsed_name || clients.length === 0 || selectedClientId) return;
+    const needle = booking.parsed_name.trim().toLowerCase();
+    const match = clients.find((c) => c.name.trim().toLowerCase() === needle);
+    if (match) setSelectedClientId(match.id);
+  }, [booking, clients, selectedClientId]);
 
   // Load blocks for selected client.
   useEffect(() => {
@@ -150,14 +195,52 @@ export default function BookSessionPage() {
       .finally(() => setLoadingBlocks(false));
   }, [selectedClientId]);
 
-  const canSubmit =
-    selectedClientId && selectedBlockId && date && time && !submitting;
+  const canSubmit = isBookingConfirm
+    ? !!(selectedClientId && selectedBlockId && booking && !submitting)
+    : !!(selectedClientId && selectedBlockId && date && time && !submitting);
 
   const backHref = isTrainerScope ? "/hub/m/calendar" : `/hub/m/clients/${preselectClientNumber ?? ""}`;
+
+  // A booking that's already gone (resolved by someone else, or deleted) has
+  // nothing left to confirm — bounce back to the triage list rather than
+  // showing a dead form.
+  useEffect(() => {
+    if (bookingGone) {
+      toast.error(bookingGone);
+      router.push("/hub/m/calendar");
+    }
+  }, [bookingGone, router]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setSubmitting(true);
+
+    if (isBookingConfirm && booking) {
+      try {
+        const res = await fetch(`/api/outlook-bookings/${booking.id}/confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId: selectedClientId, blockId: selectedBlockId }),
+        });
+        if (res.status === 409) {
+          toast.error("Someone already resolved this booking");
+          router.push("/hub/m/calendar");
+          return;
+        }
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to confirm booking");
+        }
+        toast.success("Booking confirmed");
+        router.push("/hub/m/calendar");
+        router.refresh();
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to confirm booking");
+        setSubmitting(false);
+      }
+      return;
+    }
+
     try {
       const [y, mo, d] = date.split("-").map(Number);
       const [h, min] = time.split(":").map(Number);
@@ -179,7 +262,14 @@ export default function BookSessionPage() {
       toast.error(err instanceof Error ? err.message : "Failed to book session");
       setSubmitting(false);
     }
-  }, [canSubmit, date, time, selectedBlockId, backHref, router]);
+  }, [canSubmit, date, time, selectedBlockId, selectedClientId, backHref, router, isBookingConfirm, booking]);
+
+  function formatBookingContext(startAt: string): string {
+    const d = new Date(startAt);
+    return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }) +
+      " · " +
+      d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  }
 
   const scopeName = selectedClient?.name ?? (isTrainerScope ? "All clients" : "—");
   const scopeLabel = isTrainerScope ? "Trainer scope" : "Booking for client";
@@ -192,8 +282,12 @@ export default function BookSessionPage() {
             {ICO.back}
           </Link>
           <div className="mtop-id">
-            <div className="mtop-t">Book session</div>
-            <div className="mtop-s">Writes scheduled_at — syncs to Outlook</div>
+            <div className="mtop-t">{isBookingConfirm ? "Confirm booking" : "Book session"}</div>
+            <div className="mtop-s">
+              {isBookingConfirm
+                ? "Match this Outlook booking to a client and block"
+                : "Writes scheduled_at — syncs to Outlook"}
+            </div>
           </div>
         </div>
       </header>
@@ -296,32 +390,46 @@ export default function BookSessionPage() {
           </div>
         </div>
 
-        <div className="panel" data-od-id="when-picker">
-          <div className="panel-h">
-            <span className="panel-h-ic ic-teal">{ICO.when}</span>
-            <span>
-              <span className="panel-h-t">When</span>
-              <span className="panel-h-s">Writes scheduled_at — Outlook sync fires automatically</span>
-            </span>
-          </div>
-          <div className="panel-b">
-            <div className="field">
-              <label htmlFor="date">Date</label>
-              <input
-                id="date"
-                type="date"
-                value={date}
-                min={shiftDay(todayLocalISODate(), -90)}
-                max={shiftDay(todayLocalISODate(), 365)}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="time">Time</label>
-              <input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+        {isBookingConfirm && (loadingBooking || booking) && (
+          <div className="alert a-warning" data-od-id="booking-context">
+            <span className="alert-ic">{ICO.warn}</span>
+            <div>
+              <b>From Microsoft Bookings</b>
+              {loadingBooking
+                ? "Loading…"
+                : `"${booking!.subject}" · ${formatBookingContext(booking!.start_at)}. Confirm who and which block it belongs to — then it becomes a real session.`}
             </div>
           </div>
-        </div>
+        )}
+
+        {!isBookingConfirm && (
+          <div className="panel" data-od-id="when-picker">
+            <div className="panel-h">
+              <span className="panel-h-ic ic-teal">{ICO.when}</span>
+              <span>
+                <span className="panel-h-t">When</span>
+                <span className="panel-h-s">Writes scheduled_at — Outlook sync fires automatically</span>
+              </span>
+            </div>
+            <div className="panel-b">
+              <div className="field">
+                <label htmlFor="date">Date</label>
+                <input
+                  id="date"
+                  type="date"
+                  value={date}
+                  min={shiftDay(todayLocalISODate(), -90)}
+                  max={shiftDay(todayLocalISODate(), 365)}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="time">Time</label>
+                <input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <button
           className="btn btn-primary full"
@@ -329,7 +437,7 @@ export default function BookSessionPage() {
           disabled={!canSubmit}
           data-od-id="confirm-booking"
         >
-          {submitting ? "Booking…" : "Confirm booking"}
+          {submitting ? (isBookingConfirm ? "Confirming…" : "Booking…") : "Confirm booking"}
         </button>
       </main>
     </>
