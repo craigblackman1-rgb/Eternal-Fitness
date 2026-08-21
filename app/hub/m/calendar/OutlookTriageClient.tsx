@@ -175,7 +175,7 @@ export function OutlookTriageClient({
 
       {sheetOpen && (
         <>
-          <div className="sheet-overlay open" onClick={() => setSheetOpen(false)} />
+          <div className="scrim" onClick={() => setSheetOpen(false)} />
           <div className="sheet open" data-od-id="triage-sheet">
             <div className="sh-grab" />
             <div className="sh-h">
