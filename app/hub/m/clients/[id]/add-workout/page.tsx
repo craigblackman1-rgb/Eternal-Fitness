@@ -170,12 +170,15 @@ export default function AddWorkoutPage() {
         setBlock(current);
         const sessionRes = await fetch(`/api/blocks/${current.id}/sessions`);
         const rows = sessionRes.ok ? ((await sessionRes.json()) as SessionRow[]) : [];
-        const sessions = rows.map((r) => r.data);
-        const byArchetype = new Map<string, Session[]>();
-        for (const s of sessions) {
-          const a = s.archetype ?? "?";
+        // `data.session_id` (inside the JSON blob) is a separate, unrelated
+        // UUID minted at insert time -- sometimes even empty on older rows.
+        // The real primary key every other route expects is the outer row's
+        // `id`. Keep them paired rather than discarding the outer id here.
+        const byArchetype = new Map<string, { id: string; data: Session }[]>();
+        for (const r of rows) {
+          const a = r.data.archetype ?? "?";
           const arr = byArchetype.get(a) ?? [];
-          arr.push(s);
+          arr.push({ id: r.id, data: r.data });
           byArchetype.set(a, arr);
         }
         const out: BlockWorkout[] = [];
@@ -184,15 +187,15 @@ export default function AddWorkoutPage() {
           const list = byArchetype.get(a);
           if (!list) continue;
           out.push({
-            id: list[0].session_id,
+            id: list[0].id,
             letter: a,
-            name: list[0].focus_label?.trim() || `Workout ${a}`,
-            emphasis: list[0].focus_label?.trim() || "Session",
+            name: list[0].data.focus_label?.trim() || `Workout ${a}`,
+            emphasis: list[0].data.focus_label?.trim() || "Session",
             total: list.length,
           });
         }
         setBlockWorkouts(out);
-        const maxWeek = sessions.reduce((m, s) => Math.max(m, s.week ?? 1), 1);
+        const maxWeek = rows.reduce((m, r) => Math.max(m, r.data.week ?? 1), 1);
         setWeek(maxWeek);
       })
       .catch(() => {});
