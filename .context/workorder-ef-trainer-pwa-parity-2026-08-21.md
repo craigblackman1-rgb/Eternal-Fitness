@@ -276,3 +276,61 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   2026-08-17 migration all along — only staging was missing it). No write test on prod (real client
   data; the staging round-trip already proved the write path). L3 is genuinely done on both
   environments now, not just staging.
+- 2026-08-21 (later) — **L6 (Outlook badge + mobile triage) dispatched and landed on its first real
+  attempt.** Badge card on Today (links to Calendar) and Calendar (opens inline), triage sheet listing
+  the open queue, dismiss action, and `OutlookBookingRow` type shared with the extended Book page.
+  **The lane left its own last planned step undone and didn't say so** — its brief's central ask,
+  extending `app/hub/m/book/page.tsx` with a `booking=<id>` confirm mode, was never written; `git
+  status` showed the file untouched despite the triage sheet already linking to
+  `?booking=<id>` URLs it couldn't handle. No handback note flagged the gap — caught only by checking
+  the diff against the brief's own checklist, the exact "OpenCode diffs must be hand-reviewed, never
+  trusted on self-report" failure pattern this project has hit 4 times before. Completed directly
+  (not re-dispatched — the remaining work was a bounded, already-understood extension of a file
+  already read in full): `bookingId` from `searchParams`, fetch + match against
+  `GET /api/outlook-bookings?status=all` (no single-booking route exists, listed and filtered
+  client-side as the brief said was fine at this scale), case-insensitive `parsed_name` pre-select,
+  hidden date/time fields, and a branched submit to `POST /api/outlook-bookings/[id]/confirm` with
+  409 handling (bounces back to Calendar with a toast rather than retrying).
+  **Design Parity Gate — one flagged deviation.** Read `hub-m-book-session.html` in full for the
+  confirm-mode state: the mockup renders the Outlook context as an `a-warning` banner ("From
+  Microsoft Bookings — ... Confirm who and which block it belongs to") on top of the *same* editable
+  date/time panel used for a fresh booking, not a separate read-only panel. Matched the banner style
+  exactly. Kept date/time hidden anyway — the confirm API (`clientId`/`blockId` only, server derives
+  `scheduled_at` from the Outlook event) makes editable fields there functionally dead, so pixel
+  parity would have shipped a control that silently does nothing. Flagged to Craig rather than
+  silently resolved either way.
+  **`tsc --noEmit` and a full `next build`** both clean before every push (per this WO's standing
+  rule — a prior lane already proved tsc alone misses real production build failures).
+  **Live verification on development.eternal-fitness.co.uk found 2 more real bugs, both invisible to
+  tsc and a green build** — same class of gap as L3/L4/L5's live-only findings, worth calling out as
+  a pattern: three lanes in a row in this WO shipped code that compiled clean and built clean but was
+  still broken until driven by a real browser against real data.
+  1. **The triage sheet covered the entire Calendar tab on every page load**, not just after tapping
+     Review. `.sheet` (the "Edit sheet" component reused per the brief) has no CSS closed state at
+     all — unlike `.note-sheet`, which TrainScreen's quick-note sheet uses, `.sheet` is meant to be
+     conditionally *mounted*, not toggled via an `.open` class; only `.sheet-overlay` has that
+     toggle. The lane rendered `<div className={\`sheet\${sheetOpen ? " open" : ""}\`}>` unconditionally,
+     assuming a CSS rule that doesn't exist. Fixed by conditionally rendering the whole sheet+overlay
+     block, matching how `EditSheet.tsx` and `TrainScreen`'s note sheet are actually built. Pushed
+     (`09e6d08`), redeployed, re-verified — sheet now closed by default, Calendar fully visible.
+  2. **The dismiss button and row-tap were unclickable** — a second bug in the same component,
+     surfaced only once bug 1 was fixed and the sheet could be interacted with at all. `.sheet-overlay`
+     is `z-index: 70`, `.sheet` is `z-index: 60` — the full-viewport dimming overlay sat *above* the
+     sheet's own content in stacking order, so every click meant for the sheet (dismiss, row tap) was
+     silently intercepted by the overlay's own `onClick={() => setSheetOpen(false)}`, just closing the
+     sheet with no API call and no navigation. Confirmed by checking the two other real consumers of
+     this component family: `EditSheet.tsx` correctly pairs `.sheet` (60) with `.scrim` (50, below
+     it); `TrainScreen`'s note sheet correctly pairs `.sheet-overlay` (70) with `.note-sheet` (71,
+     above it) — the lane had mixed a `.sheet` with the wrong-tier overlay. Fixed by switching the
+     backdrop to `.scrim`. Pushed (`828981a`), redeployed.
+  **Final live pass, both fixes confirmed**: badge shows the real open-booking count on Today and
+  Calendar; triage sheet opens only via Review, lists real queue rows (subject/time/matched-state);
+  dismiss on a genuinely-unmatched test booking fired `POST /api/outlook-bookings/<id>/dismiss` (200,
+  confirmed via network inspection) and removed the row with a toast, no reload; tapping a real
+  matched row (Becky Price) reached the confirm page with no date/time fields, the exact mockup
+  banner copy showing the real subject + formatted time, her client row pre-selected via the
+  `parsed_name` match, and her current block auto-selected. Did not submit — real client/booking
+  data, and the UI + wiring were already enough to confirm the flow works without writing a real
+  session. **L6 done, live-verified on staging. All of L3, L4, L5, L6 are now live-verified on
+  development.eternal-fitness.co.uk.** Promotion of `staging` → `main` for this WO's full scope is
+  the one remaining step — not yet executed, see next entry.
