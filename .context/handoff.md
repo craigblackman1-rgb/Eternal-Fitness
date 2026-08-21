@@ -3811,3 +3811,30 @@ just the app's deploy status.
 
 Both CRs closed in `change-requests.md` and `wo-ef-consolidated-2026-08-20.md`. No
 uncommitted work in this worktree.
+
+## 2026-08-21 — CR-EF-080: schedule/reschedule from the session detail view
+
+Craig was looking at an already-scheduled session
+(`clients/1/blocks/.../sessions/18` on development.eternal-fitness.co.uk) and asked
+for the ability to schedule a workout from that view. Confirmed the gap: the block
+overview list (`SessionRow.tsx`) already had inline schedule/reschedule, but the
+dedicated session detail page (`sessions/[sessionNum]/page.tsx`) had no way to set
+`scheduled_at` at all — the header's date segment just silently disappeared for
+unscheduled sessions. No mockup governs this; reused `SessionRow.tsx`'s existing
+pattern verbatim (inline date+time inputs, `PATCH /api/sessions/[id]`) rather than
+inventing a new one. Button reads "Schedule" when unset, "Reschedule" once a date
+exists; hidden for completed/cancelled sessions, matching `SessionRow`'s own gating.
+`tsc --noEmit` clean.
+
+Pushed to `staging` (`195228c`, merged with `e5838fd`). The Coolify staging deploy
+was unusually flaky this session — two consecutive builds stalled at zero log
+progress (matching the known "exec channel dies" pattern already noted in this
+project's history) before a third attempt finally completed. Verified live on
+development.eternal-fitness.co.uk (client 1, session 18) via claude-in-chrome:
+Reschedule button present, opens pre-filled with the session's real date/time
+(04/09/2026, 10:00), Save/Cancel both present and working.
+
+Registered as **CR-EF-080** in `change-requests.md` (no existing WO scope fit a
+single small unit like this, so no new WO raised — the CR row is the record). **Not
+promoted to `main`** — held pending Craig's go-ahead since it touches a
+client/production-facing surface. No uncommitted work in this worktree.
