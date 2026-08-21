@@ -198,3 +198,15 @@ the Trainerize-style activity feed (parked — needs a notifications model we do
   up after. (2) Workouts empty-state said "no current block" for a block that exists with zero
   sessions — fixed to say so honestly. Second gate attestation covers both the live verification and
   the fix, pushed as `9ad67a6`. **L3 done.** L4 (day-agenda calendar) next.
+- 2026-08-21 (later) — **Correction from a different session** (`eternal-fitness-feature-request-f3bea2`,
+  CR-EF-073 promotion) flagged in the registry: an unrelated reconcile-with-staging merge on its way
+  to `main` carried L3's `app/hub/m/**` code onto production earlier than this WO's planned
+  staging-then-main sequence. Assessed low-risk by that session (staff-auth-gated, additive) but not
+  reverted, and asked for prod to be re-verified live before calling L3 done. **Done**: confirmed
+  `ff12067` (includes `9ad67a6`) is the live commit on the `eternal-fitness` Coolify app
+  (deployment healthy, `mcp__coolify__deployment get`), then live-checked `/hub/m/clients/1` on
+  `eternal-fitness.co.uk` itself (Craig's real prod client, not the staging clone) — client mode
+  renders correctly, `/api/client-notes` returns 200 (not 500, confirming prod already had the
+  2026-08-17 migration all along — only staging was missing it). No write test on prod (real client
+  data; the staging round-trip already proved the write path). L3 is genuinely done on both
+  environments now, not just staging.
