@@ -94,6 +94,8 @@
 .a-warning { background: var(--s-warning-bg); border-color: var(--s-warning-bd); color: var(--status-warning-text); }
 .alert-ic { flex-shrink: 0; color: var(--s-warning); }
 .alert b { display: block; color: var(--ink); }
+.alert-cta { flex-shrink: 0; align-self: center; height: 40px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--s-warning-bd); background: var(--card); color: var(--ink); font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.alert-cta:hover { background: rgba(247,239,221,.62); }
 
 .sec-label { display: flex; align-items: baseline; gap: 8px; margin: 4px 2px 8px; }
 .sec-label h2 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }

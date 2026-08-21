@@ -1,14 +1,13 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import type { Session } from "@/types";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
-import { DayAgenda } from "@/components/hub/DayAgenda";
 import {
   todayLocalISODate,
   shiftDay,
   isoToLocalDate,
 } from "@/lib/schedule-dates";
+import { OutlookTriageClient } from "./OutlookTriageClient";
 
 
 interface SessionRow {
@@ -21,6 +20,19 @@ interface SessionRow {
   cancelled_at: string | null;
   status: string | null;
   completed_at: string | null;
+}
+
+export interface OutlookBookingRow {
+  id: string;
+  event_id: string;
+  subject: string;
+  start_at: string;
+  end_at: string;
+  parsed_name: string | null;
+  client_id: string | null;
+  status: string;
+  session_id: string | null;
+  clients: { id: string; name: string; client_number: number | null; email: string | null } | null;
 }
 
 function sessionName(s: SessionRow): string {
@@ -88,48 +100,27 @@ export default async function MobileCalendarPage() {
     };
   });
 
+  const { data: bookingRows, error: bookingErr } = await supabase
+    .from("outlook_booking_events")
+    .select("id, event_id, subject, start_at, end_at, parsed_name, client_id, status, session_id, clients(id, name, client_number, email)")
+    .eq("status", "open")
+    .order("start_at", { ascending: true });
+
+  if (bookingErr) {
+    console.error("Failed to load outlook bookings:", bookingErr.message);
+  }
+
+  const openBookings = (bookingRows ?? []) as OutlookBookingRow[];
+  const openBookingCount = openBookings.length;
+
   return (
-    <>
-      <header className="mtop">
-        <div className="mtop-row">
-          <div className="mbrand">
-            <img src="/images/ef-heart-logo.svg" alt="Eternal Fitness" />
-            <span className="mbrand-sub">Trainer Hub</span>
-          </div>
-          <Link className="desktop-link" href="/hub/schedule">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2"/>
-              <path d="M8 21h8M12 17v4"/>
-            </svg>
-            Desktop
-          </Link>
-        </div>
-      </header>
-
-      <main className="mcontent has-fab">
-        <div className="note">
-          <span className="note-b">i</span>
-          <div>
-            <b>Day-agenda calendar.</b> One row per day, forward and back from today. Empty days still
-            render — tap one to book a session. Weeks are Monday–Sunday.
-          </div>
-        </div>
-
-        <DayAgenda
-          sessions={agendaSessions}
-          today={today}
-          windowStart={start}
-          windowEnd={end}
-          scope="trainer"
-        />
-      </main>
-
-      <Link className="fab" href={`/hub/m/book?scope=trainer&day=${today}`} data-od-id="agenda-add">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        Book session
-      </Link>
-    </>
+    <OutlookTriageClient
+      agendaSessions={agendaSessions}
+      today={today}
+      windowStart={start}
+      windowEnd={end}
+      openBookings={openBookings}
+      openBookingCount={openBookingCount}
+    />
   );
 }
