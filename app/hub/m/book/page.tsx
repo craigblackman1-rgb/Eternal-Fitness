@@ -390,29 +390,19 @@ export default function BookSessionPage() {
           </div>
         </div>
 
-        {isBookingConfirm ? (
-          <div className="panel" data-od-id="booking-context">
-            <div className="panel-h">
-              <span className="panel-h-ic ic-teal">{ICO.when}</span>
-              <span>
-                <span className="panel-h-t">Outlook booking</span>
-                <span className="panel-h-s">Time comes from the Outlook event — not editable here</span>
-              </span>
-            </div>
-            <div className="panel-b">
-              {loadingBooking ? (
-                <div className="pick-loading">Loading booking…</div>
-              ) : booking ? (
-                <div className="pick-item" style={{ cursor: "default" }}>
-                  <span className="pick-b">
-                    <span className="pick-t">{booking.subject}</span>
-                    <span className="pick-m">{formatBookingContext(booking.start_at)}</span>
-                  </span>
-                </div>
-              ) : null}
+        {isBookingConfirm && (loadingBooking || booking) && (
+          <div className="alert a-warning" data-od-id="booking-context">
+            <span className="alert-ic">{ICO.warn}</span>
+            <div>
+              <b>From Microsoft Bookings</b>
+              {loadingBooking
+                ? "Loading…"
+                : `"${booking!.subject}" · ${formatBookingContext(booking!.start_at)}. Confirm who and which block it belongs to — then it becomes a real session.`}
             </div>
           </div>
-        ) : (
+        )}
+
+        {!isBookingConfirm && (
           <div className="panel" data-od-id="when-picker">
             <div className="panel-h">
               <span className="panel-h-ic ic-teal">{ICO.when}</span>
