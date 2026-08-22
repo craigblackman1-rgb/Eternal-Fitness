@@ -1264,11 +1264,23 @@ export function TrainScreen({
 // ── Sub-components ───────────────────────────────────────────────
 
 function Thumbnail({ exercise }: { exercise: Exercise }) {
-  const hasMedia = !!(exercise.media?.image_url || exercise.media?.video_url);
-  if (hasMedia) {
+  const imageUrl = exercise.media?.image_url;
+  if (imageUrl) {
     return (
       <div className="ex-thumb has-img" aria-hidden="true">
-        {ICO.img}
+        <img
+          src={imageUrl}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+  if (exercise.media?.video_url) {
+    return (
+      <div className="ex-thumb has-img" aria-hidden="true">
+        {ICO.video}
       </div>
     );
   }
@@ -1608,11 +1620,9 @@ function ExerciseCard({
           {hasVideo ? (
             <a
               className="icon-btn video"
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                toast(`Opens the demo video for "${exercise.exercise_name}" (exercises.video_url).`);
-              }}
+              href={exercise.media!.video_url!}
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label={`Play demo video for ${exercise.exercise_name}`}
             >
               {ICO.video}
