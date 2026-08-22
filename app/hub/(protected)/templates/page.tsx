@@ -10,5 +10,17 @@ export default async function TemplatesPage() {
     .order("kind", { ascending: true });
   const templates = (data || []) as DocumentTemplate[];
 
-  return <TemplatesLibrary templates={templates} />;
+  // CR-EF-075: same query the template detail page already runs — the library
+  // needs it so a card can assign without a hop through that page first.
+  const { data: clients } = await supabase
+    .from("clients")
+    .select("client_number, name")
+    .order("name", { ascending: true });
+
+  return (
+    <TemplatesLibrary
+      templates={templates}
+      clients={(clients ?? []).filter((c) => c.client_number != null) as { client_number: number; name: string }[]}
+    />
+  );
 }

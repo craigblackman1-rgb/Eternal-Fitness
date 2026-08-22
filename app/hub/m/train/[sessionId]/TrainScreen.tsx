@@ -107,7 +107,9 @@ export function TrainScreen({
   sessionLog,
   scheduledAt,
   blockNumber,
+  clientId,
   clientName,
+  clientNumber,
   setLogs,
   deliveryMode,
   bestWeights,
@@ -121,6 +123,7 @@ export function TrainScreen({
   sessionLog: SessionLog | null;
   scheduledAt: string | null;
   blockNumber: number | null;
+  clientId: string | null;
   clientName: string;
   clientNumber: number | null;
   setLogs: SetLog[];
@@ -204,6 +207,10 @@ export function TrainScreen({
 
   const [pickSection, setPickSection] = useState<SectionKey | null>(null);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
+
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
 
   const [offline, setOffline] = useState<boolean>(() =>
     typeof navigator !== "undefined" ? !navigator.onLine : false,
@@ -753,6 +760,31 @@ export function TrainScreen({
     persistPrescription();
   };
 
+  // ── Quick session note (CR-EF-079) ─────────────────────────────
+  const handleSaveNote = async () => {
+    const text = noteDraft.trim();
+    if (!text || !clientId) {
+      toast.error("Cannot save note — client is not loaded.");
+      return;
+    }
+    setNoteSaving(true);
+    try {
+      const res = await fetch("/api/client-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: clientId, session_id: sessionId, note: text }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setNoteDraft("");
+      setNoteOpen(false);
+      toast.success("Note saved");
+    } catch {
+      toast.error("Could not save note — try again.");
+    } finally {
+      setNoteSaving(false);
+    }
+  };
+
   // ── Complete ───────────────────────────────────────────────────
   const handleComplete = async () => {
     setCompleting(true);
@@ -1206,6 +1238,15 @@ export function TrainScreen({
           >
             {ICO.edit}
           </Link>
+          <button
+            type="button"
+            className="btn btn-outline btn-icon"
+            onClick={() => setNoteOpen(true)}
+            aria-label="Add a note about this session"
+            title="Add a note"
+          >
+            {ICO.note}
+          </button>
           <span className="action-scope">{progress.doneExCount} of {allSets.length} exercises logged</span>
           <button
             type="button"
@@ -1223,6 +1264,42 @@ export function TrainScreen({
           </button>
         </div>
       </div>
+
+      {/* ── Quick note sheet ──────────────────────────────────────── */}
+      {noteOpen && (
+        <>
+          <div className="sheet-overlay open" onClick={() => setNoteOpen(false)} />
+          <div className="note-sheet" role="dialog" aria-modal="true" aria-labelledby="noteSheetTitle">
+            <div className="sh-grab" />
+            <div className="sh-h">
+              <span className="sh-t" id="noteSheetTitle">
+                Note — {data?.focus_label || `Session ${sessionNumber}`}
+              </span>
+              <button className="sh-close" onClick={() => setNoteOpen(false)} aria-label="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="sh-s">
+              For {clientName} · same notes list she sees in client mode
+            </div>
+            <div className="sh-note">
+              <textarea
+                placeholder="Add a note about this session…"
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                aria-label="Note text"
+              />
+              <div className="sh-note-foot">
+                <button className="btn btn-primary" onClick={handleSaveNote} disabled={noteSaving || !noteDraft.trim()}>
+                  Save note
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── Complete overlay ──────────────────────────────────────── */}
       {showComplete && (

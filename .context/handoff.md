@@ -3720,3 +3720,94 @@ the same WiFi. Full session flow works end to end for a `studio_1to1` or `home_t
 a scheduled session today. Every commit `tsc --noEmit` clean; every OpenCode lane hand-reviewed
 line-by-line per this repo's standing rule, not trusted on self-report — every lane's own report had
 at least one real inaccuracy or gap this session, all caught before commit stood as "done."
+
+---
+
+## 2026-08-21 — CR-EF-073 naming convention: session close
+
+Craig raised (voice) that block/session/workout naming didn't follow through across
+the app — same session showed as "Session 3"/"S3"/"B2 S3"/"Block 2 · S3"/"Workout A"/
+"Day 2" depending on the screen. First proposal draft got the domain model wrong;
+Craig corrected it directly ("we have been over this") — **block = dated period,
+session = booked calendar slot (date+time is its identity), workout = attached on
+the day, never in advance** — now saved to cross-session memory
+(`project_block_session_workout_model`) so it can't be relitigated next time.
+
+v2 proposal (`.context/proposal-naming-convention-2026-08-20.md`) approved same day.
+Mockups updated first — Open Design's MCP was disconnected mid-session, so the two
+governing `.html` files (`hub-block-module.html`, `hub-client-detail-refined.html`
+under `D:\apps\design-systems\ef-control-hub\desktop\`) were edited directly on disk,
+same Design Parity requirement either way.
+
+Shipped: block cards/tables/header now show a real dated span derived from the
+block's own sessions (never fabricated); session rows lead with date+time, unbooked
+sessions read "Session N of M · not yet booked"; every "S3"/"B2 S3" abbreviation
+replaced with the spelled-out form outside chart ticks (which keep a short tick but
+spell the point out fully in the tooltip via a new `fullLabel` field).
+
+Mid-build, found a concurrent worktree (`cr-ef-076-078-client-detail-polish`) had
+already restructured the exact same two files and was already merged into
+`origin/staging` — merged clean, verified both sets of changes survived intact.
+Pushed `staging` → verified live on development.eternal-fitness.co.uk → merged
+`main` (pulling in 2 unrelated docs-only commits from a concurrent CR-EF-079 lane,
+zero file overlap, checked first) → Coolify auto-deployed → verified live on
+production eternal-fitness.co.uk against real client data. No console errors either
+environment. Nothing left open on this unit; worktree has no unmerged/uncommitted
+work.
+
+## 2026-08-21 — CR-EF-050 (Outlook Bookings) + CR-EF-028 (Outlook duplicate-event) shipped
+
+Craig asked "how do we not see all the Outlook bookings in the schedule" — investigated
+and found the sync is one-way (app→Outlook only, never read back), so a client booking
+via the Microsoft Bookings form has no `sessions` row and is invisible to the app by
+design. Scoped as CR-EF-050. Diagnostic sized the gap (17 real Bookings appointments,
+7 clients) and disproved the original email-matching plan on real data — 0/17 events
+carry the client's real email, only internal addresses (the shared Bookings mailbox +
+Esther herself). Revised to name-parsed-from-subject matching, confirmed 7/7 correct.
+
+Built a reconciliation queue at `/hub/schedule/outlook` (Open Design mockup
+`hub-schedule-outlook.html`): auto-suggested match/confirm, manual link, dismiss — a
+confirmed row creates a real session and adopts the *existing* Outlook event rather
+than duplicating it. Live-verified against real production data: all 7 real clients
+auto-matched, one real appointment (Nathan Wadey) confirmed end-to-end into a correctly
+scheduled session.
+
+While verifying on staging, found staging's Microsoft integration had been connected to
+Esther's *real* Outlook account/calendar since 2026-08-15 (unrelated pre-existing state)
+— disconnected it before any further staging testing so nothing there can reach real
+Outlook again.
+
+Craig then flagged a real duplicate in his own Outlook (a screenshot: "Emma Atkinson —
+Session 4" sitting next to his own personal "Emma" note) and asked to get this fixed
+properly. Root-caused: pre-existing (the app-synced event was created 2026-08-17, the
+personal note since 2022 — not caused by CR-EF-050's same-day work), and sized via a
+second diagnostic: 5/12 currently-synced sessions (42%) collide with one of Esther's own
+long-standing personal Outlook entries. Scoped as CR-EF-028, Craig approved a
+human-confirmed reconciliation approach (reject silent auto-adopt — a wrong first-name
+match could overwrite a personal note). Craig ran the Open Design mockup himself
+(`hub-schedule-outlook-duplicates.html`) once the MCP connection to Open Design dropped
+mid-session. Built: collision detection in both the batch cron and the immediate
+on-schedule push, pausing a session's sync instead of duplicating, queued at
+`/hub/schedule/outlook/duplicates` (shares a tab bar + combined badge with the Bookings
+queue). A read-only dry run confirmed the fix changes zero currently-live behaviour —
+it only prevents *new* duplicates; the 5 already in Esther's calendar are untouched by
+this fix and would need a separate cleanup pass if wanted.
+
+Found and fixed one unrelated, build-blocking bug mid-push: a concurrent mobile-calendar
+lane had a Server→Client function-prop violation in `DayAgenda`/`app/hub/m/calendar/
+page.tsx`, invisible to `tsc --noEmit` (only a real `next build` catches it), failing
+every deploy on the branch. Fixed by deriving the booking href inside `DayAgenda` itself.
+
+Both features promoted to `main` on Craig's go-ahead, deployed, verified live. Then
+Craig reported no sync visible for tomorrow/next week — investigated and found the
+actual Coolify scheduled task driving the 15-minute cron had been created 2026-08-15 and
+left **disabled** the entire time; nothing had ever run automatically before this
+session's manual test runs. Enabled it, triggered one real production run to confirm
+(17 Bookings events refreshed, 0 new duplicates, 6 stale past-session events cleaned up
+as a one-time backlog catch-up), now firing on its own every 15 minutes. Lesson for next
+time: "the app deployed and shows live data" is not the same claim as "the automation
+feeding it is actually running" — check the scheduled task's enabled state directly, not
+just the app's deploy status.
+
+Both CRs closed in `change-requests.md` and `wo-ef-consolidated-2026-08-20.md`. No
+uncommitted work in this worktree.

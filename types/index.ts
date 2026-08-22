@@ -134,6 +134,16 @@ export interface ClientNote {
   client_id: string;
   note: string;
   created_at: string;
+  /** Optional link to the session this note was captured against (CR-EF-079). */
+  session_id?: string | null;
+  /** The linked session's real display name (focus_label etc) -- derived
+   *  server-side by GET /api/client-notes, never stored. Null when session_id
+   *  is null. */
+  session_name?: string | null;
+  /** Display name of the staff member who wrote the note. */
+  author?: string | null;
+  /** Pinned notes surface first in the client-mode Notes tab. */
+  pinned?: boolean;
 }
 
 /** A structured, per-client instance of a TrainingRuleType — replaces bare-string

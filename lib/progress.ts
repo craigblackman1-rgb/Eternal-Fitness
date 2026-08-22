@@ -63,10 +63,17 @@ export interface TrendSessionMeta {
 export interface TrendPoint {
   /** ISO timestamp of the first log for this exercise in this session. */
   loggedAt: string;
-  /** X-axis label, e.g. "B2 S5" or a short date when block info is missing. */
+  /** X-axis label, e.g. "B2 S5" or a short date when block info is missing.
+   *  Abbreviated by design — chart ticks are the one place CR-EF-073 allows
+   *  it, provided the tooltip (fullLabel) spells the same point out in full. */
   label: string;
   /** Short date, e.g. "25 Jul" — shown in tooltips alongside the label. */
   dateLabel: string;
+  /** Spelled-out equivalent of `label`, e.g. "Block 2 · Session 5" — for
+   *  tooltips only, never the axis tick (CR-EF-073: no abbreviations
+   *  outside chart ticks). Falls back to `dateLabel` when block info is
+   *  missing, matching `label`'s own fallback. */
+  fullLabel: string;
   /** Heaviest completed set (kg); null when nothing weighted was completed. */
   topWeightKg: number | null;
   /** Reps achieved on that heaviest completed set. */
@@ -152,15 +159,15 @@ export function buildExerciseTrends(
 
       const meta = sessionMeta[sessionId];
       const dateLabel = shortDate(loggedAt);
-      const label =
-        meta && meta.blockNumber != null && meta.sessionNumber != null
-          ? `B${meta.blockNumber} S${meta.sessionNumber}`
-          : dateLabel;
+      const hasBlockMeta = meta && meta.blockNumber != null && meta.sessionNumber != null;
+      const label = hasBlockMeta ? `B${meta!.blockNumber} S${meta!.sessionNumber}` : dateLabel;
+      const fullLabel = hasBlockMeta ? `Block ${meta!.blockNumber} · Session ${meta!.sessionNumber}` : dateLabel;
 
       points.push({
         loggedAt,
         label,
         dateLabel,
+        fullLabel,
         topWeightKg,
         repsAtTopWeight,
         maxReps,

@@ -260,7 +260,8 @@ export default function SessionViewPage({
               {clientName}
               {clientCondition ? ` · ${clientCondition}` : ""}
               {dateLabel ? ` · ${dateLabel}` : ""}
-              {` · ${sessionSlotMinutes} min slot`}{" "}
+              {` · ${sessionSlotMinutes} min slot`}
+              {totalSessions > 0 ? ` · Session ${sessionNum} of ${totalSessions}` : ""}{" "}
               <span
                 className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold ${
                   overSlot

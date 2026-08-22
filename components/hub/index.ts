@@ -13,4 +13,6 @@ export { Toolbar, toolbarSelectClasses, type ToolbarSegment } from "./Toolbar";
 export { EmptyState } from "./EmptyState";
 export { HubTabsList, HubTabsTrigger } from "./HubTabs";
 export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
+export { OutlookBookingsBadge } from "./OutlookBookingsBadge";
+export { OutlookReconciliationTabs } from "./OutlookReconciliationTabs";
 export type { TrainerizeHistoryData, TrainerizeBlock, TrainerizeWorkout, TrainerizeExercise, TrainerizeNote } from "./types";

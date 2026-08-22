@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HubCard, HubCardHeader, HubAlert, EmptyState } from "@/components/hub";
+import { HubCard, HubCardHeader, HubAlert, EmptyState, OutlookBookingsBadge } from "@/components/hub";
 import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
 import type { SessionStatus } from "@/types";
 import {
@@ -189,6 +189,7 @@ export function ScheduleCalendar({
             >
               Today
             </Button>
+            <OutlookBookingsBadge />
           </div>
         </div>
       </HubCard>

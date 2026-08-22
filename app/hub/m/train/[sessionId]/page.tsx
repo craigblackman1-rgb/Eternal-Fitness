@@ -58,6 +58,7 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
       sessionLog={sessionLog}
       scheduledAt={sessionRow.scheduled_at ?? null}
       blockNumber={blockNumber}
+      clientId={block?.client_id ?? null}
       clientName={client?.name ?? "Unknown client"}
       clientNumber={client?.client_number ?? null}
       setLogs={(setLogs ?? []) as SetLog[]}

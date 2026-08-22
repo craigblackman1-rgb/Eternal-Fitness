@@ -84,5 +84,10 @@ export default async function TodayPage() {
     client_name: (task.clients as { name?: string } | null)?.name ?? null,
   })) as unknown as Task[];
 
-  return <TodayScreen entries={entries} tasks={tasks} />;
+  const { count: openBookingCount } = await supabase
+    .from("outlook_booking_events")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "open");
+
+  return <TodayScreen entries={entries} tasks={tasks} openBookingCount={openBookingCount ?? 0} />;
 }

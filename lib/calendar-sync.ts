@@ -4,18 +4,26 @@ import {
   createEvent,
   deleteEvent,
   updateEvent,
+  listCalendarView,
   getIntegrationStatus,
   GraphReconnectError,
   graphConfigured,
+  type GraphCalendarEvent,
 } from "@/lib/graph-client";
 import { sessionDurationMinutes } from "@/lib/scheduling";
+import { findDuplicateCandidate, dayKey } from "@/lib/outlook-duplicates";
 import type { Session, TimeTier } from "@/types";
 
 /**
  * One-way sync: sessions.scheduled_at -> the dedicated Outlook calendar.
- * The calendar is a view of the training plan; nothing is ever read back from
- * Outlook into scheduled_at. sync_hash makes the recurring run a cheap no-op
- * when nothing changed.
+ * The calendar is a view of the training plan; sessions.scheduled_at is never
+ * written from anything read back from Outlook. sync_hash makes the recurring
+ * run a cheap no-op when nothing changed.
+ *
+ * CR-EF-028 exception, read-only within this file: before creating a *new*
+ * event for a session that's never been synced, check for a pre-existing
+ * same-day, name-matching Outlook event (Esther's own personal note) and
+ * pause instead of creating a duplicate — see outlook_duplicate_candidates.
  */
 
 // Sync window: yesterday to +60 days, matching the WO spec.
@@ -43,6 +51,7 @@ export interface SyncResult {
   updated: number;
   deleted: number;
   unchanged: number;
+  paused: number;
   skipped: string | null;
   errors: string[];
 }
@@ -95,7 +104,7 @@ async function resolveClientNames(db: ReturnType<typeof createPgClient>, blockId
  * cancelled, unscheduled, or moved out of the window.
  */
 export async function syncCalendar(): Promise<SyncResult> {
-  const result: SyncResult = { created: 0, updated: 0, deleted: 0, unchanged: 0, skipped: null, errors: [] };
+  const result: SyncResult = { created: 0, updated: 0, deleted: 0, unchanged: 0, paused: 0, skipped: null, errors: [] };
 
   if (!graphConfigured()) {
     result.skipped = "Graph env vars not configured";
@@ -135,6 +144,26 @@ export async function syncCalendar(): Promise<SyncResult> {
   const active = sessions.filter((s) => !s.cancelled_at);
   const nameByBlock = await resolveClientNames(db, [...new Set(active.map((s) => s.block_id).filter(Boolean))]);
   const activeIds = new Set(active.map((s) => s.id));
+
+  // CR-EF-028 — collision detection for sessions about to sync for the first
+  // time. Fetches the whole window once; only used for sessions with no
+  // existing mapping below, never for ones already synced.
+  const knownEventIds = new Set(mappings.map((m) => m.event_id));
+  const calendarEvents = await listCalendarView(calendarId, windowStart, windowEnd);
+  const eventsByDay = new Map<string, GraphCalendarEvent[]>();
+  for (const ev of calendarEvents) {
+    if (!ev.start?.dateTime) continue;
+    const key = dayKey(ev.start.dateTime + "Z");
+    if (!eventsByDay.has(key)) eventsByDay.set(key, []);
+    eventsByDay.get(key)!.push(ev);
+  }
+  const { data: candidateRows, error: candErr } = await db
+    .from("outlook_duplicate_candidates")
+    .select("session_id, status");
+  if (candErr) throw new Error(`outlook_duplicate_candidates read failed: ${candErr.message}`);
+  const candidateBySession = new Map(
+    ((candidateRows ?? []) as { session_id: string; status: string }[]).map((c) => [c.session_id, c.status])
+  );
 
   // 1. Remove events for mapped sessions that are no longer active in-window
   //    (cancelled, unscheduled, or moved outside the window), and any mapping
@@ -178,6 +207,36 @@ export async function syncCalendar(): Promise<SyncResult> {
         // Event was deleted by hand in Outlook — recreate it below.
         const { error } = await db.from("session_calendar_events").delete().eq("session_id", s.id);
         if (error) throw new Error(error.message);
+      }
+
+      // CR-EF-028 — this session has never been synced (no mapping). Before
+      // pushing a brand-new event, check whether it's already paused on an
+      // open candidate, or would collide with one of Esther's own personal
+      // entries for the first time.
+      if (!existing) {
+        const candidateStatus = candidateBySession.get(s.id);
+        if (candidateStatus === "open") {
+          result.paused++;
+          continue;
+        }
+        if (!candidateStatus) {
+          const day = dayKey(s.scheduled_at as string);
+          const match = findDuplicateCandidate(eventsByDay.get(day) ?? [], knownEventIds, clientName, s.scheduled_at as string);
+          if (match) {
+            const { error } = await db.from("outlook_duplicate_candidates").insert({
+              session_id: s.id,
+              existing_event_id: match.event.id,
+              existing_calendar_id: calendarId,
+              existing_subject: match.event.subject ?? "",
+              existing_start_at: match.event.start?.dateTime ? new Date(match.event.start.dateTime + "Z").toISOString() : null,
+              flag: match.flag,
+            });
+            if (error) throw new Error(error.message);
+            result.paused++;
+            continue;
+          }
+        }
+        // candidateStatus === "kept_separate", or no collision found — proceed to create normally.
       }
 
       const created = await createEvent(calendarId, input, s.id);
@@ -259,6 +318,43 @@ export async function syncSessionCalendarEvent(sessionId: string): Promise<void>
     // Mapping points at an old calendar — clean it up and recreate.
     await deleteEvent(existing.event_id);
     await db.from("session_calendar_events").delete().eq("session_id", sessionId);
+  }
+
+  // CR-EF-028 — same collision check as the batch sync, for the immediate
+  // on-schedule push. A session that's never been synced and would collide
+  // with one of Esther's own personal entries gets paused, not duplicated.
+  if (!existing) {
+    const { data: candRow } = await db
+      .from("outlook_duplicate_candidates")
+      .select("status")
+      .eq("session_id", sessionId)
+      .maybeSingle();
+    const candidateStatus = (candRow as { status: string } | null)?.status;
+    if (candidateStatus === "open") return;
+    if (!candidateStatus) {
+      const { data: mappingRows } = await db.from("session_calendar_events").select("event_id");
+      const knownEventIds = new Set(((mappingRows ?? []) as { event_id: string }[]).map((m) => m.event_id));
+      const dayStart = new Date(dayKey(s.scheduled_at as string) + "T00:00:00.000Z");
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+      const dayEvents = await listCalendarView(calendarId, dayStart.toISOString(), dayEnd.toISOString());
+      const match = findDuplicateCandidate(
+        dayEvents,
+        knownEventIds,
+        nameByBlock.get(s.block_id) ?? "Client",
+        s.scheduled_at as string
+      );
+      if (match) {
+        await db.from("outlook_duplicate_candidates").insert({
+          session_id: s.id,
+          existing_event_id: match.event.id,
+          existing_calendar_id: calendarId,
+          existing_subject: match.event.subject ?? "",
+          existing_start_at: match.event.start?.dateTime ? new Date(match.event.start.dateTime + "Z").toISOString() : null,
+          flag: match.flag,
+        });
+        return;
+      }
+    }
   }
 
   const created = await createEvent(calendarId, input, s.id);
