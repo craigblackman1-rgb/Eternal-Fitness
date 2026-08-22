@@ -1885,11 +1885,9 @@ function SupersetBlock({
                   {hasVideo ? (
                     <a
                       className="icon-btn video"
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toast(`Opens the demo video for "${ex.exercise_name}" (exercises.video_url).`);
-                      }}
+                      href={ex.media?.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label={`Play demo video for ${ex.exercise_name}`}
                     >
                       {ICO.video}
