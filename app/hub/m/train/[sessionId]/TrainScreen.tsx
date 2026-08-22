@@ -1348,7 +1348,7 @@ function Thumbnail({ exercise }: { exercise: Exercise }) {
         <img
           src={imageUrl}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
           loading="lazy"
         />
       </div>
