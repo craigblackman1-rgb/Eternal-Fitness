@@ -67,7 +67,7 @@ export function ClientUpdatesPanel({
         className="px-5 pt-5"
         noBottomPadding
       />
-      <div className="px-5 pb-5 space-y-3">
+      <div className="px-5 pt-4 pb-5 space-y-3">
         {sorted.map((u) => {
           const meta = updateStatusMeta(u.status);
           const isScheduled = u.status === "scheduled";

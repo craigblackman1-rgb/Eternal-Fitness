@@ -98,7 +98,7 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
           </Button>
         )}
       </div>
-      <CardContent className="pt-0">
+      <CardContent className="pt-4 pb-5 px-5">
         {editing ? (
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-3">

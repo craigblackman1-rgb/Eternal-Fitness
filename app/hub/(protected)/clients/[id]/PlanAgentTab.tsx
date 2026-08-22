@@ -238,6 +238,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
         subtitle={`Drafting for ${clientName} · ${paceLabel} pace`}
         color="teal"
         divider
+        className="px-5 pt-5"
         action={
           hasConversation && lastMessageIsAssistant && !streaming ? (
             <Button
