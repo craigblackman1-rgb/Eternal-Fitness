@@ -36,6 +36,7 @@ import {
   IconGripVertical,
   IconChevronUp,
   IconChevronDown,
+  IconCheck,
   IconEllipsis,
   IconTrash2,
   IconMove,
@@ -55,7 +56,7 @@ import { SwapExerciseDialog } from "../swap-exercise-dialog";
 import { AddExerciseDialog, type InsertPositionOption } from "../add-exercise-dialog";
 import { toast } from "sonner";
 import { HubCard } from "@/components/hub/HubCard";
-import { computeGroups, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
+import { computeGroups, nextGroupLabel, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
 import { ensureUids } from "@/lib/exercise-ref";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
@@ -152,6 +153,7 @@ export function SessionEditor({
   const [overBlockKey, setOverBlockKey] = useState<string | null>(null);
   const [rollingOver, setRollingOver] = useState(false);
   const [addSkeleton, setAddSkeleton] = useState<VolumeSkeleton | null>(null);
+  const [grpPicked, setGrpPicked] = useState<Record<string, boolean>>({});
 
   // Resolve exercise thumbnails/video links by name from the exercises library.
   // AI-generated / rolled-over prescriptions never embed media, so fetch the
@@ -350,6 +352,47 @@ export function SessionEditor({
     });
   };
 
+  const togglePick = (uid: string) => {
+    setGrpPicked((prev) => {
+      if (prev[uid]) {
+        const next = { ...prev };
+        delete next[uid];
+        return next;
+      }
+      return { ...prev, [uid]: true };
+    });
+  };
+
+  const handleGroup = () => {
+    const pickedUids = Object.keys(grpPicked).filter((uid) => grpPicked[uid]);
+    if (pickedUids.length < 2) return;
+    const pickedSet = new Set(pickedUids);
+    const targets = sections.main_block.filter((e) => pickedSet.has(e._uid));
+    if (targets.length < 2) return;
+    const label = nextGroupLabel(sections.main_block);
+    setSections((prev) => ({
+      ...prev,
+      main_block: prev.main_block.map((e) =>
+        pickedSet.has(e._uid) ? { ...e, group_label: label } : e
+      ),
+    }));
+    setGrpPicked({});
+    toast.success(`${targets.length} exercises grouped as ${label}.`);
+  };
+
+  const handleUngroup = (groupLabel: string) => {
+    setSections((prev) => {
+      const next = {} as SectionsState;
+      for (const key of SECTION_DEFS.map((s) => s.key)) {
+        next[key] = prev[key].map((e) =>
+          e.group_label === groupLabel ? { ...e, group_label: undefined } : e
+        );
+      }
+      return next;
+    });
+    toast.success(`Superset ${groupLabel} ungrouped.`);
+  };
+
   const addExercise = (entry: ExerciseEntry, insertIndex: number) => {
     if (!addTarget) return;
     const newEx: EditableExercise = {
@@ -506,6 +549,8 @@ export function SessionEditor({
     ? templateList.filter((t) => t.name.toLowerCase().includes(templateSearch.toLowerCase()))
     : templateList;
 
+  const pickedCount = Object.keys(grpPicked).length;
+
   return (
     <div className="space-y-4">
       <HubCard padded={false} className="flex items-center justify-between px-4 py-3">
@@ -560,6 +605,31 @@ export function SessionEditor({
                 {list.length} exercise{list.length === 1 ? "" : "s"}
               </span>
             </div>
+            {sec.key === "main_block" && pickedCount > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--hub-border)] bg-rose/5 px-4 py-2">
+                <span className="text-xs font-semibold text-rose">
+                  {pickedCount} exercise{pickedCount === 1 ? "" : "s"} selected — combine into a superset
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setGrpPicked({})}
+                    className="h-7 rounded-lg px-2 text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleGroup}
+                    disabled={pickedCount < 2}
+                    className="h-7 rounded-lg bg-rose px-2 text-xs text-white hover:bg-rose/90"
+                  >
+                    Group as superset
+                  </Button>
+                </div>
+              </div>
+            )}
             <div
               className={`space-y-2 p-3 rounded-[12px] transition-colors ${dragSection && dragSection !== sec.key ? "bg-[var(--hub-sidebar-active)] outline outline-2 outline-dashed outline-rose/20" : ""}`}
               onDragOver={(e) => {
@@ -642,6 +712,28 @@ export function SessionEditor({
                         Superset {block.label}
                       </span>
                       <span className="text-[11.5px] text-rose">{block.items.length} exercises performed together</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUngroup(block.label!)}
+                        aria-label={`Ungroup ${block.label}`}
+                        title="Ungroup this superset — the exercises stay in the session as standalone rows"
+                        className="ml-auto inline-flex h-6 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold text-rose transition-colors hover:bg-rose/10"
+                      >
+                        <svg
+                          className="h-3 w-3"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        Ungroup
+                      </button>
                     </div>
                     <div className="space-y-1.5">
                       {block.items.map((ex, i) => (
@@ -713,6 +805,9 @@ export function SessionEditor({
                       ex={block.items[0]}
                       sectionKey={sec.key}
                       draggableHandle
+                      pickable={allowGroups}
+                      picked={!!grpPicked[block.items[0]._uid]}
+                      onPickToggle={() => togglePick(block.items[0]._uid)}
                       isFirst={list.findIndex((e) => e._uid === block.items[0]._uid) === 0}
                       isLast={list.findIndex((e) => e._uid === block.items[0]._uid) === list.length - 1}
                       onField={updateField}
@@ -870,6 +965,9 @@ function ExerciseRow({
   sectionKey,
   inGroup,
   draggableHandle,
+  pickable,
+  picked,
+  onPickToggle,
   isFirst,
   isLast,
   onField,
@@ -894,6 +992,9 @@ function ExerciseRow({
   sectionKey: SectionKey;
   inGroup?: boolean;
   draggableHandle?: boolean;
+  pickable?: boolean;
+  picked?: boolean;
+  onPickToggle?: () => void;
   isFirst: boolean;
   isLast: boolean;
   onField: (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => void;
@@ -923,6 +1024,22 @@ function ExerciseRow({
 
   return (
     <div className="flex items-start gap-2.5 flex-wrap sm:flex-nowrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
+      {pickable && (
+        <button
+          type="button"
+          onClick={onPickToggle}
+          aria-pressed={picked}
+          aria-label={picked ? `Deselect ${ex.exercise_name} for grouping` : `Select ${ex.exercise_name} for grouping`}
+          title={picked ? "Deselect for grouping" : "Select to group into a superset"}
+          className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+            picked
+              ? "border-rose bg-rose text-white"
+              : "border-[var(--hub-field-border)] text-transparent hover:border-rose hover:text-rose/40"
+          }`}
+        >
+          <IconCheck className="h-3 w-3" />
+        </button>
+      )}
       {draggableHandle && (
         <span className="mt-1.5 cursor-grab text-[var(--hub-field-border)]" title="Drag to reorder">
           <IconGripVertical className="h-4 w-4" />
