@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import { HubCard } from "@/components/hub/HubCard";
 import { computeGroups, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
 import { ensureUids } from "@/lib/exercise-ref";
+import { deriveSessionStatus } from "@/lib/session-status";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -110,6 +111,17 @@ interface LatestCompletedSession {
   versions: { studio?: SessionVersion; home?: SessionVersion };
 }
 
+/** Minimal shape of a session row returned by GET /api/blocks/[id]/sessions —
+ *  only the fields needed to count how many later sessions remain to swap. */
+interface BlockSessionRow {
+  session_number?: number;
+  status?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+  scheduled_at?: string | null;
+  data?: { session_log?: { completed_at?: string | null } | null };
+}
+
 /** Desk-planning editor for a single session prescription (one version — studio or home).
  *  Local-only state until "Save changes" — Discard just unmounts without persisting. */
 export function SessionEditor({
@@ -117,6 +129,8 @@ export function SessionEditor({
   data,
   clientId,
   sessionId,
+  blockId,
+  sessionNumber,
   onSaved,
   onCancel,
 }: {
@@ -126,6 +140,9 @@ export function SessionEditor({
    *  Previous Session" — excludes the session currently being edited. */
   clientId: string;
   sessionId: string;
+  /** Needed to offer the "swap this exercise across all remaining sessions" choice. */
+  blockId: string;
+  sessionNumber: number;
   /** Parent owns the actual PATCH (it merges this version's sections back into
    *  session.data.versions and updates the session state) — returns whether it succeeded. */
   onSaved: (updated: SessionVersion) => Promise<boolean>;
@@ -152,6 +169,16 @@ export function SessionEditor({
   const [overBlockKey, setOverBlockKey] = useState<string | null>(null);
   const [rollingOver, setRollingOver] = useState(false);
   const [addSkeleton, setAddSkeleton] = useState<VolumeSkeleton | null>(null);
+  // Swap scope choice — after picking the replacement exercise, the editor asks
+  // whether to apply it to just this session or to every later session in the block.
+  const [pendingSwap, setPendingSwap] = useState<{
+    target: { section: SectionKey; uid: string };
+    entry: ExerciseEntry;
+    fromName: string;
+  } | null>(null);
+  const [swapScopeOpen, setSwapScopeOpen] = useState(false);
+  const [remainingCount, setRemainingCount] = useState(0);
+  const [swappingRemaining, setSwappingRemaining] = useState(false);
 
   // Resolve exercise thumbnails/video links by name from the exercises library.
   // AI-generated / rolled-over prescriptions never embed media, so fetch the
@@ -415,12 +442,11 @@ export function SessionEditor({
     }
   };
 
-  const swapExercise = (entry: ExerciseEntry) => {
-    if (!swapTarget) return;
+  const applyLocalSwap = (target: { section: SectionKey; uid: string }, entry: ExerciseEntry) => {
     setSections((prev) => ({
       ...prev,
-      [swapTarget.section]: prev[swapTarget.section].map((e) =>
-        e._uid === swapTarget.uid
+      [target.section]: prev[target.section].map((e) =>
+        e._uid === target.uid
           ? {
               ...e,
               exercise_name: entry.name,
@@ -436,7 +462,96 @@ export function SessionEditor({
       ),
     }));
     toast.message(`Swapped to "${entry.name}".`);
-    setSwapTarget(null);
+  };
+
+  // How many later, not-yet-completed sessions are left in this block. Used only to
+  // decide whether the "all remaining" choice is worth offering — the bulk swap
+  // endpoint re-derives the real set of targets server-side.
+  const countRemainingSessions = async (): Promise<number> => {
+    if (!blockId) return 0;
+    try {
+      const res = await fetch(`/api/blocks/${blockId}/sessions`);
+      if (!res.ok) return 0;
+      const rows = (await res.json()) as BlockSessionRow[];
+      return rows.filter((s) => {
+        if ((s.session_number ?? 0) <= sessionNumber) return false;
+        const status = deriveSessionStatus({
+          status: s.status,
+          completed_at: s.completed_at,
+          cancelled_at: s.cancelled_at,
+          scheduled_at: s.scheduled_at,
+          session_log: s.data?.session_log,
+        });
+        return status !== "completed" && status !== "cancelled";
+      }).length;
+    } catch {
+      return 0;
+    }
+  };
+
+  const swapExercise = async (entry: ExerciseEntry) => {
+    const target = swapTarget;
+    if (!target) return;
+    const from = sections[target.section].find((e) => e._uid === target.uid);
+    const fromName = from?.exercise_name ?? "";
+
+    const remaining = await countRemainingSessions();
+    if (remaining > 0) {
+      setPendingSwap({ target, entry, fromName });
+      setRemainingCount(remaining);
+      setSwapScopeOpen(true);
+      return;
+    }
+    applyLocalSwap(target, entry);
+  };
+
+  const applyThisSessionOnly = () => {
+    const pending = pendingSwap;
+    setSwapScopeOpen(false);
+    setPendingSwap(null);
+    if (pending) applyLocalSwap(pending.target, pending.entry);
+  };
+
+  const applyAllRemaining = async () => {
+    const pending = pendingSwap;
+    if (!pending) return;
+    setSwapScopeOpen(false);
+    setPendingSwap(null);
+    applyLocalSwap(pending.target, pending.entry);
+
+    setSwappingRemaining(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/swap-exercise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_exercise_name: pending.fromName,
+          to: {
+            exercise_name: pending.entry.name,
+            coaching_cue: pending.entry.coaching_cue || "",
+            modification: pending.entry.default_mod || "",
+            equipment: pending.entry.equipment || [],
+            image_url: pending.entry.image_url || null,
+            video_url: pending.entry.video_url || null,
+          },
+        }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string; updated_sessions?: number };
+      if (!res.ok) {
+        toast.error(body?.error || "Failed to update the remaining sessions");
+        return;
+      }
+      const n = body?.updated_sessions ?? 0;
+      if (n > 0) {
+        toast.success(`Swapped "${pending.entry.name}" in this session and ${n} later session${n === 1 ? "" : "s"}.`);
+      } else {
+        toast.message(`Swapped "${pending.entry.name}" in this session — no later sessions still prescribe this exercise.`);
+      }
+    } catch {
+      toast.error("Failed to update the remaining sessions");
+    } finally {
+      setSwappingRemaining(false);
+    }
   };
 
   const saveVideo = (sectionKey: SectionKey, uid: string) => {
@@ -813,6 +928,33 @@ export function SessionEditor({
           onSelect={swapExercise}
         />
       )}
+
+      <Dialog
+        open={swapScopeOpen}
+        onOpenChange={(open) => {
+          if (!open && !swappingRemaining) {
+            setSwapScopeOpen(false);
+            setPendingSwap(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="text-[var(--color-ink)]">Swap exercise</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-2">
+            Swap to <b>{pendingSwap?.entry.name}</b> in this session only, or also apply it to the {remainingCount} later session{remainingCount === 1 ? "" : "s"} in this block that still prescribes the exercise?
+          </p>
+          <div className="flex flex-col gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={applyThisSessionOnly} disabled={swappingRemaining} className="rounded-lg">
+              This session only
+            </Button>
+            <Button size="sm" onClick={applyAllRemaining} disabled={swappingRemaining} className="rounded-lg bg-rose hover:bg-rose/90 text-white">
+              This and all remaining sessions
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
         <DialogContent className="max-w-lg bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
