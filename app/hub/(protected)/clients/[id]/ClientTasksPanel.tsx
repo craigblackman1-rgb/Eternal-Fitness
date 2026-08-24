@@ -16,7 +16,7 @@ import {
 } from "@/lib/updates-due";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import type { StatusToken } from "@/lib/hubStatus";
-import type { Task } from "@/types";
+import type { Task, TaskBucket } from "@/types";
 
 function dueStatusToken(status: string | null): StatusToken {
   switch (status) {
@@ -57,12 +57,16 @@ const NEXT_STATUS: Record<string, string | undefined> = {
   done: "todo",
 };
 
+// Mirrors the assignee list in TasksManager.tsx. Keep in sync.
+const ASSIGNEE_OPTIONS = ["Unassigned", "Esther Fair", "Craig Blackman"];
+
 interface Props {
   clientId: string;
   clientNumber: number;
   updateInterval: UpdateInterval | null;
   dueInfo: UpdateDueInfo;
   lastSentAt: string | null;
+  currentUserName: string | null;
 }
 
 export function ClientTasksPanel({
@@ -71,11 +75,20 @@ export function ClientTasksPanel({
   updateInterval,
   dueInfo,
   lastSentAt,
+  currentUserName,
 }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [buckets, setBuckets] = useState<TaskBucket[]>([]);
+  const defaultAssignee =
+    currentUserName && ASSIGNEE_OPTIONS.includes(currentUserName)
+      ? currentUserName
+      : "Unassigned";
+  const [newAssignee, setNewAssignee] = useState(defaultAssignee);
+  const [newDueDate, setNewDueDate] = useState("");
+  const [newBucketId, setNewBucketId] = useState("");
 
   const fetchTasks = useCallback(async () => {
     const res = await fetch(`/api/tasks?client_id=${encodeURIComponent(clientId)}`);
@@ -90,16 +103,34 @@ export function ClientTasksPanel({
     fetchTasks();
   }, [fetchTasks]);
 
+  useEffect(() => {
+    fetch("/api/task-buckets")
+      .then((res) => (res.ok ? res.json() : Promise.resolve([])))
+      .then((data) => {
+        if (Array.isArray(data)) setBuckets(data);
+      })
+      .catch(() => {});
+  }, []);
+
   async function handleAdd() {
     const title = newTitle.trim();
     if (!title) return;
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, client_id: clientId }),
+      body: JSON.stringify({
+        title,
+        client_id: clientId,
+        assignee: newAssignee === "Unassigned" ? null : newAssignee,
+        due_date: newDueDate || null,
+        bucket_id: newBucketId || null,
+      }),
     });
     if (res.ok) {
       setNewTitle("");
+      setNewAssignee(defaultAssignee);
+      setNewDueDate("");
+      setNewBucketId("");
       setAdding(false);
       fetchTasks();
     }
@@ -158,38 +189,78 @@ export function ClientTasksPanel({
 
           <div className="px-5 pb-5 pt-3">
             {adding && (
-              <div className="flex items-center gap-2 mb-3 p-3 rounded-[12px] border border-dashed border-[var(--hub-border)] bg-[var(--hub-canvas)]">
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Task title…"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAdd();
-                    if (e.key === "Escape") {
+              <div className="flex flex-col gap-2 mb-3 p-3 rounded-[12px] border border-dashed border-[var(--hub-border)] bg-[var(--hub-canvas)]">
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Task title…"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAdd();
+                      if (e.key === "Escape") {
+                        setAdding(false);
+                        setNewTitle("");
+                        setNewDueDate("");
+                        setNewBucketId("");
+                      }
+                    }}
+                    className="flex-1 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-[var(--color-teal)] focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
+                  />
+                  <button
+                    onClick={handleAdd}
+                    disabled={!newTitle.trim()}
+                    className="rounded-lg bg-rose px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose/90 disabled:opacity-50 transition-colors"
+                  >
+                    Add
+                  </button>
+                  <button
+                    onClick={() => {
                       setAdding(false);
                       setNewTitle("");
-                    }
-                  }}
-                  className="flex-1 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-[var(--color-teal)] focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
-                />
-                <button
-                  onClick={handleAdd}
-                  disabled={!newTitle.trim()}
-                  className="rounded-lg bg-rose px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose/90 disabled:opacity-50 transition-colors"
-                >
-                  Add
-                </button>
-                <button
-                  onClick={() => {
-                    setAdding(false);
-                    setNewTitle("");
-                  }}
-                  className="rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Cancel
-                </button>
+                      setNewDueDate("");
+                      setNewBucketId("");
+                    }}
+                    className="rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    aria-label="Assignee"
+                    value={newAssignee}
+                    onChange={(e) => setNewAssignee(e.target.value)}
+                    className="rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1.5 text-xs text-foreground focus:border-[var(--color-teal)] focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
+                  >
+                    {ASSIGNEE_OPTIONS.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    aria-label="Bucket"
+                    value={newBucketId}
+                    onChange={(e) => setNewBucketId(e.target.value)}
+                    className="rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1.5 text-xs text-foreground focus:border-[var(--color-teal)] focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
+                  >
+                    <option value="">No bucket</option>
+                    {buckets.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="date"
+                    aria-label="Due date"
+                    value={newDueDate}
+                    onChange={(e) => setNewDueDate(e.target.value)}
+                    className="rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1.5 text-xs text-foreground focus:border-[var(--color-teal)] focus:outline-none focus:ring-1 focus:ring-[var(--color-teal)]"
+                  />
+                </div>
               </div>
             )}
 

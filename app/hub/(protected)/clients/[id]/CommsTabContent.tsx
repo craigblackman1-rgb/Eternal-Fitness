@@ -20,6 +20,7 @@ interface Props {
   lastSentAt: string | null;
   updateIntervalWeeks: number | null;
   updateIntervalNextDate: string | null;
+  currentUserName: string | null;
 }
 
 const SEGMENTS: { key: Segment; label: string }[] = [
@@ -36,6 +37,7 @@ export function CommsTabContent({
   lastSentAt,
   updateIntervalWeeks,
   updateIntervalNextDate,
+  currentUserName,
 }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -106,6 +108,7 @@ export function CommsTabContent({
           updateInterval={updateInterval}
           dueInfo={dueInfo}
           lastSentAt={lastSentAt}
+          currentUserName={currentUserName}
         />
       )}
     </div>

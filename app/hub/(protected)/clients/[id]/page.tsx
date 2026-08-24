@@ -112,6 +112,7 @@ function formatHubDate(value: string | null | undefined): string {
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode, resource_visibility").eq("client_number", parseInt(params.id)).single();
 
   if (!client) notFound();
@@ -1008,6 +1009,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 lastSentAt={lastSentAt}
                 updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
                 updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
+                currentUserName={user?.name ?? null}
               />
             </TabsContent>
 
