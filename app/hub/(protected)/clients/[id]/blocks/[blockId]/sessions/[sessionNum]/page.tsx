@@ -20,6 +20,7 @@ import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescripti
 // Minimal shape of the client record this header needs — the GET /api/clients/[id]
 // response returns the full client, but only these fields feed the subtitle line.
 type ClientHeader = {
+  id?: string | null;
   name?: string | null;
   profile?: { health?: { conditions?: string[] } } | null;
   session_duration?: number | null;
@@ -194,7 +195,7 @@ export default function SessionViewPage({
       body: JSON.stringify({
         name: templateName.trim(),
         data: versionData,
-        source_client_id: params.id,
+        source_client_id: client?.id ?? null,
         source_session_id: session.id,
       }),
     });
