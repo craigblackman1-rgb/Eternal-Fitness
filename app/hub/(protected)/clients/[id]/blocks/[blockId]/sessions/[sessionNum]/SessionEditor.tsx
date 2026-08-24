@@ -36,6 +36,7 @@ import {
   IconGripVertical,
   IconChevronUp,
   IconChevronDown,
+  IconCheck,
   IconEllipsis,
   IconTrash2,
   IconMove,
@@ -55,8 +56,9 @@ import { SwapExerciseDialog } from "../swap-exercise-dialog";
 import { AddExerciseDialog, type InsertPositionOption } from "../add-exercise-dialog";
 import { toast } from "sonner";
 import { HubCard } from "@/components/hub/HubCard";
-import { computeGroups, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
+import { computeGroups, nextGroupLabel, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
 import { ensureUids } from "@/lib/exercise-ref";
+import { deriveSessionStatus } from "@/lib/session-status";
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -110,6 +112,17 @@ interface LatestCompletedSession {
   versions: { studio?: SessionVersion; home?: SessionVersion };
 }
 
+/** Minimal shape of a session row returned by GET /api/blocks/[id]/sessions —
+ *  only the fields needed to count how many later sessions remain to swap. */
+interface BlockSessionRow {
+  session_number?: number;
+  status?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+  scheduled_at?: string | null;
+  data?: { session_log?: { completed_at?: string | null } | null };
+}
+
 /** Desk-planning editor for a single session prescription (one version — studio or home).
  *  Local-only state until "Save changes" — Discard just unmounts without persisting. */
 export function SessionEditor({
@@ -117,6 +130,8 @@ export function SessionEditor({
   data,
   clientId,
   sessionId,
+  blockId,
+  sessionNumber,
   onSaved,
   onCancel,
 }: {
@@ -126,6 +141,9 @@ export function SessionEditor({
    *  Previous Session" — excludes the session currently being edited. */
   clientId: string;
   sessionId: string;
+  /** Needed to offer the "swap this exercise across all remaining sessions" choice. */
+  blockId: string;
+  sessionNumber: number;
   /** Parent owns the actual PATCH (it merges this version's sections back into
    *  session.data.versions and updates the session state) — returns whether it succeeded. */
   onSaved: (updated: SessionVersion) => Promise<boolean>;
@@ -152,6 +170,17 @@ export function SessionEditor({
   const [overBlockKey, setOverBlockKey] = useState<string | null>(null);
   const [rollingOver, setRollingOver] = useState(false);
   const [addSkeleton, setAddSkeleton] = useState<VolumeSkeleton | null>(null);
+  // Swap scope choice — after picking the replacement exercise, the editor asks
+  // whether to apply it to just this session or to every later session in the block.
+  const [pendingSwap, setPendingSwap] = useState<{
+    target: { section: SectionKey; uid: string };
+    entry: ExerciseEntry;
+    fromName: string;
+  } | null>(null);
+  const [swapScopeOpen, setSwapScopeOpen] = useState(false);
+  const [remainingCount, setRemainingCount] = useState(0);
+  const [swappingRemaining, setSwappingRemaining] = useState(false);
+  const [grpPicked, setGrpPicked] = useState<Record<string, boolean>>({});
 
   // Resolve exercise thumbnails/video links by name from the exercises library.
   // AI-generated / rolled-over prescriptions never embed media, so fetch the
@@ -350,6 +379,47 @@ export function SessionEditor({
     });
   };
 
+  const togglePick = (uid: string) => {
+    setGrpPicked((prev) => {
+      if (prev[uid]) {
+        const next = { ...prev };
+        delete next[uid];
+        return next;
+      }
+      return { ...prev, [uid]: true };
+    });
+  };
+
+  const handleGroup = () => {
+    const pickedUids = Object.keys(grpPicked).filter((uid) => grpPicked[uid]);
+    if (pickedUids.length < 2) return;
+    const pickedSet = new Set(pickedUids);
+    const targets = sections.main_block.filter((e) => pickedSet.has(e._uid));
+    if (targets.length < 2) return;
+    const label = nextGroupLabel(sections.main_block);
+    setSections((prev) => ({
+      ...prev,
+      main_block: prev.main_block.map((e) =>
+        pickedSet.has(e._uid) ? { ...e, group_label: label } : e
+      ),
+    }));
+    setGrpPicked({});
+    toast.success(`${targets.length} exercises grouped as ${label}.`);
+  };
+
+  const handleUngroup = (groupLabel: string) => {
+    setSections((prev) => {
+      const next = {} as SectionsState;
+      for (const key of SECTION_DEFS.map((s) => s.key)) {
+        next[key] = prev[key].map((e) =>
+          e.group_label === groupLabel ? { ...e, group_label: undefined } : e
+        );
+      }
+      return next;
+    });
+    toast.success(`Superset ${groupLabel} ungrouped.`);
+  };
+
   const addExercise = (entry: ExerciseEntry, insertIndex: number) => {
     if (!addTarget) return;
     const newEx: EditableExercise = {
@@ -415,12 +485,11 @@ export function SessionEditor({
     }
   };
 
-  const swapExercise = (entry: ExerciseEntry) => {
-    if (!swapTarget) return;
+  const applyLocalSwap = (target: { section: SectionKey; uid: string }, entry: ExerciseEntry) => {
     setSections((prev) => ({
       ...prev,
-      [swapTarget.section]: prev[swapTarget.section].map((e) =>
-        e._uid === swapTarget.uid
+      [target.section]: prev[target.section].map((e) =>
+        e._uid === target.uid
           ? {
               ...e,
               exercise_name: entry.name,
@@ -436,7 +505,96 @@ export function SessionEditor({
       ),
     }));
     toast.message(`Swapped to "${entry.name}".`);
-    setSwapTarget(null);
+  };
+
+  // How many later, not-yet-completed sessions are left in this block. Used only to
+  // decide whether the "all remaining" choice is worth offering — the bulk swap
+  // endpoint re-derives the real set of targets server-side.
+  const countRemainingSessions = async (): Promise<number> => {
+    if (!blockId) return 0;
+    try {
+      const res = await fetch(`/api/blocks/${blockId}/sessions`);
+      if (!res.ok) return 0;
+      const rows = (await res.json()) as BlockSessionRow[];
+      return rows.filter((s) => {
+        if ((s.session_number ?? 0) <= sessionNumber) return false;
+        const status = deriveSessionStatus({
+          status: s.status,
+          completed_at: s.completed_at,
+          cancelled_at: s.cancelled_at,
+          scheduled_at: s.scheduled_at,
+          session_log: s.data?.session_log,
+        });
+        return status !== "completed" && status !== "cancelled";
+      }).length;
+    } catch {
+      return 0;
+    }
+  };
+
+  const swapExercise = async (entry: ExerciseEntry) => {
+    const target = swapTarget;
+    if (!target) return;
+    const from = sections[target.section].find((e) => e._uid === target.uid);
+    const fromName = from?.exercise_name ?? "";
+
+    const remaining = await countRemainingSessions();
+    if (remaining > 0) {
+      setPendingSwap({ target, entry, fromName });
+      setRemainingCount(remaining);
+      setSwapScopeOpen(true);
+      return;
+    }
+    applyLocalSwap(target, entry);
+  };
+
+  const applyThisSessionOnly = () => {
+    const pending = pendingSwap;
+    setSwapScopeOpen(false);
+    setPendingSwap(null);
+    if (pending) applyLocalSwap(pending.target, pending.entry);
+  };
+
+  const applyAllRemaining = async () => {
+    const pending = pendingSwap;
+    if (!pending) return;
+    setSwapScopeOpen(false);
+    setPendingSwap(null);
+    applyLocalSwap(pending.target, pending.entry);
+
+    setSwappingRemaining(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/swap-exercise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_exercise_name: pending.fromName,
+          to: {
+            exercise_name: pending.entry.name,
+            coaching_cue: pending.entry.coaching_cue || "",
+            modification: pending.entry.default_mod || "",
+            equipment: pending.entry.equipment || [],
+            image_url: pending.entry.image_url || null,
+            video_url: pending.entry.video_url || null,
+          },
+        }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string; updated_sessions?: number };
+      if (!res.ok) {
+        toast.error(body?.error || "Failed to update the remaining sessions");
+        return;
+      }
+      const n = body?.updated_sessions ?? 0;
+      if (n > 0) {
+        toast.success(`Swapped "${pending.entry.name}" in this session and ${n} later session${n === 1 ? "" : "s"}.`);
+      } else {
+        toast.message(`Swapped "${pending.entry.name}" in this session — no later sessions still prescribe this exercise.`);
+      }
+    } catch {
+      toast.error("Failed to update the remaining sessions");
+    } finally {
+      setSwappingRemaining(false);
+    }
   };
 
   const saveVideo = (sectionKey: SectionKey, uid: string) => {
@@ -506,6 +664,8 @@ export function SessionEditor({
     ? templateList.filter((t) => t.name.toLowerCase().includes(templateSearch.toLowerCase()))
     : templateList;
 
+  const pickedCount = Object.keys(grpPicked).length;
+
   return (
     <div className="space-y-4">
       <HubCard padded={false} className="flex items-center justify-between px-4 py-3">
@@ -560,6 +720,31 @@ export function SessionEditor({
                 {list.length} exercise{list.length === 1 ? "" : "s"}
               </span>
             </div>
+            {sec.key === "main_block" && pickedCount > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--hub-border)] bg-rose/5 px-4 py-2">
+                <span className="text-xs font-semibold text-rose">
+                  {pickedCount} exercise{pickedCount === 1 ? "" : "s"} selected — combine into a superset
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setGrpPicked({})}
+                    className="h-7 rounded-lg px-2 text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleGroup}
+                    disabled={pickedCount < 2}
+                    className="h-7 rounded-lg bg-rose px-2 text-xs text-white hover:bg-rose/90"
+                  >
+                    Group as superset
+                  </Button>
+                </div>
+              </div>
+            )}
             <div
               className={`space-y-2 p-3 rounded-[12px] transition-colors ${dragSection && dragSection !== sec.key ? "bg-[var(--hub-sidebar-active)] outline outline-2 outline-dashed outline-rose/20" : ""}`}
               onDragOver={(e) => {
@@ -642,6 +827,28 @@ export function SessionEditor({
                         Superset {block.label}
                       </span>
                       <span className="text-[11.5px] text-rose">{block.items.length} exercises performed together</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUngroup(block.label!)}
+                        aria-label={`Ungroup ${block.label}`}
+                        title="Ungroup this superset — the exercises stay in the session as standalone rows"
+                        className="ml-auto inline-flex h-6 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold text-rose transition-colors hover:bg-rose/10"
+                      >
+                        <svg
+                          className="h-3 w-3"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        Ungroup
+                      </button>
                     </div>
                     <div className="space-y-1.5">
                       {block.items.map((ex, i) => (
@@ -713,6 +920,9 @@ export function SessionEditor({
                       ex={block.items[0]}
                       sectionKey={sec.key}
                       draggableHandle
+                      pickable={allowGroups}
+                      picked={!!grpPicked[block.items[0]._uid]}
+                      onPickToggle={() => togglePick(block.items[0]._uid)}
                       isFirst={list.findIndex((e) => e._uid === block.items[0]._uid) === 0}
                       isLast={list.findIndex((e) => e._uid === block.items[0]._uid) === list.length - 1}
                       onField={updateField}
@@ -814,6 +1024,33 @@ export function SessionEditor({
         />
       )}
 
+      <Dialog
+        open={swapScopeOpen}
+        onOpenChange={(open) => {
+          if (!open && !swappingRemaining) {
+            setSwapScopeOpen(false);
+            setPendingSwap(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="text-[var(--color-ink)]">Swap exercise</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-2">
+            Swap to <b>{pendingSwap?.entry.name}</b> in this session only, or also apply it to the {remainingCount} later session{remainingCount === 1 ? "" : "s"} in this block that still prescribes the exercise?
+          </p>
+          <div className="flex flex-col gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={applyThisSessionOnly} disabled={swappingRemaining} className="rounded-lg">
+              This session only
+            </Button>
+            <Button size="sm" onClick={applyAllRemaining} disabled={swappingRemaining} className="rounded-lg bg-rose hover:bg-rose/90 text-white">
+              This and all remaining sessions
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
         <DialogContent className="max-w-lg bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
           <DialogHeader>
@@ -870,6 +1107,9 @@ function ExerciseRow({
   sectionKey,
   inGroup,
   draggableHandle,
+  pickable,
+  picked,
+  onPickToggle,
   isFirst,
   isLast,
   onField,
@@ -894,6 +1134,9 @@ function ExerciseRow({
   sectionKey: SectionKey;
   inGroup?: boolean;
   draggableHandle?: boolean;
+  pickable?: boolean;
+  picked?: boolean;
+  onPickToggle?: () => void;
   isFirst: boolean;
   isLast: boolean;
   onField: (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => void;
@@ -923,6 +1166,22 @@ function ExerciseRow({
 
   return (
     <div className="flex items-start gap-2.5 flex-wrap sm:flex-nowrap rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
+      {pickable && (
+        <button
+          type="button"
+          onClick={onPickToggle}
+          aria-pressed={picked}
+          aria-label={picked ? `Deselect ${ex.exercise_name} for grouping` : `Select ${ex.exercise_name} for grouping`}
+          title={picked ? "Deselect for grouping" : "Select to group into a superset"}
+          className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+            picked
+              ? "border-rose bg-rose text-white"
+              : "border-[var(--hub-field-border)] text-transparent hover:border-rose hover:text-rose/40"
+          }`}
+        >
+          <IconCheck className="h-3 w-3" />
+        </button>
+      )}
       {draggableHandle && (
         <span className="mt-1.5 cursor-grab text-[var(--hub-field-border)]" title="Drag to reorder">
           <IconGripVertical className="h-4 w-4" />

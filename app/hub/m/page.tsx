@@ -20,6 +20,7 @@ export interface TodayEntry {
 
 export default async function TodayPage() {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: sessionRows } = await supabase
     .from("sessions")
@@ -89,5 +90,5 @@ export default async function TodayPage() {
     .select("id", { count: "exact", head: true })
     .eq("status", "open");
 
-  return <TodayScreen entries={entries} tasks={tasks} openBookingCount={openBookingCount ?? 0} />;
+  return <TodayScreen entries={entries} tasks={tasks} openBookingCount={openBookingCount ?? 0} currentUserName={user?.name ?? null} />;
 }

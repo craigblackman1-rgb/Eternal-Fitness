@@ -510,6 +510,8 @@ export default function SessionViewPage({
             data={session.data?.versions?.[activeTab] || { warm_up: [], main_block: [], cooldown: [] }}
             clientId={params.id}
             sessionId={session.id}
+            blockId={params.blockId}
+            sessionNumber={sessionNum}
             onSaved={(updated) => saveSessionEdit(activeTab, updated)}
             onCancel={() => setMode("log")}
           />
