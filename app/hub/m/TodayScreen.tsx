@@ -175,9 +175,10 @@ interface TodayScreenProps {
   entries: TodayEntry[];
   tasks: Task[];
   openBookingCount: number;
+  currentUserName: string | null;
 }
 
-export function TodayScreen({ entries, tasks, openBookingCount }: TodayScreenProps) {
+export function TodayScreen({ entries, tasks, openBookingCount, currentUserName }: TodayScreenProps) {
   const router = useRouter();
   const [day, setDay] = useState<string>(todayISO());
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -202,11 +203,12 @@ export function TodayScreen({ entries, tasks, openBookingCount }: TodayScreenPro
 
   const dayTasks = useMemo(() => {
     return tasks.filter((t) => {
+      if (!currentUserName || t.assignee !== currentUserName) return false;
       if (!t.due_date) return false;
       if (t.due_date > day) return false;
       return t.status !== "done" || t.due_date === day;
     });
-  }, [tasks, day]);
+  }, [tasks, day, currentUserName]);
 
   const openTaskCount = dayTasks.filter((t) => t.status !== "done").length;
 
