@@ -17,52 +17,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Template data is required" }, { status: 400 });
   }
 
-  const exercises = collectExercises(data);
-  const exerciseNames = [...new Set(exercises.map((e) => e.exercise_name).filter(Boolean))];
+  try {
+    const exercises = collectExercises(data);
+    const exerciseNames = [...new Set(exercises.map((e) => e.exercise_name).filter(Boolean))];
 
-  let facets = {
-    archetypes: [] as string[],
-    movement_type: [] as string[],
-    muscle_groups: [] as string[],
-    equipment: [] as string[],
-    position: [] as string[],
-    difficulty: null as number | null,
-  };
+    let facets = {
+      archetypes: [] as string[],
+      movement_type: [] as string[],
+      muscle_groups: [] as string[],
+      equipment: [] as string[],
+      position: [] as string[],
+      difficulty: null as number | null,
+    };
 
-  if (exerciseNames.length > 0) {
-    const { data: rows } = await supabase
-      .from("exercises")
-      .select("name, archetypes, movement_type, muscle_groups, equipment, difficulty, position")
-      .eq("active", true)
-      .in("name", exerciseNames);
-    facets = deriveFacets(exercises, (rows ?? []) as ExercisesRow[]);
+    if (exerciseNames.length > 0) {
+      const { data: rows } = await supabase
+        .from("exercises")
+        .select("name, archetypes, movement_type, muscle_groups, equipment, difficulty, position")
+        .eq("active", true)
+        .in("name", exerciseNames);
+      facets = deriveFacets(exercises, (rows ?? []) as ExercisesRow[]);
+    }
+
+    const insert = {
+      name: name.trim(),
+      data,
+      archetypes: facets.archetypes,
+      movement_type: facets.movement_type,
+      muscle_groups: facets.muscle_groups,
+      equipment: facets.equipment,
+      difficulty: facets.difficulty,
+      position: facets.position,
+      condition_tags: condition_tags ?? [],
+      source_client_id: source_client_id ?? null,
+      source_session_id: source_session_id ?? null,
+    };
+
+    const { data: created, error } = await supabase
+      .from("workout_templates")
+      .insert(insert)
+      .select("*")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(created);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to save template";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const insert = {
-    name: name.trim(),
-    data,
-    archetypes: facets.archetypes,
-    movement_type: facets.movement_type,
-    muscle_groups: facets.muscle_groups,
-    equipment: facets.equipment,
-    difficulty: facets.difficulty,
-    position: facets.position,
-    condition_tags: condition_tags ?? [],
-    source_client_id: source_client_id ?? null,
-    source_session_id: source_session_id ?? null,
-  };
-
-  const { data: created, error } = await supabase
-    .from("workout_templates")
-    .insert(insert)
-    .select("*")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(created);
 }
 
 export async function GET() {

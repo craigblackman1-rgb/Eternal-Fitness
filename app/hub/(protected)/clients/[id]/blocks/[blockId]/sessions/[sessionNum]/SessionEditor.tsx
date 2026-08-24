@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -152,6 +152,56 @@ export function SessionEditor({
   const [overBlockKey, setOverBlockKey] = useState<string | null>(null);
   const [rollingOver, setRollingOver] = useState(false);
   const [addSkeleton, setAddSkeleton] = useState<VolumeSkeleton | null>(null);
+
+  // Resolve exercise thumbnails/video links by name from the exercises library.
+  // AI-generated / rolled-over prescriptions never embed media, so fetch the
+  // library once on mount and backfill only the exercises still missing an
+  // image or video — manually attached media is left untouched.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/exercises")
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to load exercises");
+        const library = (await res.json()) as ExerciseEntry[];
+        if (cancelled) return;
+        const imageByName = new Map<string, string>();
+        const videoByName = new Map<string, string>();
+        for (const entry of library) {
+          const key = entry.name.toLowerCase();
+          if (entry.image_url && !imageByName.has(key)) imageByName.set(key, entry.image_url);
+          if (entry.video_url && !videoByName.has(key)) videoByName.set(key, entry.video_url);
+        }
+        setSections((prev) => {
+          let changed = false;
+          const next = { ...prev };
+          for (const key of SECTION_DEFS.map((s) => s.key)) {
+            next[key] = prev[key].map((ex) => {
+              const name = (ex.exercise_name ?? "").toLowerCase();
+              const existing = ex.media ?? {};
+              const image_url = existing.image_url || imageByName.get(name);
+              const video_url = existing.video_url || videoByName.get(name);
+              if (image_url === existing.image_url && video_url === existing.video_url) return ex;
+              changed = true;
+              return {
+                ...ex,
+                media: {
+                  ...existing,
+                  ...(image_url ? { image_url } : {}),
+                  ...(video_url ? { video_url } : {}),
+                },
+              };
+            });
+          }
+          return changed ? next : prev;
+        });
+      })
+      .catch(() => {
+        // Library fetch failed — the editor still works, just without thumbnails.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const updateField = (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => {
     setSections((prev) => ({
@@ -899,6 +949,13 @@ function ExerciseRow({
 
       <div className="min-w-[160px] flex-1">
         <div className="flex items-center gap-2 flex-wrap">
+          {ex.media?.image_url && (
+            <img
+              src={ex.media.image_url}
+              alt={ex.exercise_name}
+              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+            />
+          )}
           <p className="text-sm font-semibold text-foreground">{ex.exercise_name}</p>
           <div className="inline-flex gap-0.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-hover)] p-0.5">
             <button

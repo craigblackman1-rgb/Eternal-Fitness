@@ -200,7 +200,16 @@ export default function SessionViewPage({
     });
     setSavingTemplate(false);
     if (!res.ok) {
-      toast.error("Failed to save template");
+      let message = "Failed to save template";
+      try {
+        const body = await res.json();
+        if (body && typeof body.error === "string" && body.error.trim()) {
+          message = body.error;
+        }
+      } catch {
+        // Body wasn't JSON — keep the generic message.
+      }
+      toast.error(message);
       return;
     }
     toast.success(`Template "${templateName.trim()}" saved`);
