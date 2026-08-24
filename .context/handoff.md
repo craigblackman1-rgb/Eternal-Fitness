@@ -1,3 +1,39 @@
+# Session Handoff: August 24, 2026 (Claude Code) — Lanes I & J shipped, 8 bugs/CRs closed
+
+## Session Summary
+Two pieces of work under `wo-ef-consolidated-2026-08-20`:
+
+**Lane I** — Craig reported "Save as template" always failing and exercise images/videos
+missing across the hub. Root-caused both (an unguarded `.toLowerCase()` crash on template
+save; the Trainerize image migration was written but never run, plus most renderers never
+looked up the exercise library at all). Fixed, migrated 2,224 images to both prod and
+staging DBs, wired image/video lookups into desktop editor, mobile TrainScreen, and portal.
+Caught and fixed a second real bug along the way (`source_client_id` sending the URL's
+display client-number instead of the real UUID). Built via OpenCode lanes, every diff
+hand-reviewed, live-verified on staging then prod.
+
+**Lane J** — Pulled Esther's 12 open hub tasks assigned to Craig, triaged each one with him
+(not assumed), filed CR-EF-081 through 087 in `change-requests.md`. Dispatched 6 of them
+(081–085, 087) to 5 parallel OpenCode worktrees; CR-EF-086 (site-wide image alt-text for
+VI accessibility) held back pending an Open Design scoping/authoring pass. One lane
+(CR-EF-082) needed a retry — its first attempt explored the code and stopped without
+committing anything. Caught a real bug on review (CR-EF-087's notify email linked to the
+client's UUID instead of the `client_number` the hub route expects) and got it fixed before
+merging. Combined all 5 lanes into one branch (one real merge conflict — two lanes added
+non-overlapping `useState` hooks to the same file — resolved by keeping both), pushed
+staging then main, live-verified both.
+
+**End state:** both lanes fully merged, promoted to `main`, live on eternal-fitness.co.uk.
+All 6 worktrees/branches from this session cleaned up (fully merged, no real diff left
+behind). Sent Craig a Teams-ready summary for Esther listing everything to spot-check.
+
+**Still open:** CR-EF-086 (needs scoping), CR-EF-087's real email send (code-verified only,
+no live document was signed to test it), a pre-existing mobile TrainScreen hydration-
+mismatch bug found during Lane I verification (deferred, `dmt799jrk5j`, confirmed unrelated
+to this session's changes).
+
+---
+
 # Session Handoff: August 20, 2026 (Claude Code) — wo-ef-consolidated raised, all 5 gates closed
 
 ## Agent
