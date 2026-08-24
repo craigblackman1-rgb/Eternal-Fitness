@@ -4,7 +4,11 @@ OWNER: (empty until claimed)
 SCOPE: eternal-fitness-website (app/hub/(protected)/**, components/hub/**, app/api/parq/**,
        app/(marketing) schema/meta only for Lane B's SEO items — no other marketing-site scope;
        Lane G adds lib/graph-client.ts, lib/calendar-sync.ts, app/api/cron/sync-calendar/**,
-       app/api/integrations/microsoft/**, app/hub/(protected)/schedule/**)
+       app/api/integrations/microsoft/**, app/hub/(protected)/schedule/**;
+       Lane I adds app/api/workout-templates/**, lib/workout-template-facets.ts,
+       lib/exercise-media.ts, app/hub/m/train/**, lib/portal-data.ts, and — as a scoped exception
+       to the FORBIDDEN portal-UI line below, portal-approved 2026-08-24 for image display only —
+       app/portal/(protected)/training/TrainingClient.tsx)
 
 GOAL: Every currently open eternal-fitness-website item — workout/training-block parity,
       compliance/SEO/security cleanup, infra decisions, and document-engine/hub housekeeping —
@@ -244,6 +248,8 @@ not the first commit's, as authoritative.
   unit; the reconciliation UI/schema units depend on G7's Open Design brief landing
 - Lane H — Outlook duplicate-event reconciliation (CR-EF-028) · depends on: an Open Design brief
   (G8) — mirror of Lane G's UI pattern, no build before a mockup lands
+- Lane I — Save-template crash + exercise image/video display (2026-08-24 bug reports)
+  · depends on: none for the code fixes; the Trainerize image migration run is a GATE
 
 ## UNITS
 ### Lane E (registry housekeeping — do first)
@@ -288,7 +294,7 @@ not the first commit's, as authoritative.
 - [AUTO] Investigate + resolve Open Design project visibility issue (or confirm as OD-app
   limitation and close the deferred item with that note).
 - [AUTO] Add "Long-Lever Plank" and "Weighted Plank" to /hub/exercises with video links.
-- [AUTO] Delete leftover empty worktree folder (worktrees/eternal-fitness-website/add-wo...).
+- [x] Delete leftover empty worktree folder (worktrees/eternal-fitness-website/add-workouts-training-block-f72141) — DONE by the wo-dispatcher scheduled run 2026-08-24 13:10: folder confirmed empty (0 items) and absent from `git worktree list`, deleted. Deferred item dmsxmkhnzy7 resolved.
 - [BLOCKED] Blind-fitness/cancer-rehab specialist copy — waiting on: Specialist Training
   catalogue pages existing (currently redirected away, deferred to post-launch).
 - [GATE] G3 — Lane F rail-as-navigation IA concept — needs a fresh Open Design brief before
@@ -355,6 +361,65 @@ not the first commit's, as authoritative.
   dry-run's prediction exactly (nothing currently scheduled collides, so today's deploy is a
   behavioural no-op; the pause logic only engages the next time Esther books a session that
   collides with one of her own personal Outlook entries).
+
+### Lane I (2026-08-24 bug reports — save-template crash + missing exercise media)
+- [x] Fixed "Save as template" always failing. Root cause: `lib/workout-template-facets.ts:29`
+  `deriveFacets` threw on any exercise missing `exercise_name`, uncaught by
+  `app/api/workout-templates/route.ts`'s POST handler → raw 500, and the client never read the
+  body anyway (always showed a generic toast). Fixed: null guard in `deriveFacets`, try/catch
+  around the route's facet-derivation+insert, client now shows the real server error. Built via
+  OpenCode lane (commit 0f785ca), diff hand-reviewed. **Live-verified 2026-08-24**: reproduced the
+  original failure live, watched the toast go from generic to the real Postgres error
+  (`invalid input syntax for type uuid: "19"`), which surfaced a **second real bug** the lane
+  hadn't touched — `source_client_id` was sending the URL's `client_number` slug instead of the
+  actual `clients.id` UUID. Fixed separately (commit af88125: `source_client_id: client?.id ??
+  null`, extending the already-fetched client record instead of `params.id`). Re-tested live —
+  template saved successfully, confirmed in `workout_templates`, then deleted the test row.
+- [x] Exercise images/videos wired into every workout-rendering surface. Root cause: two
+  compounding issues — (1) the Trainerize image migration (scripts written in e6eb131) was never
+  run, so `exercises.image_url` still pointed at unmigrated third-party CDN URLs; (2) most surfaces
+  only ever read pre-embedded session JSONB `media`, which is only populated when a trainer
+  manually attaches media — AI-generated sessions never got it. Fixed: new
+  `lib/exercise-media.ts` (`backfillExerciseMedia`, name-join against `exercises` mirroring
+  `portal-data.ts`'s existing video-only pattern) wired into `app/hub/m/train/[sessionId]/page.tsx`
+  (previously did zero join to `exercises` at all), `lib/portal-data.ts` (extended video-only
+  backfill to also carry `image_url`), desktop `SessionEditor.tsx` (added the backfill + an actual
+  `<img>` thumbnail in the exercise row list, not just the attached-icon toggle), and — found
+  missing during live verification, not in the original OpenCode diff — the portal training view
+  itself (`TrainingClient.tsx` extended `image_url` into the data shape but never rendered it;
+  fixed in commit 507dde9). Built across 4 OpenCode-lane commits in the same worktree
+  (0f785ca, 507dde9, af88125, plus the image data commit f3f1fa4), all hand-reviewed line-by-line.
+  **Live-verified 2026-08-24** against real prod data via claude-in-chrome under Esther's real hub
+  session: exercise library thumbnails render (zoomed screenshot confirmed real photos, not
+  broken icons); a real session's mobile TrainScreen loaded a real local image
+  (`/images/exercises/trap-bar-deadlift.jpg`, network-confirmed 304); exercises with no matching
+  library row correctly show no thumbnail (verified this is a legitimate name-mismatch case —
+  e.g. "DB Goblet Squat" vs library's "Dumbbell Goblet Squat" — not a bug, same limitation the
+  pre-existing video-only pattern already had). **Found and ruled out a pre-existing, unrelated
+  bug during verification**: mobile TrainScreen throws a React hydration-mismatch error on at
+  least one real session — confirmed present with Lane I's `page.tsx` changes reverted too, so
+  not a regression from this fix; not investigated further (out of this Lane's scope), left as a
+  deferred item.
+- [x] **GATE ANSWERED 2026-08-24 (Craig, in chat): "Yes, run against both now."** Ran
+  `scripts/download-trainerize-images.mjs` (local-only, no DB write — downloaded 2,224 images to
+  `public/images/exercises/`, generated `scripts/trainerize-image-map.json` +
+  `scripts/trainerize-image-migration.sql`) then the generated SQL migration (2,224
+  `exercises.image_url` UPDATEs, exact `WHERE image_url = '<trainerize-url>'` match, run inside a
+  single transaction) against **both** prod (`eternal_fitness`, via the existing 127.0.0.1:5433
+  tunnel) and staging (`eternal_fitness_staging`, same tunnel + host, staging's own
+  `ef_staging_app` role pulled from Coolify env vars) — 2,224/2,224 rows updated on each. Then ran
+  `scripts/backfill-session-images.mjs` against both DBs (dry-run first, diffed against expected
+  counts) — prod: 103 sessions + 7 templates backfilled; staging: 80 sessions + 2 templates.
+  Images downloaded to the shared checkout were copied into the Lane I worktree and committed
+  there (not committed from the shared checkout) — see Lane I DONE entry.
+- **Scope note (2026-08-24):** this WO's original FORBIDDEN list blocked
+  `app/portal/(client-facing UI)**` — written for Lanes A-H's original scope, before Lane I
+  existed. Lane I's second bug report ("exercise images not showing... across the app on all
+  services where it's made available") explicitly requires a portal training-view thumbnail, so
+  that FORBIDDEN line no longer applies to Lane I specifically — carved out here rather than
+  silently overridden. Every other FORBIDDEN entry (marketing content, planAgentPrompt.ts,
+  migrations without a GATE, components/ds/**, design-system.css) still holds for Lane I; none
+  were touched.
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
