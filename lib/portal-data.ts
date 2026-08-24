@@ -40,8 +40,8 @@ export interface PortalUpdate {
 }
 
 /** A prescribed exercise as shown in the portal — trimmed to client-facing
- *  fields, with the video link resolved (embedded media first, then a by-name
- *  match against the exercises library). */
+ *  fields, with the image/video links resolved (embedded media first, then a
+ *  by-name match against the exercises library). */
 export interface PortalExercise {
   exercise_name: string;
   sets: number;
@@ -53,6 +53,7 @@ export interface PortalExercise {
   equipment: string[];
   group_label?: string;
   log_type?: "reps" | "time";
+  image_url: string | null;
   video_url: string | null;
 }
 
@@ -161,28 +162,29 @@ export class PortalDataClient {
       data: Session;
     }[];
 
-    // Backfill missing exercise videos by name from the exercises library.
+    // Backfill missing exercise media by name from the exercises library.
     const missingNames = new Set<string>();
     for (const row of rows) {
       const home = row.data?.versions?.home;
       for (const section of [home?.warm_up, home?.main_block, home?.cooldown]) {
         for (const ex of section ?? []) {
-          if (!ex.media?.video_url && ex.exercise_name) {
+          if (ex.exercise_name && (!ex.media?.video_url || !ex.media?.image_url)) {
             missingNames.add(ex.exercise_name.toLowerCase());
           }
         }
       }
     }
+    const imageByName = new Map<string, string>();
     const videoByName = new Map<string, string>();
     if (missingNames.size > 0) {
       const { data: library } = await pg
         .from("exercises")
-        .select("name, video_url")
-        .not("video_url", "is", null);
-      for (const entry of (library ?? []) as { name: string; video_url: string | null }[]) {
-        if (entry.video_url && entry.name) {
-          videoByName.set(entry.name.toLowerCase(), entry.video_url);
-        }
+        .select("name, image_url, video_url");
+      for (const entry of (library ?? []) as { name: string; image_url: string | null; video_url: string | null }[]) {
+        if (!entry.name) continue;
+        const key = entry.name.toLowerCase();
+        if (entry.image_url && !imageByName.has(key)) imageByName.set(key, entry.image_url);
+        if (entry.video_url && !videoByName.has(key)) videoByName.set(key, entry.video_url);
       }
     }
 
@@ -197,6 +199,10 @@ export class PortalDataClient {
       equipment: ex.equipment ?? [],
       group_label: ex.group_label,
       log_type: ex.log_type,
+      image_url:
+        ex.media?.image_url ||
+        imageByName.get((ex.exercise_name ?? "").toLowerCase()) ||
+        null,
       video_url:
         ex.media?.video_url ||
         videoByName.get((ex.exercise_name ?? "").toLowerCase()) ||

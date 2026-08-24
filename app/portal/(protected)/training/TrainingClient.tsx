@@ -252,13 +252,22 @@ function ExerciseCard({
   return (
     <div className="rounded-2xl border border-border/60 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          {exercise.group_label && (
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--status-primary)]">
-              {exercise.group_label}
-            </p>
+        <div className="flex min-w-0 items-start gap-3">
+          {exercise.image_url && (
+            <img
+              src={exercise.image_url}
+              alt=""
+              className="h-12 w-12 shrink-0 rounded-lg object-cover"
+              loading="lazy"
+            />
           )}
-          <p className="font-medium">{exercise.exercise_name}</p>
+          <div className="min-w-0">
+            {exercise.group_label && (
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--status-primary)]">
+                {exercise.group_label}
+              </p>
+            )}
+            <p className="font-medium">{exercise.exercise_name}</p>
           <p className="mt-0.5 text-sm tabular-nums text-muted-foreground">
             {exercise.sets ?? 1} × {exercise.reps || "—"}
             {exercise.tempo ? ` · Tempo ${exercise.tempo}` : ""}
@@ -269,6 +278,7 @@ function ExerciseCard({
               {exercise.equipment.join(", ")}
             </p>
           )}
+          </div>
         </div>
         {exercise.video_url && (
           <a

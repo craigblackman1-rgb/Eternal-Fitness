@@ -26,6 +26,7 @@ export function deriveFacets(allEx: Exercise[], exerciseRows: ExercisesRow[]) {
   let maxDifficulty: number | null = null;
 
   for (const ex of allEx) {
+    if (!ex.exercise_name) continue;
     const matched = nameLookup.get(ex.exercise_name.toLowerCase());
     if (!matched) continue;
     for (const a of matched.archetypes) archetypes.add(a);

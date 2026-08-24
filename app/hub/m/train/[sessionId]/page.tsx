@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { DBSession, SetLog, DeliveryMode } from "@/types";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { getBestWeightsForClient } from "@/lib/exercise-best-weights";
+import { backfillExerciseMedia } from "@/lib/exercise-media";
 import { TrainScreen } from "./TrainScreen";
 
 export default async function TrainSessionPage({ params }: { params: { sessionId: string } }) {
@@ -43,9 +44,34 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
 
   const blockNumber = block?.block_number ?? null;
   const sessionRow = session as DBSession;
-  const sessionData = sessionRow.data ?? null;
+  let sessionData = sessionRow.data ?? null;
   const sessionLog = sessionData?.session_log ?? null;
   const deliveryMode: DeliveryMode = client?.delivery_mode ?? "studio_1to1";
+
+  // Resolve exercise thumbnails/video links by name from the exercises library
+  // before rendering — AI-generated sessions never embed media, so backfill the
+  // version TrainScreen will actually render (home vs studio).
+  if (sessionData) {
+    const versionKey = deliveryMode === "home_training" ? "home" : "studio";
+    const versionData = sessionData.versions?.[versionKey];
+    if (versionData) {
+      const warmUp = versionData.warm_up ?? [];
+      const mainBlock = versionData.main_block ?? [];
+      const cooldown = versionData.cooldown ?? [];
+      const backfilled = await backfillExerciseMedia(supabase, [...warmUp, ...mainBlock, ...cooldown]);
+      sessionData = {
+        ...sessionData,
+        versions: {
+          ...sessionData.versions,
+          [versionKey]: {
+            warm_up: backfilled.slice(0, warmUp.length),
+            main_block: backfilled.slice(warmUp.length, warmUp.length + mainBlock.length),
+            cooldown: backfilled.slice(warmUp.length + mainBlock.length),
+          },
+        },
+      };
+    }
+  }
 
   return (
     <TrainScreen
