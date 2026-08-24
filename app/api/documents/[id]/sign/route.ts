@@ -102,7 +102,22 @@ export async function POST(request: Request, { params }: { params: { id: string 
     try {
       const clientDisplayName = name.trim() || doc.client_name || "A client";
       const kindLabel = DOCUMENT_KIND_LABEL[doc.kind as keyof typeof DOCUMENT_KIND_LABEL] || doc.kind;
-      const docUrl = `${SITE_ORIGIN}/hub/clients/${doc.client_id}/documents/${doc.id}`;
+
+      // The hub's client route (app/hub/(protected)/clients/[id]) resolves [id]
+      // as the client's numeric client_number, not its UUID — look it up before
+      // building the "View document" link. If the lookup fails, omit the link
+      // rather than throw; the rest of the notification is still useful.
+      let docLink = "";
+      const { data: clientRow } = await admin
+        .from("clients")
+        .select("client_number")
+        .eq("id", doc.client_id)
+        .maybeSingle();
+      if (clientRow?.client_number != null) {
+        const docUrl = `${SITE_ORIGIN}/hub/clients/${clientRow.client_number}/documents/${doc.id}`;
+        docLink = `<p><a href="${escapeHtml(docUrl)}">View document in the hub</a></p>`;
+      }
+
       const sender = getEmailSender();
       await sender.send({
         to: resolveNotifyEmail(),
@@ -110,7 +125,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         html: `<div style="font-family:sans-serif;font-size:14px;line-height:1.5;">
           <p><strong>${escapeHtml(clientDisplayName)}</strong> signed the ${escapeHtml(kindLabel)} &ldquo;${escapeHtml(doc.title)}&rdquo;.</p>
           <p>Signed on ${escapeHtml(signedDate)}.</p>
-          <p><a href="${escapeHtml(docUrl)}">View document in the hub</a></p>
+          ${docLink}
         </div>`,
       });
     } catch (notifyErr) {
