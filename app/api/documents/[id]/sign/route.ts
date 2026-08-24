@@ -1,6 +1,31 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { isFullySigned } from "@/lib/documents/types";
+import { DOCUMENT_KIND_LABEL, isFullySigned } from "@/lib/documents/types";
+import { getEmailSender } from "@/lib/email";
+
+const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || "https://eternal-fitness.co.uk";
+
+// Same resolution order as app/api/leads/route.ts's resolveBusinessEmail() and
+// app/api/cron/check-updates-due/route.ts's resolveNotifyEmail(), so
+// ESTHER_NOTIFY_EMAIL redirects every staff-notification path with one env var.
+function resolveNotifyEmail(): string {
+  if (process.env.ESTHER_NOTIFY_EMAIL) {
+    return process.env.ESTHER_NOTIFY_EMAIL;
+  }
+  const raw = process.env.MAIL_FROM || "";
+  const match = raw.match(/<([^>]+)>/);
+  if (match) return match[1].trim();
+  if (raw.trim()) return raw.trim();
+  return "esther.fair@eternal-fitness.co.uk";
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 // Apply a signature. The client signs unauthenticated via the document UUID, so
 // this uses the service-role client. role = 'client' | 'trainer'.
@@ -68,6 +93,44 @@ export async function POST(request: Request, { params }: { params: { id: string 
       .eq("kind", doc.kind)
       .neq("id", doc.id)
       .in("status", ["draft", "sent"]);
+  }
+
+  // CR-EF-087: notify Esther when a client (not a trainer) has signed a
+  // document. The status update above is already committed, so an email
+  // failure must never fail the sign request — swallow and log it.
+  if (role === "client" && update.status === "signed") {
+    try {
+      const clientDisplayName = name.trim() || doc.client_name || "A client";
+      const kindLabel = DOCUMENT_KIND_LABEL[doc.kind as keyof typeof DOCUMENT_KIND_LABEL] || doc.kind;
+
+      // The hub's client route (app/hub/(protected)/clients/[id]) resolves [id]
+      // as the client's numeric client_number, not its UUID — look it up before
+      // building the "View document" link. If the lookup fails, omit the link
+      // rather than throw; the rest of the notification is still useful.
+      let docLink = "";
+      const { data: clientRow } = await admin
+        .from("clients")
+        .select("client_number")
+        .eq("id", doc.client_id)
+        .maybeSingle();
+      if (clientRow?.client_number != null) {
+        const docUrl = `${SITE_ORIGIN}/hub/clients/${clientRow.client_number}/documents/${doc.id}`;
+        docLink = `<p><a href="${escapeHtml(docUrl)}">View document in the hub</a></p>`;
+      }
+
+      const sender = getEmailSender();
+      await sender.send({
+        to: resolveNotifyEmail(),
+        subject: `${clientDisplayName} signed ${kindLabel}`,
+        html: `<div style="font-family:sans-serif;font-size:14px;line-height:1.5;">
+          <p><strong>${escapeHtml(clientDisplayName)}</strong> signed the ${escapeHtml(kindLabel)} &ldquo;${escapeHtml(doc.title)}&rdquo;.</p>
+          <p>Signed on ${escapeHtml(signedDate)}.</p>
+          ${docLink}
+        </div>`,
+      });
+    } catch (notifyErr) {
+      console.error("[documents/sign:notify]", notifyErr);
+    }
   }
 
   return NextResponse.json({ success: true, signed: update.status === "signed" });
