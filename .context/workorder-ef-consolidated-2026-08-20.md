@@ -250,6 +250,9 @@ not the first commit's, as authoritative.
   (G8) — mirror of Lane G's UI pattern, no build before a mockup lands
 - Lane I — Save-template crash + exercise image/video display (2026-08-24 bug reports)
   · depends on: none for the code fixes; the Trainerize image migration run is a GATE
+- Lane J — CR-EF-081/082/083/084/085/087 (Esther's hub-task triage batch, 2026-08-24)
+  · depends on: none, 5 independent worktrees. CR-EF-086 (site-wide VI alt-text) held back,
+  not part of Lane J — needs an authoring/scoping pass first, see its own CR row.
 
 ## UNITS
 ### Lane E (registry housekeeping — do first)
@@ -420,6 +423,40 @@ not the first commit's, as authoritative.
   silently overridden. Every other FORBIDDEN entry (marketing content, planAgentPrompt.ts,
   migrations without a GATE, components/ds/**, design-system.css) still holds for Lane I; none
   were touched.
+
+### Lane J (CR-EF-081/082/083/084/085/087 — Esther's hub-task triage batch, 2026-08-24)
+- [x] **Lane J complete — all 6 CRs built, merged, promoted to main, live-verified 2026-08-24.**
+  Built across 5 isolated worktrees (lane-j-tasks-kanban-sync, lane-j-swap-exercise-scope,
+  lane-j-unpair-supersets-desktop, lane-j-workout-name-profile, lane-j-document-sign-
+  notification), every commit hand-reviewed line-by-line before merging (one real bug caught
+  and fixed on review — CR-EF-087's notify link used the client's UUID instead of the numeric
+  `client_number` the hub route actually expects). CR-EF-082's first OpenCode attempt explored
+  the code and stopped without committing anything — retried with a more directive prompt,
+  which then completed correctly. Combined via sequential merge into lane-j-tasks-kanban-sync
+  (one real conflict: both the swap-scope and unpair-supersets lanes added new `useState` hooks
+  to `SessionEditor.tsx` — resolved by keeping both, non-overlapping). `tsc --noEmit` clean on
+  the combined tree. Pushed `staging` (`a7b4a92`), deployed, live-verified on
+  development.eternal-fitness.co.uk (task creation/list sync, swap-scope dialog, group/ungroup
+  superset, workout-name field — see each CR-EF row in change-requests.md for exact steps).
+  Promoted to `main`, deployed (Coolify `7qfiovzk89xkgomdo0f6bovb`, finished healthy), spot-
+  verified live on eternal-fitness.co.uk (client profile "Last workout: Full body foundation",
+  Tasks page loads clean). CR-EF-087 (sign notification) is code-verified only — no real
+  document was signed this session to test the actual email send, left as a follow-up check.
+  Design Parity Gate: attested N/A — none of the 6 CRs are governed by an Open Design mockup,
+  all are small functional additions to existing screens.
+- [x] CR-EF-081 — tasks created via ClientTasksPanel vanish from main/mobile Tasks lists. Built
+  and live-verified (see DONE entry above + change-requests.md).
+- [x] CR-EF-082 — mobile Tasks view never filtered by assignee. Built and live-verified.
+- [x] CR-EF-083 — exercise swap now offers this-session-only vs all-remaining-sessions scope,
+  via a new `POST /api/sessions/[id]/swap-exercise` route. Built and live-verified.
+- [x] CR-EF-084 — desktop SessionEditor gained group/ungroup superset actions. Built and
+  live-verified.
+- [x] CR-EF-085 — client profile Active Block card now shows the next/last workout name. Built
+  and live-verified on both staging and prod.
+- [x] CR-EF-087 — client document sign now emails Esther. Built, tsc clean, not live-tested
+  (no real document signed this session).
+- [BLOCKED] CR-EF-086 (site-wide VI alt-text) — not part of this lane, needs an Open Design
+  authoring pass on existing images first (only 11 new shoot photos currently have plates).
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
