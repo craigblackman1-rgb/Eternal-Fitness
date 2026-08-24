@@ -31,6 +31,7 @@ import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendS
 import { buildExerciseHistory } from "@/lib/exercise-history";
 import { getLastClientLogAt } from "@/lib/progress-db";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
+import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import { RESOURCES } from "@/lib/resources";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
@@ -108,6 +109,15 @@ function formatSessionDuration(minutes: number | null): string {
 function formatHubDate(value: string | null | undefined): string {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** Session names are `focus_label`, never `Block {n} · S{n}` (CR-EF-034). */
+function sessionDisplayName(s: any): string {
+  return (
+    s?.data?.focus_label?.trim() ||
+    DEFAULT_ARCHETYPE_FOCUS_LABELS[s?.archetype ?? ""] ||
+    (s?.session_number != null ? `Session ${s.session_number}` : "—")
+  );
 }
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
@@ -226,11 +236,29 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // above), so an upcoming future session could otherwise sort first and this
   // would silently pick up a session with no log at all.
   const completedSessions = (sessions ?? []).filter((s: any) => s.data?.session_log?.completed_at);
-  const latestSessionLog = completedSessions.length > 0
+  const latestCompletedSession = completedSessions.length > 0
     ? completedSessions.reduce((latest: any, s: any) =>
         new Date(s.data.session_log.completed_at) > new Date(latest.data.session_log.completed_at) ? s : latest,
-      ).data.session_log
+      )
     : null;
+  const latestSessionLog = latestCompletedSession?.data?.session_log ?? null;
+
+  // CR-EF-085 — surface the workout name (focus_label) on the Active Block card,
+  // not just "Block N". Prefer the next upcoming (not-yet-completed) session in
+  // the active block, falling back to the most recently completed one.
+  const sessionIsCompleted = (s: any) =>
+    s.status === "completed" || !!s.completed_at || !!s.data?.session_log?.completed_at;
+  const nextSession = (() => {
+    const blockSessions = (sessions ?? []).filter((s: any) => s.block_id === latestBlock?.id);
+    return (
+      blockSessions
+        .filter((s: any) => !sessionIsCompleted(s) && s.scheduled_at)
+        .sort((a: any, b: any) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
+        .find((s: any) => new Date(s.scheduled_at).getTime() >= Date.now()) ?? null
+    );
+  })();
+  const workoutSession = nextSession ?? latestCompletedSession;
+  const workoutName = workoutSession ? sessionDisplayName(workoutSession) : null;
 
   const blockSessionCounts: Record<number, number> = {};
   for (const s of sessions ?? []) {
@@ -520,6 +548,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       </HubDataField>
                       <HubDataField label="Dates">{latestBlockDateRangeLabel}</HubDataField>
                       <HubDataField label="Progress">{blockSessionCounts[latestBlock.block_number] ?? 0} sessions</HubDataField>
+                      {workoutName && (
+                        <HubDataField label={nextSession ? "Next session" : "Last workout"}>{workoutName}</HubDataField>
+                      )}
                       {latestBlock.block_note && (
                         <HubDataField label="Focus" span>{latestBlock.block_note}</HubDataField>
                       )}
