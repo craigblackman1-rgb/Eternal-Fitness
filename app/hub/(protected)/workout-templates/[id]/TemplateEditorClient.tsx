@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HubCard } from "@/components/hub/HubCard";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
+import { ExercisePickerButton } from "@/components/hub/ExercisePicker";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -544,11 +545,17 @@ function ExerciseSection({
 
             <div className="flex-1 min-w-0 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <Input
-                  placeholder="Exercise name"
+                <ExercisePickerButton
                   value={ex.exercise_name}
-                  onChange={(e) => onUpdate(idx, { exercise_name: e.target.value })}
-                  className="flex-1 min-w-[160px] font-semibold text-sm text-[var(--color-ink)]"
+                  onSelect={(entry) =>
+                    onUpdate(idx, {
+                      exercise_name: entry.name,
+                      equipment: entry.equipment,
+                      coaching_cue: entry.coaching_cue ?? "",
+                    })
+                  }
+                  placeholder="Exercise name"
+                  className="flex-1 min-w-[160px]"
                 />
                 <Button
                   variant="ghost"
