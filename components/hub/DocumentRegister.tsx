@@ -98,7 +98,7 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-2">No documents on file yet — create one with &ldquo;Create &amp; send&rdquo;.</p>
+        <p className="text-sm text-muted-foreground py-2">No documents on file yet — create one with &ldquo;Create document&rdquo;.</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-[var(--hub-border)]">
           <table className="w-full text-sm">
