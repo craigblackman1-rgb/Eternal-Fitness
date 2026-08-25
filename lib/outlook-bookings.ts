@@ -2,26 +2,32 @@ import { createPgClient } from "@/lib/pg-client";
 import { getIntegrationStatus, graphConfigured, listCalendarView, GraphReconnectError } from "@/lib/graph-client";
 
 /**
- * CR-EF-050/090 — read-back reconciliation for Microsoft Bookings appointments.
+ * CR-EF-050/090/091 — read-back reconciliation for Esther's Outlook calendar.
  *
- * Bookings appointments land in the same Outlook calendar the app syncs *to*
- * (lib/calendar-sync.ts, one-way app->Outlook). This module is the read-back
- * side: pull the calendar, find events created by the Bookings mailbox, and
- * either auto-materialize them into a scheduled session (CR-EF-090 — a name
- * match to exactly one client with exactly one open block needs no human
- * judgement call, since the Outlook appointment already *is* the confirmed
- * booking) or, when the match is ambiguous, upsert them into
- * outlook_booking_events as 'open' for Esther to resolve manually at
- * /hub/schedule/outlook. Never overwrites a row she's already resolved.
+ * Originally scoped to Microsoft Bookings appointments only (organizer =
+ * the Bookings mailbox, subject "Personal Training - {name}"). CR-EF-091
+ * (Craig, 2026-08-25) widened this: most of Esther's real client sessions are
+ * booked straight onto her own calendar, not through the Bookings widget —
+ * bare-name subjects like "Ian" or "Colin Farley", organizer
+ * esther.fair@eternal-fitness.co.uk. Those were being silently filtered out
+ * entirely, so a real client session (Colin, Odul, Ian, Steph, Becky,
+ * Saffron, Sarah — all confirmed real, 2026-08-25) never appeared anywhere in
+ * the app. Every event in the sync window is now processed, regardless of
+ * organizer; the Bookings-formatted subject pattern is tried first (kept for
+ * its higher-confidence parse), falling back to matching the raw subject
+ * directly against a client name. Events that match nobody (genuine personal
+ * entries — "LONDON", "0FF", blank subjects, ~200 of these in the 2026-08-20
+ * diagnostic) still get upserted so the schedule can render them as plain
+ * calendar blocks (CR-EF-091, not yet wired into the UI) — the point is the
+ * app should show the same thing Esther sees when she opens Outlook herself,
+ * not a filtered subset it judged as "real."
  *
  * Matching is name-based, not email-based: a live diagnostic (2026-08-20)
  * found the client's real email never appears on a Bookings event — the
  * organizer/attendees are always internal addresses (the Bookings mailbox
- * itself, plus Esther). What's reliable is the event subject, which Bookings
- * always writes as "Personal Training - {name}" / "Initial consult - {name}".
+ * itself, plus Esther). What's reliable is the event subject.
  */
 
-const BOOKINGS_ORGANIZER_EMAIL = "eternalfitnessbookings@eternal-fitness.co.uk";
 const WINDOW_PAST_MS = 24 * 60 * 60 * 1000; // matches calendar-sync.ts's sync window
 const WINDOW_FUTURE_MS = 60 * 24 * 60 * 60 * 1000;
 
@@ -40,10 +46,12 @@ interface ClientRow {
 /**
  * Exact case-insensitive full-name match first; falls back to a surname-only
  * match when exactly one client shares it (covers "Thomas Putnam" in Outlook
- * vs "Tom Putnam" in the app, a real case from the 2026-08-20 diagnostic).
- * Either way this is only ever a *suggestion* — the hub UI always requires
- * Esther to click Confirm before a session is created, so a wrong surname
- * guess costs one extra click, never a bad write.
+ * vs "Tom Putnam" in the app, a real case from the 2026-08-20 diagnostic);
+ * falls back again to a first-name-only match when exactly one client shares
+ * it (covers Esther's own-calendar entries, which are often just "Ian" or
+ * "Colin" with no surname at all, CR-EF-091). Either way this is only ever a
+ * *suggestion* when it isn't unique — ambiguous matches stay in the manual
+ * queue rather than guessing wrong.
  */
 export function matchClientByParsedName(parsedName: string, clients: ClientRow[]): ClientRow | null {
   const norm = (s: string) => s.trim().toLowerCase();
@@ -52,12 +60,45 @@ export function matchClientByParsedName(parsedName: string, clients: ClientRow[]
 
   const parts = parsedName.trim().split(/\s+/);
   const surname = parts[parts.length - 1];
-  if (!surname) return null;
-  const bySurname = clients.filter((c) => {
-    const cParts = c.name.trim().split(/\s+/);
-    return norm(cParts[cParts.length - 1] ?? "") === norm(surname);
-  });
-  return bySurname.length === 1 ? bySurname[0] : null;
+  if (surname) {
+    const bySurname = clients.filter((c) => {
+      const cParts = c.name.trim().split(/\s+/);
+      return norm(cParts[cParts.length - 1] ?? "") === norm(surname);
+    });
+    if (bySurname.length === 1) return bySurname[0];
+  }
+
+  // Single-token subject ("Ian") — try a first-name-only match.
+  if (parts.length === 1) {
+    const firstName = parts[0];
+    const byFirstName = clients.filter((c) => {
+      const cParts = c.name.trim().split(/\s+/);
+      return norm(cParts[0] ?? "") === norm(firstName);
+    });
+    if (byFirstName.length === 1) return byFirstName[0];
+  }
+
+  return null;
+}
+
+/**
+ * Tries the structured Bookings-widget pattern first (higher confidence,
+ * strips the "Personal Training - " prefix cleanly); falls back to matching
+ * the raw subject directly, which is what a hand-added personal-calendar
+ * entry looks like (CR-EF-091).
+ */
+function resolveEventMatch(subject: string, clients: ClientRow[]): { parsedName: string | null; matched: ClientRow | null } {
+  const structured = parseClientNameFromSubject(subject);
+  if (structured) {
+    const matched = matchClientByParsedName(structured, clients);
+    if (matched) return { parsedName: structured, matched };
+  }
+  const raw = subject.trim();
+  if (raw) {
+    const matched = matchClientByParsedName(raw, clients);
+    if (matched) return { parsedName: raw, matched };
+  }
+  return { parsedName: structured ?? (raw || null), matched: null };
 }
 
 export interface SyncOutlookBookingsResult {
@@ -172,10 +213,11 @@ export async function materializeBookingSession(
 }
 
 /**
- * Pulls the connected calendar's events in the sync window, keeps only
- * Bookings-mailbox-organized ones, and upserts each into
- * outlook_booking_events. Never overwrites a row Esther has already resolved
- * (status != 'open') — re-parsing/re-matching only ever touches open rows.
+ * Pulls every event in the connected calendar's sync window — Bookings
+ * appointments and Esther's own hand-added entries alike (CR-EF-091) — and
+ * upserts each into outlook_booking_events. Never overwrites a row Esther has
+ * already resolved (status != 'open') — re-parsing/re-matching only ever
+ * touches open rows.
  */
 export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> {
   const result: SyncOutlookBookingsResult = { scanned: 0, bookingEvents: 0, created: 0, updated: 0, autoConfirmed: 0, skipped: null };
@@ -193,12 +235,8 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
 
   const windowStart = new Date(Date.now() - WINDOW_PAST_MS).toISOString();
   const windowEnd = new Date(Date.now() + WINDOW_FUTURE_MS).toISOString();
-  const events = await listCalendarView(calendarId, windowStart, windowEnd);
-  result.scanned = events.length;
-
-  const bookingEvents = events.filter(
-    (ev) => (ev.organizer?.emailAddress?.address ?? "").trim().toLowerCase() === BOOKINGS_ORGANIZER_EMAIL
-  );
+  const bookingEvents = await listCalendarView(calendarId, windowStart, windowEnd);
+  result.scanned = bookingEvents.length;
   result.bookingEvents = bookingEvents.length;
   if (bookingEvents.length === 0) return result;
 
@@ -212,8 +250,7 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
   const blockRows = (blocks ?? []) as BlockRow[];
 
   for (const ev of bookingEvents) {
-    const parsedName = parseClientNameFromSubject(ev.subject ?? "");
-    const matched = parsedName ? matchClientByParsedName(parsedName, clientRows) : null;
+    const { parsedName, matched } = resolveEventMatch(ev.subject ?? "", clientRows);
 
     const { data: existing } = await db
       .from("outlook_booking_events")
