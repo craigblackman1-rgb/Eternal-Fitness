@@ -4,6 +4,7 @@ import type { DBSession, SetLog, DeliveryMode } from "@/types";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { getBestWeightsForClient } from "@/lib/exercise-best-weights";
 import { backfillExerciseMedia } from "@/lib/exercise-media";
+import { ensureUids } from "@/lib/exercise-ref";
 import { TrainScreen } from "./TrainScreen";
 
 export default async function TrainSessionPage({ params }: { params: { sessionId: string } }) {
@@ -64,9 +65,9 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
         versions: {
           ...sessionData.versions,
           [versionKey]: {
-            warm_up: backfilled.slice(0, warmUp.length),
-            main_block: backfilled.slice(warmUp.length, warmUp.length + mainBlock.length),
-            cooldown: backfilled.slice(warmUp.length + mainBlock.length),
+            warm_up: ensureUids(backfilled.slice(0, warmUp.length)),
+            main_block: ensureUids(backfilled.slice(warmUp.length, warmUp.length + mainBlock.length)),
+            cooldown: ensureUids(backfilled.slice(warmUp.length + mainBlock.length)),
           },
         },
       };

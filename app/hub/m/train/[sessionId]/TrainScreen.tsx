@@ -212,9 +212,7 @@ export function TrainScreen({
   const [noteDraft, setNoteDraft] = useState("");
   const [noteSaving, setNoteSaving] = useState(false);
 
-  const [offline, setOffline] = useState<boolean>(() =>
-    typeof navigator !== "undefined" ? !navigator.onLine : false,
-  );
+  const [offline, setOffline] = useState<boolean>(false);
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -937,6 +935,11 @@ export function TrainScreen({
   // Drain once on mount (entries may persist in IndexedDB across a reload from a
   // prior offline period) and again whenever connectivity returns.
   useEffect(() => {
+    // Sync initial online state — navigator.onLine may differ from the
+    // server's hardcoded `false` (e.g. mobile reports offline briefly on
+    // first load), so we correct it after hydration to avoid a flash.
+    setOffline(!navigator.onLine);
+
     const onOnline = () => {
       setOffline(false);
       void drainQueue();
