@@ -253,6 +253,16 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
   const blockRows = (blocks ?? []) as BlockRow[];
 
   for (const ev of bookingEvents) {
+    // Blank-subject entries are non-working-hours blocks (Craig, 2026-08-25)
+    // — not a client session, not worth showing at all. Never create one, and
+    // drop any row from before this filter existed.
+    if (!(ev.subject ?? "").trim()) {
+      // Only ever removes a still-open row — never touches one already
+      // confirmed into a real session, blank subject or not.
+      await db.from("outlook_booking_events").delete().eq("event_id", ev.id).eq("status", "open");
+      continue;
+    }
+
     const { parsedName, matched } = resolveEventMatch(ev.subject ?? "", clientRows);
 
     const { data: existing } = await db
