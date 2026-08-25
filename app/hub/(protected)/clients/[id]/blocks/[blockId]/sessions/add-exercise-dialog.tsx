@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -30,6 +30,17 @@ export function AddExerciseDialog({
   onAdd: (exercise: ExerciseEntry, insertIndex: number) => void;
 }) {
   const [positionIndex, setPositionIndex] = useState<number>(0);
+
+  useEffect(() => {
+    if (open) {
+      setPositionIndex(
+        positionOptions.length
+          ? positionOptions[positionOptions.length - 1].index
+          : 0,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const headerContent = (
     <div className="flex flex-col gap-[5px]">

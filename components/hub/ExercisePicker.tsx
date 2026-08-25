@@ -20,6 +20,8 @@ interface ExercisePickerProps {
   description?: string;
   /** Extra content rendered between the header and search (e.g. position selector). */
   headerContent?: React.ReactNode;
+  /** Optional slot rendered below the equipment line in each result card. */
+  renderResultMeta?: (exercise: ExerciseEntry) => React.ReactNode;
 }
 
 const MAX_RESULTS = 24;
@@ -31,6 +33,7 @@ export function ExercisePicker({
   title = "Search exercises",
   description = "Find an exercise in the library or add a custom one.",
   headerContent,
+  renderResultMeta,
 }: ExercisePickerProps) {
   const [exercises, setExercises] = useState<ExerciseEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -207,6 +210,7 @@ export function ExercisePicker({
                   <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                     {ex.equipment.length > 0 ? ex.equipment.join(", ") : "No equipment"}
                   </p>
+                  {renderResultMeta?.(ex)}
                 </div>
                 <span
                   className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-hover)] text-rose hover:bg-rose/10 hover:border-rose/20"
