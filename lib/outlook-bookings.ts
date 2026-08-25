@@ -2,15 +2,17 @@ import { createPgClient } from "@/lib/pg-client";
 import { getIntegrationStatus, graphConfigured, listCalendarView, GraphReconnectError } from "@/lib/graph-client";
 
 /**
- * CR-EF-050 — read-back reconciliation for Microsoft Bookings appointments.
+ * CR-EF-050/090 — read-back reconciliation for Microsoft Bookings appointments.
  *
  * Bookings appointments land in the same Outlook calendar the app syncs *to*
  * (lib/calendar-sync.ts, one-way app->Outlook). This module is the read-back
  * side: pull the calendar, find events created by the Bookings mailbox, and
- * upsert them into outlook_booking_events for a human (Esther) to confirm,
- * link, or dismiss. Nothing here auto-creates a session — see
- * confirmOutlookBooking() in this file, called only from the API route the
- * hub UI hits after Esther clicks "Confirm".
+ * either auto-materialize them into a scheduled session (CR-EF-090 — a name
+ * match to exactly one client with exactly one open block needs no human
+ * judgement call, since the Outlook appointment already *is* the confirmed
+ * booking) or, when the match is ambiguous, upsert them into
+ * outlook_booking_events as 'open' for Esther to resolve manually at
+ * /hub/schedule/outlook. Never overwrites a row she's already resolved.
  *
  * Matching is name-based, not email-based: a live diagnostic (2026-08-20)
  * found the client's real email never appears on a Bookings event — the
@@ -63,7 +65,110 @@ export interface SyncOutlookBookingsResult {
   bookingEvents: number;
   created: number;
   updated: number;
+  autoConfirmed: number;
   skipped: string | null;
+}
+
+interface BlockRow {
+  id: string;
+  client_id: string;
+}
+
+/**
+ * Auto-confirm only applies when the client has exactly one block to attach
+ * the session to — more than one (which block?) or zero (nothing to attach
+ * to) both stay ambiguous and fall through to the manual queue, same as an
+ * unmatched name.
+ */
+function resolveSingleBlock(clientId: string, blocks: BlockRow[]): string | null {
+  const owned = blocks.filter((b) => b.client_id === clientId);
+  return owned.length === 1 ? owned[0].id : null;
+}
+
+/**
+ * The materialization shared by the automatic (sync) and manual (Confirm
+ * button) paths: create the scheduled, content-empty session, adopt the
+ * existing Outlook event into session_calendar_events, and mark the booking
+ * resolved. Content is deliberately never attached here (Craig, 2026-08-25)
+ * — it's often not yet decided what the session's workout will be.
+ */
+export async function materializeBookingSession(
+  db: ReturnType<typeof createPgClient>,
+  booking: { id: string; event_id: string; calendar_id: string; subject: string; start_at: string },
+  clientId: string,
+  blockId: string,
+  clientName: string,
+): Promise<{ sessionId: string }> {
+  const { data: existingSessions, error: existingErr } = await db
+    .from("sessions")
+    .select("session_number")
+    .eq("block_id", blockId);
+  if (existingErr) throw new Error(`sessions read failed: ${existingErr.message}`);
+  const sessionNumber = ((existingSessions ?? []) as { session_number: number }[]).reduce(
+    (max, s) => Math.max(max, s.session_number),
+    0,
+  ) + 1;
+  if (sessionNumber > 18) throw new Error("block already has the maximum of 18 sessions");
+
+  const sessionData = {
+    session_id: crypto.randomUUID(),
+    block_id: blockId,
+    client_id: clientId,
+    session_number: sessionNumber,
+    archetype: null,
+    week: null,
+    phase: null,
+    focus_label: `Outlook booking — ${clientName}`,
+    time_tier: "standard",
+    versions: {
+      studio: { warm_up: [], main_block: [], cooldown: [] },
+      home: { warm_up: [], main_block: [], cooldown: [] },
+    },
+    coaching_notes: `Created from a Microsoft Bookings appointment ("${booking.subject}"). Add exercises before the session.`,
+    client_intro: "",
+  };
+
+  const { data: session, error: insertErr } = await db
+    .from("sessions")
+    .insert({
+      block_id: blockId,
+      session_number: sessionNumber,
+      archetype: null,
+      week: null,
+      phase: null,
+      status: "scheduled",
+      scheduled_at: booking.start_at,
+      data: sessionData,
+    })
+    .select()
+    .single();
+  if (insertErr) throw new Error(`session insert failed: ${insertErr.message}`);
+
+  const { error: mapErr } = await db.from("session_calendar_events").upsert(
+    {
+      session_id: session.id,
+      event_id: booking.event_id,
+      calendar_id: booking.calendar_id,
+      sync_hash: "",
+      synced_at: new Date().toISOString(),
+    },
+    { onConflict: "session_id" },
+  );
+  if (mapErr) throw new Error(`session_calendar_events upsert failed: ${mapErr.message}`);
+
+  const { error: resolveErr } = await db
+    .from("outlook_booking_events")
+    .update({
+      client_id: clientId,
+      status: "confirmed",
+      session_id: session.id,
+      resolved_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", booking.id);
+  if (resolveErr) throw new Error(`outlook_booking_events update failed: ${resolveErr.message}`);
+
+  return { sessionId: session.id };
 }
 
 /**
@@ -73,7 +178,7 @@ export interface SyncOutlookBookingsResult {
  * (status != 'open') — re-parsing/re-matching only ever touches open rows.
  */
 export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> {
-  const result: SyncOutlookBookingsResult = { scanned: 0, bookingEvents: 0, created: 0, updated: 0, skipped: null };
+  const result: SyncOutlookBookingsResult = { scanned: 0, bookingEvents: 0, created: 0, updated: 0, autoConfirmed: 0, skipped: null };
 
   if (!graphConfigured()) {
     result.skipped = "Graph env vars not configured";
@@ -102,6 +207,10 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
   if (clientsErr) throw new Error(`clients read failed: ${clientsErr.message}`);
   const clientRows = (clients ?? []) as ClientRow[];
 
+  const { data: blocks, error: blocksErr } = await db.from("blocks").select("id, client_id");
+  if (blocksErr) throw new Error(`blocks read failed: ${blocksErr.message}`);
+  const blockRows = (blocks ?? []) as BlockRow[];
+
   for (const ev of bookingEvents) {
     const parsedName = parseClientNameFromSubject(ev.subject ?? "");
     const matched = parsedName ? matchClientByParsedName(parsedName, clientRows) : null;
@@ -128,14 +237,43 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
       updated_at: new Date().toISOString(),
     };
 
+    let bookingId: string;
     if (existing) {
-      const { error } = await db.from("outlook_booking_events").update(row).eq("event_id", ev.id);
+      const { data: updated, error } = await db.from("outlook_booking_events").update(row).eq("event_id", ev.id).select().single();
       if (error) throw new Error(`outlook_booking_events update failed: ${error.message}`);
+      bookingId = updated.id;
       result.updated++;
     } else {
-      const { error } = await db.from("outlook_booking_events").insert(row);
+      const { data: inserted, error } = await db.from("outlook_booking_events").insert(row).select().single();
       if (error) throw new Error(`outlook_booking_events insert failed: ${error.message}`);
+      bookingId = inserted.id;
       result.created++;
+    }
+
+    // CR-EF-090 — a name match to exactly one client with exactly one block
+    // is unambiguous: auto-materialize the scheduled session instead of
+    // leaving it for a manual click nobody was making (18 sat open against 1
+    // ever confirmed before this shipped). Anything else — no match, more
+    // than one candidate client, or more than one block — stays 'open' for
+    // Esther at /hub/schedule/outlook.
+    if (matched) {
+      const blockId = resolveSingleBlock(matched.id, blockRows);
+      if (blockId) {
+        try {
+          await materializeBookingSession(
+            db,
+            { id: bookingId, event_id: row.event_id, calendar_id: row.calendar_id, subject: row.subject, start_at: row.start_at },
+            matched.id,
+            blockId,
+            matched.name,
+          );
+          result.autoConfirmed++;
+        } catch (err) {
+          // Never let an auto-confirm failure break the sync loop or the
+          // booking's visibility — it just stays 'open' for manual handling.
+          console.error(`Outlook booking auto-confirm failed for ${bookingId}:`, err);
+        }
+      }
     }
   }
 
