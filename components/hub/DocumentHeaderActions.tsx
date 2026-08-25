@@ -21,7 +21,7 @@ export function DocumentHeaderActions({ clientNumber }: DocumentHeaderActionsPro
             className="inline-flex items-center gap-1 rounded-lg bg-rose px-2.5 h-7 text-xs font-medium text-white hover:bg-rose/90"
           >
             <IconPlus className="h-3 w-3" />
-            Create &amp; send
+            Create document
           </Link>
           <button
             type="button"
