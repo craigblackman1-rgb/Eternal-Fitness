@@ -252,10 +252,15 @@ export default function AddWorkoutPage() {
     setBusy(true);
     try {
       const name = scratchName.trim() || "New workout";
+      // Unlike the template/block paths (which schedule to the chosen targetDay
+      // via a follow-up PATCH), this create call had no scheduled_at at all —
+      // the session existed but never appeared on the Today screen, which only
+      // lists sessions with scheduled_at set. Default to today, matching the
+      // rest of the flow's target-day default.
       const res = await fetch(`/api/blocks/${block.id}/sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ week, focus_label: name }),
+        body: JSON.stringify({ week, focus_label: name, scheduled_at: new Date(`${targetDay}T09:00:00`).toISOString() }),
       });
       if (!res.ok) throw new Error("Blank session failed");
       const created = (await res.json()) as { id: string };

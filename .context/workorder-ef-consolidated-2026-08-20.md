@@ -458,6 +458,19 @@ not the first commit's, as authoritative.
 - [BLOCKED] CR-EF-086 (site-wide VI alt-text) — not part of this lane, needs an Open Design
   authoring pass on existing images first (only 11 new shoot photos currently have plates).
 
+### Lane K (session assignment mechanism — CR-EF-088/089/090, 2026-08-25)
+- [x] CR-EF-088 — mobile "Build from scratch" workout never sets `scheduled_at`. Built,
+  `tsc --noEmit` clean, not yet pushed/deployed.
+- [x] CR-EF-089 — completed-session edit path masked the real save error and left the
+  Edit tab reachable. Built, `tsc --noEmit` clean, not yet pushed/deployed.
+- [GATE] CR-EF-090 — content vs. scheduling are decoupled writes; 18 real Outlook bookings
+  (incl. Tom's and Ellie's today) sit unconfirmed with no prompt to reconcile them. Flow
+  diagram published as a Claude Artifact this session. Needs Craig's decisions on: hub-wide
+  unconfirmed-booking surfacing, whether confirming a booking should offer to attach to an
+  existing content-session vs. always creating a blank one, and whether "content with no
+  date" should be a disallowed state entirely. Open Design mockup required before build
+  (user-facing surface).
+
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
 Live status: eternal-fitness-website/.context/loop-status.md

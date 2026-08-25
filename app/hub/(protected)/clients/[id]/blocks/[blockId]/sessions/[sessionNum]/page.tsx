@@ -111,7 +111,7 @@ export default function SessionViewPage({
     if (modeInitDone || !session) return;
     const editParam = searchParams.get("edit");
     const modeParam = searchParams.get("mode");
-    if (editParam === "1" || modeParam === "edit") {
+    if ((editParam === "1" || modeParam === "edit") && session.status !== "completed") {
       setMode("edit");
     }
     setModeInitDone(true);
@@ -159,7 +159,14 @@ export default function SessionViewPage({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: updatedData }),
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      // Surface the server's actual reason (e.g. "session is completed and
+      // read-only") instead of a generic failure toast that hides why the
+      // save was rejected — this masked the completed-session guard entirely.
+      const message = await res.json().then((b) => b?.error).catch(() => null);
+      toast.error(message || "Failed to save session");
+      return false;
+    }
     setSession({ ...session, data: updatedData });
     setMode("log");
     toast.success("Session saved");
@@ -460,14 +467,18 @@ export default function SessionViewPage({
             role="tab"
             aria-selected={mode === "edit"}
             onClick={() => setMode("edit")}
-            className={`inline-flex items-center gap-1.5 rounded-[7px] px-4 py-1.5 text-[13px] font-semibold transition-colors ${mode === "edit" ? "bg-[var(--hub-sidebar-active)] text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            disabled={session.status === "completed"}
+            title={session.status === "completed" ? "Session is completed and read-only — reopen it first to edit the prescription." : undefined}
+            className={`inline-flex items-center gap-1.5 rounded-[7px] px-4 py-1.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${mode === "edit" ? "bg-[var(--hub-sidebar-active)] text-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             <IconEdit3 className="h-3.5 w-3.5" />
             Edit prescription
           </button>
         </div>
         <span className="text-xs text-muted-foreground">
-          {mode === "log" ? "Log what happened, or edit the prescription — both live here now." : "Editing the prescription — saves to this session only."}
+          {session.status === "completed"
+            ? "Session completed — reopen it above to edit the prescription."
+            : mode === "log" ? "Log what happened, or edit the prescription — both live here now." : "Editing the prescription — saves to this session only."}
         </span>
       </div>
 

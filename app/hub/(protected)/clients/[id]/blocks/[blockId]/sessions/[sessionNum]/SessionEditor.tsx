@@ -626,9 +626,11 @@ export function SessionEditor({
       main_block: stripUids(sections.main_block),
       cooldown: stripUids(sections.cooldown),
     };
-    const ok = await onSaved(updated);
+    // onSaved (saveSessionEdit in the parent page) already toasts the specific
+    // reason on failure — e.g. the completed-session guard's real error — so
+    // don't stack a second, generic toast on top of it here.
+    await onSaved(updated);
     setSaving(false);
-    if (!ok) toast.error("Failed to save session");
   };
 
   const openTemplatePicker = async () => {
