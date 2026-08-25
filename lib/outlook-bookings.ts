@@ -68,9 +68,12 @@ export function matchClientByParsedName(parsedName: string, clients: ClientRow[]
     if (bySurname.length === 1) return bySurname[0];
   }
 
-  // Single-token subject ("Ian") — try a first-name-only match.
-  if (parts.length === 1) {
-    const firstName = parts[0];
+  // First-name-only match on the subject's leading word — covers a bare
+  // first name ("Ian") as well as a first name plus a non-surname qualifier
+  // ("Colin online", a real case: Esther appends "online" to mark a remote
+  // session, not a surname).
+  const firstName = parts[0];
+  if (firstName) {
     const byFirstName = clients.filter((c) => {
       const cParts = c.name.trim().split(/\s+/);
       return norm(cParts[0] ?? "") === norm(firstName);
