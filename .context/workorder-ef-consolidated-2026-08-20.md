@@ -491,3 +491,49 @@ same calendar as the existing sync (no separate Bookings mailbox to poll), match
 than a quick fix given the new Graph read-back path, matching logic, and reconciliation UI.
 See CR-EF-050 for full detail. Diagnostic unit is safe to run now (read-only, no schema); the
 reconciliation UI and any new table are gated behind an Open Design brief (G7) not yet raised.
+
+### Lane L (workout→template bulk conversion + exercise picker, CR-EF-092/093, 2026-08-25)
+- [GATE] CR-EF-092 — bulk-convert every past+present workout into templates. Needs Craig's call
+  on dedup strategy (merge identical structures vs. one template per session), auto-generated
+  template naming (no PII), and whether Esther reviews a batch before it commits (→ new UI,
+  Open Design mockup required) or it runs straight into the library. Data audit (session count,
+  duplication rate) also needed before implementation — not yet run this session (no DB access
+  from this worktree). See CR-EF-092 in change-requests.md for full technical scope.
+- [AUTO once unblocked] CR-EF-093 — exercise free-text field (`TemplateEditorClient.tsx:547-551`,
+  the only genuinely free-text exercise input in the app) becomes a searchable picker reusing the
+  existing `add-exercise-dialog.tsx`/`swap-exercise-dialog.tsx` pattern, with an "add custom"
+  affordance added to all three call sites via one shared `ExercisePicker` component. Lower risk
+  than CR-EF-092 — extends an already-live dialog pattern, likely no new Open Design mockup
+  needed, but confirm dialog styling against design-systems mockups since it's a new call site.
+  Not gated on CR-EF-092's decisions; can build independently once picked up.
+
+### Lane L continued — 2026-08-25, decisions locked + grinding via OpenCode
+Craig: "add to the work order and grind with opencode." Decisions made this session (recorded
+here so a resumed session doesn't re-ask):
+- CR-EF-092 dedup: MERGE identical workout structures into one shared template (confirmed after
+  data audit: 111 real workouts / 79 unique structures / 15 reused 2-6x each).
+- CR-EF-092 naming: no PII -- auto-generate from the workout's own facets (movement_type +
+  muscle_groups + archetype), never client/session identifiers. Claude's call under DECIDE
+  YOURSELF (Craig didn't specify a scheme, only ruled out PII).
+- CR-EF-092 review screen: skipped for v1 -- script populates workout_templates directly,
+  idempotent so it's safe to re-run. Claude's call; revisit if Esther finds the auto-populated
+  library noisy.
+- [AUTO, dispatched] CR-EF-092 build+run: OpenCode lane `cr-ef-092-bulk-templates`
+  (worktree D:\apps\worktrees\eternal-fitness-website\cr-ef-092-bulk-templates, branch
+  claude/cr-ef-092-bulk-templates), writes scripts/bulk-convert-workouts-to-templates.mjs,
+  dry-runs then executes against prod. Not yet reviewed/merged.
+- [AUTO, dispatched] CR-EF-093 build: OpenCode lane `cr-ef-093-exercise-picker` (worktree
+  D:\apps\worktrees\eternal-fitness-website\cr-ef-093-exercise-picker, branch
+  claude/cr-ef-093-exercise-picker). Not yet reviewed/merged.
+- [AUTO, dispatched] Mobile TrainScreen hydration-mismatch bug (dmt799jrk5j): OpenCode lane
+  `fix-train-hydration-mismatch` (worktree
+  D:\apps\worktrees\eternal-fitness-website\fix-train-hydration-mismatch, branch
+  claude/fix-train-hydration-mismatch). Not yet reviewed/merged.
+- [GATE, not opencode-gradeable] G2 (Trainer PWA client-scope indicator) -- Craig deferred to
+  Open Design; brief not yet raised. Needs an Open Design run, not a code lane.
+- [GATE, not opencode-gradeable] CR-EF-047 (block-module exercise-table mismatch + Next-session
+  nav) -- scope was never pinned down (qmt1iroec29, open since 2026-08-20). Needs Craig's call
+  on what "correct" looks like before any lane can build it.
+- [GATE, not opencode-gradeable] CR-EF-006 (testimonials AggregateRating JSON-LD) -- live on
+  main but register says "closed, not viable" over a possible Google manual-action risk
+  (qmt8mne5c58, open since 2026-08-25). Needs a keep/revert/re-research call.
