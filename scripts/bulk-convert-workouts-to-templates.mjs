@@ -95,10 +95,28 @@ function deriveFacets(exercises, exerciseRows) {
   };
 }
 
-function generateTemplateName(facets, existingNames) {
-  const mt = facets.movement_type[0] || "";
+const MOVEMENT_TYPE_LABELS = {
+  spinal_mobility: "Spinal Mobility", upper_body_mobility: "Upper Body Mobility",
+  lower_body_mobility: "Lower Body Mobility", full_body_mobility: "Full Body Mobility",
+  rest_recovery: "Rest & Recovery", hinge_pattern: "Hinge Pattern", squat_pattern: "Squat Pattern",
+  lunge_pattern: "Lunge Pattern", horizontal_push: "Horizontal Push", horizontal_pull: "Horizontal Pull",
+  vertical_push: "Vertical Push", pull_accessory: "Pull Accessory", push_accessory: "Push Accessory",
+  loaded_carry: "Loaded Carry", core_anterior: "Core — Anterior", core_posterior: "Core — Posterior",
+  core_lateral: "Core — Lateral", power_output: "Power Output", lateral_movement: "Lateral Movement",
+  locomotion: "Locomotion", cardio: "Cardio", mobility_dynamic: "Dynamic Mobility",
+};
+function humanizeMovementType(mt) {
+  return MOVEMENT_TYPE_LABELS[mt] || titleCase(mt);
+}
+function titleCase(s) {
+  return (s || "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function generateTemplateNameV2(facets, existingNames, exerciseCount) {
+  const mt = facets.movement_type[0] ? humanizeMovementType(facets.movement_type[0]) : "";
   const mg = facets.muscle_groups.slice(0, 2);
-  const arch = facets.archetypes[0] || "";
+  const mg3 = facets.muscle_groups[2];
+  const arch = facets.archetypes[0] ? titleCase(facets.archetypes[0]) : "";
 
   let base;
   if (mt && mg.length > 0) {
@@ -114,6 +132,19 @@ function generateTemplateName(facets, existingNames) {
     base = "Workout Template";
   }
 
+  if (!existingNames.has(base)) { existingNames.add(base); return base; }
+
+  // Collision: try adding a 3rd muscle group first.
+  if (mg3) {
+    const withThird = `${base} & ${mg3}`;
+    if (!existingNames.has(withThird)) { existingNames.add(withThird); return withThird; }
+  }
+
+  // Still colliding: try exercise count.
+  const withCount = `${base} (${exerciseCount} exercises)`;
+  if (!existingNames.has(withCount)) { existingNames.add(withCount); return withCount; }
+
+  // Last resort: numeric suffix.
   let name = base;
   let suffix = 2;
   while (existingNames.has(name)) {
@@ -219,7 +250,7 @@ async function main() {
       .filter(Boolean);
 
     const facets = deriveFacets(exercises, matchedRows);
-    const name = generateTemplateName(facets, existingNames);
+    const name = generateTemplateNameV2(facets, existingNames, exercises.length);
 
     toInsert.push({
       name,
@@ -285,7 +316,50 @@ async function main() {
   console.log("Names:", createdNames.join(", "));
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+async function renameExisting() {
+  const { rows } = await pool.query(
+    `SELECT id, name, data, archetypes, movement_type, muscle_groups
+     FROM workout_templates WHERE source_session_id IS NOT NULL ORDER BY created_at`
+  );
+  console.log(`Rows eligible for rename (source_session_id IS NOT NULL): ${rows.length}\n`);
+
+  const existingNames = new Set();
+  const { rows: untouched } = await pool.query(
+    `SELECT name FROM workout_templates WHERE source_session_id IS NULL`
+  );
+  for (const r of untouched) existingNames.add(r.name);
+
+  const updates = [];
+  for (const row of rows) {
+    const d = row.data || {};
+    const exerciseCount = [...(d.warm_up || []), ...(d.main_block || []), ...(d.cooldown || [])].length;
+    const facets = {
+      movement_type: row.movement_type || [],
+      muscle_groups: row.muscle_groups || [],
+      archetypes: row.archetypes || [],
+    };
+    const newName = generateTemplateNameV2(facets, existingNames, exerciseCount);
+    if (newName !== row.name) updates.push({ id: row.id, oldName: row.name, newName });
+  }
+
+  console.log(`Names that would change: ${updates.length}\n`);
+  for (const u of updates.slice(0, 20)) console.log(`  "${u.oldName}" -> "${u.newName}"`);
+  if (updates.length > 20) console.log(`  ... and ${updates.length - 20} more`);
+
+  const suffixCount = updates.filter((u) => /\s\d+$/.test(u.newName)).length;
+  console.log(`\nRemaining numeric-suffix collisions: ${suffixCount} (was ${rows.filter(r => /\s\d+$/.test(r.name)).length})`);
+
+  if (DRY_RUN) { console.log("\n=== DRY RUN — no rows updated ==="); await pool.end(); return; }
+
+  for (const u of updates) {
+    await pool.query(`UPDATE workout_templates SET name = $1 WHERE id = $2`, [u.newName, u.id]);
+  }
+  console.log(`\nDone — ${updates.length} rows renamed.`);
+  await pool.end();
+}
+
+if (process.argv.includes("--rename-existing")) {
+  renameExisting().catch((e) => { console.error(e); process.exit(1); });
+} else {
+  main().catch((e) => { console.error(e); process.exit(1); });
+}
