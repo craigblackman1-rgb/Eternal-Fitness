@@ -1,3 +1,66 @@
+# Session Handoff: August 25, 2026 (Claude Code) — Lane K: session-scheduling gap + Outlook reconciliation overhaul, CR-EF-088–091
+
+## Session Summary
+Started from "Tom's workout isn't saving" and ended up finding and fixing the actual
+mechanism behind it: a session's **content** and its **scheduled date** are written
+independently across six different flows (desktop + mobile), and every "Today"/schedule
+view only shows a session once both exist. Mapped the whole thing in a flow diagram
+(published as a Claude Artifact) before touching code.
+
+**CR-EF-088** — mobile "Build from scratch" never set `scheduled_at` at all (permanent,
+not transient). Now defaults to today, matching the template/clone paths.
+
+**CR-EF-089** — editing a completed session showed a generic "Failed to save" that hid
+the real completed-session-read-only reason, and the Edit tab stayed reachable/clickable
+on a completed session. Fixed both — real error surfaced, tab disabled with a Reopen
+tooltip.
+
+**CR-EF-090** — root cause for Tom's and Ellie's actual missing sessions: real Outlook
+Bookings appointments were sitting in a manual reconciliation queue (CR-EF-050,
+`/hub/schedule/outlook`) that nobody was visiting — 18 open against a lifetime total of 1
+ever confirmed. Per Craig: an appointment on the calendar already *is* a confirmed
+booking, no human judgement call needed for a clean match. Moved the confirm logic
+(`materializeBookingSession`, shared with the manual Confirm button) into the sync cron
+itself for the unambiguous case (unique client, single block); genuinely ambiguous cases
+(multiple blocks, no match) still land in the manual queue.
+
+**CR-EF-091** — bigger finding mid-session: the sync only ever looked at events organized
+by the Microsoft Bookings mailbox. Most of Esther's real sessions are booked straight onto
+her own Outlook calendar by hand (bare names like "Ian", "Colin online") — those were
+filtered out entirely before matching ever ran. Per Craig's direction ("make the app show
+exactly what she sees in Outlook"): removed the organizer filter, added a raw-subject
+match and a first-name-only fallback (including subjects with a trailing qualifier like
+"online"), and drop blank-subject entries as non-working-hours blocks rather than showing
+them as noise. **Net result on a single sync run: 227 events scanned (up from 3), 112
+confirmed into real sessions, 70 left correctly open for manual review** (genuinely
+ambiguous — e.g. Sarah Tyler has 2 blocks).
+
+All 4 shipped straight to `staging` then `main` same session (backend/small-UI changes,
+no mockup governs any of them — attested N/A each time). Verified live by re-running the
+calendar-sync cron manually via Coolify's scheduled-tasks `run_once` and querying prod
+DB directly, not by self-report.
+
+**Also done:** backfilled Tom's and Ellie's actual bookings today by hand before the code
+even shipped (direct DB write mirroring the confirm route's logic), so they weren't left
+waiting on a deploy. Built a 25-item testing checklist into decoded-ops-hub's new Testing
+tab (`hub.decodedops.co.uk/dashboard/projects/eternal-fitness`), split desktop/mobile,
+covering this session's work plus everything from Lanes I/J and the Aug 21 PWA-parity
+lane — Craig is working through it himself now.
+
+**Gate note:** two deploys this session showed `in_progress` in Coolify's API for well
+past the normal 3–4 min build time (~15–20 min) while `last_online_at` on the app record
+looked fresh — that field just reflects a health-check ping on the still-running *old*
+container mid-deploy, not evidence of the new one. Only the deployment resource's own
+`status: "finished"` is reliable; don't round `last_online_at` freshness up to "live."
+
+**Still open:** the 70 remaining `outlook_booking_events` rows are genuinely ambiguous
+(multi-block clients, unmatched names like "anne wareing" whose subject format never
+parses) — worth Esther's eyes at `/hub/schedule/outlook`, not a code fix. No regression
+check yet that a newly auto-created session doesn't produce a duplicate Outlook event on
+the next push-sync cycle — flagged as a testing-checklist item, not verified this session.
+
+---
+
 # Session Handoff: August 24, 2026 (Claude Code) — Lanes I & J shipped, 8 bugs/CRs closed
 
 ## Session Summary

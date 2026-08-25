@@ -458,18 +458,28 @@ not the first commit's, as authoritative.
 - [BLOCKED] CR-EF-086 (site-wide VI alt-text) — not part of this lane, needs an Open Design
   authoring pass on existing images first (only 11 new shoot photos currently have plates).
 
-### Lane K (session assignment mechanism — CR-EF-088/089/090, 2026-08-25)
-- [x] CR-EF-088 — mobile "Build from scratch" workout never sets `scheduled_at`. Built,
-  `tsc --noEmit` clean, not yet pushed/deployed.
-- [x] CR-EF-089 — completed-session edit path masked the real save error and left the
-  Edit tab reachable. Built, `tsc --noEmit` clean, not yet pushed/deployed.
-- [GATE] CR-EF-090 — content vs. scheduling are decoupled writes; 18 real Outlook bookings
-  (incl. Tom's and Ellie's today) sit unconfirmed with no prompt to reconcile them. Flow
-  diagram published as a Claude Artifact this session. Needs Craig's decisions on: hub-wide
-  unconfirmed-booking surfacing, whether confirming a booking should offer to attach to an
-  existing content-session vs. always creating a blank one, and whether "content with no
-  date" should be a disallowed state entirely. Open Design mockup required before build
-  (user-facing surface).
+### Lane K (session assignment mechanism — CR-EF-088/089/090/091, 2026-08-25 — COMPLETE)
+- [x] **Lane K complete — all 4 shipped to main, live-verified via prod DB + manual cron
+  run 2026-08-25.** CR-EF-088: mobile "Build from scratch" now defaults `scheduled_at` to
+  today. CR-EF-089: completed-session save errors are real, Edit tab disabled with a
+  Reopen tooltip. CR-EF-090: Craig's design decisions — Outlook calendar entries are
+  already confirmed bookings, no human click needed for a clean single-block match; never
+  auto-attach content; "content with no date" isn't actually a problem (block-planning
+  content legitimately precedes scheduling). Auto-confirm shipped, folded into the 15-min
+  sync cron. CR-EF-091: widened beyond Bookings-widget events entirely — Esther's own
+  hand-added calendar entries (bare names, "online"-suffixed) were being filtered out
+  before matching ever ran. First-name + qualifier-suffix matching added; blank-subject
+  entries dropped as non-working-hours blocks. **Verified**: manual cron run via Coolify
+  `run_once` against prod, 227 events scanned, 112 confirmed into real sessions
+  (Tom/Ellie/Ian/Steph/Odul/Becky/Saffron/Colin/Nathan among them), 70 correctly left open
+  (genuinely ambiguous — multi-block clients, unparseable subjects). No mockup governed
+  any of these — all backend logic / small existing-screen UI, Design Parity attested N/A
+  each push. 25-item testing checklist built into decoded-ops-hub's Testing tab
+  (project `eternal-fitness`), split desktop/mobile, covering this lane plus Lanes I/J and
+  the Aug 21 PWA-parity work — Craig working through it now.
+- [ ] Not yet verified: a newly auto-created session doesn't produce a duplicate Outlook
+  event on the next push-sync cycle (`lib/calendar-sync.ts`) — flagged on the testing
+  checklist, not confirmed this session.
 
 ## LEDGER (files)
 Progress written to: eternal-fitness-website/.context/state.md + handoff.md as each unit ticks.
