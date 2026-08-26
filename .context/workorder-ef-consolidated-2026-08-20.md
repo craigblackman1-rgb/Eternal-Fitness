@@ -266,17 +266,17 @@ not the first commit's, as authoritative.
   wo-ef-consolidated-2026-08-20.
 
 ### Lane A (workout/training-block parity — carried from wo-hub-workout-parity-2026-08-19)
-- [AUTO] Training-blocks list Approval-column status map + Programme/Progress columns +
+- [x] [AUTO] Training-blocks list Approval-column status map + Programme/Progress columns +
   avatar + action link — files: PlanScheduleTable.tsx, training-blocks/page.tsx — VERIFY:
-  filter/row pills agree; two new columns render against real data.
-- [AUTO] Workout-templates browser detail drawer + assign-from-browse + paste 3-step stepper
+  filter/row pills agree; two new columns render against real data. -- verified on main c77ebcd (reconciled 2026-08-26)
+- [x] [AUTO] Workout-templates browser detail drawer + assign-from-browse + paste 3-step stepper
   + difficulty facet — files: workout-template-browser.tsx, TemplateEditorClient.tsx,
   TemplatePasteClient.tsx, new/page.tsx, page.tsx — VERIFY: assign without paste flow works;
-  Paste→Review→Save/assign progression; no numeric 1–5 difficulty labels remain.
-- [AUTO] Derived Est. duration estimator — files: SessionWorkoutLog.tsx, lib/prescription.ts
-  — VERIFY: editing tempo/reps/rest moves the figure live; amber over slot.
-- [AUTO] Minor styling sweep — files: blocks/[blockId]/page.tsx, sessions/[sessionNum]/page.tsx,
-  PlanScheduleTable.tsx — VERIFY: single label map via grep; no bare chevron back-links.
+  Paste→Review→Save/assign progression; no numeric 1–5 difficulty labels remain. -- verified on main 78a6139 (reconciled 2026-08-26)
+- [x] [AUTO] Derived Est. duration estimator — files: SessionWorkoutLog.tsx, lib/prescription.ts
+  — VERIFY: editing tempo/reps/rest moves the figure live; amber over slot. -- verified on main 7c6d762 (reconciled 2026-08-26)
+- [x] [AUTO] Minor styling sweep — files: blocks/[blockId]/page.tsx, sessions/[sessionNum]/page.tsx,
+  PlanScheduleTable.tsx — VERIFY: single label map via grep; no bare chevron back-links. -- verified on main d8a254e (reconciled 2026-08-26)
 - [AUTO] Run + verify exercise_uid backfill (scripts/backfill-exercise-uid.mjs) against
   session-transitions logic on prod + staging DBs — VERIFY: row counts match, no orphaned refs.
 - [GATE] CR-EF-047 (block module exercise-table not in mockup, Next-session nav) — confirm
@@ -284,16 +284,16 @@ not the first commit's, as authoritative.
 
 ### Lane B (compliance/SEO/security)
 - [GATE] G4 — legacy /api/parq POST retirement scope confirmation, then [AUTO] fix.
-- [AUTO] CR-EF-006 — add Review/AggregateRating schema.org block to /testimonials — VERIFY:
-  structured-data validator passes.
+- [x] [AUTO] CR-EF-006 — add Review/AggregateRating schema.org block to /testimonials — VERIFY:
+  structured-data validator passes. -- verified on main e5ea74d + 13d7317 (reconciled 2026-08-26)
 - [GATE] G2 — CR-EF-008 HSTS/301 redirect — Coolify/Traefik config, needs Craig.
 
 ### Lane C (infra — GATE only, no AUTO units)
 - [GATE] G1 — WAL/PITR archiving decision.
 
 ### Lane D (document-engine/hub housekeeping)
-- [AUTO] Relabel CR-EF-048 "Create & send" button to reflect draft-only behaviour — file:
-  SendTemplateToClient.tsx or equivalent — VERIFY: label matches actual action.
+- [x] [AUTO] Relabel CR-EF-048 "Create & send" button to reflect draft-only behaviour — file:
+  SendTemplateToClient.tsx or equivalent — VERIFY: label matches actual action. -- verified on main 24828e8 (reconciled 2026-08-26)
 - [AUTO] Investigate + resolve Open Design project visibility issue (or confirm as OD-app
   limitation and close the deferred item with that note).
 - [AUTO] Add "Long-Lever Plank" and "Weighted Plank" to /hub/exercises with video links.
@@ -304,14 +304,14 @@ not the first commit's, as authoritative.
   any build; raise the brief request as a GATE item, don't build speculatively.
 
 ### Lane G (Outlook Bookings reconciliation — CR-EF-050)
-- [AUTO] Diagnostic: add a read-only `listCalendarEvents` (Graph `GET /me/calendars/{id}/
+- [x] [AUTO] Diagnostic: add a read-only `listCalendarEvents` (Graph `GET /me/calendars/{id}/
   calendarView`) to lib/graph-client.ts, pull the selected calendar's events for the existing
   sync window (−1/+60 days per calendar-sync.ts), and diff against `sessions.scheduled_at` +
   `session_calendar_events` to produce a report: which live Outlook events have no app-side
   mapping at all (the actual Bookings-gap population) vs. events the app itself created — files:
   lib/graph-client.ts (new function only, no other changes), a one-off script under scripts/ —
   VERIFY: report run against the real connected calendar, count of unmatched events sized and
-  shared before any further build.
+  shared before any further build. -- verified on main 18b013d (reconciled 2026-08-26)
 - [x] Open Design brief raised and mockup delivered (`hub-schedule-outlook.html`) — see DONE.
 - [x] `outlook_booking_events` migration + name-parsed-from-subject matching logic (revised from
   email-matching, disproven by the diagnostic) — built, migrated on prod+staging, live on main.
@@ -537,3 +537,20 @@ here so a resumed session doesn't re-ask):
 - [GATE, not opencode-gradeable] CR-EF-006 (testimonials AggregateRating JSON-LD) -- live on
   main but register says "closed, not viable" over a possible Google manual-action risk
   (qmt8mne5c58, open since 2026-08-25). Needs a keep/revert/re-research call.
+
+### 2026-08-26 — UNITS reconciliation pass (automated dispatcher stale-check fix)
+Reconciled all `[AUTO]` units in the UNITS section against `git log` evidence on origin/main.
+7 units verified as shipped and ticked:
+- Lane A unit 1 (Training-blocks list Approval/Programme/Progress): c77ebcd
+- Lane A unit 2 (Workout-templates browser detail drawer + paste stepper): 78a6139
+- Lane A unit 3 (Derived Est. duration estimator): 7c6d762
+- Lane A unit 4 (Minor styling sweep): d8a254e
+- Lane B (CR-EF-006 Review schema): e5ea74d + 13d7317
+- Lane D unit 1 (CR-EF-048 button relabel): 24828e8
+- Lane G diagnostic (listCalendarView + bookings-gap script): 18b013d
+10 units left open (no git evidence or evidence incomplete):
+- Lane E units x3 (wo status/reparent CLI operations — registry ops, no code diffs)
+- Lane A unit 5 (exercise_uid backfill — script exists but VERIFY requires DB row-count check)
+- Lane D unit 2 (Open Design visibility — investigation task, no code change)
+- Lane D unit 3 (Long-Lever Plank / Weighted Plank exercises — not in codebase)
+- Lane L units x3 (CR-EF-092/093/hydration — dispatched but not merged to main)
