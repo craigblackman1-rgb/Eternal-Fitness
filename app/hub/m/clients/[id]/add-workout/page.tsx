@@ -238,7 +238,7 @@ export default function AddWorkoutPage() {
     const version = data.versions?.studio ?? data.versions?.home ?? { warm_up: [], main_block: [], cooldown: [] };
     const exercises = collectPreview(version);
     setPreview({
-      name: data.focus_label?.trim() || `Workout ${data.archetype}`,
+      name: data.focus_label?.trim() || `Workout ${data.archetype ?? ""}`.trim() || "Workout",
       exercises,
       equipment: collectEquipment(version),
       source: "block",
