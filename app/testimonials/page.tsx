@@ -7,34 +7,11 @@ import TestimonialsPageClient from "./TestimonialsPageClient";
 // rating number for schema.org markup risks a Google manual action for review
 // markup abuse. If a real rating source exists (e.g. Google Business Profile),
 // wire it in from there instead of inventing one here.
-const testimonialsSchema = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "@id": "https://eternal-fitness.co.uk/#business",
-  "name": "Eternal Fitness",
-  "review": [
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Amanda" },
-      "reviewBody": "She helps me maintain a level of strength, mobility and fitness that I wouldn't have without her… she also adapts routines and exercises to my needs when necessary. I would highly recommend Esther to anyone, of any age and ability."
-    },
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Stephanie" },
-      "reviewBody": "I have been seeing Esther for several years now and my fitness has improved beyond what I could have thought possible. I have a medical condition that makes exercise painful sometimes but Esther works around this and provides alternative exercises. Can not recommend her highly enough."
-    },
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Saffron" },
-      "reviewBody": "She adjusts to her clients' restrictions and individual goals, listens always and creates bespoke plans for every situation."
-    },
-    {
-      "@type": "Review",
-      "author": { "@type": "Person", "name": "Ellie" },
-      "reviewBody": "I have always felt safe, challenged and supported when working with her."
-    }
-  ]
-};
+
+// 2026-08-27: Review/reviewBody JSON-LD removed entirely per Craig's decision
+// (CR-EF-006). Google's guidance disqualifies self-hosted reviews about your
+// own business from Review/rating rich-result markup — the schema was dead code
+// that risked a manual action. Visible testimonial content is untouched.
 
 export const metadata: Metadata = {
   title: "Client Stories & Testimonials",
@@ -43,10 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function TestimonialsPage() {
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(testimonialsSchema) }} />
-      <TestimonialsPageClient />
-    </>
-  );
+  return <TestimonialsPageClient />;
 }
