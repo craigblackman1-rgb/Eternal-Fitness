@@ -110,6 +110,7 @@ export interface SyncOutlookBookingsResult {
   created: number;
   updated: number;
   autoConfirmed: number;
+  rescheduled: number;
   skipped: string | null;
 }
 
@@ -272,7 +273,7 @@ export async function materializeBookingSession(
  * touches open rows.
  */
 export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> {
-  const result: SyncOutlookBookingsResult = { scanned: 0, bookingEvents: 0, created: 0, updated: 0, autoConfirmed: 0, skipped: null };
+  const result: SyncOutlookBookingsResult = { scanned: 0, bookingEvents: 0, created: 0, updated: 0, autoConfirmed: 0, rescheduled: 0, skipped: null };
 
   if (!graphConfigured()) {
     result.skipped = "Graph env vars not configured";
@@ -316,11 +317,32 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
 
     const { data: existing } = await db
       .from("outlook_booking_events")
-      .select("id, status")
+      .select("id, status, start_at, session_id")
       .eq("event_id", ev.id)
       .maybeSingle();
 
     if (existing && (existing as { status: string }).status !== "open") {
+      const ex = existing as { id: string; status: string; start_at: string | null; session_id: string | null };
+      // CR-EF-095 — if the event is already confirmed into a session and the
+      // Outlook start time has moved, propagate the reschedule into the
+      // app's session record. Outlook is the source of truth here; we only
+      // pull the new time in, never push anything back out.
+      if (ex.status === "confirmed" && ex.session_id) {
+        const newStart = ev.start?.dateTime
+          ? new Date(ev.start.dateTime + "Z").toISOString()
+          : null;
+        if (newStart && newStart !== ex.start_at) {
+          await db
+            .from("sessions")
+            .update({ scheduled_at: newStart })
+            .eq("id", ex.session_id);
+          await db
+            .from("outlook_booking_events")
+            .update({ start_at: newStart, updated_at: new Date().toISOString() })
+            .eq("id", ex.id);
+          result.rescheduled++;
+        }
+      }
       // Esther already resolved this one — never re-surface or overwrite her decision.
       continue;
     }
