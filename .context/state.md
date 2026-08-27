@@ -1,5 +1,16 @@
 # Eternal Fitness Website — State
 
+## 2026-08-25 (Claude Code) — Lane K: CR-EF-088–091 shipped, session-scheduling gap closed
+
+"Tom's workout not saving" traced to the real mechanism: session content and scheduled
+date are independent writes, and Outlook Bookings appointments (incl. hand-added personal-
+calendar entries) had no reliable path into a scheduled session at all. Fixed the two
+concrete bugs (mobile scratch-workout scheduling, completed-session error masking) and the
+systemic gap (auto-confirm on the sync cron, widened beyond the Bookings-widget filter).
+227 calendar events scanned on the first full run, 112 confirmed into real sessions. Full
+detail in handoff.md's 2026-08-25 entry. 25-item testing checklist live in decoded-ops-hub
+(project `eternal-fitness`, Testing tab) — Craig working through it.
+
 ## 2026-08-19 (Claude Code) — CR-EF-037 redesign promoted to main; remaining-gap WO opened
 
 Craig reported the block/session/workout routes looked nothing like the design templates.
