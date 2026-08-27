@@ -11,7 +11,7 @@
 
 ## DONE (definition)
 
-- [ ] "null · Session" labels no longer appear anywhere a session renders (desktop block page, schedule, mobile calendar/Today) — verified live on prod with Emma's and Becky's real rows.
+- [x] "null · Session" labels no longer appear anywhere a session renders (desktop block page, schedule, mobile calendar/Today) — verified live on prod with Emma's and Becky's real rows. **DONE 2026-08-27**, CR-EF-094.
 - [ ] A booking arriving via Outlook (Bookings widget or Esther's hand-added entry) is attributed to the client's existing block **sensibly**: date-ordered assignment to the next unbooked planned session where one exists, with a simple designed view/assign/manage surface on desktop AND mobile for the ambiguous cases. Built against an approved Open Design mockup.
 - [ ] CR-EF-092/093 (Lane L: bulk templates scoping, ExercisePicker, TrainScreen hydration fix) promoted staging → main, register rows flipped, live-verified.
 - [ ] Every inherited deferred item below is either done, re-deferred with a reason, or explicitly killed by Craig.
@@ -85,3 +85,5 @@ Units:
 ## LEDGER
 
 - 2026-08-27: WO created. Root causes for CR-EF-094 (null·Session label) and CR-EF-095 (booking attribution) confirmed in code same session: `blocks/[blockId]/page.tsx:285` + `lib/outlook-bookings.ts:139-189`. CR rows added to register. Open items reparented from `wo-ef-consolidated-2026-08-20`; that WO closed as superseded.
+- 2026-08-27 (later): Lane A shipped. Dispatched to OpenCode (`opencode-go/mimo-v2.5`), diff hand-reviewed (not self-report), `tsc` clean. Pushed to `staging`, deployed to `development.eternal-fitness.co.uk`, confirmed. Craig approved production push in chat; merged to `main`, Coolify build confirmed `finished` at commit `f4ac5c7`, `running:healthy`. **Live-verified** via Craig's real hub session (claude-in-chrome): Emma Atkinson Block 2 Session 6 pill now reads "Session", not "null · Session". Hub Testing tab item checked (mobile add-workout item left outstanding — code-reviewed only, not click-tested). Lane A DONE.
+- 2026-08-27 (same pass): confirmed Lane B's target bug live on Becky Price's Block 1 — 8 orphaned single-session weeks (24 Aug–25 Oct), each an Outlook booking floating disconnected from "Plan week 1"'s 4 real planned sessions. Also found: Emma's session 6 has real content but a stale "Booked session (no content yet)" coaching-note placeholder — folded into Lane B scope (same root cause, nothing updates the session record after Outlook materialization). Register updated to reflect both findings. Lane B still gated on Craig's 3 `wo ask` decisions + Open Design mockup — not started.
