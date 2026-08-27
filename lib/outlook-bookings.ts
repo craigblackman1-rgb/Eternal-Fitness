@@ -135,6 +135,11 @@ function resolveSingleBlock(clientId: string, blocks: BlockRow[]): string | null
  * existing Outlook event into session_calendar_events, and mark the booking
  * resolved. Content is deliberately never attached here (Craig, 2026-08-25)
  * — it's often not yet decided what the session's workout will be.
+ *
+ * CR-EF-095 — now prefers filling an existing unbooked planned session
+ * (scheduled_at IS NULL, status != 'cancelled') before appending a new
+ * content-empty one. This prevents bookings from piling up as extra sessions
+ * when the block already has prescribed slots waiting to be scheduled.
  */
 export async function materializeBookingSession(
   db: ReturnType<typeof createPgClient>,
@@ -143,15 +148,59 @@ export async function materializeBookingSession(
   blockId: string,
   clientName: string,
 ): Promise<{ sessionId: string }> {
-  const { data: existingSessions, error: existingErr } = await db
+  const { data: allSessions, error: existingErr } = await db
     .from("sessions")
-    .select("session_number")
+    .select("id, session_number, scheduled_at, status")
     .eq("block_id", blockId);
   if (existingErr) throw new Error(`sessions read failed: ${existingErr.message}`);
-  const sessionNumber = ((existingSessions ?? []) as { session_number: number }[]).reduce(
-    (max, s) => Math.max(max, s.session_number),
-    0,
-  ) + 1;
+
+  const sessions = (allSessions ?? []) as { id: string; session_number: number; scheduled_at: string | null; status: string }[];
+
+  // CR-EF-095 — prefer the earliest unbooked planned session over appending
+  // a new content-empty one. A candidate is a session that has no date yet
+  // and hasn't been cancelled — i.e. a real prescribed slot waiting to be
+  // booked onto the calendar.
+  const candidate = sessions
+    .filter((s) => s.scheduled_at === null && s.status !== "cancelled")
+    .sort((a, b) => a.session_number - b.session_number)[0];
+
+  if (candidate) {
+    const { error: updateErr } = await db
+      .from("sessions")
+      .update({ scheduled_at: booking.start_at, status: "scheduled" })
+      .eq("id", candidate.id);
+    if (updateErr) throw new Error(`session update failed: ${updateErr.message}`);
+
+    const { error: mapErr } = await db.from("session_calendar_events").upsert(
+      {
+        session_id: candidate.id,
+        event_id: booking.event_id,
+        calendar_id: booking.calendar_id,
+        sync_hash: "",
+        synced_at: new Date().toISOString(),
+      },
+      { onConflict: "session_id" },
+    );
+    if (mapErr) throw new Error(`session_calendar_events upsert failed: ${mapErr.message}`);
+
+    const { error: resolveErr } = await db
+      .from("outlook_booking_events")
+      .update({
+        client_id: clientId,
+        status: "confirmed",
+        session_id: candidate.id,
+        resolved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", booking.id);
+    if (resolveErr) throw new Error(`outlook_booking_events update failed: ${resolveErr.message}`);
+
+    return { sessionId: candidate.id };
+  }
+
+  // No unbooked planned slot — fall through to appending a new content-empty
+  // session at the next session_number (the original behaviour).
+  const sessionNumber = sessions.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) throw new Error("block already has the maximum of 18 sessions");
 
   const sessionData = {
