@@ -21,7 +21,7 @@ interface SessionRow {
   id: string;
   block_id: string;
   session_number: number;
-  archetype: string;
+  archetype: string | null;
   week: number;
   phase: string;
   data: Session;
@@ -282,8 +282,8 @@ export default async function BlockViewPage({
                     <SessionRow
                       key={session.id}
                       sessionId={session.id}
-                      archetypeLabel={`${session.archetype} · ${archetypeName || "Session"}`}
-                      archetypeTint={archetypeTint[session.archetype] || "bg-muted text-muted-foreground"}
+                      archetypeLabel={session.archetype ? `${session.archetype} · ${archetypeName || "Session"}` : "Session"}
+                      archetypeTint={session.archetype ? (archetypeTint[session.archetype] || "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"}
                       focusLabel={focusLabel}
                       status={status}
                       dayLabel={dayLabel}

@@ -33,7 +33,7 @@ export default async function TodayPage() {
     id: string;
     block_id: string;
     session_number: number;
-    archetype: string;
+  archetype: string | null;
     data: Session | null;
     scheduled_at: string | null;
   }> = sessionRows ?? [];
