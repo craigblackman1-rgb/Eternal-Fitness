@@ -426,7 +426,7 @@ export default function DiscoveryCallClient() {
   const handleAddToCalendar = useCallback(() => {
     if (!selectedSlot) return;
     const start = new Date(selectedSlot.startUtc);
-    const end = new Date(start.getTime() + 30 * 60000);
+    const end = new Date(selectedSlot.endUtc);
     const ics = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
