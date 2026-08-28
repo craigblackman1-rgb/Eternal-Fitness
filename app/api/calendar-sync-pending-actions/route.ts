@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 import { createPgClient } from "@/lib/pg-client";
 import { deleteEvent, GraphReconnectError } from "@/lib/graph-client";
 
@@ -13,6 +14,10 @@ import { deleteEvent, GraphReconnectError } from "@/lib/graph-client";
  *   or: { decision: "approve_all" }
  */
 export async function POST(request: Request) {
+  if (!getSessionCookie(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
