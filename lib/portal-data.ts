@@ -315,6 +315,62 @@ export class PortalDataClient {
     return (data as (PortalUpdate & { body_html: string }) | null) ?? null;
   }
 
+  /**
+   * The client's active block and its sessions, optimised for the booking/
+   * reschedule page. Returns only the fields the booking UI needs — no
+   * exercise prescriptions, no set logs. The block's focus_label is derived
+   * from the first session's data (they all share the same focus within a
+   * block). Returns null when the client has no active/approved block.
+   */
+  async getBookingSessions(): Promise<PortalBookingData | null> {
+    const pg = createPgClient();
+
+    const { data: blocks } = await pg
+      .from("blocks")
+      .select("id, block_number, status")
+      .eq("client_id", this.clientId)
+      .in("status", ["active", "approved"])
+      .order("block_number", { ascending: false })
+      .limit(1);
+    const block = (blocks ?? [])[0] as { id: string; block_number: number; status: string } | undefined;
+    if (!block) return null;
+
+    const { data: sessionRows } = await pg
+      .from("sessions")
+      .select("id, session_number, week, phase, data, scheduled_at, status, cancelled_at")
+      .eq("block_id", block.id)
+      .order("session_number", { ascending: true });
+    const rows = (sessionRows ?? []) as {
+      id: string;
+      session_number: number;
+      week: number;
+      phase: string;
+      data: Session;
+      scheduled_at: string | null;
+      status: string | null;
+      cancelled_at: string | null;
+    }[];
+
+    const focusLabel = rows[0]?.data?.focus_label ?? "";
+
+    const sessions: PortalBookingSession[] = rows.map((row) => ({
+      id: row.id,
+      session_number: row.session_number,
+      week: row.week,
+      phase: row.phase,
+      focus_label: row.data?.focus_label ?? "",
+      archetype: row.data?.archetype ?? "",
+      scheduled_at: row.scheduled_at,
+      status: row.status ?? "planned",
+      cancelled_at: row.cancelled_at,
+    }));
+
+    return {
+      block: { id: block.id, block_number: block.block_number, status: block.status, focus_label: focusLabel },
+      sessions,
+    };
+  }
+
   async getUpcomingSession(): Promise<PortalUpcomingSession | null> {
     const pool = getPool();
     const res = await pool.query(
@@ -346,6 +402,30 @@ export interface PortalUpcomingSession {
   archetype: string;
   scheduled_at: string;
   block_number: number;
+}
+
+export interface PortalBookingSession {
+  id: string;
+  session_number: number;
+  week: number;
+  phase: string;
+  focus_label: string;
+  archetype: string;
+  scheduled_at: string | null;
+  status: string;
+  cancelled_at: string | null;
+}
+
+export interface PortalBookingBlock {
+  id: string;
+  block_number: number;
+  status: string;
+  focus_label: string;
+}
+
+export interface PortalBookingData {
+  block: PortalBookingBlock | null;
+  sessions: PortalBookingSession[];
 }
 
 export function createPortalDataClient(clientId: string): PortalDataClient {

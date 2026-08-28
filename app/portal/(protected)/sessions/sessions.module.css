@@ -1,0 +1,320 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   SESSIONS PAGE — slot picker sheet & booking UI
+
+   These styles are specific to the sessions booking page. The sheet is a
+   bottom-sheet on mobile (where most booking happens), centred dialog on
+   wider screens. Matches the OpenDesign mockup markup 1:1.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Sheet overlay ─────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(19, 19, 19, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+@media (min-width: 40rem) {
+  .overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+}
+
+/* ── Sheet panel ───────────────────────────────────────────────────────── */
+.sheet {
+  background: #ffffff;
+  width: 100%;
+  max-width: 34rem;
+  max-height: 92vh;
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 8px 20px rgba(19, 19, 19, 0.06), 0 28px 60px rgba(19, 19, 19, 0.10);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (min-width: 40rem) {
+  .sheet {
+    border-radius: 18px;
+    max-height: 85vh;
+  }
+}
+
+/* ── Sheet head ────────────────────────────────────────────────────────── */
+.sheetHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid #E4DDD7;
+  flex-shrink: 0;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #525A61;
+  margin: 0 0 0.5rem;
+}
+.eyebrow::before {
+  content: '';
+  width: 1.6rem;
+  height: 2px;
+  background: #C1839F;
+  flex-shrink: 0;
+}
+
+.sheetTitle {
+  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  font-size: 1.4rem;
+  color: #131313;
+  margin: 0;
+}
+
+/* ── Icon button (close, week nav) ─────────────────────────────────────── */
+.iconBtn {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid #E4DDD7;
+  background: #ffffff;
+  color: #131313;
+  cursor: pointer;
+}
+.iconBtn:hover { background: #F5EFEA; }
+.iconBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.iconBtn:disabled:hover { background: #ffffff; }
+.iconBtn svg { width: 1.2rem; height: 1.2rem; }
+.sheetHead .iconBtn { margin-left: auto; }
+
+/* ── Sheet body ────────────────────────────────────────────────────────── */
+.sheetBody {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+/* ── Alerts ────────────────────────────────────────────────────────────── */
+.alert {
+  display: flex;
+  gap: 1rem;
+  border: 1px solid #E4DDD7;
+  border-left-width: 6px;
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #ffffff;
+  margin-bottom: 1.5rem;
+}
+.alertIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  color: #131313;
+  margin-top: 0.1rem;
+}
+.alertBody { min-width: 0; }
+.alertBody h3 {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: #131313;
+}
+.alertBody p { font-size: 0.96rem; color: #525A61; }
+.alertInfo { background: #FCF8F4; border-left-color: #087E8B; }
+.alertDanger { background: rgba(138, 78, 99, 0.10); border-left-color: #8A4E63; }
+
+/* ── Week navigation ───────────────────────────────────────────────────── */
+.weekNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.weekLabel {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #131313;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+/* ── Loading spinner ───────────────────────────────────────────────────── */
+.slotLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 0;
+  color: #525A61;
+  font-weight: 600;
+}
+.spinner {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 3px solid #E4DDD7;
+  border-top-color: #131313;
+  animation: ef-spin 800ms linear infinite;
+}
+@keyframes ef-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+.empty {
+  background: #FCF8F4;
+  border: 1px solid #E4DDD7;
+  border-radius: 18px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+.empty h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #131313;
+  margin: 0 0 0.5rem;
+}
+.empty p { color: #525A61; }
+
+/* ── Day blocks ────────────────────────────────────────────────────────── */
+.dayBlock {
+  margin-bottom: 1.5rem;
+  border: 0;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.dayBlock:last-child { margin-bottom: 0; }
+.dayTitle {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #525A61;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+.dayEmpty {
+  font-size: 0.92rem;
+  color: #525A61;
+  margin: 0;
+}
+
+/* ── Choice cards (slot radio buttons) ─────────────────────────────────── */
+.choices {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid #525A61;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 1rem;
+  min-height: 3.4rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.choice:hover {
+  border-color: #131313;
+  background: #FCF8F4;
+}
+.choiceInput {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0.15rem 0 0;
+  flex-shrink: 0;
+  accent-color: #131313;
+}
+.choiceText {
+  font-size: 0.98rem;
+  color: #131313;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.choiceNote {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: #525A61;
+  margin-top: 0.15rem;
+}
+.choiceChecked {
+  border-color: #131313;
+  border-width: 2px;
+  background: #FCF8F4;
+  padding: calc(1rem - 1px);
+}
+.choice:focus-within {
+  outline: 3px solid #131313;
+  outline-offset: 3px;
+}
+
+/* ── Sheet foot ────────────────────────────────────────────────────────── */
+.sheetFoot {
+  border-top: 1px solid #E4DDD7;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.slotSelected {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #131313;
+  flex: 1 1 12rem;
+  margin: 0;
+}
+
+/* ── Success result ────────────────────────────────────────────────────── */
+.slotResult {
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+.resultIcon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1.25rem;
+}
+.resultIconSuccess {
+  background: rgba(8, 126, 139, 0.10);
+  color: #087E8B;
+}
+.resultIcon svg { width: 2rem; height: 2rem; }
+.slotResult h3 {
+  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  color: #131313;
+  margin: 0 0 0.5rem;
+}
+.slotResult p {
+  max-width: 26rem;
+  margin-left: auto;
+  margin-right: auto;
+  color: #525A61;
+}
