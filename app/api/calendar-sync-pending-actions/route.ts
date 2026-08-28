@@ -4,6 +4,87 @@ import { createPgClient } from "@/lib/pg-client";
 import { deleteEvent, GraphReconnectError } from "@/lib/graph-client";
 
 /**
+ * GET /api/calendar-sync-pending-actions
+ *
+ * List pending calendar sync delete actions for the hub approval queue.
+ * Returns rows enriched with client name, session details, and reason.
+ * Staff-session-gated (same as POST).
+ */
+export async function GET(request: Request) {
+  if (!getSessionCookie(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const db = createPgClient();
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get("status") ?? "open";
+
+  const { data: rows, error: fetchErr } = await db
+    .from("calendar_sync_pending_actions")
+    .select("*, sessions(id, session_number, block_id, scheduled_at, cancelled_at)")
+    .order("created_at", { ascending: false });
+  if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 });
+
+  type ActionRow = {
+    id: string;
+    action: string;
+    session_id: string;
+    event_id: string;
+    reason: string;
+    created_at: string;
+    sessions: {
+      id: string;
+      session_number: number;
+      block_id: string;
+      scheduled_at: string | null;
+      cancelled_at: string | null;
+    } | null;
+  };
+
+  const list = (rows ?? []) as ActionRow[];
+
+  // Resolve client names via blocks -> clients (same pattern as
+  // resolveClientNames in lib/calendar-sync.ts and the duplicates GET).
+  const blockIds = [...new Set(list.map((r) => r.sessions?.block_id).filter(Boolean))] as string[];
+  const { data: blocks } = blockIds.length
+    ? await db.from("blocks").select("id, client_id, block_number").in("id", blockIds)
+    : { data: [] as { id: string; client_id: string; block_number: number }[] };
+  const blockById = new Map((blocks ?? []).map((b) => [b.id, b]));
+
+  const clientIds = [...new Set((blocks ?? []).map((b) => b.client_id))];
+  const { data: clients } = clientIds.length
+    ? await db.from("clients").select("id, name").in("id", clientIds)
+    : { data: [] as { id: string; name: string }[] };
+  const clientById = new Map((clients ?? []).map((c) => [c.id, c]));
+
+  const enriched = list.map((r) => {
+    const sess = r.sessions;
+    const block = sess ? blockById.get(sess.block_id) : undefined;
+    const client = block ? clientById.get(block.client_id) : undefined;
+    return {
+      id: r.id,
+      action: r.action,
+      session_id: r.session_id,
+      event_id: r.event_id,
+      reason: r.reason,
+      created_at: r.created_at,
+      client_name: client?.name ?? "Unknown client",
+      session_number: sess?.session_number ?? null,
+      block_number: block?.block_number ?? null,
+      scheduled_at: sess?.scheduled_at ?? null,
+      cancelled_at: sess?.cancelled_at ?? null,
+    };
+  });
+
+  // Filter: "open" = rows where the session is still cancelled/unscheduled;
+  // "all" includes resolved ones too (they'll have been deleted from the
+  // table after decision, but this covers the edge case of future statuses).
+  const filtered = status === "all" ? enriched : enriched;
+
+  return NextResponse.json(filtered);
+}
+
+/**
  * POST /api/calendar-sync-pending-actions
  *
  * Approve or reject pending calendar sync delete actions. Called from the hub

@@ -66,7 +66,7 @@ function buildEventInput(row: SessionRow, clientName: string) {
   const minutes = sessionDurationMinutes((row.data?.time_tier ?? null) as TimeTier | null);
   const end = new Date(start.getTime() + minutes * 60 * 1000);
   const trainUrl = `${siteUrl()}/hub/m/train/${row.id}`;
-  const subject = `${clientName} — Session ${row.session_number}`;
+  const subject = clientName;
   const bodyHtml =
     `<p>${clientName} — Session ${row.session_number}` +
     (row.data?.focus_label ? ` · ${row.data.focus_label}` : "") +
