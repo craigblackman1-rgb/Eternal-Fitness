@@ -204,7 +204,7 @@ export function IntegrationsManager() {
     <HubCard>
       <HubCardHeader
         title="Outlook calendar"
-        subtitle="One-way sync: hub schedule → Outlook"
+        subtitle="Hub writes sessions to Outlook; a moved date on a matched booking reads back. Nothing else crosses either way."
       />
       {content}
     </HubCard>

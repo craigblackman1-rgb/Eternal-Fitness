@@ -6,6 +6,7 @@ import type { SessionStatus } from "@/types";
 import type { ClientFlag } from "@/lib/mobile-client-flags";
 import { DayAgenda, type AgendaSession } from "@/components/hub/DayAgenda";
 import { ClientNotesPane } from "./ClientNotesPane";
+import { ClientBookingPanel } from "@/components/hub/ClientBookingPanel";
 import { todayLocalISODate, shiftDay } from "@/lib/schedule-dates";
 
 export interface RecentSessionView {
@@ -140,6 +141,7 @@ function flagIcon(tone: ClientFlag["tone"]) {
 interface ClientModeViewProps {
   clientId: string;
   clientNumber: number;
+  clientName: string;
   firstName: string;
   flags: ClientFlag[];
   activeFlagCount: number;
@@ -153,6 +155,7 @@ interface ClientModeViewProps {
 export function ClientModeView({
   clientId,
   clientNumber,
+  clientName,
   firstName,
   flags,
   activeFlagCount,
@@ -176,6 +179,7 @@ export function ClientModeView({
       <main className="mcontent">
         {/* ── OVERVIEW ── */}
         <section className={`pane${tab === "overview" ? " on" : ""}`}>
+          <ClientBookingPanel clientId={clientId} clientName={clientName} mobile />
           <div className="panel">
             <div className="panel-h">
               <span className={`panel-h-ic ${activeFlagCount > 0 ? "danger" : "teal"}`}>

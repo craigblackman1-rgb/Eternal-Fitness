@@ -9,6 +9,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") ?? "open"; // "open" | "dismissed" | "confirmed" | "all"
+  const clientId = searchParams.get("client_id"); // optional — scope to one client
   const countOnly = searchParams.get("count") === "true";
 
   let query = supabase
@@ -18,6 +19,9 @@ export async function GET(request: Request) {
 
   if (status !== "all") {
     query = query.eq("status", status);
+  }
+  if (clientId) {
+    query = query.eq("client_id", clientId);
   }
 
   if (countOnly) {

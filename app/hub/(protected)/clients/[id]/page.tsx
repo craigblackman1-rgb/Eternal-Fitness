@@ -36,6 +36,7 @@ import { RESOURCES } from "@/lib/resources";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
 import { CommsTabContent } from "./CommsTabContent";
+import { ClientBookingPanel } from "@/components/hub/ClientBookingPanel";
 
 function YesNoPill({ yes }: { yes: boolean }) {
   return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
@@ -497,6 +498,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] mt-6">
           <div className="space-y-5">
             <TabsContent value="overview">
+              <ClientBookingPanel clientId={client.id} clientName={client.name} />
               {flags.effectiveStatus === "pending_medical" && (
                 <HubAlert severity="warning" title={lookupStatus(flags.effectiveStatus)?.label ?? "Action Needed"}>
                   Do not train until clearance is confirmed.

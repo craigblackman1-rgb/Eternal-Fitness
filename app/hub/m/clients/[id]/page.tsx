@@ -292,6 +292,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
       <ClientModeView
         clientId={row.id}
         clientNumber={clientNumber}
+        clientName={row.name}
         firstName={row.name.split(" ")[0]}
         flags={flags}
         activeFlagCount={activeFlagCount}
