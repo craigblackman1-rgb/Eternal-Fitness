@@ -65,6 +65,7 @@ Units:
 | D8 | Open Design "EF Endurance Block Editor (CR-EF-048)" project visibility check | [AUTO] | `dmt0ix0gewn` |
 | D9 | Client portal PWA: reuse staff PWA client-mode screens or own build — revisit now trainer PWA client-mode has shipped | [GATE] | `dmt2qo93nzo` |
 | D10 | CR-EF-006 register reconcile (testimonial JSON-LD live on main vs register) — answer already queued | [GATE] | `qmt8mne5c58` |
+| D11 | CR-EF-086 (site-wide VI image plates) — Open Design's 2026-08-25 scoping pass (`photo-approval-plates.html`, `image-treatment-plates.html`, `homepage-image-plates.html`) was never reconciled into the register/WO after `wo-ef-consolidated-2026-08-20` was superseded. Needs Craig's scope decision (alt-text only vs. also site-wide visual-treatment rollout vs. split into two CRs) before any build. | [GATE] | see CR-EF-086 |
 
 ### Lane E — [AUTO] Hub workout-parity remnants (from workorder-hub-workout-parity-2026-08-19)
 
