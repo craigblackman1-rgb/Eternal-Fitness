@@ -50,6 +50,7 @@ export interface SyncResult {
   created: number;
   updated: number;
   deleted: number;
+  pendingDelete: number;
   unchanged: number;
   paused: number;
   skipped: string | null;
@@ -84,6 +85,16 @@ function hashEvent(calendarId: string, input: { subject: string; bodyHtml: strin
     .digest("hex");
 }
 
+/**
+ * Returns true if the session's Outlook event should be deleted — i.e. the
+ * session is genuinely cancelled or unscheduled. A session that is still
+ * scheduled (has `scheduled_at` set, `cancelled_at` null) must keep its
+ * calendar event regardless of how old it is.
+ */
+export function shouldDeleteEvent(session: { scheduled_at: string | null; cancelled_at: string | null }): boolean {
+  return Boolean(session.cancelled_at) || session.scheduled_at === null;
+}
+
 async function resolveClientNames(db: ReturnType<typeof createPgClient>, blockIds: string[]): Promise<Map<string, string>> {
   const nameByBlock = new Map<string, string>();
   if (blockIds.length === 0) return nameByBlock;
@@ -101,10 +112,17 @@ async function resolveClientNames(db: ReturnType<typeof createPgClient>, blockId
 
 /**
  * Full sync over the window plus cleanup of mapped events whose session was
- * cancelled, unscheduled, or moved out of the window.
+ * cancelled or unscheduled. Deleted events are queued in
+ * `calendar_sync_pending_actions` for manual approval before any Graph write.
+ *
+ * BUG FIX (2026-08-28): the old code treated "aged past the 24h past-window"
+ * identically to "cancelled", deleting real Outlook events for every session
+ * that had already occurred. Now we query session state directly — a session
+ * with `scheduled_at` set and `cancelled_at` null is never deleted regardless
+ * of how far in the past it sits.
  */
 export async function syncCalendar(): Promise<SyncResult> {
-  const result: SyncResult = { created: 0, updated: 0, deleted: 0, unchanged: 0, paused: 0, skipped: null, errors: [] };
+  const result: SyncResult = { created: 0, updated: 0, deleted: 0, pendingDelete: 0, unchanged: 0, paused: 0, skipped: null, errors: [] };
 
   if (!graphConfigured()) {
     result.skipped = "Graph env vars not configured";
@@ -165,19 +183,79 @@ export async function syncCalendar(): Promise<SyncResult> {
     ((candidateRows ?? []) as { session_id: string; status: string }[]).map((c) => [c.session_id, c.status])
   );
 
-  // 1. Remove events for mapped sessions that are no longer active in-window
-  //    (cancelled, unscheduled, or moved outside the window), and any mapping
-  //    that points at a previously-selected calendar.
-  for (const m of mappings) {
-    if (activeIds.has(m.session_id) && m.calendar_id === calendarId) continue;
-    try {
-      await deleteEvent(m.event_id);
-      const { error } = await db.from("session_calendar_events").delete().eq("session_id", m.session_id);
-      if (error) throw new Error(error.message);
-      result.deleted++;
-    } catch (err) {
-      if (err instanceof GraphReconnectError) throw err;
-      result.errors.push(`delete ${m.session_id}: ${(err as Error).message}`);
+  // 1. Clean up stale mappings — but only delete Outlook events for sessions
+  //    that are genuinely cancelled or unscheduled. A session that simply
+  //    aged past the 24h past-window boundary is still valid and its event
+  //    must NOT be touched.
+  //
+  //    Calendar-ID mismatches (mapping points at an old calendar) are cleaned
+  //    up directly — the event moves to the correct calendar via the create
+  //    path in step 2. This is not a "deletion of a valid event" because the
+  //    event will be recreated on the correct calendar.
+  //
+  //    Genuine cancellations/unschedules are queued as pending actions in
+  //    `calendar_sync_pending_actions` for manual approval before any Graph
+  //    write — the staging gate Craig requested after the 2026-08-28 incident.
+  if (mappings.length > 0) {
+    const mappedSessionIds = [...new Set(mappings.map((m) => m.session_id))];
+    const { data: mappedSessionRows } = await db
+      .from("sessions")
+      .select("id, scheduled_at, cancelled_at")
+      .in("id", mappedSessionIds);
+    const sessionStateById = new Map(
+      ((mappedSessionRows ?? []) as Pick<SessionRow, "id" | "scheduled_at" | "cancelled_at">[]).map(
+        (s) => [s.id, s]
+      )
+    );
+
+    for (const m of mappings) {
+      // Different calendar — clean up the stale mapping. The event will be
+      // recreated on the current calendar by the create path in step 2.
+      if (m.calendar_id !== calendarId) {
+        try {
+          await deleteEvent(m.event_id);
+          const { error } = await db.from("session_calendar_events").delete().eq("session_id", m.session_id);
+          if (error) throw new Error(error.message);
+        } catch (err) {
+          if (err instanceof GraphReconnectError) throw err;
+          result.errors.push(`delete-cal ${m.session_id}: ${(err as Error).message}`);
+        }
+        continue;
+      }
+
+      // Same calendar — only delete if the session is genuinely cancelled or
+      // unscheduled. Never delete simply because the session fell outside the
+      // 24h past-window boundary.
+      const sessionState = sessionStateById.get(m.session_id);
+      if (!sessionState || !shouldDeleteEvent(sessionState)) continue;
+
+      try {
+        // Deduplicate: skip if a pending action already exists for this session.
+        const { data: existing } = await db
+          .from("calendar_sync_pending_actions")
+          .select("id")
+          .eq("session_id", m.session_id)
+          .eq("action", "delete")
+          .maybeSingle();
+        if (existing) continue;
+
+        const reason = sessionState.cancelled_at
+          ? "Session cancelled"
+          : "Session unscheduled (scheduled_at is null)";
+
+        const { error: insErr } = await db.from("calendar_sync_pending_actions").insert({
+          action: "delete",
+          session_id: m.session_id,
+          event_id: m.event_id,
+          calendar_id: m.calendar_id,
+          reason,
+        });
+        if (insErr) throw new Error(insErr.message);
+        result.pendingDelete++;
+      } catch (err) {
+        if (err instanceof GraphReconnectError) throw err;
+        result.errors.push(`queue-delete ${m.session_id}: ${(err as Error).message}`);
+      }
     }
   }
 

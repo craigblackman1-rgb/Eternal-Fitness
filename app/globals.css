@@ -47,6 +47,15 @@
     --color-ink-rgb: 19 19 19;
     --color-border-warm-rgb: 228 221 215;
 
+    /* ===== IMAGE TREATMENT (studio-grade) ===== */
+    --ef-img-grade: saturate(.94) contrast(1.05) brightness(1.02);
+    --ef-img-wash: var(--color-warm);
+    --ef-img-wash-o: .05;
+    --ef-img-hair: color-mix(in srgb, var(--color-ink) 12%, transparent);
+    --ef-img-hair-w: 1px;
+    --ef-plate-o: .92;
+    --ef-vignette: color-mix(in srgb, var(--color-ink) 42%, transparent);
+
     /* ===== OPACITY UTILITY COLORS ===== */
     --color-white-5: rgba(255, 255, 255, 0.05);
     --color-white-9: rgba(255, 255, 255, 0.09);
@@ -175,6 +184,17 @@
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
     --duration-sm: 150ms;
     --duration-md: 250ms;
+  }
+
+  @media (prefers-contrast: more) {
+    :root {
+      --ef-img-grade: saturate(.9) contrast(1.2) brightness(1.02);
+      --ef-img-hair: color-mix(in srgb, var(--color-ink) 46%, transparent);
+      --ef-img-hair-w: 2px;
+      --ef-plate-o: 1;
+      --ef-vignette: color-mix(in srgb, var(--color-ink) 58%, transparent);
+      --ef-img-wash-o: 0;
+    }
   }
 
   .dark {

@@ -315,6 +315,12 @@ a.ds-card { display: block; }
 .ds-band-t { font-family: var(--font-serif); font-size: clamp(19px, 1.6vw, 23px); font-weight: 700; letter-spacing: -.018em; line-height: 1.18; color: var(--color-ink); margin-bottom: 10px; transition: color .25s ease; }
 .ds-band-b { font-size: 14.5px; color: var(--color-body); line-height: 1.65; margin-bottom: 14px; }
 
+/* ── Studio-grade image treatment — tokens in globals.css ────── */
+.ds-hero-bg img,
+.ds-cta-bg img,
+.ds-imgcard-media img,
+.ds-split-img img { filter: var(--ef-img-grade); }
+
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
   .ds-sec { padding: 72px 28px; }
