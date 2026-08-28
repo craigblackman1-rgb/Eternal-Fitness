@@ -103,15 +103,15 @@ a.ds-card { display: block; }
 
 /* ── Floating stat badge (.h-badge / .wbadge) ─ */
 .ds-badge { display: inline-flex; align-items: center; gap: 12px; background: #fff; border-radius: 16px; padding: 16px 20px; box-shadow: 0 8px 32px rgba(0,0,0,.09); max-width: 280px; }
-.ds-badge-circle { width: 44px; height: 44px; border-radius: 50%; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
+.ds-badge-circle { width: 44px; height: 44px; border-radius: 50%; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
 .ds-badge-t { font-size: 13px; font-weight: 700; color: var(--color-ink); margin-bottom: 2px; }
 .ds-badge-s { font-size: 11.5px; color: var(--color-muted-text); line-height: 1.4; }
-.ds-badge-rose { background: var(--color-rose); color: #fff; box-shadow: 0 16px 40px rgba(193,131,159,.35); text-align: center; display: block; padding: 18px 22px; border-radius: 14px; }
+.ds-badge-rose { background: var(--rose-text); color: #fff; box-shadow: 0 16px 40px rgba(193,131,159,.35); text-align: center; display: block; padding: 18px 22px; border-radius: 14px; }
 .ds-badge-rose .ds-badge-num { font-size: 36px; font-weight: 900; line-height: 1; margin-bottom: 2px; }
 .ds-badge-rose .ds-badge-lbl { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .82; }
 
 /* ── Ticker (.tstrip) ─────────────── */
-.ds-ticker { background: var(--color-rose); padding: 14px 0; overflow: hidden; }
+.ds-ticker { background: var(--rose-text); padding: 14px 0; overflow: hidden; }
 .ds-ticker-track { display: flex; white-space: nowrap; animation: ds-tk 34s linear infinite; }
 .ds-ticker-item { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.9); letter-spacing: .1em; text-transform: uppercase; padding: 0 40px; flex-shrink: 0; }
 .ds-ticker-star { color: rgba(255,255,255,.42); }
@@ -132,7 +132,7 @@ a.ds-card { display: block; }
 .ds-tmark { font-size: 160px; font-weight: 700; line-height: .42; color: rgba(255,255,255,.22); font-family: Georgia, serif; }
 .ds-tquote { font-size: clamp(19px, 2.2vw, 28px); font-weight: 300; color: #fff; line-height: 1.55; font-style: italic; margin-bottom: 26px; }
 .ds-tauth { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 52px; }
-.ds-tav { width: 38px; height: 38px; border-radius: 50%; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+.ds-tav { width: 38px; height: 38px; border-radius: 50%; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
 .ds-tnm { font-size: 14.5px; font-weight: 600; color: #fff; }
 .ds-tlo { font-size: 12.5px; color: rgba(255,255,255,.46); margin-top: 2px; }
 .ds-tdiv { width: 1px; height: 40px; background: rgba(255,255,255,.18); margin: 0 auto 52px; }
@@ -263,7 +263,7 @@ a.ds-card { display: block; }
 .ds-compare-ic-x { color: var(--color-muted-text); }
 .ds-compare-ic-check { color: var(--color-teal); }
 .ds-compare-vs { display: flex; align-items: center; justify-content: center; padding: 0 20px; }
-.ds-compare-vs span { width: 44px; height: 44px; border-radius: 999px; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 8px 20px rgba(193,131,159,.3); }
+.ds-compare-vs span { width: 44px; height: 44px; border-radius: 999px; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 8px 20px rgba(193,131,159,.3); }
 
 /* ── Stat / credentials strip ─────── */
 .ds-statstrip { display: grid; grid-template-columns: repeat(var(--ds-stat-count, 4), 1fr); border-radius: 22px; overflow: hidden; }
@@ -320,6 +320,23 @@ a.ds-card { display: block; }
 .ds-cta-bg img,
 .ds-imgcard-media img,
 .ds-split-img img { filter: var(--ef-img-grade); }
+
+/* ── Described images — collapsible description for low-vision users
+    not running a screen reader. Alt serves AT; this serves the much
+    larger group who can read the page but need a textual walkthrough
+    of what the photograph shows. Ported from vi.css .vi-desc. ── */
+details.ef-desc { margin-top: 12px; border: 1px solid var(--color-border-warm); border-radius: 12px; background: #fff; }
+details.ef-desc summary {
+  cursor: pointer; list-style: none; padding: 12px 16px; min-height: 44px;
+  display: flex; align-items: center; gap: 10px; border-radius: 12px;
+  font-size: 13.5px; font-weight: 600; color: var(--color-ink);
+}
+details.ef-desc summary::-webkit-details-marker { display: none; }
+details.ef-desc summary::before { content: ''; width: 16px; height: 16px; flex: none; border-radius: 3px;
+  border: 2px solid var(--rose-text); border-right-width: 5px; }
+details.ef-desc summary:hover { background: var(--color-warm); }
+details.ef-desc[open] summary { border-bottom: 1px solid var(--color-border-warm); border-radius: 12px 12px 0 0; }
+details.ef-desc p { padding: 14px 16px 16px; font-size: 14px; line-height: 1.6; color: var(--color-body); }
 
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
@@ -400,7 +417,7 @@ a.ds-card { display: block; }
 .ds-quote-card-mark { font-family: Georgia, serif; font-size: 120px; font-weight: 700; line-height: .42; color: rgba(19,19,19,.12); text-align: center; margin-bottom: 10px; }
 .ds-quote-card-body { font-size: clamp(19px, 2.2vw, 28px); font-weight: 300; color: var(--color-ink); line-height: 1.55; font-style: italic; margin-bottom: 26px; }
 .ds-quote-card-by { display: flex; align-items: center; justify-content: center; gap: 14px; }
-.ds-quote-card-av { width: 38px; height: 38px; border-radius: 50%; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.ds-quote-card-av { width: 38px; height: 38px; border-radius: 50%; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
 .ds-quote-card-name { font-size: 14.5px; font-weight: 600; color: var(--color-ink); }
 .ds-quote-card-meta { font-size: 12.5px; color: var(--color-muted-text); margin-top: 2px; }
 
@@ -414,6 +431,16 @@ a.ds-card { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .ds-ticker-track { animation: none; }
+}
+
+/* ── prefers-contrast: more — treatment classes ──
+   The --ef-* tokens (grade, wash, hair, plate-o, vignette) already
+   respond to this query in globals.css, so any treatment class bound
+   to those tokens inherits the adjustment automatically. Add per-class
+   overrides here only if a class introduces a value not derived from
+   the --ef-* token set. */
+@media (prefers-contrast: more) {
+  /* future treatment classes that add custom non-token values go here */
 }
 
 /* ── Pricing — option groups & plan cards (pricing.html) ───────── */
@@ -437,7 +464,7 @@ a.ds-card { display: block; }
 .ds-plan-featured { border-color: color-mix(in srgb, var(--color-rose) 46%, var(--color-border-warm)); }
 .ds-plan-chip {
   position: absolute; top: -13px; left: 34px;
-  background: var(--color-rose); color: #fff; border-radius: 999px;
+  background: var(--rose-text); color: #fff; border-radius: 999px;
   font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
   padding: 7px 15px; box-shadow: 0 4px 14px color-mix(in srgb, var(--color-rose) 34%, transparent);
 }

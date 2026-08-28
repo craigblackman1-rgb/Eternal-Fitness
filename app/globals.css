@@ -270,7 +270,7 @@
     text-decoration: none;
     transition: all 200ms;
   }
-  .ef-btn-primary { background: var(--color-rose); color: #fff; }
+  .ef-btn-primary { background: var(--rose-text); color: #fff; }
   .ef-btn-primary:hover { opacity: 0.88; }
   .ef-btn-dark { background: var(--color-ink); color: #fff; }
   .ef-btn-dark:hover { background: var(--color-rose); }
@@ -898,7 +898,7 @@
   cursor: pointer;
   text-decoration: none;
 }
-.btn--primary { background: var(--color-rose); color: #fff; border-color: var(--color-rose); }
+.btn--primary { background: var(--rose-text); color: #fff; border-color: var(--rose-text); }
 .btn--primary:hover { background: color-mix(in oklch, var(--color-rose) 46%, var(--color-ink)); border-color: color-mix(in oklch, var(--color-rose) 46%, var(--color-ink)); }
 .btn--secondary { background: #fff; color: var(--color-ink); border-color: var(--color-ink); }
 .btn--secondary:hover { background: var(--color-ink); color: #fff; }
@@ -960,7 +960,7 @@
   top: 0;
   z-index: 9999;
   padding: 12px 24px;
-  background: var(--color-rose);
+  background: var(--rose-text);
   color: #fff;
   font-family: var(--font-body);
   font-weight: 600;
