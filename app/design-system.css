@@ -321,6 +321,52 @@ a.ds-card { display: block; }
 .ds-imgcard-media img,
 .ds-split-img img { filter: var(--ef-img-grade); }
 
+/* ── Focus ring — the treatment that carries instruction ─────
+   Generic, site-wide port of the .vi-tech system from
+   visual-impairment/vi.css (04 focus ring plate). Reads from the
+   global --ef-img-* / --ef-vignette tokens. Each instance sets
+   --fx / --fy (percentage) via inline style or page CSS to point
+   at the actual technique detail in that specific photo.
+   ──────────────────────────────────────────────────────────── */
+.ef-tech {
+  position: relative; overflow: hidden; isolation: isolate;
+  aspect-ratio: 4/3; border-radius: 24px; background: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+}
+.ef-tech img { width: 100%; height: 100%; object-fit: cover; }
+/* Studio-grade filter + wash + hairline — reuse the global tokens */
+.ef-tech::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: var(--ef-img-wash); opacity: var(--ef-img-wash-o); mix-blend-mode: multiply;
+}
+.ef-tech::before {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--ef-img-hair-w) var(--ef-img-hair);
+}
+/* Radial vignette veil — transparent ellipse at --fx/--fy, darkening outward */
+.ef-tech .ef-veil {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse 54% 58% at var(--fx, 50%) var(--fy, 50%),
+    transparent 0%, transparent 42%, var(--ef-vignette) 100%);
+}
+/* Dashed arc marker centred on the focal point */
+.ef-tech .ef-arc { position: absolute; z-index: 3; pointer-events: none;
+  width: 38%; aspect-ratio: 1; left: calc(var(--fx, 50%) - 19%); top: calc(var(--fy, 50%) - 19%); }
+.ef-tech .ef-arc circle { fill: none; stroke: var(--color-rose); stroke-width: 2.4; stroke-linecap: round;
+  stroke-dasharray: 104 200; opacity: .92; }
+/* Pinned instruction label — dot + text on ink pill */
+.ef-tech .ef-pin {
+  position: absolute; z-index: 6; left: 18px; top: 18px; max-width: calc(100% - 36px);
+  background: color-mix(in srgb, var(--color-ink) 92%, transparent); color: #fff;
+  border-radius: 8px; padding: 9px 13px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
+  letter-spacing: -.005em; display: flex; gap: 9px; align-items: center;
+}
+.ef-tech .ef-pin .ef-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--color-rose); flex: none; }
+
+@media (max-width: 1000px) {
+  .ef-tech .ef-pin { left: 12px; top: 12px; padding: 8px 11px; font-size: 12px; }
+}
+
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
   .ds-sec { padding: 72px 28px; }
