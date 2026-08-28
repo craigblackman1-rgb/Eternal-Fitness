@@ -175,6 +175,7 @@ a.ds-card { display: block; }
 .ds-cta-split-photo {
   position: relative;
   isolation: isolate;
+  background: var(--color-ink);
   min-width: 0;
   overflow: hidden;
 }
@@ -366,6 +367,7 @@ a.ds-card { display: block; }
 .ds-hero-split-photo {
   position: relative;
   isolation: isolate;
+  background: var(--color-ink);
   min-width: 0;
   overflow: hidden;
 }
