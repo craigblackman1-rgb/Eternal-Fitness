@@ -83,6 +83,7 @@ export default function SpecialistTrainingClient() {
 
       <main id="main-content">
         <PageHero
+          layout="split"
           image="/images/who-health.jpg"
           imageAlt="Specialist personal training in Worthing"
           imageObjectPosition="50% 38%"
@@ -175,6 +176,7 @@ export default function SpecialistTrainingClient() {
         </Section>
 
         <CTABand
+          layout="split"
           image="/images/studio-1.jpg"
           imageAlt="Eternal Fitness private studio in Worthing"
           heading={"Ready to find out if this is right for you?"}

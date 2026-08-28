@@ -3,7 +3,7 @@ import { CtaButton } from "./CtaButton";
 import type { CTA } from "./types";
 
 interface CTABandProps {
-  /** "split" (default) — copy beside photo on solid ink ground; "overlay" — legacy teal scrim */
+  /** "split" — copy beside photo on solid ink ground; "overlay" (default) — legacy teal scrim */
   layout?: "overlay" | "split";
   image: string;
   imageAlt?: string;
@@ -18,19 +18,19 @@ interface CTABandProps {
 /**
  * Closing call-to-action band. Two layouts:
  *
- * **split** (default, EF-IMG-03): Copy sits beside the photograph on solid ink
- * ground, never on top of it via a teal scrim. The photograph gets only the
- * studio grade — no overlay. One box, one radius, one hairline.
+ * **overlay** (default): Background image + teal gradient overlay, serif heading,
+ * dual buttons. The legacy layout.
  *
- * **overlay** (retired): Background image + teal gradient overlay, serif heading,
- * dual buttons. Kept for backward compatibility.
+ * **split** (EF-IMG-03): Copy sits beside the photograph on solid ink ground,
+ * never on top of it via a teal scrim. The photograph gets only the studio grade
+ * — no overlay. One box, one radius, one hairline. Opt-in only.
  *
  * The band is a wide, short strip (fixed min-height, full viewport width), so on
  * wide screens object-fit:cover crops much more off the top/bottom than the sides.
  * `imagePosition` lets a page bias the crop toward wherever its subject actually
  * sits in the source photo.
  */
-export function CTABand({ layout = "split", image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow }: CTABandProps) {
+export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow }: CTABandProps) {
   if (layout === "overlay") {
     return (
       <section className="ds-cta">

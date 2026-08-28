@@ -4,7 +4,7 @@ import { CtaButton } from "./CtaButton";
 import type { CTA } from "./types";
 
 interface PageHeroProps {
-  /** "split" (default) — copy beside photo on solid ink ground; "overlay" — legacy full-bleed scrim */
+  /** "split" — copy beside photo on solid ink ground; "overlay" (default) — legacy full-bleed scrim */
   layout?: "overlay" | "split";
   /** @deprecated "split" is retired, renders as overlay — kept for not-yet-migrated callers */
   variant?: "overlay" | "split";
@@ -38,16 +38,15 @@ interface PageHeroProps {
 /**
  * Full-bleed editorial page hero. Two layouts:
  *
- * **split** (default, EF-IMG-03): Copy sits beside the photograph on solid ink
- * ground, never on top of it. The photograph gets only the studio grade — no
- * scrim, no vignette. One box, one radius, one hairline, no overlay anywhere.
+ * **overlay** (default): One photograph across the full width, ink scrims rising
+ * from the bottom and left, copy set low over it. The legacy layout.
  *
- * **overlay** (retired): One photograph across the full width, ink scrims rising
- * from the bottom and left, copy set low over it. Kept for backward compatibility
- * with callers that still use `variant`.
+ * **split** (EF-IMG-03): Copy sits beside the photograph on solid ink ground,
+ * never on top of it. The photograph gets only the studio grade — no scrim, no
+ * vignette. One box, one radius, one hairline, no overlay anywhere. Opt-in only.
  */
 export function PageHero({
-  layout = "split",
+  layout = "overlay",
   variant,
   image,
   imageAlt,

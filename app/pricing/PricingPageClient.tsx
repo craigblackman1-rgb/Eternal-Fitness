@@ -87,6 +87,7 @@ export default function PricingPageClient() {
 
       <main id="main-content">
       <PageHero
+        layout="split"
         image="/images/pricing-hero-coaching.jpg"
         imageAlt="Esther coaching a client through a split squat with a barbell in the private Worthing studio"
         imagePan="122%"
@@ -232,6 +233,7 @@ export default function PricingPageClient() {
       <FAQSection />
 
       <CTABand
+        layout="split"
         image="/images/pricing-studio.jpg"
         imageAlt="Esther coaching a client through a walking barbell lunge in the private Worthing studio"
         imagePosition="center 35%"
