@@ -8,8 +8,7 @@ import {
   AvailabilityError,
   SlotTakenError,
 } from "@/lib/booking-availability";
-import { sessionDurationMinutes } from "@/lib/scheduling";
-import type { TimeTier } from "@/types";
+import { getIntegrationStatus } from "@/lib/graph-client";
 
 /**
  * POST /api/portal/bookings/confirm
@@ -89,9 +88,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const sessionRow = sessionRes.rows[0];
-  const sessionData = sessionRow.data as { focus_label?: string; time_tier?: TimeTier } | null;
-
   // Resolve client name for the Outlook event subject.
   const data = createPortalDataClient(portalSession.clientId);
   const client = await data.getClient();
@@ -108,10 +104,18 @@ export async function POST(request: Request) {
       subject,
     });
 
-    // Update the session row with the booked time.
-    const minutes = sessionDurationMinutes(
-      (sessionData?.time_tier ?? null) as TimeTier | null,
-    );
+    // Resolve the real Microsoft Graph calendar id — the same value
+    // calendar-sync.ts uses for comparison. Writing the literal 'portal'
+    // here caused every future sync pass to treat the mapping as stale.
+    const status = await getIntegrationStatus();
+    if (!status.connected || !status.calendarId) {
+      throw new AvailabilityError(
+        "Calendar not connected — cannot persist event mapping",
+        "NOT_CONNECTED",
+      );
+    }
+    const calendarId = status.calendarId;
+
     await pool.query(
       `UPDATE sessions
           SET scheduled_at = $1, status = 'scheduled'
@@ -126,11 +130,11 @@ export async function POST(request: Request) {
     await pool.query(
       `INSERT INTO session_calendar_events
          (session_id, event_id, calendar_id, sync_hash, synced_at)
-       VALUES ($1, $2, 'portal', $3, NOW())
+       VALUES ($1, $2, $4, $3, NOW())
        ON CONFLICT (session_id) DO UPDATE
-         SET event_id = $2, calendar_id = 'portal',
+         SET event_id = $2, calendar_id = $4,
              sync_hash = $3, synced_at = NOW()`,
-      [sessionId, result.eventId, syncHash],
+      [sessionId, result.eventId, syncHash, calendarId],
     );
 
     return NextResponse.json({
