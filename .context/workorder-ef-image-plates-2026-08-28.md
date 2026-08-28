@@ -30,6 +30,35 @@ Source mockups (Open Design project `90556eb1-3632-4e02-a992-bc510026774c`, deli
 
 ## LANES
 
+### Lane 6 — [GATE→Open Design] Re-plate the REAL site photographs (raised by Craig 2026-08-28, post-test)
+
+**The structural problem, found by Craig on staging:** the existing plates cover photographs that are not on the site, and the photographs that ARE on the site have no plates. `photo-approval-plates.html` authored rule-4-quality alt text for 11 new-shoot photos — none of which were ever uploaded (deferred, `dmtd2xq1coh`). Meanwhile the **~35 significant photographs actually live on the site** have never been through a plate at all.
+
+**Measured state (2026-08-28, live routes only — excludes the redirected `/cancer-rehabilitation`, `/falls-prevention`, `/blog`):**
+
+| Route | Significant photos | Rule 3 (described images) | Rule 4 (alt standard) |
+|---|---|---|---|
+| `/visual-impairment` | 6 | ✅ 3 `.vi-desc` disclosures | ✅ passes |
+| `/` (home) | 7 | ❌ none | ⚠️ partial |
+| `/about` | 7 | ❌ none | ⚠️ partial |
+| `/contact` | 3 | ❌ none | ❌ "Esther Fair smiling" |
+| `/personal-training` | 3 | ❌ none | ⚠️ partial |
+| `/specialist-training` | 3 | ❌ none | ❌ "Specialist personal training in Worthing" (SEO string) |
+| `/faqs` | 2 | ❌ none | ⚠️ partial |
+| `/pricing` | 2 | ❌ none | ⚠️ partial |
+| `/testimonials` | 2 | ❌ none | ⚠️ partial |
+
+**Rule 3 is unimplemented on 8 of 9 live routes** — `.ef-desc` CSS shipped in Lane 5, applied to zero images. Craig is right that heroes and full-bleed images are the worst offenders: they're the largest, most significant photographs on every page and carry the least description.
+
+**Rule 4 grading correction — own this:** Lane 5's audit reported "33/38 already descriptive" and I accepted it. That graded against *"is alt present and non-generic"*, **not** against the mockup's actual Rule 4 standard — *"what is happening, who is in frame, and what the adaptation is."* Re-graded against the real rule, most alt text names the subject but never the **adaptation**, which is the distinctive third element and the entire reason this is Eternal Fitness's differentiator rather than generic a11y compliance. `"Specialist personal training in Worthing"` scores zero of three. That miss is why this gap didn't surface in the audit.
+
+**Units:**
+1. **[GATE] Craig confirms scope** — all ~35 photos, or heroes/full-bleed first (the ~18 largest) as a phase 1?
+2. **[Open Design] Author a new plates file covering the real site inventory.** Must be Open Design, not an OpenCode lane and not me: writing a truthful description of what is in a photograph requires *looking at the photograph*. Inferring it from a filename is exactly how fabricated content gets shipped (standing repo gotcha — the "Joan"/"Section 7" incidents). Per photo: rule-4 alt text + the `<details>` described-image copy.
+3. **[AUTO once plates approved] Wire it in** — `.ef-desc` disclosures under significant photographs; replace failing alt strings. Mechanical once the copy exists.
+4. **Constraint for both:** brand vocabulary ban applies to alt text too (Rule 4) — never `transformation`, `before-and-after`, `weight loss`, `aesthetic`, `quick fixes`, `boot-camp`, `push yourself`, `no pain no gain`, `gym-floor intimidation`, `just push harder`; no body descriptions.
+5. **VERIFY:** every significant photograph on a live route has rule-4 alt + a described-image disclosure; screen-reader pass; `prefers-contrast: more` still correct.
+
 ### Lane 1 — [AUTO] Foundation: shared tokens + studio grade + a11y contrast layer
 
 Promote the `--vi-img-*`/`--vi-vignette`/contrast tokens currently defined inside `.vi-page` in `app/visual-impairment/vi.css` into a site-wide home (`app/design-system.css` or `app/globals.css`) under non-`vi-`-prefixed names (e.g. `--ef-img-grade`). Apply EF-IMG-01's studio-grade filter to every photograph site-wide (four selectors per the mockup's effort note). Wire the `prefers-contrast: more` media query site-wide, not scoped to `.vi-page`. Do **not** touch `/visual-impairment` page's own behaviour — it should keep working, now reading from the promoted tokens instead of its local ones.
