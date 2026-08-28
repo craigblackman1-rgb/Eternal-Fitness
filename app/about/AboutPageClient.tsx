@@ -48,6 +48,7 @@ export default function AboutPageClient() {
 
       <main id="main-content">
       <PageHero
+        layout="split"
         image="/images/about-hero-esther-portrait.png"
         imageAlt="Esther Fair smiling in her private studio in Worthing"
         imagePan="108%"
@@ -238,6 +239,7 @@ export default function AboutPageClient() {
       </Section>
 
       <CTABand
+        layout="split"
         image="/images/studio-kettlebell-shelf.jpg"
         imageAlt="Kettlebells racked on the shelf in the Eternal Fitness studio"
         imagePosition="center 45%"

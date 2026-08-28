@@ -74,6 +74,7 @@ export default function PersonalTrainingClient() {
 
       <main id="main-content">
       <PageHero
+        layout="split"
         image="/images/coaching-bench-press-spot.jpg"
         imageAlt="Esther coaching a client through an incline dumbbell press in her private Worthing studio"
         imagePan="126%"
@@ -218,6 +219,7 @@ export default function PersonalTrainingClient() {
       </Section>
 
       <CTABand
+        layout="split"
         image="/images/studio-slam-balls-rack.jpg"
         imageAlt="Slam balls racked in the Eternal Fitness studio"
         imagePosition="center 55%"
