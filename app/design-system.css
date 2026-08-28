@@ -127,6 +127,79 @@ a.ds-card { display: block; }
 .ds-cta-inner p { font-size: 16.5px; color: rgba(255,255,255,.75); line-height: 1.65; max-width: 500px; margin-bottom: 36px; }
 .ds-cta-btns { display: flex; gap: 14px; flex-wrap: wrap; }
 
+/* ── CTA band — split layout (EF-IMG-03) ─────────────────────────
+   Same principle as the page hero split: copy on solid ink ground
+   beside the photograph. No teal scrim. Replaces the overlay layout
+   which is retained as layout="overlay" fallback.
+   ───────────────────────────────────────────────────────────────── */
+.ds-cta-split { position: relative; background: var(--color-ink); overflow: hidden; }
+.ds-cta-split-grid {
+  display: grid;
+  grid-template-columns: 44% 1fr;
+  max-width: var(--ds-max);
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 400px;
+}
+.ds-cta-split-panel {
+  min-width: 0;
+  padding: 56px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--color-ink);
+}
+.ds-cta-split-panel .ds-eyebrow { margin-bottom: 18px; }
+.ds-cta-split-panel .ds-eyebrow-white { color: rgba(255,255,255,.65); }
+.ds-cta-split-panel .ds-eyebrow-white::before { background: rgba(255,255,255,.45); }
+.ds-cta-split-panel h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 3.4vw, 48px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -.03em;
+  margin-bottom: 14px;
+  max-width: 520px;
+}
+.ds-cta-split-panel p {
+  font-size: 16px;
+  color: rgba(255,255,255,.72);
+  line-height: 1.65;
+  max-width: 460px;
+  margin-bottom: 32px;
+}
+.ds-cta-split-panel .ds-cta-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+.ds-cta-split-photo {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+.ds-cta-split-photo img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--cta-pos, center);
+}
+.ds-cta-split-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--ef-img-wash);
+  opacity: var(--ef-img-wash-o);
+  mix-blend-mode: multiply;
+}
+@media (max-width: 760px) {
+  .ds-cta-split-grid { grid-template-columns: 1fr; min-height: auto; }
+  .ds-cta-split-photo { aspect-ratio: 16/9; }
+  .ds-cta-split-panel { padding: 40px 28px; }
+}
+
 /* ── Testimonial (.twrap) ─────────── */
 .ds-tw { max-width: 840px; margin: 0 auto; text-align: center; }
 .ds-tmark { font-size: 160px; font-weight: 700; line-height: .42; color: rgba(255,255,255,.22); font-family: Georgia, serif; }
@@ -210,6 +283,120 @@ a.ds-card { display: block; }
 .ds-hero-intro { font-size: 15.5px; line-height: 1.7; color: rgba(255,255,255,.68); max-width: 540px; margin-bottom: 32px; }
 .ds-hero-intro p { margin: 0; }
 .ds-hero-btns { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.ds-hero .ef-btn-outline { border-color: rgba(255,255,255,.58); color: #fff; }
+.ds-hero .ef-btn-outline:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+
+/* ── Page hero — split layout (EF-IMG-03) ────────────────────────
+   Copy sits beside the photograph on solid ink ground, never on top
+   of it via a scrim. The photograph gets only the studio grade
+   (--ef-img-grade) — no vignette, no wash overlay. One box, one
+   radius, one hairline, no overlay anywhere. Replaces the overlay
+   layout which is retired but retained as layout="overlay" fallback.
+   ───────────────────────────────────────────────────────────────── */
+.ds-hero-split { background: var(--color-ink); min-height: 0; display: block; }
+.ds-hero-split-grid {
+  display: grid;
+  grid-template-columns: 44% 1fr;
+  max-width: var(--ds-max);
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.ds-hero-split-panel {
+  min-width: 0;
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--color-ink);
+}
+.ds-hero-split-panel .ds-eyebrow { margin-bottom: 20px; }
+.ds-hero-split-panel .ds-eyebrow-white { color: rgba(255,255,255,.65); }
+.ds-hero-split-panel .ds-eyebrow-white::before { background: rgba(255,255,255,.45); }
+.ds-hero-split-panel h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 4.2vw, 56px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.06;
+  letter-spacing: -.03em;
+  margin-bottom: 16px;
+}
+.ds-hero-split-panel .ds-hero-sub {
+  font-size: clamp(16px, 1.4vw, 19px);
+  color: rgba(255,255,255,.78);
+  line-height: 1.6;
+  max-width: 520px;
+  margin-bottom: 20px;
+}
+.ds-hero-split-panel .ds-hero-rule {
+  width: 56px;
+  height: 2px;
+  background: var(--color-rose);
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+.ds-hero-split-panel .ds-hero-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(17px, 1.6vw, 21px);
+  line-height: 1.42;
+  letter-spacing: -.015em;
+  color: rgba(255,255,255,.88);
+  border-left: 2px solid var(--color-rose);
+  padding-left: 22px;
+  max-width: 540px;
+  margin-bottom: 28px;
+}
+.ds-hero-split-panel .ds-hero-intro {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.65);
+  max-width: 500px;
+  margin-bottom: 28px;
+}
+.ds-hero-split-panel .ds-hero-intro p { margin: 0; }
+.ds-hero-split-panel .ds-hero-btns { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.ds-hero-split-panel .ef-btn-outline { border-color: rgba(255,255,255,.58); color: #fff; }
+.ds-hero-split-panel .ef-btn-outline:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+.ds-hero-split-panel .ds-hero-badge-inline { margin-top: 24px; }
+.ds-hero-split-photo {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+.ds-hero-split-photo img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--hero-pos, 50% 50%);
+}
+@media (min-width: 1600px) {
+  .ds-hero-split-photo img { object-position: var(--hero-pos-wide, var(--hero-pos, 50% 50%)); }
+}
+/* Only apply the warm wash overlay to split-layout photos (no scrim —
+   that is the point of the split). The wash sits behind the subject
+   edge, not over the copy. */
+.ds-hero-split-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--ef-img-wash);
+  opacity: var(--ef-img-wash-o);
+  mix-blend-mode: multiply;
+}
+@media (max-width: 760px) {
+  .ds-hero-split-grid { grid-template-columns: 1fr; }
+  .ds-hero-split-photo { aspect-ratio: 16/9; }
+  .ds-hero-split-panel { padding: 36px 28px; }
+}
+
+/* ── Page hero — overlay layout (retired, kept for fallback) ────── */
 .ds-hero .ef-btn-outline { border-color: rgba(255,255,255,.58); color: #fff; }
 .ds-hero .ef-btn-outline:hover { background: rgba(255,255,255,.12); border-color: #fff; }
 .ds-hero-badge { position: absolute; z-index: 4; bottom: 68px; right: max(24px, calc((100% - var(--ds-max)) / 2 + 80px)); max-width: 340px; }
@@ -319,7 +506,9 @@ a.ds-card { display: block; }
 .ds-hero-bg img,
 .ds-cta-bg img,
 .ds-imgcard-media img,
-.ds-split-img img { filter: var(--ef-img-grade); }
+.ds-split-img img,
+.ds-hero-split-photo img,
+.ds-cta-split-photo img { filter: var(--ef-img-grade); }
 
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
@@ -347,6 +536,8 @@ a.ds-card { display: block; }
      split hero — sat under the fixed 72px navbar and clipped the eyebrow. */
   .ds-hero-badge { position: static; margin-top: 28px; }
   .ds-art-chip { width: 118px; left: 12px; bottom: 12px; }
+  .ds-hero-split-panel { padding: 32px 24px; }
+  .ds-cta-split-panel { padding: 36px 24px; }
 
   /* index collapses to an accordion */
   .ds-index { grid-template-columns: 1fr; gap: 0; }

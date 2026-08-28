@@ -3,6 +3,8 @@ import { CtaButton } from "./CtaButton";
 import type { CTA } from "./types";
 
 interface CTABandProps {
+  /** "split" (default) — copy beside photo on solid ink ground; "overlay" — legacy teal scrim */
+  layout?: "overlay" | "split";
   image: string;
   imageAlt?: string;
   imagePosition?: string;
@@ -14,29 +16,64 @@ interface CTABandProps {
 }
 
 /**
- * Closing call-to-action band: background image + teal gradient overlay,
- * serif heading, dual buttons. Mirrors the homepage #cta and standardises
- * the closing CTA across every page.
+ * Closing call-to-action band. Two layouts:
+ *
+ * **split** (default, EF-IMG-03): Copy sits beside the photograph on solid ink
+ * ground, never on top of it via a teal scrim. The photograph gets only the
+ * studio grade — no overlay. One box, one radius, one hairline.
+ *
+ * **overlay** (retired): Background image + teal gradient overlay, serif heading,
+ * dual buttons. Kept for backward compatibility.
  *
  * The band is a wide, short strip (fixed min-height, full viewport width), so on
  * wide screens object-fit:cover crops much more off the top/bottom than the sides.
  * `imagePosition` lets a page bias the crop toward wherever its subject actually
- * sits in the source photo — pass e.g. "center 20%" for a portrait shot where the
- * person's head is in the upper third, so wide viewports don't crop into their face.
+ * sits in the source photo.
  */
-export function CTABand({ image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow }: CTABandProps) {
+export function CTABand({ layout = "split", image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow }: CTABandProps) {
+  if (layout === "overlay") {
+    return (
+      <section className="ds-cta">
+        <div className="ds-cta-bg">
+          <Image src={image} alt={imageAlt ?? ""} fill sizes="100vw" style={{ objectFit: "cover", objectPosition: imagePosition ?? "center" }} />
+        </div>
+        <div className="ds-cta-inner">
+          {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
+          <h2>{heading}</h2>
+          <p>{body}</p>
+          <div className="ds-cta-btns">
+            <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "white" }} />
+            {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "ghost-white" }} />}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── split layout (EF-IMG-03) ──
   return (
-    <section className="ds-cta">
-      <div className="ds-cta-bg">
-        <Image src={image} alt={imageAlt ?? ""} fill sizes="100vw" style={{ objectFit: "cover", objectPosition: imagePosition ?? "center" }} />
-      </div>
-      <div className="ds-cta-inner">
-        {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
-        <h2>{heading}</h2>
-        <p>{body}</p>
-        <div className="ds-cta-btns">
-          <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "white" }} />
-          {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "ghost-white" }} />}
+    <section className="ds-cta-split">
+      <div className="ds-cta-split-grid">
+        <div className="ds-cta-split-panel">
+          {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
+          <h2>{heading}</h2>
+          <p>{body}</p>
+          <div className="ds-cta-btns">
+            <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "white" }} />
+            {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "ghost-white" }} />}
+          </div>
+        </div>
+        <div className="ds-cta-split-photo">
+          <Image
+            src={image}
+            alt={imageAlt ?? ""}
+            fill
+            sizes="(max-width: 760px) 100vw, 56vw"
+            style={{
+              objectFit: "cover",
+              ["--cta-pos" as string]: imagePosition ?? "center",
+            }}
+          />
         </div>
       </div>
     </section>
