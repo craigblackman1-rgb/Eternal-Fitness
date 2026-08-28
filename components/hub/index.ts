@@ -15,4 +15,5 @@ export { HubTabsList, HubTabsTrigger } from "./HubTabs";
 export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
 export { OutlookBookingsBadge } from "./OutlookBookingsBadge";
 export { OutlookReconciliationTabs } from "./OutlookReconciliationTabs";
+export { ClientBookingPanel } from "./ClientBookingPanel";
 export type { TrainerizeHistoryData, TrainerizeBlock, TrainerizeWorkout, TrainerizeExercise, TrainerizeNote } from "./types";
