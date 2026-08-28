@@ -248,8 +248,6 @@ function BookingRowItem({
   onConfirm: () => void;
   onDismiss: () => void;
 }) {
-  const isAmbiguous = !row.client_id;
-
   return (
     <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-3">
       <div className={cn("flex flex-wrap items-start gap-3", mobile && "gap-2.5")}>
@@ -277,60 +275,27 @@ function BookingRowItem({
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions — every row here is already matched to this client (the
+            fetch is client_id-scoped), so there's no ambiguous/pick-block
+            state to branch on the way the generic cross-client queue does. */}
         <div className={cn("flex gap-1.5 flex-wrap items-center shrink-0", mobile ? "w-full mt-2" : "ml-auto")}>
-          {isAmbiguous ? (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(mobile && "flex-1 min-h-[44px]")}
-                onClick={onConfirm}
-              >
-                Pick block
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(mobile && "min-h-[44px]")}
-                onClick={onDismiss}
-              >
-                Dismiss
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                size="sm"
-                className={cn(mobile && "flex-1 min-h-[44px]")}
-                onClick={onConfirm}
-              >
-                Confirm
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(mobile && "min-h-[44px]")}
-                onClick={onDismiss}
-              >
-                Dismiss
-              </Button>
-            </>
-          )}
+          <Button
+            size="sm"
+            className={cn(mobile && "flex-1 min-h-[44px]")}
+            onClick={onConfirm}
+          >
+            Confirm
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(mobile && "min-h-[44px]")}
+            onClick={onDismiss}
+          >
+            Dismiss
+          </Button>
         </div>
       </div>
-
-      {/* Matched client suggestion chip */}
-      {row.client_id && row.clients && (
-        <div className="flex items-center gap-2 mt-2 px-2.5 py-2 border border-[var(--status-success-border)] bg-[var(--status-success-bg)] rounded-[10px]">
-          <span className="w-[26px] h-[26px] rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success-border)] grid place-items-center text-[10px] font-bold shrink-0">
-            {row.clients.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
-          </span>
-          <span className="text-[12.5px] text-foreground font-semibold">
-            Matched to {row.clients.name}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
