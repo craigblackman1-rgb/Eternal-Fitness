@@ -671,7 +671,7 @@ export function SessionWorkoutLog({
   }, [drainQueue]);
 
   // ── Complete ───────────────────────────────────────────────────
-  const handleComplete = async () => {
+  const handleComplete = async (confirmOffDay?: boolean) => {
     setCompleting(true);
     const d = dataRef.current;
     if (!d) return;
@@ -682,19 +682,36 @@ export function SessionWorkoutLog({
       fatigue,
       notes: sessionNotes,
     };
+    const body: Record<string, unknown> = {
+      data: {
+        ...d,
+        session_log: updatedLog,
+        exercise_notes: savedNotesRef.current,
+      },
+    };
+    if (confirmOffDay) body.confirm_off_day = true;
     const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          ...d,
-          session_log: updatedLog,
-          exercise_notes: savedNotesRef.current,
-        },
-      }),
+      body: JSON.stringify(body),
     });
     setCompleting(false);
     if (!res.ok) {
+      if (res.status === 409) {
+        const err = await res.json().catch(() => null);
+        if (err?.code === "off_day_completion") {
+          const scheduledDate = new Date(err.scheduledAt).toLocaleDateString("en-GB", {
+            timeZone: "Europe/London",
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          });
+          if (window.confirm(`This session is booked for ${scheduledDate}, not today. Complete it anyway?`)) {
+            return handleComplete(true);
+          }
+          return;
+        }
+      }
       toast.error("Failed to mark session complete");
       return;
     }
@@ -981,7 +998,7 @@ export function SessionWorkoutLog({
                 : `${allExerciseRefs.length - progress.doneExCount} of ${allExerciseRefs.length} exercises are still unlogged. You can complete anyway — unlogged sets are saved as not recorded.`}
             </p>
             <div className="flex flex-col gap-2">
-              <button type="button" onClick={handleComplete} disabled={completing} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] bg-rose px-[18px] text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" onClick={() => handleComplete()} disabled={completing} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] bg-rose px-[18px] text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
                 Yes, complete session
               </button>
               <button type="button" onClick={() => setShowComplete(false)} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-[18px] text-sm font-bold text-foreground hover:bg-[var(--hub-hover)]">

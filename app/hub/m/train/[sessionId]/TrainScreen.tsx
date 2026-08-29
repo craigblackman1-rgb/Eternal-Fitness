@@ -784,7 +784,7 @@ export function TrainScreen({
   };
 
   // ── Complete ───────────────────────────────────────────────────
-  const handleComplete = async () => {
+  const handleComplete = async (confirmOffDay?: boolean) => {
     setCompleting(true);
     const d = dataRef.current;
     if (!d) return;
@@ -795,19 +795,36 @@ export function TrainScreen({
       fatigue,
       notes: sessionNotes,
     };
+    const body: Record<string, unknown> = {
+      data: {
+        ...d,
+        session_log: updatedLog,
+        exercise_notes: savedNotesRef.current,
+      },
+    };
+    if (confirmOffDay) body.confirm_off_day = true;
     const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          ...d,
-          session_log: updatedLog,
-          exercise_notes: savedNotesRef.current,
-        },
-      }),
+      body: JSON.stringify(body),
     });
     setCompleting(false);
     if (!res.ok) {
+      if (res.status === 409) {
+        const err = await res.json().catch(() => null);
+        if (err?.code === "off_day_completion") {
+          const scheduledDate = new Date(err.scheduledAt).toLocaleDateString("en-GB", {
+            timeZone: "Europe/London",
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          });
+          if (window.confirm(`This session is booked for ${scheduledDate}, not today. Complete it anyway?`)) {
+            return handleComplete(true);
+          }
+          return;
+        }
+      }
       toast.error("Failed to mark session complete");
       return;
     }
@@ -1319,7 +1336,7 @@ export function TrainScreen({
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={handleComplete}
+                onClick={() => handleComplete()}
                 disabled={completing}
                 style={{ width: "100%" }}
               >

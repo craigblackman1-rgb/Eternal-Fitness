@@ -4,6 +4,7 @@ import { ensureUids } from "@/lib/exercise-ref";
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
 import { getSessionStatus } from "@/lib/session-transitions";
+import { londonDayKey } from "@/lib/schedule-dates";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
@@ -74,6 +75,31 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (cancellingNow) {
     update.status = "cancelled";
   } else if (completingNow) {
+    // EF-100 — off-day completion guard. If the trainer completes a session
+    // whose booked date is a different day than the incoming completed_at,
+    // block the write unless the client explicitly confirmed the off-day
+    // completion (confirm_off_day: true). This prevents the bug where
+    // completing a session "sticks" to next week's session row because the
+    // trainer was looking at the wrong day.
+    if (!body.confirm_off_day) {
+      const { data: sessionRow } = await supabase
+        .from("sessions")
+        .select("scheduled_at")
+        .eq("id", params.id)
+        .maybeSingle();
+      const scheduledDate = sessionRow?.scheduled_at as string | null;
+      const completedDate = incomingData!.session_log!.completed_at!;
+      if (scheduledDate && londonDayKey(scheduledDate) !== londonDayKey(completedDate)) {
+        return NextResponse.json(
+          {
+            error: `This session is booked for ${new Date(scheduledDate).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long" })}, not today.`,
+            code: "off_day_completion",
+            scheduledAt: scheduledDate,
+          },
+          { status: 409 },
+        );
+      }
+    }
     update.completed_at = incomingData!.session_log!.completed_at;
     update.status = "completed";
   }
