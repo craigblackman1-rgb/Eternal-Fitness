@@ -10,12 +10,18 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
 
   const { data: blocks } = await supabase.from("blocks").select("*").eq("client_id", client.id).order("block_number", { ascending: false });
-  const { data: sessions } = await supabase
-    .from("sessions")
-    .select(`*, blocks!inner(block_number, client_id)`)
-    .eq("blocks.client_id", client.id)
-    .order("session_number", { ascending: false })
-    .limit(50);
+  const blockIds = (blocks ?? []).map((b) => b.id);
+  let sessions: any[] | null = null;
+  if (blockIds.length > 0) {
+    const { data, error: sessionsError } = await supabase
+      .from("sessions")
+      .select("*, blocks(block_number)")
+      .in("block_id", blockIds)
+      .order("session_number", { ascending: false })
+      .limit(50);
+    if (sessionsError) console.error("clients/[id] sessions query failed:", sessionsError.message);
+    sessions = data;
+  }
   const { data: clientDocuments } = await supabase.from("client_documents").select("id, kind, title, status").eq("client_id", client.id);
 
   const hasSignedAgreementDocument = (clientDocuments ?? []).some((d: any) => d.kind === "terms" && d.status === "signed");
