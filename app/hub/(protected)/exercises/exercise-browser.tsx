@@ -581,7 +581,7 @@ export function ExerciseBrowser({
                       <img
                         src={selectedExercise.image_url}
                         alt={selectedExercise.name}
-                        className="w-full h-[168px] rounded-[12px] object-cover"
+                        className="ef-plate w-full h-[168px] object-cover"
                       />
                     ) : selectedExercise.video_url ? (
                       <a

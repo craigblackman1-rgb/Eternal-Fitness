@@ -161,6 +161,7 @@ export default function FAQsPageClient() {
 
       <main id="main-content">
       <PageHero
+        layout="split"
         image="/images/consultation-warm-chat.jpg"
         imageAlt="Esther chatting warmly with a client in the private Worthing studio"
         imageObjectPosition="50% 38%"
@@ -316,6 +317,7 @@ export default function FAQsPageClient() {
       </Section>
 
       <CTABand
+        layout="split"
         image="/images/coaching-deadlift-setup.jpg"
         imageAlt="Esther coaching a client through a deadlift setup"
         imagePosition="center 55%"

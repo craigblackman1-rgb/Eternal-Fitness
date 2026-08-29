@@ -110,6 +110,7 @@ export default function ContactPageClient() {
 
       <main id="main-content">
       <PageHero
+        layout="split"
         image="/images/studio-kettlebell-shelf.jpg"
         imageAlt="The kettlebell rack in the private Worthing studio"
         imageObjectPosition="50% 30%"
@@ -402,6 +403,7 @@ export default function ContactPageClient() {
       </Section>
 
       <CTABand
+        layout="split"
         image="/images/esther-headshot-smile.jpg"
         imageAlt="Esther Fair smiling"
         imagePosition="center 30%"
