@@ -1,8 +1,10 @@
 # Session close — 2026-08-29 (Eternal Fitness, CR-EF-086 Lane 6 + D-cluster)
 
 **Worktree:** `D:\apps\worktrees\eternal-fitness-website\next-updates-b84429`, branch `claude/next-updates-b84429`
-**Landed on:** `staging` (`23cf333`) — **nothing promoted to `main`/production**, per Craig's hold.
-**Staging is 27 commits ahead of main; main is 0 ahead of staging** (a clean fast-forward whenever Craig approves).
+**Landed on:** `staging` (**final: `d40b993`**) — **nothing promoted to `main`/production**, per Craig's hold.
+**Main is 0 ahead of staging** (a clean fast-forward whenever Craig approves).
+
+> **Read the ADDENDUM at the end before acting on this document.** Craig rejected the Lane 6 wiring after this first close-out was written: the disclosures were not sitting under their images. It was refixed, a regression it caused was found and fixed, and the whole thing was re-verified on the deployed staging build. The addendum also **answers the "staging deploy unconfirmed" caveat below** — staging deploys fine; that caveat is resolved, not outstanding.
 
 ---
 
@@ -86,3 +88,58 @@ Local dev server, **all 8 live marketing routes at 1280×900**, plus `/` and `/c
 
 - **Lane E is largely stale** (`wo-ef-consolidated-2026-08-27` ledger): `PlanScheduleTable` already has the Programme column, Progress column, Do Not Train pill and Review/Continue action; Est. duration is already derived (`estimated_minutes` with a tier fallback). E1 and E3 need no work. E2 and E4 remain unaudited.
 - **D5 answered at code level**: a session materialised from an Outlook booking gets the originating `event_id` written into `session_calendar_events` at creation, so push-sync takes the `updateEvent` branch; `createEvent` is unreachable when a mapping exists, and even without one `findDuplicateCandidate` pauses rather than creating. Two independent safeguards. **Code-verified, not live-verified** — confirming zero real duplicates in prod still needs the tunnel.
+
+---
+
+# ADDENDUM — Craig rejected the wiring, it was refixed and re-verified
+
+**Closed at `d40b993` on `staging`.** Everything below happened after the first close-out above.
+
+## What Craig said
+
+> *"the describe this image should always sit under the image, they are not, you can see in the chrome browser tab open"*
+
+**He was right and the earlier sign-off was wrong.** The verification that passed had checked the disclosures *rendered* and were not clipped. It never checked they sat **under their own image** — the thing that actually mattered.
+
+## What was actually wrong
+
+Re-measured at 1440x900: **only 4 of 14 were correct.** Two distinct faults:
+
+| Layout | Fault |
+|---|---|
+| Two-column split hero / CTA band | The disclosure was an extra grid child, so it became a new grid item in the **first** column — the text column — while the photo sat in the other. On `/about` outright **inverted**: disclosure at x 699-1345, photo at x 80-619. |
+| Full-bleed overlay hero / CTA band | Rendered **over** the image (gaps of -185 and -613), because it was inside the content wrapper rather than below the band. |
+
+The four that already worked did so because the disclosure was a flow sibling of the image container **inside the same layout slot** — the `/visual-impairment` shape.
+
+## The fix, and the regression it caused
+
+**Fix:** contained images — image container + disclosure wrapped in one `<figure class="ef-figure">` occupying the image's grid slot, so the disclosure inherits the photo's column and width. Full-bleed backgrounds — disclosure moved outside the `<section>`.
+
+**Regression it introduced:** the figure wrapper collapsed the two `next/image` `fill` containers (`.ds-hero-split-photo`, `.ds-cta-split-photo`) to **height 0**. Those photographs rendered as solid black boxes on `/contact`, `/about` and every split-layout page. `fill` images are absolutely positioned and contribute no intrinsic height; the containers had been taking height from the grid row, and the figure removed it. Fixed CSS-only: `.ef-figure > :first-child { flex: 1 1 auto; min-height: 0; }`.
+
+## The real lesson — the audit asserted the wrong thing twice
+
+1. **First pass** asserted "renders and is not clipped" → passed disclosures sitting in the wrong column entirely.
+2. **Second pass** asserted placement but not image height → passed photographs collapsed to zero height and rendering black.
+
+Same shape both times: measuring that something *appeared* rather than that it was *correct*. The zero-height regression was caught only by taking a screenshot and seeing a black box where the kettlebells should be — not by any check that was written. **The audit now asserts placement AND non-zero image height together, and is run against the deployed build, not just localhost.**
+
+## Final verification
+
+- Local dev server, desktop 1440x900, all 8 live routes: **26/26 pass, 0 collapsed figures**
+- Mobile 375x812 on `/`, `/contact`, `/about`: **14/14 pass, 0 collapsed, no horizontal scroll**
+- `npx tsc --noEmit` clean
+- **Deployed staging confirmed in Craig's real Chrome session** (Cloudflare Access blocks the sandboxed pane), after waiting for Coolify deploy `wj4vw7hn9ynijnn2ff7hqqtk` to clear: `/contact`, `/about` and `/` all place the disclosure under the photograph.
+
+## Second correction, made and retracted in the same pass
+
+On first look at deployed `/about` the in-content photos appeared as solid black boxes and were called a resurfacing of the Lane 3 multiply-blend bug. **That was wrong** — they were `next/image` lazy-load placeholders and render correctly once loaded. No blend regression exists. Recorded because calling a load placeholder a rendering bug would have sent a lane chasing nothing.
+
+## Also now confirmed
+
+The **staging deploy question left open in the first close-out is answered**: staging deploys fine and is current. The earlier "unconfirmed" note was only because Cloudflare Access 302s an unauthenticated request — in Craig's own browser it loads normally.
+
+## Still outstanding — unchanged from the first close-out
+
+Nothing new was added to the outstanding list. The three decisions (promotion to production, hero/CTA disclosure styling `qmtdzijw1ts`, wall-slogan photography `qmtdy8sye9b`), the EF-20 re-plate, and D1 all still stand. **The wall-slogan question is now more visible, not less** — the `/about` story photograph has "BE STRONGER THAN YOUR EXCUSES" across the whole back wall.
