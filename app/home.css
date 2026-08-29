@@ -25,6 +25,13 @@
 .efhome a:not(nav *) { text-decoration: none; color: inherit; }
 .efhome button { cursor: pointer; font-family: var(--f); border: none; }
 
+/* ── Studio-grade image treatment (matches design-system.css ds-* classes) ── */
+.efhome .hero-media img,
+.efhome .ctabg img,
+.efhome .wimg img,
+.efhome .si img,
+.efhome .spec-photo img { filter: var(--ef-img-grade); }
+
 /* ── Hero — editorial full-bleed ───────────────────────────────────
    One photograph across the full width, ink scrims rising from the
    bottom and the left, copy set low over it. Matches brand-staging-

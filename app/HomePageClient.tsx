@@ -123,17 +123,32 @@ export default function HomePageClient() {
             <div className="step">
               <div className="sn">01</div>
               <div className="sc"><h3>{"Every session adapts to how you feel that day"}</h3><p>{"Structured planning, dynamically tailored to you. It is the perfect balance of consistent progress and expert flexibility. If you are facing fatigue, a bad night, or a stiff shoulder, I notice and adjust without making a thing of it."}</p></div>
-              <div className="si"><Image src="/images/approach-step1-plank-coaching.jpg" alt="Esther adjusting a client's form during a plank in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="ef-tech si" style={{ "--fx": "46%", "--fy": "44%" } as React.CSSProperties}>
+                <Image src="/images/approach-step1-plank-coaching.jpg" alt="Esther adjusting a client's form during a plank in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} />
+                <div className="ef-veil" />
+                <svg className="ef-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg>
+                <div className="ef-pin"><span className="ef-dot" />Neutral spine</div>
+              </div>
             </div>
             <div className="step">
               <div className="sn">02</div>
               <div className="sc"><h3>{"Private, one-to-one — no gym floor"}</h3><p>{"No other clients, no performance pressure, and no dress code. Just you and exactly what you need today."}</p></div>
-              <div className="si"><Image src="/images/approach-step2-lunges-together.png" alt="Esther and a client doing lunges together, laughing, in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="ef-tech si" style={{ "--fx": "50%", "--fy": "55%" } as React.CSSProperties}>
+                <Image src="/images/approach-step2-lunges-together.png" alt="Esther and a client doing lunges together, laughing, in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} />
+                <div className="ef-veil" />
+                <svg className="ef-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg>
+                <div className="ef-pin"><span className="ef-dot" />Knee tracking</div>
+              </div>
             </div>
             <div className="step">
               <div className="sn">03</div>
               <div className="sc"><h3>{"Progress you can feel, not a number on a scale"}</h3><p>{"Climbing stairs with less effort. Sleeping better. Walking further. That is the real-world strength we build together."}</p></div>
-              <div className="si"><Image src="/images/approach-step3-deadlift-clients.jpg" alt="Two clients working through a dumbbell deadlift together in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <div className="ef-tech si" style={{ "--fx": "50%", "--fy": "48%" } as React.CSSProperties}>
+                <Image src="/images/approach-step3-deadlift-clients.jpg" alt="Two clients working through a dumbbell deadlift together in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} />
+                <div className="ef-veil" />
+                <svg className="ef-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg>
+                <div className="ef-pin"><span className="ef-dot" />Hip hinge</div>
+              </div>
             </div>
           </div>
           <aside className="cred-band">
