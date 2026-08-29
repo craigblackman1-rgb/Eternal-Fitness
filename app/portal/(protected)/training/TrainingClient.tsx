@@ -8,6 +8,12 @@ import { IconCheck, IconCheckCircle, IconVideo, IconX } from "@/components/icons
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
 import { defaultUnitForEquipment, toKg, fromKg } from "@/lib/units";
 
+/** Round a converted weight to 1 decimal and trim trailing .0 for display. */
+function displayWeight(kg: number, unit: "kg" | "lb"): string {
+  const v = Math.round(fromKg(kg, unit) * 10) / 10;
+  return String(v);
+}
+
 /** exercise_ref convention (matches Lane A's migration): <version>:<section>:<index>:<name>.
  * The portal always logs against the HOME version of the plan. */
 function exerciseRefFor(sectionKey: string, index: number, name: string): string {
@@ -368,8 +374,8 @@ function ExerciseSetLogger({
             : log.reps != null ? String(log.reps) : ""
           : "",
         weight: log?.weight_kg != null
-          ? String(fromKg(log.weight_kg, displayUnit))
-          : carriedWeight != null ? String(fromKg(carriedWeight, displayUnit)) : "",
+          ? displayWeight(log.weight_kg, displayUnit)
+          : carriedWeight != null ? displayWeight(carriedWeight, displayUnit) : "",
       };
     }
     return init;

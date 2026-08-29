@@ -10,6 +10,12 @@ import { sessionDurationMinutes } from "@/lib/scheduling";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
+/** Round a converted weight to 1 decimal and trim trailing .0 for display. */
+function displayWeight(kg: number, unit: "kg" | "lb"): string {
+  const v = Math.round(fromKg(kg, unit) * 10) / 10;
+  return String(v);
+}
+
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
 const SECTION_DEFS: { key: SectionKey; label: string; color: "teal" | "rose" | "navy" }[] = [
@@ -165,8 +171,8 @@ export function TrainScreen({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
-              ? String(fromKg(log.weight_kg, unit))
-              : carriedWeight != null ? String(fromKg(carriedWeight, unit)) : "",
+              ? displayWeight(log.weight_kg, unit)
+              : carriedWeight != null ? displayWeight(carriedWeight, unit) : "",
             duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
@@ -899,7 +905,7 @@ export function TrainScreen({
           ...newSets[setIdx],
           status: data.completed ? "done" : "skipped",
           reps: data.reps != null ? String(data.reps) : "",
-          weight: data.weight_kg != null ? String(fromKg(data.weight_kg, unit)) : "",
+          weight: data.weight_kg != null ? displayWeight(data.weight_kg, unit) : "",
           duration: data.duration_seconds != null ? String(data.duration_seconds) : "",
           savedId: data.id,
           isNewPb: data.is_new_pb === true,

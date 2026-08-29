@@ -22,6 +22,12 @@ import {
 } from "@/lib/hub/offline-set-log-queue";
 import { useSpeechNotes } from "@/components/hub/useSpeechNotes";
 
+/** Round a converted weight to 1 decimal and trim trailing .0 for display. */
+function displayWeight(kg: number, unit: "kg" | "lb"): string {
+  const v = Math.round(fromKg(kg, unit) * 10) / 10;
+  return String(v);
+}
+
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
 const SECTION_DEFS: { key: SectionKey; label: string; color: "teal" | "rose" | "navy" }[] = [
@@ -150,8 +156,8 @@ export function SessionWorkoutLog({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
-              ? String(fromKg(log.weight_kg, unit))
-              : carriedWeight != null ? String(fromKg(carriedWeight, unit)) : "",
+              ? displayWeight(log.weight_kg, unit)
+              : carriedWeight != null ? displayWeight(carriedWeight, unit) : "",
             duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
@@ -596,7 +602,7 @@ export function SessionWorkoutLog({
           ...newSets[setIdx],
           status: synced.completed ? "done" : "skipped",
           reps: synced.reps != null ? String(synced.reps) : "",
-          weight: synced.weight_kg != null ? String(fromKg(synced.weight_kg, unit)) : "",
+          weight: synced.weight_kg != null ? displayWeight(synced.weight_kg, unit) : "",
           duration: synced.duration_seconds != null ? String(synced.duration_seconds) : "",
           savedId: synced.id,
           isNewPb: synced.is_new_pb === true,
