@@ -6,6 +6,7 @@ import type { SetLog } from "@/types";
 import type { PortalExercise, PortalSessionPlan, PortalTrainingPlan } from "@/lib/portal-data";
 import { IconCheck, IconCheckCircle, IconVideo, IconX } from "@/components/icons";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
+import { defaultUnitForEquipment, toKg, fromKg } from "@/lib/units";
 
 /** exercise_ref convention (matches Lane A's migration): <version>:<section>:<index>:<name>.
  * The portal always logs against the HOME version of the plan. */
@@ -354,6 +355,7 @@ function ExerciseSetLogger({
   const prescribedSeconds = parsePrescribedSeconds(exercise.reps);
   const prescribedReps = parsePrescribedReps(exercise.reps);
   const carriedWeight = bestWeights?.[exercise.exercise_name];
+  const displayUnit = defaultUnitForEquipment(exercise.equipment);
 
   const [drafts, setDrafts] = useState<Record<number, { main: string; weight: string }>>(() => {
     const init: Record<number, { main: string; weight: string }> = {};
@@ -366,8 +368,8 @@ function ExerciseSetLogger({
             : log.reps != null ? String(log.reps) : ""
           : "",
         weight: log?.weight_kg != null
-          ? String(log.weight_kg)
-          : carriedWeight != null ? String(carriedWeight) : "",
+          ? String(fromKg(log.weight_kg, displayUnit))
+          : carriedWeight != null ? String(fromKg(carriedWeight, displayUnit)) : "",
       };
     }
     return init;
@@ -378,7 +380,7 @@ function ExerciseSetLogger({
   const save = async (setNumber: number, completed: boolean) => {
     const draft = drafts[setNumber] ?? { main: "", weight: "" };
     const mainVal = draft.main.trim() === "" ? null : Number(draft.main);
-    const weightVal = draft.weight.trim() === "" ? null : Number(draft.weight);
+    const weightVal = draft.weight.trim() === "" ? null : toKg(Number(draft.weight), displayUnit);
     // Empty main input on a done set falls back to the prescription — one tap logs "as prescribed".
     const reps = timeBased ? null : mainVal ?? (completed ? prescribedReps : null);
     const duration = timeBased ? mainVal ?? (completed ? prescribedSeconds : null) : null;
@@ -435,8 +437,8 @@ function ExerciseSetLogger({
               onChange={(e) =>
                 setDrafts((p) => ({ ...p, [setNumber]: { ...draft, weight: e.target.value } }))
               }
-              placeholder="kg"
-              aria-label={`Set ${setNumber} weight in kg (leave blank if not applicable)`}
+              placeholder={displayUnit}
+              aria-label={`Set ${setNumber} weight in ${displayUnit} (leave blank if not applicable)`}
               className="h-11 w-20 min-w-0 rounded-lg border border-border/60 bg-white px-2 text-center text-sm tabular-nums"
             />
             <button

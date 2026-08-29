@@ -13,7 +13,7 @@ import {
   estimateSectionSeconds,
   formatDurationEstimate,
 } from "@/lib/prescription";
-import { defaultUnitForEquipment, isBandEquipment } from "@/lib/units";
+import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
 import {
   enqueue,
   getAllPending,
@@ -143,14 +143,15 @@ export function SessionWorkoutLog({
         const warmupCount = ex.warmup_sets ?? 0;
         const sets: SetState[] = [];
         const carriedWeight = bestWeights?.[ex.exercise_name];
+        const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
         for (let s = 1; s <= totalSets; s++) {
           const log = setLogsMap[`${ref}::${s}`];
           sets.push({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
-              ? String(log.weight_kg)
-              : carriedWeight != null ? String(carriedWeight) : "",
+              ? String(fromKg(log.weight_kg, unit))
+              : carriedWeight != null ? String(fromKg(carriedWeight, unit)) : "",
             duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
@@ -314,12 +315,13 @@ export function SessionWorkoutLog({
     fieldValues: { reps: string; weight: string; duration: string },
     completed: boolean,
     isWarmup: boolean,
+    displayUnit: "kg" | "lb",
     reuseClientOpId?: string,
   ): Promise<SaveSetLogResult> => {
     const key = `${exerciseRef}::${setNumber}`;
     const existing = setLogsMap[key];
     const repsVal = fieldValues.reps.trim() === "" ? null : Number(fieldValues.reps);
-    const weightVal = fieldValues.weight.trim() === "" ? null : Number(fieldValues.weight);
+    const weightVal = fieldValues.weight.trim() === "" ? null : toKg(Number(fieldValues.weight), displayUnit);
     const durationVal = fieldValues.duration.trim() === "" ? null : Number(fieldValues.duration);
 
     // Idempotency key minted once per logical write and reused across retries
@@ -402,7 +404,7 @@ export function SessionWorkoutLog({
       }
     }
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, state.displayUnit, set.clientOpId);
     if (result.kind === "failed") {
       toast.error(result.message || "Failed to save set");
       return;
@@ -451,7 +453,7 @@ export function SessionWorkoutLog({
     const weight = timeBased ? "" : (set.weight || "");
     const duration = timeBased ? (set.duration || "") : "";
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, state.displayUnit, set.clientOpId);
     if (result.kind === "failed") {
       toast.error(result.message || "Failed to save set");
       return;
@@ -589,11 +591,12 @@ export function SessionWorkoutLog({
         const setIdx = entry.setNumber - 1;
         if (setIdx < 0 || setIdx >= st.sets.length) return prev;
         const newSets = [...st.sets];
+        const unit = st.displayUnit;
         newSets[setIdx] = {
           ...newSets[setIdx],
           status: synced.completed ? "done" : "skipped",
           reps: synced.reps != null ? String(synced.reps) : "",
-          weight: synced.weight_kg != null ? String(synced.weight_kg) : "",
+          weight: synced.weight_kg != null ? String(fromKg(synced.weight_kg, unit)) : "",
           duration: synced.duration_seconds != null ? String(synced.duration_seconds) : "",
           savedId: synced.id,
           isNewPb: synced.is_new_pb === true,
