@@ -121,13 +121,15 @@ export default function PersonalTrainingClient() {
               </div>
             </Reveal>
           </div>
-          <Reveal y={40} className="ds-split-img" style={{ aspectRatio: "3/2" }}>
-            <Image src="/images/consultation-programme-notes.jpg" alt="Esther and a client sitting facing each other at the same height in the private Worthing studio, Esther with the printed programme and a pen on her lap and the client on the bench with a 10 kg dumbbell in each hand." fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "42% 50%" }} />
-          </Reveal>
-          <details className="ef-desc">
-            <summary>Describe this image</summary>
-            <p>A one-to-one session, paused. The client sits on the bench holding a 10 kg dumbbell in each hand, the weights printed in large figures on the ends. Esther sits opposite him on a plyo box at the same height, the printed programme on her lap and a pen in her hand, talking it through at eye level rather than standing over him. The kettlebells are on their shelf behind them.</p>
-          </details>
+          <figure className="ef-figure">
+            <Reveal y={40} className="ds-split-img" style={{ aspectRatio: "3/2" }}>
+              <Image src="/images/consultation-programme-notes.jpg" alt="Esther and a client sitting facing each other at the same height in the private Worthing studio, Esther with the printed programme and a pen on her lap and the client on the bench with a 10 kg dumbbell in each hand." fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "42% 50%" }} />
+            </Reveal>
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>A one-to-one session, paused. The client sits on the bench holding a 10 kg dumbbell in each hand, the weights printed in large figures on the ends. Esther sits opposite him on a plyo box at the same height, the printed programme on her lap and a pen in her hand, talking it through at eye level rather than standing over him. The kettlebells are on their shelf behind them.</p>
+            </details>
+          </figure>
         </div>
       </Section>
 

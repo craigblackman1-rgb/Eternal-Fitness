@@ -65,7 +65,7 @@ export default function AboutPageClient() {
       {/* Story */}
       <Section background="white" id="story">
         <div className="ds-split">
-          <figure style={{ margin: 0, position: "relative" }}>
+          <figure className="ef-figure" style={{ position: "relative" }}>
             <Reveal y={40}>
               <div className="ds-split-img">
                 <Image src="/images/about-story-deadlift.jpg" alt="A client hinged over a loaded barbell in the private Worthing studio taking his grip, with Esther standing a step back so she can see the whole lift rather than leaning in." fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "54% 50%" }} />
@@ -105,15 +105,17 @@ export default function AboutPageClient() {
               intro={"Beyond standard personal training credentials, I hold advanced specialisms in Exercise Referral and Level 4 Cancer and Exercise Rehabilitation. In practice, this means your training never has to reset if your health changes. Whether you face fluctuating blood pressure, a new diagnosis, or recovery from medical treatment, I adapt your movements safely. You get to keep training with the personal trainer who already knows your body, without the stress of searching for someone new."}
             />
           </div>
-          <Reveal y={40}>
-            <div className="ds-split-img" style={{ aspectRatio: "4/3" }}>
-              <Image src="/images/about-quals-barbell-hands.jpg" alt="A client setting his grip on a bare barbell stood upright on its end, with Esther holding the same bar with both hands just below his so it stays still while he finds the position by feel." fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
-            </div>
-          </Reveal>
-          <details className="ef-desc">
-            <summary>Describe this image</summary>
-            <p>A close-in moment before a set. A bare barbell is stood upright on the floor on one end. The client has one hand around it at chest height; Esther holds the same bar with both hands just below his, keeping it completely still while he finds his grip. Both are looking down at the bar. Nothing is loaded on it yet.</p>
-          </details>
+          <figure className="ef-figure">
+            <Reveal y={40}>
+              <div className="ds-split-img" style={{ aspectRatio: "4/3" }}>
+                <Image src="/images/about-quals-barbell-hands.jpg" alt="A client setting his grip on a bare barbell stood upright on its end, with Esther holding the same bar with both hands just below his so it stays still while he finds the position by feel." fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
+              </div>
+            </Reveal>
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>A close-in moment before a set. A bare barbell is stood upright on the floor on one end. The client has one hand around it at chest height; Esther holds the same bar with both hands just below his, keeping it completely still while he finds his grip. Both are looking down at the bar. Nothing is loaded on it yet.</p>
+            </details>
+          </figure>
         </div>
 
         <div className="ds-qual-cards-row" style={{ marginTop: 48 }}>
@@ -129,15 +131,17 @@ export default function AboutPageClient() {
         </div>
 
         <div className="ds-exp ds-split" style={{ marginTop: 64 }}>
-          <Reveal y={40}>
-            <div className="ds-split-img" style={{ aspectRatio: "4/3" }}>
-              <Image src="/images/about-experience-coaching.png" alt="A client seated on the upright bench in the private Worthing studio pressing two dumbbells overhead, with Esther standing behind the bench and a hand under each of his elbows through the whole movement." fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 35%" }} />
-            </div>
-          </Reveal>
-          <details className="ef-desc">
-            <summary>Describe this image</summary>
-            <p>A one-to-one session at the bench, seen from behind. The client presses two dumbbells up from shoulder height, sitting back against the upright bench. Esther stands behind him with a hand under each elbow all the way up and all the way down, so he knows where the support is without having to look for it. The studio door and the window are ahead of them; the floor behind the bench is clear.</p>
-          </details>
+          <figure className="ef-figure">
+            <Reveal y={40}>
+              <div className="ds-split-img" style={{ aspectRatio: "4/3" }}>
+                <Image src="/images/about-experience-coaching.png" alt="A client seated on the upright bench in the private Worthing studio pressing two dumbbells overhead, with Esther standing behind the bench and a hand under each of his elbows through the whole movement." fill sizes="(max-width: 1000px) 100vw, 45vw" style={{ objectFit: "cover", objectPosition: "50% 35%" }} />
+              </div>
+            </Reveal>
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>A one-to-one session at the bench, seen from behind. The client presses two dumbbells up from shoulder height, sitting back against the upright bench. Esther stands behind him with a hand under each elbow all the way up and all the way down, so he knows where the support is without having to look for it. The studio door and the window are ahead of them; the floor behind the bench is clear.</p>
+            </details>
+          </figure>
           <div>
             <p className="ds-body" style={{ fontWeight: 600, color: "var(--color-ink)", marginBottom: 12 }}>{"A Wide Range of Experience"}</p>
             <p className="ds-body" style={{ marginBottom: 16 }}>{"My clients train with me for premium, one-to-one fitness, strength, and conditioning. Alongside everyday training, I design custom programmes for individuals managing chronic conditions, recovering from surgery, adjusting to physical changes, or living with a disability."}</p>

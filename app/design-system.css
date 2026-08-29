@@ -674,6 +674,11 @@ details.ef-desc summary:hover { background: var(--color-warm); }
 details.ef-desc[open] summary { border-bottom: 1px solid var(--color-border-warm); border-radius: 12px 12px 0 0; }
 details.ef-desc p { padding: 14px 16px 16px; font-size: 14px; line-height: 1.6; color: var(--color-body); }
 
+/* ── Figure wrapper for image + disclosure pairs
+    Wraps a contained image container and its ef-desc so the disclosure
+    inherits the image's grid slot and width. ── */
+.ef-figure { margin: 0; min-width: 0; display: flex; flex-direction: column; }
+
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
   .ds-sec { padding: 72px 28px; }

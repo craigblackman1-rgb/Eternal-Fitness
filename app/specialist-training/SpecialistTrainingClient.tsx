@@ -100,22 +100,24 @@ export default function SpecialistTrainingClient() {
         {/* THE APPROACH */}
         <Section background="white">
           <div className="ds-split">
-            <Reveal y={40} className="ds-split-img">
-              <Image
-                src="/images/studio-kneel-stretch.jpg"
-                alt="Esther and a client sitting on the studio mats in a wide seated stretch, both leaning onto one hand and laughing, with the studio&apos;s black curly-coated dog sitting on the mat against Esther&apos;s side."
-                fill
-                sizes="(max-width: 1000px) 100vw, 50vw"
-                style={{ objectFit: "cover" }}
-              />
-              <div className="ds-art-chip">
-                <MotionArcs accent="rose" />
-              </div>
-            </Reveal>
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>The end of a session on the mats. Esther and a client sit on the blue matting in a wide seated stretch, each leaning onto one hand, both laughing. The studio dog &mdash; large, black and curly-coated &mdash; has come and sat on the mat and is leaning against Esther. The resistance bands are racked on the wall and the floor beyond the mats is clear.</p>
-            </details>
+            <figure className="ef-figure">
+              <Reveal y={40} className="ds-split-img">
+                <Image
+                  src="/images/studio-kneel-stretch.jpg"
+                  alt="Esther and a client sitting on the studio mats in a wide seated stretch, both leaning onto one hand and laughing, with the studio&apos;s black curly-coated dog sitting on the mat against Esther&apos;s side."
+                  fill
+                  sizes="(max-width: 1000px) 100vw, 50vw"
+                  style={{ objectFit: "cover" }}
+                />
+                <div className="ds-art-chip">
+                  <MotionArcs accent="rose" />
+                </div>
+              </Reveal>
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>The end of a session on the mats. Esther and a client sit on the blue matting in a wide seated stretch, each leaning onto one hand, both laughing. The studio dog &mdash; large, black and curly-coated &mdash; has come and sat on the mat and is leaning against Esther. The resistance bands are racked on the wall and the floor beyond the mats is clear.</p>
+              </details>
+            </figure>
             <div>
               <SectionHeading
                 eyebrow={"The Approach"}

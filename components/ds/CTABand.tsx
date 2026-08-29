@@ -35,6 +35,7 @@ interface CTABandProps {
 export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow, imageDescription }: CTABandProps) {
   if (layout === "overlay") {
     return (
+    <>
       <section className="ds-cta">
         <div className="ds-cta-bg">
           <Image src={image} alt={imageAlt ?? ""} fill sizes="100vw" style={{ objectFit: "cover", objectPosition: imagePosition ?? "center" }} />
@@ -47,14 +48,15 @@ export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, he
             <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "white" }} />
             {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "ghost-white" }} />}
           </div>
-          {imageDescription && (
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>{imageDescription}</p>
-            </details>
-          )}
         </div>
       </section>
+      {imageDescription && (
+        <details className="ef-desc">
+          <summary>Describe this image</summary>
+          <p>{imageDescription}</p>
+        </details>
+      )}
+    </>
     );
   }
 
@@ -71,24 +73,26 @@ export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, he
             {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "ghost-white" }} />}
           </div>
         </div>
-        <div className="ds-cta-split-photo">
-          <Image
-            src={image}
-            alt={imageAlt ?? ""}
-            fill
-            sizes="(max-width: 760px) 100vw, 56vw"
-            style={{
-              objectFit: "cover",
-              ["--cta-pos" as string]: imagePosition ?? "center",
-            }}
-          />
-        </div>
-        {imageDescription && (
-          <details className="ef-desc">
-            <summary>Describe this image</summary>
-            <p>{imageDescription}</p>
-          </details>
-        )}
+        <figure className="ef-figure">
+          <div className="ds-cta-split-photo">
+            <Image
+              src={image}
+              alt={imageAlt ?? ""}
+              fill
+              sizes="(max-width: 760px) 100vw, 56vw"
+              style={{
+                objectFit: "cover",
+                ["--cta-pos" as string]: imagePosition ?? "center",
+              }}
+            />
+          </div>
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
+        </figure>
       </div>
     </section>
   );

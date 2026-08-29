@@ -74,6 +74,7 @@ export function PageHero({
 
   if (effectiveLayout === "overlay") {
     return (
+    <>
       <section className="ds-hero">
         <div
           className="ds-hero-bg"
@@ -120,14 +121,15 @@ export function PageHero({
             )}
           </div>
         </div>
-        {imageDescription && (
-          <details className="ef-desc">
-            <summary>Describe this image</summary>
-            <p>{imageDescription}</p>
-          </details>
-        )}
         {card && <div className="ds-hero-badge">{card}</div>}
       </section>
+      {imageDescription && (
+        <details className="ef-desc">
+          <summary>Describe this image</summary>
+          <p>{imageDescription}</p>
+        </details>
+      )}
+    </>
     );
   }
 
@@ -153,26 +155,28 @@ export function PageHero({
           )}
           {card && <div className="ds-hero-badge-inline">{card}</div>}
         </div>
-        <div className="ds-hero-split-photo">
-          <Image
-            src={image}
-            alt={imageAlt}
-            fill
-            priority
-            sizes="(max-width: 760px) 100vw, 56vw"
-            style={{
-              objectFit: "cover",
-              ["--hero-pos" as string]: imageObjectPosition,
-              ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
-            } as CSSProperties}
-          />
-        </div>
-        {imageDescription && (
-          <details className="ef-desc">
-            <summary>Describe this image</summary>
-            <p>{imageDescription}</p>
-          </details>
-        )}
+        <figure className="ef-figure">
+          <div className="ds-hero-split-photo">
+            <Image
+              src={image}
+              alt={imageAlt}
+              fill
+              priority
+              sizes="(max-width: 760px) 100vw, 56vw"
+              style={{
+                objectFit: "cover",
+                ["--hero-pos" as string]: imageObjectPosition,
+                ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
+              } as CSSProperties}
+            />
+          </div>
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
+        </figure>
       </div>
     </section>
   );
