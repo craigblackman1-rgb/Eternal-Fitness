@@ -112,7 +112,7 @@ export default function ContactPageClient() {
       <PageHero
         layout="split"
         image="/images/studio-kettlebell-shelf.jpg"
-        imageAlt="The kettlebell rack in the private Worthing studio"
+        imageAlt="The kettlebell shelves in the private Worthing studio: two steel tiers holding the bells in weight order, the lighter ones marked with coloured bands on the top shelf and the heavier ones printed with their weight below, with the aerobic steps stacked underneath and the floor in front clear."
         imageObjectPosition="50% 30%"
         imageObjectPositionWide="50% 38%"
         eyebrow={"Contact & Booking"}
@@ -131,6 +131,7 @@ export default function ContactPageClient() {
             </div>
           </div>
         }
+        imageDescription={"Two tiers of steel shelving against the studio&rsquo;s plywood wall. The kettlebells stand in a row in weight order &mdash; the lighter bells along the top shelf, each marked with a coloured band, the heavier ones on the shelf below with their weights printed in large figures on the side. Aerobic steps are stacked in the space under the bottom shelf, and the rubber floor in front of the shelves is clear."}
       />
 
       {/* Book Online + Direct Contact */}
@@ -368,7 +369,11 @@ export default function ContactPageClient() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <figure className="m-0">
             <div className="rounded-3xl overflow-hidden aspect-[4/3] relative">
-              <Image src="/images/mobility-hip-flexor-stretch.jpg" alt="Esther and a client working through a kneeling hip stretch on the mats in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+              <Image src="/images/mobility-hip-flexor-stretch.jpg" alt="Esther and a client side by side on the studio mats, both down in a half-kneeling lunge with a hand resting on the front thigh, Esther holding the same position alongside rather than watching from standing." fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>Two people on the blue mats, side by side, both in a half-kneeling lunge with the back knee down on the padding and a hand resting on the front thigh. Esther is in the same position as the client rather than standing over her, so the shape can be copied from alongside. Both are laughing. The foam rollers are racked on the wall behind them and the mats are clear.</p>
+              </details>
             </div>
             <figcaption className="ds-figcaption">Private studio, Worthing — one client at a time</figcaption>
           </figure>
@@ -405,7 +410,7 @@ export default function ContactPageClient() {
       <CTABand
         layout="split"
         image="/images/esther-headshot-smile.jpg"
-        imageAlt="Esther Fair smiling"
+        imageAlt="Esther standing against the plywood wall of the private Worthing studio with one hand on her hip, smiling straight at the camera, the kettlebells racked in weight order on the shelf beside her."
         imagePosition="center 30%"
         eyebrow={"Not Sure Where to Start?"}
         heading={"That is completely normal."}

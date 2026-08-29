@@ -13,6 +13,8 @@ interface CTABandProps {
   primaryCta: CTA;
   secondaryCta?: CTA;
   eyebrow?: string;
+  /** described-image disclosure copy — renders an ef-desc details element under the photo */
+  imageDescription?: string;
 }
 
 /**
@@ -30,12 +32,18 @@ interface CTABandProps {
  * `imagePosition` lets a page bias the crop toward wherever its subject actually
  * sits in the source photo.
  */
-export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow }: CTABandProps) {
+export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, heading, body, primaryCta, secondaryCta, eyebrow, imageDescription }: CTABandProps) {
   if (layout === "overlay") {
     return (
       <section className="ds-cta">
         <div className="ds-cta-bg">
           <Image src={image} alt={imageAlt ?? ""} fill sizes="100vw" style={{ objectFit: "cover", objectPosition: imagePosition ?? "center" }} />
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
         </div>
         <div className="ds-cta-inner">
           {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
@@ -74,6 +82,12 @@ export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, he
               ["--cta-pos" as string]: imagePosition ?? "center",
             }}
           />
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
         </div>
       </div>
     </section>

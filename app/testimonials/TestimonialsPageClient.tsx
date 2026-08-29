@@ -57,7 +57,7 @@ export default function TestimonialsPageClient() {
       <main id="main-content">
       <PageHero
         image="/images/consultation-programme-review.jpg"
-        imageAlt="Esther Fair reviewing a client's programme together in her private Worthing studio"
+        imageAlt="Esther standing in the private Worthing studio holding the session&#x2019;s written programme and a pen, laughing with a client who is mid-set at the power rack with a dumbbell up at her shoulder."
         imageObjectPosition="50% 30%"
         eyebrow="Client Stories"
         heading={<>In their <em>own words</em></>}
@@ -66,6 +66,7 @@ export default function TestimonialsPageClient() {
         belowLeadVariant="plain"
         primaryCta={bookCta}
         secondaryCta={{ label: "Read the reviews", href: "#reviews", variant: "outline" }}
+        imageDescription={"A one-to-one session in progress at the power rack. The client stands with a dumbbell up at her shoulder, part-way through a set. Esther stands a couple of paces away holding the session&rsquo;s programme on paper with a pen in her hand, laughing with her &mdash; the plan stays in the coach&rsquo;s hands and gets called out, rather than being something the client has to read between sets. The trap bar and a loaded barbell are on their wall hooks behind them."}
       />
 
       <FeaturedReviewedBand showPress={false} />
@@ -261,13 +262,14 @@ export default function TestimonialsPageClient() {
 
       <CTABand
         image="/images/consultation-warm-chat.jpg"
-        imageAlt="Esther Fair chatting warmly with clients during a session"
+        imageAlt="Esther standing talking with a client between exercises in the private Worthing studio, both of them laughing, in the open gap between the power rack on one side and the kettlebell shelves on the other."
         imagePosition="center 30%"
         eyebrow="Free Consultation"
         heading="The first conversation is free, with no commitment."
         body="I work with a small number of clients at a time — so every person gets my full attention."
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
+        imageDescription={"A pause in a one-to-one session. Esther and a client stand facing each other in the open middle of the studio floor, both laughing, in the gap between the power rack on one side and the kettlebell shelves on the other. Nothing is being lifted. A barbell is down on the floor at the edge of the frame, off to one side of where they are standing."}
       />
 
       </main>

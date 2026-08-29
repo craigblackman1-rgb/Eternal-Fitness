@@ -89,7 +89,7 @@ export default function PricingPageClient() {
       <PageHero
         layout="split"
         image="/images/pricing-hero-coaching.jpg"
-        imageAlt="Esther coaching a client through a split squat with a barbell in the private Worthing studio"
+        imageAlt="A client half-kneeling on a padded mat in the private Worthing studio holding a barbell anchored at one end into the rack, while Esther stands two paces in front with a flat hand held out at chest height as a target to work to."
         imagePan="122%"
         imageObjectPosition="50% 40%"
         imageObjectPositionWide="50% 32%"
@@ -98,6 +98,7 @@ export default function PricingPageClient() {
         subhead={"One-to-one training, in blocks of 12 or 24 sessions — in the studio or online. I start with a free consultation, so you only book what you actually need."}
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL, arrow: true }}
         secondaryCta={{ label: "See Pricing", href: "#pricing" }}
+        imageDescription={"A one-to-one session in the middle of the studio. The client kneels on one knee on a padded mat, holding the free end of a barbell whose other end is anchored into the rack behind her. Esther stands two paces in front holding one hand out flat at chest height as a height to work to, and is not touching the client at any point. The whiteboard, the kettlebell shelves and the mirror run along the wall behind them."}
       />
 
       {/* What You're Investing In (3-item benefit grid) */}
@@ -235,13 +236,14 @@ export default function PricingPageClient() {
       <CTABand
         layout="split"
         image="/images/pricing-studio.jpg"
-        imageAlt="Esther coaching a client through a walking barbell lunge in the private Worthing studio"
+        imageAlt="A client walking a lunge across the open floor of the private Worthing studio with his hands on his thighs and no weight, and Esther stepping the same lunge alongside him half a pace behind."
         imagePosition="center 35%"
         eyebrow={"Free Consultation"}
         heading={"The first conversation is free, with no commitment."}
-        body={"I work with a small number of clients at a time — so every person gets my full attention."}
+        body={"I work with a small number of clients at a time \u2014 so every person gets my full attention."}
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
+        imageDescription={"A one-to-one session on the open floor. The client steps forward into a lunge with his hands resting on his thighs and nothing in them. Esther walks the same lunge alongside him, half a pace behind, matching the step rather than calling it from across the room. A barbell lies on the floor behind them, well out of the line they are walking."}
       />
       </main>
       <Footer />

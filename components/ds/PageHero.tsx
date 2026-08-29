@@ -33,6 +33,8 @@ interface PageHeroProps {
   belowLeadVariant?: "quote" | "plain";
   /** @deprecated use `badge` — kept for not-yet-migrated callers */
   mediaOverlay?: ReactNode;
+  /** described-image disclosure copy — renders an ef-desc details element under the photo */
+  imageDescription?: string;
 }
 
 /**
@@ -62,6 +64,7 @@ export function PageHero({
   belowLead,
   belowLeadVariant = "quote",
   mediaOverlay,
+  imageDescription,
 }: PageHeroProps) {
   // variant="split" in the old API was the two-column layout, but it was retired
   // before this component was rewritten — it now means "use the overlay". Only
@@ -97,6 +100,12 @@ export function PageHero({
               ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
             } as CSSProperties}
           />
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
         </div>
         <div className="ds-hero-inner">
           <div className="ds-hero-content">
@@ -157,6 +166,12 @@ export function PageHero({
               ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
             } as CSSProperties}
           />
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
         </div>
       </div>
     </section>
