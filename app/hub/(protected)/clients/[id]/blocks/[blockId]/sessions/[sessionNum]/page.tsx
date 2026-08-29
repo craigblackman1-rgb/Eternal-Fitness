@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import type { DBSession, SessionLog, SessionVersion, SetLog } from "@/types";
+import type { DBSession, SessionLog, SessionVersion, SetLog, Exercise } from "@/types";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
 import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";
@@ -22,6 +22,7 @@ import {
   localPartsToISO,
   todayLocalISODate,
 } from "@/lib/schedule-dates";
+import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 
 // Minimal shape of the client record this header needs — the GET /api/clients/[id]
 // response returns the full client, but only these fields feed the subtitle line.
@@ -65,6 +66,25 @@ export default function SessionViewPage({
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [scheduling, setScheduling] = useState(false);
+  // Equipment backfill: fetch the exercise library once and derive equipment
+  // for prescriptions that arrive with empty equipment arrays (e.g. from
+  // stripEquipment on home-version creation, or AI plan generation).
+  const [equipmentByName, setEquipmentByName] = useState<Map<string, string[]>>(new Map());
+
+  useEffect(() => {
+    fetch("/api/exercises")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const library = (await res.json()) as ExerciseEntry[];
+        const map = new Map<string, string[]>();
+        for (const entry of library) {
+          const key = entry.name.toLowerCase();
+          if (entry.equipment && entry.equipment.length > 0 && !map.has(key)) map.set(key, entry.equipment);
+        }
+        setEquipmentByName(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const sessionNum = parseInt(params.sessionNum);
 
@@ -186,6 +206,33 @@ export default function SessionViewPage({
       ),
     [session?.data?.versions, activeTab],
   );
+
+  // Backfill equipment from the exercise library into the session data so
+  // SessionWorkoutLog sees correct equipment for band detection / unit defaults.
+  const backfilledSession = useMemo(() => {
+    if (!session || equipmentByName.size === 0) return session;
+    const fill = (exercises: Exercise[]): Exercise[] =>
+      exercises.map((ex) => {
+        if (ex.equipment && ex.equipment.length > 0) return ex;
+        const name = (ex.exercise_name ?? "").toLowerCase();
+        const libEquip = equipmentByName.get(name);
+        return libEquip ? { ...ex, equipment: libEquip } : ex;
+      });
+    const versions = session.data?.versions;
+    if (!versions) return session;
+    const fillVersion = (v: SessionVersion | undefined): SessionVersion | undefined =>
+      v ? { warm_up: fill(v.warm_up), main_block: fill(v.main_block), cooldown: fill(v.cooldown) } : v;
+    return {
+      ...session,
+      data: {
+        ...session.data,
+        versions: {
+          studio: fillVersion(versions.studio),
+          home: fillVersion(versions.home),
+        },
+      },
+    };
+  }, [session, equipmentByName]);
 
   const handleReopen = async () => {
     if (!session) return;
@@ -531,7 +578,7 @@ export default function SessionViewPage({
             sessionId={session.id}
             sessionNumber={sessionNum}
             version={activeTab}
-            data={session.data}
+            data={backfilledSession?.data ?? null}
             sessionLog={currentLog ?? null}
             setLogs={setLogsArray}
             bestWeights={bestWeights}

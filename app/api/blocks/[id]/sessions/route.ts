@@ -109,8 +109,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     const templateData = template.data as { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
     const asExercises = (arr: unknown[] | undefined): Exercise[] => (arr ?? []) as Exercise[];
-    const stripEquipment = (exercises: unknown[]): Exercise[] =>
-      (exercises as Record<string, unknown>[]).map((ex) => ({ ...ex, equipment: [] }) as Exercise);
 
     sessionData = {
       session_id: crypto.randomUUID(),
@@ -129,9 +127,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
           cooldown: asExercises(templateData.cooldown),
         },
         home: {
-          warm_up: stripEquipment(templateData.warm_up ?? []),
-          main_block: stripEquipment(templateData.main_block ?? []),
-          cooldown: stripEquipment(templateData.cooldown ?? []),
+          warm_up: asExercises(templateData.warm_up ?? []),
+          main_block: asExercises(templateData.main_block ?? []),
+          cooldown: asExercises(templateData.cooldown ?? []),
         },
       },
       coaching_notes: `Added from template "${template.name}".`,
