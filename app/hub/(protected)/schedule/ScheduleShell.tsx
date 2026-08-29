@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { ScheduleCalendar, type ScheduledEntry } from "./ScheduleCalendar";
+import { ScheduleCalendar, type ScheduledEntry, type UnconfirmedBooking } from "./ScheduleCalendar";
 import { MonthCalendar } from "./MonthCalendar";
 
 type View = "month" | "day";
 
-export function ScheduleShell({ entries }: { entries: ScheduledEntry[] }) {
+export function ScheduleShell({
+  entries,
+  unconfirmedBookings,
+}: {
+  entries: ScheduledEntry[];
+  unconfirmedBookings?: UnconfirmedBooking[];
+}) {
   const [view, setView] = useState<View>("month");
   const [jumpDay, setJumpDay] = useState<string | undefined>(undefined);
 
@@ -36,7 +42,7 @@ export function ScheduleShell({ entries }: { entries: ScheduledEntry[] }) {
       {view === "month" ? (
         <MonthCalendar entries={entries} onJumpToDay={jumpToDay} />
       ) : (
-        <ScheduleCalendar key={jumpDay ?? "today"} entries={entries} initialDay={jumpDay} />
+        <ScheduleCalendar key={jumpDay ?? "today"} entries={entries} initialDay={jumpDay} unconfirmedBookings={unconfirmedBookings} />
       )}
     </div>
   );

@@ -1,3 +1,10 @@
+> **FROZEN 2026-08-29 -- source of truth is now the hub database.**
+> This register was migrated to the hub `change_requests` table (spec-cr-database-phase1-2026-08-27;
+> migration run 2026-08-27/28, numbering preserved, `cr_counters` continues the sequence).
+> Do NOT add or edit rows here. Raise CRs with `wo cr new <project-slug> --title "..."`;
+> view/manage them on the hub ops board (hub.decodedops.co.uk). Historical read view only.
+> (Frozen under wo-hub-first-autonomy-2026-08-29, unit A1.)
+
 # Change Requests — Eternal Fitness Website
 
 Per-project CR register (DO-SDLC Pipeline v1 / SOP-008). Git-tracked for the
