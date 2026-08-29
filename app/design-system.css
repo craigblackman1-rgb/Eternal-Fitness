@@ -678,6 +678,7 @@ details.ef-desc p { padding: 14px 16px 16px; font-size: 14px; line-height: 1.6; 
     Wraps a contained image container and its ef-desc so the disclosure
     inherits the image's grid slot and width. ── */
 .ef-figure { margin: 0; min-width: 0; display: flex; flex-direction: column; }
+.ef-figure > :first-child { flex: 1 1 auto; min-height: 0; }
 
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
