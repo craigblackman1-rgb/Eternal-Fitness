@@ -38,7 +38,7 @@ interface SetState {
 type SaveSetLogResult =
   | { kind: "saved"; log: SetLog & { is_new_pb?: boolean } }
   | { kind: "queued"; clientOpId: string }
-  | { kind: "failed" };
+  | { kind: "failed"; message?: string | null };
 
 interface ExState {
   uid: string;
@@ -267,7 +267,15 @@ export function TrainScreen({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: { ...d, session_log: updatedLog } }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+            console.error("Failed to write started_at:", msg);
+          });
+        }
+      })
+      .catch(() => {});
   }, [sessionId]);
 
   // ── Debounced exercise notes save (bug fix #1) ─────────────────
@@ -281,7 +289,15 @@ export function TrainScreen({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: { ...d, exercise_notes: notes } }),
-        }).catch(() => {});
+        })
+          .then((res) => {
+            if (!res.ok) {
+              res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+                toast.error(msg || "Couldn't save exercise note");
+              });
+            }
+          })
+          .catch(() => {});
       }, 800);
     },
     [sessionId],
@@ -301,9 +317,17 @@ export function TrainScreen({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: d }),
-    }).catch(() => {
-      toast.error("Failed to save — this change may not survive a reload.");
-    });
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+            toast.error(msg || "Failed to save — this change may not survive a reload.");
+          });
+        }
+      })
+      .catch(() => {
+        toast.error("Failed to save — this change may not survive a reload.");
+      });
   }, [sessionId]);
 
   // ── Rest alert audio (CR-EF-019) ────────────────────────────────
@@ -459,7 +483,8 @@ export function TrainScreen({
     if (!res.ok) {
       // The request DID reach the server and was rejected — a real server failure,
       // not an offline scenario. Never queue these.
-      return { kind: "failed" };
+      const message = await res.json().then((b) => b?.error).catch(() => null);
+      return { kind: "failed", message };
     }
 
     const saved: SetLog & { is_new_pb?: boolean } = await res.json();
@@ -499,7 +524,7 @@ export function TrainScreen({
 
     const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -554,7 +579,7 @@ export function TrainScreen({
 
     const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -808,7 +833,8 @@ export function TrainScreen({
     });
     setCompleting(false);
     if (!res.ok) {
-      toast.error("Failed to mark session complete");
+      const msg = await res.json().then((b) => b?.error).catch(() => null);
+      toast.error(msg || "Failed to mark session complete");
       return;
     }
     // CR-EF-030: sync the in-memory refs to the now-completed state so a later

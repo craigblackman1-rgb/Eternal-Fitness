@@ -60,7 +60,7 @@ interface RestTimer {
 type SaveSetLogResult =
   | { kind: "saved"; log: SetLog & { is_new_pb?: boolean } }
   | { kind: "queued"; clientOpId: string }
-  | { kind: "failed" };
+  | { kind: "failed"; message?: string | null };
 
 function exerciseRefKey(version: string, section: SectionKey, index: number, name: string): string {
   return `${version}:${section}:${index}:${name}`;
@@ -367,7 +367,8 @@ export function SessionWorkoutLog({
     }
 
     if (!res.ok) {
-      return { kind: "failed" };
+      const message = await res.json().then((b) => b?.error).catch(() => null);
+      return { kind: "failed", message };
     }
 
     const saved: SetLog & { is_new_pb?: boolean } = await res.json();
@@ -403,7 +404,7 @@ export function SessionWorkoutLog({
 
     const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -452,7 +453,7 @@ export function SessionWorkoutLog({
 
     const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -695,7 +696,8 @@ export function SessionWorkoutLog({
     });
     setCompleting(false);
     if (!res.ok) {
-      toast.error("Failed to mark session complete");
+      const msg = await res.json().then((b) => b?.error).catch(() => null);
+      toast.error(msg || "Failed to mark session complete");
       return;
     }
     setShowComplete(false);
