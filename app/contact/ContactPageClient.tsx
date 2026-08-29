@@ -131,7 +131,7 @@ export default function ContactPageClient() {
             </div>
           </div>
         }
-        imageDescription={"Two tiers of steel shelving against the studio&rsquo;s plywood wall. The kettlebells stand in a row in weight order &mdash; the lighter bells along the top shelf, each marked with a coloured band, the heavier ones on the shelf below with their weights printed in large figures on the side. Aerobic steps are stacked in the space under the bottom shelf, and the rubber floor in front of the shelves is clear."}
+        imageDescription={"Two tiers of steel shelving against the studio\u2019s plywood wall. The kettlebells stand in a row in weight order \u2014 the lighter bells along the top shelf, each marked with a coloured band, the heavier ones on the shelf below with their weights printed in large figures on the side. Aerobic steps are stacked in the space under the bottom shelf, and the rubber floor in front of the shelves is clear."}
       />
 
       {/* Book Online + Direct Contact */}
@@ -370,11 +370,11 @@ export default function ContactPageClient() {
           <figure className="m-0">
             <div className="rounded-3xl overflow-hidden aspect-[4/3] relative">
               <Image src="/images/mobility-hip-flexor-stretch.jpg" alt="Esther and a client side by side on the studio mats, both down in a half-kneeling lunge with a hand resting on the front thigh, Esther holding the same position alongside rather than watching from standing." fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-              <details className="ef-desc">
-                <summary>Describe this image</summary>
-                <p>Two people on the blue mats, side by side, both in a half-kneeling lunge with the back knee down on the padding and a hand resting on the front thigh. Esther is in the same position as the client rather than standing over her, so the shape can be copied from alongside. Both are laughing. The foam rollers are racked on the wall behind them and the mats are clear.</p>
-              </details>
             </div>
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>Two people on the blue mats, side by side, both in a half-kneeling lunge with the back knee down on the padding and a hand resting on the front thigh. Esther is in the same position as the client rather than standing over her, so the shape can be copied from alongside. Both are laughing. The foam rollers are racked on the wall behind them and the mats are clear.</p>
+            </details>
             <figcaption className="ds-figcaption">Private studio, Worthing — one client at a time</figcaption>
           </figure>
           <div>

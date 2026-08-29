@@ -66,7 +66,7 @@ export default function TestimonialsPageClient() {
         belowLeadVariant="plain"
         primaryCta={bookCta}
         secondaryCta={{ label: "Read the reviews", href: "#reviews", variant: "outline" }}
-        imageDescription={"A one-to-one session in progress at the power rack. The client stands with a dumbbell up at her shoulder, part-way through a set. Esther stands a couple of paces away holding the session&rsquo;s programme on paper with a pen in her hand, laughing with her &mdash; the plan stays in the coach&rsquo;s hands and gets called out, rather than being something the client has to read between sets. The trap bar and a loaded barbell are on their wall hooks behind them."}
+        imageDescription={"A one-to-one session in progress at the power rack. The client stands with a dumbbell up at her shoulder, part-way through a set. Esther stands a couple of paces away holding the session\u2019s programme on paper with a pen in her hand, laughing with her \u2014 the plan stays in the coach\u2019s hands and gets called out, rather than being something the client has to read between sets. The trap bar and a loaded barbell are on their wall hooks behind them."}
       />
 
       <FeaturedReviewedBand showPress={false} />

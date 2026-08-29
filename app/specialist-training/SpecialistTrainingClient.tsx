@@ -108,14 +108,14 @@ export default function SpecialistTrainingClient() {
                 sizes="(max-width: 1000px) 100vw, 50vw"
                 style={{ objectFit: "cover" }}
               />
-              <details className="ef-desc">
-                <summary>Describe this image</summary>
-                <p>The end of a session on the mats. Esther and a client sit on the blue matting in a wide seated stretch, each leaning onto one hand, both laughing. The studio dog &mdash; large, black and curly-coated &mdash; has come and sat on the mat and is leaning against Esther. The resistance bands are racked on the wall and the floor beyond the mats is clear.</p>
-              </details>
               <div className="ds-art-chip">
                 <MotionArcs accent="rose" />
               </div>
             </Reveal>
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>The end of a session on the mats. Esther and a client sit on the blue matting in a wide seated stretch, each leaning onto one hand, both laughing. The studio dog &mdash; large, black and curly-coated &mdash; has come and sat on the mat and is leaning against Esther. The resistance bands are racked on the wall and the floor beyond the mats is clear.</p>
+            </details>
             <div>
               <SectionHeading
                 eyebrow={"The Approach"}

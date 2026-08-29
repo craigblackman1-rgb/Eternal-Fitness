@@ -100,12 +100,6 @@ export function PageHero({
               ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
             } as CSSProperties}
           />
-          {imageDescription && (
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>{imageDescription}</p>
-            </details>
-          )}
         </div>
         <div className="ds-hero-inner">
           <div className="ds-hero-content">
@@ -126,6 +120,12 @@ export function PageHero({
             )}
           </div>
         </div>
+        {imageDescription && (
+          <details className="ef-desc">
+            <summary>Describe this image</summary>
+            <p>{imageDescription}</p>
+          </details>
+        )}
         {card && <div className="ds-hero-badge">{card}</div>}
       </section>
     );
@@ -166,13 +166,13 @@ export function PageHero({
               ["--hero-pos-wide" as string]: imageObjectPositionWide ?? imageObjectPosition,
             } as CSSProperties}
           />
-          {imageDescription && (
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>{imageDescription}</p>
-            </details>
-          )}
         </div>
+        {imageDescription && (
+          <details className="ef-desc">
+            <summary>Describe this image</summary>
+            <p>{imageDescription}</p>
+          </details>
+        )}
       </div>
     </section>
   );

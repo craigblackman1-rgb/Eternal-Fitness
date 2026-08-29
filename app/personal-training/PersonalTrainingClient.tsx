@@ -92,7 +92,7 @@ export default function PersonalTrainingClient() {
         belowLeadVariant="plain"
         primaryCta={bookCta}
         secondaryCta={{ label: "What Sessions Involve", href: "#what", variant: "ghost-white" }}
-        imageDescription={"A one-to-one session at the bench. The client lies back on the adjustable bench and presses a single selector dumbbell; her other hand is open and free above her. Esther has crouched right down beside the bench so that she is at the client&rsquo;s eye level rather than standing over her, one hand on her own knee and neither hand on the client. The kettlebell shelves, a water bottle and a phone are on the wall shelf behind them."}
+        imageDescription={"A one-to-one session at the bench. The client lies back on the adjustable bench and presses a single selector dumbbell; her other hand is open and free above her. Esther has crouched right down beside the bench so that she is at the client\u2019s eye level rather than standing over her, one hand on her own knee and neither hand on the client. The kettlebell shelves, a water bottle and a phone are on the wall shelf behind them."}
       />
 
       {/* What to Expect */}
@@ -123,11 +123,11 @@ export default function PersonalTrainingClient() {
           </div>
           <Reveal y={40} className="ds-split-img" style={{ aspectRatio: "3/2" }}>
             <Image src="/images/consultation-programme-notes.jpg" alt="Esther and a client sitting facing each other at the same height in the private Worthing studio, Esther with the printed programme and a pen on her lap and the client on the bench with a 10 kg dumbbell in each hand." fill sizes="(max-width: 1000px) 100vw, 50vw" style={{ objectFit: "cover", objectPosition: "42% 50%" }} />
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>A one-to-one session, paused. The client sits on the bench holding a 10 kg dumbbell in each hand, the weights printed in large figures on the ends. Esther sits opposite him on a plyo box at the same height, the printed programme on her lap and a pen in her hand, talking it through at eye level rather than standing over him. The kettlebells are on their shelf behind them.</p>
-            </details>
           </Reveal>
+          <details className="ef-desc">
+            <summary>Describe this image</summary>
+            <p>A one-to-one session, paused. The client sits on the bench holding a 10 kg dumbbell in each hand, the weights printed in large figures on the ends. Esther sits opposite him on a plyo box at the same height, the printed programme on her lap and a pen in her hand, talking it through at eye level rather than standing over him. The kettlebells are on their shelf behind them.</p>
+          </details>
         </div>
       </Section>
 
@@ -233,7 +233,7 @@ export default function PersonalTrainingClient() {
         body={"I work with a small number of clients at a time \u2014 so every person gets my full attention."}
         primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
         secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
-        imageDescription={"A corner of the studio with nothing in use. Four slam balls sit on a wall-mounted rack in a vertical stack, one above another, heaviest at the bottom and marked 15 KG. The battle rope is coiled on the floor at the foot of the rack &mdash; the one thing in this corner that is down at floor level. Behind it the weight plates are on the rack&rsquo;s own pegs and the bench is pushed in under the frame."}
+        imageDescription={"A corner of the studio with nothing in use. Four slam balls sit on a wall-mounted rack in a vertical stack, one above another, heaviest at the bottom and marked 15 KG. The battle rope is coiled on the floor at the foot of the rack \u2014 the one thing in this corner that is down at floor level. Behind it the weight plates are on the rack\u2019s own pegs and the bench is pushed in under the frame."}
       />
       </main>
       <Footer />

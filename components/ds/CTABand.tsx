@@ -38,12 +38,6 @@ export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, he
       <section className="ds-cta">
         <div className="ds-cta-bg">
           <Image src={image} alt={imageAlt ?? ""} fill sizes="100vw" style={{ objectFit: "cover", objectPosition: imagePosition ?? "center" }} />
-          {imageDescription && (
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>{imageDescription}</p>
-            </details>
-          )}
         </div>
         <div className="ds-cta-inner">
           {eyebrow && <p className="ds-eyebrow ds-eyebrow-white">{eyebrow}</p>}
@@ -53,6 +47,12 @@ export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, he
             <CtaButton cta={{ ...primaryCta, variant: primaryCta.variant ?? "white" }} />
             {secondaryCta && <CtaButton cta={{ ...secondaryCta, variant: secondaryCta.variant ?? "ghost-white" }} />}
           </div>
+          {imageDescription && (
+            <details className="ef-desc">
+              <summary>Describe this image</summary>
+              <p>{imageDescription}</p>
+            </details>
+          )}
         </div>
       </section>
     );
@@ -82,13 +82,13 @@ export function CTABand({ layout = "overlay", image, imageAlt, imagePosition, he
               ["--cta-pos" as string]: imagePosition ?? "center",
             }}
           />
-          {imageDescription && (
-            <details className="ef-desc">
-              <summary>Describe this image</summary>
-              <p>{imageDescription}</p>
-            </details>
-          )}
         </div>
+        {imageDescription && (
+          <details className="ef-desc">
+            <summary>Describe this image</summary>
+            <p>{imageDescription}</p>
+          </details>
+        )}
       </div>
     </section>
   );
