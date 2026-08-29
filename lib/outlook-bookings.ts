@@ -149,6 +149,19 @@ export async function materializeBookingSession(
   blockId: string,
   clientName: string,
 ): Promise<{ sessionId: string }> {
+  // BUG-EF-102 defense-in-depth — if this event is already tracked in
+  // session_calendar_events (i.e. the app created it via calendar-sync),
+  // do not materialize a duplicate session. The primary guard is in
+  // syncOutlookBookings, but the manual confirm path shares this function.
+  const { data: existingMapping } = await db
+    .from("session_calendar_events")
+    .select("session_id")
+    .eq("event_id", booking.event_id)
+    .maybeSingle();
+  if (existingMapping) {
+    return { sessionId: (existingMapping as { session_id: string }).session_id };
+  }
+
   const { data: allSessions, error: existingErr } = await db
     .from("sessions")
     .select("id, session_number, scheduled_at, status")
@@ -302,7 +315,21 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
   if (blocksErr) throw new Error(`blocks read failed: ${blocksErr.message}`);
   const blockRows = (blocks ?? []) as BlockRow[];
 
+  // BUG-EF-102 — exclude events the app itself created via calendar-sync.
+  // session_calendar_events records every Outlook event the app pushes;
+  // re-ingesting those turns them into "new bookings" that duplicate
+  // existing sessions.
+  const { data: managedMappings } = await db
+    .from("session_calendar_events")
+    .select("event_id");
+  const managedEventIds = new Set((managedMappings ?? []).map((m: { event_id: string }) => m.event_id));
+
   for (const ev of bookingEvents) {
+    // BUG-EF-102 defense — skip any event already tracked by the app's
+    // own calendar sync. This is the primary guard against the ingest
+    // feedback loop that created duplicate sessions (live incident
+    // 2026-08-29: 5 dupes for Nathan Wadey, 4 for Monique Weardon).
+    if (managedEventIds.has(ev.id)) continue;
     // Blank-subject entries are non-working-hours blocks (Craig, 2026-08-25)
     // — not a client session, not worth showing at all. Never create one, and
     // drop any row from before this filter existed.

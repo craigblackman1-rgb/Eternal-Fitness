@@ -3,6 +3,7 @@ import { createHash, timingSafeEqual } from "crypto";
 import { syncCalendar } from "@/lib/calendar-sync";
 import { syncOutlookBookings } from "@/lib/outlook-bookings";
 import { GraphReconnectError } from "@/lib/graph-client";
+import { getPool } from "@/lib/pg-client";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,58 @@ function secretsMatch(provided: string, secret: string): boolean {
   const a = createHash("sha256").update(provided).digest();
   const b = createHash("sha256").update(secret).digest();
   return timingSafeEqual(a, b);
+}
+
+/**
+ * Auto-lapse passed bookings — sessions with status='scheduled' that are
+ * more than 1 day past their scheduled_at, have no completed_at, and no
+ * completed set_logs. These sit "scheduled" forever otherwise (13 found on
+ * prod 2026-08-29). No new status value — flips to 'cancelled' with a
+ * descriptive cancel_reason.
+ */
+async function autoLapsePassedBookings(): Promise<{ lapsed: number }> {
+  const pool = getPool();
+
+  const { rows: stale } = await pool.query(
+    `SELECT s.id
+     FROM sessions s
+     WHERE s.status = 'scheduled'
+       AND s.scheduled_at < now() - interval '1 day'
+       AND s.completed_at IS NULL
+       AND NOT EXISTS (
+         SELECT 1 FROM set_logs sl
+         WHERE sl.session_id = s.id
+       )`,
+  );
+
+  if (stale.length === 0) return { lapsed: 0 };
+
+  const ids = stale.map((r: { id: string }) => r.id);
+  const now = new Date().toISOString();
+  const reason = "Lapsed — booked slot passed with no session logged";
+
+  await pool.query(
+    `UPDATE sessions
+     SET status = 'cancelled',
+         cancelled_at = $1,
+         cancel_reason = $2
+     WHERE id = ANY($3)`,
+    [now, reason, ids],
+  );
+
+  // Mark corresponding outlook_booking_events as resolved — clear the
+  // session link so the booking returns to the manual triage queue if the
+  // event reappears on the calendar.
+  await pool.query(
+    `UPDATE outlook_booking_events
+     SET session_id = NULL,
+         resolved_at = $1,
+         updated_at = $1
+     WHERE session_id = ANY($2)`,
+    [now, ids],
+  );
+
+  return { lapsed: stale.length };
 }
 
 /**
@@ -48,7 +101,16 @@ async function handle(request: Request) {
       }
     }
 
-    return NextResponse.json({ ...result, outlookBookings });
+    // Auto-lapse stale bookings — sessions that are past their slot with no
+    // logged session. Runs after both syncs so it never races with ingest.
+    let autoLapse: { lapsed: number } = { lapsed: 0 };
+    try {
+      autoLapse = await autoLapsePassedBookings();
+    } catch (lapseErr) {
+      console.error("Auto-lapse passed bookings failed:", lapseErr);
+    }
+
+    return NextResponse.json({ ...result, outlookBookings, autoLapse });
   } catch (err) {
     if (err instanceof GraphReconnectError) {
       // Not an outage — the connection needs Esther to reconnect. Surface as a
