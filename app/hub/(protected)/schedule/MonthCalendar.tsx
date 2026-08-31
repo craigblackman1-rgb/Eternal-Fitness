@@ -202,8 +202,9 @@ export function MonthCalendar({
                 key={iso}
                 type="button"
                 onClick={() => onJumpToDay(iso)}
+                style={{ borderRadius: "var(--r-nested)" }}
                 className={cn(
-                  "flex min-h-[112px] flex-col rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2 text-left shadow-sm transition-colors hover:border-rose/40",
+                  "flex min-h-[112px] flex-col border border-[var(--hub-border)] bg-[var(--hub-card)] p-2 text-left shadow-sm transition-colors hover:border-rose/40",
                   !inMonth && "bg-[var(--hub-hover)]",
                 )}
               >

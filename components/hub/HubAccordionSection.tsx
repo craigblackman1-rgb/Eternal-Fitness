@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { HubCard } from "./HubCard";
+import { HubAccordion, HubAccordionItem } from "./HubAccordion";
 
 interface HubAccordionSectionProps {
   icon?: React.ReactNode;
@@ -31,10 +30,13 @@ const badgeColors: Record<string, { bg: string; text: string }> = {
 };
 
 /**
- * The one hub-wide accordion — a HubCard-wrapped, collapsible information
+ * The one hub-wide accordion — a card-wrapped, collapsible information
  * section with an icon+title+subtitle header and an optional "View all"
  * footer. Closed by default; the caller decides per-section which one
  * (usually just the first) starts open via `defaultOpen`.
+ *
+ * Now built on the canonical HubAccordion/HubAccordionItem primitives
+ * (CR-EF-039 §1) — <details>/<summary> for no-JS, keyboard, and print.
  */
 export function HubAccordionSection({
   icon,
@@ -47,48 +49,40 @@ export function HubAccordionSection({
   viewAllHref,
   viewAllLabel = "View all",
 }: HubAccordionSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
   const c = badgeColors[color];
 
-  return (
-    <HubCard padded={false} className={className}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className={cn(
-          "w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-[var(--hub-hover)]",
-          open && "border-b border-[var(--hub-border)]",
-        )}
-      >
-        {icon && (
-          <div className={cn("w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0", c.bg, c.text)}>
-            {icon}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[13px] font-semibold text-foreground leading-tight">{title}</h3>
-          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+  const summary = (
+    <>
+      {icon && (
+        <div className={cn("w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0", c.bg, c.text)}>
+          {icon}
         </div>
-        <svg
-          className={cn("w-4 h-4 text-muted-foreground transition-transform shrink-0", open && "rotate-180")}
-          viewBox="0 0 16 16"
-          fill="none"
-        >
-          <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <>
-          {children}
-          {viewAllHref && (
-            <div className="flex justify-end px-5 py-2.5 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
-              <Link href={viewAllHref} className="text-xs font-semibold text-rose hover:underline">
-                {viewAllLabel} →
-              </Link>
-            </div>
-          )}
-        </>
       )}
-    </HubCard>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-[13px] font-semibold text-foreground leading-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
+    </>
+  );
+
+  const panel = (
+    <>
+      {children}
+      {viewAllHref && (
+        <div className="flex justify-end px-5 py-2.5 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
+          <Link href={viewAllHref} className="text-xs font-semibold text-rose hover:underline">
+            {viewAllLabel} →
+          </Link>
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <HubAccordion className={className}>
+      <HubAccordionItem defaultOpen={defaultOpen} panel={panel}>
+        {summary}
+      </HubAccordionItem>
+    </HubAccordion>
   );
 }

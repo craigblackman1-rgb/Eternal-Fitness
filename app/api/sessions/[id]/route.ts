@@ -4,12 +4,13 @@ import { ensureUids } from "@/lib/exercise-ref";
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
 import { getSessionStatus } from "@/lib/session-transitions";
+import { londonDayKey } from "@/lib/schedule-dates";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
 // three scheduling fields are Lane D1 additions. Anything else in the body is
 // ignored so this route can't be used to touch columns it shouldn't.
-const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason"] as const;
+const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason", "charged_free"] as const;
 
 // Single-session read (CR-EF-079 L5 — the mobile "add workout from this
 // client's block" preview needs one session's full data by id; nothing else
@@ -71,10 +72,69 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const incomingData = update.data as { session_log?: { completed_at?: string | null } } | undefined;
   const completingNow = typeof incomingData?.session_log?.completed_at === "string";
   const cancellingNow = "cancelled_at" in update && update.cancelled_at != null;
+
+  // CR-EF-037 off-day modes:
+  //   off_day_mode = "today" → move scheduled_at to today, complete now (nothing flagged)
+  //   off_day_mode = "booked" → keep scheduled_at, back-date completed_at (off-day flag)
+  // Future bookings MUST NOT accept "booked" mode — that is the exact path
+  // that produced 'Completed on a date it was never delivered'.
+  const offDayMode = body.off_day_mode as "today" | "booked" | undefined;
+
   if (cancellingNow) {
     update.status = "cancelled";
   } else if (completingNow) {
-    update.completed_at = incomingData!.session_log!.completed_at;
+    // Fetch current session state for the guard
+    const { data: sessionRow } = await supabase
+      .from("sessions")
+      .select("scheduled_at, status")
+      .eq("id", params.id)
+      .maybeSingle();
+    const scheduledDate = sessionRow?.scheduled_at as string | null;
+    const completedDate = incomingData!.session_log!.completed_at!;
+    const todayKey = londonDayKey(new Date().toISOString());
+    const scheduledDayKey = scheduledDate ? londonDayKey(scheduledDate) : null;
+    const completedDayKey = londonDayKey(completedDate);
+
+    if (!body.confirm_off_day && scheduledDayKey && scheduledDayKey !== completedDayKey) {
+      // Off-day detected without confirmation — block the write
+      return NextResponse.json(
+        {
+          error: `This session is booked for ${new Date(scheduledDate!).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long" })}, not today.`,
+          code: "off_day_completion",
+          scheduledAt: scheduledDate,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (body.confirm_off_day && offDayMode) {
+      if (offDayMode === "today") {
+        // Move the booking to today — keep the time, change the day
+        const scheduledTime = scheduledDate ? new Date(scheduledDate) : new Date();
+        const now = new Date();
+        const movedScheduled = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          scheduledTime.getHours(),
+          scheduledTime.getMinutes(),
+        ).toISOString();
+        update.scheduled_at = movedScheduled;
+      }
+      // offDayMode = "booked": keep scheduled_at as-is, just back-date completed_at
+      // Server-side guard: reject "booked" for future bookings
+      if (offDayMode === "booked" && scheduledDayKey && scheduledDayKey > todayKey) {
+        return NextResponse.json(
+          {
+            error: `Cannot back-date completion — ${new Date(scheduledDate!).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long" })} is in the future. A session cannot be completed against a date it has not reached.`,
+            code: "future_backdate_rejected",
+          },
+          { status: 409 },
+        );
+      }
+    }
+
+    update.completed_at = completedDate;
     update.status = "completed";
   }
 

@@ -303,7 +303,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                     <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10">Completed by</th>
                     <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10">Version</th>
                     <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10">Status</th>
-                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10 text-right">Preview</th>
+                    <th className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 h-10 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -332,14 +332,24 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                           <StatusBadge status={t.is_active ? "active" : "draft"} />
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <Link
-                            href={`/hub/templates/${t.id}/preview`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
-                          >
-                            <IconEye className="w-3.5 h-3.5" />
-                            Preview
-                          </Link>
+                          <div className="inline-flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setAssigning(t)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-[var(--hub-field-border)] px-2 h-[26px] text-xs font-bold text-foreground hover:border-rose hover:text-rose transition-colors"
+                            >
+                              <IconSend className="w-3.5 h-3.5" />
+                              Assign
+                            </button>
+                            <Link
+                              href={`/hub/templates/${t.id}/preview`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
+                            >
+                              <IconEye className="w-3.5 h-3.5" />
+                              Preview
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     );

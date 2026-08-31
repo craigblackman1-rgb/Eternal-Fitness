@@ -4,11 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/types";
+import type { Band } from "@/lib/bands";
+import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
-import { defaultUnitForEquipment, isBandEquipment } from "@/lib/units";
+import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
+
+/** Round a converted weight to 1 decimal and trim trailing .0 for display. */
+function displayWeight(kg: number, unit: "kg" | "lb"): string {
+  const v = Math.round(fromKg(kg, unit) * 10) / 10;
+  return String(v);
+}
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -23,6 +31,7 @@ interface SetState {
   reps: string;
   weight: string;
   duration: string;
+  bandColour?: string;
   savedId?: string;
   isNewPb?: boolean;
   isWarmup: boolean;
@@ -31,6 +40,10 @@ interface SetState {
   /** Idempotency key for the queued write — reused across re-taps so a toggle
    *  overwrites the queued entry rather than stacking a second one. */
   clientOpId?: string;
+  /** CR-EF-010 — original prefilled values from last session (for undo). */
+  prefillWeight?: string;
+  prefillDuration?: string;
+  prefillBandColour?: string;
 }
 
 /** Three-way outcome of a set-log save: saved to server, parked for later, or a
@@ -38,7 +51,23 @@ interface SetState {
 type SaveSetLogResult =
   | { kind: "saved"; log: SetLog & { is_new_pb?: boolean } }
   | { kind: "queued"; clientOpId: string }
-  | { kind: "failed" };
+  | { kind: "failed"; message?: string | null };
+
+interface PbInfo {
+  weight_kg: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  achieved_at: string;
+}
+
+interface LastSessionInfo {
+  weight_kg: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  band_colour: string | null;
+  session_date: string;
+  session_number: number | null;
+}
 
 interface ExState {
   uid: string;
@@ -46,6 +75,10 @@ interface ExState {
   note: string;
   noteOpen: boolean;
   displayUnit: "kg" | "lb";
+  /** CR-EF-010 — PB info for the exercise header chip. */
+  pbInfo?: PbInfo;
+  /** CR-EF-010 — last session data for the "Last X" chip and prefill. */
+  lastSession?: LastSessionInfo;
 }
 
 interface RestTimer {
@@ -113,6 +146,9 @@ export function TrainScreen({
   setLogs,
   deliveryMode,
   bestWeights,
+  lastSessionData,
+  pbDates,
+  bands,
 }: {
   sessionId: string;
   sessionNumber: number;
@@ -131,6 +167,12 @@ export function TrainScreen({
   /** Client's best-ever weight_kg per exercise name — prefills a set's weight
    *  field when this session has no log for it yet. */
   bestWeights?: Record<string, number>;
+  /** CR-EF-010 — last session's best set per exercise (for prefill). */
+  lastSessionData?: Record<string, LastSessionPrefill>;
+  /** CR-EF-010 — PB metadata per exercise (for header chip). */
+  pbDates?: Record<string, PbMetadata>;
+  /** CR-EF-014: active bands for the colour picker. */
+  bands?: Band[];
 }) {
   const version = deliveryMode === "home_training" ? "home" : "studio";
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };
@@ -157,19 +199,41 @@ export function TrainScreen({
         const totalSets = Math.max(1, ex.sets || 1);
         const warmupCount = ex.warmup_sets ?? 0;
         const sets: SetState[] = [];
-        const carriedWeight = bestWeights?.[ex.exercise_name];
+        const isBand = isBandEquipment(ex.equipment ?? []);
+        const timeBased = isTimeBased(ex.reps, ex.log_type);
+        const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
+        const last = lastSessionData?.[ex.exercise_name];
+
+        // CR-EF-010: prefill from last session's heaviest working set
+        const prefillWeight = !isBand && !timeBased && last?.weight_kg != null
+          ? displayWeight(last.weight_kg, unit)
+          : undefined;
+        const prefillDuration = timeBased && last?.duration_seconds != null
+          ? String(last.duration_seconds)
+          : undefined;
+        const prefillBandColour = isBand && last?.band_colour
+          ? last.band_colour
+          : undefined;
+
         for (let s = 1; s <= totalSets; s++) {
           const log = setLogsMap[`${ref}::${s}`];
+          const hasLog = !!log;
           sets.push({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
-              ? String(log.weight_kg)
-              : carriedWeight != null ? String(carriedWeight) : "",
-            duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
+              ? displayWeight(log.weight_kg, unit)
+              : prefillWeight ?? "",
+            duration: log?.duration_seconds != null
+              ? String(log.duration_seconds)
+              : prefillDuration ?? "",
+            bandColour: log?.band_colour ?? prefillBandColour ?? "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
             isWarmup: s <= warmupCount,
+            prefillWeight: !hasLog ? prefillWeight : undefined,
+            prefillDuration: !hasLog ? prefillDuration : undefined,
+            prefillBandColour: !hasLog ? prefillBandColour : undefined,
           });
         }
         if (savedNotesRef.current[uid] === undefined) {
@@ -181,11 +245,13 @@ export function TrainScreen({
           note: savedNotesRef.current[uid],
           noteOpen: false,
           displayUnit: ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []),
+          pbInfo: pbDates?.[ex.exercise_name],
+          lastSession: last,
         };
       });
       return map;
     },
-    [version, setLogsMap, data, bestWeights],
+    [version, setLogsMap, data, lastSessionData, pbDates],
   );
 
   const [exStates, setExStates] = useState<Record<string, ExState>>(() => {
@@ -267,7 +333,15 @@ export function TrainScreen({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: { ...d, session_log: updatedLog } }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+            console.error("Failed to write started_at:", msg);
+          });
+        }
+      })
+      .catch(() => {});
   }, [sessionId]);
 
   // ── Debounced exercise notes save (bug fix #1) ─────────────────
@@ -281,7 +355,15 @@ export function TrainScreen({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: { ...d, exercise_notes: notes } }),
-        }).catch(() => {});
+        })
+          .then((res) => {
+            if (!res.ok) {
+              res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+                toast.error(msg || "Couldn't save exercise note");
+              });
+            }
+          })
+          .catch(() => {});
       }, 800);
     },
     [sessionId],
@@ -301,9 +383,17 @@ export function TrainScreen({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: d }),
-    }).catch(() => {
-      toast.error("Failed to save — this change may not survive a reload.");
-    });
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+            toast.error(msg || "Failed to save — this change may not survive a reload.");
+          });
+        }
+      })
+      .catch(() => {
+        toast.error("Failed to save — this change may not survive a reload.");
+      });
   }, [sessionId]);
 
   // ── Rest alert audio (CR-EF-019) ────────────────────────────────
@@ -399,12 +489,13 @@ export function TrainScreen({
     fieldValues: { reps: string; weight: string; duration: string },
     completed: boolean,
     isWarmup: boolean,
+    displayUnit: "kg" | "lb",
     reuseClientOpId?: string,
   ): Promise<SaveSetLogResult> => {
     const key = `${exerciseRef}::${setNumber}`;
     const existing = setLogsMap[key];
     const repsVal = fieldValues.reps.trim() === "" ? null : Number(fieldValues.reps);
-    const weightVal = fieldValues.weight.trim() === "" ? null : Number(fieldValues.weight);
+    const weightVal = fieldValues.weight.trim() === "" ? null : toKg(Number(fieldValues.weight), displayUnit);
     const durationVal = fieldValues.duration.trim() === "" ? null : Number(fieldValues.duration);
 
     // Idempotency key minted once per logical write and reused across retries
@@ -459,7 +550,8 @@ export function TrainScreen({
     if (!res.ok) {
       // The request DID reach the server and was rejected — a real server failure,
       // not an offline scenario. Never queue these.
-      return { kind: "failed" };
+      const message = await res.json().then((b) => b?.error).catch(() => null);
+      return { kind: "failed", message };
     }
 
     const saved: SetLog & { is_new_pb?: boolean } = await res.json();
@@ -497,9 +589,9 @@ export function TrainScreen({
       }
     }
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, state.displayUnit, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -552,9 +644,9 @@ export function TrainScreen({
     const weight = timeBased ? "" : (set.weight || "");
     const duration = timeBased ? (set.duration || "") : "";
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, state.displayUnit, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -784,7 +876,7 @@ export function TrainScreen({
   };
 
   // ── Complete ───────────────────────────────────────────────────
-  const handleComplete = async () => {
+  const handleComplete = async (confirmOffDay?: boolean) => {
     setCompleting(true);
     const d = dataRef.current;
     if (!d) return;
@@ -795,20 +887,35 @@ export function TrainScreen({
       fatigue,
       notes: sessionNotes,
     };
+    const body: Record<string, unknown> = {
+      data: {
+        ...d,
+        session_log: updatedLog,
+        exercise_notes: savedNotesRef.current,
+      },
+    };
+    if (confirmOffDay) body.confirm_off_day = true;
     const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          ...d,
-          session_log: updatedLog,
-          exercise_notes: savedNotesRef.current,
-        },
-      }),
+      body: JSON.stringify(body),
     });
     setCompleting(false);
     if (!res.ok) {
-      toast.error("Failed to mark session complete");
+      const err = await res.json().catch(() => null);
+      if (res.status === 409 && err?.code === "off_day_completion") {
+        const scheduledDate = new Date(err.scheduledAt).toLocaleDateString("en-GB", {
+          timeZone: "Europe/London",
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        });
+        if (window.confirm(`This session is booked for ${scheduledDate}, not today. Complete it anyway?`)) {
+          return handleComplete(true);
+        }
+        return;
+      }
+      toast.error(err?.error || "Failed to mark session complete");
       return;
     }
     // CR-EF-030: sync the in-memory refs to the now-completed state so a later
@@ -866,11 +973,12 @@ export function TrainScreen({
         const setIdx = entry.setNumber - 1;
         if (setIdx < 0 || setIdx >= st.sets.length) return prev;
         const newSets = [...st.sets];
+        const unit = st.displayUnit;
         newSets[setIdx] = {
           ...newSets[setIdx],
           status: data.completed ? "done" : "skipped",
           reps: data.reps != null ? String(data.reps) : "",
-          weight: data.weight_kg != null ? String(data.weight_kg) : "",
+          weight: data.weight_kg != null ? displayWeight(data.weight_kg, unit) : "",
           duration: data.duration_seconds != null ? String(data.duration_seconds) : "",
           savedId: data.id,
           isNewPb: data.is_new_pb === true,
@@ -1007,7 +1115,7 @@ export function TrainScreen({
             <div className="top-meta">
               Session {sessionNumber}
               {blockNumber != null ? ` · Block ${blockNumber}` : ""}
-              {archetype ? ` · ${archetype}` : ""} · {phase} · Week {week}
+              {archetype ? ` · ${archetype}` : ""} · {phase} · {scheduledAt ? `Week of ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : `Plan week ${week}`}
             </div>
           </div>
           <span className={`top-status ${topStatusClass}`}>{topStatusLabel}</span>
@@ -1319,7 +1427,7 @@ export function TrainScreen({
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={handleComplete}
+                onClick={() => handleComplete()}
                 disabled={completing}
                 style={{ width: "100%" }}
               >

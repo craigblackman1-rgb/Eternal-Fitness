@@ -6,6 +6,7 @@ import { IconDownload } from "@/components/icons";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import type { DBSession } from "@/types";
+import { derivedWeekLabel } from "@/lib/schedule-dates";
 
 export function ExportSpreadsheetButton({
   blockId,
@@ -43,7 +44,7 @@ export function ExportSpreadsheetButton({
             for (const ex of exercises) {
               rows.push({
                 "Session #": session.session_number,
-                Week: session.week,
+                Week: derivedWeekLabel(session.scheduled_at ?? null, session.week),
                 Phase: session.phase,
                 Archetype: session.archetype,
                 Focus: s?.focus_label || "",

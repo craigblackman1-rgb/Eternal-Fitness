@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { EquipmentManager } from "./EquipmentManager";
+import { BandManager } from "./BandManager";
 import { HubPageHeader } from "@/components/hub";
+import { getPool } from "@/lib/pg-client";
 import type { StudioEquipment } from "@/types";
+import type { Band } from "@/lib/bands";
 
 export default async function StudioEquipmentPage() {
   const supabase = createClient();
@@ -17,6 +20,13 @@ export default async function StudioEquipmentPage() {
   const initialEquipment = (equipment ?? []) as StudioEquipment[];
   const activeCount = initialEquipment.filter((e) => e.active).length;
 
+  // CR-EF-014: fetch all bands for the settings UI.
+  const pool = getPool();
+  const bandsRes = await pool.query(
+    `SELECT * FROM bands ORDER BY sort_order ASC`,
+  );
+  const initialBands: Band[] = bandsRes.rows;
+
   return (
     <div>
       <HubPageHeader
@@ -30,6 +40,9 @@ export default async function StudioEquipmentPage() {
         }
       />
       <EquipmentManager initialEquipment={initialEquipment} />
+      <div className="mt-6">
+        <BandManager initialBands={initialBands} />
+      </div>
     </div>
   );
 }

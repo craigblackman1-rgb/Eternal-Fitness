@@ -94,24 +94,22 @@ a.ds-card { display: block; }
 .ds-spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
 .ds-spc:nth-child(2) { margin-top: 48px; }
 .ds-spc:nth-child(3) { margin-top: 24px; }
-.ds-spc-img { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 3/4; margin-bottom: 20px; box-shadow: 0 14px 40px rgba(0,0,0,.09); }
-.ds-spc-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .55s; }
-.ds-spc:hover .ds-spc-img img { transform: scale(1.04); }
-.ds-spc-n { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-rose); margin-bottom: 7px; }
-.ds-spc-t { font-size: 22px; font-weight: 700; color: var(--color-ink); letter-spacing: -.018em; margin-bottom: 8px; line-height: 1.15; }
-.ds-spc-d { font-size: 14px; color: var(--color-body); line-height: 1.6; }
+.ds-spc { display: block; text-decoration: none; color: inherit; }
+.ds-spc.ef-mount { max-width: none; transition: transform .2s var(--ease), box-shadow .2s var(--ease); }
+.ds-spc.ef-mount:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(30,24,20,.06), 0 28px 60px rgba(30,24,20,.1); }
+.ds-spc-n { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--rose-text); margin-bottom: 7px; }
 
 /* ── Floating stat badge (.h-badge / .wbadge) ─ */
 .ds-badge { display: inline-flex; align-items: center; gap: 12px; background: #fff; border-radius: 16px; padding: 16px 20px; box-shadow: 0 8px 32px rgba(0,0,0,.09); max-width: 280px; }
-.ds-badge-circle { width: 44px; height: 44px; border-radius: 50%; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
+.ds-badge-circle { width: 44px; height: 44px; border-radius: 50%; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; flex-shrink: 0; }
 .ds-badge-t { font-size: 13px; font-weight: 700; color: var(--color-ink); margin-bottom: 2px; }
 .ds-badge-s { font-size: 11.5px; color: var(--color-muted-text); line-height: 1.4; }
-.ds-badge-rose { background: var(--color-rose); color: #fff; box-shadow: 0 16px 40px rgba(193,131,159,.35); text-align: center; display: block; padding: 18px 22px; border-radius: 14px; }
+.ds-badge-rose { background: var(--rose-text); color: #fff; box-shadow: 0 16px 40px rgba(193,131,159,.35); text-align: center; display: block; padding: 18px 22px; border-radius: 14px; }
 .ds-badge-rose .ds-badge-num { font-size: 36px; font-weight: 900; line-height: 1; margin-bottom: 2px; }
 .ds-badge-rose .ds-badge-lbl { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .82; }
 
 /* ── Ticker (.tstrip) ─────────────── */
-.ds-ticker { background: var(--color-rose); padding: 14px 0; overflow: hidden; }
+.ds-ticker { background: var(--rose-text); padding: 14px 0; overflow: hidden; }
 .ds-ticker-track { display: flex; white-space: nowrap; animation: ds-tk 34s linear infinite; }
 .ds-ticker-item { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.9); letter-spacing: .1em; text-transform: uppercase; padding: 0 40px; flex-shrink: 0; }
 .ds-ticker-star { color: rgba(255,255,255,.42); }
@@ -127,12 +125,87 @@ a.ds-card { display: block; }
 .ds-cta-inner p { font-size: 16.5px; color: rgba(255,255,255,.75); line-height: 1.65; max-width: 500px; margin-bottom: 36px; }
 .ds-cta-btns { display: flex; gap: 14px; flex-wrap: wrap; }
 
+/* ── CTA band — split layout (EF-IMG-03) ─────────────────────────
+   Same principle as the page hero split: copy on solid ink ground
+   beside the photograph. No teal scrim. Replaces the overlay layout
+   which is retained as layout="overlay" fallback.
+   ───────────────────────────────────────────────────────────────── */
+.ds-cta-split { position: relative; background: var(--color-ink); overflow: hidden; }
+.ds-cta-split-grid {
+  display: grid;
+  grid-template-columns: 44% 1fr;
+  max-width: var(--ds-max);
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 400px;
+}
+.ds-cta-split-panel {
+  min-width: 0;
+  padding: 56px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--color-ink);
+}
+.ds-cta-split-panel .ds-eyebrow { margin-bottom: 18px; }
+.ds-cta-split-panel .ds-eyebrow-white { color: rgba(255,255,255,.65); }
+.ds-cta-split-panel .ds-eyebrow-white::before { background: rgba(255,255,255,.45); }
+.ds-cta-split-panel h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 3.4vw, 48px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -.03em;
+  margin-bottom: 14px;
+  max-width: 520px;
+}
+.ds-cta-split-panel p {
+  font-size: 16px;
+  color: rgba(255,255,255,.72);
+  line-height: 1.65;
+  max-width: 460px;
+  margin-bottom: 32px;
+}
+.ds-cta-split-panel .ds-cta-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+.ds-cta-split-photo {
+  position: relative;
+  isolation: isolate;
+  background: var(--color-ink);
+  min-width: 0;
+  overflow: hidden;
+}
+.ds-cta-split-photo img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--cta-pos, center);
+}
+.ds-cta-split-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--ef-img-wash);
+  opacity: var(--ef-img-wash-o);
+  mix-blend-mode: multiply;
+}
+@media (max-width: 760px) {
+  .ds-cta-split-grid { grid-template-columns: 1fr; min-height: auto; }
+  .ds-cta-split-photo { aspect-ratio: 16/9; }
+  .ds-cta-split-panel { padding: 40px 28px; }
+}
+
 /* ── Testimonial (.twrap) ─────────── */
 .ds-tw { max-width: 840px; margin: 0 auto; text-align: center; }
 .ds-tmark { font-size: 160px; font-weight: 700; line-height: .42; color: rgba(255,255,255,.22); font-family: Georgia, serif; }
 .ds-tquote { font-size: clamp(19px, 2.2vw, 28px); font-weight: 300; color: #fff; line-height: 1.55; font-style: italic; margin-bottom: 26px; }
 .ds-tauth { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 52px; }
-.ds-tav { width: 38px; height: 38px; border-radius: 50%; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+.ds-tav { width: 38px; height: 38px; border-radius: 50%; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
 .ds-tnm { font-size: 14.5px; font-weight: 600; color: #fff; }
 .ds-tlo { font-size: 12.5px; color: rgba(255,255,255,.46); margin-top: 2px; }
 .ds-tdiv { width: 1px; height: 40px; background: rgba(255,255,255,.18); margin: 0 auto 52px; }
@@ -212,6 +285,122 @@ a.ds-card { display: block; }
 .ds-hero-btns { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
 .ds-hero .ef-btn-outline { border-color: rgba(255,255,255,.58); color: #fff; }
 .ds-hero .ef-btn-outline:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+
+/* ── Page hero — split layout (EF-IMG-03) ────────────────────────
+   Copy sits beside the photograph on solid ink ground, never on top
+   of it via a scrim. The photograph gets only the studio grade
+   (--ef-img-grade) — no vignette, no wash overlay. One box, one
+   radius, one hairline, no overlay anywhere. Replaces the overlay
+   layout which is retired but retained as layout="overlay" fallback.
+   ───────────────────────────────────────────────────────────────── */
+.ds-hero-split { background: var(--color-ink); min-height: 0; display: block; }
+.ds-hero-split-grid {
+  display: grid;
+  grid-template-columns: 44% 1fr;
+  max-width: var(--ds-max);
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.ds-hero-split-panel {
+  min-width: 0;
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--color-ink);
+}
+.ds-hero-split-panel .ds-eyebrow { margin-bottom: 20px; }
+.ds-hero-split-panel .ds-eyebrow-white { color: rgba(255,255,255,.65); }
+.ds-hero-split-panel .ds-eyebrow-white::before { background: rgba(255,255,255,.45); }
+.ds-hero-split-panel h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 4.2vw, 56px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.06;
+  letter-spacing: -.03em;
+  margin-bottom: 16px;
+}
+.ds-hero-split-panel .ds-hero-sub {
+  font-size: clamp(16px, 1.4vw, 19px);
+  color: rgba(255,255,255,.78);
+  line-height: 1.6;
+  max-width: 520px;
+  margin-bottom: 20px;
+}
+.ds-hero-split-panel .ds-hero-rule {
+  width: 56px;
+  height: 2px;
+  background: var(--color-rose);
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+.ds-hero-split-panel .ds-hero-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(17px, 1.6vw, 21px);
+  line-height: 1.42;
+  letter-spacing: -.015em;
+  color: rgba(255,255,255,.88);
+  border-left: 2px solid var(--color-rose);
+  padding-left: 22px;
+  max-width: 540px;
+  margin-bottom: 28px;
+}
+.ds-hero-split-panel .ds-hero-intro {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.65);
+  max-width: 500px;
+  margin-bottom: 28px;
+}
+.ds-hero-split-panel .ds-hero-intro p { margin: 0; }
+.ds-hero-split-panel .ds-hero-btns { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.ds-hero-split-panel .ef-btn-outline { border-color: rgba(255,255,255,.58); color: #fff; }
+.ds-hero-split-panel .ef-btn-outline:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+.ds-hero-split-panel .ds-hero-badge-inline { margin-top: 24px; }
+.ds-hero-split-photo {
+  position: relative;
+  isolation: isolate;
+  background: var(--color-ink);
+  min-width: 0;
+  overflow: hidden;
+}
+.ds-hero-split-photo img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--hero-pos, 50% 50%);
+}
+@media (min-width: 1600px) {
+  .ds-hero-split-photo img { object-position: var(--hero-pos-wide, var(--hero-pos, 50% 50%)); }
+}
+/* Only apply the warm wash overlay to split-layout photos (no scrim —
+   that is the point of the split). The wash sits behind the subject
+   edge, not over the copy. */
+.ds-hero-split-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--ef-img-wash);
+  opacity: var(--ef-img-wash-o);
+  mix-blend-mode: multiply;
+}
+@media (max-width: 760px) {
+  .ds-hero-split-grid { grid-template-columns: 1fr; }
+  .ds-hero-split-photo { aspect-ratio: 16/9; }
+  .ds-hero-split-panel { padding: 36px 28px; }
+}
+
+/* ── Page hero — overlay layout (retired, kept for fallback) ────── */
+.ds-hero .ef-btn-outline { border-color: rgba(255,255,255,.58); color: #fff; }
+.ds-hero .ef-btn-outline:hover { background: rgba(255,255,255,.12); border-color: #fff; }
 .ds-hero-badge { position: absolute; z-index: 4; bottom: 68px; right: max(24px, calc((100% - var(--ds-max)) / 2 + 80px)); max-width: 340px; }
 
 @media (max-width: 1180px) {
@@ -263,7 +452,7 @@ a.ds-card { display: block; }
 .ds-compare-ic-x { color: var(--color-muted-text); }
 .ds-compare-ic-check { color: var(--color-teal); }
 .ds-compare-vs { display: flex; align-items: center; justify-content: center; padding: 0 20px; }
-.ds-compare-vs span { width: 44px; height: 44px; border-radius: 999px; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 8px 20px rgba(193,131,159,.3); }
+.ds-compare-vs span { width: 44px; height: 44px; border-radius: 999px; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 8px 20px rgba(193,131,159,.3); }
 
 /* ── Stat / credentials strip ─────── */
 .ds-statstrip { display: grid; grid-template-columns: repeat(var(--ds-stat-count, 4), 1fr); border-radius: 22px; overflow: hidden; }
@@ -315,6 +504,182 @@ a.ds-card { display: block; }
 .ds-band-t { font-family: var(--font-serif); font-size: clamp(19px, 1.6vw, 23px); font-weight: 700; letter-spacing: -.018em; line-height: 1.18; color: var(--color-ink); margin-bottom: 10px; transition: color .25s ease; }
 .ds-band-b { font-size: 14.5px; color: var(--color-body); line-height: 1.65; margin-bottom: 14px; }
 
+/* ── Studio-grade image treatment — tokens in globals.css ────── */
+.ds-hero-bg img,
+.ds-cta-bg img,
+.ds-imgcard-media img,
+.ds-split-img img,
+.ds-hero-split-photo img,
+.ds-cta-split-photo img,
+.ds-step-img img,
+.ds-flow-step-img img { filter: var(--ef-img-grade); }
+
+/* ── Plate treatment applied to existing containers ────────────────────
+   These containers already have position:relative + overflow:hidden, so
+   we layer the plate's visual effects (wash, hairline, shadow) without
+   adding the .ef-plate class (which would conflict with their own
+   border-radius and sizing). ────────────────────────────────────────── */
+.ds-step-img,
+.ds-flow-step-img,
+.ds-split-img {
+  isolation: isolate;
+  background: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+}
+.ds-step-img::after,
+.ds-flow-step-img::after,
+.ds-split-img::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: var(--ef-img-wash); opacity: var(--ef-img-wash-o); mix-blend-mode: multiply;
+}
+.ds-step-img::before,
+.ds-flow-step-img::before,
+.ds-split-img::before {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--ef-img-hair-w) var(--ef-img-hair);
+}
+
+/* ── 02 · Session plate — caption on opaque ink, never on the photo ─────
+   Generic site-wide version of the VI page's .vi-plate treatment.
+   Apply to any image container: add .ef-plate to the wrapper, include
+   .ef-ticks and .ef-cap children as needed. ──────────────────────────── */
+.ef-plate {
+  position: relative; overflow: hidden; isolation: isolate;
+  border-radius: 18px; background: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+}
+.ef-plate img { width: 100%; height: 100%; object-fit: cover; filter: var(--ef-img-grade); }
+/* wash overlay */
+.ef-plate::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: var(--ef-img-wash); opacity: var(--ef-img-wash-o); mix-blend-mode: multiply;
+}
+/* hairline border */
+.ef-plate::before {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--ef-img-hair-w) var(--ef-img-hair);
+}
+/* corner tick marks */
+.ef-ticks { position: absolute; inset: 10px; z-index: 3; pointer-events: none; }
+.ef-ticks span { position: absolute; width: 14px; height: 14px;
+  border: 1.5px solid color-mix(in srgb, #fff 62%, transparent); }
+.ef-ticks span:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.ef-ticks span:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.ef-ticks span:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+.ef-ticks span:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+/* caption pill — anchored bottom, opaque ink background */
+.ef-cap {
+  position: absolute; left: 18px; right: 18px; bottom: 18px; z-index: 6;
+  background: color-mix(in srgb, var(--color-ink) calc(var(--ef-plate-o) * 100%), transparent);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 14px; font-weight: 600; line-height: 1.35; letter-spacing: -.005em; color: #fff;
+}
+
+/* ── 05 · The mount — the caption printed below, never over ────────────
+   Generic site-wide version of the VI page's .vi-mount treatment.
+   A held-back card (warm background, padding) with a windowed photo
+   inset and a "mat" area below for the caption. ──────────────────────── */
+.ef-mount {
+  max-width: 430px; background: var(--color-warm); border: 1px solid var(--color-border-warm);
+  border-radius: 18px; padding: 26px 26px 0;
+}
+.ef-mount-win {
+  position: relative; overflow: hidden; isolation: isolate;
+  border-radius: 6px; aspect-ratio: 3/4; background: var(--color-ink);
+}
+.ef-mount-win img { width: 100%; height: 100%; object-fit: cover; filter: var(--ef-img-grade); }
+/* wash overlay on the windowed image */
+.ef-mount-win::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: var(--ef-img-wash); opacity: var(--ef-img-wash-o); mix-blend-mode: multiply;
+}
+/* hairline border on the windowed image */
+.ef-mount-win::before {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--ef-img-hair-w) var(--ef-img-hair);
+}
+.ef-mount-mat { padding: 18px 2px 24px; }
+.ef-mount-mat b { display: block; font-size: 15px; font-weight: 700; line-height: 1.35;
+  letter-spacing: -.01em; color: var(--color-ink); }
+.ef-mount-mat span { display: block; margin-top: 5px; font-size: 13px; line-height: 1.55;
+  color: var(--color-muted-text); }
+
+/* ── Plate/mount responsive ──────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .ef-cap { left: 12px; right: 12px; bottom: 12px; padding: 11px 14px; font-size: 13.5px; }
+  .ef-mount { padding: 18px 18px 0; }
+  .ef-mount-mat { padding: 15px 2px 20px; }
+}
+
+/* ── Focus ring — the treatment that carries instruction ─────
+   Generic, site-wide port of the .vi-tech system from
+   visual-impairment/vi.css (04 focus ring plate). Reads from the
+   global --ef-img-* / --ef-vignette tokens. Each instance sets
+   --fx / --fy (percentage) via inline style or page CSS to point
+   at the actual technique detail in that specific photo.
+   ──────────────────────────────────────────────────────────── */
+.ef-tech {
+  position: relative; overflow: hidden; isolation: isolate;
+  aspect-ratio: 4/3; border-radius: 24px; background: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(30,24,20,.04), 0 20px 48px rgba(30,24,20,.07);
+}
+.ef-tech img { width: 100%; height: 100%; object-fit: cover; }
+/* Studio-grade filter + wash + hairline — reuse the global tokens */
+.ef-tech::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: var(--ef-img-wash); opacity: var(--ef-img-wash-o); mix-blend-mode: multiply;
+}
+.ef-tech::before {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--ef-img-hair-w) var(--ef-img-hair);
+}
+/* Radial vignette veil — transparent ellipse at --fx/--fy, darkening outward */
+.ef-tech .ef-veil {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse 54% 58% at var(--fx, 50%) var(--fy, 50%),
+    transparent 0%, transparent 42%, var(--ef-vignette) 100%);
+}
+/* Dashed arc marker centred on the focal point */
+.ef-tech .ef-arc { position: absolute; z-index: 3; pointer-events: none;
+  width: 38%; aspect-ratio: 1; left: calc(var(--fx, 50%) - 19%); top: calc(var(--fy, 50%) - 19%); }
+.ef-tech .ef-arc circle { fill: none; stroke: var(--color-rose); stroke-width: 2.4; stroke-linecap: round;
+  stroke-dasharray: 104 200; opacity: .92; }
+/* Pinned instruction label — dot + text on ink pill */
+.ef-tech .ef-pin {
+  position: absolute; z-index: 6; left: 18px; top: 18px; max-width: calc(100% - 36px);
+  background: color-mix(in srgb, var(--color-ink) 92%, transparent); color: #fff;
+  border-radius: 8px; padding: 9px 13px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
+  letter-spacing: -.005em; display: flex; gap: 9px; align-items: center;
+}
+.ef-tech .ef-pin .ef-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--color-rose); flex: none; }
+
+@media (max-width: 1000px) {
+  .ef-tech .ef-pin { left: 12px; top: 12px; padding: 8px 11px; font-size: 12px; }
+}
+
+/* ── Described images — collapsible description for low-vision users
+    not running a screen reader. Alt serves AT; this serves the much
+    larger group who can read the page but need a textual walkthrough
+    of what the photograph shows. Ported from vi.css .vi-desc. ── */
+details.ef-desc { margin-top: 12px; border: 1px solid var(--color-border-warm); border-radius: 12px; background: #fff; }
+details.ef-desc summary {
+  cursor: pointer; list-style: none; padding: 12px 16px; min-height: 44px;
+  display: flex; align-items: center; gap: 10px; border-radius: 12px;
+  font-size: 13.5px; font-weight: 600; color: var(--color-ink);
+}
+details.ef-desc summary::-webkit-details-marker { display: none; }
+details.ef-desc summary::before { content: ''; width: 16px; height: 16px; flex: none; border-radius: 3px;
+  border: 2px solid var(--rose-text); border-right-width: 5px; }
+details.ef-desc summary:hover { background: var(--color-warm); }
+details.ef-desc[open] summary { border-bottom: 1px solid var(--color-border-warm); border-radius: 12px 12px 0 0; }
+details.ef-desc p { padding: 14px 16px 16px; font-size: 14px; line-height: 1.6; color: var(--color-body); }
+
+/* ── Figure wrapper for image + disclosure pairs
+    Wraps a contained image container and its ef-desc so the disclosure
+    inherits the image's grid slot and width. ── */
+.ef-figure { margin: 0; min-width: 0; display: flex; flex-direction: column; }
+.ef-figure > :first-child { flex: 1 1 auto; min-height: 0; }
+
 /* ── Responsive ───────────────────── */
 @media (max-width: 1000px) {
   .ds-sec { padding: 72px 28px; }
@@ -341,6 +706,8 @@ a.ds-card { display: block; }
      split hero — sat under the fixed 72px navbar and clipped the eyebrow. */
   .ds-hero-badge { position: static; margin-top: 28px; }
   .ds-art-chip { width: 118px; left: 12px; bottom: 12px; }
+  .ds-hero-split-panel { padding: 32px 24px; }
+  .ds-cta-split-panel { padding: 36px 24px; }
 
   /* index collapses to an accordion */
   .ds-index { grid-template-columns: 1fr; gap: 0; }
@@ -394,7 +761,7 @@ a.ds-card { display: block; }
 .ds-quote-card-mark { font-family: Georgia, serif; font-size: 120px; font-weight: 700; line-height: .42; color: rgba(19,19,19,.12); text-align: center; margin-bottom: 10px; }
 .ds-quote-card-body { font-size: clamp(19px, 2.2vw, 28px); font-weight: 300; color: var(--color-ink); line-height: 1.55; font-style: italic; margin-bottom: 26px; }
 .ds-quote-card-by { display: flex; align-items: center; justify-content: center; gap: 14px; }
-.ds-quote-card-av { width: 38px; height: 38px; border-radius: 50%; background: var(--color-rose); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.ds-quote-card-av { width: 38px; height: 38px; border-radius: 50%; background: var(--rose-text); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
 .ds-quote-card-name { font-size: 14.5px; font-weight: 600; color: var(--color-ink); }
 .ds-quote-card-meta { font-size: 12.5px; color: var(--color-muted-text); margin-top: 2px; }
 
@@ -408,6 +775,16 @@ a.ds-card { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .ds-ticker-track { animation: none; }
+}
+
+/* ── prefers-contrast: more — treatment classes ──
+   The --ef-* tokens (grade, wash, hair, plate-o, vignette) already
+   respond to this query in globals.css, so any treatment class bound
+   to those tokens inherits the adjustment automatically. Add per-class
+   overrides here only if a class introduces a value not derived from
+   the --ef-* token set. */
+@media (prefers-contrast: more) {
+  /* future treatment classes that add custom non-token values go here */
 }
 
 /* ── Pricing — option groups & plan cards (pricing.html) ───────── */
@@ -431,7 +808,7 @@ a.ds-card { display: block; }
 .ds-plan-featured { border-color: color-mix(in srgb, var(--color-rose) 46%, var(--color-border-warm)); }
 .ds-plan-chip {
   position: absolute; top: -13px; left: 34px;
-  background: var(--color-rose); color: #fff; border-radius: 999px;
+  background: var(--rose-text); color: #fff; border-radius: 999px;
   font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
   padding: 7px 15px; box-shadow: 0 4px 14px color-mix(in srgb, var(--color-rose) 34%, transparent);
 }

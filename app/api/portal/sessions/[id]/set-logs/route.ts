@@ -97,6 +97,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     completed?: boolean;
     notes?: string | null;
     client_op_id?: string | null;
+    band_colour?: string | null;
   };
   try {
     body = await request.json();
@@ -128,8 +129,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const inserted = await pool.query(
       `INSERT INTO set_logs
          (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
-          completed, logged_by, logged_at, notes, client_op_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'client', NOW(), $8, $9)
+          completed, band_colour, logged_by, logged_at, notes, client_op_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'client', NOW(), $9, $10)
        ON CONFLICT (client_op_id) WHERE client_op_id IS NOT NULL DO NOTHING
        RETURNING *`,
       [
@@ -140,6 +141,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         body.weight_kg ?? null,
         body.duration_seconds ?? null,
         body.completed ?? true,
+        body.band_colour ?? null,
         body.notes ?? null,
         clientOpId,
       ],
@@ -157,8 +159,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const res = await pool.query(
       `INSERT INTO set_logs
          (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
-          completed, logged_by, logged_at, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'client', NOW(), $8)
+          completed, band_colour, logged_by, logged_at, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'client', NOW(), $9)
        RETURNING *`,
       [
         params.id,
@@ -168,6 +170,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         body.weight_kg ?? null,
         body.duration_seconds ?? null,
         body.completed ?? true,
+        body.band_colour ?? null,
         body.notes ?? null,
       ],
     );
@@ -196,6 +199,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     duration_seconds?: number | null;
     completed?: boolean;
     notes?: string | null;
+    band_colour?: string | null;
   };
   try {
     body = await request.json();
@@ -208,7 +212,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
 
-  const allowed = ["reps", "weight_kg", "duration_seconds", "completed", "notes"] as const;
+  const allowed = ["reps", "weight_kg", "duration_seconds", "completed", "notes", "band_colour"] as const;
   const sets: string[] = [];
   const values: unknown[] = [];
   for (const key of allowed) {

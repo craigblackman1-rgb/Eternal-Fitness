@@ -4,12 +4,12 @@ import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { IconChevronLeft } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
-import { SessionRow } from "./SessionRow";
-import { groupSessionsByWeek, isoToMonday, isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
+import { SessionList } from "./SessionList";
+import { BlockPoolView } from "@/components/hub/BlockPoolView";
+import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
-import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import type { Weekday } from "@/lib/scheduling";
-import type { Session, SessionStatus } from "@/types";
+import type { Session, SessionStatus, DBSession } from "@/types";
 
 const archetypeTint: Record<string, string> = {
   A: "bg-teal/10 text-teal",
@@ -65,7 +65,7 @@ export default async function BlockViewPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("name, client_number, profile")
+    .select("name, client_number, profile, sessions_purchased, block_expiry_date, block_expiry_extensions")
     .eq("client_number", parseInt(params.id))
     .single();
 
@@ -121,14 +121,6 @@ export default async function BlockViewPage({
 
   // CR-EF-073 — a session's identity is its booking (date + time); an
   // unbooked session leads with its ordinal instead of a meaningless "Day N".
-  const formatDayLabel = (session: SessionRow): string => {
-    if (session.scheduled_at) {
-      const d = new Date(session.scheduled_at);
-      const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-      return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
-    }
-    return `Session ${session.session_number} of ${totalSessions} · not yet booked`;
-  };
 
   const formatShortDate = (iso: string): string =>
     new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -203,25 +195,36 @@ export default async function BlockViewPage({
         scheduledStartIso={scheduledStartIso}
         weekdays={weekdays}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--hub-border)] rounded-[16px] overflow-hidden border border-[var(--hub-border)]">
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 bg-[var(--hub-card)] overflow-hidden border border-[var(--hub-border)]" style={{ borderRadius: "var(--r-surface)", boxShadow: "var(--shadow-sm)" }}>
+          <div className="px-4 py-3 border-r border-b border-[var(--hub-border)] md:border-b-0 last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sessions</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{completedSessions} of {totalSessions} done</p>
           </div>
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+          <div className="px-4 py-3 border-b md:border-b-0 md:border-r border-[var(--hub-border)] last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Scheduled start</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{scheduledStartLabel}</p>
           </div>
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+          <div className="px-4 py-3 border-r border-[var(--hub-border)] last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
             <div className="mt-0.5"><StatusBadge status={block.status} /></div>
           </div>
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+          <div className="px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next session</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{nextSessionLabel}</p>
           </div>
         </div>
       </BlockOverviewClient>
+
+      {/* CR-EF-099 — Session pot counter, rotation ribbon, booked slots vs workout pool */}
+      <BlockPoolView
+        sessions={sessions as unknown as DBSession[]}
+        clientId={String(clientId)}
+        blockId={params.blockId}
+        clientName={client?.name || "Client"}
+        sessionsPurchased={client?.sessions_purchased ?? null}
+        blockExpiryDate={client?.block_expiry_date ?? null}
+        blockExpiryExtensions={client?.block_expiry_extensions ?? []}
+      />
 
       <div className="space-y-3.5">
         {weekGroups.map((group) => {
@@ -271,30 +274,13 @@ export default async function BlockViewPage({
                 </svg>
               </summary>
               <div className="border-t border-[var(--hub-border)]">
-                {group.sessions.map((session) => {
-                  const archetypeName = DEFAULT_ARCHETYPE_FOCUS_LABELS[session.archetype];
-                  const focusLabel = session.data?.focus_label || archetypeName || "—";
-                  const status = sessionStatus(session);
-                  const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
-                  const dayLabel = formatDayLabel(session);
-
-                  return (
-                    <SessionRow
-                      key={session.id}
-                      sessionId={session.id}
-                      archetypeLabel={session.archetype ? `${session.archetype} · ${archetypeName || "Session"}` : "Session"}
-                      archetypeTint={session.archetype ? (archetypeTint[session.archetype] || "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"}
-                      focusLabel={focusLabel}
-                      status={status}
-                      dayLabel={dayLabel}
-                      sessionNumber={session.session_number}
-                      totalSessions={totalSessions}
-                      sessionUrl={sessionUrl}
-                      scheduledAt={session.scheduled_at}
-                      cancelReason={session.cancel_reason}
-                    />
-                  );
-                })}
+                <SessionList
+                  sessions={group.sessions}
+                  totalSessions={totalSessions}
+                  clientId={String(clientId)}
+                  blockId={params.blockId}
+                  archetypeTint={archetypeTint}
+                />
               </div>
             </details>
           );

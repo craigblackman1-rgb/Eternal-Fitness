@@ -2,6 +2,18 @@ import type { ScheduledEntry } from "@/app/hub/(protected)/schedule/ScheduleCale
 
 // --- date/time helpers shared by the day and month schedule views ---
 
+const londonDayFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/London",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Europe/London calendar day key "YYYY-MM-DD" for any ISO timestamp. */
+export function londonDayKey(iso: string): string {
+  return londonDayFmt.format(new Date(iso));
+}
+
 export function todayLocalISODate(): string {
   return toLocalISODate(new Date());
 }
@@ -141,6 +153,30 @@ export function groupSessionsByWeek<T extends { scheduled_at: string | null; wee
     });
 
   return groups;
+}
+
+/**
+ * Derived week label: "Week of 25 Aug" for scheduled sessions,
+ * "Plan week N" for unscheduled ones (CR-EF-032).
+ */
+export function derivedWeekLabel(scheduled_at: string | null, week: number): string {
+  if (!scheduled_at) return `Plan week ${week}`;
+  const monday = isoToMonday(scheduled_at);
+  const d = new Date(monday);
+  return `Week of ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`;
+}
+
+/** Return the Monday–Sunday (7-day) array of Date objects for the week containing
+ *  the given ISO date string. Used by the calendar spine's week view. */
+export function weekDates(isoDate: string): Date[] {
+  const monday = isoToMonday(isoDate);
+  const [y, m, d] = monday.split("-").map(Number);
+  const start = new Date(y, m - 1, d);
+  return Array.from({ length: 7 }, (_, i) => {
+    const dt = new Date(start);
+    dt.setDate(start.getDate() + i);
+    return dt;
+  });
 }
 
 /**

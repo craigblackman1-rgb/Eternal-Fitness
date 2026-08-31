@@ -4,13 +4,15 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { HubCard, HubAlert, EmptyState } from "@/components/hub";
 import { Button } from "@/components/ui/button";
-import { IconCalendar, IconCheck, IconCheckCircle, IconX, IconAlertTriangle, IconClock } from "@/components/icons";
+import { IconCalendar, IconCheck, IconCheckCircle, IconX, IconAlertTriangle, IconClock, IconPlus, IconRefreshCw, IconTrash2 } from "@/components/icons";
 
 interface PendingAction {
   id: string;
   action: string;
   session_id: string;
-  event_id: string;
+  event_id: string | null;
+  calendar_id: string;
+  event_input: { subject: string; bodyHtml: string; startUtc: string; endUtc: string } | null;
   reason: string;
   created_at: string;
   client_name: string;
@@ -33,7 +35,6 @@ function formatWhen(iso: string | null) {
 
 function formatDuration(scheduledAt: string | null) {
   if (!scheduledAt) return "—";
-  // Default 60 min — matches the most common time_tier
   return "60 min";
 }
 
@@ -45,6 +46,62 @@ function queuedAgo(createdAt: string) {
   if (hours < 24) return `Queued ${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `Queued ${days}d ago`;
+}
+
+function actionLabel(action: string) {
+  switch (action) {
+    case "create": return "Create event";
+    case "update": return "Update event";
+    case "delete": return "Delete event";
+    default: return action;
+  }
+}
+
+function actionIcon(action: string) {
+  switch (action) {
+    case "create": return <IconPlus className="h-[17px] w-[17px]" />;
+    case "update": return <IconRefreshCw className="h-[17px] w-[17px]" />;
+    case "delete": return <IconTrash2 className="h-[17px] w-[17px]" />;
+    default: return <IconCalendar className="h-[17px] w-[17px]" />;
+  }
+}
+
+function actionColorClasses(action: string) {
+  switch (action) {
+    case "create":
+      return {
+        bg: "bg-[var(--status-success-bg)]",
+        border: "border-[var(--status-success-border)]",
+        text: "text-[var(--status-success)]",
+      };
+    case "update":
+      return {
+        bg: "bg-[var(--status-info-bg)]",
+        border: "border-[var(--status-info-border)]",
+        text: "text-[var(--status-info)]",
+      };
+    case "delete":
+      return {
+        bg: "bg-[var(--status-danger-bg)]",
+        border: "border-[var(--status-danger-border)]",
+        text: "text-[var(--status-danger)]",
+      };
+    default:
+      return {
+        bg: "bg-[var(--status-neutral-bg)]",
+        border: "border-[var(--hub-border)]",
+        text: "text-muted-foreground",
+      };
+  }
+}
+
+function actionApproveLabel(action: string) {
+  switch (action) {
+    case "create": return "Approve — create event";
+    case "update": return "Approve — update event";
+    case "delete": return "Approve — delete event";
+    default: return "Approve";
+  }
 }
 
 export function CalendarSyncPendingQueue() {
@@ -95,9 +152,9 @@ export function CalendarSyncPendingQueue() {
       }
       const row = rows.find((r) => r.id === actionId);
       if (decision === "approve") {
-        setToast(`Approved — Outlook event for ${row?.client_name ?? "client"} deleted`);
+        setToast(`Approved — ${actionLabel(row?.action ?? "").toLowerCase()} for ${row?.client_name ?? "client"}`);
       } else {
-        setToast(`Rejected — Outlook event for ${row?.client_name ?? "client"} kept as-is`);
+        setToast(`Rejected — ${actionLabel(row?.action ?? "").toLowerCase()} for ${row?.client_name ?? "client"} dropped`);
       }
       setRows((rs) => rs.filter((r) => r.id !== actionId));
     } catch (e) {
@@ -122,7 +179,7 @@ export function CalendarSyncPendingQueue() {
       const n = rows.length;
       setRows([]);
       setShowConfirm(false);
-      setToast(`Approved all — ${n} event${n === 1 ? "" : "s"} permanently deleted`);
+      setToast(`Approved all — ${n} action${n === 1 ? "" : "s"} processed`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -150,9 +207,9 @@ export function CalendarSyncPendingQueue() {
       {/* How this works note */}
       <HubAlert severity="info" title="How this queue works">
         <ul className="list-disc pl-4 space-y-1">
-          <li>When a session is <strong>cancelled</strong> or <strong>unscheduled</strong> in the app, its Outlook calendar event queues here instead of being deleted automatically.</li>
-          <li><strong>Approve</strong> — permanently deletes the real event from Outlook. This can&rsquo;t be undone.</li>
-          <li><strong>Reject</strong> — leaves the Outlook event exactly as it is. Use this if a deletion looks wrong.</li>
+          <li>When <strong>confirm-before-sync</strong> is enabled, every calendar change (create, update, delete) queues here instead of syncing automatically.</li>
+          <li><strong>Approve</strong> — executes the pending Outlook change. Creates and updates push the event to Outlook; deletes remove it permanently.</li>
+          <li><strong>Reject</strong> — drops the pending action. The Outlook calendar stays as-is.</li>
           <li>Nothing in this queue touches Outlook on its own. Every row is your explicit decision.</li>
         </ul>
       </HubAlert>
@@ -181,23 +238,23 @@ export function CalendarSyncPendingQueue() {
         </HubCard>
         <HubCard className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[11px] grid place-items-center bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]">
-              <IconCalendar className="h-5 w-5" />
+            <div className="w-10 h-10 rounded-[11px] grid place-items-center bg-[var(--status-success-bg)] text-[var(--status-success)]">
+              <IconCheck className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Approved this week</p>
-              <p className="text-2xl font-bold text-foreground tabular-nums">0</p>
+              <p className="text-xs text-muted-foreground">Creates</p>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{openRows.filter((r) => r.action === "create").length}</p>
             </div>
           </div>
         </HubCard>
         <HubCard className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[11px] grid place-items-center bg-[var(--status-success-bg)] text-[var(--status-success)]">
-              <IconCheck className="h-5 w-5" />
+            <div className="w-10 h-10 rounded-[11px] grid place-items-center bg-[var(--status-info-bg)] text-[var(--status-info)]">
+              <IconRefreshCw className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Rejected this week</p>
-              <p className="text-2xl font-bold text-foreground tabular-nums">0</p>
+              <p className="text-xs text-muted-foreground">Updates</p>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{openRows.filter((r) => r.action === "update").length}</p>
             </div>
           </div>
         </HubCard>
@@ -207,7 +264,7 @@ export function CalendarSyncPendingQueue() {
       <HubCard padded={false}>
         <div className="flex items-center justify-between px-5 pt-4 pb-3 flex-wrap gap-3">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-foreground">Sessions waiting on a deletion decision</p>
+            <p className="text-sm font-semibold text-foreground">Calendar actions waiting on your review</p>
             <span
               className={
                 "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold " +
@@ -223,7 +280,7 @@ export function CalendarSyncPendingQueue() {
             <Button
               variant="outline"
               size="sm"
-              className="border-[var(--status-danger-border)] text-[var(--status-danger)] font-semibold hover:bg-[var(--status-danger-bg)]"
+              className="border-[var(--status-success-border)] text-[var(--status-success)] font-semibold hover:bg-[var(--status-success-bg)]"
               disabled={busy !== null}
               onClick={() => setShowConfirm(true)}
             >
@@ -240,85 +297,90 @@ export function CalendarSyncPendingQueue() {
             <EmptyState
               icon={<IconCheckCircle className="h-6 w-6" />}
               title="Nothing pending — synced and clean."
-              description="Every calendar deletion has been reviewed. If a session is cancelled or unscheduled, it will queue here automatically before anything leaves Outlook."
+              description="Every calendar action has been reviewed. When confirm-before-sync is enabled, new changes will queue here automatically."
             />
           </div>
         ) : (
           <ul className="divide-y divide-[var(--hub-border)]">
-            {openRows.map((row) => (
-              <li key={row.id} className="px-5 py-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-[38px] h-[38px] rounded-[10px] grid place-items-center shrink-0 bg-[var(--status-danger-bg)] border border-[var(--status-danger-border)] text-[var(--status-danger)]">
-                      <IconCalendar className="h-[17px] w-[17px]" />
+            {openRows.map((row) => {
+              const colors = actionColorClasses(row.action);
+              return (
+                <li key={row.id} className="px-5 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className={`w-[38px] h-[38px] rounded-[10px] grid place-items-center shrink-0 ${colors.bg} border ${colors.border} ${colors.text}`}>
+                        {actionIcon(row.action)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground">
+                          {row.client_name} · <span className="tabular-nums">{formatWhen(row.scheduled_at).split(" ").slice(-2).join(" ")}</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatWhen(row.scheduled_at)} · {formatDuration(row.scheduled_at)} · Session {row.session_number} · Block {row.block_number}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-foreground">
-                        {row.client_name} · <span className="tabular-nums">{formatWhen(row.scheduled_at).split(" ").slice(-2).join(" ")}</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatWhen(row.scheduled_at)} · {formatDuration(row.scheduled_at)} · Session {row.session_number} · Block {row.block_number}
-                      </p>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border ${colors.border} ${colors.bg} px-2.5 py-0.5 text-xs font-semibold ${colors.text}`}>
+                        {actionLabel(row.action)}
+                      </span>
+                      <span className="text-[11.5px] text-muted-foreground whitespace-nowrap">
+                        {queuedAgo(row.created_at)}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1.5">
-                    {row.reason === "Session cancelled" ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-warning)]">
-                        <IconX className="h-3 w-3" />
-                        Session cancelled
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
-                        <IconCalendar className="h-3 w-3" />
-                        Session unscheduled
-                      </span>
-                    )}
-                    <span className="text-[11.5px] text-muted-foreground whitespace-nowrap">
-                      {queuedAgo(row.created_at)}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Deletion target panel */}
-                <div className="mt-3 rounded-xl border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] px-3.5 py-2.5">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--status-danger)] mb-1">
-                    Outlook event to be deleted
-                  </p>
-                  <div className="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 text-sm">
-                    <span className="font-semibold text-foreground">
-                      &ldquo;{row.client_name}&rdquo;
-                    </span>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {formatWhen(row.scheduled_at)}
-                    </span>
+                  {/* Reason panel */}
+                  <div className={`mt-3 rounded-xl border ${colors.border} ${colors.bg} px-3.5 py-2.5`}>
+                    <p className={`text-[11px] font-bold uppercase tracking-wide ${colors.text} mb-1`}>
+                      {row.action === "delete" ? "Outlook event to be deleted" : "Event details"}
+                    </p>
+                    <div className="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 text-sm">
+                      <span className="font-semibold text-foreground">
+                        &ldquo;{row.client_name}&rdquo;
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {formatWhen(row.scheduled_at)}
+                      </span>
+                      {row.event_input && (
+                        <span className="text-xs text-muted-foreground">
+                          {row.event_input.subject}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{row.reason}</p>
                   </div>
-                </div>
 
-                {/* Decision actions */}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <p className="w-full text-xs text-muted-foreground">This event stays in Outlook until you choose.</p>
-                  <Button
-                    size="sm"
-                    className="bg-[var(--status-danger)] text-white hover:bg-[var(--status-danger)]/90"
-                    disabled={busy !== null}
-                    onClick={() => act(row.id, "approve")}
-                  >
-                    <IconCheck className="h-3.5 w-3.5" />
-                    Approve — delete event
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={busy !== null}
-                    onClick={() => act(row.id, "reject")}
-                    title="Leaves the Outlook event exactly as it is"
-                  >
-                    <IconX className="h-3.5 w-3.5" />
-                    Reject — keep event
-                  </Button>
-                </div>
-              </li>
-            ))}
+                  {/* Decision actions */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <p className="w-full text-xs text-muted-foreground">This action stays queued until you choose.</p>
+                    <Button
+                      size="sm"
+                      className={
+                        row.action === "delete"
+                          ? "bg-[var(--status-danger)] text-white hover:bg-[var(--status-danger)]/90"
+                          : "bg-[var(--status-success)] text-white hover:bg-[var(--status-success)]/90"
+                      }
+                      disabled={busy !== null}
+                      onClick={() => act(row.id, "approve")}
+                    >
+                      <IconCheck className="h-3.5 w-3.5" />
+                      {actionApproveLabel(row.action)}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={busy !== null}
+                      onClick={() => act(row.id, "reject")}
+                      title="Drops this pending action — nothing changes in Outlook"
+                    >
+                      <IconX className="h-3.5 w-3.5" />
+                      Reject
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
 
@@ -326,7 +388,7 @@ export function CalendarSyncPendingQueue() {
           <span className="text-xs text-muted-foreground">
             {openRows.length === 0
               ? "Nothing waiting on you right now"
-              : "New cancellations and unscheduled sessions are added automatically"}
+              : "New calendar actions are added automatically when confirm-before-sync is enabled"}
           </span>
         </div>
       </HubCard>
@@ -341,7 +403,7 @@ export function CalendarSyncPendingQueue() {
         >
           <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-2xl w-full max-w-[460px] flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
             <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[var(--hub-border)]">
-              <h2 id="confirm-title" className="flex-1 text-[15px] font-bold text-foreground">Approve all pending deletions?</h2>
+              <h2 id="confirm-title" className="flex-1 text-[15px] font-bold text-foreground">Approve all pending actions?</h2>
               <button
                 type="button"
                 className="w-8 h-8 rounded-lg grid place-items-center text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
@@ -353,17 +415,18 @@ export function CalendarSyncPendingQueue() {
             </div>
             <div className="px-5 pt-4 pb-1">
               <div className="flex gap-3 items-start">
-                <div className="w-9 h-9 rounded-[10px] grid place-items-center shrink-0 bg-[var(--status-danger-bg)] text-[var(--status-danger)]">
+                <div className="w-9 h-9 rounded-[10px] grid place-items-center shrink-0 bg-[var(--status-success-bg)] text-[var(--status-success)]">
                   <IconAlertTriangle className="h-[18px] w-[18px]" />
                 </div>
                 <div>
                   <p className="text-[13.5px] leading-relaxed text-body">
-                    This will permanently delete <strong>{openRows.length}</strong> real Outlook calendar event{openRows.length === 1 ? "" : "s"}. This can&rsquo;t be undone.
+                    This will process <strong>{openRows.length}</strong> pending calendar action{openRows.length === 1 ? "" : "s"}.
+                    {openRows.some((r) => r.action === "delete") && " Delete actions permanently remove Outlook events and can't be undone."}
                   </p>
                   <ul className="mt-2 pl-4 text-xs text-muted-foreground max-h-[130px] overflow-y-auto list-disc space-y-0.5">
                     {openRows.map((r) => (
                       <li key={r.id}>
-                        {r.client_name} — &ldquo;{r.client_name}&rdquo; · {formatWhen(r.scheduled_at)}
+                        {actionLabel(r.action)} — {r.client_name} · {formatWhen(r.scheduled_at)}
                       </li>
                     ))}
                   </ul>
@@ -375,12 +438,12 @@ export function CalendarSyncPendingQueue() {
                 Cancel
               </Button>
               <Button
-                className="bg-[var(--status-danger)] text-white hover:bg-[var(--status-danger)]/90"
+                className="bg-[var(--status-success)] text-white hover:bg-[var(--status-success)]/90"
                 disabled={busy !== null}
                 onClick={approveAll}
               >
                 <IconCheck className="h-3.5 w-3.5" />
-                Yes, delete {openRows.length} event{openRows.length === 1 ? "" : "s"}
+                Yes, approve {openRows.length} action{openRows.length === 1 ? "" : "s"}
               </Button>
             </div>
           </div>

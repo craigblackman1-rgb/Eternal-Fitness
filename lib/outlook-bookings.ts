@@ -31,7 +31,8 @@ import { getIntegrationStatus, graphConfigured, listCalendarView, GraphReconnect
 const WINDOW_PAST_MS = 24 * 60 * 60 * 1000; // matches calendar-sync.ts's sync window
 const WINDOW_FUTURE_MS = 60 * 24 * 60 * 60 * 1000;
 
-const SUBJECT_NAME_RE = /^(?:Personal Training|Initial consult)\s*-\s*(.+)$/i;
+// Mirror: scripts/populate-outlook-bookings-once.mjs
+const SUBJECT_NAME_RE = /^(?:Online\s+)?(?:Personal Training|Initial consult)\s*-\s*(.+)$/i;
 
 export function parseClientNameFromSubject(subject: string): string | null {
   const m = subject.trim().match(SUBJECT_NAME_RE);
@@ -417,8 +418,20 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
           );
           result.autoConfirmed++;
         } catch (err) {
-          // Never let an auto-confirm failure break the sync loop or the
-          // booking's visibility — it just stays 'open' for manual handling.
+          // If the block is full (18 sessions), resolve the booking as
+          // 'blocked' so the 15-min cron doesn't retry it every tick.
+          // Other errors stay 'open' for manual handling.
+          const isFull = err instanceof Error && err.message.includes("maximum of 18 sessions");
+          if (isFull) {
+            await db
+              .from("outlook_booking_events")
+              .update({
+                status: "blocked",
+                resolved_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", bookingId);
+          }
           console.error(`Outlook booking auto-confirm failed for ${bookingId}:`, err);
         }
       }

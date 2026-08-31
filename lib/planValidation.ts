@@ -1,4 +1,4 @@
-import type { Session, Exercise } from "@/types";
+import type { Session, Exercise, SessionVersion } from "@/types";
 import {
   exerciseMuscleGroups,
   type ExerciseLibraryRow,
@@ -213,4 +213,34 @@ export function validateGeneratedSession(
     ...validateSession(session, index, studioEquipmentNames),
     ...validateSessionCoverage(session, index, split),
   ];
+}
+
+/**
+ * Overwrites model-emitted equipment arrays with the exercise library's
+ * canonical equipment for every exercise whose name matches a library row.
+ * Genuinely unmatched exercises (not in the library) keep the model's
+ * equipment as emitted. Mutates the session in place and returns it for
+ * chaining.
+ */
+export function copyBackLibraryEquipment(
+  session: Session,
+  index: ExerciseIndex,
+): Session {
+  const versions = session.versions;
+  if (!versions) return session;
+  const fill = (exercises: Exercise[]): Exercise[] =>
+    exercises.map((ex) => {
+      const row = findLibraryExercise(index, ex.exercise_name);
+      if (row && row.equipment && row.equipment.length > 0) {
+        return { ...ex, equipment: row.equipment };
+      }
+      return ex;
+    });
+  const fillVersion = (v: SessionVersion | undefined): SessionVersion | undefined =>
+    v ? { warm_up: fill(v.warm_up), main_block: fill(v.main_block), cooldown: fill(v.cooldown) } : v;
+  session.versions = {
+    studio: fillVersion(versions.studio),
+    home: fillVersion(versions.home),
+  };
+  return session;
 }

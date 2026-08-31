@@ -61,6 +61,7 @@ export interface PortalSessionPlan {
   id: string;
   session_number: number;
   week: number;
+  scheduled_at: string | null;
   phase: string;
   focus_label: string;
   archetype: string;
@@ -149,15 +150,25 @@ export class PortalDataClient {
     const block = (blocks ?? [])[0] as { id: string; block_number: number; status: string } | undefined;
     if (!block) return null;
 
+    // Fetch the profile-level client_intro (Esther-written) to use as fallback
+    // when session-level client_intro is empty (CR-EF-061).
+    const { data: profileRow } = await pg
+      .from("clients")
+      .select("profile")
+      .eq("id", this.clientId)
+      .single();
+    const profileClientIntro = (profileRow as any)?.profile?.notes?.client_intro ?? "";
+
     const { data: sessionRows } = await pg
       .from("sessions")
-      .select("id, session_number, week, phase, data")
+      .select("id, session_number, week, scheduled_at, phase, data")
       .eq("block_id", block.id)
       .order("session_number", { ascending: true });
     const rows = (sessionRows ?? []) as {
       id: string;
       session_number: number;
       week: number;
+      scheduled_at: string | null;
       phase: string;
       data: Session;
     }[];
@@ -215,10 +226,11 @@ export class PortalDataClient {
         id: row.id,
         session_number: row.session_number,
         week: row.week,
+        scheduled_at: row.scheduled_at ?? null,
         phase: row.phase,
         focus_label: row.data?.focus_label ?? "",
         archetype: row.data?.archetype ?? "",
-        client_intro: row.data?.client_intro ?? "",
+        client_intro: row.data?.client_intro || profileClientIntro,
         completed_at: row.data?.session_log?.completed_at ?? null,
         warm_up: (home?.warm_up ?? []).map(toPortalExercise),
         main_block: (home?.main_block ?? []).map(toPortalExercise),

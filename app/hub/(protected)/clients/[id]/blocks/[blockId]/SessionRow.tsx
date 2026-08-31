@@ -25,6 +25,10 @@ interface SessionRowProps {
   sessionUrl: string;
   scheduledAt: string | null;
   cancelReason: string | null;
+  /** CR-EF-099 — structured flag: 'charged' = consumed a session, 'free' = did not. */
+  chargedFree?: "charged" | "free" | null;
+  isEmpty: boolean;
+  onAssignWorkout: (sessionId: string) => void;
 }
 
 /**
@@ -45,6 +49,9 @@ export function SessionRow({
   sessionUrl,
   scheduledAt,
   cancelReason,
+  chargedFree,
+  isEmpty,
+  onAssignWorkout,
 }: SessionRowProps) {
   const router = useRouter();
   const [rescheduling, setRescheduling] = useState(false);
@@ -128,12 +135,22 @@ export function SessionRow({
             )}
             {status === "planned" && (
               <>
-                <Link
-                  href={`${sessionUrl}?edit=1`}
-                  className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-                >
-                  Edit
-                </Link>
+                {isEmpty ? (
+                  <button
+                    type="button"
+                    onClick={() => onAssignWorkout(sessionId)}
+                    className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                  >
+                    Assign workout
+                  </button>
+                ) : (
+                  <Link
+                    href={`${sessionUrl}?edit=1`}
+                    className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                  >
+                    Edit
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={startReschedule}
@@ -164,8 +181,20 @@ export function SessionRow({
         </div>
       </div>
 
-      {status === "cancelled" && cancelReason && (
-        <div className="px-4 pb-3 text-xs text-muted-foreground">Cancelled — {cancelReason}</div>
+      {status === "cancelled" && (
+        <div className="px-4 pb-3 text-xs text-muted-foreground">
+          {chargedFree === "charged" && (
+            <span className="inline-flex items-center rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
+              Charged
+            </span>
+          )}
+          {chargedFree === "free" && (
+            <span className="inline-flex items-center rounded-full bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
+              Free
+            </span>
+          )}
+          Cancelled{cancelReason ? ` — ${cancelReason}` : ""}
+        </div>
       )}
 
       {rescheduling && (

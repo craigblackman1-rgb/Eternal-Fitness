@@ -5,27 +5,25 @@ import { sessionDurationMinutes } from "@/lib/scheduling";
 import { deriveSessionStatus } from "@/lib/session-status";
 import type { Session, TimeTier } from "@/types";
 import type { ScheduledEntry } from "./ScheduleCalendar";
+import type { UnconfirmedBooking } from "./ScheduleCalendar";
 import { ScheduleShell } from "./ScheduleShell";
 
 /**
- * Studio-wide calendar (Lane D2). Shows every client's scheduled sessions
- * across the whole studio — a session is "on the calendar" when
- * `scheduled_at IS NOT NULL`. Cancelled sessions are included here but hidden
- * by default behind each view's "Show cancelled" toggle, matching
- * hub-schedule.html / hub-schedule-month.html (they stay visible/undo-able in
- * the per-block scheduler too).
+ * CR-EF-037 — Studio-wide calendar with unified session state model.
  *
- * This is a separate, studio-wide view distinct from the per-block
- * BlockScheduler on the block review page.
+ * Fetches:
+ * 1. Scheduled sessions (scheduled_at IS NOT NULL) — for the time grid
+ * 2. Planned sessions (status = 'planned', no scheduled_at) — for the planned strip
+ * 3. Unconfirmed Outlook bookings — for the triage queue
  *
- * The join sessions → blocks → clients is done in three queries and stitched
- * in JS because the pg-client shim only supports single-level to-one embeds.
- * Scheduling data is sparse (brand-new capability), so fetching all scheduled
- * sessions and paging by day client-side is cheap and keeps prev/next snappy.
+ * The planned strip deliberately sits ABOVE the grid. Putting an undated session
+ * onto a date is exactly how the original inference bug started — never place a
+ * planned session in the grid.
  */
 export default async function SchedulePage() {
   const supabase = createClient();
 
+  // 1. Scheduled sessions (on the calendar)
   const { data: sessionRows } = await supabase
     .from("sessions")
     .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, cancel_reason, status, completed_at")
@@ -45,17 +43,34 @@ export default async function SchedulePage() {
     completed_at: string | null;
   }> = sessionRows ?? [];
 
-  // Resolve blocks → clients for the sessions we have.
-  const blockIds = [...new Set(sessions.map((s) => s.block_id).filter(Boolean))];
-  const { data: blockRows } = blockIds.length
-    ? await supabase.from("blocks").select("id, client_id, block_number").in("id", blockIds)
+  // 2. Planned sessions (no date, above the grid)
+  const { data: plannedRows } = await supabase
+    .from("sessions")
+    .select("id, block_id, session_number, archetype, data, status")
+    .eq("status", "planned")
+    .is("scheduled_at", null)
+    .order("session_number", { ascending: true });
+
+  const plannedSessions: Array<{
+    id: string;
+    block_id: string;
+    session_number: number;
+    archetype: string;
+    data: Session | null;
+    status: string | null;
+  }> = plannedRows ?? [];
+
+  // Resolve blocks → clients for all sessions
+  const allBlockIds = [...new Set([...sessions.map((s) => s.block_id), ...plannedSessions.map((s) => s.block_id)].filter(Boolean))];
+  const { data: blockRows } = allBlockIds.length
+    ? await supabase.from("blocks").select("id, client_id, block_number").in("id", allBlockIds)
     : { data: [] as { id: string; client_id: string; block_number: number }[] };
   const blocks = blockRows ?? [];
   const blockById = new Map(blocks.map((b) => [b.id, b]));
 
-  const clientIds = [...new Set(blocks.map((b) => b.client_id).filter(Boolean))];
-  const { data: clientRows } = clientIds.length
-    ? await supabase.from("clients").select("id, name, client_number").in("id", clientIds)
+  const allClientIds = [...new Set(blocks.map((b) => b.client_id).filter(Boolean))];
+  const { data: clientRows } = allClientIds.length
+    ? await supabase.from("clients").select("id, name, client_number").in("id", allClientIds)
     : { data: [] as { id: string; name: string; client_number: number | null }[] };
   const clients = clientRows ?? [];
   const clientById = new Map(clients.map((c) => [c.id, c]));
@@ -84,17 +99,46 @@ export default async function SchedulePage() {
           scheduled_at: s.scheduled_at,
           session_log: s.data?.session_log,
         }),
+        completedAt: s.completed_at ?? null,
+        cancelledAt: s.cancelled_at ?? null,
         cancelReason: s.cancel_reason ?? null,
       };
     });
 
+  const plannedEntries = plannedSessions.map((s) => {
+    const block = blockById.get(s.block_id);
+    const client = block ? clientById.get(block.client_id) : undefined;
+    const timeTier = (s.data?.time_tier ?? null) as TimeTier | null;
+    return {
+      id: s.id,
+      clientName: client?.name ?? "Unknown client",
+      clientNumber: client?.client_number ?? null,
+      blockId: block?.id ?? null,
+      blockNumber: block?.block_number ?? null,
+      sessionNumber: s.session_number,
+      archetype: s.archetype,
+      durationMinutes: sessionDurationMinutes(timeTier),
+    };
+  });
+
+  // Unconfirmed Outlook bookings for the triage queue
+  const { data: outlookRows } = await supabase
+    .from("outlook_booking_events")
+    .select("id, subject, parsed_name, start_at, end_at, client_id")
+    .eq("status", "open")
+    .order("start_at", { ascending: true });
+
+  const unconfirmedBookings: Array<{
+    id: string;
+    subject: string | null;
+    parsed_name: string | null;
+    start_at: string;
+    end_at: string;
+    client_id: string | null;
+  }> = outlookRows ?? [];
+
   return (
     <div className="space-y-6">
-      {/* Craig's 2026-08-18 call: give this page the same cross-navigation
-          shortcuts as dashboard/client record/block module rather than
-          leaving it as the one surface with none — supersedes the prior
-          "no genuine quick actions here" read. Day/month toggle and
-          cancelled-visibility stay inside ScheduleShell, untouched. */}
       <HubQuickActions
         variant="bar"
         actions={[
@@ -105,9 +149,13 @@ export default async function SchedulePage() {
       />
       <HubPageHeader
         title="Studio schedule"
-        subtitle="Every booked session across the studio, colour-coded by its lifecycle state — from planned through completed."
+        subtitle="The single source of truth for what is happening when. Every session carries a first-class state and real timestamps, so a booking can no longer read Completed on a date it was never delivered."
       />
-      <ScheduleShell entries={entries} />
+      <ScheduleShell
+        entries={entries}
+        unconfirmedBookings={unconfirmedBookings}
+        plannedEntries={plannedEntries}
+      />
     </div>
   );
 }

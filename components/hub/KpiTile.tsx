@@ -26,7 +26,7 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
   const interactive = typeof onClick === "function";
 
   const classes = cn(
-    "bg-[var(--hub-card)] rounded-[16px] border p-4 flex items-center gap-3.5 shadow-sm",
+    "bg-[var(--hub-card)] border p-4 flex items-center gap-3.5 shadow-sm",
     interactive && "text-left font-[inherit] cursor-pointer transition-colors hover:bg-[var(--hub-hover)] hover:border-[var(--hub-field-border)]",
     active ? "border-[var(--color-rose)] shadow-[0_0_0_3px_rgba(193,131,159,.15)]" : "border-[var(--hub-border)]",
     className,
@@ -34,7 +34,7 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
 
   const content = (
     <>
-      <div className={cn("w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0", c.bg, c.text)}>
+      <div className={cn("w-11 h-11 flex items-center justify-center shrink-0", c.bg, c.text)} style={{ borderRadius: "var(--r-control)" }}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -58,11 +58,11 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
 
   if (interactive) {
     return (
-      <button type="button" onClick={onClick} aria-pressed={active} className={classes}>
+      <button type="button" onClick={onClick} aria-pressed={active} className={classes} style={{ borderRadius: "var(--r-surface)" }}>
         {content}
       </button>
     );
   }
 
-  return <div className={classes}>{content}</div>;
+  return <div className={classes} style={{ borderRadius: "var(--r-surface)" }}>{content}</div>;
 }

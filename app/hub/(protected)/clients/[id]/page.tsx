@@ -29,6 +29,7 @@ import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
 import { ExerciseHistoryPanel } from "@/components/progress/ExerciseHistoryPanel";
 import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
 import { buildExerciseHistory } from "@/lib/exercise-history";
+import { aggregateExerciseNotes } from "@/lib/exercise-notes";
 import { getLastClientLogAt } from "@/lib/progress-db";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
@@ -185,6 +186,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   ];
   const exerciseTrends = buildExerciseTrends(combinedSetLogs, trendSessionMeta);
   const exerciseHistory = buildExerciseHistory(combinedSetLogs);
+  const exerciseNotes = aggregateExerciseNotes(sessions ?? []);
 
   const isHomeTraining = client.delivery_mode === "home_training";
   const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
@@ -236,10 +238,10 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // taking sessions[0] — array order now follows scheduled_at (see the query
   // above), so an upcoming future session could otherwise sort first and this
   // would silently pick up a session with no log at all.
-  const completedSessions = (sessions ?? []).filter((s: any) => s.data?.session_log?.completed_at);
+  const completedSessions = (sessions ?? []).filter((s: any) => s.completed_at);
   const latestCompletedSession = completedSessions.length > 0
     ? completedSessions.reduce((latest: any, s: any) =>
-        new Date(s.data.session_log.completed_at) > new Date(latest.data.session_log.completed_at) ? s : latest,
+        new Date(s.completed_at) > new Date(latest.completed_at) ? s : latest,
       )
     : null;
   const latestSessionLog = latestCompletedSession?.data?.session_log ?? null;
@@ -248,7 +250,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // not just "Block N". Prefer the next upcoming (not-yet-completed) session in
   // the active block, falling back to the most recently completed one.
   const sessionIsCompleted = (s: any) =>
-    s.status === "completed" || !!s.completed_at || !!s.data?.session_log?.completed_at;
+    s.status === "completed" || !!s.completed_at;
   const nextSession = (() => {
     const blockSessions = (sessions ?? []).filter((s: any) => s.block_id === latestBlock?.id);
     return (
@@ -495,7 +497,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
         </HubTabsList>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] mt-6">
+        <div className="hub-layout mt-6">
           <div className="space-y-5">
             <TabsContent value="overview">
               <ClientBookingPanel clientId={client.id} clientName={client.name} />
@@ -572,14 +574,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 color="slate"
               >
                 <div className="px-5 pt-4 pb-4">
-                  {latestSessionLog ? (
+                  {latestCompletedSession?.completed_at ? (
                     <HubDataGrid cols={3}>
                       <HubDataField label="Completed">
-                        {new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        {new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </HubDataField>
                       <HubDataField label="Duration">{formatSessionDuration(client.session_duration ?? null)}</HubDataField>
                       <HubDataField label="Format">{formatDeliveryMode(client.delivery_mode)}</HubDataField>
-                      {latestSessionLog.notes && (
+                      {latestSessionLog?.notes && (
                         <HubDataField label="Notes" span>{latestSessionLog.notes}</HubDataField>
                       )}
                     </HubDataGrid>
@@ -589,7 +591,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </div>
               </HubAccordionSection>
 
-              <ClientNotesPanel clientId={client.id} />
+              <ClientNotesPanel clientId={client.id} exerciseNotes={exerciseNotes} />
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
                 <HubAccordionSection
@@ -650,8 +652,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       )}
                       <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
                       <HubDataField label="Last check-in">
-                        {latestSessionLog?.completed_at
-                          ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                        {latestCompletedSession?.completed_at
+                          ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                           : "—"}
                       </HubDataField>
                     </HubDataGrid>
@@ -845,9 +847,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </HubAccordionSection>
                 )}
 
-                {(p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
+                {(p?.notes?.client_intro || p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
                   <HubAccordionSection icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="neutral">
                     <div className="px-5 pt-4 pb-4 space-y-3">
+                      {p.notes.client_intro && (
+                        <div>
+                          <span className="text-xs text-muted-foreground block mb-0.5">Client intro</span>
+                          <p className="text-foreground text-sm italic">{p.notes.client_intro}</p>
+                        </div>
+                      )}
                       {p.notes.esther_observations && (
                         <div>
                           <span className="text-xs text-muted-foreground block mb-0.5">Observations</span>
@@ -1012,8 +1020,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <HubDataField label="Sessions logged">{sessions?.length ?? 0}</HubDataField>
                     <HubDataField label="Pace mode"><span className="capitalize">{client.pace_mode ?? "—"}</span></HubDataField>
                     <HubDataField label="Last session">
-                      {latestSessionLog?.completed_at
-                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                      {latestCompletedSession?.completed_at
+                        ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                         : "—"}
                     </HubDataField>
                   </HubDataGrid>
@@ -1055,7 +1063,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             </TabsContent>
           </div>
 
-          <div>{rightRail}</div>
+          <aside className="hub-rail">{rightRail}</aside>
         </div>
       </ClientDetailTabs>
     </div>

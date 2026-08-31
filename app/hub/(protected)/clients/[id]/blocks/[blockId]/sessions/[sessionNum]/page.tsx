@@ -12,9 +12,12 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import type { DBSession, SessionLog, SessionVersion, SetLog } from "@/types";
+import type { DBSession, SessionLog, SessionVersion, SetLog, Exercise } from "@/types";
+import type { Band } from "@/lib/bands";
+import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
+import { WorkoutLog } from "@/components/workout/WorkoutLog";
 import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";
 import {
   isoToLocalDate,
@@ -22,13 +25,14 @@ import {
   localPartsToISO,
   todayLocalISODate,
 } from "@/lib/schedule-dates";
+import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 
 // Minimal shape of the client record this header needs — the GET /api/clients/[id]
 // response returns the full client, but only these fields feed the subtitle line.
 type ClientHeader = {
   id?: string | null;
   name?: string | null;
-  profile?: { health?: { conditions?: string[] } } | null;
+  profile?: { health?: { conditions?: string[] }; notes?: { client_intro?: string } } | null;
   session_duration?: number | null;
 };
 
@@ -47,6 +51,9 @@ export default function SessionViewPage({
   // Client's best-ever weight per exercise (from personal_records) — prefills a set's
   // weight field when this session has no log for it yet, so weight carries forward.
   const [bestWeights, setBestWeights] = useState<Record<string, number>>({});
+  // CR-EF-010: last session data for prefill + PB metadata for header chips.
+  const [lastSessionData, setLastSessionData] = useState<Record<string, LastSessionPrefill>>({});
+  const [pbDates, setPbDates] = useState<Record<string, PbMetadata>>({});
   // Client record for the header subtitle (name / condition / session duration) —
   // this page previously never fetched the client at all (CR-EF-062).
   const [client, setClient] = useState<ClientHeader | null>(null);
@@ -65,22 +72,56 @@ export default function SessionViewPage({
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [scheduling, setScheduling] = useState(false);
+  // Equipment backfill: fetch the exercise library once and derive equipment
+  // for prescriptions that arrive with empty equipment arrays (e.g. from
+  // stripEquipment on home-version creation, or AI plan generation).
+  const [equipmentByName, setEquipmentByName] = useState<Map<string, string[]>>(new Map());
+  // CR-EF-014: active bands for the colour picker.
+  const [bands, setBands] = useState<Band[]>([]);
+
+  useEffect(() => {
+    fetch("/api/exercises")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const library = (await res.json()) as ExerciseEntry[];
+        const map = new Map<string, string[]>();
+        for (const entry of library) {
+          const key = entry.name.toLowerCase();
+          if (entry.equipment && entry.equipment.length > 0 && !map.has(key)) map.set(key, entry.equipment);
+        }
+        setEquipmentByName(map);
+      })
+      .catch(() => {});
+    // CR-EF-014: fetch active bands for the colour picker.
+    fetch("/api/bands")
+      .then(async (res) => {
+        if (!res.ok) return;
+        setBands(await res.json());
+      })
+      .catch(() => {});
+  }, []);
 
   const sessionNum = parseInt(params.sessionNum);
 
   useEffect(() => {
     async function load() {
-      const [sessionRes, countRes, bestWeightsRes, clientRes] = await Promise.all([
+      const [sessionRes, countRes, bestWeightsRes, clientRes, lastSessionRes] = await Promise.all([
         fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
         fetch(`/api/blocks/${params.blockId}/sessions?count=true`),
         fetch(`/api/clients/${params.id}/best-weights`),
         fetch(`/api/clients/${params.id}`),
+        fetch(`/api/clients/${params.id}/last-session-data`),
       ]);
       if (clientRes.ok) {
         setClient(await clientRes.json());
       }
       if (bestWeightsRes.ok) {
         setBestWeights(await bestWeightsRes.json());
+      }
+      if (lastSessionRes.ok) {
+        const lsData = await lastSessionRes.json();
+        setLastSessionData(lsData.lastSession ?? {});
+        setPbDates(lsData.pbDates ?? {});
       }
       if (sessionRes.ok) {
         const data = await sessionRes.json();
@@ -186,6 +227,33 @@ export default function SessionViewPage({
       ),
     [session?.data?.versions, activeTab],
   );
+
+  // Backfill equipment from the exercise library into the session data so
+  // SessionWorkoutLog sees correct equipment for band detection / unit defaults.
+  const backfilledSession = useMemo(() => {
+    if (!session || equipmentByName.size === 0) return session;
+    const fill = (exercises: Exercise[]): Exercise[] =>
+      exercises.map((ex) => {
+        if (ex.equipment && ex.equipment.length > 0) return ex;
+        const name = (ex.exercise_name ?? "").toLowerCase();
+        const libEquip = equipmentByName.get(name);
+        return libEquip ? { ...ex, equipment: libEquip } : ex;
+      });
+    const versions = session.data?.versions;
+    if (!versions) return session;
+    const fillVersion = (v: SessionVersion | undefined): SessionVersion | undefined =>
+      v ? { warm_up: fill(v.warm_up), main_block: fill(v.main_block), cooldown: fill(v.cooldown) } : v;
+    return {
+      ...session,
+      data: {
+        ...session.data,
+        versions: {
+          studio: fillVersion(versions.studio),
+          home: fillVersion(versions.home),
+        },
+      },
+    };
+  }, [session, equipmentByName]);
 
   const handleReopen = async () => {
     if (!session) return;
@@ -440,11 +508,11 @@ export default function SessionViewPage({
         </div>
       )}
 
-      {session.data?.client_intro && (
+      {(client?.profile?.notes?.client_intro || session.data?.client_intro) && (
         <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-[16px]">
           <CardContent className="pt-4">
             <p className="text-sm italic text-muted-foreground">Client intro</p>
-            <p className="mt-1">{session.data.client_intro}</p>
+            <p className="mt-1">{client?.profile?.notes?.client_intro || session.data?.client_intro}</p>
           </CardContent>
         </Card>
       )}
@@ -527,15 +595,18 @@ export default function SessionViewPage({
             onCancel={() => setMode("log")}
           />
         ) : (
-          <SessionWorkoutLog
+          <WorkoutLog
             sessionId={session.id}
             sessionNumber={sessionNum}
             version={activeTab}
-            data={session.data}
+            data={backfilledSession?.data ?? null}
             sessionLog={currentLog ?? null}
             setLogs={setLogsArray}
             bestWeights={bestWeights}
+            lastSessionData={lastSessionData}
+            pbDates={pbDates}
             onSessionLogChange={handleSessionLogChange}
+            bands={bands}
           />
         )}
       </div>

@@ -163,6 +163,11 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
             <ReadField label="Package" value={initial.package_type ?? "—"} />
             <ReadField label="Sessions" value={initial.sessions_purchased != null ? `${initial.sessions_used ?? 0} used · ${initial.sessions_remaining ?? initial.sessions_purchased} left of ${initial.sessions_purchased}` : "—"} />
+            {initial.sessions_purchased != null && (
+              <span className="text-[10px] text-muted-foreground col-span-full -mt-2">
+                Values shown are manual overrides. The block page shows the derived pot counter from actual session outcomes.
+              </span>
+            )}
             <ReadField label="Session length" value={initial.session_duration ? `${initial.session_duration} min` : "—"} />
             <ReadField label="Block expiry" value={formatDate(initial.block_expiry_date)} />
             <ReadField label="Payment method" value={initial.payment_method ?? "—"} />
