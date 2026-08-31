@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/types";
 import type { Band } from "@/lib/bands";
 import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
-import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
+import { computeGroups, nextGroupLabel, checkSupersetSetCounts } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
@@ -377,6 +377,20 @@ export function TrainScreen({
   // change only lives in memory and silently reverts on the next page load,
   // even though any set_logs rows already saved against it stay in the DB.
   const persistPrescription = useCallback(() => {
+    // CR-EF-121 — warn on superset set-count drift before persisting
+    for (const sec of SECTION_DEFS) {
+      const list = sections[sec.key] || [];
+      if (list.length < 2) continue;
+      const warnings = checkSupersetSetCounts(list);
+      for (const w of warnings) {
+        const detail = w.exercises.map((e) => `${e.name} (${e.sets})`).join(", ");
+        toast.warning(
+          `Superset ${w.label} in ${sec.label}: exercises have ${w.maxSets} rounds but some are set to fewer sets — later rounds will be incomplete. (${detail})`,
+          { duration: 8000 },
+        );
+      }
+    }
+
     const d = dataRef.current;
     if (!d) return;
     fetch(`/api/sessions/${sessionId}`, {

@@ -75,3 +75,38 @@ export function nextGroupLabel<T extends { group_label?: string | null }>(
   }
   return `Superset ${maxN + 1}`;
 }
+
+// CR-EF-121 — Detect supersets with inconsistent set counts.
+// Returns warnings for each superset group where exercises have different `sets` values.
+export interface SupersetSetWarning {
+  label: string;
+  maxSets: number;
+  exercises: { name: string; sets: number }[];
+}
+
+export function checkSupersetSetCounts<T extends { group_label?: string | null; sets?: number; exercise_name?: string }>(
+  list: T[],
+): SupersetSetWarning[] {
+  const groups = computeGroups(list);
+  const warnings: SupersetSetWarning[] = [];
+
+  for (const g of groups) {
+    if (g.type !== "group") continue;
+    const setCounts = g.items.map((ex) => Math.max(1, (ex as { sets?: number }).sets ?? 1));
+    const maxSets = Math.max(...setCounts);
+    const hasInconsistent = setCounts.some((s) => s !== maxSets);
+
+    if (hasInconsistent) {
+      warnings.push({
+        label: g.label ?? "Unknown",
+        maxSets,
+        exercises: g.items.map((ex, i) => ({
+          name: (ex as { exercise_name?: string }).exercise_name ?? `Exercise ${i + 1}`,
+          sets: setCounts[i],
+        })),
+      });
+    }
+  }
+
+  return warnings;
+}
