@@ -52,21 +52,22 @@ export default async function PortalSessionsPage() {
     completed_at: string | null;
     session_number: number;
     data: { focus_label?: string } | null;
+    parent_session_id: string | null;
   }> = [];
 
   if (blockRows) {
     const { data: sessionRows } = await supabase
       .from("sessions")
-      .select("id, status, charged_free, cancelled_at, scheduled_at, completed_at, session_number, data")
+      .select("id, status, charged_free, cancelled_at, scheduled_at, completed_at, session_number, data, parent_session_id")
       .eq("block_id", blockRows.id)
       .order("scheduled_at", { ascending: true, nullsLast: true });
 
     sessions = sessionRows ?? [];
   }
 
-  // Derive pot
+  // Derive pot — CR-EF-101: sub-sessions (parent_session_id) excluded automatically
   const pot = deriveSessionPot(
-    sessions as Pick<DBSession, "status" | "charged_free" | "cancelled_at">[],
+    sessions as Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id">[],
     clientExtra?.sessions_purchased
   );
 

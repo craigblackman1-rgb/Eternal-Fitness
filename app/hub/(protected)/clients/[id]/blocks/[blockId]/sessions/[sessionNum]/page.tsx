@@ -107,7 +107,7 @@ export default function SessionViewPage({
     async function load() {
       const [sessionRes, countRes, bestWeightsRes, clientRes, lastSessionRes] = await Promise.all([
         fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
-        fetch(`/api/blocks/${params.blockId}/sessions?count=true`),
+        fetch(`/api/blocks/${params.blockId}/sessions?count=true&pot_only=true`),
         fetch(`/api/clients/${params.id}/best-weights`),
         fetch(`/api/clients/${params.id}`),
         fetch(`/api/clients/${params.id}/last-session-data`),

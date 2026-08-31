@@ -9,13 +9,19 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
   const { searchParams } = new URL(request.url);
   const countOnly = searchParams.get("count") === "true";
+  const potOnly = searchParams.get("pot_only") === "true";
   const sessionNumber = searchParams.get("session_number");
 
   if (countOnly) {
-    const { count, error } = await supabase
+    // CR-EF-101 — when pot_only, count only sessions where parent_session_id IS NULL
+    let query = supabase
       .from("sessions")
       .select("*", { count: "exact", head: true })
       .eq("block_id", params.id);
+    if (potOnly) {
+      query = query.is("parent_session_id", null);
+    }
+    const { count, error } = await query;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ count });
   }
@@ -43,12 +49,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { template_id, week, archetype, focus_label, scheduled_at } = body as {
+  const { template_id, week, archetype, focus_label, scheduled_at, parent_session_id } = body as {
     template_id?: string;
     week?: number;
     archetype?: string;
     focus_label?: string;
     scheduled_at?: string;
+    parent_session_id?: string;
   };
 
   const { data: block, error: blockError } = await supabase
@@ -175,6 +182,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     data: sessionData,
   };
   if (scheduled_at) insertPayload.scheduled_at = scheduled_at;
+  // CR-EF-101 — sub-sessions link to parent
+  if (parent_session_id) insertPayload.parent_session_id = parent_session_id;
 
   const { data: created, error: insertError } = await supabase
     .from("sessions")

@@ -58,6 +58,10 @@ export function BlockPoolView({
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [saving, setSaving] = useState(false);
+  // CR-EF-101 — supplementary work dialog state
+  const [supplementaryParentId, setSupplementaryParentId] = useState<string | null>(null);
+  const [supplementaryName, setSupplementaryName] = useState("");
+  const [savingSupplementary, setSavingSupplementary] = useState(false);
 
   const pot = deriveSessionPot(sessions, sessionsPurchased);
   const extended = blockExpiryExtensions.length > 0;
@@ -83,16 +87,27 @@ export function BlockPoolView({
     return { session: s, status, hasWorkout, focusLabel, dayLabel, dayTime };
   });
 
-  // Booked slots = sessions with scheduled_at, sorted chronologically (Outlook owns the dates)
-  const bookedSlots = slotData
-    .filter((s) => s.session.scheduled_at)
-    .sort((a, b) => new Date(a.session.scheduled_at!).getTime() - new Date(b.session.scheduled_at!).getTime());
-  // Unbooked = sessions without scheduled_at
-  const unbookedSessions = slotData.filter((s) => !s.session.scheduled_at);
+  // CR-EF-101 — build a map of parent_id → sub-sessions
+  const subSessionsByParent = new Map<string, SlotData[]>();
+  for (const slot of slotData) {
+    if (slot.session.parent_session_id) {
+      const existing = subSessionsByParent.get(slot.session.parent_session_id) ?? [];
+      existing.push(slot);
+      subSessionsByParent.set(slot.session.parent_session_id, existing);
+    }
+  }
 
-  // Rotation: all non-cancelled, non-completed sessions in order
+  // Booked slots = sessions with scheduled_at, sorted chronologically (Outlook owns the dates)
+  // CR-EF-101 — exclude sub-sessions from the top-level list (they nest under parents)
+  const bookedSlots = slotData
+    .filter((s) => s.session.scheduled_at && !s.session.parent_session_id)
+    .sort((a, b) => new Date(a.session.scheduled_at!).getTime() - new Date(b.session.scheduled_at!).getTime());
+  // Unbooked = sessions without scheduled_at (sub-sessions inherit parent's slot)
+  const unbookedSessions = slotData.filter((s) => !s.session.scheduled_at && !s.session.parent_session_id);
+
+  // Rotation: all non-cancelled, non-completed sessions in order (CR-EF-101: exclude sub-sessions)
   const rotationPool = slotData.filter(
-    (s) => s.status !== "completed" && s.status !== "cancelled",
+    (s) => s.status !== "completed" && s.status !== "cancelled" && !s.session.parent_session_id,
   );
 
   // Strict rotation: the earliest undelivered workout
@@ -145,6 +160,37 @@ export function BlockPoolView({
       }
     }
     return rotationPool.find((s) => !earlierSpoken.has(s.session.id)) ?? null;
+  };
+
+  // CR-EF-101 — create a new supplementary session linked to a parent slot
+  const handleCreateSupplementary = async (parentSession: DBSession) => {
+    if (!supplementaryName.trim()) {
+      toast.error("Name the supplementary work");
+      return;
+    }
+    setSavingSupplementary(true);
+    try {
+      const res = await fetch(`/api/blocks/${blockId}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          focus_label: supplementaryName.trim(),
+          scheduled_at: parentSession.scheduled_at,
+          parent_session_id: parentSession.id,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to create" }));
+        toast.error(err.error || "Failed to create supplementary session");
+        return;
+      }
+      toast.success("Supplementary work added");
+      setSupplementaryParentId(null);
+      setSupplementaryName("");
+      router.refresh();
+    } finally {
+      setSavingSupplementary(false);
+    }
   };
 
   return (
@@ -247,12 +293,14 @@ export function BlockPoolView({
               bookedSlots.map((slot) => {
                 const isSettled = slot.status === "completed" || slot.status === "cancelled";
                 const isToday = slot.session.scheduled_at && isTodayCheck(slot.session.scheduled_at);
+                // CR-EF-101 — sub-sessions nested under this parent
+                const children = subSessionsByParent.get(slot.session.id) ?? [];
 
                 return (
-                  <div
-                    key={slot.session.id}
-                    className={`flex items-center gap-3.5 px-4 py-3 border-b border-[var(--hub-border)] last:border-b-0 hover:bg-[var(--hub-hover)] transition-colors ${isToday ? "bg-rose/5" : ""}`}
-                  >
+                  <div key={slot.session.id}>
+                    <div
+                      className={`flex items-center gap-3.5 px-4 py-3 border-b border-[var(--hub-border)] hover:bg-[var(--hub-hover)] transition-colors ${isToday ? "bg-rose/5" : ""}`}
+                    >
                     {/* When */}
                     <div className="min-w-[104px] shrink-0">
                       <div className={`text-[13px] font-bold ${isSettled ? "text-muted-foreground" : "text-foreground"}`}>
@@ -308,9 +356,61 @@ export function BlockPoolView({
                           >
                             Move
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSupplementaryParentId(slot.session.id)}
+                            className="h-7 rounded-lg text-xs gap-1 text-muted-foreground"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={12} height={12}>
+                              <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            Supplementary
+                          </Button>
                         </>
                       )}
                     </div>
+                    </div>
+
+                    {/* CR-EF-101 — sub-sessions nested under parent */}
+                    {children.length > 0 && (
+                      <div className="border-b border-[var(--hub-border)] last:border-b-0">
+                        {children.map((child) => {
+                          const childStatus = deriveSessionStatus({
+                            status: child.session.status,
+                            cancelled_at: child.session.cancelled_at,
+                            scheduled_at: child.session.scheduled_at,
+                            completed_at: child.session.completed_at,
+                            session_log: child.session.data?.session_log,
+                          });
+                          const childSettled = childStatus === "completed" || childStatus === "cancelled";
+
+                          return (
+                            <div
+                              key={child.session.id}
+                              className="flex items-center gap-3.5 px-4 pl-10 py-2.5 border-b border-[var(--hub-border)] last:border-b-0 hover:bg-[var(--hub-hover)] transition-colors"
+                            >
+                              <div className="min-w-[104px] shrink-0">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={12} height={12} className="shrink-0">
+                                    <path d="M12 5v14M5 12h14" />
+                                  </svg>
+                                  Supplementary
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className={`text-[13px] font-semibold ${childSettled ? "text-muted-foreground" : "text-foreground"} truncate`}>
+                                  {child.focusLabel}
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <SessionStatusPill status={childStatus} />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -333,14 +433,50 @@ export function BlockPoolView({
                       <div className="text-[13px] font-semibold text-body">{slot.focusLabel}</div>
                       <div className="text-[11.5px] text-muted-foreground">Not yet booked</div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startReschedule(slot.session)}
-                      className="h-7 rounded-lg text-xs gap-1"
-                    >
-                      Book
-                    </Button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* CR-EF-101 — Link to slot as supplementary */}
+                      {bookedSlots.length > 0 && (
+                        <select
+                          className="h-7 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-muted-foreground focus:outline-none focus:border-rose"
+                          value=""
+                          onChange={async (e) => {
+                            const parentId = e.target.value;
+                            if (!parentId) return;
+                            const parent = sessions.find((s) => s.id === parentId);
+                            if (!parent) return;
+                            const res = await fetch(`/api/sessions/${slot.session.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                parent_session_id: parentId,
+                                scheduled_at: parent.scheduled_at,
+                              }),
+                            });
+                            if (res.ok) {
+                              toast.success("Linked as supplementary work");
+                              router.refresh();
+                            } else {
+                              toast.error("Failed to link");
+                            }
+                          }}
+                        >
+                          <option value="">Link to slot…</option>
+                          {bookedSlots.map((bs) => (
+                            <option key={bs.session.id} value={bs.session.id}>
+                              {bs.dayLabel}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startReschedule(slot.session)}
+                        className="h-7 rounded-lg text-xs gap-1"
+                      >
+                        Book
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -424,7 +560,7 @@ export function BlockPoolView({
 
           <div className="flex items-center gap-2.5 px-4 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs text-muted-foreground flex-wrap">
             <span>
-              Pool size is independent of block size — <b className="text-body">{rotationPool.length} workouts</b> across a <b className="text-body">{sessions.length}-session block</b>.
+              Pool size is independent of block size — <b className="text-body">{rotationPool.length} workouts</b> across a <b className="text-body">{pot.totalInBlock}-session block</b>.
             </span>
           </div>
         </div>
@@ -474,7 +610,68 @@ export function BlockPoolView({
           clientName={clientName}
           sessionsPurchased={sessionsPurchased}
           allSessions={sessions}
+          childCount={subSessionsByParent.get(cancelSession.id)?.length ?? 0}
         />
+      )}
+
+      {/* CR-EF-101 — Supplementary work dialog */}
+      {supplementaryParentId && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center">
+          <div className="absolute inset-0 bg-dark-navy/42 backdrop-blur-sm" onClick={() => { setSupplementaryParentId(null); setSupplementaryName(""); }} />
+          <div className="relative w-full max-w-[480px] mx-4 bg-[var(--hub-canvas)] shadow-2xl flex flex-col" style={{ borderRadius: "var(--r-surface)" }}>
+            <div className="flex items-start gap-3 px-6 pt-5 pb-4 bg-[var(--hub-card)] border-b border-[var(--hub-border)]" style={{ borderRadius: "var(--r-surface) var(--r-surface) 0 0" }}>
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-slate/10 text-slate shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={18} height={18}>
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-bold text-foreground tracking-tight">Add supplementary work</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Technique drill, rehab progression, assessment — linked to this slot but does not consume a session
+                </p>
+              </div>
+              <button
+                onClick={() => { setSupplementaryParentId(null); setSupplementaryName(""); }}
+                className="w-8 h-8 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)] shrink-0"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={16} height={16}>
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Name <span className="font-medium normal-case tracking-normal">— what is this work?</span>
+                </label>
+                <input
+                  type="text"
+                  value={supplementaryName}
+                  onChange={(e) => setSupplementaryName(e.target.value)}
+                  placeholder="e.g. Kneel-to-Stand Progression"
+                  className="w-full border border-[var(--hub-field-border)] rounded-lg px-3 py-2.5 text-sm font-[inherit] bg-[var(--hub-card)] text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === "Enter") { const parent = sessions.find((s) => s.id === supplementaryParentId); if (parent) handleCreateSupplementary(parent); } }}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 px-6 py-3.5 bg-[var(--hub-card)] border-t border-[var(--hub-border)]" style={{ borderRadius: "0 0 var(--r-surface) var(--r-surface)" }}>
+              <span className="flex-1" />
+              <Button variant="ghost" onClick={() => { setSupplementaryParentId(null); setSupplementaryName(""); }} className="rounded-lg">
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                disabled={!supplementaryName.trim() || savingSupplementary}
+                onClick={() => { const parent = sessions.find((s) => s.id === supplementaryParentId); if (parent) handleCreateSupplementary(parent); }}
+                className="rounded-lg gap-1.5 bg-slate hover:bg-slate/90 text-white"
+              >
+                {savingSupplementary ? "Creating…" : "Add supplementary work"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

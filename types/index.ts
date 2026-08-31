@@ -500,6 +500,11 @@ export interface DBSession {
   /** Real, indexable copy of data.session_log.completed_at — kept in sync by the
    *  transition API. */
   completed_at?: string | null;
+  /** CR-EF-101 — sub-session parent link. NULL = this is a main (or standalone)
+   *  session that counts toward the pot. Non-null = this is a supplementary
+   *  session (drill, progression, assessment) that does NOT consume a session.
+   *  Cascade delete: a sub-session has no meaning without its parent. */
+  parent_session_id?: string | null;
 }
 
 export type DocumentStatus = "draft" | "sent" | "received" | "signed" | "expired" | "needs_update" | "superseded";
