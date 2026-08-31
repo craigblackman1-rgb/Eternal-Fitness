@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, email, phone, profile } = body;
+  const { name, email, phone, profile, package_type } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("clients")
-    .insert({ name: name.trim(), email: email || null, phone: phone || null, profile })
+    .insert({ name: name.trim(), email: email || null, phone: phone || null, profile, package_type: package_type ?? null })
     .select()
     .single();
 

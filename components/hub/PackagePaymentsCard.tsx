@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { IconCheckCircle, IconClipboardList, IconPencil, IconX } from "@/components/icons";
 import { toast } from "sonner";
-import type { ClientStatus, DBClient, PaymentStatus } from "@/types";
+import type { ClientStatus, DBClient, Package, PaymentStatus } from "@/types";
 
 type Fields = Pick<
   DBClient,
@@ -103,7 +103,16 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Package">
-                <Input value={form.package_type ?? ""} onChange={(e) => set("package_type", e.target.value || null)} placeholder="e.g. Block of 12" className="h-9" />
+                <Select value={form.package_type ?? ""} onValueChange={(v: Package) => set("package_type", v)}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Select package" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="4-week">4-week</SelectItem>
+                    <SelectItem value="6-week">6-week</SelectItem>
+                    <SelectItem value="12-week">12-week</SelectItem>
+                    <SelectItem value="24-week">24-week</SelectItem>
+                    <SelectItem value="ongoing">Ongoing</SelectItem>
+                  </SelectContent>
+                </Select>
               </Field>
               <Field label="Session duration (min)">
                 <Input type="number" value={form.session_duration ?? ""} onChange={(e) => set("session_duration", e.target.value ? parseInt(e.target.value) : null)} className="h-9" />

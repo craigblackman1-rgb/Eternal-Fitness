@@ -1,7 +1,7 @@
 export type TrainingLocation = "studio" | "home" | "both";
 export type SessionsPerWeek = 1 | 2 | 3;
 export type TimeTier = "compact" | "standard" | "extended";
-export type Package = "12-week" | "24-week" | "ongoing";
+export type Package = "4-week" | "6-week" | "12-week" | "24-week" | "ongoing";
 
 /** CR-EF-106 — structured session cadence. Replaces the fixed `sessions_per_week`
  *  to support fortnightly, monthly, and irregular cadences.
@@ -234,7 +234,8 @@ export interface ClientProfile {
      *  `frequency` is authoritative. */
     sessions_per_week?: SessionsPerWeek;
     time_tier: TimeTier;
-    package: Package;
+    /** @deprecated — use client.package_type instead. Kept for legacy JSONB records. */
+    package?: Package;
     block_number: number;
     /** Label of a split defined in the Plan Agent "splits" setting (e.g. "Full body",
      *  "Upper body"). Absent → Full body. Defines the muscle-group coverage contract
