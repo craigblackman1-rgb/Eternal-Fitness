@@ -316,7 +316,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
                   className={`inline-block text-left rounded-[14px] px-4 py-3 text-sm leading-relaxed ${
                     message.role === "user"
                       ? "bg-[var(--status-primary-bg)] border border-[var(--status-primary-border)] text-foreground"
-                      : "bg-[var(--hub-hover)] border border-[var(--hub-border)] text-foreground"
+                      : "bg-[var(--status-primary-bg)] border border-[var(--status-primary-border)] text-[var(--color-ink)]"
                   }`}
                 >
                   {message.content === "" && streaming ? (
