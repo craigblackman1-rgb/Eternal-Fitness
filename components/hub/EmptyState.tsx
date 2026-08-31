@@ -12,29 +12,35 @@ interface EmptyStateProps {
   };
 }
 
+/**
+ * Empty state placeholder (CR-EF-039 §5b). Two variants only:
+ *  - Nothing exists yet → primary CTA
+ *  - Filter excluded it → outline reset
+ *
+ * Uses the canonical .hub-empty CSS classes from globals.css.
+ * Every empty state names what is missing and gives the one action that resolves it.
+ */
 export function EmptyState({ icon, title, description, cta }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-4 py-10">
+    <div className="hub-empty">
       {icon && (
-        <div className="w-12 h-12 rounded-full bg-[var(--hub-hover)] flex items-center justify-center">
-          <div className="text-[var(--color-muted-text)]">{icon}</div>
+        <div className="hub-empty-ic">
+          {icon}
         </div>
       )}
-      <div className="text-center">
-        <p className="font-semibold text-foreground">{title}</p>
-        {description && (
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
-        )}
-      </div>
+      <p className="hub-empty-t">{title}</p>
+      {description && (
+        <p className="hub-empty-d">{description}</p>
+      )}
       {cta && (
         cta.href ? (
           <Link href={cta.href}>
-            <Button className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
+            <Button className="btn btn-primary btn-sm">
               {cta.label}
             </Button>
           </Link>
         ) : (
-          <Button onClick={cta.onClick} className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white">
+          <Button onClick={cta.onClick} className="btn btn-primary btn-sm">
             {cta.label}
           </Button>
         )

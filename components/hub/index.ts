@@ -12,6 +12,7 @@ export { StatusBadge, TokenPill } from "./StatusBadge";
 export { KpiTile } from "./KpiTile";
 export { Toolbar, toolbarSelectClasses, type ToolbarSegment } from "./Toolbar";
 export { EmptyState } from "./EmptyState";
+export { HubSkeleton, HubSkeletonAvatar, HubSkeletonChip, HubCardSkeleton, HubSkeletonRow } from "./HubSkeleton";
 export { HubTabsList, HubTabsTrigger } from "./HubTabs";
 export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
 export { OutlookBookingsBadge } from "./OutlookBookingsBadge";
