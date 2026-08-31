@@ -59,7 +59,7 @@ export default async function PortalSessionsPage() {
       .from("sessions")
       .select("id, status, charged_free, cancelled_at, scheduled_at, completed_at, session_number, data")
       .eq("block_id", blockRows.id)
-      .order("session_number", { ascending: true });
+      .order("scheduled_at", { ascending: true, nullsLast: true });
 
     sessions = sessionRows ?? [];
   }

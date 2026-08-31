@@ -17,6 +17,7 @@ import {
   IconClipboardList,
   IconClock,
   IconDumbbell,
+  IconEye,
   IconBot,
   IconExternalLink,
   IconFileSignature,
@@ -83,6 +84,8 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
   {
     label: "Studio Admin",
     items: [
+      { href: "/hub/sessions/lapse-review", label: "Lapse review", icon: IconEye },
+      { href: "/hub/sessions/review", label: "Cancellation review", icon: IconClipboardCheck },
       { href: "/hub/process-quality", label: "Process & Quality", icon: IconClipboardList },
       { href: "/hub/settings/training-rules", label: "Training Rules", icon: IconClipboardCheck },
       { href: "/hub/settings/studio-equipment", label: "Studio Equipment", icon: IconDumbbell },

@@ -63,7 +63,7 @@ export function BlockPoolView({
   const extended = blockExpiryExtensions.length > 0;
   const originalExpiry = extended ? blockExpiryExtensions[0]?.from : null;
 
-  // Build slot data from sessions, sorted by session_number
+  // Build slot data from sessions, sorted by session_number for rotation order
   const ordered = [...sessions].sort((a, b) => a.session_number - b.session_number);
 
   const slotData: SlotData[] = ordered.map((s) => {
@@ -83,8 +83,10 @@ export function BlockPoolView({
     return { session: s, status, hasWorkout, focusLabel, dayLabel, dayTime };
   });
 
-  // Booked slots = sessions with scheduled_at
-  const bookedSlots = slotData.filter((s) => s.session.scheduled_at);
+  // Booked slots = sessions with scheduled_at, sorted chronologically (Outlook owns the dates)
+  const bookedSlots = slotData
+    .filter((s) => s.session.scheduled_at)
+    .sort((a, b) => new Date(a.session.scheduled_at!).getTime() - new Date(b.session.scheduled_at!).getTime());
   // Unbooked = sessions without scheduled_at
   const unbookedSessions = slotData.filter((s) => !s.session.scheduled_at);
 

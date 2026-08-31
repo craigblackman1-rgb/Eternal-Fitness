@@ -10,6 +10,7 @@ const crumbLabels: Record<string, string> = {
   "/hub/agreements": "Agreements",
   "/hub/reports/updates": "Email Updates",
   "/hub/sessions/review": "Cancellation review",
+  "/hub/sessions/lapse-review": "Lapse review",
 };
 
 function resolveLabel(pathname: string): string {
