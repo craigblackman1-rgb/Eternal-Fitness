@@ -8,6 +8,7 @@ import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
 import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +47,7 @@ export default function SessionViewPage({
   const [editingNotes, setEditingNotes] = useState(false);
   const [coachingNotes, setCoachingNotes] = useState("");
   const [totalSessions, setTotalSessions] = useState(0);
+  const [blockSessions, setBlockSessions] = useState<{ id: string; scheduled_at: string | null }[]>([]);
   // Per-set logs keyed by `${exercise_ref}::${set_number}` — initial data for the logger.
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
   // Client's best-ever weight per exercise (from personal_records) — prefills a set's
@@ -105,9 +107,9 @@ export default function SessionViewPage({
 
   useEffect(() => {
     async function load() {
-      const [sessionRes, countRes, bestWeightsRes, clientRes, lastSessionRes] = await Promise.all([
+      const [sessionRes, allSessionsRes, bestWeightsRes, clientRes, lastSessionRes] = await Promise.all([
         fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
-        fetch(`/api/blocks/${params.blockId}/sessions?count=true`),
+        fetch(`/api/blocks/${params.blockId}/sessions`),
         fetch(`/api/clients/${params.id}/best-weights`),
         fetch(`/api/clients/${params.id}`),
         fetch(`/api/clients/${params.id}/last-session-data`),
@@ -123,6 +125,11 @@ export default function SessionViewPage({
         setLastSessionData(lsData.lastSession ?? {});
         setPbDates(lsData.pbDates ?? {});
       }
+      if (allSessionsRes.ok) {
+        const allSessions: { id: string; scheduled_at: string | null }[] = await allSessionsRes.json();
+        setBlockSessions(allSessions);
+        setTotalSessions(allSessions.length);
+      }
       if (sessionRes.ok) {
         const data = await sessionRes.json();
         setSession(data);
@@ -136,10 +143,6 @@ export default function SessionViewPage({
             setSetLogs(map);
           }
         }
-      }
-      if (countRes.ok) {
-        const { count } = await countRes.json();
-        setTotalSessions(count || 0);
       }
       setLoading(false);
     }
@@ -339,6 +342,11 @@ export default function SessionViewPage({
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
   if (!session) return <div className="p-8 text-center text-muted-foreground">Session not found</div>;
 
+  // Chronological position derived from scheduled_at — used for the "Session N
+  // of M" label. Does NOT replace session_number (which drives rotation).
+  const chronologicalPositions = deriveChronologicalPositions(blockSessions);
+  const chronoPos = chronologicalPositions.get(session.id);
+
   // Session is named by its focus_label, never a bare "Session N" (CR-EF-034) —
   // matching the block page and the consolidated mockup header.
   const focusLabel = session.data?.focus_label || `Session ${sessionNum}`;
@@ -389,7 +397,7 @@ export default function SessionViewPage({
               {clientCondition ? ` · ${clientCondition}` : ""}
               {dateLabel ? ` · ${dateLabel}` : ""}
               {` · ${sessionSlotMinutes} min slot`}
-              {totalSessions > 0 ? ` · Session ${sessionNum} of ${totalSessions}` : ""}{" "}
+              {totalSessions > 0 && chronoPos ? ` · Session ${chronoPos.position} of ${chronoPos.total}` : ""}{" "}
               <span
                 className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold ${
                   overSlot

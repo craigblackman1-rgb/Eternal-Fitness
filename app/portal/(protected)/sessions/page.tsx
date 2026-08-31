@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getPortalSessionFromCookies } from "@/lib/portal-session";
 import { createPortalDataClient } from "@/lib/portal-data";
 import { deriveSessionPot } from "@/lib/session-pot";
+import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import type { DBSession } from "@/types";
 import { SessionsClient } from "./SessionsClient";
 
@@ -64,6 +65,11 @@ export default async function PortalSessionsPage() {
     sessions = sessionRows ?? [];
   }
 
+  // Derive chronological positions from scheduled_at for "Session N of M" labels
+  const chronologicalPositions = deriveChronologicalPositions(
+    sessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at })),
+  );
+
   // Derive pot
   const pot = deriveSessionPot(
     sessions as Pick<DBSession, "status" | "charged_free" | "cancelled_at">[],
@@ -108,12 +114,14 @@ export default async function PortalSessionsPage() {
         id: s.id,
         scheduledAt: s.scheduled_at!,
         sessionNumber: s.session_number,
+        chronologicalPosition: chronologicalPositions.get(s.id) ?? null,
         status: s.status ?? "scheduled",
       }))}
       past={past.map((s) => ({
         id: s.id,
         scheduledAt: s.scheduled_at,
         sessionNumber: s.session_number,
+        chronologicalPosition: chronologicalPositions.get(s.id) ?? null,
         status: s.status ?? "planned",
         chargedFree: s.charged_free as "charged" | "free" | null,
         completedAt: s.completed_at,

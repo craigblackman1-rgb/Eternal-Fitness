@@ -38,12 +38,15 @@ export default function TrainingClient({
   plan,
   initialLogs,
   bestWeights,
+  chronologicalPositions,
 }: {
   plan: PortalTrainingPlan;
   initialLogs: SetLog[];
   /** Client's best-ever weight_kg per exercise name — prefills a set's weight
    *  field when this session has no log for it yet. */
   bestWeights?: Record<string, number>;
+  /** Chronological positions derived from scheduled_at — for "Session N" labels. */
+  chronologicalPositions?: Map<string, { position: number; total: number }>;
 }) {
   const [logs, setLogs] = useState<Record<string, SetLog>>(() => {
     const map: Record<string, SetLog> = {};
@@ -139,7 +142,7 @@ export default function TrainingClient({
                 }`}
               >
                 {done && <IconCheckCircle className="h-3.5 w-3.5" aria-hidden="true" />}
-                Session {s.session_number}
+                Session {chronologicalPositions?.get(s.id)?.position ?? s.session_number}
               </button>
             );
           })}
@@ -147,10 +150,10 @@ export default function TrainingClient({
       </nav>
 
       {/* Selected session */}
-      <section aria-label={`Session ${session.session_number}`} className="space-y-4">
+      <section aria-label={`Session ${chronologicalPositions?.get(session.id)?.position ?? session.session_number}`} className="space-y-4">
         <div className="rounded-2xl border border-border/60 bg-white p-4 sm:p-5">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-lg font-semibold">Session {session.session_number}</h2>
+            <h2 className="text-lg font-semibold">Session {chronologicalPositions?.get(session.id)?.position ?? session.session_number}</h2>
             <span className="text-sm capitalize text-muted-foreground">
               {derivedWeekLabel(session.scheduled_at ?? null, session.week)}
               {session.focus_label ? ` · ${session.focus_label}` : ""}
