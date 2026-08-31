@@ -53,6 +53,7 @@ interface OutlookTriageClientProps {
   windowEnd: string;
   openBookings: OutlookBookingRow[];
   openBookingCount: number;
+  showPast: boolean;
 }
 
 function formatBookingWhen(startAt: string): string {
@@ -82,6 +83,7 @@ export function OutlookTriageClient({
   windowEnd,
   openBookings,
   openBookingCount,
+  showPast,
 }: OutlookTriageClientProps) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -145,6 +147,13 @@ export function OutlookTriageClient({
             render — tap one to book a session. Weeks are Monday–Sunday.
           </div>
         </div>
+
+        <Link
+          className="past-toggle"
+          href={showPast ? "/hub/m/calendar" : "/hub/m/calendar?past=7"}
+        >
+          {showPast ? "Hide past days" : "Show past 7 days"}
+        </Link>
 
         {count > 0 && (
           <div className="alert a-warning" data-od-id="bookings-card">

@@ -9,6 +9,9 @@ import {
 } from "@/lib/schedule-dates";
 import { OutlookTriageClient } from "./OutlookTriageClient";
 
+const PAST_MAX = 30;
+const FUTURE_DAYS = 14;
+
 
 interface SessionRow {
   id: string;
@@ -43,18 +46,24 @@ function sessionName(s: SessionRow): string {
   );
 }
 
-function windowBounds() {
+function windowBounds(pastDays: number) {
   const today = todayLocalISODate();
+  const clamped = Math.min(Math.max(pastDays, 0), PAST_MAX);
   return {
     today,
-    start: shiftDay(today, -4),
-    end: shiftDay(today, 7),
+    start: clamped > 0 ? shiftDay(today, -clamped) : today,
+    end: shiftDay(today, FUTURE_DAYS),
   };
 }
 
-export default async function MobileCalendarPage() {
+export default async function MobileCalendarPage({
+  searchParams,
+}: {
+  searchParams?: { past?: string };
+}) {
+  const pastDays = Number(searchParams?.past) || 0;
   const supabase = createClient();
-  const { today, start, end } = windowBounds();
+  const { today, start, end } = windowBounds(pastDays);
 
   const { data: sessionRows } = await supabase
     .from("sessions")
@@ -121,6 +130,7 @@ export default async function MobileCalendarPage() {
       windowEnd={end}
       openBookings={openBookings}
       openBookingCount={openBookingCount}
+      showPast={pastDays > 0}
     />
   );
 }

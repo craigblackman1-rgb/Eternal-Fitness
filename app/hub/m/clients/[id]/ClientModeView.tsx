@@ -308,8 +308,8 @@ export function ClientModeView({
               })
             )}
             today={todayLocalISODate()}
-            windowStart={shiftDay(todayLocalISODate(), -2)}
-            windowEnd={shiftDay(todayLocalISODate(), 4)}
+            windowStart={todayLocalISODate()}
+            windowEnd={shiftDay(todayLocalISODate(), 7)}
             scope="client"
             clientNumber={clientNumber}
           />
