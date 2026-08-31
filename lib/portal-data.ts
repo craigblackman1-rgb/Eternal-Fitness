@@ -128,8 +128,8 @@ export class PortalDataClient {
 
   /**
    * The client's current training block with its sessions, trimmed to the
-   * portal-safe shape: HOME version exercises only (this view exists solely for
-   * home-training clients), no trainer-facing coaching_notes/session RPE data.
+   * portal-safe shape: version exercises keyed by delivery_mode (home vs studio),
+   * no trainer-facing coaching_notes/session RPE data.
    * Exercises missing an embedded video_url are backfilled by name from the
    * exercises library where a video exists there. Returns null when the client
    * has no active/approved block yet.
@@ -154,10 +154,11 @@ export class PortalDataClient {
     // when session-level client_intro is empty (CR-EF-061).
     const { data: profileRow } = await pg
       .from("clients")
-      .select("profile")
+      .select("profile, delivery_mode")
       .eq("id", this.clientId)
       .single();
     const profileClientIntro = (profileRow as any)?.profile?.notes?.client_intro ?? "";
+    const deliveryMode: DeliveryMode = (profileRow as any)?.delivery_mode ?? "studio_1to1";
 
     const { data: sessionRows } = await pg
       .from("sessions")
@@ -176,8 +177,9 @@ export class PortalDataClient {
     // Backfill missing exercise media by name from the exercises library.
     const missingNames = new Set<string>();
     for (const row of rows) {
-      const home = row.data?.versions?.home;
-      for (const section of [home?.warm_up, home?.main_block, home?.cooldown]) {
+      const versionKey = deliveryMode === "home_training" ? "home" : "studio";
+      const ver = row.data?.versions?.[versionKey];
+      for (const section of [ver?.warm_up, ver?.main_block, ver?.cooldown]) {
         for (const ex of section ?? []) {
           if (ex.exercise_name && (!ex.media?.video_url || !ex.media?.image_url)) {
             missingNames.add(ex.exercise_name.toLowerCase());
@@ -221,7 +223,8 @@ export class PortalDataClient {
     });
 
     const sessions: PortalSessionPlan[] = rows.map((row) => {
-      const home = row.data?.versions?.home;
+      const versionKey = deliveryMode === "home_training" ? "home" : "studio";
+      const version = row.data?.versions?.[versionKey];
       return {
         id: row.id,
         session_number: row.session_number,
@@ -232,9 +235,9 @@ export class PortalDataClient {
         archetype: row.data?.archetype ?? "",
         client_intro: row.data?.client_intro || profileClientIntro,
         completed_at: row.data?.session_log?.completed_at ?? null,
-        warm_up: (home?.warm_up ?? []).map(toPortalExercise),
-        main_block: (home?.main_block ?? []).map(toPortalExercise),
-        cooldown: (home?.cooldown ?? []).map(toPortalExercise),
+        warm_up: (version?.warm_up ?? []).map(toPortalExercise),
+        main_block: (version?.main_block ?? []).map(toPortalExercise),
+        cooldown: (version?.cooldown ?? []).map(toPortalExercise),
       };
     });
 

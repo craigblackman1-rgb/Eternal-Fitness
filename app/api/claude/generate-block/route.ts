@@ -307,26 +307,7 @@ function composeSessionVersion(
   const cooldown = composeSection("cooldown");
 
   if (isHome) {
-    return {
-      warm_up: warm_up.map((ex) => ({
-        ...ex,
-        modification: `${ex.modification} Do without equipment` + (ex.equipment.length > 0 ? ` (no ${ex.equipment.join("/")})` : ""),
-        equipment: [],
-        coaching_cue: ex.coaching_cue,
-      })),
-      main_block: main_block.map((ex) => ({
-        ...ex,
-        modification: `${ex.modification} Do without equipment` + (ex.equipment.length > 0 ? ` (no ${ex.equipment.join("/")})` : ""),
-        equipment: [],
-        coaching_cue: ex.coaching_cue,
-      })),
-      cooldown: cooldown.map((ex) => ({
-        ...ex,
-        modification: `${ex.modification} Do without equipment` + (ex.equipment.length > 0 ? ` (no ${ex.equipment.join("/")})` : ""),
-        equipment: [],
-        coaching_cue: ex.coaching_cue,
-      })),
-    };
+    return { warm_up, main_block, cooldown };
   }
 
   return { warm_up, main_block, cooldown };
@@ -398,16 +379,16 @@ function generateFallback(profile: ClientProfile, blockNumber: number, exerciseP
                 cooldown: rescaleTemplateSection(template.data.cooldown, wp.phase, "cooldown"),
               },
               home: {
-                warm_up: rescaleTemplateSection(template.data.warm_up, wp.phase, "warm_up").map((ex) => ({ ...ex, equipment: [] })),
-                main_block: rescaleTemplateSection(template.data.main_block, wp.phase, "main_block").map((ex) => ({ ...ex, equipment: [] })),
-                cooldown: rescaleTemplateSection(template.data.cooldown, wp.phase, "cooldown").map((ex) => ({ ...ex, equipment: [] })),
+                warm_up: rescaleTemplateSection(template.data.warm_up, wp.phase, "warm_up"),
+                main_block: rescaleTemplateSection(template.data.main_block, wp.phase, "main_block"),
+                cooldown: rescaleTemplateSection(template.data.cooldown, wp.phase, "cooldown"),
               },
             }
           : {
               studio: composeSessionVersion(archetype, wp.phase, usedIds, false, exercisePool),
               home: composeSessionVersion(archetype, wp.phase, usedIds, true, exercisePool),
             },
-        coaching_notes: `Client-specific: ${profile.health.contraindications?.join(", ") || "none noted"}. ${profile.notes.watch_for || ""}. Home version substitutes bodyweight for equipment.${template ? ` Built from template "${template.name}".` : ""}`,
+        coaching_notes: `Client-specific: ${profile.health.contraindications?.join(", ") || "none noted"}. ${profile.notes.watch_for || ""}.${template ? ` Built from template "${template.name}".` : ""}`,
         client_intro: archetypeFocus[archetype],
       });
     }
