@@ -18,6 +18,7 @@ const DEFAULT_VIEWS: Record<string, string> = {
 
 const TAB_ALIASES: Record<string, string> = {
   admin: "compliance",
+  "profile-compliance": "compliance",
   progress: "training",
   history: "training",
   "training-history": "training",
