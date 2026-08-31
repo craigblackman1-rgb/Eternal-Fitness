@@ -206,7 +206,8 @@ function SessionDateCell({ session }: { session: SessionRow }) {
     });
     setSaving(false);
     if (!res.ok) {
-      toast.error("Failed to change session date");
+      const err = await res.json().catch(() => ({}));
+      toast.error(err.error || "Failed to change session date");
       return;
     }
     setEditing(false);
