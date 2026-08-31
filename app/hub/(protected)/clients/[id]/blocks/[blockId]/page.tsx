@@ -103,10 +103,15 @@ export default async function BlockViewPage({
   // sessions group into real Monday–Sunday weeks; unscheduled ones fall back to
   // their stored `week` as "Plan week N". The stored ordinals survive only for
   // the Add-workout week picker (`planWeeks`).
-  const weekGroups = groupSessionsByWeek(sessions);
-  const planWeeks = Array.from(new Set(sessions.map((s) => s.week))).sort((a, b) => a - b);
+  //
+  // CR-EF-101 — sub-sessions are excluded from week groups. They are
+  // supplementary work within a parent slot and should not appear as
+  // standalone rows in the block overview.
+  const displaySessions = sessions.filter((s) => !s.parent_session_id);
+  const weekGroups = groupSessionsByWeek(displaySessions);
+  const planWeeks = Array.from(new Set(displaySessions.map((s) => s.week))).sort((a, b) => a - b);
 
-  const firstIncomplete = sessions.find((s) => {
+  const firstIncomplete = displaySessions.find((s) => {
     const st = sessionStatus(s);
     return st !== "completed" && st !== "cancelled";
   });
@@ -115,7 +120,7 @@ export default async function BlockViewPage({
       ? isoToMonday(firstIncomplete.scheduled_at)
       : `p${firstIncomplete.week}`
     : null;
-  const scheduledDates = sessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort();
+  const scheduledDates = displaySessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort();
   const scheduledStartIso = (block.scheduled_start as string | null) ?? (scheduledDates[0] ?? null);
   // CR-EF-073 — a block is a dated period: derive its end from the latest
   // scheduled session, never fabricated. Null until at least one session has
@@ -124,7 +129,7 @@ export default async function BlockViewPage({
 
   const weekdays: Weekday[] = Array.from(
     new Set(
-      sessions
+      displaySessions
         .filter((s) => s.scheduled_at)
         .map((s) => new Date(s.scheduled_at as string).getDay() as Weekday),
     ),

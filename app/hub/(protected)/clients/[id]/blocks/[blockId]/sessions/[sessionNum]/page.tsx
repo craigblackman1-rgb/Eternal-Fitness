@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock, IconCalendar } from "@/components/icons";
+import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock, IconCalendar, IconPlus } from "@/components/icons";
 import { HubCardHeader } from "@/components/hub/HubCardHeader";
 import { HubCard } from "@/components/hub/HubCard";
 import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
@@ -18,6 +18,7 @@ import type { Band } from "@/lib/bands";
 import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
+import { AddWorkoutDialog } from "../../AddWorkoutDialog";
 import { WorkoutLog } from "@/components/workout/WorkoutLog";
 import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";
 import {
@@ -71,6 +72,8 @@ export default function SessionViewPage({
   const [reopening, setReopening] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [rescheduling, setRescheduling] = useState(false);
+  // CR-EF-122 — "Add supplementary work" dialog state
+  const [addSupplementaryOpen, setAddSupplementaryOpen] = useState(false);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [scheduling, setScheduling] = useState(false);
@@ -344,6 +347,7 @@ export default function SessionViewPage({
 
   // Chronological position derived from scheduled_at — used for the "Session N
   // of M" label. Does NOT replace session_number (which drives rotation).
+  // CR-EF-101 — sub-sessions are excluded from positions by the function.
   const chronologicalPositions = deriveChronologicalPositions(blockSessions);
   const chronoPos = chronologicalPositions.get(session.id);
 
@@ -397,7 +401,7 @@ export default function SessionViewPage({
               {clientCondition ? ` · ${clientCondition}` : ""}
               {dateLabel ? ` · ${dateLabel}` : ""}
               {` · ${sessionSlotMinutes} min slot`}
-              {totalSessions > 0 && chronoPos ? ` · Session ${chronoPos.position} of ${chronoPos.total}` : ""}{" "}
+              {chronoPos ? ` · Session ${chronoPos.position} of ${chronoPos.total}` : ""}{" "}
               <span
                 className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold ${
                   overSlot
@@ -463,6 +467,18 @@ export default function SessionViewPage({
               >
                 <IconCopy className="h-4 w-4" />
                 Save as template
+              </Button>
+            )}
+            {/* CR-EF-122 — add supplementary workout as a sub-session of this slot */}
+            {status !== "completed" && status !== "cancelled" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg gap-1.5"
+                onClick={() => setAddSupplementaryOpen(true)}
+              >
+                <IconPlus className="h-4 w-4" />
+                Add supplementary work
               </Button>
             )}
             {sessionNum > 1 && (
@@ -665,6 +681,17 @@ export default function SessionViewPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* CR-EF-122 — supplementary work dialog */}
+      {session && (
+        <AddWorkoutDialog
+          open={addSupplementaryOpen}
+          onOpenChange={setAddSupplementaryOpen}
+          blockId={params.blockId}
+          weeks={[]}
+          parentSessionId={session.id}
+        />
       )}
     </div>
   );
