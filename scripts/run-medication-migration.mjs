@@ -30,9 +30,13 @@ const MONIQUE_MEDICATIONS = [
   { id: crypto.randomUUID(), name: "Nortriptyline", form: "", frequency: "", treats: "", start_date: null, end_date: null, side_effects: "" },
 ];
 
-// ---- Connection — uses the same staging tunnel as the notes migration ----
+// ---- Connection — read from the environment, never hardcoded ----
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is not set. Export it before running this script.");
+  process.exit(1);
+}
 const client = new pg.Client({
-  connectionString: "postgresql://ef_staging_app:uZ81HJRRFbBprNVMOzNiaBQr8teMrnpM@localhost:5433/eternal_fitness_staging",
+  connectionString: process.env.DATABASE_URL,
 });
 
 async function main() {
