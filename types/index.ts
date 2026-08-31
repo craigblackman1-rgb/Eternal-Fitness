@@ -37,6 +37,17 @@ export interface InjuryHistoryEntry {
   status: "active" | "monitoring" | "resolved";
 }
 
+export interface MedicationEntry {
+  id: string;
+  name: string;
+  form: string;
+  frequency: string;
+  treats: string;
+  start_date: string | null;
+  end_date: string | null;
+  side_effects: string;
+}
+
 /** Governance catalog row — see training_rule_types table / /hub/settings/training-rules. */
 export type TrainingRuleBucket = "exclusion" | "restriction" | "emphasis" | "structural" | "coaching_style" | "general";
 
@@ -188,6 +199,7 @@ export interface ClientProfile {
     conditions: string[];
     contraindications: string[];
     medications_relevant: string[];
+    medications: MedicationEntry[];
     injury_history: InjuryHistoryEntry[];
     pain_points: string[];
     /** Trainer-confirmed PAR-Q override — for clients screened via the external Microsoft Forms
