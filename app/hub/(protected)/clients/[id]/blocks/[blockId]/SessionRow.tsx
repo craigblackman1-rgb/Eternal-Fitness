@@ -184,12 +184,12 @@ export function SessionRow({
       {status === "cancelled" && (
         <div className="px-4 pb-3 text-xs text-muted-foreground">
           {chargedFree === "charged" && (
-            <span className="inline-flex items-center rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-bd)] px-2 py-0 text-[10px] font-bold mr-1.5">
+            <span className="inline-flex items-center rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
               Charged
             </span>
           )}
           {chargedFree === "free" && (
-            <span className="inline-flex items-center rounded-full bg-[var(--s-success-bg)] text-[var(--teal)] border border-[var(--s-success-bd)] px-2 py-0 text-[10px] font-bold mr-1.5">
+            <span className="inline-flex items-center rounded-full bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
               Free
             </span>
           )}

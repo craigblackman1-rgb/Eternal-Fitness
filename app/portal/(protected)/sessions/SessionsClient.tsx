@@ -333,7 +333,7 @@ export function SessionsClient({
                 </div>
                 <div className="rounded-[13px] p-4 border border-[rgba(176,138,62,.26)] bg-[#F7EFDD]">
                   <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-[var(--s-warning)]"><IconWarn /></span>
+                    <span className="text-[var(--status-warning)]"><IconWarn /></span>
                     <b className="text-sm text-foreground">Inside {noticeHours} hours — the session is used</b>
                   </div>
                   <p className="text-[13.5px] leading-relaxed m-0 text-[#7A5A17]">
@@ -562,7 +562,7 @@ function CancelDialog({
               : "border-[rgba(8,126,139,.22)] bg-[rgba(8,126,139,.10)]"
           )}>
             <div className="flex items-start gap-2.5 mb-3">
-              <span className={nt.inside ? "text-[var(--s-warning)]" : "text-[var(--color-teal)]"}>
+              <span className={nt.inside ? "text-[var(--status-warning)]" : "text-[var(--color-teal)]"}>
                 {nt.inside ? <IconWarn /> : <IconCheck />}
               </span>
               <div>
@@ -590,13 +590,13 @@ function CancelDialog({
               <div className="w-px bg-border" />
               <div className={cn("flex-1 p-3 text-center", nt.inside ? "" : "")}>
                 <div className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-muted-foreground">After cancelling</div>
-                <div className={cn("text-[30px] font-bold leading-tight mt-0.5 tabular-nums flex items-center justify-center gap-1.5", nt.inside ? "text-[var(--s-danger)]" : "text-[var(--color-teal)]")}>
+                <div className={cn("text-[30px] font-bold leading-tight mt-0.5 tabular-nums flex items-center justify-center gap-1.5", nt.inside ? "text-[var(--status-danger)]" : "text-[var(--color-teal)]")}>
                   {nt.inside ? sessionsRemaining - 1 : sessionsRemaining}
                   {nt.inside && (
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-6-6 6 6 6-6" /></svg>
                   )}
                 </div>
-                <div className={cn("text-[11.5px] mt-0.5 font-bold", nt.inside ? "text-[var(--s-danger)]" : "text-[var(--color-teal)]")}>
+                <div className={cn("text-[11.5px] mt-0.5 font-bold", nt.inside ? "text-[var(--status-danger)]" : "text-[var(--color-teal)]")}>
                   {nt.inside ? "one session used" : "unchanged"}
                 </div>
               </div>
@@ -632,7 +632,7 @@ function CancelDialog({
               className={cn(
                 "flex-1 min-h-[44px] rounded-[10px] border border-transparent text-sm font-bold text-white",
                 nt.inside
-                  ? "bg-[var(--s-danger)] hover:bg-[#733F52]"
+                  ? "bg-[var(--status-danger)] hover:bg-[#733F52]"
                   : "bg-[var(--color-rose)] hover:bg-[var(--color-rose-deep)]"
               )}
             >
