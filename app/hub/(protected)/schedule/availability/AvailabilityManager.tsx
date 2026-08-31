@@ -369,7 +369,7 @@ export function AvailabilityManager({
       </div>
 
       {/* ── Two-column layout ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
+      <div className="hub-layout">
         <div className="space-y-5">
           {/* ── Weekly Pattern ── */}
           <HubCard padded={false}>
@@ -786,7 +786,7 @@ export function AvailabilityManager({
         </div>
 
         {/* ── Right rail ── */}
-        <div className="space-y-5 xl:sticky xl:top-20">
+        <aside className="hub-rail">
           {/* Preview rail */}
           <HubCard>
             <div className="flex items-start gap-3 mb-3">
@@ -856,7 +856,7 @@ export function AvailabilityManager({
               Calendar settings
             </a>
           </HubCard>
-        </div>
+        </aside>
       </div>
     </div>
   );

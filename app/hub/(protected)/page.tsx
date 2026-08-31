@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
-import { HubCard, HubCardHeader, HubQuickActions, HubAccordionSection } from "@/components/hub";
+import { HubCard, HubCardHeader, HubQuickActions, HubAccordionSection, HubRail } from "@/components/hub";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
@@ -372,7 +372,7 @@ export default async function DashboardPage() {
       {/* Accordion stack + narrow side rail — the attn-grid + side-stack split
           hub-dashboard.html specifies. One accordion pattern, closed by default;
           Needs Attention starts open because it's the first thing to check. */}
-      <div className="grid gap-[18px] lg:grid-cols-[1fr_340px] items-start">
+      <div className="hub-layout">
         <div className="flex flex-col gap-3">
           <HubAccordionSection
             icon={<IconTriangleAlert className="w-4 h-4" />}
@@ -633,7 +633,7 @@ export default async function DashboardPage() {
         {/* Side rail — non-action content only. Quick Actions moved to the top-left
             bar above; this keeps just Recent Blocks, per hub-dashboard.html's
             side-stack. */}
-        <div className="flex flex-col gap-[18px]">
+        <aside className="hub-rail">
           <HubCard padded={false}>
             <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Recent blocks" divider className="px-5 pt-5 pb-3.5" />
             <div className="px-5 pt-5 pb-5">
@@ -665,7 +665,7 @@ export default async function DashboardPage() {
               )}
             </div>
           </HubCard>
-        </div>
+        </aside>
       </div>
     </div>
   );

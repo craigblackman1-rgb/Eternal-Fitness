@@ -12,21 +12,20 @@ interface HubRailProps {
 }
 
 /**
- * The one hub-wide "content + side rail" layout. A single width (280px), a
- * single breakpoint (lg), and sticky-by-default — replacing the per-page
- * 280/300/340px/⅓-col improvisation catalogued in the structure-consistency
- * audit (`.context/audit-hub-structure-consistency-2026-08-17.md` §3).
+ * The one hub-wide "content + side rail" layout. Uses CSS custom properties
+ * from globals.css: --rail-w (300px), --rail-gap (20px), --rail-top (76px).
+ *
+ * Responsive: collapses at 1180px — rail drops below main content (order: 2),
+ * full width, static position.
  *
  * The rail grid uses `items-start` deliberately: the side column must stay at
- * its natural height so `position: sticky` can take effect. That is not the
- * same `items-start` anti-pattern the audit flags on *card* bands — there the
- * grid stretches hollow cards; here it enables stickiness.
+ * its natural height so `position: sticky` can take effect.
  */
 export function HubRail({ main, side, className, railClassName }: HubRailProps) {
   return (
-    <div className={cn("grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] items-start", className)}>
+    <div className={cn("hub-layout", className)}>
       <div className="min-w-0">{main}</div>
-      <aside className={cn("flex flex-col gap-[18px] lg:sticky lg:top-5", railClassName)}>{side}</aside>
+      <aside className={cn("hub-rail", railClassName)}>{side}</aside>
     </div>
   );
 }

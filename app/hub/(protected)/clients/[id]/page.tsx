@@ -497,7 +497,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
           </HubTabsTrigger>
         </HubTabsList>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] mt-6">
+        <div className="hub-layout mt-6">
           <div className="space-y-5">
             <TabsContent value="overview">
               <ClientBookingPanel clientId={client.id} clientName={client.name} />
@@ -1063,7 +1063,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
             </TabsContent>
           </div>
 
-          <div>{rightRail}</div>
+          <aside className="hub-rail">{rightRail}</aside>
         </div>
       </ClientDetailTabs>
     </div>

@@ -294,7 +294,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       )}
 
       {/* Two-column layout — form column + rail */}
-      <div className="grid grid-cols-[minmax(0,1fr)_300px] gap-5 items-start max-[1100px]:grid-cols-1">
+      <div className="hub-layout">
         <div className="space-y-6 min-w-0">
           {/* ── All form cards (unchanged) ── */}
         <HubCard>
@@ -823,7 +823,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         </div>{/* /form-col */}
 
         {/* ── Rail ── */}
-        <aside className="flex flex-col gap-5 sticky top-[82px] max-[1100px]:static">
+        <aside className="hub-rail">
           {/* Computed status */}
           <HubCard>
             <HubCardHeader
