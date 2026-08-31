@@ -181,9 +181,29 @@ export async function POST(request: Request, { params }: { params: { id: string 
     phase: resolvedPhase,
     data: sessionData,
   };
-  if (scheduled_at) insertPayload.scheduled_at = scheduled_at;
-  // CR-EF-101 — sub-sessions link to parent
-  if (parent_session_id) insertPayload.parent_session_id = parent_session_id;
+  // CR-EF-101 — sub-sessions inherit parent's scheduled_at and cannot be
+  // independently scheduled. When parent_session_id is provided, fetch the
+  // parent and use its scheduled_at, overriding any client-supplied value.
+  if (parent_session_id) {
+    insertPayload.parent_session_id = parent_session_id;
+
+    const { data: parentSession, error: parentError } = await supabase
+      .from("sessions")
+      .select("scheduled_at, block_id")
+      .eq("id", parent_session_id)
+      .single();
+
+    if (parentError || !parentSession) {
+      return NextResponse.json({ error: "Parent session not found" }, { status: 400 });
+    }
+    if (parentSession.block_id !== params.id) {
+      return NextResponse.json({ error: "Parent session does not belong to this block" }, { status: 400 });
+    }
+
+    insertPayload.scheduled_at = parentSession.scheduled_at;
+  } else if (scheduled_at) {
+    insertPayload.scheduled_at = scheduled_at;
+  }
 
   const { data: created, error: insertError } = await supabase
     .from("sessions")

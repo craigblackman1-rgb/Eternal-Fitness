@@ -160,8 +160,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   // CR-EF-101 — slot inheritance: sub-sessions follow their parent's scheduled_at.
   // If someone tries to independently reschedule a sub-session, override with
-  // the parent's scheduled_at instead.
-  if ("scheduled_at" in update && update.scheduled_at && !cancellingNow) {
+  // the parent's scheduled_at instead (or null if the parent has no slot).
+  // The guard triggers on ANY scheduled_at change (including null) so a
+  // sub-session can never escape its parent's slot.
+  if ("scheduled_at" in update && !cancellingNow) {
     const { data: sessionCheck } = await supabase
       .from("sessions")
       .select("parent_session_id")
@@ -175,9 +177,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         .eq("id", sessionCheck.parent_session_id)
         .single();
 
-      if (parentRow?.scheduled_at) {
-        update.scheduled_at = parentRow.scheduled_at;
-      }
+      update.scheduled_at = parentRow?.scheduled_at ?? null;
     }
   }
 
