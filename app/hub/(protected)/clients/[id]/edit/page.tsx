@@ -15,7 +15,7 @@ import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
 import { EquipmentMultiSelect } from "@/components/hub/EquipmentMultiSelect";
-import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender } from "@/types";
+import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender, Package } from "@/types";
 import { DEFAULT_SPLITS, parseSplits } from "@/lib/planAgentPrompt";
 import { RESOURCES } from "@/lib/resources";
 
@@ -87,7 +87,7 @@ function SegmentedControl<T extends string | number>({
 
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
-  logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", package: "12-week", block_number: 1 },
+  logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", block_number: 1 },
   health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
@@ -121,6 +121,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [hasSignedAgreementDocument, setHasSignedAgreementDocument] = useState(false);
   const [bandSetId, setBandSetId] = useState<string | null>(null);
   const [bandSets, setBandSets] = useState<{ id: string; name: string; owner_type: string }[]>([]);
+  const [packageType, setPackageType] = useState<Package | null>(null);
 
   useEffect(() => {
     // Split options come from the Plan Agent "splits" setting so Esther can add
@@ -185,6 +186,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setEquipment(data.equipment ?? null);
       setResourceVisibility(data.resource_visibility ?? {});
       setBandSetId(data.band_set_id ?? null);
+      setPackageType(data.package_type ?? null);
       const blocks: any[] = data._blocks ?? [];
       setBlocksCompleted(blocks.filter((b: any) => b.status === "complete").length);
       const counts: Record<number, number> = data._sessionsCount ?? {};
@@ -236,6 +238,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         resource_visibility: resourceVisibility,
         start_date: startDate,
         band_set_id: bandSetId,
+        package_type: packageType,
       }),
     });
 
@@ -430,9 +433,11 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
               </div>
               <div className="space-y-2">
                 <Label>Package</Label>
-                <Select value={profile.logistics.package} onValueChange={(v: "12-week" | "24-week" | "ongoing") => updateProfile("logistics", { package: v })}>
+                <Select value={packageType ?? ""} onValueChange={(v: Package) => { setDirty(true); setPackageType(v); }}>
                   <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="4-week">4-week</SelectItem>
+                    <SelectItem value="6-week">6-week</SelectItem>
                     <SelectItem value="12-week">12-week</SelectItem>
                     <SelectItem value="24-week">24-week</SelectItem>
                     <SelectItem value="ongoing">Ongoing</SelectItem>
