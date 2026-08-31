@@ -236,10 +236,10 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // taking sessions[0] — array order now follows scheduled_at (see the query
   // above), so an upcoming future session could otherwise sort first and this
   // would silently pick up a session with no log at all.
-  const completedSessions = (sessions ?? []).filter((s: any) => s.data?.session_log?.completed_at);
+  const completedSessions = (sessions ?? []).filter((s: any) => s.completed_at);
   const latestCompletedSession = completedSessions.length > 0
     ? completedSessions.reduce((latest: any, s: any) =>
-        new Date(s.data.session_log.completed_at) > new Date(latest.data.session_log.completed_at) ? s : latest,
+        new Date(s.completed_at) > new Date(latest.completed_at) ? s : latest,
       )
     : null;
   const latestSessionLog = latestCompletedSession?.data?.session_log ?? null;
@@ -248,7 +248,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // not just "Block N". Prefer the next upcoming (not-yet-completed) session in
   // the active block, falling back to the most recently completed one.
   const sessionIsCompleted = (s: any) =>
-    s.status === "completed" || !!s.completed_at || !!s.data?.session_log?.completed_at;
+    s.status === "completed" || !!s.completed_at;
   const nextSession = (() => {
     const blockSessions = (sessions ?? []).filter((s: any) => s.block_id === latestBlock?.id);
     return (
@@ -572,14 +572,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 color="slate"
               >
                 <div className="px-5 pt-4 pb-4">
-                  {latestSessionLog ? (
+                  {latestCompletedSession?.completed_at ? (
                     <HubDataGrid cols={3}>
                       <HubDataField label="Completed">
-                        {new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        {new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </HubDataField>
                       <HubDataField label="Duration">{formatSessionDuration(client.session_duration ?? null)}</HubDataField>
                       <HubDataField label="Format">{formatDeliveryMode(client.delivery_mode)}</HubDataField>
-                      {latestSessionLog.notes && (
+                      {latestSessionLog?.notes && (
                         <HubDataField label="Notes" span>{latestSessionLog.notes}</HubDataField>
                       )}
                     </HubDataGrid>
@@ -650,8 +650,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       )}
                       <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
                       <HubDataField label="Last check-in">
-                        {latestSessionLog?.completed_at
-                          ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                        {latestCompletedSession?.completed_at
+                          ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                           : "—"}
                       </HubDataField>
                     </HubDataGrid>
@@ -1012,8 +1012,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <HubDataField label="Sessions logged">{sessions?.length ?? 0}</HubDataField>
                     <HubDataField label="Pace mode"><span className="capitalize">{client.pace_mode ?? "—"}</span></HubDataField>
                     <HubDataField label="Last session">
-                      {latestSessionLog?.completed_at
-                        ? new Date(latestSessionLog.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                      {latestCompletedSession?.completed_at
+                        ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                         : "—"}
                     </HubDataField>
                   </HubDataGrid>
