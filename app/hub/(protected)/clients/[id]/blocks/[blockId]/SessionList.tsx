@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { SessionRow } from "./SessionRow";
 import { AssignWorkoutDialog } from "./AssignWorkoutDialog";
+import { deriveSessionStatus } from "@/lib/session-status";
+import { isoToLocalTime } from "@/lib/schedule-dates";
+import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import type { SessionStatus } from "@/types";
 
 interface SessionItem {
@@ -12,6 +15,7 @@ interface SessionItem {
   week: number;
   data: {
     focus_label?: string;
+    session_log?: { completed_at?: string | null } | null;
     versions?: {
       studio?: { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
       home?: { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
@@ -30,9 +34,25 @@ interface SessionListProps {
   clientId: string;
   blockId: string;
   archetypeTint: Record<string, string>;
-  sessionStatus: (s: SessionItem) => SessionStatus;
-  formatDayLabel: (s: SessionItem) => string;
-  archetypeNameMap: Record<string, string | undefined>;
+  archetypeNameMap?: Record<string, string | undefined>;
+}
+
+function sessionStatus(s: SessionItem): SessionStatus {
+  return deriveSessionStatus({
+    status: s.status,
+    cancelled_at: s.cancelled_at,
+    scheduled_at: s.scheduled_at,
+    session_log: s.data?.session_log,
+  });
+}
+
+function formatDayLabel(session: SessionItem, totalSessions: number): string {
+  if (session.scheduled_at) {
+    const d = new Date(session.scheduled_at);
+    const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+    return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
+  }
+  return `Session ${session.session_number} of ${totalSessions} · not yet booked`;
 }
 
 function isSessionEmpty(session: SessionItem): boolean {
@@ -49,9 +69,7 @@ export function SessionList({
   clientId,
   blockId,
   archetypeTint,
-  sessionStatus,
-  formatDayLabel,
-  archetypeNameMap,
+  archetypeNameMap = DEFAULT_ARCHETYPE_FOCUS_LABELS,
 }: SessionListProps) {
   const [assignSessionId, setAssignSessionId] = useState<string | null>(null);
 
@@ -62,7 +80,7 @@ export function SessionList({
         const focusLabel = session.data?.focus_label || archetypeName || "—";
         const status = sessionStatus(session);
         const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${session.session_number}`;
-        const dayLabel = formatDayLabel(session);
+        const dayLabel = formatDayLabel(session, totalSessions);
         const isEmpty = isSessionEmpty(session);
 
         return (

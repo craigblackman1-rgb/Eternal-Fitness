@@ -6,9 +6,8 @@ import { IconChevronLeft } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
-import { groupSessionsByWeek, isoToMonday, isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
+import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
-import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus, DBSession } from "@/types";
 
@@ -122,14 +121,6 @@ export default async function BlockViewPage({
 
   // CR-EF-073 — a session's identity is its booking (date + time); an
   // unbooked session leads with its ordinal instead of a meaningless "Day N".
-  const formatDayLabel = (session: SessionRow): string => {
-    if (session.scheduled_at) {
-      const d = new Date(session.scheduled_at);
-      const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-      return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
-    }
-    return `Session ${session.session_number} of ${totalSessions} · not yet booked`;
-  };
 
   const formatShortDate = (iso: string): string =>
     new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -289,9 +280,6 @@ export default async function BlockViewPage({
                   clientId={String(clientId)}
                   blockId={params.blockId}
                   archetypeTint={archetypeTint}
-                  sessionStatus={sessionStatus}
-                  formatDayLabel={formatDayLabel}
-                  archetypeNameMap={DEFAULT_ARCHETYPE_FOCUS_LABELS}
                 />
               </div>
             </details>
