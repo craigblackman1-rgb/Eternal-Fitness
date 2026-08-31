@@ -62,7 +62,7 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
             </svg>
             {unreviewed} cancellation{unreviewed === 1 ? "" : "s"} unreviewed
             <a
-              href="#sessions"
+              href="/hub/sessions/review"
               className="ml-1 underline decoration-amber/40 hover:decoration-amber text-foreground"
             >
               Review
