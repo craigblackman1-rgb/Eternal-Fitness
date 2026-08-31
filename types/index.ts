@@ -10,6 +10,9 @@ export type Phase = "foundation" | "build" | "develop" | "peak" | "deload";
 export type BlockStatus = "draft" | "approved" | "active" | "complete";
 export type SessionStatus = "planned" | "scheduled" | "in_progress" | "completed" | "cancelled";
 
+/** CR-EF-099 — structured flag for whether a cancellation consumed a session. Set explicitly at cancellation time, never auto-derived. */
+export type ChargedFree = "charged" | "free";
+
 /** Highest week number a session may sit on — mirrors the sessions_week_check
  *  constraint. Esther's standard block is 6 weeks, but supplied programmes run
  *  longer (Nathan Wadey's is 12) and Package allows a 24-week engagement. */
@@ -414,6 +417,8 @@ export interface DBClient {
   payment_method: string | null;
   payment_status: PaymentStatus;
   block_expiry_date: string | null;
+  /** CR-EF-099 — history of grace-period extensions. Each entry: { from, to, at, reason }. */
+  block_expiry_extensions?: { from: string; to: string; at: string; reason?: string }[];
   start_date: string | null;
   client_status: ClientStatus;
   referral_source: string | null;
@@ -482,6 +487,8 @@ export interface DBSession {
   cancelled_at?: string | null;
   /** Optional free-text reason for the cancellation. */
   cancel_reason?: string | null;
+  /** CR-EF-099 — structured flag: 'charged' = consumed a session, 'free' = did not. NULL = legacy row without the flag. */
+  charged_free?: ChargedFree | null;
   /** First-class lifecycle state (CR-EF-037 Phase 1) — the single source of truth.
    *  Surfaces read this, never re-derive it from data.session_log / scheduled_at /
    *  cancelled_at. Absent only on rows created before the Phase 1 migration backfill. */

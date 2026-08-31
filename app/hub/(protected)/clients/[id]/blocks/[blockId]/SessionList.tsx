@@ -21,6 +21,7 @@ interface SessionItem {
   status: string | null;
   cancelled_at: string | null;
   cancel_reason: string | null;
+  charged_free?: "charged" | "free" | null;
 }
 
 interface SessionListProps {
@@ -78,6 +79,7 @@ export function SessionList({
             sessionUrl={sessionUrl}
             scheduledAt={session.scheduled_at}
             cancelReason={session.cancel_reason}
+            chargedFree={session.charged_free}
             isEmpty={isEmpty}
             onAssignWorkout={setAssignSessionId}
           />

@@ -5,11 +5,12 @@ import { StatusBadge } from "@/components/hub/StatusBadge";
 import { IconChevronLeft } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { SessionList } from "./SessionList";
+import { BlockPoolView } from "@/components/hub/BlockPoolView";
 import { groupSessionsByWeek, isoToMonday, isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import type { Weekday } from "@/lib/scheduling";
-import type { Session, SessionStatus } from "@/types";
+import type { Session, SessionStatus, DBSession } from "@/types";
 
 const archetypeTint: Record<string, string> = {
   A: "bg-teal/10 text-teal",
@@ -65,7 +66,7 @@ export default async function BlockViewPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("name, client_number, profile")
+    .select("name, client_number, profile, sessions_purchased, block_expiry_date, block_expiry_extensions")
     .eq("client_number", parseInt(params.id))
     .single();
 
@@ -222,6 +223,17 @@ export default async function BlockViewPage({
           </div>
         </div>
       </BlockOverviewClient>
+
+      {/* CR-EF-099 — Session pot counter, rotation ribbon, booked slots vs workout pool */}
+      <BlockPoolView
+        sessions={sessions as unknown as DBSession[]}
+        clientId={String(clientId)}
+        blockId={params.blockId}
+        clientName={client?.name || "Client"}
+        sessionsPurchased={client?.sessions_purchased ?? null}
+        blockExpiryDate={client?.block_expiry_date ?? null}
+        blockExpiryExtensions={client?.block_expiry_extensions ?? []}
+      />
 
       <div className="space-y-3.5">
         {weekGroups.map((group) => {

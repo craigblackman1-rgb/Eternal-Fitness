@@ -25,6 +25,8 @@ interface SessionRowProps {
   sessionUrl: string;
   scheduledAt: string | null;
   cancelReason: string | null;
+  /** CR-EF-099 — structured flag: 'charged' = consumed a session, 'free' = did not. */
+  chargedFree?: "charged" | "free" | null;
   isEmpty: boolean;
   onAssignWorkout: (sessionId: string) => void;
 }
@@ -47,6 +49,7 @@ export function SessionRow({
   sessionUrl,
   scheduledAt,
   cancelReason,
+  chargedFree,
   isEmpty,
   onAssignWorkout,
 }: SessionRowProps) {
@@ -178,8 +181,20 @@ export function SessionRow({
         </div>
       </div>
 
-      {status === "cancelled" && cancelReason && (
-        <div className="px-4 pb-3 text-xs text-muted-foreground">Cancelled — {cancelReason}</div>
+      {status === "cancelled" && (
+        <div className="px-4 pb-3 text-xs text-muted-foreground">
+          {chargedFree === "charged" && (
+            <span className="inline-flex items-center rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-bd)] px-2 py-0 text-[10px] font-bold mr-1.5">
+              Charged
+            </span>
+          )}
+          {chargedFree === "free" && (
+            <span className="inline-flex items-center rounded-full bg-[var(--s-success-bg)] text-[var(--teal)] border border-[var(--s-success-bd)] px-2 py-0 text-[10px] font-bold mr-1.5">
+              Free
+            </span>
+          )}
+          Cancelled{cancelReason ? ` — ${cancelReason}` : ""}
+        </div>
       )}
 
       {rescheduling && (

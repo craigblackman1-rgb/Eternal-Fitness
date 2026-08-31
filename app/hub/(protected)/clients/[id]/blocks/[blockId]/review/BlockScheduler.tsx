@@ -174,6 +174,7 @@ export function BlockScheduler({
     const ok = await patchSession(session.id, {
       cancelled_at: new Date().toISOString(),
       cancel_reason: cancelReason.trim() === "" ? null : cancelReason.trim(),
+      charged_free: "charged", // CR-EF-099 default to charged; CancelSessionDialog overrides
     });
     setBusyId(null);
     if (!ok) {
@@ -187,7 +188,7 @@ export function BlockScheduler({
 
   const unCancel = async (session: DBSession) => {
     setBusyId(session.id);
-    const ok = await patchSession(session.id, { cancelled_at: null, cancel_reason: null });
+    const ok = await patchSession(session.id, { cancelled_at: null, cancel_reason: null, charged_free: null });
     setBusyId(null);
     if (!ok) {
       toast.error("Failed to un-cancel");
