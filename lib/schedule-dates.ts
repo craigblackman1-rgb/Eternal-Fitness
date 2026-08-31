@@ -166,6 +166,19 @@ export function derivedWeekLabel(scheduled_at: string | null, week: number): str
   return `Week of ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`;
 }
 
+/** Return the Monday–Sunday (7-day) array of Date objects for the week containing
+ *  the given ISO date string. Used by the calendar spine's week view. */
+export function weekDates(isoDate: string): Date[] {
+  const monday = isoToMonday(isoDate);
+  const [y, m, d] = monday.split("-").map(Number);
+  const start = new Date(y, m - 1, d);
+  return Array.from({ length: 7 }, (_, i) => {
+    const dt = new Date(start);
+    dt.setDate(start.getDate() + i);
+    return dt;
+  });
+}
+
 /**
  * Pairwise overlap detection across DIFFERENT clients within one day's entries.
  * A session occupies `[scheduled_at, scheduled_at + duration)`. Two entries

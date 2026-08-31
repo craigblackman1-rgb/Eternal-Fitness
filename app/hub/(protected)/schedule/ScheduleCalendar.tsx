@@ -50,6 +50,8 @@ export interface ScheduledEntry {
   status: SessionStatus;
   /** When the session was actually completed — may differ from scheduledAt. */
   completedAt: string | null;
+  /** When the booking was cancelled. NULL = not cancelled. */
+  cancelledAt: string | null;
   /** Free-text cancellation reason — shown on the day view when a cancelled
    *  entry is revealed via the "Show cancelled" toggle. */
   cancelReason: string | null;

@@ -72,35 +72,69 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const incomingData = update.data as { session_log?: { completed_at?: string | null } } | undefined;
   const completingNow = typeof incomingData?.session_log?.completed_at === "string";
   const cancellingNow = "cancelled_at" in update && update.cancelled_at != null;
+
+  // CR-EF-037 off-day modes:
+  //   off_day_mode = "today" → move scheduled_at to today, complete now (nothing flagged)
+  //   off_day_mode = "booked" → keep scheduled_at, back-date completed_at (off-day flag)
+  // Future bookings MUST NOT accept "booked" mode — that is the exact path
+  // that produced 'Completed on a date it was never delivered'.
+  const offDayMode = body.off_day_mode as "today" | "booked" | undefined;
+
   if (cancellingNow) {
     update.status = "cancelled";
   } else if (completingNow) {
-    // EF-100 — off-day completion guard. If the trainer completes a session
-    // whose booked date is a different day than the incoming completed_at,
-    // block the write unless the client explicitly confirmed the off-day
-    // completion (confirm_off_day: true). This prevents the bug where
-    // completing a session "sticks" to next week's session row because the
-    // trainer was looking at the wrong day.
-    if (!body.confirm_off_day) {
-      const { data: sessionRow } = await supabase
-        .from("sessions")
-        .select("scheduled_at")
-        .eq("id", params.id)
-        .maybeSingle();
-      const scheduledDate = sessionRow?.scheduled_at as string | null;
-      const completedDate = incomingData!.session_log!.completed_at!;
-      if (scheduledDate && londonDayKey(scheduledDate) !== londonDayKey(completedDate)) {
+    // Fetch current session state for the guard
+    const { data: sessionRow } = await supabase
+      .from("sessions")
+      .select("scheduled_at, status")
+      .eq("id", params.id)
+      .maybeSingle();
+    const scheduledDate = sessionRow?.scheduled_at as string | null;
+    const completedDate = incomingData!.session_log!.completed_at!;
+    const todayKey = londonDayKey(new Date().toISOString());
+    const scheduledDayKey = scheduledDate ? londonDayKey(scheduledDate) : null;
+    const completedDayKey = londonDayKey(completedDate);
+
+    if (!body.confirm_off_day && scheduledDayKey && scheduledDayKey !== completedDayKey) {
+      // Off-day detected without confirmation — block the write
+      return NextResponse.json(
+        {
+          error: `This session is booked for ${new Date(scheduledDate!).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long" })}, not today.`,
+          code: "off_day_completion",
+          scheduledAt: scheduledDate,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (body.confirm_off_day && offDayMode) {
+      if (offDayMode === "today") {
+        // Move the booking to today — keep the time, change the day
+        const scheduledTime = scheduledDate ? new Date(scheduledDate) : new Date();
+        const now = new Date();
+        const movedScheduled = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          scheduledTime.getHours(),
+          scheduledTime.getMinutes(),
+        ).toISOString();
+        update.scheduled_at = movedScheduled;
+      }
+      // offDayMode = "booked": keep scheduled_at as-is, just back-date completed_at
+      // Server-side guard: reject "booked" for future bookings
+      if (offDayMode === "booked" && scheduledDayKey && scheduledDayKey > todayKey) {
         return NextResponse.json(
           {
-            error: `This session is booked for ${new Date(scheduledDate).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long" })}, not today.`,
-            code: "off_day_completion",
-            scheduledAt: scheduledDate,
+            error: `Cannot back-date completion — ${new Date(scheduledDate!).toLocaleDateString("en-GB", { timeZone: "Europe/London", weekday: "long", day: "numeric", month: "long" })} is in the future. A session cannot be completed against a date it has not reached.`,
+            code: "future_backdate_rejected",
           },
           { status: 409 },
         );
       }
     }
-    update.completed_at = incomingData!.session_log!.completed_at;
+
+    update.completed_at = completedDate;
     update.status = "completed";
   }
 
