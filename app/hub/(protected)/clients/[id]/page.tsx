@@ -650,7 +650,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                       {p?.health?.conditions && (
                         <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
                       )}
-                      <HubDataField label="Package">{p?.logistics?.package ?? "—"}</HubDataField>
+                      <HubDataField label="Package">{client.package_type ?? "—"}</HubDataField>
                       <HubDataField label="Last check-in">
                         {latestCompletedSession?.completed_at
                           ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
@@ -833,7 +833,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         <HubDataField label="Location"><span className="capitalize">{p.logistics.training_location?.replace("_", " ") ?? "—"}</span></HubDataField>
                         <HubDataField label="Sessions/week">{p.logistics.sessions_per_week ?? "—"}x</HubDataField>
                         <HubDataField label="Time tier"><span className="capitalize">{p.logistics.time_tier ?? "—"}</span></HubDataField>
-                        <HubDataField label="Package">{p.logistics.package ?? "—"}</HubDataField>
+                        <HubDataField label="Package">{client.package_type ?? "—"}</HubDataField>
                         <HubDataField label="Pace mode"><PaceModeDisplay paceMode={client.pace_mode} /></HubDataField>
                         <HubDataField label="Group type"><GroupTypeLabel groupType={client.group_type} /></HubDataField>
                       </HubDataGrid>

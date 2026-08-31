@@ -14,7 +14,7 @@ import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
-import type { ClientProfile, Gender } from "@/types";
+import type { ClientProfile, Gender, Package } from "@/types";
 
 function calculateAge(dob: string | null): number {
   if (!dob) return 0;
@@ -84,7 +84,7 @@ function SegmentedControl<T extends string | number>({
 
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
-  logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", package: "12-week", block_number: 1 },
+  logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", block_number: 1 },
   health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], medications: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
@@ -99,6 +99,7 @@ export default function NewClientPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [profile, setProfile] = useState<ClientProfile>(emptyProfile);
+  const [packageType, setPackageType] = useState<Package | null>("12-week");
 
   const updateProfile = <K extends keyof ClientProfile>(section: K, updates: Partial<ClientProfile[K]>) => {
     setProfile((prev) => ({
@@ -127,6 +128,7 @@ export default function NewClientPage() {
         email: email.trim() || null,
         phone: phone.trim() || null,
         profile: fullProfile,
+        package_type: packageType,
       }),
     });
 
@@ -249,9 +251,11 @@ export default function NewClientPage() {
               />
               <div className="space-y-2">
                 <Label>Package</Label>
-                <Select value={profile.logistics.package} onValueChange={(v: "12-week" | "24-week" | "ongoing") => updateProfile("logistics", { package: v })}>
+                <Select value={packageType ?? ""} onValueChange={(v: Package) => setPackageType(v)}>
                   <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="4-week">4-week</SelectItem>
+                    <SelectItem value="6-week">6-week</SelectItem>
                     <SelectItem value="12-week">12-week</SelectItem>
                     <SelectItem value="24-week">24-week</SelectItem>
                     <SelectItem value="ongoing">Ongoing</SelectItem>
