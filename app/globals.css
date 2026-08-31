@@ -1348,3 +1348,150 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
   .eb-add, .eb-row-del, .eb-hl, .eb-bullet-rm, .eb-callout-x { display: none !important; }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   CR-EF-039 — HUB PATTERN SPEC v1
+   Canonical component contracts for the Trainer Hub.
+   Tokens lifted 1:1 from hub-pattern-spec-v1.html.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── CANONICAL RADIUS SCALE (§3) ────────────────────────────────────────
+   Radius is a function of ELEVATION DEPTH, never of element size. */
+:root {
+  --r-surface: 16px;     /* level 0 — anything sitting directly on the canvas */
+  --r-nested:  10px;     /* level 1 — anything inside a level-0 surface       */
+  --r-control:  8px;     /* buttons, inputs, selects, icon chips, nav items   */
+  --r-control-sm: 6px;   /* dense controls, checkbox, table-cell chips        */
+  --r-pill:  999px;      /* status badges, count pills, avatars, toggles      */
+}
+
+/* ── CANONICAL RAIL (§4 / CR-EF-040) ─────────────────────────────────── */
+:root {
+  --rail-w: 300px;
+  --rail-gap: 20px;
+  --rail-top: 76px;
+}
+
+/* ── CANONICAL SHADOW ─────────────────────────────────────────────────── */
+:root {
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.07);
+}
+
+/* ══ ACCORDION (§1) ═════════════════════════════════════════════════════
+   ONE implementation. <details>/<summary> so it works without JS, is
+   keyboard-operable for free, and prints expanded. */
+.hub-acc { border: 1px solid var(--hub-border); border-radius: var(--r-nested); background: var(--hub-card); overflow: hidden; }
+.hub-acc-item + .hub-acc-item { border-top: 1px solid var(--hub-border); }
+.hub-acc-item > summary { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--color-ink); background: var(--hub-card); transition: background-color 120ms; }
+.hub-acc-item > summary::-webkit-details-marker { display: none; }
+.hub-acc-item > summary:hover { background: var(--hub-hover); }
+.hub-acc-item > summary:focus-visible { outline: 2px solid var(--color-rose); outline-offset: -2px; }
+.hub-acc-chev { width: 16px; height: 16px; flex-shrink: 0; color: var(--color-muted-text); transition: transform 160ms ease; }
+.hub-acc-item[open] > summary .hub-acc-chev { transform: rotate(90deg); }
+.hub-acc-item[open] > summary { background: var(--hub-hover); }
+.hub-acc-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-acc-end { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.hub-acc-panel { padding: 14px; border-top: 1px solid var(--hub-border); font-size: 13px; color: var(--color-body); background: var(--hub-card); animation: acc-in 160ms ease-out; }
+@keyframes acc-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+.hub-acc-item.is-disabled > summary { cursor: not-allowed; color: var(--color-muted-text); background: var(--hub-hover); pointer-events: none; }
+.hub-acc-item.is-disabled .hub-acc-chev { opacity: .4; }
+/* Nested inside a card: the card already draws the frame and radius. */
+.hub-card-b > .hub-acc, .hub-card--flush .hub-acc { border: 0; border-radius: 0; }
+.hub-card--flush .hub-acc .hub-acc-item:first-child { border-top: 0; }
+@media (prefers-reduced-motion: reduce) { .hub-acc-chev { transition: none; } .hub-acc-panel { animation: none; } }
+
+/* ══ CARD (§2) ══════════════════════════════════════════════════════════
+   THE contract. Every hub card is a flex column at full cell height with a
+   flex:1 body, so a row of cards bottom-aligns regardless of content length.
+   The parent grid MUST stay align-items: stretch (the default). */
+.hub-grid { display: grid; gap: 16px; align-items: stretch; }
+.hub-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hub-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hub-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1080px) { .hub-grid-3, .hub-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .hub-grid-2, .hub-grid-3, .hub-grid-4 { grid-template-columns: minmax(0, 1fr); } }
+
+/* ══ META-GRID (§3) ════════════════════════════════════════════════════
+   Bordered cells on white — replaces the gap:1px background-bleed technique
+   whose square cells butt into the rounded clip and make corners read sharp. */
+.hub-metagrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--hub-card); border: 1px solid var(--hub-border); border-radius: var(--r-surface); box-shadow: var(--shadow-sm); overflow: hidden; }
+.hub-metacell { padding: 12px 16px; }
+.hub-metacell + .hub-metacell { border-left: 1px solid var(--hub-border); }
+.hub-metacell-l { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted-text); }
+.hub-metacell-v { font-size: 14px; font-weight: 600; color: var(--color-ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
+@media (max-width: 1080px) {
+  .hub-metagrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hub-metacell:nth-child(3) { border-left: 0; }
+  .hub-metacell:nth-child(n+3) { border-top: 1px solid var(--hub-border); }
+}
+@media (max-width: 620px) {
+  .hub-metagrid { grid-template-columns: minmax(0, 1fr); }
+  .hub-metacell + .hub-metacell { border-left: 0; border-top: 1px solid var(--hub-border); }
+}
+
+/* ══ RAIL (§4 / CR-EF-040) ═════════════════════════════════════════════
+   One primitive, one width, one breakpoint. The rail is a COLUMN of the page
+   layout, not a floated card — so main content never reflows under it. */
+.hub-layout { display: grid; grid-template-columns: minmax(0, 1fr) var(--rail-w); gap: var(--rail-gap); align-items: start; }
+.hub-rail { position: sticky; top: var(--rail-top); display: flex; flex-direction: column; gap: 16px; max-height: calc(100vh - var(--rail-top) - 24px); overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 1180px) {
+  .hub-layout { grid-template-columns: minmax(0, 1fr); }
+  .hub-rail { position: static; max-height: none; overflow: visible; order: 2; }
+}
+
+/* ══ SECTION HEADER (§5a) ══════════════════════════════════════════════ */
+.hub-sech { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+.hub-sech-t { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-muted-text); }
+.hub-sech-rule { flex: 1; height: 1px; background: var(--hub-section-border); }
+.hub-sech-end { display: flex; align-items: center; gap: 8px; }
+
+/* ══ EMPTY STATE (§5b) ═════════════════════════════════════════════════ */
+.hub-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; padding: 34px 20px; }
+.hub-empty-ic { width: 44px; height: 44px; border-radius: var(--r-pill); display: grid; place-items: center; background: var(--status-primary-bg); color: var(--status-primary-text); margin-bottom: 6px; }
+.hub-empty-ic svg { width: 20px; height: 20px; }
+.hub-empty-t { font-size: 14px; font-weight: 700; color: var(--color-ink); }
+.hub-empty-d { font-size: 12.5px; color: var(--color-muted-text); max-width: 34ch; }
+.hub-empty .btn { margin-top: 10px; }
+
+/* ══ SKELETON (§5c) ════════════════════════════════════════════════════ */
+.sk { background: linear-gradient(90deg, var(--hub-hover) 25%, #EEF0F3 37%, var(--hub-hover) 63%); background-size: 400% 100%; animation: sk 1.4s ease-in-out infinite; border-radius: var(--r-control-sm); }
+.sk-line { height: 11px; }
+.sk-line.sm { height: 9px; }
+.sk-chip { height: 22px; width: 74px; border-radius: var(--r-pill); }
+.sk-av { width: 30px; height: 30px; border-radius: var(--r-control); }
+@keyframes sk { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+
+/* ══ BADGES, PILLS, COUNTS (§5d) ══════════════════════════════════════ */
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: var(--r-pill); font-size: 11.5px; font-weight: 600; border: 1px solid; white-space: nowrap; }
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: var(--r-pill); background: currentColor; flex-shrink: 0; }
+.pill.no-dot::before { display: none; }
+.pill.primary { background: var(--status-primary-bg); border-color: var(--status-primary-border); color: var(--status-primary-text); }
+.pill.success { background: var(--status-success-bg); border-color: var(--status-success-border); color: var(--status-success-text); }
+.pill.warning { background: var(--status-warning-bg); border-color: var(--status-warning-border); color: var(--status-warning-text); }
+.pill.danger  { background: var(--status-danger-bg);  border-color: var(--status-danger-border);  color: var(--status-danger); }
+.pill.neutral { background: var(--status-neutral-bg); border-color: var(--status-neutral-border); color: var(--status-neutral); }
+.pill.solid   { background: var(--status-danger); border-color: var(--status-danger); color: #fff; }
+.count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--r-pill); background: var(--status-neutral-bg); border: 1px solid var(--status-neutral-border); color: var(--color-body); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.count.alert { background: var(--status-danger-bg); border-color: var(--status-danger-border); color: var(--status-danger); }
+
+/* ══ BUTTONS (§5e) ═════════════════════════════════════════════════════
+   ONE .btn-primary per view. Everything else is outline or ghost.
+   Hover DARKENS the fill — never opacity, which lifts the fill toward the
+   canvas and drops white-on-rose below 4.5:1. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--r-control); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid transparent; text-decoration: none; white-space: nowrap; transition: background-color 150ms, border-color 150ms, color 150ms; }
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.btn:focus-visible { outline: 2px solid var(--color-rose); outline-offset: 2px; }
+.btn-primary { background: var(--color-rose); border-color: var(--color-rose); color: #fff; }
+.btn-primary:hover { background: color-mix(in oklch, var(--color-rose) 82%, var(--color-ink)); border-color: color-mix(in oklch, var(--color-rose) 82%, var(--color-ink)); }
+.btn-outline { background: var(--hub-card); border-color: var(--hub-field-border); color: var(--color-ink); }
+.btn-outline:hover { background: var(--hub-hover); border-color: var(--hub-field-border-hover); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--color-body); font-weight: 500; }
+.btn-ghost:hover { background: var(--hub-hover); color: var(--color-ink); }
+.btn-danger { background: var(--hub-card); border-color: var(--status-danger-border); color: var(--status-danger); }
+.btn-danger:hover { background: var(--status-danger); border-color: var(--status-danger); color: #fff; }
+.btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; border-radius: var(--r-control-sm); }
+.btn-icon { width: 36px; padding: 0; }
+.btn-icon.btn-sm { width: 30px; }
+.btn:disabled, .btn[aria-disabled="true"] { background: var(--hub-hover); border-color: var(--hub-border); color: var(--color-muted-text); cursor: not-allowed; pointer-events: none; }
+@media (max-width: 620px) { .btn { height: 44px; } .btn-sm { height: 36px; } }
+

@@ -2,6 +2,7 @@ export { HubCard } from "./HubCard";
 export { HubCardHeader } from "./HubCardHeader";
 export { HubPageHeader } from "./HubPageHeader";
 export { HubRail } from "./HubRail";
+export { HubAccordion, HubAccordionItem } from "./HubAccordion";
 export { HubAccordionSection } from "./HubAccordionSection";
 export { HubDataGrid, HubDataField } from "./HubDataGrid";
 export { HubQuickActions } from "./HubQuickActions";
