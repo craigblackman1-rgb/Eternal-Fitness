@@ -92,14 +92,9 @@ async function generateBlockForClient(
   // the AI menu and the validation universe to exercises they can actually do.
   // NULL equipment → no filtering (unconstrained, legacy behaviour).
   if (client.equipment != null) {
-    const normalise = (n: string) => {
-      let s = n.toLowerCase();
-      if (s.endsWith("s") && s.length > 3) s = s.slice(0, -1);
-      return s;
-    };
-    const available = new Set(client.equipment.map((n: string) => normalise(n)));
+    const available = new Set(client.equipment.map((n: string) => normaliseEquipment(n)));
     const matchesClient = (e: { equipment?: string[] }) =>
-      !e.equipment || e.equipment.length === 0 || e.equipment.every((req) => available.has(normalise(req)));
+      !e.equipment || e.equipment.length === 0 || e.equipment.every((req) => available.has(normaliseEquipment(req)));
     bundle.menuExercises = bundle.menuExercises.filter(matchesClient);
     bundle.allExercises = bundle.allExercises.filter(matchesClient);
   }
@@ -208,28 +203,51 @@ interface ExerciseDbEntry {
 }
 
 /**
+ * CR-EF-108 — normalise an equipment name for fuzzy comparison.
+ *
+ * Handles the real-world variance between studio_equipment catalog names
+ * (title-case plural: "Dumbbells", "Resistance bands") and exercise table
+ * tags (messy mix: "Dumbbell", "dumbbell", "Resistance Band",
+ * "Bands (handles)", "step/box"):
+ *
+ *  1. lowercase + trim
+ *  2. strip parenthetical content — "Bands (handles)" → "Bands"
+ *  3. normalise '/' to space — "step/box" → "step box"
+ *  4. collapse whitespace
+ *  5. strip a single trailing 's' (simple depluralisation)
+ *
+ * Known limitations this does NOT resolve (genuine naming differences,
+ * not normalisation gaps):
+ *  - "Cable" (exercise) ≠ "Cable machine" (catalog)
+ *  - "band" (exercise after parenthetical strip) ≠ "resistance band" / "booty band" (catalog)
+ *  - "barbell" (exercise) ≠ "olympic bar" / "trap bar" (catalog)
+ *  - "stability ball" (exercise) ≠ "swiss exercise ball" (catalog)
+ *  - "suspension" (exercise) ≠ "trx" (catalog)
+ *  - "barbell+plates" (exercise) — '+' not treated as separator
+ */
+function normaliseEquipment(n: string): string {
+  let s = n.toLowerCase().trim();
+  s = s.replace(/\s*\([^)]*\)/g, "");
+  s = s.replace(/\//g, " ");
+  s = s.replace(/\s+/g, " ").trim();
+  if (s.endsWith("s") && s.length > 3) s = s.slice(0, -1);
+  return s;
+}
+
+/**
  * CR-EF-108 — filter an exercise pool to only exercises whose equipment
  * requirements are a subset of the client's available equipment.
  *
  * - Empty equipment on an exercise (bodyweight-only) → always included.
  * - NULL client equipment → no filtering (unconstrained, legacy behaviour).
  * - Empty client equipment array → only bodyweight exercises pass.
- *
- * Matching is case-insensitive. Catalog names (title-case plural, e.g.
- * "Dumbbells") are normalised to match exercise tags (lowercase singular,
- * e.g. "dumbbell") by lowercasing and stripping a trailing 's'.
  */
 function filterByEquipment(pool: ExerciseDbEntry[], clientEquipment: string[] | null | undefined): ExerciseDbEntry[] {
   if (clientEquipment == null) return pool;
   if (clientEquipment.length === 0) return pool.filter((e) => e.equipment.length === 0);
-  const normalise = (n: string) => {
-    let s = n.toLowerCase();
-    if (s.endsWith("s") && s.length > 3) s = s.slice(0, -1);
-    return s;
-  };
-  const available = new Set(clientEquipment.map(normalise));
+  const available = new Set(clientEquipment.map(normaliseEquipment));
   return pool.filter((e) =>
-    e.equipment.length === 0 || e.equipment.every((req) => available.has(normalise(req)))
+    e.equipment.length === 0 || e.equipment.every((req) => available.has(normaliseEquipment(req)))
   );
 }
 
