@@ -70,7 +70,7 @@ export default function PricingPageClient() {
   ];
   const monthlyPlan = {
     name: "Ongoing Monthly Training",
-    rate: "Contact for monthly rates",
+    rate: "Contract for monthly rates",
     unit: "Payments due every 4 weeks",
     description: "Commit to your long-term health with a structured, rolling arrangement that secures your ongoing priority slots.",
     features: [
