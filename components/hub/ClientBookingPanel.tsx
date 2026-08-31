@@ -20,7 +20,7 @@ interface BookingRow {
   start_at: string;
   parsed_name: string | null;
   client_id: string | null;
-  status: "open" | "dismissed" | "confirmed";
+  status: "open" | "dismissed" | "confirmed" | "blocked";
   clients: ClientRef | null;
 }
 
