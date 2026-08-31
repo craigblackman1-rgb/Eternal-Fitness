@@ -7,6 +7,12 @@ const PORTAL_COOKIE = "better_auth_portal_session";
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // PWA service-worker scripts must be served directly — a redirected response
+  // is invalid for navigator.serviceWorker.register() fetches, killing PWA on prod.
+  if (pathname === "/hub/sw.js" || pathname === "/portal/sw.js") {
+    return NextResponse.next();
+  }
+
   const hasStaffSession = !!getSessionCookie(request);
 
   const publicHubPaths = ["/hub/login", "/hub/forgot-password", "/hub/reset-password"];

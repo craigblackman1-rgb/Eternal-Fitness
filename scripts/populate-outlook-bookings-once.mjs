@@ -23,7 +23,8 @@ const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const BOOKINGS_ORGANIZER_EMAIL = "eternalfitnessbookings@eternal-fitness.co.uk";
 const WINDOW_PAST_MS = 24 * 60 * 60 * 1000;
 const WINDOW_FUTURE_MS = 60 * 24 * 60 * 60 * 1000;
-const SUBJECT_NAME_RE = /^(?:Personal Training|Initial consult)\s*-\s*(.+)$/i;
+// Mirror: lib/outlook-bookings.ts
+const SUBJECT_NAME_RE = /^(?:Online\s+)?(?:Personal Training|Initial consult)\s*-\s*(.+)$/i;
 
 function parseClientNameFromSubject(subject) {
   const m = (subject ?? "").trim().match(SUBJECT_NAME_RE);

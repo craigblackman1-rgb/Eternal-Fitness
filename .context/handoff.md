@@ -1,3 +1,56 @@
+# Session Handoff: August 29, 2026 (Claude Code) — session-save failure, band equipment, notes pooling, bookings-model CR (wo-ef-session-save-band-notes-2026-08-29)
+
+## Session Summary
+Craig reported "fails to save a session, says save failed" while live-testing, then added three
+more items mid-session (band recording on Half Kneeling Band Pallof Press, exercise-notes
+pooling, Weeks vs Plan-week confusion).
+
+**Root cause of the save failure — third missed-migration incident:**
+`supabase/migrations/20260821_client_notes_session_pin.sql` (client_notes.session_id/pinned/
+author) ran on staging but NEVER on prod. Prod pg log showed 13 failed note INSERTs + 111
+failed notes-list SELECTs. **Applied to prod (Craig-approved), verified: exact failing
+statement shapes now succeed, errors stopped in the log.** Drift sweep of all migrations vs
+both DBs found nothing else live (the 20260525 signed_agreements trainer-fields migration was
+superseded by clients.* columns — deferred as cleanup dmtea0yf3el).
+
+**Three OpenCode lanes (mimo-v2.5) shipped to staging (c1f7433 → 91e890b), every diff
+hand-reviewed, tsc re-run by Claude on the final merged state:**
+- `d2ae786` clients/[id]: the sessions query used PostgREST embedded-column filter syntax
+  (`.eq("blocks.client_id", …)`) the pg shim can't render — failed on EVERY client-detail
+  load (66 log hits), silently (error was swallowed). Now a two-step block-id lookup, error
+  logged. Prod still shows this error until promotion — expected.
+- `009f293` error surfacing: mobile save flows now show the server's real reason (18-session
+  cap, completed-read-only) instead of "Blank session failed"/"check your connection";
+  persistPrescription/persistExerciseNotes/started_at got the missing res.ok checks.
+- `91e890b` band equipment: library backfill now fills `equipment` (exercise-media.ts +
+  SessionEditor + desktop log page), `stripEquipment` no longer wipes the home version, and
+  AI plan generation copy-backs library equipment on name match.
+
+**Also found and filed (hub bugs, EF project):** band lb weights stored raw into
+`set_logs.weight_kg` (toKg/fromKg have zero call sites — audit found ZERO affected prod rows,
+so it's a pure code fix, no data migration; sequence after the error-surfacing lane, same
+files); Outlook auto-confirm error-loops forever on full blocks (Ian Healey 18/18, booking
+dfee3d79). Six bugs total filed directly in hub tasks (wo bug-new is broken: tasks.sprint_id
+NOT NULL + severity vocab drift — spawn-task chip raised for the CLI fix).
+
+**CRs:** CR-EF-098 (pool exercise notes into profile Notes — design brief in
+`.context/design-brief-cr-ef-098-exercise-notes-pooling.md`) and CR-EF-099 (bookings/workout
+model "once and for all" — brief in `.context/design-brief-cr-ef-099-bookings-workout-model.md`;
+three design gates queued: session numbering, pool placement on mobile, next-workout
+suggestion logic). Set `projects.cr_prefix='EF'` on the hub eternal-fitness project (was NULL,
+broke `wo cr new`; counter already existed at 98). Both CRs need Open Design mockups before
+build — that is the next unit of work.
+
+**Verification honesty:** staging deploy confirmed at Coolify level (deployment `finished`,
+commit 91e890b). The authed browser drive was NOT possible — Craig's Chrome has no staging
+hub session and Claude cannot enter passwords — so DB-level equivalents were run (new query
+shape returns 18/18 with embeds on staging; band exercise equipment present) and three
+staging acceptance items added to the hub testing tab for Craig. Units u2/u3/u4 stay open
+until those pass. Do not promote staging→main before they do (promotion also carries the
+prior sessions' 33 commits — that decision was already with Craig).
+
+---
+
 # Session Handoff: August 25, 2026 (Claude Code) — Lane K: session-scheduling gap + Outlook reconciliation overhaul, CR-EF-088–091
 
 ## Session Summary

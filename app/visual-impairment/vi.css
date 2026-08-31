@@ -12,13 +12,13 @@
    ────────────────────────────────────────────────────────────── */
 
 .vi-page {
-  --vi-img-grade: saturate(.94) contrast(1.05) brightness(1.02);
-  --vi-img-wash: var(--color-warm);
-  --vi-img-wash-o: .05;
-  --vi-img-hair: color-mix(in srgb, var(--color-ink) 12%, transparent);
-  --vi-img-hair-w: 1px;
-  --vi-plate-o: .92;
-  --vi-vignette: color-mix(in srgb, var(--color-ink) 42%, transparent);
+  --vi-img-grade: var(--ef-img-grade);
+  --vi-img-wash: var(--ef-img-wash);
+  --vi-img-wash-o: var(--ef-img-wash-o);
+  --vi-img-hair: var(--ef-img-hair);
+  --vi-img-hair-w: var(--ef-img-hair-w);
+  --vi-plate-o: var(--ef-plate-o);
+  --vi-vignette: var(--ef-vignette);
   /* --rose-text / --color-muted-text ship globally in globals.css */
 }
 
@@ -204,16 +204,8 @@ details.vi-desc p { padding: 14px 16px 16px; font-size: 14px; line-height: 1.6; 
 .vi-direct-row a:hover { text-decoration-color: var(--rose-text); }
 .vi-direct-row.vi-is-email a { font-size: 17px; line-height: 1.4; word-break: break-word; }
 
-/* ── prefers-contrast: more — six properties, one query ── */
+/* ── prefers-contrast: more — token overrides now live in globals.css ── */
 @media (prefers-contrast: more) {
-  .vi-page {
-    --vi-img-grade: saturate(.9) contrast(1.2) brightness(1.02);
-    --vi-img-hair: color-mix(in srgb, var(--color-ink) 46%, transparent);
-    --vi-img-hair-w: 2px;
-    --vi-plate-o: 1;
-    --vi-vignette: color-mix(in srgb, var(--color-ink) 58%, transparent);
-    --vi-img-wash-o: 0;
-  }
   .vi-plate .vi-ticks span { border-color: #fff; }
   .vi-tech .vi-pin { background: var(--color-ink); }
 }

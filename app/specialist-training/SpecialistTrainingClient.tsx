@@ -83,8 +83,9 @@ export default function SpecialistTrainingClient() {
 
       <main id="main-content">
         <PageHero
+          layout="split"
           image="/images/who-health.jpg"
-          imageAlt="Specialist personal training in Worthing"
+          imageAlt="A client seated on the bench inside the power rack in the private Worthing studio, back to the camera, drawing a single cable handle down to shoulder height with one hand while the other rests on the thigh."
           imageObjectPosition="50% 38%"
           imageObjectPositionWide="50% 35%"
           eyebrow={"Specialist Training"}
@@ -93,23 +94,30 @@ export default function SpecialistTrainingClient() {
           primaryCta={bookCta}
           secondaryCta={{ label: "Find Out More", href: "#specialisms", variant: "ghost-white" }}
           badge={<StatBadge variant="rose" value="L4" label={"Cancer & Exercise Rehab"} />}
+          imageDescription={"A one-to-one session at the cable station. The client sits on the bench inside the power rack and draws a single handle down to shoulder height with one hand, the other hand resting on the thigh, so the movement is done seated and one side at a time. Weight plates are stored on the rack\u2019s own pegs on both sides; a barbell and one loose plate are down on the floor at the front of the frame."}
         />
 
         {/* THE APPROACH */}
         <Section background="white">
           <div className="ds-split">
-            <Reveal y={40} className="ds-split-img">
-              <Image
-                src="/images/studio-kneel-stretch.jpg"
-                alt="Esther Fair coaching a client in the Eternal Fitness studio in Worthing"
-                fill
-                sizes="(max-width: 1000px) 100vw, 50vw"
-                style={{ objectFit: "cover" }}
-              />
-              <div className="ds-art-chip">
-                <MotionArcs accent="rose" />
-              </div>
-            </Reveal>
+            <figure className="ef-figure">
+              <Reveal y={40} className="ds-split-img">
+                <Image
+                  src="/images/studio-kneel-stretch.jpg"
+                  alt="Esther and a client sitting on the studio mats in a wide seated stretch, both leaning onto one hand and laughing, with the studio&apos;s black curly-coated dog sitting on the mat against Esther&apos;s side."
+                  fill
+                  sizes="(max-width: 1000px) 100vw, 50vw"
+                  style={{ objectFit: "cover" }}
+                />
+                <div className="ds-art-chip">
+                  <MotionArcs accent="rose" />
+                </div>
+              </Reveal>
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>The end of a session on the mats. Esther and a client sit on the blue matting in a wide seated stretch, each leaning onto one hand, both laughing. The studio dog &mdash; large, black and curly-coated &mdash; has come and sat on the mat and is leaning against Esther. The resistance bands are racked on the wall and the floor beyond the mats is clear.</p>
+              </details>
+            </figure>
             <div>
               <SectionHeading
                 eyebrow={"The Approach"}
@@ -175,12 +183,14 @@ export default function SpecialistTrainingClient() {
         </Section>
 
         <CTABand
+          layout="split"
           image="/images/studio-1.jpg"
-          imageAlt="Eternal Fitness private studio in Worthing"
+          imageAlt="Esther standing at the kettlebell shelves in the private Worthing studio with a hand resting on the bells, smiling towards the camera, the mirror, whiteboard and adjustable bench along the wall behind her."
           heading={"Ready to find out if this is right for you?"}
-          body={"The first conversation is free, with no commitment. I work with a small number of clients at a time — so every person gets my full attention."}
+          body={"The first conversation is free, with no commitment. I work with a small number of clients at a time \u2014 so every person gets my full attention."}
           primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
           secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
+          imageDescription={"Esther stands at the kettlebell shelves with a hand resting on the bells along the top row, turned back towards the camera. The bells sit in weight order, the lighter ones marked with coloured bands. Along the wall behind her are the mirror, the whiteboard, the suspension straps and the adjustable bench, each in its own fixed place; the floor between them is clear."}
         />
       </main>
       <Footer />

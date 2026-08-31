@@ -7,8 +7,14 @@ import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/type
 import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
-import { defaultUnitForEquipment, isBandEquipment } from "@/lib/units";
+import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
+
+/** Round a converted weight to 1 decimal and trim trailing .0 for display. */
+function displayWeight(kg: number, unit: "kg" | "lb"): string {
+  const v = Math.round(fromKg(kg, unit) * 10) / 10;
+  return String(v);
+}
 
 type SectionKey = "warm_up" | "main_block" | "cooldown";
 
@@ -38,7 +44,7 @@ interface SetState {
 type SaveSetLogResult =
   | { kind: "saved"; log: SetLog & { is_new_pb?: boolean } }
   | { kind: "queued"; clientOpId: string }
-  | { kind: "failed" };
+  | { kind: "failed"; message?: string | null };
 
 interface ExState {
   uid: string;
@@ -158,14 +164,15 @@ export function TrainScreen({
         const warmupCount = ex.warmup_sets ?? 0;
         const sets: SetState[] = [];
         const carriedWeight = bestWeights?.[ex.exercise_name];
+        const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
         for (let s = 1; s <= totalSets; s++) {
           const log = setLogsMap[`${ref}::${s}`];
           sets.push({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
-              ? String(log.weight_kg)
-              : carriedWeight != null ? String(carriedWeight) : "",
+              ? displayWeight(log.weight_kg, unit)
+              : carriedWeight != null ? displayWeight(carriedWeight, unit) : "",
             duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
@@ -267,7 +274,15 @@ export function TrainScreen({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: { ...d, session_log: updatedLog } }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+            console.error("Failed to write started_at:", msg);
+          });
+        }
+      })
+      .catch(() => {});
   }, [sessionId]);
 
   // ── Debounced exercise notes save (bug fix #1) ─────────────────
@@ -281,7 +296,15 @@ export function TrainScreen({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ data: { ...d, exercise_notes: notes } }),
-        }).catch(() => {});
+        })
+          .then((res) => {
+            if (!res.ok) {
+              res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+                toast.error(msg || "Couldn't save exercise note");
+              });
+            }
+          })
+          .catch(() => {});
       }, 800);
     },
     [sessionId],
@@ -301,9 +324,17 @@ export function TrainScreen({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ data: d }),
-    }).catch(() => {
-      toast.error("Failed to save — this change may not survive a reload.");
-    });
+    })
+      .then((res) => {
+        if (!res.ok) {
+          res.json().then((b) => b?.error).catch(() => null).then((msg) => {
+            toast.error(msg || "Failed to save — this change may not survive a reload.");
+          });
+        }
+      })
+      .catch(() => {
+        toast.error("Failed to save — this change may not survive a reload.");
+      });
   }, [sessionId]);
 
   // ── Rest alert audio (CR-EF-019) ────────────────────────────────
@@ -399,12 +430,13 @@ export function TrainScreen({
     fieldValues: { reps: string; weight: string; duration: string },
     completed: boolean,
     isWarmup: boolean,
+    displayUnit: "kg" | "lb",
     reuseClientOpId?: string,
   ): Promise<SaveSetLogResult> => {
     const key = `${exerciseRef}::${setNumber}`;
     const existing = setLogsMap[key];
     const repsVal = fieldValues.reps.trim() === "" ? null : Number(fieldValues.reps);
-    const weightVal = fieldValues.weight.trim() === "" ? null : Number(fieldValues.weight);
+    const weightVal = fieldValues.weight.trim() === "" ? null : toKg(Number(fieldValues.weight), displayUnit);
     const durationVal = fieldValues.duration.trim() === "" ? null : Number(fieldValues.duration);
 
     // Idempotency key minted once per logical write and reused across retries
@@ -459,7 +491,8 @@ export function TrainScreen({
     if (!res.ok) {
       // The request DID reach the server and was rejected — a real server failure,
       // not an offline scenario. Never queue these.
-      return { kind: "failed" };
+      const message = await res.json().then((b) => b?.error).catch(() => null);
+      return { kind: "failed", message };
     }
 
     const saved: SetLog & { is_new_pb?: boolean } = await res.json();
@@ -497,9 +530,9 @@ export function TrainScreen({
       }
     }
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, newStatus === "done", set.isWarmup, state.displayUnit, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -552,9 +585,9 @@ export function TrainScreen({
     const weight = timeBased ? "" : (set.weight || "");
     const duration = timeBased ? (set.duration || "") : "";
 
-    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, set.clientOpId);
+    const result = await saveSetLog(ref, setNumber, { reps, weight, duration }, false, set.isWarmup, state.displayUnit, set.clientOpId);
     if (result.kind === "failed") {
-      toast.error("Failed to save set");
+      toast.error(result.message || "Failed to save set");
       return;
     }
 
@@ -784,7 +817,7 @@ export function TrainScreen({
   };
 
   // ── Complete ───────────────────────────────────────────────────
-  const handleComplete = async () => {
+  const handleComplete = async (confirmOffDay?: boolean) => {
     setCompleting(true);
     const d = dataRef.current;
     if (!d) return;
@@ -795,20 +828,35 @@ export function TrainScreen({
       fatigue,
       notes: sessionNotes,
     };
+    const body: Record<string, unknown> = {
+      data: {
+        ...d,
+        session_log: updatedLog,
+        exercise_notes: savedNotesRef.current,
+      },
+    };
+    if (confirmOffDay) body.confirm_off_day = true;
     const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: {
-          ...d,
-          session_log: updatedLog,
-          exercise_notes: savedNotesRef.current,
-        },
-      }),
+      body: JSON.stringify(body),
     });
     setCompleting(false);
     if (!res.ok) {
-      toast.error("Failed to mark session complete");
+      const err = await res.json().catch(() => null);
+      if (res.status === 409 && err?.code === "off_day_completion") {
+        const scheduledDate = new Date(err.scheduledAt).toLocaleDateString("en-GB", {
+          timeZone: "Europe/London",
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        });
+        if (window.confirm(`This session is booked for ${scheduledDate}, not today. Complete it anyway?`)) {
+          return handleComplete(true);
+        }
+        return;
+      }
+      toast.error(err?.error || "Failed to mark session complete");
       return;
     }
     // CR-EF-030: sync the in-memory refs to the now-completed state so a later
@@ -866,11 +914,12 @@ export function TrainScreen({
         const setIdx = entry.setNumber - 1;
         if (setIdx < 0 || setIdx >= st.sets.length) return prev;
         const newSets = [...st.sets];
+        const unit = st.displayUnit;
         newSets[setIdx] = {
           ...newSets[setIdx],
           status: data.completed ? "done" : "skipped",
           reps: data.reps != null ? String(data.reps) : "",
-          weight: data.weight_kg != null ? String(data.weight_kg) : "",
+          weight: data.weight_kg != null ? displayWeight(data.weight_kg, unit) : "",
           duration: data.duration_seconds != null ? String(data.duration_seconds) : "",
           savedId: data.id,
           isNewPb: data.is_new_pb === true,
@@ -1319,7 +1368,7 @@ export function TrainScreen({
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={handleComplete}
+                onClick={() => handleComplete()}
                 disabled={completing}
                 style={{ width: "100%" }}
               >
