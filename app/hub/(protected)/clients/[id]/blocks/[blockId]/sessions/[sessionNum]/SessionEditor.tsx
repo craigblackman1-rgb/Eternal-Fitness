@@ -56,7 +56,7 @@ import { SwapExerciseDialog } from "../swap-exercise-dialog";
 import { AddExerciseDialog, type InsertPositionOption } from "../add-exercise-dialog";
 import { toast } from "sonner";
 import { HubCard } from "@/components/hub/HubCard";
-import { computeGroups, nextGroupLabel, normalizeGroups, type ExerciseGroup } from "@/lib/exercise-groups";
+import { computeGroups, nextGroupLabel, normalizeGroups, checkSupersetSetCounts, type ExerciseGroup } from "@/lib/exercise-groups";
 import { ensureUids } from "@/lib/exercise-ref";
 import { deriveSessionStatus } from "@/lib/session-status";
 
@@ -626,6 +626,18 @@ export function SessionEditor({
   };
 
   const handleSave = async () => {
+    // CR-EF-121 — warn on superset set-count drift before saving
+    for (const sec of SECTION_DEFS) {
+      const warnings = checkSupersetSetCounts(sections[sec.key]);
+      for (const w of warnings) {
+        const detail = w.exercises.map((e) => `${e.name} (${e.sets})`).join(", ");
+        toast.warning(
+          `Superset ${w.label} in ${SECTION_LABEL[sec.key]}: exercises have ${w.maxSets} rounds but some are set to fewer sets — later rounds will be incomplete. (${detail})`,
+          { duration: 8000 },
+        );
+      }
+    }
+
     setSaving(true);
     const updated: SessionVersion = {
       warm_up: stripUids(sections.warm_up),

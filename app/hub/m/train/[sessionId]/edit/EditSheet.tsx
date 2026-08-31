@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { Session, Exercise, SessionVersion, DeliveryMode, ExerciseMedia } from "@/types";
-import { computeGroups, nextGroupLabel, normalizeGroups } from "@/lib/exercise-groups";
+import { computeGroups, nextGroupLabel, normalizeGroups, checkSupersetSetCounts } from "@/lib/exercise-groups";
 import { formatPrescription } from "@/lib/prescription";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 
@@ -501,6 +501,22 @@ export function EditSheet({
   }, []);
 
   const handleClose = useCallback(async () => {
+    // CR-EF-121 — warn on superset set-count drift before saving
+    if (hasChanges && data) {
+      for (const sk of SECTION_KEYS) {
+        const list = sections[sk];
+        if (!list) continue;
+        const warnings = checkSupersetSetCounts(list);
+        for (const w of warnings) {
+          const detail = w.exercises.map((e) => `${e.name} (${e.sets})`).join(", ");
+          toast.warning(
+            `Superset ${w.label} in ${SECTION_LABELS[sk]}: exercises have ${w.maxSets} rounds but some are set to fewer sets — later rounds will be incomplete. (${detail})`,
+            { duration: 8000 },
+          );
+        }
+      }
+    }
+
     if (hasChanges && data) {
       const updatedData = {
         ...data,
