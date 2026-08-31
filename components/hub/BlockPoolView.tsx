@@ -180,7 +180,7 @@ export function BlockPoolView({
               let dotClass = "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground";
               let capLabel = "Queued";
               if (isDone) {
-                dotClass = "bg-[var(--s-success-bg)] border-[var(--s-success-bd)] text-[var(--teal)]";
+                dotClass = "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--teal)]";
                 capLabel = "Delivered";
               } else if (isAssigned) {
                 dotClass = "bg-rose/10 border-rose/20 text-rose";
@@ -222,7 +222,7 @@ export function BlockPoolView({
         {/* Booked Slots */}
         <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)]">
-            <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-[var(--s-success-bg)] text-[var(--teal)] shrink-0">
+            <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-[var(--status-success-bg)] text-[var(--teal)] shrink-0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={16} height={16}>
                 <rect x="3" y="4" width="18" height="18" rx="2" />
                 <path d="M16 2v4M8 2v4M3 10h18" />
@@ -375,7 +375,7 @@ export function BlockPoolView({
               let tagLabel = "";
               if (isDone) {
                 rowClass = "";
-                tagClass = "bg-[var(--s-success-bg)] text-[var(--teal)] border border-[var(--s-success-bd)]";
+                tagClass = "bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)]";
                 tagLabel = "Used";
               } else if (isAssigned) {
                 rowClass = "";
@@ -392,7 +392,7 @@ export function BlockPoolView({
               }
 
               let letterClass = "bg-[var(--hub-hover)] border-[var(--hub-border)] text-muted-foreground";
-              if (isDone) letterClass = "bg-[var(--s-success-bg)] border-[var(--s-success-bd)] text-[var(--teal)]";
+              if (isDone) letterClass = "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--teal)]";
               else if (isAssigned) letterClass = "bg-rose/10 border-rose/20 text-rose";
               else if (isNext) letterClass = "bg-rose border-rose text-white";
 

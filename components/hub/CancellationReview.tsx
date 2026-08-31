@@ -249,7 +249,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                             onClick={() => handleDecision(session.id, "free")}
                             className={`px-3 py-1.5 text-xs font-semibold transition-colors border-l border-[var(--hub-border)] ${
                               currentDecision === "free"
-                                ? "bg-[var(--s-success)] text-white"
+                                ? "bg-[var(--status-success)] text-white"
                                 : "bg-[var(--hub-card)] text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)]"
                             } ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
@@ -265,7 +265,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                               currentDecision === "charged"
                                 ? "bg-[var(--status-danger)] hover:bg-[var(--status-danger)]/90 text-white"
-                                : "bg-[var(--s-success)] hover:bg-[var(--s-success)]/90 text-white"
+                                : "bg-[var(--status-success)] hover:bg-[var(--status-success)]/90 text-white"
                             } ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
                             {isSaving ? "Saving…" : "Save"}
@@ -279,7 +279,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                       <div className={`mt-2.5 rounded-lg p-2.5 border text-xs ${
                         currentDecision === "charged"
                           ? "bg-[var(--status-danger-bg)] border-[var(--status-danger-bd)] text-[var(--status-danger)]"
-                          : "bg-[var(--s-success-bg)] border-[var(--s-success-bd)] text-[var(--s-success)]"
+                           : "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--status-success)]"
                       }`}>
                         {currentDecision === "charged" ? (
                           <span>
