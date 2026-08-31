@@ -49,16 +49,24 @@ COMMENT ON TABLE availability_pattern IS
 
 CREATE INDEX IF NOT EXISTS idx_avail_pattern_dow ON availability_pattern(day_of_week);
 
--- Seed matching the mockup pattern.
+-- PROVISIONAL SEED — these hours came from the MOCKUP, not from Esther.
+--
+-- This pattern is what clients can book against, so it must be confirmed
+-- before the booking system is exposed to anyone. Every row is marked
+-- provisional so the availability screen can prompt for confirmation and
+-- so nobody mistakes mockup values for the real diary.
+--
+-- Craig was asked to confirm the real hours on 2026-08-31 (wo ask
+-- qmth7qok986). Until answered, treat every row here as a placeholder.
 INSERT INTO availability_pattern (day_of_week, start_time, end_time, active, note, sort_order) VALUES
-  (1, '07:00', '12:00', true,  NULL, 0),
-  (1, '16:00', '19:00', true,  NULL, 1),
-  (2, '07:00', '13:00', true,  NULL, 2),
-  (3, '07:00', '12:00', true,  NULL, 3),
-  (3, '16:00', '19:00', true,  NULL, 4),
-  (4, '08:00', '13:00', true,  NULL, 5),
-  (5, '07:00', '12:00', true,  NULL, 6),
-  (6, '08:00', '11:00', true,  'alternate weeks', 7),
+  (1, '07:00', '12:00', true,  'PROVISIONAL — confirm with Esther', 0),
+  (1, '16:00', '19:00', true,  'PROVISIONAL — confirm with Esther', 1),
+  (2, '07:00', '13:00', true,  'PROVISIONAL — confirm with Esther', 2),
+  (3, '07:00', '12:00', true,  'PROVISIONAL — confirm with Esther', 3),
+  (3, '16:00', '19:00', true,  'PROVISIONAL — confirm with Esther', 4),
+  (4, '08:00', '13:00', true,  'PROVISIONAL — confirm with Esther', 5),
+  (5, '07:00', '12:00', true,  'PROVISIONAL — confirm with Esther', 6),
+  (6, '08:00', '11:00', true,  'PROVISIONAL — alternate weeks, confirm with Esther', 7),
   (0, '00:00', '00:00', false, NULL, 8)
 ON CONFLICT DO NOTHING;
 
@@ -81,17 +89,17 @@ COMMENT ON TABLE availability_overrides IS
 
 CREATE INDEX IF NOT EXISTS idx_avail_override_dates ON availability_overrides(start_date, end_date);
 
--- Seed matching the mockup.
-INSERT INTO availability_overrides (override_type, start_date, end_date, reason) VALUES
-  ('time_off', '2026-09-14', '2026-09-20', 'Annual leave'),
-  ('time_off', '2026-09-04', '2026-09-04', 'Physio appointment')
-    -- The physio is partial day (12:00–14:00) but the override model handles
-    -- this via start_time/end_time. We'll set it to whole-day in the UI.
-ON CONFLICT DO NOTHING;
-
-INSERT INTO availability_overrides (override_type, start_date, end_date, start_time, end_time, reason) VALUES
-  ('extra_hours', '2026-09-05', '2026-09-05', '08:00', '11:00', 'Extra hours opened outside the normal week')
-ON CONFLICT DO NOTHING;
+-- NO SEED DATA HERE, DELIBERATELY.
+--
+-- An earlier draft seeded the mockup's demo overrides — 'Annual leave'
+-- 14–20 Sep, 'Physio appointment' 4 Sep, and extra hours on 5 Sep. Those
+-- dates were invented for the mockup, but this table is not decorative:
+-- overrides are subtracted from the weekly pattern when deriving bookable
+-- slots. Seeding them would have genuinely closed Esther's diary on days
+-- she is working, and opened it on a day she is not, for real clients.
+--
+-- Time off is Esther's to enter, in the availability screen. An empty table
+-- correctly means "no exceptions to the weekly pattern yet".
 
 -- ── RLS deliberately not enabled ────────────────────────────────────────
 -- Matches the confirmed pattern across all tables in this repo. Plain
