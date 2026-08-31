@@ -847,9 +847,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   </HubAccordionSection>
                 )}
 
-                {(p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
+                {(p?.notes?.client_intro || p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
                   <HubAccordionSection icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="neutral">
                     <div className="px-5 pt-4 pb-4 space-y-3">
+                      {p.notes.client_intro && (
+                        <div>
+                          <span className="text-xs text-muted-foreground block mb-0.5">Client intro</span>
+                          <p className="text-foreground text-sm italic">{p.notes.client_intro}</p>
+                        </div>
+                      )}
                       {p.notes.esther_observations && (
                         <div>
                           <span className="text-xs text-muted-foreground block mb-0.5">Observations</span>

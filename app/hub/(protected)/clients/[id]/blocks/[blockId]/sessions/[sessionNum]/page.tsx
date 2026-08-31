@@ -29,7 +29,7 @@ import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 type ClientHeader = {
   id?: string | null;
   name?: string | null;
-  profile?: { health?: { conditions?: string[] } } | null;
+  profile?: { health?: { conditions?: string[] }; notes?: { client_intro?: string } } | null;
   session_duration?: number | null;
 };
 
@@ -487,11 +487,11 @@ export default function SessionViewPage({
         </div>
       )}
 
-      {session.data?.client_intro && (
+      {(client?.profile?.notes?.client_intro || session.data?.client_intro) && (
         <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-[16px]">
           <CardContent className="pt-4">
             <p className="text-sm italic text-muted-foreground">Client intro</p>
-            <p className="mt-1">{session.data.client_intro}</p>
+            <p className="mt-1">{client?.profile?.notes?.client_intro || session.data?.client_intro}</p>
           </CardContent>
         </Card>
       )}

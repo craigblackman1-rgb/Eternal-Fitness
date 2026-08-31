@@ -91,7 +91,7 @@ const emptyProfile: ClientProfile = {
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
   goals: { primary: "general_fitness", secondary: [], milestones: [] },
-  notes: { esther_observations: "", motivation_notes: "", watch_for: "" },
+  notes: { client_intro: "", esther_observations: "", motivation_notes: "", watch_for: "" },
 };
 
 export default function EditClientPage({ params }: { params: { id: string } }) {
@@ -747,6 +747,11 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         <HubCard>
           <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Notes" subtitle="Prose the Plan Agent reads for context" color="slate" noBottomPadding />
           <div className="px-5 pb-5 pt-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Client intro</Label>
+              <p className="text-xs text-muted-foreground">Shown at the top of each session. A short note Esther writes to set the tone for this client&rsquo;s workouts.</p>
+              <Textarea value={profile.notes.client_intro} onChange={(e) => updateProfile("notes", { client_intro: e.target.value })} rows={2} placeholder="e.g. &quot;Welcome back — let&rsquo;s keep the momentum going this week.&quot;" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+            </div>
             <div className="space-y-2">
               <Label>Esther's Observations</Label>
               <Textarea value={profile.notes.esther_observations} onChange={(e) => updateProfile("notes", { esther_observations: e.target.value })} rows={3} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />

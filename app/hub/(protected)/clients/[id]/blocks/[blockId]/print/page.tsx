@@ -98,6 +98,7 @@ export default async function BlockPrintPage({
             key={session.id}
             session={session}
             first={idx === 0}
+            clientIntro={client?.profile?.notes?.client_intro || ""}
           />
         ))}
       </div>
@@ -189,9 +190,11 @@ function HeaderSection({
 function SessionPrintSection({
   session,
   first,
+  clientIntro,
 }: {
   session: DBSession;
   first: boolean;
+  clientIntro?: string;
 }) {
   const s = session.data;
 
@@ -213,9 +216,9 @@ function SessionPrintSection({
         <p className="text-sm font-medium mb-3">{s.focus_label}</p>
       )}
 
-      {s?.client_intro && (
+      {(clientIntro || s?.client_intro) && (
         <p className="text-sm italic text-muted-foreground mb-3">
-          {s.client_intro}
+          {clientIntro || s?.client_intro}
         </p>
       )}
 
