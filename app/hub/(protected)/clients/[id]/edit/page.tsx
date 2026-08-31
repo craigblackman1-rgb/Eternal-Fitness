@@ -15,7 +15,8 @@ import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
 import { EquipmentMultiSelect } from "@/components/hub/EquipmentMultiSelect";
-import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender } from "@/types";
+import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender, Frequency } from "@/types";
+import { DEFAULT_FREQUENCY, formatFrequency } from "@/types";
 import { DEFAULT_SPLITS, parseSplits } from "@/lib/planAgentPrompt";
 import { RESOURCES } from "@/lib/resources";
 
@@ -87,7 +88,7 @@ function SegmentedControl<T extends string | number>({
 
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
-  logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", package: "12-week", block_number: 1 },
+  logistics: { training_location: "studio", frequency: DEFAULT_FREQUENCY, time_tier: "standard", package: "12-week", block_number: 1 },
   health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
@@ -403,17 +404,29 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
               ]}
             />
             <div className="grid gap-4 md:grid-cols-3">
-              <SegmentedControl
-                legend="Sessions / week"
-                name="sessions_per_week"
-                value={profile.logistics.sessions_per_week}
-                onChange={(v) => updateProfile("logistics", { sessions_per_week: v as 1 | 2 | 3 })}
-                options={[
-                  { value: 1, label: "1×" },
-                  { value: 2, label: "2×" },
-                  { value: 3, label: "3×" },
-                ]}
-              />
+              <div className="space-y-2">
+                <Label>Cadence</Label>
+                <Select
+                  value={profile.logistics.frequency?.unit ?? "week"}
+                  onValueChange={(v: Frequency["unit"]) => {
+                    const unit = v;
+                    const per_unit = unit === "irregular" ? 0
+                      : unit === "fortnight" ? 1
+                      : unit === "month" ? 1
+                      : (profile.logistics.frequency?.per_unit ?? 2);
+                    setDirty(true);
+                    updateProfile("logistics", { frequency: { unit, per_unit } });
+                  }}
+                >
+                  <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Weekly</SelectItem>
+                    <SelectItem value="fortnight">Fortnightly</SelectItem>
+                    <SelectItem value="month">Monthly</SelectItem>
+                    <SelectItem value="irregular">Irregular</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>Training Split</Label>
                 <Select
@@ -440,6 +453,21 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 </Select>
               </div>
             </div>
+            {profile.logistics.frequency && profile.logistics.frequency.unit !== "irregular" && (
+              <SegmentedControl
+                legend={`Sessions per ${profile.logistics.frequency.unit === "week" ? "week" : profile.logistics.frequency.unit === "fortnight" ? "fortnight" : "month"}`}
+                name="frequency_per_unit"
+                value={profile.logistics.frequency.per_unit}
+                onChange={(v) => { setDirty(true); updateProfile("logistics", { frequency: { ...profile.logistics.frequency!, per_unit: v as number } }); }}
+                options={
+                  profile.logistics.frequency.unit === "week"
+                    ? [{ value: 1, label: "1×" }, { value: 2, label: "2×" }, { value: 3, label: "3×" }]
+                    : profile.logistics.frequency.unit === "fortnight"
+                    ? [{ value: 1, label: "1×" }, { value: 2, label: "2×" }]
+                    : [{ value: 1, label: "1×" }, { value: 2, label: "2×" }]
+                }
+              />
+            )}
             <div className="space-y-2">
               <Label>Time Tier</Label>
               <SegmentedControl
