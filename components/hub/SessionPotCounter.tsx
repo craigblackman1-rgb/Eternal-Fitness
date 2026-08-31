@@ -29,15 +29,15 @@ function daysUntil(iso: string): number {
  * Replaces the manual "Session X of Y" display.
  */
 export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpiry }: SessionPotCounterProps) {
-  const { completed, chargedCancellations, freeCancellations, legacyCancellations, used, purchased, remaining } = pot;
+  const { completed, chargedCancellations, freeCancellations, unreviewedCancellations, used, purchased, remaining, unreviewed } = pot;
   const total = purchased || 1; // avoid division by zero
 
   const segments = [
     { label: "Completed", count: completed, color: "#087E8B" },
     { label: "Completed", count: completed, color: "#087E8B" },
-    { label: "Charged cancellation", count: chargedCancellations + legacyCancellations, color: "#8A4E63" },
-    { label: "Booked ahead", count: Math.max(0, used - completed - chargedCancellations - legacyCancellations), color: "#C1839F" },
-    { label: "Free to book", count: Math.max(0, remaining - Math.max(0, used - completed - chargedCancellations - legacyCancellations)), color: "#E4E7EC" },
+    { label: "Charged cancellation", count: chargedCancellations, color: "#8A4E63" },
+    { label: "Booked ahead", count: Math.max(0, used - completed - chargedCancellations), color: "#C1839F" },
+    { label: "Free to book", count: Math.max(0, remaining - Math.max(0, used - completed - chargedCancellations)), color: "#E4E7EC" },
   ].filter((s) => s.count > 0);
 
   return (
@@ -52,6 +52,23 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
             sessions remaining
           </span>
         </div>
+
+        {/* Unreviewed cancellations qualifier */}
+        {unreviewed > 0 && (
+          <div className="shrink-0 px-3 py-1.5 rounded-lg bg-amber/10 border border-amber/20 text-xs font-bold text-foreground flex items-center gap-1.5 tabular-nums">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={14} height={14} className="text-amber shrink-0">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            {unreviewed} cancellation{unreviewed === 1 ? "" : "s"} unreviewed
+            <a
+              href="#sessions"
+              className="ml-1 underline decoration-amber/40 hover:decoration-amber text-foreground"
+            >
+              Review
+            </a>
+          </div>
+        )}
 
         {/* Figures */}
         <div className="flex gap-5.5 pl-5.5 border-l border-[var(--hub-border)] shrink-0">

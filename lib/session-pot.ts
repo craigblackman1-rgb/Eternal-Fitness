@@ -10,8 +10,10 @@ import type { DBSession, ChargedFree } from "@/types";
  * A cancellation with charged_free = 'free' does NOT consume a slot.
  * A reschedule (cancelled + rebooked) does NOT consume a slot.
  *
- * Legacy cancelled sessions (charged_free IS NULL) are treated as consuming
- * a slot for safety — better to under-count remaining than over-count.
+ * Cancelled sessions with charged_free IS NULL are neither consumed nor free —
+ * they are unreviewed and surfaced for human decision. Guessing charged takes
+ * money from clients; guessing free gives away Esther revenue. Neither is
+ * guessed.
  */
 
 export interface SessionPotBreakdown {
@@ -21,9 +23,9 @@ export interface SessionPotBreakdown {
   chargedCancellations: number;
   /** Cancelled sessions explicitly marked as free. */
   freeCancellations: number;
-  /** Cancelled sessions without a charged_free flag (legacy). */
-  legacyCancellations: number;
-  /** Total sessions that consumed a slot: completed + charged + legacy. */
+  /** Cancelled sessions without a charged_free flag — awaiting review. */
+  unreviewedCancellations: number;
+  /** Total sessions that consumed a slot: completed + charged. */
   used: number;
   /** Total purchased (from the client record). */
   purchased: number;
@@ -31,6 +33,8 @@ export interface SessionPotBreakdown {
   remaining: number;
   /** Total sessions in the block (session rows). */
   totalInBlock: number;
+  /** Unreviewed cancellations that may affect the count — surfaced for human decision. */
+  unreviewed: number;
 }
 
 /**
@@ -44,7 +48,7 @@ export function deriveSessionPot(
   let completed = 0;
   let chargedCancellations = 0;
   let freeCancellations = 0;
-  let legacyCancellations = 0;
+  let unreviewedCancellations = 0;
 
   for (const s of sessions) {
     const status = s.status ?? deriveStatusFromColumns(s);
@@ -56,13 +60,13 @@ export function deriveSessionPot(
       } else if (s.charged_free === "free") {
         freeCancellations++;
       } else {
-        // Legacy: no charged_free flag. Treat as charged for safety.
-        legacyCancellations++;
+        // No charged_free flag — not yet decided. Do not guess.
+        unreviewedCancellations++;
       }
     }
   }
 
-  const used = completed + chargedCancellations + legacyCancellations;
+  const used = completed + chargedCancellations;
   const purchased = sessionsPurchased ?? sessions.length;
   const remaining = Math.max(purchased - used, 0);
 
@@ -70,11 +74,12 @@ export function deriveSessionPot(
     completed,
     chargedCancellations,
     freeCancellations,
-    legacyCancellations,
+    unreviewedCancellations,
     used,
     purchased,
     remaining,
     totalInBlock: sessions.length,
+    unreviewed: unreviewedCancellations,
   };
 }
 
@@ -89,7 +94,8 @@ function deriveStatusFromColumns(
 /**
  * Whether a given cancellation action would consume a session.
  * Used by the cancellation dialog to show the consequence before confirming.
+ * NULL is never consumed here — it is surfaced for human decision instead.
  */
 export function wouldConsumeSession(chargedFree: ChargedFree | null): boolean {
-  return chargedFree === "charged" || chargedFree === null;
+  return chargedFree === "charged";
 }
