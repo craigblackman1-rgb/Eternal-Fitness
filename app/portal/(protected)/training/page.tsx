@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalSessionFromCookies } from "@/lib/portal-session";
 import { createPortalDataClient } from "@/lib/portal-data";
 import { getBestWeightsForClient } from "@/lib/exercise-best-weights";
+import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { HubCard } from "@/components/hub";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { IconActivity } from "@/components/icons";
@@ -47,5 +48,10 @@ export default async function PortalTrainingPage() {
   const setLogs = await data.getSetLogsForSessions(plan.sessions.map((s) => s.id));
   const bestWeights = await getBestWeightsForClient(session.clientId);
 
-  return <TrainingClient plan={plan} initialLogs={setLogs} bestWeights={bestWeights} />;
+  // Chronological positions derived from scheduled_at for "Session N" labels
+  const chronologicalPositions = deriveChronologicalPositions(
+    plan.sessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at })),
+  );
+
+  return <TrainingClient plan={plan} initialLogs={setLogs} bestWeights={bestWeights} chronologicalPositions={chronologicalPositions} />;
 }

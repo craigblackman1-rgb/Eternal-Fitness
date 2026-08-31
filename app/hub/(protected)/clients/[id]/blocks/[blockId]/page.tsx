@@ -8,6 +8,7 @@ import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
 import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus, DBSession } from "@/types";
 
@@ -79,6 +80,12 @@ export default async function BlockViewPage({
   const sessions = (sessionsData || []) as SessionRow[];
   const clientId = client?.client_number || params.id;
 
+  // Chronological positions derived from scheduled_at (NULLs last) — used for
+  // "Session N of M" labels everywhere. Does NOT replace session_number.
+  const chronologicalPositions = deriveChronologicalPositions(
+    sessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at })),
+  );
+
   // CR-EF-101 — sub-sessions (parent_session_id) are excluded from pot count
   // and numbering. They are supplementary work within a slot.
   const potSessions = sessions.filter((s) => !s.parent_session_id);
@@ -137,9 +144,14 @@ export default async function BlockViewPage({
   };
 
   const nextSessionLabel = firstIncomplete
-    ? firstIncomplete.scheduled_at
-      ? `${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · Session ${firstIncomplete.session_number} of ${totalSessions}`
-      : `Session ${firstIncomplete.session_number} of ${totalSessions} · not yet booked`
+    ? (() => {
+        const pos = chronologicalPositions.get(firstIncomplete.id);
+        if (!pos) return "All sessions done";
+        if (firstIncomplete.scheduled_at) {
+          return `${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · Session ${pos.position} of ${pos.total}`;
+        }
+        return `Session ${pos.position} of ${pos.total} · not yet booked`;
+      })()
     : "All sessions done";
 
   // CR-EF-073 — the block's own header names its dated period ("6 Aug – 12
@@ -286,6 +298,7 @@ export default async function BlockViewPage({
                   clientId={String(clientId)}
                   blockId={params.blockId}
                   archetypeTint={archetypeTint}
+                  chronologicalPositions={chronologicalPositions}
                 />
               </div>
             </details>
