@@ -88,6 +88,22 @@ async function generateBlockForClient(
 
   const bundle = await loadPlanAgentBundle(supabase, client.id);
 
+  // CR-EF-108 — when the client has a recorded equipment list, restrict both
+  // the AI menu and the validation universe to exercises they can actually do.
+  // NULL equipment → no filtering (unconstrained, legacy behaviour).
+  if (client.equipment != null) {
+    const normalise = (n: string) => {
+      let s = n.toLowerCase();
+      if (s.endsWith("s") && s.length > 3) s = s.slice(0, -1);
+      return s;
+    };
+    const available = new Set(client.equipment.map((n: string) => normalise(n)));
+    const matchesClient = (e: { equipment?: string[] }) =>
+      !e.equipment || e.equipment.length === 0 || e.equipment.every((req) => available.has(normalise(req)));
+    bundle.menuExercises = bundle.menuExercises.filter(matchesClient);
+    bundle.allExercises = bundle.allExercises.filter(matchesClient);
+  }
+
   const aiConfig = getAiConfig();
   let sessions: Session[];
 
@@ -112,7 +128,10 @@ async function generateBlockForClient(
       .from("exercises")
       .select("id, name, archetypes, movement_type, equipment, coaching_cue, default_mod")
       .eq("active", true);
-    sessions = generateFallback(profile, blockNumber, (exercisePool ?? []) as ExerciseDbEntry[], template);
+    // CR-EF-108 — constrain the pool to exercises matching the client's equipment.
+    // client.equipment is NULL when not yet configured → unconstrained (legacy behaviour).
+    const pool = filterByEquipment((exercisePool ?? []) as ExerciseDbEntry[], client.equipment);
+    sessions = generateFallback(profile, blockNumber, pool, template);
   }
 
   const invalid =
@@ -186,6 +205,32 @@ interface ExerciseDbEntry {
   equipment: string[];
   coaching_cue: string | null;
   default_mod: string | null;
+}
+
+/**
+ * CR-EF-108 — filter an exercise pool to only exercises whose equipment
+ * requirements are a subset of the client's available equipment.
+ *
+ * - Empty equipment on an exercise (bodyweight-only) → always included.
+ * - NULL client equipment → no filtering (unconstrained, legacy behaviour).
+ * - Empty client equipment array → only bodyweight exercises pass.
+ *
+ * Matching is case-insensitive. Catalog names (title-case plural, e.g.
+ * "Dumbbells") are normalised to match exercise tags (lowercase singular,
+ * e.g. "dumbbell") by lowercasing and stripping a trailing 's'.
+ */
+function filterByEquipment(pool: ExerciseDbEntry[], clientEquipment: string[] | null | undefined): ExerciseDbEntry[] {
+  if (clientEquipment == null) return pool;
+  if (clientEquipment.length === 0) return pool.filter((e) => e.equipment.length === 0);
+  const normalise = (n: string) => {
+    let s = n.toLowerCase();
+    if (s.endsWith("s") && s.length > 3) s = s.slice(0, -1);
+    return s;
+  };
+  const available = new Set(clientEquipment.map(normalise));
+  return pool.filter((e) =>
+    e.equipment.length === 0 || e.equipment.every((req) => available.has(normalise(req)))
+  );
 }
 
 const archetypeSectionTypes: Record<Archetype, { warm_up: string[]; main_block: string[]; cooldown: string[] }> = {

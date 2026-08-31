@@ -136,6 +136,14 @@ function SessionCheckinPill({
   fatigue?: string | null;
   rpe?: number | null;
 }) {
+  const hasData = fatigue != null || rpe != null;
+  if (!hasData) {
+    return (
+      <span className="inline-flex items-center rounded-full border border-muted/40 bg-muted/10 px-1.5 py-px text-[11px] font-semibold text-muted-foreground">
+        Not logged
+      </span>
+    );
+  }
   const isFlagged = fatigue === "high" || (rpe != null && rpe >= 8);
   const label = isFlagged ? "Fatigue flagged" : "Good";
   if (isFlagged) {
@@ -549,7 +557,7 @@ export function TrainingTabContent({
                     </th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Status</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Logged</th>
-                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Check-in</th>
+                    <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Fatigue</th>
                     <th className="text-left font-semibold text-muted-foreground text-xs uppercase tracking-wider h-10 px-5 py-0 whitespace-nowrap">Note</th>
                     <th className="h-10 px-5 py-0"></th>
                   </tr>
