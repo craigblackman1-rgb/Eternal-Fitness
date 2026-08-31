@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { IconChevronLeft } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
-import { SessionRow } from "./SessionRow";
+import { SessionList } from "./SessionList";
 import { groupSessionsByWeek, isoToMonday, isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
@@ -271,30 +271,16 @@ export default async function BlockViewPage({
                 </svg>
               </summary>
               <div className="border-t border-[var(--hub-border)]">
-                {group.sessions.map((session) => {
-                  const archetypeName = DEFAULT_ARCHETYPE_FOCUS_LABELS[session.archetype];
-                  const focusLabel = session.data?.focus_label || archetypeName || "—";
-                  const status = sessionStatus(session);
-                  const sessionUrl = `/hub/clients/${clientId}/blocks/${params.blockId}/sessions/${session.session_number}`;
-                  const dayLabel = formatDayLabel(session);
-
-                  return (
-                    <SessionRow
-                      key={session.id}
-                      sessionId={session.id}
-                      archetypeLabel={session.archetype ? `${session.archetype} · ${archetypeName || "Session"}` : "Session"}
-                      archetypeTint={session.archetype ? (archetypeTint[session.archetype] || "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"}
-                      focusLabel={focusLabel}
-                      status={status}
-                      dayLabel={dayLabel}
-                      sessionNumber={session.session_number}
-                      totalSessions={totalSessions}
-                      sessionUrl={sessionUrl}
-                      scheduledAt={session.scheduled_at}
-                      cancelReason={session.cancel_reason}
-                    />
-                  );
-                })}
+                <SessionList
+                  sessions={group.sessions}
+                  totalSessions={totalSessions}
+                  clientId={String(clientId)}
+                  blockId={params.blockId}
+                  archetypeTint={archetypeTint}
+                  sessionStatus={sessionStatus}
+                  formatDayLabel={formatDayLabel}
+                  archetypeNameMap={DEFAULT_ARCHETYPE_FOCUS_LABELS}
+                />
               </div>
             </details>
           );

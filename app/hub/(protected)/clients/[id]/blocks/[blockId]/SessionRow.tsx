@@ -25,6 +25,8 @@ interface SessionRowProps {
   sessionUrl: string;
   scheduledAt: string | null;
   cancelReason: string | null;
+  isEmpty: boolean;
+  onAssignWorkout: (sessionId: string) => void;
 }
 
 /**
@@ -45,6 +47,8 @@ export function SessionRow({
   sessionUrl,
   scheduledAt,
   cancelReason,
+  isEmpty,
+  onAssignWorkout,
 }: SessionRowProps) {
   const router = useRouter();
   const [rescheduling, setRescheduling] = useState(false);
@@ -128,12 +132,22 @@ export function SessionRow({
             )}
             {status === "planned" && (
               <>
-                <Link
-                  href={`${sessionUrl}?edit=1`}
-                  className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-                >
-                  Edit
-                </Link>
+                {isEmpty ? (
+                  <button
+                    type="button"
+                    onClick={() => onAssignWorkout(sessionId)}
+                    className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                  >
+                    Assign workout
+                  </button>
+                ) : (
+                  <Link
+                    href={`${sessionUrl}?edit=1`}
+                    className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+                  >
+                    Edit
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={startReschedule}
