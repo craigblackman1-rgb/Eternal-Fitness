@@ -2,6 +2,61 @@ export type TrainingLocation = "studio" | "home" | "both";
 export type SessionsPerWeek = 1 | 2 | 3;
 export type TimeTier = "compact" | "standard" | "extended";
 export type Package = "4-week" | "6-week" | "12-week" | "24-week" | "ongoing";
+
+/** CR-EF-106 — structured session cadence. Replaces the fixed `sessions_per_week`
+ *  to support fortnightly, monthly, and irregular cadences.
+ *  - `unit: "week"` + `per_unit: N` → N sessions per week (the common case).
+ *  - `unit: "fortnight"` + `per_unit: N` → N sessions every two weeks.
+ *  - `unit: "month"` + `per_unit: N` → N sessions per calendar month.
+ *  - `unit: "irregular"` + `per_unit: 0` → no fixed pattern; block generation
+ *    falls back to 1x/week with a coaching note flagging the default. */
+export interface Frequency {
+  unit: "week" | "fortnight" | "month" | "irregular";
+  per_unit: number;
+}
+
+/** Default frequency for new clients — 2x per week, the most common starting point. */
+export const DEFAULT_FREQUENCY: Frequency = { unit: "week", per_unit: 2 };
+
+/** Convert any Frequency to an approximate sessions-per-week count.
+ *  Used by code that needs a single number (display labels, AI prompts).
+ *  Monthly uses 4.33 weeks/month; fortnight divides by 2.
+ *  Irregular returns 1 (the fallback cadence). */
+export function frequencyToSessionsPerWeek(freq: Frequency | undefined | null): number {
+  if (!freq) return 2; // legacy clients without frequency default to 2x/week
+  switch (freq.unit) {
+    case "week": return freq.per_unit;
+    case "fortnight": return freq.per_unit / 2;
+    case "month": return (freq.per_unit * 12) / 52; // ~per_unit * 0.2308
+    case "irregular": return 1;
+  }
+}
+
+/** Human-readable label for a frequency. */
+export function formatFrequency(freq: Frequency | undefined | null): string {
+  if (!freq) return "—";
+  switch (freq.unit) {
+    case "week":
+      return freq.per_unit === 1 ? "1× per week" : `${freq.per_unit}× per week`;
+    case "fortnight":
+      return freq.per_unit === 1 ? "Every 2 weeks" : `${freq.per_unit}× every 2 weeks`;
+    case "month":
+      return freq.per_unit === 1 ? "Monthly" : `${freq.per_unit}× per month`;
+    case "irregular":
+      return "Irregular";
+  }
+}
+
+/** Short label for table columns — e.g. "2x/wk", "Ftntl", "Mnthly". */
+export function formatFrequencyShort(freq: Frequency | undefined | null): string {
+  if (!freq) return "—";
+  switch (freq.unit) {
+    case "week": return `${freq.per_unit}x/wk`;
+    case "fortnight": return freq.per_unit === 1 ? "Ftntl" : `${freq.per_unit}× Ftntl`;
+    case "month": return freq.per_unit === 1 ? "Monthly" : `${freq.per_unit}× /mo`;
+    case "irregular": return "Irregular";
+  }
+}
 export type FitnessLevel = 1 | 2 | 3 | 4 | 5;
 export type StrengthLevel = "beginner" | "intermediate" | "advanced";
 export type PrimaryGoal = "strength" | "mobility" | "weight_loss" | "rehabilitation" | "confidence" | "general_fitness";
@@ -181,7 +236,14 @@ export interface ClientProfile {
   };
   logistics: {
     training_location: TrainingLocation;
-    sessions_per_week: SessionsPerWeek;
+    /** CR-EF-106 — structured cadence. New clients always get this field.
+     *  Legacy clients may only have `sessions_per_week`; the app reads
+     *  `frequency` first and falls back to `sessions_per_week`. */
+    frequency?: Frequency;
+    /** Legacy field — retained for backward compatibility with existing profile
+     *  JSONB data. New code should read `frequency` instead. When both exist,
+     *  `frequency` is authoritative. */
+    sessions_per_week?: SessionsPerWeek;
     time_tier: TimeTier;
     /** @deprecated — use client.package_type instead. Kept for legacy JSONB records. */
     package?: Package;

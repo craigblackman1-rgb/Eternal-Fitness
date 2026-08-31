@@ -17,11 +17,21 @@ import {
   resolveClientSplit,
   resolvePaceModes,
 } from "@/lib/planAgentPrompt";
-import type { ClientProfile } from "@/types";
+import type { ClientProfile, Frequency } from "@/types";
+import { formatFrequency, frequencyToSessionsPerWeek } from "@/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+}
+
+/** Resolve the client's frequency, falling back to sessions_per_week for legacy data. */
+function resolveFrequency(profile: ClientProfile | null | undefined): Frequency {
+  const freq = profile?.logistics?.frequency;
+  if (freq) return freq;
+  const spw = profile?.logistics?.sessions_per_week;
+  if (spw) return { unit: "week", per_unit: spw };
+  return { unit: "week", per_unit: 2 };
 }
 
 function buildSystemPrompt(
@@ -101,7 +111,7 @@ ${buildRecentUpdatesSection(bundle.recentUpdates)}
 
 ---
 
-${buildSplitSection(split, profile?.logistics?.sessions_per_week ?? 1)}
+${buildSplitSection(split, resolveFrequency(profile))}
 
 TRAINING PRINCIPLES:
 ${buildPrinciplesSection(bundle.settings)}

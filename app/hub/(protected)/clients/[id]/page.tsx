@@ -16,6 +16,7 @@ import { HubAlert } from "@/components/hub/HubAlert";
 import { lookupStatus, type StatusToken } from "@/lib/hubStatus";
 import { computeComplianceFlags } from "@/lib/compliance";
 import type { DBClientGroupType, DBClientPaceMode } from "@/types";
+import { formatFrequency } from "@/types";
 import { PlanAgentTab } from "./PlanAgentTab";
 import { ClientDetailTabs } from "./ClientDetailTabs";
 import { GpLetterCard } from "@/components/hub/GpLetterCard";
@@ -350,7 +351,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     { label: "Format", value: formatDeliveryMode(client.delivery_mode) },
     { label: "Pace", value: formatPaceMode(client.pace_mode) },
     { label: "Session", value: formatSessionDuration(client.session_duration ?? null) },
-    { label: "Frequency", value: p?.logistics?.sessions_per_week ? `${p.logistics.sessions_per_week}× per week` : "—" },
+    { label: "Frequency", value: formatFrequency(p?.logistics?.frequency ?? (p?.logistics?.sessions_per_week ? { unit: "week", per_unit: p.logistics.sessions_per_week } : null)) },
     { label: "Package", value: client.package_type ?? "—" },
     { label: "Next update", value: dueInfo.nextDueDate ? new Date(dueInfo.nextDueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—" },
   ];
@@ -645,7 +646,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </HubDataField>
                       )}
                       <HubDataField label="Primary goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
-                      <HubDataField label="Sessions per week">{p?.logistics?.sessions_per_week ? `${p.logistics.sessions_per_week}×` : "—"}</HubDataField>
+                      <HubDataField label="Sessions per week">{formatFrequency(p?.logistics?.frequency ?? (p?.logistics?.sessions_per_week ? { unit: "week", per_unit: p.logistics.sessions_per_week } : null))}</HubDataField>
                       <HubDataField label="Session length"><span className="capitalize">{p?.logistics?.time_tier ?? "—"}</span></HubDataField>
                       {p?.health?.conditions && (
                         <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
@@ -831,7 +832,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     <div className="px-5 pt-4 pb-4">
                       <HubDataGrid cols={2}>
                         <HubDataField label="Location"><span className="capitalize">{p.logistics.training_location?.replace("_", " ") ?? "—"}</span></HubDataField>
-                        <HubDataField label="Sessions/week">{p.logistics.sessions_per_week ?? "—"}x</HubDataField>
+                        <HubDataField label="Cadence">{formatFrequency(p?.logistics?.frequency ?? (p?.logistics?.sessions_per_week ? { unit: "week", per_unit: p.logistics.sessions_per_week } : null))}</HubDataField>
                         <HubDataField label="Time tier"><span className="capitalize">{p.logistics.time_tier ?? "—"}</span></HubDataField>
                         <HubDataField label="Package">{client.package_type ?? "—"}</HubDataField>
                         <HubDataField label="Pace mode"><PaceModeDisplay paceMode={client.pace_mode} /></HubDataField>
