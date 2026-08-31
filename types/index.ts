@@ -422,6 +422,8 @@ export interface DBClient {
   start_date: string | null;
   client_status: ClientStatus;
   referral_source: string | null;
+  /** CR-EF-108 — equipment names the client has available (matching studio_equipment.name). NULL = not configured. */
+  equipment?: string[] | null;
 }
 
 /** Lifecycle of an update record. 'sending' is transient — set just before dispatch, resolved to sent/failed immediately after. */

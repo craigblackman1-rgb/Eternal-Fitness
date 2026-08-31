@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { IconChevronLeft, IconCalendar, IconUser, IconHeart, IconRuler, IconTarget, IconShieldCheck, IconBot, IconFileText, IconCheck, IconAlertCircle, IconSave, IconLayoutDashboard } from "@/components/icons";
+import { IconChevronLeft, IconCalendar, IconUser, IconHeart, IconRuler, IconTarget, IconShieldCheck, IconBot, IconFileText, IconCheck, IconAlertCircle, IconSave, IconLayoutDashboard, IconDumbbell } from "@/components/icons";
 import Link from "next/link";
 import { HubCard, HubCardHeader, HubAlert, StatusBadge } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
+import { EquipmentMultiSelect } from "@/components/hub/EquipmentMultiSelect";
 import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender } from "@/types";
 import { DEFAULT_SPLITS, parseSplits } from "@/lib/planAgentPrompt";
 import { RESOURCES } from "@/lib/resources";
@@ -111,6 +112,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [groupType, setGroupType] = useState<DBClientGroupType>("individual_journey");
   const [paceMode, setPaceMode] = useState<DBClientPaceMode>("medium");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("studio_1to1");
+  const [equipment, setEquipment] = useState<string[] | null>(null);
   const [resourceVisibility, setResourceVisibility] = useState<Record<string, boolean>>({});
   const [splitOptions, setSplitOptions] = useState<string[]>(parseSplits(DEFAULT_SPLITS).map((s) => s.label));
   const [blocksCompleted, setBlocksCompleted] = useState<number>(0);
@@ -170,6 +172,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setGroupType(data.group_type ?? "individual_journey");
       setPaceMode(data.pace_mode ?? "medium");
       setDeliveryMode(data.delivery_mode ?? "studio_1to1");
+      setEquipment(data.equipment ?? null);
       setResourceVisibility(data.resource_visibility ?? {});
       const blocks: any[] = data._blocks ?? [];
       setBlocksCompleted(blocks.filter((b: any) => b.status === "complete").length);
@@ -218,6 +221,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         group_type: groupType,
         pace_mode: paceMode,
         delivery_mode: deliveryMode,
+        equipment: equipment,
         resource_visibility: resourceVisibility,
         start_date: startDate,
       }),
@@ -455,6 +459,20 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 for them from the session page as usual.
               </p>
             </div>
+          </div>
+        </HubCard>
+
+        <HubCard>
+          <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Equipment" subtitle="What this client has available — constrains plan generation" color="teal" noBottomPadding />
+          <div className="px-5 pb-5 pt-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Tick every item this client can use. The Plan Agent will only select exercises that match. Leave as
+              &quot;Not configured&quot; to use the full studio catalogue (no constraint).
+            </p>
+            <EquipmentMultiSelect
+              selected={equipment}
+              onChange={(v) => { setDirty(true); setEquipment(v); }}
+            />
           </div>
         </HubCard>
 
