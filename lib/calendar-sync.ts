@@ -6,9 +6,11 @@ import {
   updateEvent,
   listCalendarView,
   getIntegrationStatus,
+  getConfirmBeforeSync,
   GraphReconnectError,
   graphConfigured,
   type GraphCalendarEvent,
+  type CalendarEventInput,
 } from "@/lib/graph-client";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { findDuplicateCandidate, dayKey } from "@/lib/outlook-duplicates";
@@ -138,6 +140,10 @@ export async function syncCalendar(): Promise<SyncResult> {
     return result;
   }
   const calendarId = status.calendarId;
+
+  // CR-EF-028 — when confirm_before_sync is enabled, create/update actions
+  // are queued in calendar_sync_pending_actions instead of executing immediately.
+  const confirmBeforeSync = await getConfirmBeforeSync();
 
   const db = createPgClient();
   const windowStart = new Date(Date.now() - WINDOW_PAST_MS).toISOString();
@@ -272,6 +278,32 @@ export async function syncCalendar(): Promise<SyncResult> {
           result.unchanged++;
           continue;
         }
+
+        // CR-EF-028 — when confirm_before_sync is on, queue updates instead
+        // of pushing immediately.
+        if (confirmBeforeSync) {
+          // Deduplicate: skip if a pending action already exists for this session.
+          const { data: existingPending } = await db
+            .from("calendar_sync_pending_actions")
+            .select("id")
+            .eq("session_id", s.id)
+            .in("action", ["create", "update"])
+            .maybeSingle();
+          if (!existingPending) {
+            const { error: insErr } = await db.from("calendar_sync_pending_actions").insert({
+              action: "update",
+              session_id: s.id,
+              event_id: existing.event_id,
+              calendar_id: calendarId,
+              event_input: input,
+              reason: "Session details changed",
+            });
+            if (insErr) throw new Error(insErr.message);
+          }
+          result.pendingDelete++; // reusing pendingDelete for queued actions
+          continue;
+        }
+
         const stillThere = await updateEvent(existing.event_id, input);
         if (stillThere) {
           const { error } = await db
@@ -314,6 +346,29 @@ export async function syncCalendar(): Promise<SyncResult> {
             continue;
           }
         }
+
+        // CR-EF-028 — when confirm_before_sync is on, queue creates instead
+        // of pushing immediately.
+        if (confirmBeforeSync) {
+          const { data: existingPending } = await db
+            .from("calendar_sync_pending_actions")
+            .select("id")
+            .eq("session_id", s.id)
+            .in("action", ["create", "update"])
+            .maybeSingle();
+          if (!existingPending) {
+            const { error: insErr } = await db.from("calendar_sync_pending_actions").insert({
+              action: "create",
+              session_id: s.id,
+              calendar_id: calendarId,
+              event_input: input,
+              reason: "New session scheduled",
+            });
+            if (insErr) throw new Error(insErr.message);
+          }
+          result.pendingDelete++;
+          continue;
+        }
         // candidateStatus === "kept_separate", or no collision found — proceed to create normally.
       }
 
@@ -350,6 +405,9 @@ export async function syncSessionCalendarEvent(sessionId: string): Promise<void>
   if (!status.connected || !status.calendarId) return;
   const calendarId = status.calendarId;
 
+  // CR-EF-028 — when confirm_before_sync is on, queue instead of pushing.
+  const confirmBeforeSync = await getConfirmBeforeSync();
+
   const db = createPgClient();
   const { data: row, error } = await db
     .from("sessions")
@@ -371,8 +429,28 @@ export async function syncSessionCalendarEvent(sessionId: string): Promise<void>
 
   if (!isActive) {
     if (existing) {
-      await deleteEvent(existing.event_id);
-      await db.from("session_calendar_events").delete().eq("session_id", sessionId);
+      if (confirmBeforeSync) {
+        // Queue the delete instead of executing directly.
+        const { data: existingPending } = await db
+          .from("calendar_sync_pending_actions")
+          .select("id")
+          .eq("session_id", sessionId)
+          .eq("action", "delete")
+          .maybeSingle();
+        if (!existingPending) {
+          const reason = s.cancelled_at ? "Session cancelled" : "Session unscheduled";
+          await db.from("calendar_sync_pending_actions").insert({
+            action: "delete",
+            session_id: sessionId,
+            event_id: existing.event_id,
+            calendar_id: existing.calendar_id,
+            reason,
+          });
+        }
+      } else {
+        await deleteEvent(existing.event_id);
+        await db.from("session_calendar_events").delete().eq("session_id", sessionId);
+      }
     }
     return;
   }
@@ -383,6 +461,27 @@ export async function syncSessionCalendarEvent(sessionId: string): Promise<void>
 
   if (existing && existing.calendar_id === calendarId) {
     if (existing.sync_hash === hash) return;
+
+    if (confirmBeforeSync) {
+      const { data: existingPending } = await db
+        .from("calendar_sync_pending_actions")
+        .select("id")
+        .eq("session_id", sessionId)
+        .in("action", ["create", "update"])
+        .maybeSingle();
+      if (!existingPending) {
+        await db.from("calendar_sync_pending_actions").insert({
+          action: "update",
+          session_id: sessionId,
+          event_id: existing.event_id,
+          calendar_id: calendarId,
+          event_input: input,
+          reason: "Session details changed",
+        });
+      }
+      return;
+    }
+
     const stillThere = await updateEvent(existing.event_id, input);
     if (stillThere) {
       await db
@@ -394,7 +493,9 @@ export async function syncSessionCalendarEvent(sessionId: string): Promise<void>
     await db.from("session_calendar_events").delete().eq("session_id", sessionId);
   } else if (existing) {
     // Mapping points at an old calendar — clean it up and recreate.
-    await deleteEvent(existing.event_id);
+    if (!confirmBeforeSync) {
+      await deleteEvent(existing.event_id);
+    }
     await db.from("session_calendar_events").delete().eq("session_id", sessionId);
   }
 
@@ -433,6 +534,25 @@ export async function syncSessionCalendarEvent(sessionId: string): Promise<void>
         return;
       }
     }
+  }
+
+  if (confirmBeforeSync) {
+    const { data: existingPending } = await db
+      .from("calendar_sync_pending_actions")
+      .select("id")
+      .eq("session_id", sessionId)
+      .in("action", ["create", "update"])
+      .maybeSingle();
+    if (!existingPending) {
+      await db.from("calendar_sync_pending_actions").insert({
+        action: "create",
+        session_id: sessionId,
+        calendar_id: calendarId,
+        event_input: input,
+        reason: "New session scheduled",
+      });
+    }
+    return;
   }
 
   const created = await createEvent(calendarId, input, s.id);

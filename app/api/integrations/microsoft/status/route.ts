@@ -6,6 +6,8 @@ import {
   listCalendars,
   GraphReconnectError,
   setCalendar,
+  getConfirmBeforeSync,
+  setConfirmBeforeSync,
   type GraphCalendar,
 } from "@/lib/graph-client";
 import { syncCalendar } from "@/lib/calendar-sync";
@@ -48,6 +50,7 @@ export async function GET() {
     accountEmail: status.accountEmail,
     calendarId: status.calendarId,
     calendarName: status.calendarName,
+    confirmBeforeSync: await getConfirmBeforeSync(),
     calendars: calendars.filter((c) => c.canEdit !== false).map((c) => ({
       id: c.id,
       name: c.name,
@@ -77,6 +80,30 @@ export async function POST(request: Request) {
     if (err instanceof GraphReconnectError) {
       return NextResponse.json({ error: "Microsoft connection has expired — reconnect the account" }, { status: 409 });
     }
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
+}
+
+/**
+ * CR-EF-028 — toggle the confirm-before-sync gate. When enabled, the 15-min
+ * cron and on-demand session sync queue create/update actions instead of
+ * pushing them to Outlook immediately. Deletions are always gated.
+ */
+export async function PATCH(request: Request) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await request.json().catch(() => null);
+  const enabled = typeof body?.confirmBeforeSync === "boolean" ? body.confirmBeforeSync : null;
+  if (enabled === null) {
+    return NextResponse.json({ error: "confirmBeforeSync boolean required" }, { status: 400 });
+  }
+
+  try {
+    await setConfirmBeforeSync(enabled);
+    return NextResponse.json({ confirmBeforeSync: enabled });
+  } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }

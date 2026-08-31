@@ -49,6 +49,7 @@ interface TokenRow {
   scope: string | null;
   calendar_id: string | null;
   calendar_name: string | null;
+  confirm_before_sync: boolean | null;
 }
 
 interface TokenResponse {
@@ -134,6 +135,25 @@ export async function setCalendar(calendarId: string, calendarName: string): Pro
     .update({ calendar_id: calendarId, calendar_name: calendarName, updated_at: new Date().toISOString() })
     .eq("provider", PROVIDER);
   if (error) throw new Error(`calendar selection save failed: ${error.message}`);
+}
+
+/**
+ * CR-EF-028 — when true, syncCalendar() and syncSessionCalendarEvent() queue
+ * create/update actions in calendar_sync_pending_actions instead of executing
+ * them immediately. Deletions are always gated regardless of this flag.
+ */
+export async function getConfirmBeforeSync(): Promise<boolean> {
+  const row = await getTokenRow();
+  return row?.confirm_before_sync === true;
+}
+
+export async function setConfirmBeforeSync(enabled: boolean): Promise<void> {
+  const db = createPgClient();
+  const { error } = await db
+    .from("integration_tokens")
+    .update({ confirm_before_sync: enabled, updated_at: new Date().toISOString() })
+    .eq("provider", PROVIDER);
+  if (error) throw new Error(`confirm_before_sync save failed: ${error.message}`);
 }
 
 export async function disconnect(): Promise<void> {
