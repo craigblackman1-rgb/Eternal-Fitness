@@ -50,13 +50,32 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   // against a completed session is ever the reopen transition. Scheduling fields
   // (scheduled_at/cancelled_at/cancel_reason) stay allowed — cancelling a completed
   // booking still takes precedence, matching the migration's backfill rule.
+  //
+  // CR-EF-123 exception: correcting the session_log timestamp (completed_at) on a
+  // completed session does NOT risk orphaning logged sets or overwriting RPE/notes —
+  // it only changes when the session was logged, not what was logged. We allow
+  // session_log-only diffs through by comparing the incoming data against the
+  // existing row; any change to versions (prescription/exercise content) is still
+  // blocked.
   if (Object.prototype.hasOwnProperty.call(update, "data")) {
     const status = await getSessionStatus(params.id);
     if (status === "completed") {
-      return NextResponse.json(
-        { error: "This session is completed and read-only. Reopen it before editing the prescription or session log." },
-        { status: 403 },
+      const { data: currentRow } = await supabase
+        .from("sessions")
+        .select("data")
+        .eq("id", params.id)
+        .maybeSingle();
+      const currentData = (currentRow?.data ?? {}) as Record<string, unknown>;
+      const incomingData = update.data as Record<string, unknown>;
+      const prescriptionChanged = Object.keys(incomingData).some(
+        (key) => key !== "session_log" && JSON.stringify(incomingData[key]) !== JSON.stringify(currentData[key]),
       );
+      if (prescriptionChanged) {
+        return NextResponse.json(
+          { error: "This session is completed and read-only. Reopen it before editing the prescription." },
+          { status: 403 },
+        );
+      }
     }
   }
 
