@@ -18,6 +18,7 @@ interface StatusResponse {
   accountEmail?: string | null;
   calendarId?: string | null;
   calendarName?: string | null;
+  confirmBeforeSync?: boolean;
   calendars?: CalendarOption[];
 }
 
@@ -103,6 +104,26 @@ export function IntegrationsManager() {
       await loadStatus();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save calendar");
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function toggleConfirmBeforeSync() {
+    if (!status) return;
+    const newValue = !status.confirmBeforeSync;
+    setWorking(true);
+    try {
+      const res = await fetch("/api/integrations/microsoft/status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmBeforeSync: newValue }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to update");
+      setStatus((s) => (s ? { ...s, confirmBeforeSync: newValue } : s));
+      toast.success(newValue ? "Confirm-before-sync enabled — calendar changes will queue for review" : "Confirm-before-sync disabled — calendar changes sync automatically");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update setting");
     } finally {
       setWorking(false);
     }
@@ -195,6 +216,25 @@ export function IntegrationsManager() {
             one is scheduled, moved or cancelled in the hub. Each event links straight to the
             live session screen on the phone.
           </p>
+        )}
+        {status.calendarId && (
+          <div className="flex items-center gap-3 pt-2 border-t border-[var(--hub-border)]">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-input"
+                checked={status.confirmBeforeSync ?? false}
+                onChange={toggleConfirmBeforeSync}
+                disabled={working}
+              />
+              <span className="text-sm font-medium text-foreground">Confirm before sync</span>
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {status.confirmBeforeSync
+                ? "On — new/changed sessions queue for your approval before reaching Outlook"
+                : "Off — sessions sync to Outlook automatically"}
+            </span>
+          </div>
         )}
       </div>
     );
