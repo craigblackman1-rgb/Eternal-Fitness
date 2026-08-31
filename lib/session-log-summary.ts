@@ -3,9 +3,11 @@ import type { DBSession } from "@/types";
 export function buildSessionLogSection(sessions: DBSession[]): string {
   if (sessions.length === 0) return "No session records for the recent blocks.";
 
-  const total = sessions.length;
-  const completed = sessions.filter((s) => s.data?.session_log?.completed_at).length;
-  const cancelled = sessions.filter((s) => s.cancelled_at).length;
+  // CR-EF-101 — sub-sessions excluded from attendance count
+  const potSessions = sessions.filter((s) => !s.parent_session_id);
+  const total = potSessions.length;
+  const completed = potSessions.filter((s) => s.data?.session_log?.completed_at).length;
+  const cancelled = potSessions.filter((s) => s.cancelled_at).length;
 
   let result = `Attendance: ${completed}/${total} sessions completed`;
   if (cancelled > 0) result += `, ${cancelled} cancelled`;

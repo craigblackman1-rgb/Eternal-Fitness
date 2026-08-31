@@ -15,7 +15,9 @@ interface CancelSessionDialogProps {
   clientName: string;
   sessionsPurchased: number | null;
   /** All sessions in the block — needed to re-derive the pot. */
-  allSessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at">[];
+  allSessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id">[];
+  /** CR-EF-101 — number of sub-sessions linked to this parent. */
+  childCount?: number;
 }
 
 /**
@@ -31,6 +33,7 @@ export function CancelSessionDialog({
   clientName,
   sessionsPurchased,
   allSessions,
+  childCount = 0,
 }: CancelSessionDialogProps) {
   const router = useRouter();
   const [chargedFree, setChargedFree] = useState<ChargedFree | null>(null);
@@ -118,6 +121,19 @@ export function CancelSessionDialog({
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">How is this cancellation treated?</p>
+
+          {/* CR-EF-101 — sub-session cascade warning */}
+          {childCount > 0 && (
+            <div className="rounded-lg p-3 border bg-amber/5 border-amber/20 text-xs text-foreground flex items-start gap-2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={14} height={14} className="shrink-0 mt-0.5 text-amber">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+              <span>
+                This slot has {childCount} supplementary work item{childCount === 1 ? "" : "s"} attached. Cancelling the parent will also cancel {childCount === 1 ? "it" : "them"}.
+              </span>
+            </div>
+          )}
 
           {/* Option: Charged */}
           <label

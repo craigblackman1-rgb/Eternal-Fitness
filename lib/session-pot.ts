@@ -40,17 +40,25 @@ export interface SessionPotBreakdown {
 /**
  * Derive the session pot breakdown from a list of sessions in a block.
  * `sessionsPurchased` comes from the client record (not derived from session rows).
+ *
+ * CR-EF-101 — sub-sessions (parent_session_id IS NOT NULL) are excluded from
+ * the pot count entirely. One slot consumes one session no matter how much
+ * work happened in it. This applies to completed sessions AND charged
+ * cancellations.
  */
 export function deriveSessionPot(
-  sessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at">[],
+  sessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id">[],
   sessionsPurchased: number | null,
 ): SessionPotBreakdown {
+  // CR-EF-101 — only count sessions where parent_session_id IS NULL
+  const potSessions = sessions.filter((s) => !s.parent_session_id);
+
   let completed = 0;
   let chargedCancellations = 0;
   let freeCancellations = 0;
   let unreviewedCancellations = 0;
 
-  for (const s of sessions) {
+  for (const s of potSessions) {
     const status = s.status ?? deriveStatusFromColumns(s);
     if (status === "completed") {
       completed++;
@@ -67,7 +75,7 @@ export function deriveSessionPot(
   }
 
   const used = completed + chargedCancellations;
-  const purchased = sessionsPurchased ?? sessions.length;
+  const purchased = sessionsPurchased ?? potSessions.length;
   const remaining = Math.max(purchased - used, 0);
 
   return {
@@ -78,7 +86,7 @@ export function deriveSessionPot(
     used,
     purchased,
     remaining,
-    totalInBlock: sessions.length,
+    totalInBlock: potSessions.length,
     unreviewed: unreviewedCancellations,
   };
 }

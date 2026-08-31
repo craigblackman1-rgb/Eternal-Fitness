@@ -50,21 +50,22 @@ export default async function PortalBookPage() {
     cancelled_at: string | null;
     scheduled_at: string | null;
     session_number: number;
+    parent_session_id: string | null;
   }> = [];
 
   if (blockRows) {
     const { data: sessionRows } = await supabase
       .from("sessions")
-      .select("id, status, charged_free, cancelled_at, scheduled_at, session_number")
+      .select("id, status, charged_free, cancelled_at, scheduled_at, session_number, parent_session_id")
       .eq("block_id", blockRows.id)
       .order("session_number", { ascending: true });
 
     sessions = sessionRows ?? [];
   }
 
-  // Derive the session pot
+  // Derive the session pot — CR-EF-101: sub-sessions excluded automatically
   const pot = deriveSessionPot(
-    sessions as Pick<DBSession, "status" | "charged_free" | "cancelled_at">[],
+    sessions as Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id">[],
     clientExtra?.sessions_purchased
   );
 

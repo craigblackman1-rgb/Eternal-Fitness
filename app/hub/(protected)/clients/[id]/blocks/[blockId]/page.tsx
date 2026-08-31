@@ -30,6 +30,7 @@ interface SessionRow {
   status: string | null;
   cancelled_at: string | null;
   cancel_reason: string | null;
+  parent_session_id: string | null;
 }
 
 /**
@@ -85,8 +86,11 @@ export default async function BlockViewPage({
     sessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at })),
   );
 
-  const totalSessions = sessions.length;
-  const completedSessions = sessions.filter((s) => sessionStatus(s) === "completed").length;
+  // CR-EF-101 — sub-sessions (parent_session_id) are excluded from pot count
+  // and numbering. They are supplementary work within a slot.
+  const potSessions = sessions.filter((s) => !s.parent_session_id);
+  const totalSessions = potSessions.length;
+  const completedSessions = potSessions.filter((s) => sessionStatus(s) === "completed").length;
 
   // Client context descriptor for the header line — the primary declared
   // condition, reused from the profile rather than a new field (matches the
@@ -242,9 +246,11 @@ export default async function BlockViewPage({
         {weekGroups.map((group) => {
           const isScheduled = group.kind === "scheduled";
           const weekOpen = group.key === targetKey;
-          const done = group.sessions.filter((s) => sessionStatus(s) === "completed").length;
-          const cancelled = group.sessions.filter((s) => sessionStatus(s) === "cancelled").length;
-          const total = group.sessions.length;
+          // CR-EF-101 — exclude sub-sessions from week totals
+          const weekPotSessions = group.sessions.filter((s) => !s.parent_session_id);
+          const done = weekPotSessions.filter((s) => sessionStatus(s) === "completed").length;
+          const cancelled = weekPotSessions.filter((s) => sessionStatus(s) === "cancelled").length;
+          const total = weekPotSessions.length;
 
           const numLabel = isScheduled ? String(Number(group.monday!.split("-")[2])) : String(group.planWeek);
           const title = isScheduled ? `Week of ${formatShortDate(group.monday!)}` : `Plan week ${group.planWeek}`;

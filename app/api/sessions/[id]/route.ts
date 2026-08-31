@@ -10,7 +10,7 @@ import { londonDayKey } from "@/lib/schedule-dates";
 // prescription + session_log (existing behaviour, from an earlier lane). The
 // three scheduling fields are Lane D1 additions. Anything else in the body is
 // ignored so this route can't be used to touch columns it shouldn't.
-const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason", "charged_free", "lapse_flagged_at"] as const;
+const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason", "charged_free", "lapse_flagged_at", "parent_session_id"] as const;
 
 // Single-session read (CR-EF-079 L5 — the mobile "add workout from this
 // client's block" preview needs one session's full data by id; nothing else
@@ -158,8 +158,64 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
   }
 
+  // CR-EF-101 — slot inheritance: sub-sessions follow their parent's scheduled_at.
+  // If someone tries to independently reschedule a sub-session, override with
+  // the parent's scheduled_at instead.
+  if ("scheduled_at" in update && update.scheduled_at && !cancellingNow) {
+    const { data: sessionCheck } = await supabase
+      .from("sessions")
+      .select("parent_session_id")
+      .eq("id", params.id)
+      .single();
+
+    if (sessionCheck?.parent_session_id) {
+      const { data: parentRow } = await supabase
+        .from("sessions")
+        .select("scheduled_at")
+        .eq("id", sessionCheck.parent_session_id)
+        .single();
+
+      if (parentRow?.scheduled_at) {
+        update.scheduled_at = parentRow.scheduled_at;
+      }
+    }
+  }
+
   const { data, error } = await supabase.from("sessions").update(update).eq("id", params.id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // CR-EF-101 — cascade cancellation to sub-sessions
+  if (cancellingNow) {
+    const cascadeUpdate: Record<string, unknown> = {
+      cancelled_at: update.cancelled_at,
+      cancel_reason: update.cancel_reason,
+      status: "cancelled",
+    };
+    if ("charged_free" in update) {
+      cascadeUpdate.charged_free = update.charged_free;
+    }
+    await supabase
+      .from("sessions")
+      .update(cascadeUpdate)
+      .eq("parent_session_id", params.id);
+  }
+
+  // CR-EF-101 — cascade reschedule to sub-sessions (children follow parent)
+  if ("scheduled_at" in update && update.scheduled_at && !cancellingNow) {
+    // Only cascade if this is a parent (not a sub-session itself)
+    const { data: checkSession } = await supabase
+      .from("sessions")
+      .select("parent_session_id")
+      .eq("id", params.id)
+      .single();
+
+    if (!checkSession?.parent_session_id) {
+      await supabase
+        .from("sessions")
+        .update({ scheduled_at: update.scheduled_at })
+        .eq("parent_session_id", params.id);
+    }
+  }
 
   // Push the change to the Outlook calendar immediately; the 15-minute cron
   // repairs any miss, so a sync failure must never fail the PATCH itself.

@@ -6,7 +6,7 @@ import type { DBSession } from "@/types";
 export const metadata = { robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-type SessionRow = Pick<DBSession, "id" | "block_id" | "session_number" | "scheduled_at" | "cancel_reason" | "charged_free" | "status" | "cancelled_at">;
+type SessionRow = Pick<DBSession, "id" | "block_id" | "session_number" | "scheduled_at" | "cancel_reason" | "charged_free" | "status" | "cancelled_at" | "parent_session_id">;
 
 export default async function CancellationReviewPage() {
   const supabase = createClient();
@@ -14,12 +14,14 @@ export default async function CancellationReviewPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // 1. All unreviewed cancellations
+  // 1. All unreviewed cancellations — CR-EF-101: exclude sub-sessions (they
+  //    have no allowance implication, so asking Esther charged/free is meaningless)
   const { data: unreviewedRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, scheduled_at, cancel_reason, charged_free, status, cancelled_at")
+    .select("id, block_id, session_number, scheduled_at, cancel_reason, charged_free, status, cancelled_at, parent_session_id")
     .eq("status", "cancelled")
     .is("charged_free", null)
+    .is("parent_session_id", null)
     .order("scheduled_at", { ascending: false });
 
   const unreviewed = (unreviewedRows ?? []) as SessionRow[];
@@ -66,10 +68,10 @@ export default async function CancellationReviewPage() {
     clientsMap.set(c.id, { name: c.name, sessionsPurchased: c.sessions_purchased });
   }
 
-  // 4. All sessions per client (for pot calculation)
+  // 4. All sessions per client (for pot calculation — CR-EF-101: pot excludes sub-sessions)
   const { data: allSessionRows } = await supabase
     .from("sessions")
-    .select("id, status, charged_free, cancelled_at, block_id")
+    .select("id, status, charged_free, cancelled_at, block_id, parent_session_id")
     .in("block_id", blockIds);
 
   // Group all sessions by client
