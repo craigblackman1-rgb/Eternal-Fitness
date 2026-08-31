@@ -2,6 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ClientNote } from "@/types";
+import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
+
+interface ClientNotesPaneProps {
+  clientId: string;
+  exerciseNotes?: AggregatedExerciseNote[];
+}
 
 const ICO = {
   trash: (
@@ -19,12 +25,12 @@ const ICO = {
   ),
 };
 
-export function ClientNotesPane({ clientId }: { clientId: string }) {
+export function ClientNotesPane({ clientId, exerciseNotes = [] }: ClientNotesPaneProps) {
   const [notes, setNotes] = useState<ClientNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "pinned">("all");
+  const [filter, setFilter] = useState<"all" | "pinned" | "exercises">("all");
   const [savingPin, setSavingPin] = useState<string | null>(null);
 
   const fetchNotes = useCallback(async () => {
@@ -93,6 +99,13 @@ export function ClientNotesPane({ clientId }: { clientId: string }) {
     });
   }, [filtered, filter]);
 
+  const filteredExercises = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return exerciseNotes.filter(
+      (en) => !q || en.note.toLowerCase().includes(q) || en.exerciseName.toLowerCase().includes(q),
+    );
+  }, [exerciseNotes, query]);
+
   const pinnedCount = notes.filter((n) => n.pinned).length;
 
   return (
@@ -133,10 +146,42 @@ export function ClientNotesPane({ clientId }: { clientId: string }) {
         >
           Pinned · {pinnedCount}
         </button>
+        {exerciseNotes.length > 0 && (
+          <button
+            className={`npill${filter === "exercises" ? " on" : ""}`}
+            onClick={() => setFilter("exercises")}
+            aria-pressed={filter === "exercises"}
+          >
+            Exercises · {exerciseNotes.length}
+          </button>
+        )}
       </div>
       <div className="panel">
         {loading ? (
           <div className="t-empty">Loading notes…</div>
+        ) : filter === "exercises" ? (
+          filteredExercises.length === 0 ? (
+            <div className="t-empty">
+              {query.trim() ? "No exercise notes match your search." : "No exercise notes yet."}
+            </div>
+          ) : (
+            filteredExercises.map((en, i) => (
+              <div key={`${en.sessionId}-${en.exerciseUid}-${i}`} className="note-item" style={{ background: "var(--hub-hover, rgba(0,0,0,.02))" }}>
+                <div className="note-body">
+                  <span className="note-t">{en.exerciseName}</span>
+                  <span className="note-when">
+                    {en.sessionName} ·{" "}
+                    {new Date(en.sessionDate).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <div className="note-txt">{en.note}</div>
+                </div>
+              </div>
+            ))
+          )
         ) : shown.length === 0 ? (
           <div className="t-empty">
             {filter === "pinned"

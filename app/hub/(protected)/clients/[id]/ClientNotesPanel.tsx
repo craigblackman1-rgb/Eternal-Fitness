@@ -3,8 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { IconFileText, IconPlus, IconTrash2 } from "@/components/icons";
 import type { ClientNote } from "@/types";
+import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
 
-export function ClientNotesPanel({ clientId }: { clientId: string }) {
+interface ClientNotesPanelProps {
+  clientId: string;
+  exerciseNotes?: AggregatedExerciseNote[];
+}
+
+export function ClientNotesPanel({ clientId, exerciseNotes = [] }: ClientNotesPanelProps) {
   const [notes, setNotes] = useState<ClientNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState("");
@@ -51,7 +57,7 @@ export function ClientNotesPanel({ clientId }: { clientId: string }) {
           <div>
             <span className="text-sm font-semibold text-foreground">Notes</span>
             <span className="block text-xs text-muted-foreground">
-              Quick captures — timestamped
+              Quick captures and exercise notes
             </span>
           </div>
         </div>
@@ -79,7 +85,7 @@ export function ClientNotesPanel({ clientId }: { clientId: string }) {
 
         {loading ? (
           <div className="text-center py-6 text-sm text-muted-foreground">Loading notes…</div>
-        ) : notes.length === 0 ? (
+        ) : notes.length === 0 && exerciseNotes.length === 0 ? (
           <div className="text-center py-6 text-sm text-muted-foreground">No notes yet.</div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -91,12 +97,14 @@ export function ClientNotesPanel({ clientId }: { clientId: string }) {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-foreground whitespace-pre-wrap overflow-wrap-anywhere">{n.note}</p>
                   <p className="text-xs text-muted-foreground mt-[3px]">
+                    {n.session_name && <span className="text-foreground/70">{n.session_name} · </span>}
                     {new Date(n.created_at).toLocaleString("en-GB", {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
+                    {n.author && <span className="ml-1 text-foreground/50">· {n.author}</span>}
                   </p>
                 </div>
                 <button
@@ -108,6 +116,38 @@ export function ClientNotesPanel({ clientId }: { clientId: string }) {
                 </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {exerciseNotes.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Exercise notes</span>
+              <span className="text-[10px] text-muted-foreground/70">({exerciseNotes.length})</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {exerciseNotes.map((en, i) => (
+                <div
+                  key={`${en.sessionId}-${en.exerciseUid}-${i}`}
+                  className="p-[13px] rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-hover)]/30"
+                >
+                  <p className="text-sm text-foreground whitespace-pre-wrap overflow-wrap-anywhere">{en.note}</p>
+                  <p className="text-xs text-muted-foreground mt-[3px]">
+                    <span className="text-foreground/70 font-medium">{en.exerciseName}</span>
+                    <span className="mx-1">·</span>
+                    <span>{en.sessionName}</span>
+                    <span className="mx-1">·</span>
+                    <span>
+                      {new Date(en.sessionDate).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
