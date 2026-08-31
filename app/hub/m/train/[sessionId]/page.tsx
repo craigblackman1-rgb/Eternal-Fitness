@@ -47,10 +47,21 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
   const bestWeights = block ? await getBestWeightsForClient(block.client_id) : {};
   const lastSessionAndPb = block ? await getLastSessionAndPbData(block.client_id) : { lastSession: {}, pbDates: {} };
 
-  // CR-EF-014: fetch active bands for the colour picker.
+  // CR-EF-014 + CR-EF-116: fetch active bands for the client's band set.
   const pool = getPool();
+  let clientBandSetId: string | null = null;
+  if (block) {
+    const bsRes = await pool.query(
+      `SELECT band_set_id FROM clients WHERE id = $1`,
+      [block.client_id],
+    );
+    clientBandSetId = bsRes.rows[0]?.band_set_id ?? null;
+  }
+  // Default to EF Studio set if client has no assignment
+  const setId = clientBandSetId ?? "00000000-0000-0000-0000-000000000001";
   const bandsRes = await pool.query(
-    `SELECT * FROM bands WHERE active = true ORDER BY sort_order ASC`,
+    `SELECT * FROM bands WHERE active = true AND band_set_id = $1 ORDER BY sort_order ASC`,
+    [setId],
   );
   const bands: Band[] = bandsRes.rows;
 

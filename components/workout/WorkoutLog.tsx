@@ -155,9 +155,16 @@ function bandById(bands: Band[], colour: string): Band | undefined {
   return bands.find((b) => b.colour.toLowerCase() === colour.toLowerCase());
 }
 
-function bandOrderMap(bands: Band[]): Map<string, number> {
+/**
+ * CR-EF-116: Build a map of band colour → comparable load value.
+ * Primary: tension_kg (the real physical quantity).
+ * Fallback: sort_order (for bands with NULL tension_kg).
+ */
+function bandLoadMap(bands: Band[]): Map<string, number> {
   const m = new Map<string, number>();
-  bands.forEach((b, i) => m.set(b.colour.toLowerCase(), i));
+  bands.forEach((b) => {
+    m.set(b.colour.toLowerCase(), b.tension_kg ?? b.sort_order);
+  });
   return m;
 }
 
@@ -185,28 +192,27 @@ function BandChip({ band }: { band: Band }) {
 /**
  * Determine if a set beats the exercise's previous best.
  * Weight exercises: heavier at equal-or-more reps.
- * Band exercises: a higher band colour at equal-or-more reps.
+ * Band exercises: higher band load (tension_kg primary, sort_order fallback) at equal-or-more reps.
  * Warm-up sets are never eligible.
  */
 function setBeatsBest(
   exercise: Exercise,
   set: SetState,
-  orderMap: Map<string, number>,
+  loadMap: Map<string, number>,
 ): boolean {
   if (set.status !== "done" || set.isWarmup) return false;
   const best = exercise.band_colour !== undefined && exercise.equipment?.some((e) => /band/i.test(e))
-    ? null // band exercises use orderMap comparison inline
+    ? null // band exercises use loadMap comparison inline
     : null;
   const reps = parseInt(set.reps, 10);
   if (isNaN(reps) || reps <= 0) return false;
 
   const isBand = isBandEquipment(exercise.equipment ?? []);
   if (isBand) {
-    // For band exercises, compare band colour order
-    const setOrder = orderMap.get(set.bandColour?.toLowerCase() ?? "") ?? -1;
-    if (setOrder < 0) return false;
-    // We need to know the "best" — this is computed from the session's best ever
-    // For now, if a band is logged and reps are met, it's a candidate
+    // For band exercises, compare by tension_kg (or sort_order fallback)
+    const setLoad = loadMap.get(set.bandColour?.toLowerCase() ?? "") ?? -1;
+    if (setLoad < 0) return false;
+    // If a band is logged and reps are met, it's a candidate
     return true;
   }
 
@@ -224,7 +230,7 @@ function setBeatsBest(
 function findPbSet(
   exercise: Exercise,
   sets: SetState[],
-  orderMap: Map<string, number>,
+  loadMap: Map<string, number>,
   bestWeights?: Record<string, number>,
 ): { setIdx: number; set: SetState } | null {
   const isBand = isBandEquipment(exercise.equipment ?? []);
@@ -237,7 +243,7 @@ function findPbSet(
 
     let load: number;
     if (isBand) {
-      load = orderMap.get(s.bandColour?.toLowerCase() ?? "") ?? -1;
+      load = loadMap.get(s.bandColour?.toLowerCase() ?? "") ?? -1;
       if (load < 0) continue;
     } else {
       load = parseFloat(s.weight);
@@ -301,7 +307,7 @@ export function WorkoutLog({
     return map;
   }, [setLogs]);
 
-  const orderMap = useMemo(() => bandOrderMap(bands), [bands]);
+  const loadMap = useMemo(() => bandLoadMap(bands), [bands]);
 
   const savedNotesRef = useRef<Record<string, string>>({});
   const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1099,7 +1105,7 @@ export function WorkoutLog({
                                 collapsed={collapsed}
                                 setCollapsed={setCollapsed}
                                 bands={bands}
-                                orderMap={orderMap}
+                                loadMap={loadMap}
                                 bestWeights={bestWeights}
                                 onSetDone={handleSetDone}
                                 onSetSkip={handleSetSkip}
@@ -1131,7 +1137,7 @@ export function WorkoutLog({
                               collapsed={!!collapsed[ref]}
                               onToggleCollapse={() => setCollapsed((p) => ({ ...p, [ref]: !p[ref] }))}
                               bands={bands}
-                              orderMap={orderMap}
+                              loadMap={loadMap}
                               bestWeights={bestWeights}
                               onSetDone={handleSetDone}
                               onSetSkip={handleSetSkip}
@@ -1244,7 +1250,7 @@ export function WorkoutLog({
           {/* Band key card */}
           {bands.length > 0 && (
             <div className="mt-4 rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 shadow-sm">
-              <h2 className="text-[12px] font-extrabold uppercase tracking-widest text-foreground">Studio band set</h2>
+              <h2 className="text-[12px] font-extrabold uppercase tracking-widest text-foreground">Band set</h2>
               <p className="mb-3 mt-1 text-[12px] text-muted-foreground leading-relaxed">Prescribe and log the <b>colour</b>; tension is reference only.</p>
               <div className="flex flex-col gap-2">
                 {bands.map((b) => (
@@ -1403,7 +1409,7 @@ function ExerciseCard({
   collapsed,
   onToggleCollapse,
   bands,
-  orderMap,
+  loadMap,
   bestWeights,
   onSetDone,
   onSetSkip,
@@ -1429,7 +1435,7 @@ function ExerciseCard({
   collapsed: boolean;
   onToggleCollapse: () => void;
   bands: Band[];
-  orderMap: Map<string, number>;
+  loadMap: Map<string, number>;
   bestWeights?: Record<string, number>;
   onSetDone: (ref: string, setIdx: number, exercise: Exercise) => void;
   onSetSkip: (ref: string, setIdx: number, exercise: Exercise) => void;
@@ -1461,7 +1467,7 @@ function ExerciseCard({
   const isBandEx = isBandEquipment(exercise.equipment ?? []);
 
   // Current session's best for PB comparison
-  const sessionPb = findPbSet(exercise, sets, orderMap, bestWeights);
+  const sessionPb = findPbSet(exercise, sets, loadMap, bestWeights);
   const hasNewPb = !!sessionPb && sessionPb.set.status === "done" && !sessionPb.set.isWarmup;
 
   // Format PB chip label
@@ -1864,7 +1870,7 @@ function SupersetBlock({
   collapsed,
   setCollapsed,
   bands,
-  orderMap,
+  loadMap,
   bestWeights,
   onSetDone,
   onSetSkip,
@@ -1887,7 +1893,7 @@ function SupersetBlock({
   collapsed: Record<string, boolean>;
   setCollapsed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   bands: Band[];
-  orderMap: Map<string, number>;
+  loadMap: Map<string, number>;
   bestWeights?: Record<string, number>;
   onSetDone: (ref: string, setIdx: number, exercise: Exercise) => void;
   onSetSkip: (ref: string, setIdx: number, exercise: Exercise) => void;

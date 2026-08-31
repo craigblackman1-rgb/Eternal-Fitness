@@ -1,5 +1,5 @@
 /**
- * Shared workout types and utilities for CR-EF-011 + CR-EF-014.
+ * Shared workout types and utilities for CR-EF-011 + CR-EF-014 + CR-EF-116.
  * Used by both the desktop and mobile workout surfaces.
  */
 
@@ -53,7 +53,6 @@ export function getLoadType(ex: Exercise): LoadType {
   if (ex.log_type === "time") return "time";
   if (ex.equipment?.some((e) => /band/i.test(e))) return "band";
   if (ex.equipment?.length === 0 || ex.equipment?.every((e) => /bodyweight/i.test(e))) {
-    // If it has weight in the name or is a known weighted exercise, treat as weight
     return "bodyweight";
   }
   return "weight";
@@ -82,20 +81,23 @@ export interface PrevBest {
 }
 
 /**
- * CR-EF-014 PB logic — determine if a set beats the previous best.
+ * CR-EF-014 + CR-EF-116 PB logic — determine if a set beats the previous best.
  * Rules:
  * - Warm-up sets NEVER register as a PB.
  * - Must be completed (done).
  * - Must meet or exceed the previous best reps.
  * - For weight: heavier load at equal-or-more reps.
- * - For bands: higher sort_order (moving up a colour) at equal-or-more reps.
+ * - For bands: higher bandLoad (tension_kg primary, sort_order fallback) at equal-or-more reps.
  * - Equal load is HOLDING, not setting.
+ *
+ * @param bandLoad - callback returning a comparable numeric value for a band colour.
+ *   Callers provide tension_kg when available, falling back to sort_order for NULL tension_kg.
  */
 export function beatsBest(
   set: SetState,
   loadType: LoadType,
   prevBest: PrevBest | null | undefined,
-  bandOrder: (colour: string) => number,
+  bandLoad: (colour: string) => number,
 ): boolean {
   if (set.status !== "done" || set.isWarmup || !prevBest) return false;
 
@@ -109,34 +111,37 @@ export function beatsBest(
 
   if (loadType === "band") {
     if (!set.band_colour) return false;
-    return bandOrder(set.band_colour) > bandOrder(prevBest.band_colour ?? "");
+    return bandLoad(set.band_colour) > bandLoad(prevBest.band_colour ?? "");
   }
 
   return false;
 }
 
 /**
- * CR-EF-014 — ONE badge per exercise. The best qualifying set of the session,
+ * CR-EF-014 + CR-EF-116 — ONE badge per exercise. The best qualifying set of the session,
  * earliest on a tie. Repeating the same load is HOLDING a PB, not setting one.
+ *
+ * @param bandLoad - callback returning a comparable numeric value for a band colour.
+ *   Callers provide tension_kg when available, falling back to sort_order for NULL tension_kg.
  */
 export function findPbSet(
   sets: SetState[],
   loadType: LoadType,
   prevBest: PrevBest | null | undefined,
-  bandOrder: (colour: string) => number,
+  bandLoad: (colour: string) => number,
 ): number {
   let bestIdx = -1;
   let topLoad = -1;
 
   for (let i = 0; i < sets.length; i++) {
     const s = sets[i];
-    if (!beatsBest(s, loadType, prevBest, bandOrder)) continue;
+    if (!beatsBest(s, loadType, prevBest, bandLoad)) continue;
 
     let load: number;
     if (loadType === "weight") {
       load = parseFloat(s.weight) || 0;
     } else {
-      load = bandOrder(s.band_colour);
+      load = bandLoad(s.band_colour);
     }
 
     if (load > topLoad) {
