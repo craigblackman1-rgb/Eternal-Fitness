@@ -12,7 +12,8 @@ interface SessionItem {
   id: string;
   session_number: number;
   archetype: string | null;
-  week: number;
+  week: number | null;
+  phase: string | null;
   data: {
     focus_label?: string;
     session_log?: { completed_at?: string | null } | null;
@@ -72,6 +73,22 @@ function isSessionEmpty(session: SessionItem): boolean {
   return studioEmpty && homeEmpty;
 }
 
+const OUTLOOK_BOOKING_PREFIX = "Outlook booking — ";
+
+/** Detects an Outlook-auto-created session with no workout assigned.
+ *  The structural signature: focus_label starts with "Outlook booking — ",
+ *  archetype/week/phase are all null (the auto-create path in
+ *  outlook-bookings.ts), and both versions are content-empty.
+ *  A trainer's deliberately-named build-from-scratch session (which may also
+ *  be content-empty) has a real focus_label and/or non-null archetype/week,
+ *  so it is NOT caught here. */
+function isOutlookPlaceholder(session: SessionItem): boolean {
+  if (!isSessionEmpty(session)) return false;
+  if (session.archetype != null || session.week != null || session.phase != null) return false;
+  const label = session.data?.focus_label ?? "";
+  return label.startsWith(OUTLOOK_BOOKING_PREFIX);
+}
+
 export function SessionList({
   sessions,
   totalSessions,
@@ -87,11 +104,14 @@ export function SessionList({
     <>
       {sessions.map((session) => {
         const archetypeName = archetypeNameMap[session.archetype];
-        const focusLabel = session.data?.focus_label || archetypeName || "—";
+        const isEmpty = isSessionEmpty(session);
+        const isOutlook = isOutlookPlaceholder(session);
+        const focusLabel = isOutlook
+          ? "No workout assigned yet"
+          : (session.data?.focus_label || archetypeName || "—");
         const status = sessionStatus(session);
         const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${session.session_number}`;
         const dayLabel = formatDayLabel(session, totalSessions, chronologicalPositions);
-        const isEmpty = isSessionEmpty(session);
 
         return (
           <SessionRow
