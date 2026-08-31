@@ -696,7 +696,34 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                           </HubDataField>
                         )}
                       </HubDataGrid>
-                      {p.health.injury_history?.length > 0 && (
+                        {p.health.medications?.length > 0 && (
+                          <div>
+                            <span className="text-xs text-muted-foreground block mb-1.5">Medications</span>
+                            <div className="overflow-x-auto rounded-lg border border-[var(--hub-border)]">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                                    <th className="px-3 py-1.5 text-left font-medium">Name</th>
+                                    <th className="px-3 py-1.5 text-left font-medium">Form</th>
+                                    <th className="px-3 py-1.5 text-left font-medium">Frequency</th>
+                                    <th className="px-3 py-1.5 text-left font-medium">Treats</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {p.health.medications.map((med: { id: string; name: string; form: string; frequency: string; treats: string }) => (
+                                    <tr key={med.id} className="border-b border-[var(--hub-border)] last:border-0">
+                                      <td className="px-3 py-1.5 text-foreground font-medium">{med.name || "—"}</td>
+                                      <td className="px-3 py-1.5 text-foreground">{med.form || "—"}</td>
+                                      <td className="px-3 py-1.5 text-foreground">{med.frequency || "—"}</td>
+                                      <td className="px-3 py-1.5 text-foreground">{med.treats || "—"}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                        {p.health.injury_history?.length > 0 && (
                         <div>
                           <span className="text-xs text-muted-foreground block mb-1.5">Injury History</span>
                           <div className="overflow-x-auto rounded-lg border border-[var(--hub-border)]">
