@@ -4,6 +4,7 @@ import type { DBSession, SetLog, DeliveryMode } from "@/types";
 import type { Band } from "@/lib/bands";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { getBestWeightsForClient } from "@/lib/exercise-best-weights";
+import { getLastSessionAndPbData } from "@/lib/last-session-data";
 import { backfillExerciseMedia } from "@/lib/exercise-media";
 import { ensureUids } from "@/lib/exercise-ref";
 import { getPool } from "@/lib/pg-client";
@@ -44,6 +45,7 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
     .order("set_number", { ascending: true });
 
   const bestWeights = block ? await getBestWeightsForClient(block.client_id) : {};
+  const lastSessionAndPb = block ? await getLastSessionAndPbData(block.client_id) : { lastSession: {}, pbDates: {} };
 
   // CR-EF-014: fetch active bands for the colour picker.
   const pool = getPool();
@@ -100,6 +102,8 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
       setLogs={(setLogs ?? []) as SetLog[]}
       deliveryMode={deliveryMode}
       bestWeights={bestWeights}
+      lastSessionData={lastSessionAndPb.lastSession}
+      pbDates={lastSessionAndPb.pbDates}
       bands={bands}
     />
   );

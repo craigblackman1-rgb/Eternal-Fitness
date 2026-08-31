@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { DBSession, SessionLog, SessionVersion, SetLog, Exercise } from "@/types";
 import type { Band } from "@/lib/bands";
+import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
 import { WorkoutLog } from "@/components/workout/WorkoutLog";
@@ -50,6 +51,9 @@ export default function SessionViewPage({
   // Client's best-ever weight per exercise (from personal_records) — prefills a set's
   // weight field when this session has no log for it yet, so weight carries forward.
   const [bestWeights, setBestWeights] = useState<Record<string, number>>({});
+  // CR-EF-010: last session data for prefill + PB metadata for header chips.
+  const [lastSessionData, setLastSessionData] = useState<Record<string, LastSessionPrefill>>({});
+  const [pbDates, setPbDates] = useState<Record<string, PbMetadata>>({});
   // Client record for the header subtitle (name / condition / session duration) —
   // this page previously never fetched the client at all (CR-EF-062).
   const [client, setClient] = useState<ClientHeader | null>(null);
@@ -101,17 +105,23 @@ export default function SessionViewPage({
 
   useEffect(() => {
     async function load() {
-      const [sessionRes, countRes, bestWeightsRes, clientRes] = await Promise.all([
+      const [sessionRes, countRes, bestWeightsRes, clientRes, lastSessionRes] = await Promise.all([
         fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
         fetch(`/api/blocks/${params.blockId}/sessions?count=true`),
         fetch(`/api/clients/${params.id}/best-weights`),
         fetch(`/api/clients/${params.id}`),
+        fetch(`/api/clients/${params.id}/last-session-data`),
       ]);
       if (clientRes.ok) {
         setClient(await clientRes.json());
       }
       if (bestWeightsRes.ok) {
         setBestWeights(await bestWeightsRes.json());
+      }
+      if (lastSessionRes.ok) {
+        const lsData = await lastSessionRes.json();
+        setLastSessionData(lsData.lastSession ?? {});
+        setPbDates(lsData.pbDates ?? {});
       }
       if (sessionRes.ok) {
         const data = await sessionRes.json();
@@ -593,6 +603,8 @@ export default function SessionViewPage({
             sessionLog={currentLog ?? null}
             setLogs={setLogsArray}
             bestWeights={bestWeights}
+            lastSessionData={lastSessionData}
+            pbDates={pbDates}
             onSessionLogChange={handleSessionLogChange}
             bands={bands}
           />
