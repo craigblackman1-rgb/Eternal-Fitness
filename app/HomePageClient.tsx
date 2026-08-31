@@ -27,7 +27,7 @@ export default function HomePageClient() {
         <div className="hero-media">
           <Image
             src="/images/hero-pullup-rack.png"
-            alt="Esther Fair smiling mid-stretch at the power rack in her private Worthing studio"
+            alt="Esther standing inside the power rack in the private Worthing studio, one hand up on the pull-up bar and the other on the upright beside her, smiling at the camera, with the matting around her clear of kit."
             fill
             priority
             sizes="100vw"
@@ -61,6 +61,10 @@ export default function HomePageClient() {
           </div>
         </div>
       </section>
+      <details className="ef-desc">
+        <summary>Describe this image</summary>
+        <p>Esther stands inside the power rack with one hand up on the pull-up bar and the other resting on the upright at shoulder height &mdash; the rack itself doubling as something to hold. Behind her, the exercise balls sit in wall cradles and the slam balls on a tiered rack; the barbell is up on the rack&rsquo;s own hooks. The matting she is standing on is clear.</p>
+      </details>
 
       {/* TICKER */}
       <div className="tstrip">
@@ -82,10 +86,14 @@ export default function HomePageClient() {
       <section id="why" className="sec" style={{ background: "var(--white)" }}>
         <div className="sin">
           <div className="why-g">
-            <div className="wic">
+              <div className="wic">
               <div className="wimg">
-                <Image src="/images/why-coaching-review.jpg" alt="Esther Fair coaching a client through a session, reviewing their programme notes in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "38% 30%" }} />
+                <Image src="/images/why-coaching-review.jpg" alt="Esther laughing with a client in the private Worthing studio, the session&#x2019;s written programme and a pen in her hands, while the client stands at the power rack with a dumbbell up at her shoulder." fill sizes="(max-width: 1000px) 100vw, 40vw" style={{ objectFit: "cover", objectPosition: "38% 30%" }} />
               </div>
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>A one-to-one session at the power rack, seen from a little further back. The client stands with a dumbbell up at her shoulder mid-set. Esther is a couple of paces away holding the printed programme and a pen, laughing with her &mdash; the plan lives in the coach&rsquo;s hands and gets called out rather than read. The trap bar and a barbell hang on their wall hooks behind them.</p>
+              </details>
               <div className="wbadge"><div className="wbn">4</div><div className="wbl">{"Level 4 Qualified"}</div></div>
             </div>
             <div>
@@ -123,17 +131,50 @@ export default function HomePageClient() {
             <div className="step">
               <div className="sn">01</div>
               <div className="sc"><h3>{"Every session adapts to how you feel that day"}</h3><p>{"Structured planning, dynamically tailored to you. It is the perfect balance of consistent progress and expert flexibility. If you are facing fatigue, a bad night, or a stiff shoulder, I notice and adjust without making a thing of it."}</p></div>
-              <div className="si"><Image src="/images/approach-step1-plank-coaching.jpg" alt="Esther adjusting a client's form during a plank in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <figure className="ef-figure">
+              <div className="ef-tech si" style={{ "--fx": "46%", "--fy": "44%" } as React.CSSProperties}>
+                <Image src="/images/approach-step1-plank-coaching.jpg" alt="Esther kneeling beside a client holding a forearm plank on the studio mats, resting a flat hand on his upper back to show him where the line of his body should sit" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} />
+                <div className="ef-veil" />
+                <svg className="ef-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg>
+                <div className="ef-pin"><span className="ef-dot" />Neutral spine</div>
+              </div>
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>A one-to-one session on the studio mats. The client holds a forearm plank. Esther kneels alongside him and rests one flat, open hand on his upper back &mdash; a cue to activate the muscles here. Her other hand stays clear of him. Behind them the room is quiet &mdash; racked resistance bands on one wall, a foam roller, nothing on the floor.</p>
+              </details>
+              </figure>
             </div>
             <div className="step">
               <div className="sn">02</div>
               <div className="sc"><h3>{"Private, one-to-one — no gym floor"}</h3><p>{"No other clients, no performance pressure, and no dress code. Just you and exactly what you need today."}</p></div>
-              <div className="si"><Image src="/images/approach-step2-lunges-together.png" alt="Esther and a client doing lunges together, laughing, in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <figure className="ef-figure">
+              <div className="ef-tech si" style={{ "--fx": "50%", "--fy": "55%" } as React.CSSProperties}>
+                <Image src="/images/approach-step2-lunges-together.png" alt="Esther and a client side by side on the studio mats, both down in a half-kneeling lunge with a hand resting on the front thigh, Esther holding the same position alongside rather than watching from standing." fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} />
+                <div className="ef-veil" />
+                <svg className="ef-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg>
+                <div className="ef-pin"><span className="ef-dot" />Knee tracking</div>
+              </div>
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>Two people on the blue mats, side by side, both in a half-kneeling lunge with the back knee down on the padding and a hand resting on the front thigh. Esther is in the same position as the client rather than standing over her, so the shape can be copied from alongside. Both are laughing. The foam rollers are racked on the wall behind them and the mats are clear.</p>
+              </details>
+              </figure>
             </div>
             <div className="step">
               <div className="sn">03</div>
               <div className="sc"><h3>{"Progress you can feel, not a number on a scale"}</h3><p>{"Climbing stairs with less effort. Sleeping better. Walking further. That is the real-world strength we build together."}</p></div>
-              <div className="si"><Image src="/images/approach-step3-deadlift-clients.jpg" alt="Two clients working through a dumbbell deadlift together in the private Worthing studio" fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} /></div>
+              <figure className="ef-figure">
+              <div className="ef-tech si" style={{ "--fx": "50%", "--fy": "48%" } as React.CSSProperties}>
+                <Image src="/images/approach-step3-deadlift-clients.jpg" alt="Esther and a client hinged forward side by side in the private Worthing studio, the client holding one small dumbbell and Esther running her hands down her own thighs to show the path the hinge takes." fill sizes="(max-width: 1000px) 100vw, 360px" style={{ objectFit: "cover" }} />
+                <div className="ef-veil" />
+                <svg className="ef-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg>
+                <div className="ef-pin"><span className="ef-dot" />Hip hinge</div>
+              </div>
+              <details className="ef-desc">
+                <summary>Describe this image</summary>
+                <p>A one-to-one session on the studio floor. The client hinges forward at the hips holding a single small dumbbell in one hand. Esther stands beside him in the same hinge, hands sliding down her own thighs to show the path the movement takes rather than describing it. Neither is lifting from the floor; a loaded barbell rests on the mat at the edge of the frame.</p>
+              </details>
+              </figure>
             </div>
           </div>
           <aside className="cred-band">
@@ -233,7 +274,8 @@ export default function HomePageClient() {
 
       {/* CTA */}
       <section id="cta">
-        <div className="ctabg"><Image src="/images/studio-1.jpg" alt="Eternal Fitness private studio in Worthing" fill sizes="100vw" style={{ objectFit: "cover" }} /></div>
+        <div className="ctabg"><Image src="/images/studio-1.jpg" alt="Esther standing at the kettlebell shelves in the private Worthing studio with a hand resting on the bells, smiling towards the camera, the mirror, whiteboard and adjustable bench along the wall behind her." fill sizes="100vw" style={{ objectFit: "cover" }} />
+        </div>
         <div className="ctac">
           <div className="stag stag-w" style={{ marginBottom: 16 }}>{"Free Consultation"}</div>
           <h2>{"Your first conversation is free, with absolutely no commitment."}</h2>
@@ -244,6 +286,10 @@ export default function HomePageClient() {
           </div>
         </div>
       </section>
+      <details className="ef-desc">
+        <summary>Describe this image</summary>
+        <p>Esther stands at the kettlebell shelves with a hand resting on the bells along the top row, turned back towards the camera. The bells sit in weight order, the lighter ones marked with coloured bands. Along the wall behind her are the mirror, the whiteboard, the suspension straps and the adjustable bench, each in its own fixed place; the floor between them is clear.</p>
+      </details>
 
       </main>
 

@@ -20,6 +20,7 @@ import {
 } from "@/lib/planAgentPrompt";
 import {
   buildExerciseIndex,
+  copyBackLibraryEquipment,
   validateGeneratedSession,
   type ExerciseIndex,
 } from "@/lib/planValidation";
@@ -331,7 +332,7 @@ async function attemptSession(
 
   let session: Session | undefined;
   let violations = parsed ? validateGeneratedSession(
-    (session = stampSession(parsed, profile, slot, archetypeFocusLabels)),
+    (session = copyBackLibraryEquipment(stampSession(parsed, profile, slot, archetypeFocusLabels), index)),
     index,
     studioEquipmentNames,
     split,
@@ -356,7 +357,7 @@ async function attemptSession(
     if (repaired) {
       try {
         parsed = parseSessionObject(repaired);
-        session = stampSession(parsed, profile, slot, archetypeFocusLabels);
+        session = copyBackLibraryEquipment(stampSession(parsed, profile, slot, archetypeFocusLabels), index);
         violations = validateGeneratedSession(session, index, studioEquipmentNames, split);
       } catch (err) {
         if (!session) parseError = err instanceof Error ? err.message : "invalid JSON";

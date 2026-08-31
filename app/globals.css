@@ -47,6 +47,15 @@
     --color-ink-rgb: 19 19 19;
     --color-border-warm-rgb: 228 221 215;
 
+    /* ===== IMAGE TREATMENT (studio-grade) ===== */
+    --ef-img-grade: saturate(.94) contrast(1.05) brightness(1.02);
+    --ef-img-wash: var(--color-warm);
+    --ef-img-wash-o: .05;
+    --ef-img-hair: color-mix(in srgb, var(--color-ink) 12%, transparent);
+    --ef-img-hair-w: 1px;
+    --ef-plate-o: .92;
+    --ef-vignette: color-mix(in srgb, var(--color-ink) 42%, transparent);
+
     /* ===== OPACITY UTILITY COLORS ===== */
     --color-white-5: rgba(255, 255, 255, 0.05);
     --color-white-9: rgba(255, 255, 255, 0.09);
@@ -177,6 +186,17 @@
     --duration-md: 250ms;
   }
 
+  @media (prefers-contrast: more) {
+    :root {
+      --ef-img-grade: saturate(.9) contrast(1.2) brightness(1.02);
+      --ef-img-hair: color-mix(in srgb, var(--color-ink) 46%, transparent);
+      --ef-img-hair-w: 2px;
+      --ef-plate-o: 1;
+      --ef-vignette: color-mix(in srgb, var(--color-ink) 58%, transparent);
+      --ef-img-wash-o: 0;
+    }
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -250,7 +270,7 @@
     text-decoration: none;
     transition: all 200ms;
   }
-  .ef-btn-primary { background: var(--color-rose); color: #fff; }
+  .ef-btn-primary { background: var(--rose-text); color: #fff; }
   .ef-btn-primary:hover { opacity: 0.88; }
   .ef-btn-dark { background: var(--color-ink); color: #fff; }
   .ef-btn-dark:hover { background: var(--color-rose); }
@@ -878,7 +898,7 @@
   cursor: pointer;
   text-decoration: none;
 }
-.btn--primary { background: var(--color-rose); color: #fff; border-color: var(--color-rose); }
+.btn--primary { background: var(--rose-text); color: #fff; border-color: var(--rose-text); }
 .btn--primary:hover { background: color-mix(in oklch, var(--color-rose) 46%, var(--color-ink)); border-color: color-mix(in oklch, var(--color-rose) 46%, var(--color-ink)); }
 .btn--secondary { background: #fff; color: var(--color-ink); border-color: var(--color-ink); }
 .btn--secondary:hover { background: var(--color-ink); color: #fff; }
@@ -940,7 +960,7 @@
   top: 0;
   z-index: 9999;
   padding: 12px 24px;
-  background: var(--color-rose);
+  background: var(--rose-text);
   color: #fff;
   font-family: var(--font-body);
   font-weight: 600;

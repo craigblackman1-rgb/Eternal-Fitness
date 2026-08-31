@@ -5,6 +5,7 @@ import { sessionDurationMinutes } from "@/lib/scheduling";
 import { deriveSessionStatus } from "@/lib/session-status";
 import type { Session, TimeTier } from "@/types";
 import type { ScheduledEntry } from "./ScheduleCalendar";
+import type { UnconfirmedBooking } from "./ScheduleCalendar";
 import { ScheduleShell } from "./ScheduleShell";
 
 /**
@@ -84,9 +85,26 @@ export default async function SchedulePage() {
           scheduled_at: s.scheduled_at,
           session_log: s.data?.session_log,
         }),
+        completedAt: s.completed_at ?? null,
         cancelReason: s.cancel_reason ?? null,
       };
     });
+
+  // EF-101 — unconfirmed Outlook bookings for the day view.
+  const { data: outlookRows } = await supabase
+    .from("outlook_booking_events")
+    .select("id, subject, parsed_name, start_at, end_at, client_id")
+    .eq("status", "open")
+    .order("start_at", { ascending: true });
+
+  const unconfirmedBookings: Array<{
+    id: string;
+    subject: string | null;
+    parsed_name: string | null;
+    start_at: string;
+    end_at: string;
+    client_id: string | null;
+  }> = outlookRows ?? [];
 
   return (
     <div className="space-y-6">
@@ -107,7 +125,7 @@ export default async function SchedulePage() {
         title="Studio schedule"
         subtitle="Every booked session across the studio, colour-coded by its lifecycle state — from planned through completed."
       />
-      <ScheduleShell entries={entries} />
+      <ScheduleShell entries={entries} unconfirmedBookings={unconfirmedBookings} />
     </div>
   );
 }

@@ -31,7 +31,8 @@ import { getIntegrationStatus, graphConfigured, listCalendarView, GraphReconnect
 const WINDOW_PAST_MS = 24 * 60 * 60 * 1000; // matches calendar-sync.ts's sync window
 const WINDOW_FUTURE_MS = 60 * 24 * 60 * 60 * 1000;
 
-const SUBJECT_NAME_RE = /^(?:Personal Training|Initial consult)\s*-\s*(.+)$/i;
+// Mirror: scripts/populate-outlook-bookings-once.mjs
+const SUBJECT_NAME_RE = /^(?:Online\s+)?(?:Personal Training|Initial consult)\s*-\s*(.+)$/i;
 
 export function parseClientNameFromSubject(subject: string): string | null {
   const m = subject.trim().match(SUBJECT_NAME_RE);

@@ -195,10 +195,12 @@ export function SessionEditor({
         if (cancelled) return;
         const imageByName = new Map<string, string>();
         const videoByName = new Map<string, string>();
+        const equipmentByName = new Map<string, string[]>();
         for (const entry of library) {
           const key = entry.name.toLowerCase();
           if (entry.image_url && !imageByName.has(key)) imageByName.set(key, entry.image_url);
           if (entry.video_url && !videoByName.has(key)) videoByName.set(key, entry.video_url);
+          if (entry.equipment && entry.equipment.length > 0 && !equipmentByName.has(key)) equipmentByName.set(key, entry.equipment);
         }
         setSections((prev) => {
           let changed = false;
@@ -209,10 +211,14 @@ export function SessionEditor({
               const existing = ex.media ?? {};
               const image_url = existing.image_url || imageByName.get(name);
               const video_url = existing.video_url || videoByName.get(name);
-              if (image_url === existing.image_url && video_url === existing.video_url) return ex;
+              const equipment = (ex.equipment && ex.equipment.length > 0)
+                ? ex.equipment
+                : (equipmentByName.get(name) ?? ex.equipment ?? []);
+              if (image_url === existing.image_url && video_url === existing.video_url && equipment === ex.equipment) return ex;
               changed = true;
               return {
                 ...ex,
+                ...(equipment !== ex.equipment ? { equipment } : {}),
                 media: {
                   ...existing,
                   ...(image_url ? { image_url } : {}),

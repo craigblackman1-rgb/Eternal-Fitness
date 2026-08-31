@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HubCard, HubCardHeader, HubAlert, EmptyState, OutlookBookingsBadge } from "@/components/hub";
-import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
+import { SessionStatusPill, sessionStatusColors } from "@/components/hub/SessionStatusPill";
 import type { SessionStatus } from "@/types";
 import {
   IconCalendar,
@@ -28,6 +28,7 @@ import {
   formatDayHeading,
   formatTimeRange,
   findConflictIds,
+  londonDayKey,
 } from "@/lib/schedule-dates";
 
 export interface ScheduledEntry {
@@ -47,9 +48,21 @@ export interface ScheduledEntry {
   durationMinutes: number;
   /** Lifecycle state (CR-EF-037) — the 5-state pill this entry renders. */
   status: SessionStatus;
+  /** When the session was actually completed — may differ from scheduledAt. */
+  completedAt: string | null;
   /** Free-text cancellation reason — shown on the day view when a cancelled
    *  entry is revealed via the "Show cancelled" toggle. */
   cancelReason: string | null;
+}
+
+/** Outlook booking that hasn't been triaged into a session yet. */
+export interface UnconfirmedBooking {
+  id: string;
+  subject: string | null;
+  parsed_name: string | null;
+  start_at: string;
+  end_at: string;
+  client_id: string | null;
 }
 
 async function patchSession(id: string, body: Record<string, unknown>): Promise<boolean> {
@@ -64,10 +77,13 @@ async function patchSession(id: string, body: Record<string, unknown>): Promise<
 export function ScheduleCalendar({
   entries,
   initialDay,
+  unconfirmedBookings,
 }: {
   entries: ScheduledEntry[];
   /** Lands on a specific date instead of today — used when jumping in from the month view. */
   initialDay?: string;
+  /** Outlook bookings not yet triaged into sessions. */
+  unconfirmedBookings?: UnconfirmedBooking[];
 }) {
   const router = useRouter();
   const [day, setDay] = useState<string>(initialDay ?? todayLocalISODate());
@@ -279,7 +295,26 @@ export function ScheduleCalendar({
                               {entry.clientName}
                             </span>
                           )}
-                          <SessionStatusPill status={entry.status} />
+                          {entry.status === "completed" &&
+                          entry.completedAt &&
+                          londonDayKey(entry.completedAt) !== londonDayKey(entry.scheduledAt) ? (
+                            <span
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                              style={{
+                                color: sessionStatusColors("completed").color,
+                                backgroundColor: sessionStatusColors("completed").background,
+                                borderColor: sessionStatusColors("completed").border,
+                              }}
+                              title="Completed on a different day than booked"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" width={11} height={11} className="shrink-0" aria-hidden="true">
+                                <path d="M20 6 9 17l-5-5" />
+                              </svg>
+                              Completed {new Date(entry.completedAt).toLocaleDateString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short" })}
+                            </span>
+                          ) : (
+                            <SessionStatusPill status={entry.status} />
+                          )}
                           {conflicted && (
                             <span className="inline-flex items-center gap-1 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
                               <IconTriangleAlert className="h-3 w-3" />
@@ -391,6 +426,43 @@ export function ScheduleCalendar({
             })}
           </ul>
         )}
+        {/* EF-101 — unconfirmed Outlook bookings for this day */}
+        {unconfirmedBookings && (() => {
+          const dayBookings = unconfirmedBookings
+            .filter((b) => isoToLocalDate(b.start_at) === day)
+            .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
+          if (dayBookings.length === 0) return null;
+          return (
+            <ul className="divide-y divide-[var(--hub-border)] border-t border-dashed border-[var(--hub-border)]">
+              {dayBookings.map((booking) => {
+                const startFmt = new Date(booking.start_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+                const endFmt = new Date(booking.end_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+                const label = booking.parsed_name ?? booking.subject ?? "Unknown";
+                return (
+                  <li key={booking.id} className="px-5 py-3">
+                    <Link
+                      href="/hub/schedule/outlook"
+                      className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-[var(--hub-field-border)] bg-[var(--hub-hover)] px-4 py-3 transition-colors hover:border-rose/40"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
+                          <IconClock className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm font-semibold text-foreground">{startFmt}</span>
+                          <span className="text-xs text-muted-foreground">– {endFmt}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+                          <p className="text-xs text-muted-foreground">Unconfirmed booking</p>
+                        </div>
+                      </div>
+                      <IconExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        })()}
       </HubCard>
     </div>
   );

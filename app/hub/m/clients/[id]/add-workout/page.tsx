@@ -262,10 +262,10 @@ export default function AddWorkoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ week, focus_label: name, scheduled_at: new Date(`${targetDay}T09:00:00`).toISOString() }),
       });
-      if (!res.ok) throw new Error("Blank session failed");
-      const created = (await res.json()) as { id: string };
+      const body = await res.json().catch(() => null) as { id?: string; error?: string } | null;
+      if (!res.ok) throw new Error(body?.error || "Blank session failed");
       toast.success(`Created "${name}"`);
-      router.push(`/hub/m/train/${created.id}/edit`);
+      router.push(`/hub/m/train/${body!.id}/edit`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create workout");
       setBusy(false);
@@ -279,18 +279,18 @@ export default function AddWorkoutPage() {
       let createdId: string | null = null;
       if (preview.source === "block" && preview.sourceId) {
         const res = await fetch(`/api/sessions/${preview.sourceId}/clone`, { method: "POST" });
-        if (!res.ok) throw new Error("Clone failed");
-        const created = (await res.json()) as { id: string };
-        createdId = created.id;
+        const body = await res.json().catch(() => null) as { id?: string; error?: string } | null;
+        if (!res.ok) throw new Error(body?.error || "Clone failed");
+        createdId = body!.id;
       } else if (preview.source === "template" && preview.sourceId) {
         const res = await fetch(`/api/blocks/${block.id}/sessions`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ template_id: preview.sourceId, week }),
         });
-        if (!res.ok) throw new Error("Template add failed");
-        const created = (await res.json()) as { id: string };
-        createdId = created.id;
+        const body = await res.json().catch(() => null) as { id?: string; error?: string } | null;
+        if (!res.ok) throw new Error(body?.error || "Template add failed");
+        createdId = body!.id;
       }
 
       // Place on the chosen day (or now if start now)
@@ -302,7 +302,10 @@ export default function AddWorkoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scheduled_at: scheduledAt }),
       });
-      if (!patch.ok) throw new Error("Scheduling failed");
+      if (!patch.ok) {
+        const msg = await patch.json().then((b) => b?.error).catch(() => null);
+        throw new Error(msg || "Scheduling failed");
+      }
 
       toast.success(startNow ? `Started "${preview.name}"` : `Added "${preview.name}" to ${fmtDay(targetDay)}`);
 

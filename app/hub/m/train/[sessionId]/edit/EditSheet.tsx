@@ -513,7 +513,8 @@ export function EditSheet({
           body: JSON.stringify({ data: updatedData }),
         });
         if (!res.ok) {
-          toast.error("Couldn't save changes — check your connection and try again.");
+          const msg = await res.json().then((b) => b?.error).catch(() => null);
+          toast.error(msg || "Couldn't save changes");
           return;
         }
       } catch {

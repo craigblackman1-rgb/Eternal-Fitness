@@ -77,11 +77,12 @@ export default function FallsPreventionClient() {
 
         <CTABand
           image="/images/studio-1.jpg"
-          imageAlt="Eternal Fitness private studio in Worthing"
+          imageAlt="Esther standing at the kettlebell shelves in the private Worthing studio with a hand resting on the bells, smiling towards the camera, the mirror, whiteboard and adjustable bench along the wall behind her."
           heading="Not sure if this is right for you?"
           body="The first conversation is free, with no commitment — and I would always rather tell you honestly whether I'm the right person to help."
           primaryCta={{ label: "Book a Free Consultation", href: BOOKINGS_URL }}
           secondaryCta={{ label: "Call: 07517 658 128", href: "tel:07517658128", variant: "ghost-white" }}
+          imageDescription={"Esther stands at the kettlebell shelves with a hand resting on the bells along the top row, turned back towards the camera. The bells sit in weight order, the lighter ones marked with coloured bands. Along the wall behind her are the mirror, the whiteboard, the suspension straps and the adjustable bench, each in its own fixed place; the floor between them is clear."}
         />
       </main>
       <Footer />
