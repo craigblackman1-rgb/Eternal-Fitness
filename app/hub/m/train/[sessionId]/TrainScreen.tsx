@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/types";
+import type { Band } from "@/lib/bands";
 import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
@@ -137,6 +138,8 @@ export function TrainScreen({
   /** Client's best-ever weight_kg per exercise name — prefills a set's weight
    *  field when this session has no log for it yet. */
   bestWeights?: Record<string, number>;
+  /** CR-EF-014: active bands for the colour picker. */
+  bands?: Band[];
 }) {
   const version = deliveryMode === "home_training" ? "home" : "studio";
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };

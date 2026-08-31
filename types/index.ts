@@ -249,6 +249,10 @@ export interface Exercise {
   /** Only set when Esther manually corrects the unit for this exercise.
    *  Absent → derived from equipment at read time (band → lb, else kg). */
   weight_unit?: 'kg' | 'lb';
+  /** CR-EF-014 — for banded exercises, the prescribed band colour (e.g. "Green").
+   *  Absent on non-banded exercises. The band picker replaces the kg/lb field
+   *  entirely when this is set or when the exercise has band equipment. */
+  band_colour?: string;
 }
 
 export interface SessionVersion {
@@ -337,6 +341,8 @@ export interface SetLog {
    *  best and are excluded from PB/trend history. Absent (undefined) on
    *  Trainerize-imported rows — treated as false. */
   is_warmup?: boolean;
+  /** CR-EF-014 — band colour logged for this set (e.g. "Green"). NULL for non-banded. */
+  band_colour?: string | null;
   logged_by: "trainer" | "client";
   logged_at: string;
   notes: string | null;

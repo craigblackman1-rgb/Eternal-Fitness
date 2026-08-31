@@ -70,6 +70,7 @@ async function insertSetLogIdempotent(
     duration_seconds: number | null;
     completed: boolean;
     is_warmup: boolean;
+    band_colour: string | null;
     logged_at: string;
     notes: string | null;
   },
@@ -79,8 +80,8 @@ async function insertSetLogIdempotent(
   const inserted = await pool.query(
     `INSERT INTO set_logs
        (session_id, exercise_ref, set_number, reps, weight_kg, duration_seconds,
-        completed, is_warmup, logged_by, logged_at, notes, client_op_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'trainer', $9, $10, $11)
+        completed, is_warmup, band_colour, logged_by, logged_at, notes, client_op_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'trainer', $10, $11, $12)
      ON CONFLICT (client_op_id) WHERE client_op_id IS NOT NULL DO NOTHING
      RETURNING *`,
     [
@@ -92,6 +93,7 @@ async function insertSetLogIdempotent(
       row.duration_seconds,
       row.completed,
       row.is_warmup,
+      row.band_colour,
       row.logged_at,
       row.notes,
       clientOpId,
@@ -141,6 +143,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     client_op_id,
     logged_at,
     is_warmup,
+    band_colour,
   } = await request.json() as {
     exercise_ref: string;
     set_number: number;
@@ -152,6 +155,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     client_op_id?: string | null;
     logged_at?: string | null;
     is_warmup?: boolean | null;
+    band_colour?: string | null;
   };
 
   if (!exercise_ref?.trim()) {
@@ -175,6 +179,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     duration_seconds: duration_seconds ?? null,
     completed: completed ?? true,
     is_warmup: is_warmup ?? false,
+    band_colour: band_colour ?? null,
     logged_by: "trainer",
     logged_at: loggedAt.value,
     notes: notes ?? null,
@@ -216,11 +221,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     client_op_id?: string | null;
     logged_at?: string | null;
     is_warmup?: boolean | null;
+    band_colour?: string | null;
   };
 
   if (!body.id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-  const allowed = ["reps", "weight_kg", "duration_seconds", "completed", "notes", "is_warmup"] as const;
+  const allowed = ["reps", "weight_kg", "duration_seconds", "completed", "notes", "is_warmup", "band_colour"] as const;
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) update[key] = body[key];

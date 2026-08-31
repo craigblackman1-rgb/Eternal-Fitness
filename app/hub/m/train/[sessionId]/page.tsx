@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import type { DBSession, SetLog, DeliveryMode } from "@/types";
+import type { Band } from "@/lib/bands";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { getBestWeightsForClient } from "@/lib/exercise-best-weights";
 import { backfillExerciseMedia } from "@/lib/exercise-media";
 import { ensureUids } from "@/lib/exercise-ref";
+import { getPool } from "@/lib/pg-client";
 import { TrainScreen } from "./TrainScreen";
 
 export default async function TrainSessionPage({ params }: { params: { sessionId: string } }) {
@@ -42,6 +44,13 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
     .order("set_number", { ascending: true });
 
   const bestWeights = block ? await getBestWeightsForClient(block.client_id) : {};
+
+  // CR-EF-014: fetch active bands for the colour picker.
+  const pool = getPool();
+  const bandsRes = await pool.query(
+    `SELECT * FROM bands WHERE active = true ORDER BY sort_order ASC`,
+  );
+  const bands: Band[] = bandsRes.rows;
 
   const blockNumber = block?.block_number ?? null;
   const sessionRow = session as DBSession;
@@ -91,6 +100,7 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
       setLogs={(setLogs ?? []) as SetLog[]}
       deliveryMode={deliveryMode}
       bestWeights={bestWeights}
+      bands={bands}
     />
   );
 }

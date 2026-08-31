@@ -13,8 +13,10 @@ import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { DBSession, SessionLog, SessionVersion, SetLog, Exercise } from "@/types";
+import type { Band } from "@/lib/bands";
 import { SessionEditor } from "./SessionEditor";
 import { SessionWorkoutLog } from "./SessionWorkoutLog";
+import { WorkoutLog } from "@/components/workout/WorkoutLog";
 import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";
 import {
   isoToLocalDate,
@@ -70,6 +72,8 @@ export default function SessionViewPage({
   // for prescriptions that arrive with empty equipment arrays (e.g. from
   // stripEquipment on home-version creation, or AI plan generation).
   const [equipmentByName, setEquipmentByName] = useState<Map<string, string[]>>(new Map());
+  // CR-EF-014: active bands for the colour picker.
+  const [bands, setBands] = useState<Band[]>([]);
 
   useEffect(() => {
     fetch("/api/exercises")
@@ -82,6 +86,13 @@ export default function SessionViewPage({
           if (entry.equipment && entry.equipment.length > 0 && !map.has(key)) map.set(key, entry.equipment);
         }
         setEquipmentByName(map);
+      })
+      .catch(() => {});
+    // CR-EF-014: fetch active bands for the colour picker.
+    fetch("/api/bands")
+      .then(async (res) => {
+        if (!res.ok) return;
+        setBands(await res.json());
       })
       .catch(() => {});
   }, []);
@@ -574,7 +585,7 @@ export default function SessionViewPage({
             onCancel={() => setMode("log")}
           />
         ) : (
-          <SessionWorkoutLog
+          <WorkoutLog
             sessionId={session.id}
             sessionNumber={sessionNum}
             version={activeTab}
@@ -583,6 +594,7 @@ export default function SessionViewPage({
             setLogs={setLogsArray}
             bestWeights={bestWeights}
             onSessionLogChange={handleSessionLogChange}
+            bands={bands}
           />
         )}
       </div>
