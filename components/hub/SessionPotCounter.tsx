@@ -19,8 +19,7 @@ function formatDate(iso: string): string {
 function daysUntil(iso: string): number {
   const now = new Date();
   const target = new Date(iso);
-  const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.max(0, diff);
+  return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -31,6 +30,9 @@ function daysUntil(iso: string): number {
 export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpiry }: SessionPotCounterProps) {
   const { completed, chargedCancellations, freeCancellations, unreviewedCancellations, used, purchased, remaining, unreviewed } = pot;
   const total = purchased || 1; // avoid division by zero
+
+  const days = blockExpiryDate ? daysUntil(blockExpiryDate) : null;
+  const expiryStatus: "past" | "today" | "future" | null = days === null ? null : days < 0 ? "past" : days === 0 ? "today" : "future";
 
   const segments = [
     { label: "Completed", count: completed, color: "#087E8B" },
@@ -49,7 +51,9 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
             {remaining}
           </span>
           <span className="text-[11.5px] font-bold text-muted-foreground leading-tight max-w-[74px]">
-            sessions remaining
+            {expiryStatus === "past"
+              ? `${remaining} session${remaining === 1 ? "" : "s"} unused at expiry`
+              : "sessions remaining"}
           </span>
         </div>
 
@@ -114,7 +118,19 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
               Expires {formatDate(blockExpiryDate)}
             </div>
             <div className="text-[11.5px] text-muted-foreground">
-              {daysUntil(blockExpiryDate)} days left
+              {expiryStatus === "past" && (
+                <>
+                  Expired {Math.abs(days!)} day{Math.abs(days!) === 1 ? "" : "s"} ago
+                  {" · "}
+                  Your sessions are still yours — booking is paused, not closed
+                </>
+              )}
+              {expiryStatus === "today" && (
+                <>Expires today</>
+              )}
+              {expiryStatus === "future" && (
+                <>{days} day{days === 1 ? "" : "s"} left</>
+              )}
               {extended && (
                 <span className="ml-1.5 inline-flex items-center rounded-full bg-amber/10 text-[var(--color-amber-text)] border border-amber/20 px-1.5 py-0 text-[10px] font-bold">
                   Extended
