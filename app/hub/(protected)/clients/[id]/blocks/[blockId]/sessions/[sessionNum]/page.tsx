@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { IconChevronLeft, IconChevronRight, IconCheckCircle, IconActivity, IconFileText, IconEdit3, IconCopy, IconClock, IconCalendar, IconPlus } from "@/components/icons";
@@ -34,6 +34,7 @@ import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 type ClientHeader = {
   id?: string | null;
   name?: string | null;
+  delivery_mode?: string | null;
   profile?: { health?: { conditions?: string[] }; notes?: { client_intro?: string } } | null;
   session_duration?: number | null;
 };
@@ -77,6 +78,9 @@ export default function SessionViewPage({
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [scheduling, setScheduling] = useState(false);
+  // Track whether the trainer has manually clicked the Studio/Home tab so we
+  // don't override their choice once client data arrives.
+  const tabManuallyClicked = useRef(false);
   // Equipment backfill: fetch the exercise library once and derive equipment
   // for prescriptions that arrive with empty equipment arrays (e.g. from
   // stripEquipment on home-version creation, or AI plan generation).
@@ -163,6 +167,14 @@ export default function SessionViewPage({
     }
     setModeInitDone(true);
   }, [searchParams, modeInitDone, session]);
+
+  // CR-EF-117: default the Studio/Home tab to match the client's delivery_mode
+  // when client data first arrives — but only if the trainer hasn't already
+  // clicked a tab manually.
+  useEffect(() => {
+    if (!client || tabManuallyClicked.current) return;
+    setActiveTab(client.delivery_mode === "home_training" ? "home" : "studio");
+  }, [client]);
 
   // Browser tab title mirrors the header name (CR-EF-034) — "Workout A", not
   // "Session 3".
@@ -586,7 +598,7 @@ export default function SessionViewPage({
                   key={v}
                   type="button"
                   disabled={disabled}
-                  onClick={() => setActiveTab(v)}
+                  onClick={() => { tabManuallyClicked.current = true; setActiveTab(v); }}
                   className={`flex min-h-[30px] flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-center text-sm font-semibold transition-colors ${
                     disabled ? "opacity-40 cursor-not-allowed" : ""
                   } ${
