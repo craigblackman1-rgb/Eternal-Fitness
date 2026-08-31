@@ -35,6 +35,9 @@ interface SessionListProps {
   blockId: string;
   archetypeTint: Record<string, string>;
   archetypeNameMap?: Record<string, string | undefined>;
+  /** Chronological positions keyed by session id — derived from scheduled_at,
+   *  NOT from session_number. */
+  chronologicalPositions: Map<string, { position: number; total: number }>;
 }
 
 function sessionStatus(s: SessionItem): SessionStatus {
@@ -46,13 +49,19 @@ function sessionStatus(s: SessionItem): SessionStatus {
   });
 }
 
-function formatDayLabel(session: SessionItem, totalSessions: number): string {
+function formatDayLabel(
+  session: SessionItem,
+  totalSessions: number,
+  chronologicalPositions: Map<string, { position: number; total: number }>,
+): string {
   if (session.scheduled_at) {
     const d = new Date(session.scheduled_at);
     const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
     return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
   }
-  return `Session ${session.session_number} of ${totalSessions} · not yet booked`;
+  const pos = chronologicalPositions.get(session.id);
+  const posLabel = pos ? `${pos.position} of ${pos.total}` : `${session.session_number} of ${totalSessions}`;
+  return `Session ${posLabel} · not yet booked`;
 }
 
 function isSessionEmpty(session: SessionItem): boolean {
@@ -70,6 +79,7 @@ export function SessionList({
   blockId,
   archetypeTint,
   archetypeNameMap = DEFAULT_ARCHETYPE_FOCUS_LABELS,
+  chronologicalPositions,
 }: SessionListProps) {
   const [assignSessionId, setAssignSessionId] = useState<string | null>(null);
 
@@ -80,7 +90,7 @@ export function SessionList({
         const focusLabel = session.data?.focus_label || archetypeName || "—";
         const status = sessionStatus(session);
         const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${session.session_number}`;
-        const dayLabel = formatDayLabel(session, totalSessions);
+        const dayLabel = formatDayLabel(session, totalSessions, chronologicalPositions);
         const isEmpty = isSessionEmpty(session);
 
         return (
@@ -92,8 +102,7 @@ export function SessionList({
             focusLabel={focusLabel}
             status={status}
             dayLabel={dayLabel}
-            sessionNumber={session.session_number}
-            totalSessions={totalSessions}
+            chronologicalPosition={chronologicalPositions.get(session.id) ?? null}
             sessionUrl={sessionUrl}
             scheduledAt={session.scheduled_at}
             cancelReason={session.cancel_reason}

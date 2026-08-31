@@ -20,8 +20,8 @@ interface SessionRowProps {
   focusLabel: string;
   status: SessionStatus;
   dayLabel: string;
-  sessionNumber: number;
-  totalSessions: number;
+  /** Chronological position derived from scheduled_at — NOT session_number. */
+  chronologicalPosition: { position: number; total: number } | null;
   sessionUrl: string;
   scheduledAt: string | null;
   cancelReason: string | null;
@@ -44,8 +44,7 @@ export function SessionRow({
   focusLabel,
   status,
   dayLabel,
-  sessionNumber,
-  totalSessions,
+  chronologicalPosition,
   sessionUrl,
   scheduledAt,
   cancelReason,
@@ -106,9 +105,9 @@ export function SessionRow({
           <span className={`text-sm font-semibold truncate ${settled ? "text-muted-foreground" : "text-foreground"}`}>
             {focusLabel}
           </span>
-          {scheduledAt && (
+          {scheduledAt && chronologicalPosition && (
             <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
-              Session {sessionNumber} of {totalSessions}
+              Session {chronologicalPosition.position} of {chronologicalPosition.total}
             </span>
           )}
         </div>

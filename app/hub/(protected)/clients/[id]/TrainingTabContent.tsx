@@ -19,6 +19,7 @@ import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
 import type { SetLog } from "@/types";
 import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { isoToLocalTime, localPartsToISO, todayLocalISODate } from "@/lib/schedule-dates";
 import {
   IconFileText,
@@ -301,6 +302,18 @@ export function TrainingTabContent({
   exerciseHistory,
   trainerizeHistory,
 }: Props) {
+  // Chronological positions per block — "Session N" labels derived from
+  // scheduled_at, not from session_number.
+  const chronoByBlock = useMemo(() => {
+    const map = new Map<string, Map<string, { position: number; total: number }>>();
+    for (const block of blocks) {
+      const blockSessions = sessions.filter((s) => s.block_id === block.id);
+      map.set(block.id, deriveChronologicalPositions(
+        blockSessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at })),
+      ));
+    }
+    return map;
+  }, [blocks, sessions]);
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -559,7 +572,13 @@ export function TrainingTabContent({
                             <SessionDateCell session={session} />
                           </td>
                           <td className="py-2.5 px-5 font-semibold text-foreground">
-                            {blockNum != null ? `Block ${blockNum} \u00b7 Session ${session.session_number}` : `Session ${session.session_number}`}
+                            {(() => {
+                              const blockChrono = chronoByBlock.get(session.block_id);
+                              const pos = blockChrono?.get(session.id);
+                              return blockNum != null
+                                ? `Block ${blockNum} \u00b7 Session ${pos?.position ?? session.session_number}`
+                                : `Session ${pos?.position ?? session.session_number}`;
+                            })()}
                           </td>
                           <td className="py-2.5 px-5">
                             <SessionStatusPill status={status} />
