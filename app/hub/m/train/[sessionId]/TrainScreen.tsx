@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/types";
 import type { Band } from "@/lib/bands";
+import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
@@ -30,6 +31,7 @@ interface SetState {
   reps: string;
   weight: string;
   duration: string;
+  bandColour?: string;
   savedId?: string;
   isNewPb?: boolean;
   isWarmup: boolean;
@@ -38,6 +40,10 @@ interface SetState {
   /** Idempotency key for the queued write — reused across re-taps so a toggle
    *  overwrites the queued entry rather than stacking a second one. */
   clientOpId?: string;
+  /** CR-EF-010 — original prefilled values from last session (for undo). */
+  prefillWeight?: string;
+  prefillDuration?: string;
+  prefillBandColour?: string;
 }
 
 /** Three-way outcome of a set-log save: saved to server, parked for later, or a
@@ -47,12 +53,32 @@ type SaveSetLogResult =
   | { kind: "queued"; clientOpId: string }
   | { kind: "failed"; message?: string | null };
 
+interface PbInfo {
+  weight_kg: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  achieved_at: string;
+}
+
+interface LastSessionInfo {
+  weight_kg: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  band_colour: string | null;
+  session_date: string;
+  session_number: number | null;
+}
+
 interface ExState {
   uid: string;
   sets: SetState[];
   note: string;
   noteOpen: boolean;
   displayUnit: "kg" | "lb";
+  /** CR-EF-010 — PB info for the exercise header chip. */
+  pbInfo?: PbInfo;
+  /** CR-EF-010 — last session data for the "Last X" chip and prefill. */
+  lastSession?: LastSessionInfo;
 }
 
 interface RestTimer {
@@ -120,6 +146,9 @@ export function TrainScreen({
   setLogs,
   deliveryMode,
   bestWeights,
+  lastSessionData,
+  pbDates,
+  bands,
 }: {
   sessionId: string;
   sessionNumber: number;
@@ -138,6 +167,10 @@ export function TrainScreen({
   /** Client's best-ever weight_kg per exercise name — prefills a set's weight
    *  field when this session has no log for it yet. */
   bestWeights?: Record<string, number>;
+  /** CR-EF-010 — last session's best set per exercise (for prefill). */
+  lastSessionData?: Record<string, LastSessionPrefill>;
+  /** CR-EF-010 — PB metadata per exercise (for header chip). */
+  pbDates?: Record<string, PbMetadata>;
   /** CR-EF-014: active bands for the colour picker. */
   bands?: Band[];
 }) {
@@ -166,20 +199,41 @@ export function TrainScreen({
         const totalSets = Math.max(1, ex.sets || 1);
         const warmupCount = ex.warmup_sets ?? 0;
         const sets: SetState[] = [];
-        const carriedWeight = bestWeights?.[ex.exercise_name];
+        const isBand = isBandEquipment(ex.equipment ?? []);
+        const timeBased = isTimeBased(ex.reps, ex.log_type);
         const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
+        const last = lastSessionData?.[ex.exercise_name];
+
+        // CR-EF-010: prefill from last session's heaviest working set
+        const prefillWeight = !isBand && !timeBased && last?.weight_kg != null
+          ? displayWeight(last.weight_kg, unit)
+          : undefined;
+        const prefillDuration = timeBased && last?.duration_seconds != null
+          ? String(last.duration_seconds)
+          : undefined;
+        const prefillBandColour = isBand && last?.band_colour
+          ? last.band_colour
+          : undefined;
+
         for (let s = 1; s <= totalSets; s++) {
           const log = setLogsMap[`${ref}::${s}`];
+          const hasLog = !!log;
           sets.push({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
               ? displayWeight(log.weight_kg, unit)
-              : carriedWeight != null ? displayWeight(carriedWeight, unit) : "",
-            duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
+              : prefillWeight ?? "",
+            duration: log?.duration_seconds != null
+              ? String(log.duration_seconds)
+              : prefillDuration ?? "",
+            bandColour: log?.band_colour ?? prefillBandColour ?? "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
             isWarmup: s <= warmupCount,
+            prefillWeight: !hasLog ? prefillWeight : undefined,
+            prefillDuration: !hasLog ? prefillDuration : undefined,
+            prefillBandColour: !hasLog ? prefillBandColour : undefined,
           });
         }
         if (savedNotesRef.current[uid] === undefined) {
@@ -191,11 +245,13 @@ export function TrainScreen({
           note: savedNotesRef.current[uid],
           noteOpen: false,
           displayUnit: ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []),
+          pbInfo: pbDates?.[ex.exercise_name],
+          lastSession: last,
         };
       });
       return map;
     },
-    [version, setLogsMap, data, bestWeights],
+    [version, setLogsMap, data, lastSessionData, pbDates],
   );
 
   const [exStates, setExStates] = useState<Record<string, ExState>>(() => {

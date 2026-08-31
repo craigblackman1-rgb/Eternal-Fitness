@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise } from "@/types";
 import type { Band } from "@/lib/bands";
+import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { computeGroups } from "@/lib/exercise-groups";
 import {
   isTimeBased,
@@ -66,6 +67,26 @@ interface SetState {
   isWarmup: boolean;
   pendingSync?: boolean;
   clientOpId?: string;
+  /** CR-EF-010 — original prefilled values from last session (for undo). */
+  prefillWeight?: string;
+  prefillDuration?: string;
+  prefillBandColour?: string;
+}
+
+interface PbInfo {
+  weight_kg: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  achieved_at: string;
+}
+
+interface LastSessionInfo {
+  weight_kg: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  band_colour: string | null;
+  session_date: string;
+  session_number: number | null;
 }
 
 interface ExState {
@@ -75,6 +96,10 @@ interface ExState {
   note: string;
   noteOpen: boolean;
   displayUnit: "kg" | "lb";
+  /** CR-EF-010 — PB info for the exercise header chip. */
+  pbInfo?: PbInfo;
+  /** CR-EF-010 — last session data for the "Last X" chip and prefill. */
+  lastSession?: LastSessionInfo;
 }
 
 interface RestTimer {
@@ -120,6 +145,8 @@ const ICO = {
   video: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 8.5l6 3.5-6 3.5z" /><rect x="2.5" y="4" width="19" height="16" rx="3" /></svg>,
   img: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.6" /><path d="M21 16l-5-5-6 6" /></svg>,
   plus: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>,
+  starFilled: <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.4l6.5-.9z"/></svg>,
+  history: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>,
 };
 
 // ── Band component (CR-EF-014) ───────────────────────────────────
@@ -245,6 +272,8 @@ export function WorkoutLog({
   sessionLog,
   setLogs,
   bestWeights,
+  lastSessionData,
+  pbDates,
   onSessionLogChange,
   bands,
 }: {
@@ -255,6 +284,10 @@ export function WorkoutLog({
   sessionLog: SessionLog | null;
   setLogs: SetLog[];
   bestWeights?: Record<string, number>;
+  /** CR-EF-010 — last session's best set per exercise (for prefill). */
+  lastSessionData?: Record<string, LastSessionPrefill>;
+  /** CR-EF-010 — PB metadata per exercise (for header chip). */
+  pbDates?: Record<string, PbMetadata>;
   onSessionLogChange: (log: SessionLog) => void;
   bands: Band[];
 }) {
@@ -286,21 +319,42 @@ export function WorkoutLog({
         const totalSets = Math.max(1, ex.sets || 1);
         const warmupCount = ex.warmup_sets ?? 0;
         const sets: SetState[] = [];
-        const carriedWeight = bestWeights?.[ex.exercise_name];
+        const isBand = isBandEquipment(ex.equipment ?? []);
+        const timeBased = isTimeBased(ex.reps, ex.log_type);
         const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
+        const last = lastSessionData?.[ex.exercise_name];
+
+        // CR-EF-010: prefill from last session's heaviest working set, not all-time best
+        const prefillWeight = !isBand && !timeBased && last?.weight_kg != null
+          ? displayWeight(last.weight_kg, unit)
+          : undefined;
+        const prefillDuration = timeBased && last?.duration_seconds != null
+          ? String(last.duration_seconds)
+          : undefined;
+        const prefillBandColour = isBand && last?.band_colour
+          ? last.band_colour
+          : undefined;
+
         for (let s = 1; s <= totalSets; s++) {
           const log = setLogsMap[`${ref}::${s}`];
+          const hasLog = !!log;
           sets.push({
             status: log ? (log.completed ? "done" : "skipped") : "pending",
             reps: log?.reps != null ? String(log.reps) : "",
             weight: log?.weight_kg != null
               ? displayWeight(log.weight_kg, unit)
-              : carriedWeight != null ? displayWeight(carriedWeight, unit) : "",
-            duration: log?.duration_seconds != null ? String(log.duration_seconds) : "",
-            bandColour: log?.band_colour ?? ex.band_colour ?? "",
+              : prefillWeight ?? "",
+            duration: log?.duration_seconds != null
+              ? String(log.duration_seconds)
+              : prefillDuration ?? "",
+            bandColour: log?.band_colour ?? prefillBandColour ?? ex.band_colour ?? "",
             savedId: log?.id,
             isNewPb: log ? !!(log as SetLog & { is_new_pb?: boolean }).is_new_pb : undefined,
             isWarmup: log ? (log.is_warmup ?? s <= warmupCount) : s <= warmupCount,
+            // CR-EF-010: only set prefill values for unlogged sets
+            prefillWeight: !hasLog ? prefillWeight : undefined,
+            prefillDuration: !hasLog ? prefillDuration : undefined,
+            prefillBandColour: !hasLog ? prefillBandColour : undefined,
           });
         }
         if (savedNotesRef.current[uid] === undefined) {
@@ -313,11 +367,13 @@ export function WorkoutLog({
           note: savedNotesRef.current[uid],
           noteOpen: false,
           displayUnit: ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []),
+          pbInfo: pbDates?.[ex.exercise_name],
+          lastSession: last,
         };
       });
       return map;
     },
-    [version, setLogsMap, data, bestWeights],
+    [version, setLogsMap, data, lastSessionData, pbDates],
   );
 
   const [exStates, setExStates] = useState<Record<string, ExState>>(() => {
@@ -337,6 +393,9 @@ export function WorkoutLog({
   const [restTimers, setRestTimers] = useState<Record<string, RestTimer>>({});
   const [sessionTimer, setSessionTimer] = useState<{ running: boolean; elapsed: number }>({ running: false, elapsed: 0 });
   const [openPicker, setOpenPicker] = useState<string | null>(null);
+
+  // CR-EF-010 — session PB tally and toast
+  const pbTallyRef = useRef<Record<string, boolean>>({});
 
   const [offline, setOffline] = useState<boolean>(() =>
     typeof navigator !== "undefined" ? !navigator.onLine : false,
@@ -533,6 +592,10 @@ export function WorkoutLog({
 
     if (set.status === "done") {
       newStatus = "pending";
+      // CR-EF-010: withdrawing PB when un-ticking done
+      if (set.isNewPb) {
+        toast("Personal best withdrawn — set is no longer marked done.");
+      }
     } else {
       newStatus = "done";
       if (timeBased && !duration) {
@@ -563,10 +626,13 @@ export function WorkoutLog({
           duration,
           bandColour,
           savedId: result.log.id,
-          isNewPb: result.log.is_new_pb === true,
+          isNewPb: newStatus === "done" ? result.log.is_new_pb === true : false,
           isWarmup: newSets[setIdx].isWarmup,
           pendingSync: false,
           clientOpId: undefined,
+          prefillWeight: newSets[setIdx].prefillWeight,
+          prefillDuration: newSets[setIdx].prefillDuration,
+          prefillBandColour: newSets[setIdx].prefillBandColour,
         };
       } else {
         newSets[setIdx] = {
@@ -578,6 +644,9 @@ export function WorkoutLog({
           isWarmup: newSets[setIdx].isWarmup,
           pendingSync: newStatus !== "pending",
           clientOpId: result.clientOpId,
+          prefillWeight: newSets[setIdx].prefillWeight,
+          prefillDuration: newSets[setIdx].prefillDuration,
+          prefillBandColour: newSets[setIdx].prefillBandColour,
         };
       }
       return { ...prev, [ref]: { ...st, sets: newSets } };
@@ -634,7 +703,14 @@ export function WorkoutLog({
       const st = prev[ref];
       if (!st) return prev;
       const newSets = [...st.sets];
-      newSets[setIdx] = { ...newSets[setIdx], isWarmup: !newSets[setIdx].isWarmup };
+      const wasWarmup = newSets[setIdx].isWarmup;
+      const wasPb = newSets[setIdx].isNewPb;
+      newSets[setIdx] = { ...newSets[setIdx], isWarmup: !wasWarmup };
+      // CR-EF-010: withdrawing a PB when toggling to warm-up
+      if (!wasWarmup && wasPb) {
+        newSets[setIdx].isNewPb = false;
+        toast("Personal best withdrawn — set is now a warm-up.");
+      }
       return { ...prev, [ref]: { ...st, sets: newSets } };
     });
   };
@@ -670,6 +746,9 @@ export function WorkoutLog({
         duration: "",
         bandColour: lastSet?.bandColour ?? "",
         isWarmup: false,
+        prefillWeight: lastSet?.prefillWeight,
+        prefillDuration: lastSet?.prefillDuration,
+        prefillBandColour: lastSet?.prefillBandColour,
       }];
       return { ...prev, [ref]: { ...st, sets: newSets } };
     });
@@ -871,6 +950,38 @@ export function WorkoutLog({
     },
     [sections, version],
   );
+
+  // CR-EF-010 — detect new PBs across renders and fire one toast per new PB
+  useEffect(() => {
+    const tally: Record<string, boolean> = {};
+    for (const ref of allExerciseRefs) {
+      const st = exStates[ref];
+      if (!st) continue;
+      for (let i = 0; i < st.sets.length; i++) {
+        const s = st.sets[i];
+        const key = `${ref}::${i}`;
+        const isPb = s.status === "done" && !s.isWarmup && !!s.isNewPb;
+        if (isPb && !pbTallyRef.current[key]) {
+          const ex = exerciseForRef(ref);
+          if (ex) {
+            const unit = st.displayUnit;
+            const pbInfo = st.pbInfo;
+            const label = s.duration
+              ? `${s.duration}s`
+              : `${s.weight || "0"} ${unit} × ${s.reps || "?"}`;
+            const prevLabel = pbInfo
+              ? pbInfo.duration_seconds != null
+                ? `${pbInfo.duration_seconds}s`
+                : `${pbInfo.weight_kg ?? 0} ${unit} × ${pbInfo.reps ?? "?"}`
+              : "no previous record";
+            toast.success(`New PB — ${ex.exercise_name} ${label}. Previous: ${prevLabel}.`);
+          }
+        }
+        tally[key] = isPb;
+      }
+    }
+    pbTallyRef.current = tally;
+  }, [exStates, allExerciseRefs, exerciseForRef]);
 
   // ── Render ───────────────────────────────────────────────────────
 
@@ -1344,8 +1455,46 @@ function ExerciseCard({
   const exComplete = sets.length > 0 && sets.every((s) => s.status !== "pending");
   const doneSets = sets.filter((s) => s.status !== "pending").length;
 
-  // PB set — ONE per exercise, earliest on tie
-  const pbResult = findPbSet(exercise, sets, orderMap, bestWeights);
+  // CR-EF-010 — compute PB and Last chips for the exercise header
+  const pbInfo = state?.pbInfo;
+  const lastInfo = state?.lastSession;
+  const isBandEx = isBandEquipment(exercise.equipment ?? []);
+
+  // Current session's best for PB comparison
+  const sessionPb = findPbSet(exercise, sets, orderMap, bestWeights);
+  const hasNewPb = !!sessionPb && sessionPb.set.status === "done" && !sessionPb.set.isWarmup;
+
+  // Format PB chip label
+  const pbLabel = (() => {
+    if (hasNewPb && sessionPb) {
+      if (timeBased) return sessionPb.set.duration ? `${sessionPb.set.duration}s` : null;
+      const w = parseFloat(sessionPb.set.weight);
+      const r = parseInt(sessionPb.set.reps, 10);
+      if (!isNaN(w) && w > 0) return `${w} ${displayUnit} × ${r || "?"}`;
+      if (!isNaN(r) && r > 0) return `${r} reps`;
+      return null;
+    }
+    if (pbInfo) {
+      if (pbInfo.duration_seconds != null) return `${pbInfo.duration_seconds}s`;
+      if (pbInfo.weight_kg != null && pbInfo.reps != null) return `${pbInfo.weight_kg} ${displayUnit} × ${pbInfo.reps}`;
+      return null;
+    }
+    return null;
+  })();
+
+  // Format Last chip label
+  const lastLabel = (() => {
+    if (!lastInfo) return null;
+    if (timeBased) return lastInfo.duration_seconds != null ? `${lastInfo.duration_seconds}s` : null;
+    if (isBandEx) return lastInfo.band_colour ? `${lastInfo.band_colour} band` : null;
+    if (lastInfo.weight_kg != null) return `${lastInfo.weight_kg} ${displayUnit} × ${lastInfo.reps ?? "?"}`;
+    return null;
+  })();
+
+  // PB date for tooltip
+  const pbDate = hasNewPb ? "this session" : pbInfo?.achieved_at
+    ? new Date(pbInfo.achieved_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+    : null;
 
   return (
     <div className={`rounded-[13px] border bg-[var(--hub-card)] ${exComplete ? "border-teal/20" : "border-[var(--hub-border)]"}`}>
@@ -1376,6 +1525,39 @@ function ExerciseCard({
               : formatPrescription(exercise)
             }
           </p>
+
+          {/* CR-EF-010: PB + Last chips */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {pbLabel ? (
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                  hasNewPb
+                    ? "border border-[#6E551F] bg-[#8A6A2E] text-white"
+                    : "border border-[rgba(176,138,62,.32)] bg-[#F7EFDD] text-[#8A6A2E]"
+                }`}
+                title={hasNewPb ? "New PB — beaten in this session" : pbDate ? `Best ever, set ${pbDate}` : "Personal best"}
+              >
+                {ICO.starFilled}PB {pbLabel}
+                {hasNewPb && <span className="ml-0.5 rounded bg-white/26 px-1 py-px text-[9px] font-extrabold uppercase tracking-wider">New</span>}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground" title="No qualifying set logged yet">
+                {ICO.starFilled}No best yet
+              </span>
+            )}
+            {lastLabel ? (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-body)] tabular-nums"
+                title={lastInfo ? `Session ${lastInfo.session_number ?? "?"}, ${new Date(lastInfo.session_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} — the prefill source` : "Prefill source"}
+              >
+                {ICO.history}Last {lastLabel}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground" title="Nothing logged for this exercise yet">
+                {ICO.history}First time logged
+              </span>
+            )}
+          </div>
 
           {/* Tags */}
           {exercise.equipment && exercise.equipment.length > 0 && (
@@ -1472,7 +1654,7 @@ function ExerciseCard({
                         Warm-up
                       </button>
                       {/* PB badge — ONE per exercise, only on the winning set */}
-                      {pbResult && pbResult.setIdx === sIdx && set.status === "done" && (
+                      {sessionPb && sessionPb.setIdx === sIdx && set.status === "done" && (
                         <span className="inline-flex items-center gap-1 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--status-warning-text)]">
                           {ICO.star}New PB
                         </span>
@@ -1486,7 +1668,18 @@ function ExerciseCard({
                     <div className="flex flex-wrap items-end gap-2">
                       {timeBased ? (
                         <div className="flex w-[120px] flex-col gap-[3px]">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Seconds</span>
+                          <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Seconds
+                            {set.prefillDuration && set.duration === set.prefillDuration && set.status !== "done" && (
+                              <span className="rounded border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#5D646B]" title={`Prefilled from last session`}>Last {set.duration}</span>
+                            )}
+                            {set.prefillDuration && set.duration !== set.prefillDuration && set.status !== "done" && (
+                              <>
+                                <span className="rounded border border-[rgba(193,131,159,.2)] bg-[rgba(193,131,159,.1)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#8A5570]">Edited</span>
+                                <button type="button" onClick={() => onSetField(refKey, sIdx, "duration", set.prefillDuration!)} className="text-[9px] font-extrabold normal-case tracking-normal text-teal underline">undo</button>
+                              </>
+                            )}
+                          </span>
                           <input
                             type="text"
                             inputMode="numeric"
@@ -1494,7 +1687,13 @@ function ExerciseCard({
                             onChange={(e) => onSetField(refKey, sIdx, "duration", e.target.value)}
                             placeholder={exercise.reps}
                             disabled={set.status === "skipped"}
-                            className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
+                            className={`h-[36px] w-full rounded-lg border bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55 ${
+                              set.prefillDuration && set.duration === set.prefillDuration
+                                ? "border-[var(--hub-field-border)] shadow-[inset_3px_0_0_0_var(--hub-field-border-hover)]"
+                                : set.prefillDuration && set.duration !== set.prefillDuration
+                                  ? "border-[var(--hub-field-border)] shadow-[inset_3px_0_0_0_rose]"
+                                  : "border-[var(--hub-field-border)]"
+                            }`}
                           />
                         </div>
                       ) : (
@@ -1514,7 +1713,18 @@ function ExerciseCard({
                           {isBand ? (
                             /* CR-EF-014 — band picker REPLACES the weight field */
                             <div className="flex flex-col gap-[3px]" style={{ width: 186 }}>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Band</span>
+                              <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                Band
+                                {set.prefillBandColour && set.bandColour === set.prefillBandColour && set.status !== "done" && (
+                                  <span className="rounded border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#5D646B]" title="Prefilled from last session">Last {set.bandColour}</span>
+                                )}
+                                {set.prefillBandColour && set.bandColour !== set.prefillBandColour && set.status !== "done" && (
+                                  <>
+                                    <span className="rounded border border-[rgba(193,131,159,.2)] bg-[rgba(193,131,159,.1)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#8A5570]">Edited</span>
+                                    <button type="button" onClick={() => onSetField(refKey, sIdx, "bandColour", set.prefillBandColour!)} className="text-[9px] font-extrabold normal-case tracking-normal text-teal underline">undo</button>
+                                  </>
+                                )}
+                              </span>
                               <button
                                 type="button"
                                 onClick={() => setOpenPicker(openPicker === `${refKey}:${sIdx}` ? null : `${refKey}:${sIdx}`)}
@@ -1540,6 +1750,15 @@ function ExerciseCard({
                             <div className="flex w-[120px] flex-col gap-[3px]">
                               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                 Weight ({displayUnit})
+                                {set.prefillWeight && set.weight === set.prefillWeight && set.status !== "done" && (
+                                  <span className="rounded border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#5D646B]" title="Prefilled from last session">Last {set.weight}</span>
+                                )}
+                                {set.prefillWeight && set.weight !== set.prefillWeight && set.status !== "done" && (
+                                  <>
+                                    <span className="rounded border border-[rgba(193,131,159,.2)] bg-[rgba(193,131,159,.1)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#8A5570]">Edited</span>
+                                    <button type="button" onClick={() => onSetField(refKey, sIdx, "weight", set.prefillWeight!)} className="text-[9px] font-extrabold normal-case tracking-normal text-teal underline">undo</button>
+                                  </>
+                                )}
                                 <button type="button" onClick={() => onSwapUnit(refKey, exercise)} className="font-bold normal-case tracking-normal text-teal underline" title="Correct the unit for this exercise">switch</button>
                               </span>
                               <input
@@ -1549,7 +1768,13 @@ function ExerciseCard({
                                 onChange={(e) => onSetField(refKey, sIdx, "weight", e.target.value)}
                                 placeholder="BW"
                                 disabled={set.status === "skipped"}
-                                className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
+                                className={`h-[36px] w-full rounded-lg border bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55 ${
+                                  set.prefillWeight && set.weight === set.prefillWeight
+                                    ? "border-[var(--hub-field-border)] shadow-[inset_3px_0_0_0_var(--hub-field-border-hover)]"
+                                    : set.prefillWeight && set.weight !== set.prefillWeight
+                                      ? "border-[var(--hub-field-border)] shadow-[inset_3px_0_0_0_rose]"
+                                      : "border-[var(--hub-field-border)]"
+                                }`}
                               />
                             </div>
                           )}
@@ -1577,6 +1802,20 @@ function ExerciseCard({
                       </div>
                     </div>
                   </div>
+
+                  {/* CR-EF-010 — PB inline banner on the set that beat the record */}
+                  {sessionPb && sessionPb.setIdx === sIdx && set.status === "done" && !set.isWarmup && (
+                    <div className="mt-2.5 flex items-center gap-2.5 border-t border-[rgba(176,138,62,.28)] pt-2.5 text-[12.5px] text-[#6E551F]">
+                      <span className="grid h-[26px] w-[26px] flex-shrink-0 place-items-center rounded-full bg-[#8A6A2E] text-white">{ICO.starFilled}</span>
+                      <span>
+                        <b className="text-[#57430F]">New personal best — {(() => {
+                          if (timeBased) return `${set.duration || "?"}s`;
+                          return `${set.weight || "?"} ${displayUnit} × ${set.reps || "?"}`;
+                        })()}.</b>{" "}
+                        {pbInfo ? `Previous best ${pbInfo.duration_seconds != null ? `${pbInfo.duration_seconds}s` : `${pbInfo.weight_kg ?? "?"} ${displayUnit} × ${pbInfo.reps ?? "?"}`}, ${pbInfo.achieved_at ? new Date(pbInfo.achieved_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""}.` : "First record for this exercise."}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Band picker dropdown — inline below the set row */}
                   {isBand && openPicker === `${refKey}:${sIdx}` && (
@@ -1844,8 +2083,8 @@ function SupersetBlock({
                           >
                             {ICO.skip}Skip
                           </button>
-                        </div>
                       </div>
+                    </div>
                     </div>
 
                     {/* Band picker for superset sets */}
