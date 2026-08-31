@@ -56,8 +56,7 @@ type SortDir = "asc" | "desc";
 
 /** completed_at when logged, else scheduled_at, else null — same value the Date column displays. */
 function sessionSortDate(session: SessionRow): number | null {
-  const completedAt = (session.data as any)?.session_log?.completed_at as string | undefined;
-  const iso = completedAt ?? session.scheduled_at ?? null;
+  const iso = session.completed_at ?? session.scheduled_at ?? null;
   return iso ? new Date(iso).getTime() : null;
 }
 
@@ -108,7 +107,6 @@ function sessionStatus(session: SessionRow) {
     cancelled_at: session.cancelled_at,
     completed_at: session.completed_at,
     scheduled_at: session.scheduled_at,
-    session_log: (session.data as any)?.session_log,
   });
 }
 
@@ -175,8 +173,7 @@ function localDateToIso(date: string, originalIso: string): string {
  *  Click-to-edit still targets the logged date, and only when one exists. */
 function SessionDateCell({ session }: { session: SessionRow }) {
   const router = useRouter();
-  const log = (session.data as any)?.session_log;
-  const completedAt: string | null = log?.completed_at ?? null;
+  const completedAt: string | null = session.completed_at ?? null;
   const scheduledAt: string | null = session.scheduled_at ?? null;
   const [editing, setEditing] = useState(false);
   const [dateValue, setDateValue] = useState(completedAt ? isoToLocalDate(completedAt) : "");
@@ -198,6 +195,7 @@ function SessionDateCell({ session }: { session: SessionRow }) {
   const handleSave = async () => {
     if (!completedAt || !dateValue || saving) return;
     setSaving(true);
+    const log = (session.data as any)?.session_log ?? {};
     const updatedLog = { ...log, completed_at: localDateToIso(dateValue, completedAt) };
     const updatedData = { ...(session.data ?? {}), session_log: updatedLog };
     const res = await fetch(`/api/sessions/${session.id}`, {
