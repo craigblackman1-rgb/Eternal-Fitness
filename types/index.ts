@@ -489,6 +489,8 @@ export interface DBSession {
   cancel_reason?: string | null;
   /** CR-EF-099 — structured flag: 'charged' = consumed a session, 'free' = did not. NULL = legacy row without the flag. */
   charged_free?: ChargedFree | null;
+  /** CR-EF-099 — timestamp when the cron flagged this session for lapse review. NULL = not flagged. */
+  lapse_flagged_at?: string | null;
   /** First-class lifecycle state (CR-EF-037 Phase 1) — the single source of truth.
    *  Surfaces read this, never re-derive it from data.session_log / scheduled_at /
    *  cancelled_at. Absent only on rows created before the Phase 1 migration backfill. */
