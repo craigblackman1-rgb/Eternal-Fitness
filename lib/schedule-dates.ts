@@ -144,6 +144,17 @@ export function groupSessionsByWeek<T extends { scheduled_at: string | null; wee
 }
 
 /**
+ * Derived week label: "Week of 25 Aug" for scheduled sessions,
+ * "Plan week N" for unscheduled ones (CR-EF-032).
+ */
+export function derivedWeekLabel(scheduled_at: string | null, week: number): string {
+  if (!scheduled_at) return `Plan week ${week}`;
+  const monday = isoToMonday(scheduled_at);
+  const d = new Date(monday);
+  return `Week of ${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`;
+}
+
+/**
  * Pairwise overlap detection across DIFFERENT clients within one day's entries.
  * A session occupies `[scheduled_at, scheduled_at + duration)`. Two entries
  * conflict when their intervals overlap and they belong to different clients

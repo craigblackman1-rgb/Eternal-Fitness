@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { DBSession, DBBlock } from "@/types";
 import { HubCard, HubCardHeader, HubAlert } from "@/components/hub";
 import { BlockScheduler } from "./BlockScheduler";
+import { derivedWeekLabel } from "@/lib/schedule-dates";
 
 export default function ReviewPage({ params }: { params: { id: string; blockId: string } }) {
   const router = useRouter();
@@ -138,7 +139,7 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
                         {session.archetype}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm py-2.5">{session.week}</TableCell>
+                    <TableCell className="text-sm py-2.5">{derivedWeekLabel(session.scheduled_at ?? null, session.week)}</TableCell>
                     <TableCell className="capitalize text-sm py-2.5">{session.phase}</TableCell>
                     <TableCell className="text-sm py-2.5">{studioCount} exercises</TableCell>
                     <TableCell className="text-sm py-2.5">{homeCount} exercises</TableCell>

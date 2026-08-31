@@ -6,6 +6,7 @@ import type { SetLog } from "@/types";
 import type { PortalExercise, PortalSessionPlan, PortalTrainingPlan } from "@/lib/portal-data";
 import { IconCheck, IconCheckCircle, IconVideo, IconX } from "@/components/icons";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
+import { derivedWeekLabel } from "@/lib/schedule-dates";
 
 /** exercise_ref convention (matches Lane A's migration): <version>:<section>:<index>:<name>.
  * The portal always logs against the HOME version of the plan. */
@@ -144,7 +145,7 @@ export default function TrainingClient({
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <h2 className="text-lg font-semibold">Session {session.session_number}</h2>
             <span className="text-sm capitalize text-muted-foreground">
-              Week {session.week}
+              {derivedWeekLabel(session.scheduled_at ?? null, session.week)}
               {session.focus_label ? ` · ${session.focus_label}` : ""}
             </span>
           </div>
