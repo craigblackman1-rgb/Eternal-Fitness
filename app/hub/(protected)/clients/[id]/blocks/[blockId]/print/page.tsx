@@ -5,6 +5,7 @@ import { IconChevronLeft } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { PrintButton } from "./print-button";
 import type { DBSession, Exercise } from "@/types";
+import { formatFrequency } from "@/types";
 import { derivedWeekLabel, isoToMonday } from "@/lib/schedule-dates";
 
 const phaseLabels: Record<string, string> = {
@@ -150,7 +151,7 @@ function HeaderSection({
         {log && (
           <p>
             <span className="text-muted-foreground">Schedule:</span>{" "}
-            {log.sessions_per_week}x/week &middot;{" "}
+            {formatFrequency(log?.frequency ?? (log?.sessions_per_week ? { unit: "week", per_unit: log.sessions_per_week } : null))} &middot;{" "}
             {log.time_tier} &middot;{" "}
             {log.training_location}
           </p>

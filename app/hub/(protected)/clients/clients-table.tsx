@@ -7,6 +7,7 @@ import { toolbarSelectClasses } from "@/components/hub/Toolbar";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { IconUsers } from "@/components/icons";
 import type { DBClient } from "@/types";
+import { formatFrequencyShort } from "@/types";
 
 const complianceFilters = [
   { value: "all", label: "All statuses" },
@@ -63,10 +64,11 @@ const columns: HubColumn<DBClient>[] = [
   },
   {
     key: "sessions_per_week",
-    header: "Sessions / Week",
+    header: "Cadence",
     render: (client) => {
+      const freq = client.profile?.logistics?.frequency;
       const spw = client.profile?.logistics?.sessions_per_week;
-      return spw ? `${spw}x` : "—";
+      return formatFrequencyShort(freq ?? (spw ? { unit: "week", per_unit: spw } : null));
     },
   },
   {

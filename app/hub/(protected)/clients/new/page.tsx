@@ -14,7 +14,8 @@ import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
-import type { ClientProfile, Gender, Package } from "@/types";
+import type { ClientProfile, Gender, Frequency, Package } from "@/types";
+import { DEFAULT_FREQUENCY } from "@/types";
 
 function calculateAge(dob: string | null): number {
   if (!dob) return 0;
@@ -84,7 +85,7 @@ function SegmentedControl<T extends string | number>({
 
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
-  logistics: { training_location: "studio", sessions_per_week: 2, time_tier: "standard", block_number: 1 },
+  logistics: { training_location: "studio", frequency: DEFAULT_FREQUENCY, time_tier: "standard", block_number: 1 },
   health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], medications: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
   physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
   programming_adaptations: [],
@@ -238,17 +239,28 @@ export default function NewClientPage() {
               ]}
             />
             <div className="grid gap-4 md:grid-cols-2">
-              <SegmentedControl
-                legend="Sessions / week"
-                name="sessions_per_week"
-                value={profile.logistics.sessions_per_week}
-                onChange={(v) => updateProfile("logistics", { sessions_per_week: v as 1 | 2 | 3 })}
-                options={[
-                  { value: 1, label: "1×" },
-                  { value: 2, label: "2×" },
-                  { value: 3, label: "3×" },
-                ]}
-              />
+              <div className="space-y-2">
+                <Label>Cadence</Label>
+                <Select
+                  value={profile.logistics.frequency?.unit ?? "week"}
+                  onValueChange={(v: Frequency["unit"]) => {
+                    const unit = v;
+                    const per_unit = unit === "irregular" ? 0
+                      : unit === "fortnight" ? 1
+                      : unit === "month" ? 1
+                      : (profile.logistics.frequency?.per_unit ?? 2);
+                    updateProfile("logistics", { frequency: { unit, per_unit } });
+                  }}
+                >
+                  <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Weekly</SelectItem>
+                    <SelectItem value="fortnight">Fortnightly</SelectItem>
+                    <SelectItem value="month">Monthly</SelectItem>
+                    <SelectItem value="irregular">Irregular</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>Package</Label>
                 <Select value={packageType ?? ""} onValueChange={(v: Package) => setPackageType(v)}>
@@ -263,6 +275,21 @@ export default function NewClientPage() {
                 </Select>
               </div>
             </div>
+            {profile.logistics.frequency && profile.logistics.frequency.unit !== "irregular" && (
+              <SegmentedControl
+                legend={`Sessions per ${profile.logistics.frequency.unit === "week" ? "week" : profile.logistics.frequency.unit === "fortnight" ? "fortnight" : "month"}`}
+                name="frequency_per_unit"
+                value={profile.logistics.frequency.per_unit}
+                onChange={(v) => updateProfile("logistics", { frequency: { ...profile.logistics.frequency!, per_unit: v as number } })}
+                options={
+                  profile.logistics.frequency.unit === "week"
+                    ? [{ value: 1, label: "1×" }, { value: 2, label: "2×" }, { value: 3, label: "3×" }]
+                    : profile.logistics.frequency.unit === "fortnight"
+                    ? [{ value: 1, label: "1×" }, { value: 2, label: "2×" }]
+                    : [{ value: 1, label: "1×" }, { value: 2, label: "2×" }]
+                }
+              />
+            )}
             <SegmentedControl
               legend="Time tier"
               name="time_tier"

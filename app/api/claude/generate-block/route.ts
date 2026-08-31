@@ -4,7 +4,8 @@ import { getAiConfig } from "@/lib/ai-client";
 import { loadPlanAgentBundle } from "@/lib/planAgentData";
 import { generateViaAi, resolvePlanModel, weekPhases, getWeeklyArchetypes, type TemplateFramework } from "@/lib/planGeneration";
 import { tryAcquireGenerationLock, releaseGenerationLock } from "@/lib/generationLock";
-import type { ClientProfile, Session, Archetype, Phase, Exercise, SessionVersion } from "@/types";
+import type { ClientProfile, Session, Archetype, Phase, Exercise, SessionVersion, Frequency } from "@/types";
+import { frequencyToSessionsPerWeek } from "@/types";
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -396,10 +397,31 @@ function rescaleTemplateSection(exercises: Exercise[], phase: Phase, section: "w
   return exercises.map((ex) => ({ ...ex, sets, reps, tempo, rest }));
 }
 
+/** Resolve the client's frequency, falling back to sessions_per_week for legacy data. */
+function resolveFrequency(profile: ClientProfile): Frequency {
+  const freq = profile.logistics.frequency;
+  if (freq) return freq;
+  const spw = profile.logistics.sessions_per_week;
+  if (spw) return { unit: "week", per_unit: spw };
+  return { unit: "week", per_unit: 2 };
+}
+
+/** Which weeks in a 6-week block get sessions for a given cadence. */
+function weeksWithSessions(freq: Frequency): number[] {
+  switch (freq.unit) {
+    case "week": return [0, 1, 2, 3, 4, 5];
+    case "fortnight": return [0, 2, 4];
+    case "month": return freq.per_unit >= 2 ? [1, 4] : [2];
+    case "irregular": return [0, 1, 2, 3, 4, 5];
+  }
+}
+
 function generateFallback(profile: ClientProfile, blockNumber: number, exercisePool: ExerciseDbEntry[], template?: TemplateFramework | null): Session[] {
   const sessions: Session[] = [];
   const usedIds = new Set<string>();
-  const spw = profile.logistics.sessions_per_week;
+  const freq = resolveFrequency(profile);
+  const spw = Math.max(1, Math.round(frequencyToSessionsPerWeek(freq)));
+  const activeWeeks = weeksWithSessions(freq);
   const primaryGoal = profile.goals.primary;
 
   const archetypeFocus: Record<Archetype, string> = {
@@ -410,7 +432,7 @@ function generateFallback(profile: ClientProfile, blockNumber: number, exerciseP
 
   let sessionNumber = 0;
 
-  for (let weekIndex = 0; weekIndex < 6; weekIndex++) {
+  for (const weekIndex of activeWeeks) {
     const wp = weekPhases[weekIndex];
     const archetypes = getWeeklyArchetypes(spw, weekIndex, primaryGoal);
 
@@ -451,7 +473,7 @@ function generateFallback(profile: ClientProfile, blockNumber: number, exerciseP
               studio: composeSessionVersion(archetype, wp.phase, usedIds, false, exercisePool),
               home: composeSessionVersion(archetype, wp.phase, usedIds, true, exercisePool),
             },
-        coaching_notes: `Client-specific: ${profile.health.contraindications?.join(", ") || "none noted"}. ${profile.notes.watch_for || ""}.${template ? ` Built from template "${template.name}".` : ""}`,
+        coaching_notes: `Client-specific: ${profile.health.contraindications?.join(", ") || "none noted"}. ${profile.notes.watch_for || ""}.${template ? ` Built from template "${template.name}".` : ""}${freq.unit === "irregular" ? " ⚠ DEFAULT CADENCE: client has irregular frequency — review and adjust schedule manually." : ""}`,
         client_intro: archetypeFocus[archetype],
       });
     }

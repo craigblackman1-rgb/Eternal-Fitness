@@ -1,4 +1,5 @@
-import type { TrainingRule, TrainingRuleType, SessionVersion } from "@/types";
+import type { TrainingRule, TrainingRuleType, SessionVersion, Frequency } from "@/types";
+import { formatFrequency } from "@/types";
 import { buildTrainingRulesSection } from "@/lib/trainingRules";
 
 /**
@@ -326,13 +327,13 @@ ${describeSection("Main block", template.data.main_block)}
 ${describeSection("Cooldown", template.data.cooldown)}`;
 }
 
-export function buildSplitSection(split: SplitDefinition, sessionsPerWeek: number): string {
+export function buildSplitSection(split: SplitDefinition, frequency: Frequency): string {
   return `TRAINING SPLIT: ${split.label}
 Muscle-group contract — every session must directly target each of these groups with at least one
 compound or isolation exercise, ideally under resistance: ${split.groups.join(", ")}.
 A compound lift may cover more than one group, but every group must be traceable to a specific
 exercise. A session with zero coverage of any group above is not acceptable and must not be produced.
-This client trains ${sessionsPerWeek}x per week.`;
+This client's cadence: ${formatFrequency(frequency)}.`;
 }
 
 export function buildChecklistSection(settings: PlanAgentSettingsMap): string {

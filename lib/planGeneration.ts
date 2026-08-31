@@ -24,7 +24,8 @@ import {
   validateGeneratedSession,
   type ExerciseIndex,
 } from "@/lib/planValidation";
-import type { ClientProfile, Session, Archetype, Phase, SessionVersion } from "@/types";
+import type { ClientProfile, Session, Archetype, Phase, SessionVersion, Frequency } from "@/types";
+import { frequencyToSessionsPerWeek } from "@/types";
 
 /** A saved workout_templates row, passed through when a block is generated
  *  "from a template" rather than free-form chat (option 3, 2026-08-07). */
@@ -90,13 +91,56 @@ interface SessionSlot {
   archetype: Archetype;
 }
 
-/** Build the ordered list of sessions with a pre-assigned, evenly-distributed
- *  archetype per slot (reusing the goal-biased rotation the fallback uses). */
-function buildSessionSlots(profile: ClientProfile): SessionSlot[] {
+interface SlotResult {
+  slots: SessionSlot[];
+  /** When true, the block was generated on a default cadence because the client
+   *  has an irregular frequency. Esther should review and manually adjust. */
+  usedDefaultCadence: boolean;
+}
+
+/** Resolve the client's frequency, falling back to sessions_per_week for legacy
+ *  data, and ultimately to the default (2x/week). */
+function resolveFrequency(profile: ClientProfile): Frequency {
+  const freq = profile.logistics.frequency;
+  if (freq) return freq;
   const spw = profile.logistics.sessions_per_week;
+  if (spw) return { unit: "week", per_unit: spw };
+  return { unit: "week", per_unit: 2 };
+}
+
+/** Which weeks in a 6-week block get sessions for a given cadence.
+ *  Returns 0-indexed week indices (0–5). */
+function weeksWithSessions(freq: Frequency): number[] {
+  switch (freq.unit) {
+    case "week":
+      // All 6 weeks
+      return [0, 1, 2, 3, 4, 5];
+    case "fortnight":
+      // Sessions every other week — weeks 1, 3, 5 (indices 0, 2, 4)
+      return [0, 2, 4];
+    case "month":
+      // ~1 session per month across 6 weeks → 1–2 sessions total.
+      // Place at weeks 2 and 5 (indices 1, 4) for even spacing.
+      return freq.per_unit >= 2 ? [1, 4] : [2];
+    case "irregular":
+      // Default fallback: 1x/week — flagged so Esther knows to adjust.
+      return [0, 1, 2, 3, 4, 5];
+  }
+}
+
+/** Build the ordered list of sessions with a pre-assigned, evenly-distributed
+ *  archetype per slot (reusing the goal-biased rotation the fallback uses).
+ *  CR-EF-106: generates the correct number and week-distribution for the
+ *  client's actual cadence over the fixed 6-week block. */
+function buildSessionSlots(profile: ClientProfile): SlotResult {
+  const freq = resolveFrequency(profile);
+  const spw = Math.max(1, Math.round(frequencyToSessionsPerWeek(freq)));
+  const activeWeeks = weeksWithSessions(freq);
+  const irregular = freq.unit === "irregular";
+
   const slots: SessionSlot[] = [];
   let n = 0;
-  for (let weekIndex = 0; weekIndex < 6; weekIndex++) {
+  for (const weekIndex of activeWeeks) {
     const wp = weekPhases[weekIndex];
     const archetypes = getWeeklyArchetypes(spw, weekIndex, profile.goals.primary);
     for (const archetype of archetypes) {
@@ -104,7 +148,7 @@ function buildSessionSlots(profile: ClientProfile): SessionSlot[] {
       slots.push({ session_number: n, week: wp.week, phase: wp.phase, archetype });
     }
   }
-  return slots;
+  return { slots, usedDefaultCadence: irregular };
 }
 
 /** Caps how many session-generation calls are in flight at once. Every call
@@ -149,7 +193,7 @@ export async function generateViaAi(
   previousSummary?: string,
   template?: TemplateFramework | null,
 ): Promise<Session[]> {
-  const slots = buildSessionSlots(profile);
+  const { slots, usedDefaultCadence } = buildSessionSlots(profile);
   const split = resolveClientSplit(bundle.settings, profile.logistics.split);
   const index = buildExerciseIndex(bundle.allExercises);
   const system = buildGenerationSystemPrompt(profile, bundle, split, template);
@@ -174,6 +218,15 @@ export async function generateViaAi(
   }
 
   sessions.sort((a, b) => a.session_number - b.session_number);
+
+  // CR-EF-106: flag irregular-cadence blocks so Esther knows the schedule was auto-generated
+  if (usedDefaultCadence) {
+    const note = "⚠ DEFAULT CADENCE: This client has an irregular session frequency — this block was generated at 1×/week as a starting point. Please review and manually adjust the session schedule to match the client's actual pattern.";
+    for (const s of sessions) {
+      s.coaching_notes = [s.coaching_notes, note].filter(Boolean).join("\n\n");
+    }
+  }
+
   return sessions;
 }
 
@@ -207,7 +260,7 @@ ${buildParqSection(bundle.parq, parqOverride)}
 
 ---
 
-${buildSplitSection(split, profile.logistics.sessions_per_week)}
+${buildSplitSection(split, resolveFrequency(profile))}
 
 TRAINING PRINCIPLES:
 ${buildPrinciplesSection(bundle.settings)}

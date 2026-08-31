@@ -10,6 +10,7 @@ import {
   IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
+import { formatFrequency } from "@/types";
 import { getQuietHomeTrainingClients } from "@/lib/progress-db";
 import { HOME_TRAINING_QUIET_DAYS } from "@/lib/progress";
 import { getClientsWithUpdateDue, getClientsUpdateDueSoon } from "@/lib/updates-due-db";
@@ -617,7 +618,11 @@ export default async function DashboardPage() {
                 <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
                   {clients.slice(0, 6).map((client) => {
                     const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
-                    const sessionsPerWeek = client.profile?.logistics?.sessions_per_week;
+                    const sessionsPerWeek = client.profile?.logistics?.frequency
+                      ? formatFrequency(client.profile.logistics.frequency)
+                      : client.profile?.logistics?.sessions_per_week
+                      ? `${client.profile.logistics.sessions_per_week}× per week`
+                      : null;
                     const conditions = client.profile?.health?.conditions?.length ?? 0;
                     return (
                       <Link
@@ -631,7 +636,7 @@ export default async function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {sessionsPerWeek ? `${sessionsPerWeek}x / week` : "No schedule set"}
+                            {sessionsPerWeek || "No schedule set"}
                             {conditions > 0 && ` · ${conditions} condition(s)`}
                           </p>
                         </div>
