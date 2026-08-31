@@ -209,6 +209,7 @@ export interface ClientProfile {
     milestones: string[];
   };
   notes: {
+    client_intro: string;
     esther_observations: string;
     motivation_notes: string;
     watch_for: string;
