@@ -195,20 +195,20 @@ export default async function BlockViewPage({
         scheduledStartIso={scheduledStartIso}
         weekdays={weekdays}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--hub-border)] rounded-[16px] overflow-hidden border border-[var(--hub-border)]">
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 bg-[var(--hub-card)] overflow-hidden border border-[var(--hub-border)]" style={{ borderRadius: "var(--r-surface)", boxShadow: "var(--shadow-sm)" }}>
+          <div className="px-4 py-3 border-r border-b border-[var(--hub-border)] md:border-b-0 last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sessions</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{completedSessions} of {totalSessions} done</p>
           </div>
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+          <div className="px-4 py-3 border-b md:border-b-0 md:border-r border-[var(--hub-border)] last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Scheduled start</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{scheduledStartLabel}</p>
           </div>
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+          <div className="px-4 py-3 border-r border-[var(--hub-border)] last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
             <div className="mt-0.5"><StatusBadge status={block.status} /></div>
           </div>
-          <div className="bg-[var(--hub-card)] px-4 py-3">
+          <div className="px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next session</p>
             <p className="text-sm font-semibold text-foreground mt-0.5">{nextSessionLabel}</p>
           </div>

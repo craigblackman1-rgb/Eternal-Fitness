@@ -90,9 +90,9 @@ export function CancelSessionDialog({
       <div className="absolute inset-0 bg-dark-navy/42 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-[560px] mx-4 bg-[var(--hub-canvas)] rounded-[18px] shadow-2xl flex flex-col max-h-[calc(100vh-48px)]">
+      <div className="relative w-full max-w-[560px] mx-4 bg-[var(--hub-canvas)] shadow-2xl flex flex-col max-h-[calc(100vh-48px)]" style={{ borderRadius: "var(--r-surface)" }}>
         {/* Header */}
-        <div className="flex items-start gap-3 px-6 pt-5 pb-4 bg-[var(--hub-card)] border-b border-[var(--hub-border)] rounded-t-[18px]">
+        <div className="flex items-start gap-3 px-6 pt-5 pb-4 bg-[var(--hub-card)] border-b border-[var(--hub-border)]" style={{ borderRadius: "var(--r-surface) var(--r-surface) 0 0" }}>
           <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-[var(--status-danger-bg)] text-[var(--status-danger)] shrink-0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={18} height={18}>
               <circle cx="12" cy="12" r="9" />
@@ -239,7 +239,7 @@ export function CancelSessionDialog({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-2.5 px-6 py-3.5 bg-[var(--hub-card)] border-t border-[var(--hub-border)] rounded-b-[18px]">
+        <div className="flex items-center gap-2.5 px-6 py-3.5 bg-[var(--hub-card)] border-t border-[var(--hub-border)]" style={{ borderRadius: "0 0 var(--r-surface) var(--r-surface)" }}>
           <span className="flex-1" />
           <Button variant="ghost" onClick={handleClose} className="rounded-lg">
             Keep session
