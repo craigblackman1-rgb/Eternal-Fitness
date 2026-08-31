@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   IconDumbbell,
   IconTrash2,
@@ -12,13 +13,17 @@ import {
   IconChevronDown,
 } from "@/components/icons";
 import { toast } from "sonner";
-import type { Band } from "@/lib/bands";
+import type { Band, BandSet } from "@/lib/bands";
 
 interface BandManagerProps {
+  initialBandSets: BandSet[];
   initialBands: Band[];
+  initialSelectedSetId: string;
 }
 
-export function BandManager({ initialBands }: BandManagerProps) {
+export function BandManager({ initialBandSets, initialBands, initialSelectedSetId }: BandManagerProps) {
+  const [bandSets, setBandSets] = useState(initialBandSets);
+  const [selectedSetId, setSelectedSetId] = useState(initialSelectedSetId);
   const [bands, setBands] = useState(initialBands);
   const [saving, setSaving] = useState(false);
   const [colour, setColour] = useState("");
@@ -34,6 +39,20 @@ export function BandManager({ initialBands }: BandManagerProps) {
   const [editSortOrder, setEditSortOrder] = useState("");
   const colourRef = useRef<HTMLInputElement>(null);
 
+  // When the selected set changes, fetch bands for that set
+  const loadBandsForSet = useCallback(async (setId: string) => {
+    setSelectedSetId(setId);
+    const res = await fetch(`/api/bands?band_set_id=${setId}`);
+    if (res.ok) {
+      const data = await res.json();
+      setBands(data);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBandsForSet(selectedSetId);
+  }, [selectedSetId, loadBandsForSet]);
+
   async function addBand() {
     if (!colour.trim() || !colourHex.trim() || !tensionLabel.trim()) return;
     setSaving(true);
@@ -47,6 +66,7 @@ export function BandManager({ initialBands }: BandManagerProps) {
           tension_label: tensionLabel.trim(),
           tension_kg: tensionKg ? Number(tensionKg) : null,
           sort_order: sortOrder ? Number(sortOrder) : null,
+          band_set_id: selectedSetId,
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed to add band");
@@ -191,6 +211,7 @@ export function BandManager({ initialBands }: BandManagerProps) {
     ]);
   }
 
+  const activeSet = bandSets.find((s) => s.id === selectedSetId);
   const inputClass =
     "h-9 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] focus:border-rose focus:ring-rose/30 font-[inherit]";
 
@@ -199,11 +220,32 @@ export function BandManager({ initialBands }: BandManagerProps) {
       <HubCardHeader
         icon={<IconDumbbell className="w-4 h-4" />}
         title="Bands"
-        subtitle="Studio band colour mapping — lightest to heaviest"
+        subtitle={activeSet ? `${activeSet.name} — lightest to heaviest` : "Band set management"}
         color="teal"
         divider
         className="px-5 pt-[14px]"
       />
+
+      {/* Set selector */}
+      <div className="px-5 py-3 border-b border-[var(--hub-border)] flex items-center gap-3">
+        <Label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Band set</Label>
+        <Select value={selectedSetId} onValueChange={setSelectedSetId}>
+          <SelectTrigger className="h-8 rounded-lg border-[var(--hub-field-border)] bg-[var(--hub-card)] font-[inherit] text-sm min-w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {bandSets.map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.name}
+                {s.owner_type === "studio" ? " (studio)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {activeSet?.owner_type === "client" && (
+          <span className="text-xs text-muted-foreground">Client-owned set</span>
+        )}
+      </div>
 
       <div className="px-5 py-3 border-b border-[var(--hub-border)]">
         <p className="text-xs text-muted-foreground leading-relaxed">
@@ -299,7 +341,7 @@ export function BandManager({ initialBands }: BandManagerProps) {
             {bands.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                  No bands added yet.
+                  No bands in this set yet.
                 </td>
               </tr>
             ) : (

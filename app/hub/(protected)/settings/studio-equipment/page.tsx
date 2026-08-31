@@ -5,7 +5,7 @@ import { BandManager } from "./BandManager";
 import { HubPageHeader } from "@/components/hub";
 import { getPool } from "@/lib/pg-client";
 import type { StudioEquipment } from "@/types";
-import type { Band } from "@/lib/bands";
+import type { Band, BandSet } from "@/lib/bands";
 
 export default async function StudioEquipmentPage() {
   const supabase = createClient();
@@ -20,10 +20,16 @@ export default async function StudioEquipmentPage() {
   const initialEquipment = (equipment ?? []) as StudioEquipment[];
   const activeCount = initialEquipment.filter((e) => e.active).length;
 
-  // CR-EF-014: fetch all bands for the settings UI.
+  // CR-EF-014 + CR-EF-116: fetch band sets and the studio set's bands.
   const pool = getPool();
+  const setsRes = await pool.query(`SELECT * FROM band_sets ORDER BY owner_type ASC, name ASC`);
+  const bandSets: BandSet[] = setsRes.rows;
+
+  // Default to the EF Studio set
+  const studioSetId = "00000000-0000-0000-0000-000000000001";
   const bandsRes = await pool.query(
-    `SELECT * FROM bands ORDER BY sort_order ASC`,
+    `SELECT * FROM bands WHERE band_set_id = $1 ORDER BY sort_order ASC`,
+    [studioSetId],
   );
   const initialBands: Band[] = bandsRes.rows;
 
@@ -41,7 +47,11 @@ export default async function StudioEquipmentPage() {
       />
       <EquipmentManager initialEquipment={initialEquipment} />
       <div className="mt-6">
-        <BandManager initialBands={initialBands} />
+        <BandManager
+          initialBandSets={bandSets}
+          initialBands={initialBands}
+          initialSelectedSetId={studioSetId}
+        />
       </div>
     </div>
   );

@@ -119,6 +119,8 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [sessionsLogged, setSessionsLogged] = useState<number>(0);
   const [lastSessionDate, setLastSessionDate] = useState<string | null>(null);
   const [hasSignedAgreementDocument, setHasSignedAgreementDocument] = useState(false);
+  const [bandSetId, setBandSetId] = useState<string | null>(null);
+  const [bandSets, setBandSets] = useState<{ id: string; name: string; owner_type: string }[]>([]);
 
   useEffect(() => {
     // Split options come from the Plan Agent "splits" setting so Esther can add
@@ -130,6 +132,14 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         if (Array.isArray(raw) && raw.length > 0) {
           setSplitOptions(parseSplits(raw as string[]).map((s) => s.label));
         }
+      })
+      .catch(() => {});
+
+    // CR-EF-016: Fetch available band sets for the assignment dropdown
+    fetch("/api/band-sets")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { id: string; name: string; owner_type: string }[] | null) => {
+        if (data) setBandSets(data);
       })
       .catch(() => {});
   }, []);
@@ -174,6 +184,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setDeliveryMode(data.delivery_mode ?? "studio_1to1");
       setEquipment(data.equipment ?? null);
       setResourceVisibility(data.resource_visibility ?? {});
+      setBandSetId(data.band_set_id ?? null);
       const blocks: any[] = data._blocks ?? [];
       setBlocksCompleted(blocks.filter((b: any) => b.status === "complete").length);
       const counts: Record<number, number> = data._sessionsCount ?? {};
@@ -224,6 +235,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
         equipment: equipment,
         resource_visibility: resourceVisibility,
         start_date: startDate,
+        band_set_id: bandSetId,
       }),
     });
 
@@ -457,6 +469,30 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 Home training gives this client a "Your training" tab in their portal, where they can
                 view their plan and log their own sets. Studio 1:1 clients see no change — Esther logs
                 for them from the session page as usual.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Band set</Label>
+              <Select
+                value={bandSetId ?? ""}
+                onValueChange={(v) => { setDirty(true); setBandSetId(v || null); }}
+              >
+                <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30">
+                  <SelectValue placeholder="EF Studio (default)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">EF Studio (default)</SelectItem>
+                  {bandSets.filter((s) => s.id !== "00000000-0000-0000-0000-000000000001").map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                      {s.owner_type === "client" ? " (client set)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Which band set this client uses for banded exercises. PBs compare by actual tension (kg),
+                so a client switching sets won&apos;t lose their history.
               </p>
             </div>
           </div>
