@@ -58,6 +58,12 @@ export default async function PortalLayout({ children }: { children: ReactNode }
             Documents &amp; updates
           </Link>
           <Link
+            href="/portal/book"
+            className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+          >
+            Book
+          </Link>
+          <Link
             href="/portal/exercise-history"
             className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
           >
