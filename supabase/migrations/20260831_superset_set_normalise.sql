@@ -168,7 +168,7 @@ BEGIN
   -- ── Sessions ──────────────────────────────────────────────────────────
   FOR r IN
     SELECT s.id AS sid, s.session_number, s.data,
-           c.first_name || ' ' || c.last_name AS client_name,
+           c.name AS client_name,
            b.block_number
     FROM sessions s
     JOIN blocks b ON b.id = s.block_id
