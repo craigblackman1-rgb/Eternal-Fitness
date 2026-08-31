@@ -61,6 +61,7 @@ export interface PortalSessionPlan {
   id: string;
   session_number: number;
   week: number;
+  scheduled_at: string | null;
   phase: string;
   focus_label: string;
   archetype: string;
@@ -151,13 +152,14 @@ export class PortalDataClient {
 
     const { data: sessionRows } = await pg
       .from("sessions")
-      .select("id, session_number, week, phase, data")
+      .select("id, session_number, week, scheduled_at, phase, data")
       .eq("block_id", block.id)
       .order("session_number", { ascending: true });
     const rows = (sessionRows ?? []) as {
       id: string;
       session_number: number;
       week: number;
+      scheduled_at: string | null;
       phase: string;
       data: Session;
     }[];
@@ -215,6 +217,7 @@ export class PortalDataClient {
         id: row.id,
         session_number: row.session_number,
         week: row.week,
+        scheduled_at: row.scheduled_at ?? null,
         phase: row.phase,
         focus_label: row.data?.focus_label ?? "",
         archetype: row.data?.archetype ?? "",

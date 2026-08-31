@@ -5,6 +5,7 @@ import { IconChevronLeft } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { PrintButton } from "./print-button";
 import type { DBSession, Exercise } from "@/types";
+import { derivedWeekLabel, isoToMonday } from "@/lib/schedule-dates";
 
 const phaseLabels: Record<string, string> = {
   foundation: "Foundation",
@@ -41,12 +42,15 @@ export default async function BlockPrintPage({
   const client = clientRes.data;
   const sessions = sessionsRes.data;
 
-  const phaseWeeks = new Map<string, number[]>();
+  // Derive calendar-week keys from scheduled_at, falling back to stored week
+  // ordinal for unscheduled sessions (CR-EF-032).
+  const phaseWeeks = new Map<string, Set<string>>();
   sessions?.forEach((s) => {
-    const w = s.week;
-    if (!phaseWeeks.has(s.phase)) phaseWeeks.set(s.phase, []);
-    const weeks = phaseWeeks.get(s.phase)!;
-    if (!weeks.includes(w)) weeks.push(w);
+    const wk = s.scheduled_at
+      ? isoToMonday(s.scheduled_at)
+      : `p${s.week}`;
+    if (!phaseWeeks.has(s.phase)) phaseWeeks.set(s.phase, new Set());
+    phaseWeeks.get(s.phase)!.add(wk);
   });
 
   return (
@@ -85,7 +89,7 @@ export default async function BlockPrintPage({
           status={block.status}
           createdAt={block.created_at}
           profile={client?.profile}
-          phaseCalendar={Array.from(phaseWeeks.entries())}
+          phaseCalendar={Array.from(phaseWeeks.entries()).map(([k, v]) => [k, Array.from(v)])}
           blockNote={block.block_note}
         />
 
@@ -115,7 +119,7 @@ function HeaderSection({
   status: string;
   createdAt: string;
   profile: any;
-  phaseCalendar: [string, number[]][];
+  phaseCalendar: [string, string[]][];
   blockNote: string | null;
 }) {
   const log = profile?.logistics;
@@ -158,13 +162,12 @@ function HeaderSection({
             Phase Calendar
           </span>
           <div className="mt-1 flex flex-wrap gap-2">
-            {phaseCalendar.map(([phase, weeks]) => (
+            {phaseCalendar.map(([phase, weekKeys]) => (
               <span
                 key={phase}
                 className="inline-flex rounded-lg border px-2.5 py-0.5 text-xs font-medium capitalize"
               >
-                {phaseLabels[phase] || phase} &mdash; Week{weeks.length > 1 ? "s" : ""}{" "}
-                {weeks.join(", ")}
+                {phaseLabels[phase] || phase} &mdash; {weekKeys.length === 1 ? weekKeys[0] : `${weekKeys.length} weeks`}
               </span>
             ))}
           </div>
@@ -198,7 +201,7 @@ function SessionPrintSection({
         <h3 className="text-lg font-bold">
           Session {session.session_number}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
-            Archetype {session.archetype} &middot; Week {session.week}
+            Archetype {session.archetype} &middot; {derivedWeekLabel(session.scheduled_at ?? null, session.week)}
           </span>
         </h3>
         <Badge variant="outline" className="capitalize">

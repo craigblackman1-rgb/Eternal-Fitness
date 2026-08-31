@@ -1056,7 +1056,7 @@ export function TrainScreen({
             <div className="top-meta">
               Session {sessionNumber}
               {blockNumber != null ? ` · Block ${blockNumber}` : ""}
-              {archetype ? ` · ${archetype}` : ""} · {phase} · Week {week}
+              {archetype ? ` · ${archetype}` : ""} · {phase} · {scheduledAt ? `Week of ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : `Plan week ${week}`}
             </div>
           </div>
           <span className={`top-status ${topStatusClass}`}>{topStatusLabel}</span>
