@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { HubPageHeader, HubCard, KpiTile } from "@/components/hub";
 import {
   IconClock,
@@ -11,6 +13,8 @@ import {
   IconPlus,
   IconTrash2,
   IconExternalLink,
+  IconArrowRight,
+  IconCheckCircle,
 } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -48,12 +52,26 @@ interface OverrideRow {
   active: boolean;
 }
 
+interface OverrideClash {
+  sessionId: string;
+  sessionNumber: number;
+  scheduledAt: string;
+  clientName: string;
+  blockNumber: number;
+}
+
+interface OverrideWithClashes {
+  overrideId: string;
+  clashes: OverrideClash[];
+}
+
 interface AvailabilityManagerProps {
   initialSettings: BookingSettings | null;
   initialPattern: PatternRow[];
   initialOverrides: OverrideRow[];
   bookedThisWeek: number;
   clashesCount: number;
+  overrideClashes: OverrideWithClashes[];
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────
@@ -136,7 +154,9 @@ export function AvailabilityManager({
   initialOverrides,
   bookedThisWeek,
   clashesCount,
+  overrideClashes,
 }: AvailabilityManagerProps) {
+  const router = useRouter();
   const [settings, setSettings] = useState<BookingSettings>(
     initialSettings ?? {
       id: "",
@@ -154,6 +174,8 @@ export function AvailabilityManager({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(true);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [movingSessionId, setMovingSessionId] = useState<string | null>(null);
+  const [movedSessionIds, setMovedSessionIds] = useState<Set<string>>(new Set());
 
   const markUnsaved = useCallback(() => {
     setSaved(false);
@@ -219,6 +241,43 @@ export function AvailabilityManager({
   const toggleSection = useCallback((key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
+
+  const moveSession = useCallback(
+    async (sessionId: string, currentScheduledAt: string) => {
+      setMovingSessionId(sessionId);
+      try {
+        // Suggest same time next week as the default move target
+        const current = new Date(currentScheduledAt);
+        const next = new Date(current);
+        next.setDate(next.getDate() + 7);
+        const yyyy = next.getFullYear();
+        const mm = String(next.getMonth() + 1).padStart(2, "0");
+        const dd = String(next.getDate()).padStart(2, "0");
+        const hh = String(current.getHours()).padStart(2, "0");
+        const mi = String(current.getMinutes()).padStart(2, "0");
+        const newScheduledAt = `${yyyy}-${mm}-${dd}T${hh}:${mi}:00Z`;
+
+        const res = await fetch("/api/hub/availability/move-clashing-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, newScheduledAt }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          toast.error(err?.error ?? "Failed to move session");
+          return;
+        }
+
+        toast.success("Session moved — client told");
+        setMovedSessionIds((prev) => new Set(prev).add(sessionId));
+        router.refresh();
+      } finally {
+        setMovingSessionId(null);
+      }
+    },
+    [router]
+  );
 
   const sessionLen = settings.session_length;
   const gap = settings.gap_after;
@@ -539,8 +598,8 @@ export function AvailabilityManager({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground">Time off and one-off changes</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Holidays, appointments, and hours you open outside the pattern. Anything that clashes
-                  with a booked session is flagged here rather than left to be discovered on the day.
+                  Holidays, appointments, and hours you open outside the pattern. Any session that
+                  clashes is listed with the real client name and time — never invented.
                 </p>
               </div>
               <button
@@ -557,65 +616,170 @@ export function AvailabilityManager({
                   No time off or extra hours set yet.
                 </div>
               ) : (
-                overrides.map((o) => (
-                  <div key={o.id} className="flex flex-wrap items-start gap-3 px-5 py-3.5">
-                    <div
-                      className={cn(
-                        "w-9 h-9 rounded-[10px] grid place-items-center shrink-0 border border-[var(--hub-border)]",
-                        o.override_type === "time_off"
-                          ? "bg-[var(--s-warning-bg)] text-[var(--s-warning)]"
-                          : "bg-[var(--s-success-bg)] text-[var(--color-teal)]"
-                      )}
-                    >
-                      {o.override_type === "time_off" ? (
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
-                        </svg>
-                      ) : (
-                        <IconPlus className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-foreground">
-                        {o.start_date === o.end_date
-                          ? o.start_date
-                          : `${o.start_date} – ${o.end_date}`}
-                        {o.start_time && o.end_time
-                          ? `, ${o.start_time} – ${o.end_time}`
-                          : ""}
-                      </p>
-                      {o.reason && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{o.reason}</p>
-                      )}
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        <span
+                overrides.map((o) => {
+                  const clashData = overrideClashes.find((c) => c.overrideId === o.id);
+                  const clashes = clashData?.clashes ?? [];
+
+                  return (
+                    <div key={o.id} className="px-5 py-3.5">
+                      <div className="flex flex-wrap items-start gap-3">
+                        <div
                           className={cn(
-                            "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border",
+                            "w-9 h-9 rounded-[10px] grid place-items-center shrink-0 border border-[var(--hub-border)]",
                             o.override_type === "time_off"
-                              ? "bg-[var(--s-warning-bg)] text-[#7A5A17] border-[var(--s-warning-bd)]"
-                              : "bg-[var(--s-primary-bg)] text-[var(--color-rose-text)] border-[var(--s-primary-bd)]"
+                              ? "bg-[var(--s-warning-bg)] text-[var(--s-warning)]"
+                              : "bg-[var(--s-success-bg)] text-[var(--color-teal)]"
                           )}
                         >
-                          {o.override_type === "time_off" ? "Time off" : "Extra availability"}
-                        </span>
+                          {o.override_type === "time_off" ? (
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                            </svg>
+                          ) : (
+                            <IconPlus className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-foreground">
+                            {o.start_date === o.end_date
+                              ? o.start_date
+                              : `${o.start_date} – ${o.end_date}`}
+                            {o.start_time && o.end_time
+                              ? `, ${o.start_time} – ${o.end_time}`
+                              : ""}
+                          </p>
+                          {o.reason && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{o.reason}</p>
+                          )}
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border",
+                                o.override_type === "time_off"
+                                  ? "bg-[var(--s-warning-bg)] text-[#7A5A17] border-[var(--s-warning-bd)]"
+                                  : "bg-[var(--s-primary-bg)] text-[var(--color-rose-text)] border-[var(--s-primary-bd)]"
+                              )}
+                            >
+                              {o.override_type === "time_off" ? "Time off" : "Extra availability"}
+                            </span>
+                            {o.override_type === "time_off" && clashes.length > 0 && (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border bg-[var(--s-warning-bg)] text-[#7A5A17] border-[var(--s-warning-bd)]">
+                                <IconAlertTriangle className="w-3 h-3" />
+                                {clashes.length} clash{clashes.length !== 1 ? "es" : ""}
+                              </span>
+                            )}
+                            {o.override_type === "time_off" && clashes.length === 0 && (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border bg-[var(--s-success-bg)] text-[var(--color-teal)] border-[var(--s-success-bd)]">
+                                <IconCheckCircle className="w-3 h-3" />
+                                No sessions affected
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            className="rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-[var(--hub-hover)]"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-lg border border-[var(--s-danger-bd)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-[var(--s-danger)] hover:bg-[var(--s-danger-bg)]"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
+
+                      {/* ── Real clash list (only for time-off overrides with actual clashes) ── */}
+                      {o.override_type === "time_off" && clashes.length > 0 && (
+                        <div className="mt-3 ml-12 border border-[var(--s-warning-bd)] bg-[var(--s-warning-bg)] rounded-xl p-3.5">
+                          <p className="text-[11.5px] text-[#7A5A17] leading-relaxed mb-3">
+                            {clashes.length} client{clashes.length !== 1 ? "s are" : " is"} booked in this
+                            period. Blocking these hours does not cancel their sessions behind your back.
+                            Moving a session flags it as free so the client never loses a session from
+                            their block.
+                          </p>
+                          <div className="space-y-2.5">
+                            {clashes.map((clash) => {
+                              const isMoved = movedSessionIds.has(clash.sessionId);
+                              const isMoving = movingSessionId === clash.sessionId;
+                              const scheduled = new Date(clash.scheduledAt);
+                              const dateStr = scheduled.toLocaleDateString("en-GB", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                                timeZone: "Europe/London",
+                              });
+                              const timeStr = scheduled.toLocaleTimeString("en-GB", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: "Europe/London",
+                              });
+
+                              return (
+                                <div
+                                  key={clash.sessionId}
+                                  className={cn(
+                                    "flex items-center gap-3 rounded-lg border px-3 py-2.5",
+                                    isMoved
+                                      ? "border-[var(--s-success-bd)] bg-[var(--s-success-bg)]"
+                                      : "border-[var(--hub-border)] bg-[var(--hub-card)]"
+                                  )}
+                                >
+                                  <div className="w-8 h-8 rounded-full bg-[var(--s-primary-bg)] text-[var(--color-rose-text)] grid place-items-center text-[11px] font-bold shrink-0">
+                                    {clash.clientName
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")
+                                      .slice(0, 2)
+                                      .toUpperCase()}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[13px] font-bold text-foreground truncate">
+                                      {clash.clientName}
+                                    </p>
+                                    <p className="text-[11.5px] text-muted-foreground">
+                                      {dateStr}, {timeStr} · session {clash.sessionNumber}
+                                    </p>
+                                  </div>
+                                  {isMoved ? (
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-teal)] shrink-0">
+                                      <IconCheckCircle className="w-3.5 h-3.5" />
+                                      Moved · client told
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => moveSession(clash.sessionId, clash.scheduledAt)}
+                                      disabled={isMoving}
+                                      className={cn(
+                                        "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11.5px] font-semibold shrink-0 transition-colors",
+                                        isMoving
+                                          ? "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground cursor-wait"
+                                          : "border-[var(--color-rose)] bg-white text-[var(--color-rose-text)] hover:bg-[var(--s-primary-bg)]"
+                                      )}
+                                    >
+                                      {isMoving ? (
+                                        "Moving…"
+                                      ) : (
+                                        <>
+                                          Move to same time next week
+                                          <IconArrowRight className="w-3 h-3" />
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        className="rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-[var(--hub-hover)]"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-[var(--s-danger-bd)] bg-[var(--hub-card)] px-2.5 py-1 text-xs font-medium text-[var(--s-danger)] hover:bg-[var(--s-danger-bg)]"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </HubCard>
