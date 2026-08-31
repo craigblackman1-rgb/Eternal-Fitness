@@ -16,11 +16,11 @@ function secretsMatch(provided: string, secret: string): boolean {
 /**
  * Auto-lapse passed bookings — sessions with status='scheduled' that are
  * more than 1 day past their scheduled_at, have no completed_at, and no
- * completed set_logs. These sit "scheduled" forever otherwise (13 found on
- * prod 2026-08-29). No new status value — flips to 'cancelled' with a
- * descriptive cancel_reason.
+ * set_logs. Instead of cancelling outright (Craig decision 2026-08-31),
+ * flag them for Esther's review. The flag is idempotent: already-flagged
+ * sessions are skipped.
  */
-async function autoLapsePassedBookings(): Promise<{ lapsed: number }> {
+async function autoLapsePassedBookings(): Promise<{ flagged: number }> {
   const pool = getPool();
 
   const { rows: stale } = await pool.query(
@@ -29,40 +29,26 @@ async function autoLapsePassedBookings(): Promise<{ lapsed: number }> {
      WHERE s.status = 'scheduled'
        AND s.scheduled_at < now() - interval '1 day'
        AND s.completed_at IS NULL
+       AND s.lapse_flagged_at IS NULL
        AND NOT EXISTS (
          SELECT 1 FROM set_logs sl
          WHERE sl.session_id = s.id
        )`,
   );
 
-  if (stale.length === 0) return { lapsed: 0 };
+  if (stale.length === 0) return { flagged: 0 };
 
   const ids = stale.map((r: { id: string }) => r.id);
   const now = new Date().toISOString();
-  const reason = "Lapsed — booked slot passed with no session logged";
 
   await pool.query(
     `UPDATE sessions
-     SET status = 'cancelled',
-         cancelled_at = $1,
-         cancel_reason = $2
-     WHERE id = ANY($3)`,
-    [now, reason, ids],
-  );
-
-  // Mark corresponding outlook_booking_events as resolved — clear the
-  // session link so the booking returns to the manual triage queue if the
-  // event reappears on the calendar.
-  await pool.query(
-    `UPDATE outlook_booking_events
-     SET session_id = NULL,
-         resolved_at = $1,
-         updated_at = $1
-     WHERE session_id = ANY($2)`,
+     SET lapse_flagged_at = $1
+     WHERE id = ANY($2)`,
     [now, ids],
   );
 
-  return { lapsed: stale.length };
+  return { flagged: stale.length };
 }
 
 /**
@@ -102,8 +88,10 @@ async function handle(request: Request) {
     }
 
     // Auto-lapse stale bookings — sessions that are past their slot with no
-    // logged session. Runs after both syncs so it never races with ingest.
-    let autoLapse: { lapsed: number } = { lapsed: 0 };
+    // logged session. Flags for human review instead of cancelling outright
+    // (Craig decision 2026-08-31). Runs after both syncs so it never races
+    // with ingest.
+    let autoLapse: { flagged: number } = { flagged: 0 };
     try {
       autoLapse = await autoLapsePassedBookings();
     } catch (lapseErr) {

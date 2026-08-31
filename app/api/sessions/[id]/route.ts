@@ -10,7 +10,7 @@ import { londonDayKey } from "@/lib/schedule-dates";
 // prescription + session_log (existing behaviour, from an earlier lane). The
 // three scheduling fields are Lane D1 additions. Anything else in the body is
 // ignored so this route can't be used to touch columns it shouldn't.
-const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason", "charged_free"] as const;
+const ALLOWED_FIELDS = ["data", "scheduled_at", "cancelled_at", "cancel_reason", "charged_free", "lapse_flagged_at"] as const;
 
 // Single-session read (CR-EF-079 L5 — the mobile "add workout from this
 // client's block" preview needs one session's full data by id; nothing else

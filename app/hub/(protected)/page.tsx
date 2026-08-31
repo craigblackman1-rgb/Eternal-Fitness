@@ -128,6 +128,13 @@ export default async function DashboardPage() {
     (c) => c.compliance_status === "pending_medical" || c.compliance_status === "action_needed",
   );
 
+  // CR-EF-099 — flagged sessions awaiting Esther's review (did it happen or not?)
+  const { count: flaggedSessionCount } = await supabase
+    .from("sessions")
+    .select("id", { count: "exact", head: true })
+    .not("lapse_flagged_at", "is", null)
+    .eq("status", "scheduled");
+
   // Alerts accordion — hub-dashboard.html collapses every flat status banner
   // into one collapsible section ("3 alerts" + a breakdown) so they cost a
   // single row of chrome instead of stacking four banners above the fold.
@@ -136,7 +143,8 @@ export default async function DashboardPage() {
   if (pendingReview.length > 0) alertSummaries.push(`${pendingReview.length} client${pendingReview.length === 1 ? "" : "s"} need action`);
   if (quietClients.length > 0) alertSummaries.push(`${quietClients.length} gone quiet`);
   if (updatesDueSoon.length > 0) alertSummaries.push(`${updatesDueSoon.length} update${updatesDueSoon.length === 1 ? "" : "s"} due in 7 days`);
-  const totalAlerts = doNotTrain.length + pendingReview.length + quietClients.length + updatesDueSoon.length;
+  if (flaggedSessionCount && flaggedSessionCount > 0) alertSummaries.push(`${flaggedSessionCount} flagged session${flaggedSessionCount === 1 ? "" : "s"}`);
+  const totalAlerts = doNotTrain.length + pendingReview.length + quietClients.length + updatesDueSoon.length + (flaggedSessionCount ?? 0);
 
   // Reviews due — same real signal as the Process & Quality "Reviews due" tile
   // (annual_review_due_date elapsed), not a separately-invented definition.
@@ -362,6 +370,17 @@ export default async function DashboardPage() {
                     </span>
                   ))}{" "}
                   {updatesDueSoon.length === 1 ? "is" : "are"} approaching {updatesDueSoon.length === 1 ? "their" : ""} next update deadline. Updates are derived from each client's interval schedule — send the update to advance the due date.
+                </span>
+              </HubAlert>
+            )}
+            {flaggedSessionCount != null && flaggedSessionCount > 0 && (
+              <HubAlert severity="warning" title={`${flaggedSessionCount} flagged session${flaggedSessionCount === 1 ? "" : "s"} — did they happen?`}>
+                <span>
+                  Sessions past their slot with no logged activity. Confirm each one individually.
+                  {" "}
+                  <Link href="/hub/sessions/lapse-review" className="font-medium underline underline-offset-2 hover:no-underline">
+                    Review flagged sessions
+                  </Link>
                 </span>
               </HubAlert>
             )}
