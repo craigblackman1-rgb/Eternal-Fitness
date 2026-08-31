@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { SessionStatus } from "@/types";
+import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
 import type { ClientFlag } from "@/lib/mobile-client-flags";
 import { DayAgenda, type AgendaSession } from "@/components/hub/DayAgenda";
 import { ClientNotesPane } from "./ClientNotesPane";
@@ -150,6 +151,7 @@ interface ClientModeViewProps {
   calendarSessions: CalendarSessionView[];
   workouts: WorkoutView[];
   trainTargetId: string | null;
+  exerciseNotes?: AggregatedExerciseNote[];
 }
 
 export function ClientModeView({
@@ -164,6 +166,7 @@ export function ClientModeView({
   calendarSessions,
   workouts,
   trainTargetId,
+  exerciseNotes = [],
 }: ClientModeViewProps) {
   const [tab, setTab] = useState<TabKey>("overview");
 
@@ -366,7 +369,7 @@ export function ClientModeView({
 
         {/* ── NOTES ── */}
         <section className={`pane${tab === "notes" ? " on" : ""}`}>
-          <ClientNotesPane clientId={clientId} />
+          <ClientNotesPane clientId={clientId} exerciseNotes={exerciseNotes} />
         </section>
       </main>
 

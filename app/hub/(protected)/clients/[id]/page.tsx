@@ -29,6 +29,7 @@ import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
 import { ExerciseHistoryPanel } from "@/components/progress/ExerciseHistoryPanel";
 import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
 import { buildExerciseHistory } from "@/lib/exercise-history";
+import { aggregateExerciseNotes } from "@/lib/exercise-notes";
 import { getLastClientLogAt } from "@/lib/progress-db";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
@@ -185,6 +186,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   ];
   const exerciseTrends = buildExerciseTrends(combinedSetLogs, trendSessionMeta);
   const exerciseHistory = buildExerciseHistory(combinedSetLogs);
+  const exerciseNotes = aggregateExerciseNotes(sessions ?? []);
 
   const isHomeTraining = client.delivery_mode === "home_training";
   const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
@@ -589,7 +591,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </div>
               </HubAccordionSection>
 
-              <ClientNotesPanel clientId={client.id} />
+              <ClientNotesPanel clientId={client.id} exerciseNotes={exerciseNotes} />
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
                 <HubAccordionSection

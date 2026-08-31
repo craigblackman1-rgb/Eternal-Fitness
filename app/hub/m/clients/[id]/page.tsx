@@ -6,6 +6,7 @@ import { computeComplianceFlags } from "@/lib/compliance";
 import { buildMedicalFlags, type ClientFlag } from "@/lib/mobile-client-flags";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
+import { aggregateExerciseNotes, type AggregatedExerciseNote } from "@/lib/exercise-notes";
 import { ClientModeView } from "./ClientModeView";
 import type {
   BlockView,
@@ -160,6 +161,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         .in("block_id", blockIds)
     : { data: [] as SessionRow[] };
   const sessions = (sessionsData ?? []) as SessionRow[];
+  const exerciseNotes: AggregatedExerciseNote[] = aggregateExerciseNotes(sessions as any);
 
   const currentBlock = blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0] ?? null;
   const currentBlockSessions = currentBlock ? sessions.filter((s) => s.block_id === currentBlock.id) : [];
@@ -301,6 +303,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         calendarSessions={calendarSessions}
         workouts={workouts}
         trainTargetId={trainTargetId}
+        exerciseNotes={exerciseNotes}
       />
     </>
   );
