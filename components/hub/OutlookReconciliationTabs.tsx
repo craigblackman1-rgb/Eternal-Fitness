@@ -5,11 +5,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { IconCalendar } from "@/components/icons";
 
-/** CR-EF-050/CR-EF-028 — tab bar shared by the two Outlook reconciliation
- *  queues (Bookings, Possible duplicates), matching the mockup's tabbar. */
-export function OutlookReconciliationTabs({ active }: { active: "bookings" | "duplicates" }) {
+/** CR-EF-050/CR-EF-028/CR-EF-111 — tab bar shared by the three Outlook reconciliation
+ *  queues (Bookings, Possible duplicates, Unassigned), matching the mockup's tabbar. */
+export function OutlookReconciliationTabs({ active }: { active: "bookings" | "duplicates" | "unassigned" }) {
   const [bookingsCount, setBookingsCount] = useState<number | null>(null);
   const [duplicatesCount, setDuplicatesCount] = useState<number | null>(null);
+  const [unassignedCount, setUnassignedCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/outlook-bookings?status=open&count=true")
@@ -20,6 +21,10 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
       .then((r) => (r.ok ? r.json() : null))
       .then((b) => setDuplicatesCount(b?.count ?? 0))
       .catch(() => setDuplicatesCount(0));
+    fetch("/api/sessions/unassigned-outlook?count=true")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b) => setUnassignedCount(b?.count ?? 0))
+      .catch(() => setUnassignedCount(0));
   }, []);
 
   const tabClass = (on: boolean) =>
@@ -53,6 +58,16 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
         <IconCalendar className="h-3.5 w-3.5" />
         Possible duplicates
         <span className={countClass(active === "duplicates")}>{duplicatesCount ?? "–"}</span>
+      </Link>
+      <Link
+        role="tab"
+        aria-selected={active === "unassigned"}
+        href="/hub/schedule/outlook/unassigned"
+        className={tabClass(active === "unassigned")}
+      >
+        <IconCalendar className="h-3.5 w-3.5" />
+        Unassigned
+        <span className={countClass(active === "unassigned")}>{unassignedCount ?? "–"}</span>
       </Link>
     </nav>
   );

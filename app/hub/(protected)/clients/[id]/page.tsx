@@ -361,18 +361,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       <HubCard>
         <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Status" color="slate" />
         <div className="pb-5 space-y-0">
-          <div className="flex items-center justify-between py-2 text-sm">
-            <span className="text-muted-foreground">Compliance</span>
+          <Link href={`/hub/clients/${client.client_number}?tab=compliance`} className="flex items-center justify-between py-2 text-sm group">
+            <span className="text-muted-foreground group-hover:text-rose transition-colors">Compliance</span>
             {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="text-muted-foreground">—</span>}
-          </div>
-          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
-            <span className="text-muted-foreground">GP Clearance</span>
+          </Link>
+          <Link href={`/hub/clients/${client.client_number}/edit`} className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)] group">
+            <span className="text-muted-foreground group-hover:text-rose transition-colors">GP Clearance</span>
             {p?.health ? <YesNoPill yes={gpClearance} /> : <span className="text-muted-foreground">—</span>}
-          </div>
-          <div className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)]">
-            <span className="text-muted-foreground">Outstanding</span>
+          </Link>
+          <Link href={`/hub/clients/${client.client_number}?tab=compliance`} className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)] group">
+            <span className="text-muted-foreground group-hover:text-rose transition-colors">Outstanding</span>
             <span className="font-medium text-foreground">{outstandingCount}</span>
-          </div>
+          </Link>
         </div>
       </HubCard>
 

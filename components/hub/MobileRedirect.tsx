@@ -22,7 +22,7 @@ export function MobileRedirect() {
     if (pref) return;
 
     if (window.innerWidth < MOBILE_BREAKPOINT) {
-      router.replace("/hub/m");
+      router.push("/hub/m");
     }
   }, [router, pathname]);
 
