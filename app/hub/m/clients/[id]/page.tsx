@@ -17,6 +17,7 @@ import type {
   SessionView,
   PoolWorkoutView,
   SessionPotView,
+  PinnedNoteView,
 } from "./ClientModeView";
 
 const ICO = {
@@ -167,6 +168,18 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   const sessions = (sessionsData ?? []) as SessionRow[];
   const exerciseNotes: AggregatedExerciseNote[] = aggregateExerciseNotes(sessions as any);
 
+  // Pinned note for the overview panel
+  const { data: pinnedNotes } = await supabase
+    .from("client_notes")
+    .select("id, note, created_at, author")
+    .eq("client_id", row.id)
+    .eq("pinned", true)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const pinnedNote: PinnedNoteView | null = pinnedNotes?.[0]
+    ? { id: pinnedNotes[0].id, text: pinnedNotes[0].note, createdAt: pinnedNotes[0].created_at, author: pinnedNotes[0].author ?? null }
+    : null;
+
   const currentBlock = blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0] ?? null;
   const currentBlockSessions = currentBlock ? sessions.filter((s) => s.block_id === currentBlock.id) : [];
 
@@ -299,48 +312,59 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   };
 
   /* ── CR-EF-113: Pool workout view ── */
-  // Each distinct archetype in the current block represents one workout in the pool.
-  // Pool status: "used" (completed), "assigned" (scheduled to a future slot),
-  // "unused" (not scheduled), or "next" (first unused in sequence).
+  // Each distinct workout in the programme is one pool entry. The workout
+  // identity is the archetype (A/B/C/etc) — stable across sessions. For
+  // sessions without an archetype (e.g. trainer-created ad-hoc sessions),
+  // the workout name is used as the key. Outlook placeholders (no workout
+  // assigned) are excluded from the pool — they represent empty calendar
+  // slots, not workouts in the programme.
+  // Pool status: "used" (completed), "assigned" (scheduled, none completed),
+  // "unused" (not scheduled), or "next" (first unused in sequence order).
   const poolWorkouts: PoolWorkoutView[] = [];
-  const seenArchetypes = new Set<string>();
-  // Sort by session_number to maintain sequence order
+  const seenPoolKeys = new Set<string>();
   const sortedBlockSessions = [...currentBlockSessions].sort((a, b) => a.session_number - b.session_number);
   for (const s of sortedBlockSessions) {
-    const arch = s.archetype;
-    if (!arch || seenArchetypes.has(arch)) continue;
-    seenArchetypes.add(arch);
+    const name = sessionWorkoutName(s);
+    if (name === "No workout assigned yet") continue;
+    // Key: archetype for structured workouts, name for ad-hoc (no archetype)
+    const poolKey = s.archetype ?? name;
+    if (seenPoolKeys.has(poolKey)) continue;
+    seenPoolKeys.add(poolKey);
 
-    // Find the first session with this archetype (for name resolution)
-    const firstSession = sortedBlockSessions.find((ss) => ss.archetype === arch);
-    if (!firstSession) continue;
-
-    const workoutSessions = currentBlockSessions.filter((ss) => ss.archetype === arch);
-    const completedSessions = workoutSessions.filter((ss) => ss.data?.session_log?.completed_at);
-    const scheduledSessions = workoutSessions.filter((ss) => ss.scheduled_at && !ss.cancelled_at);
+    // Find all sessions belonging to this pool entry
+    const poolSessions = currentBlockSessions.filter(
+      (ss) => (ss.archetype ?? sessionWorkoutName(ss)) === poolKey,
+    );
+    const completedSessions = poolSessions.filter((ss) => ss.data?.session_log?.completed_at);
+    const scheduledSessions = poolSessions.filter((ss) => ss.scheduled_at && !ss.cancelled_at);
     const isUsed = completedSessions.length > 0;
     const isAssigned = scheduledSessions.length > 0 && !isUsed;
 
-    // Get the delivery date (first completed session's completed_at)
     const deliveryDate = completedSessions[0]?.data?.session_log?.completed_at ?? null;
-    // Get the assigned date (first scheduled session's scheduled_at)
     const assignedDate = scheduledSessions[0]?.scheduled_at ?? null;
 
+    const poolIndex = poolWorkouts.length;
     poolWorkouts.push({
-      id: firstSession.id,
-      letter: arch,
-      name: sessionWorkoutName(firstSession),
+      id: s.id,
+      letter: String.fromCharCode(65 + poolIndex),
+      name,
       status: isUsed ? "used" : isAssigned ? "assigned" : "unused",
       deliveryDate,
       assignedDate,
     });
   }
 
-  // Mark the first "unused" workout as "next"
+  // Mark the first "unused" workout as "next" — the next in sequence to be delivered
   const nextUnused = poolWorkouts.find((w) => w.status === "unused");
   if (nextUnused) nextUnused.status = "next";
 
   const unusedCount = poolWorkouts.filter((w) => w.status === "unused" || w.status === "next").length;
+
+  // Earliest scheduled session with no workout attached — used by the Pool
+  // nextcard to show "Earliest session without a workout is {date}"
+  const earliestUnattached = currentBlockSessions
+    .filter((s) => s.scheduled_at && !s.cancelled_at && sessionWorkoutName(s) === "No workout assigned yet")
+    .sort((a, b) => new Date(a.scheduled_at as string).getTime() - new Date(b.scheduled_at as string).getTime())[0] ?? null;
 
   return (
     <>
@@ -387,6 +411,8 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         unusedPoolCount={unusedCount}
         trainTargetId={trainTargetId}
         exerciseNotes={exerciseNotes}
+        pinnedNote={pinnedNote}
+        earliestUnattached={earliestUnattached ? { scheduledAt: earliestUnattached.scheduled_at as string } : null}
       />
     </>
   );

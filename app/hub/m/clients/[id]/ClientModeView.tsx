@@ -68,6 +68,13 @@ export interface SessionPotView {
   bookedAhead: number;
 }
 
+export interface PinnedNoteView {
+  id: string;
+  text: string;
+  createdAt: string;
+  author: string | null;
+}
+
 export interface BlockView {
   id: string;
   number: number;
@@ -243,6 +250,8 @@ interface ClientModeViewProps {
   unusedPoolCount: number;
   trainTargetId: string | null;
   exerciseNotes?: AggregatedExerciseNote[];
+  pinnedNote?: PinnedNoteView | null;
+  earliestUnattached?: { scheduledAt: string } | null;
 }
 
 export function ClientModeView({
@@ -261,6 +270,8 @@ export function ClientModeView({
   unusedPoolCount,
   trainTargetId,
   exerciseNotes = [],
+  pinnedNote = null,
+  earliestUnattached = null,
 }: ClientModeViewProps) {
   const [tab, setTab] = useState<TabKey>("overview");
 
@@ -274,7 +285,6 @@ export function ClientModeView({
     const past: SessionView[] = [];
 
     for (const s of sessionsView) {
-      if (s.status === "cancelled") continue;
       if (!s.scheduledAt) {
         unscheduled.push(s);
       } else if (new Date(s.scheduledAt).getTime() >= now.getTime() || s.isToday) {
@@ -427,9 +437,22 @@ export function ClientModeView({
               </span>
             </div>
             <div className="panel-b">
-              <div className="pin-empty">
-                No pinned note yet — pinning notes lands with the notes upgrade.
-              </div>
+              {pinnedNote ? (
+                <div className="flagcard ok">
+                  <span className="flag-ic">{ICO.pin}</span>
+                  <div>
+                    <b>{pinnedNote.text.slice(0, 60)}{pinnedNote.text.length > 60 ? "…" : ""}</b>
+                    <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 2 }}>
+                      Added on {new Date(pinnedNote.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      {pinnedNote.author ? ` · ${pinnedNote.author}` : ""} · pinned
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="pin-empty">
+                  No pinned note yet — pin a note from the Notes tab to surface it here.
+                </div>
+              )}
             </div>
           </div>
 
@@ -491,14 +514,17 @@ export function ClientModeView({
               {potView.bookedAhead > 0 && (
                 <span className="mseg booked" style={{ width: `${(potView.bookedAhead / potView.purchased) * 100}%` }} />
               )}
-              {potView.freeCancellations + potView.unreviewedCancellations > 0 && (
-                <span
-                  className="mseg free"
-                  style={{
-                    width: `${((potView.freeCancellations + potView.unreviewedCancellations) / potView.purchased) * 100}%`,
-                  }}
-                />
-              )}
+              {(() => {
+                const notBooked = Math.max(potView.remaining - potView.bookedAhead, 0);
+                return notBooked > 0 ? (
+                  <span
+                    className="mseg free"
+                    style={{
+                      width: `${(notBooked / potView.purchased) * 100}%`,
+                    }}
+                  />
+                ) : null;
+              })()}
             </div>
             <div className="mpot-legend">
               <span className="mleg">
@@ -513,7 +539,7 @@ export function ClientModeView({
                 <i style={{ background: "var(--rose)" }} />Booked <b>{potView.bookedAhead}</b>
               </span>
               <span className="mleg">
-                <i style={{ background: "var(--hover)" }} />Not booked <b>{potView.remaining - potView.bookedAhead}</b>
+                <i style={{ background: "var(--hover)" }} />Not booked <b>{Math.max(potView.remaining - potView.bookedAhead, 0)}</b>
               </span>
             </div>
           </div>
@@ -532,7 +558,7 @@ export function ClientModeView({
                   </div>
                   <div className="blist">
                     {wk.sessions.map((s) => (
-                      <SessionRow key={s.id} session={s} firstName={firstName} />
+                      <SessionRow key={s.id} session={s} firstName={firstName} nextPool={s.name === "No workout assigned yet" ? nextPool : undefined} />
                     ))}
                   </div>
                 </div>
@@ -616,14 +642,27 @@ export function ClientModeView({
                 </div>
               </div>
               <div className="nextcard-b">
-                {nextPool.assignedDate && (
+                {earliestUnattached ? (
                   <div className="nextcard-target">
                     {ICO.calSm}
                     <span>
-                      Earliest session without a workout is <b>{formatShortDate(nextPool.assignedDate)}</b>
+                      Earliest session without a workout is <b>{formatShortDate(earliestUnattached.scheduledAt)}</b>
                     </span>
                   </div>
-                )}
+                ) : nextPool.assignedDate ? (
+                  <div className="nextcard-target">
+                    {ICO.calSm}
+                    <span>
+                      Assigned to <b>{formatShortDate(nextPool.assignedDate)}</b>
+                    </span>
+                  </div>
+                ) : null}
+                <button className="mbtn" onClick={() => setTab("sessions")}>
+                  Attach to {earliestUnattached ? formatShortDate(earliestUnattached.scheduledAt) : "next session"}
+                </button>
+                <button className="mbtn ghost" onClick={() => setTab("sessions")}>
+                  Choose a different session
+                </button>
               </div>
             </div>
           )}
@@ -720,7 +759,7 @@ export function ClientModeView({
 
 /* ── Session row sub-component ── */
 
-function SessionRow({ session: s, firstName }: { session: SessionView; firstName: string }) {
+function SessionRow({ session: s, firstName, nextPool }: { session: SessionView; firstName: string; nextPool?: PoolWorkoutView }) {
   const positionLabel = s.position != null && s.total != null ? `Session ${s.position} of ${s.total}` : null;
   const isCompleted = s.status === "completed";
   const isCancelled = s.status === "cancelled";
@@ -752,7 +791,7 @@ function SessionRow({ session: s, firstName }: { session: SessionView; firstName
   const subParts: string[] = [];
   if (positionLabel) subParts.push(positionLabel);
   if (s.isToday) subParts.push("today");
-  if (s.scheduledAt && !isCancelled && !isCompleted) {
+  if (s.scheduledAt && !isCancelled && !isCompleted && s.name === "No workout assigned yet") {
     subParts.push("booked via Outlook");
   }
 
@@ -780,7 +819,16 @@ function SessionRow({ session: s, firstName }: { session: SessionView; firstName
           {isCompleted && <span className="cost-flag minus">−1</span>}
           {isCharged && <span className="cost-flag minus">−1</span>}
           {isFree && <span className="cost-flag zero">no session used</span>}
+          {s.name === "No workout assigned yet" && nextPool && (
+            <span className="next-hint">
+              {ICO.arrowRight}
+              Up next: {nextPool.name}
+            </span>
+          )}
         </div>
+        {s.name === "No workout assigned yet" && nextPool && (
+          <button className="mfill-btn">Attach {nextPool.name}</button>
+        )}
       </div>
     </div>
   );

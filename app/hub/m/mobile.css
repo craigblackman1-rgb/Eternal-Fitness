@@ -785,6 +785,14 @@
 .cost-flag.zero { color: var(--muted); }
 
 /* ── CR-EF-113: Pool tab ── */
+.next-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; color: var(--rose); background: var(--s-primary-bg); border: 1px solid var(--s-primary-bd); border-radius: 999px; padding: 2px 8px; }
+.next-hint svg { width: 10px; height: 10px; flex-shrink: 0; }
+.mfill-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: var(--rose); color: var(--color-white); border: 0; cursor: pointer; margin-top: 7px; align-self: flex-start; }
+.mfill-btn:hover { background: var(--rose-deep, color-mix(in oklab, var(--color-rose) 90%, var(--color-ink))); }
+.mbtn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 48px; border-radius: 8px; border: 0; background: var(--rose); color: var(--color-white); font-size: 15px; font-weight: 700; cursor: pointer; }
+.mbtn:hover { background: var(--rose-deep, color-mix(in oklab, var(--color-rose) 90%, var(--color-ink))); }
+.mbtn.ghost { background: var(--card); border: 1px solid var(--border); color: var(--ink); min-height: 44px; font-size: 14px; margin-top: 8px; }
+.mbtn.ghost:hover { background: var(--hover); }
 .nextcard { background: var(--card); border: 1px solid var(--s-primary-bd); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 14px; }
 .nextcard-top { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--s-primary-bg); }
 .nextcard-let { width: 46px; height: 46px; border-radius: 8px; background: var(--rose); color: var(--color-white); display: grid; place-items: center; font-size: 19px; font-weight: 800; flex-shrink: 0; }
