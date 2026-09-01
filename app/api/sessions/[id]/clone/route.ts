@@ -16,12 +16,14 @@ export async function POST(_request: Request, { params }: { params: { id: string
 
   const { data: existingSessions, error: existingError } = await supabase
     .from("sessions")
-    .select("session_number")
+    .select("session_number, parent_session_id")
     .eq("block_id", original.block_id);
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
 
-  const rows = (existingSessions ?? []) as { session_number: number }[];
-  const sessionNumber = rows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
+  const rows = (existingSessions ?? []) as { session_number: number; parent_session_id: string | null }[];
+  // New slots number from the highest slot number, not sub-sessions (CR-EF-125).
+  const slotRows = rows.filter((s) => !s.parent_session_id);
+  const sessionNumber = slotRows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) {
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
   }

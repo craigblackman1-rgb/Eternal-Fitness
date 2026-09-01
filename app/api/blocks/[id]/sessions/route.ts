@@ -33,7 +33,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
     .order("session_number", { ascending: true });
 
   if (sessionNumber) {
-    const { data, error } = await baseQuery.eq("session_number", parseInt(sessionNumber)).single();
+    const { data, error } = await baseQuery
+      .eq("session_number", parseInt(sessionNumber))
+      .is("parent_session_id", null)
+      .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
   }
@@ -67,12 +70,15 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   const { data: existingSessions, error: existingError } = await supabase
     .from("sessions")
-    .select("session_number, week, phase")
+    .select("session_number, week, phase, parent_session_id")
     .eq("block_id", params.id);
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
 
-  const rows = (existingSessions ?? []) as { session_number: number; week: number | null; phase: string | null }[];
-  const sessionNumber = rows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
+  const rows = (existingSessions ?? []) as { session_number: number; week: number | null; phase: string | null; parent_session_id: string | null }[];
+  // New slots number from the highest slot number, not from sub-sessions which
+  // may share a parent's session_number (CR-EF-125).
+  const slotRows = rows.filter((s) => !s.parent_session_id);
+  const sessionNumber = slotRows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) {
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
   }

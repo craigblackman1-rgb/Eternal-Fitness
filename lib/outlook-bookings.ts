@@ -165,11 +165,11 @@ export async function materializeBookingSession(
 
   const { data: allSessions, error: existingErr } = await db
     .from("sessions")
-    .select("id, session_number, scheduled_at, status")
+    .select("id, session_number, scheduled_at, status, parent_session_id")
     .eq("block_id", blockId);
   if (existingErr) throw new Error(`sessions read failed: ${existingErr.message}`);
 
-  const sessions = (allSessions ?? []) as { id: string; session_number: number; scheduled_at: string | null; status: string }[];
+  const sessions = (allSessions ?? []) as { id: string; session_number: number; scheduled_at: string | null; status: string; parent_session_id: string | null }[];
 
   // CR-EF-095 — prefer the earliest unbooked planned session over appending
   // a new content-empty one. A candidate is a session that has no date yet
@@ -215,7 +215,9 @@ export async function materializeBookingSession(
 
   // No unbooked planned slot — fall through to appending a new content-empty
   // session at the next session_number (the original behaviour).
-  const sessionNumber = sessions.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
+  // Only count slots, not sub-sessions (CR-EF-125).
+  const slotSessions = sessions.filter((s) => !s.parent_session_id);
+  const sessionNumber = slotSessions.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) throw new Error("block already has the maximum of 18 sessions");
 
   const sessionData = {

@@ -234,14 +234,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     activeBlock = newBlock;
   }
 
-  /* Determine session number */
+  /* Determine session number — only count slots (parent_session_id IS NULL),
+     not sub-sessions which may share a parent's session_number (CR-EF-125). */
   const { data: existingSessions } = await supabase
     .from("sessions")
-    .select("session_number, week")
+    .select("session_number, week, parent_session_id")
     .eq("block_id", activeBlock.id);
 
-  const rows = (existingSessions ?? []) as { session_number: number; week: number | null }[];
-  const sessionNumber = rows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
+  const rows = (existingSessions ?? []) as { session_number: number; week: number | null; parent_session_id: string | null }[];
+  const slotRows = rows.filter((s) => !s.parent_session_id);
+  const sessionNumber = slotRows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) {
     return NextResponse.json({ error: "This programme already has the maximum of 18 sessions" }, { status: 400 });
   }
