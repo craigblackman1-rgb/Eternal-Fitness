@@ -270,18 +270,21 @@ export default function NewClientPage() {
   const router = useRouter();
 
   /* ── Draft restore ── */
-  const draftLoadedRef = useRef(false);
+  const draftCacheRef = useRef<DraftData | null>(null);
+  const draftCacheReadRef = useRef(false);
   const [isResumingDraft, setIsResumingDraft] = useState(false);
   const initDraft = <T,>(fallback: T, extract: (d: DraftData) => T): T => {
-    if (draftLoadedRef.current || typeof window === "undefined") return fallback;
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return fallback;
-      const draft = deserializeDraft(raw);
-      if (!draft) return fallback;
-      draftLoadedRef.current = true;
-      return extract(draft);
-    } catch { return fallback; }
+    if (typeof window === "undefined") return fallback;
+    if (!draftCacheReadRef.current) {
+      draftCacheReadRef.current = true;
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) draftCacheRef.current = deserializeDraft(raw);
+      } catch { draftCacheRef.current = null; }
+    }
+    const draft = draftCacheRef.current;
+    if (!draft) return fallback;
+    try { return extract(draft); } catch { return fallback; }
   };
 
   const [step, setStep] = useState<StepKey>(() => initDraft(1, (d) => d.step));
@@ -334,7 +337,7 @@ export default function NewClientPage() {
 
   /* ── Show resume banner after draft is restored ── */
   useEffect(() => {
-    if (draftLoadedRef.current) setIsResumingDraft(true);
+    if (draftCacheRef.current) setIsResumingDraft(true);
   }, []);
 
   /* ── Validation tracking ── */
