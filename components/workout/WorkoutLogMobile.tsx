@@ -9,7 +9,7 @@ import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeco
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
-import { parseLoad } from "@/lib/load-helpers";
+import { parseLoad, prescribedWeight } from "@/lib/load-helpers";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
 function displayWeight(kg: number, unit: "kg" | "lb"): string {
@@ -198,9 +198,14 @@ export function WorkoutLogMobile({
         const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
         const last = lastSessionData?.[ex.exercise_name];
 
-        // CR-EF-010: prefill from last session's heaviest working set
-        const prefillWeight = !isBand && !timeBased && last?.weight_kg != null
-          ? displayWeight(last.weight_kg, unit)
+        // CR-EF-010 + CR-EF-124: prescribed load takes precedence over last-session prefill.
+        const prescKg = prescribedWeight(ex.load);
+        const prefillWeight = !isBand && !timeBased
+          ? (prescKg != null
+            ? displayWeight(prescKg, unit)
+            : last?.weight_kg != null
+              ? displayWeight(last.weight_kg, unit)
+              : undefined)
           : undefined;
         const prefillDuration = timeBased && last?.duration_seconds != null
           ? String(last.duration_seconds)

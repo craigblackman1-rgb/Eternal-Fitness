@@ -16,7 +16,7 @@ import {
   formatDurationEstimate,
 } from "@/lib/prescription";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
-import { parseLoad, loadText } from "@/lib/load-helpers";
+import { parseLoad, loadText, prescribedWeight } from "@/lib/load-helpers";
 import {
   enqueue,
   getAllPending,
@@ -385,9 +385,16 @@ export function WorkoutLog({
         const unit = ex.weight_unit ?? defaultUnitForEquipment(ex.equipment ?? []);
         const last = lastSessionData?.[ex.exercise_name];
 
-        // CR-EF-010: prefill from last session's heaviest working set, not all-time best
-        const prefillWeight = !isBand && !timeBased && last?.weight_kg != null
-          ? displayWeight(last.weight_kg, unit)
+        // CR-EF-010 + CR-EF-124: prescribed load takes precedence over last-session prefill.
+        // For weight/pair loads, the prescribed value prefills the weight input.
+        // Non-numeric loads (BODYWEIGHT, POWER, band, absent) fall back to last-session.
+        const prescKg = prescribedWeight(ex.load);
+        const prefillWeight = !isBand && !timeBased
+          ? (prescKg != null
+            ? displayWeight(prescKg, unit)
+            : last?.weight_kg != null
+              ? displayWeight(last.weight_kg, unit)
+              : undefined)
           : undefined;
         const prefillDuration = timeBased && last?.duration_seconds != null
           ? String(last.duration_seconds)
@@ -1819,7 +1826,7 @@ function ExerciseCard({
                               <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                                 Weight ({displayUnit})
                                 {set.prefillWeight && set.weight === set.prefillWeight && set.status !== "done" && (
-                                  <span className="rounded border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#5D646B]" title="Prefilled from last session">Last {set.weight}</span>
+                                  <span className="rounded border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#5D646B]" title={prescribedWeight(exercise.load) != null ? "Prefilled from prescription" : "Prefilled from last session"}>{prescribedWeight(exercise.load) != null ? "Prescribed" : "Last"} {set.weight}</span>
                                 )}
                                 {set.prefillWeight && set.weight !== set.prefillWeight && set.status !== "done" && (
                                   <>
