@@ -587,6 +587,15 @@ function ExerciseSection({
                   />
                 </div>
                 <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground block mb-0.5">Load</label>
+                  <Input
+                    value={(ex as Exercise).load ?? ""}
+                    onChange={(e) => onUpdate(idx, { load: e.target.value })}
+                    placeholder="12 kg"
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div>
                   <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground block mb-0.5">Tempo</label>
                   <Input
                     value={ex.tempo}

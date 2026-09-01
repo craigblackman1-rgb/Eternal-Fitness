@@ -9,6 +9,7 @@ import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeco
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
+import { parseLoad } from "@/lib/load-helpers";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
 function displayWeight(kg: number, unit: "kg" | "lb"): string {
@@ -1649,6 +1650,16 @@ function ExerciseCardMobile({
             <span className="text-sm font-semibold text-gray-900 truncate">{exercise.exercise_name}</span>
           </div>
           <div className="text-xs text-gray-500 mt-0.5">Prescribed <b className="text-gray-700">{presc}</b></div>
+          {/* CR-EF-124: prescribed load chip */}
+          {exercise.load && (() => {
+            const p = parseLoad(exercise.load);
+            if (!p) return null;
+            if (p.kind === "weight") return <div className="mt-1 inline-flex items-baseline gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-rose"><span className="text-[9px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>{p.value}<span className="text-[10px] font-bold text-rose/80">{p.unit}</span></div>;
+            if (p.kind === "pair") return <div className="mt-1 inline-flex items-baseline gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-rose"><span className="text-[9px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>{p.multiplier} × {p.value}<span className="text-[10px] font-bold text-rose/80">{p.unit}</span></div>;
+            if (p.kind === "token") return <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose"><span className="text-[9px] font-extrabold tracking-wider text-rose/80">Load</span>{p.label}{p.sub && <span className="text-[10px] font-semibold normal-case tracking-normal text-rose/70">{p.sub}</span>}</div>;
+            if (p.kind === "band") return <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold text-rose"><span className="text-[9px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>{p.colour} band</div>;
+            return null;
+          })()}
           {exercise.coaching_cue && <div className="text-xs text-gray-400 mt-0.5 italic">{exercise.coaching_cue}</div>}
           {exercise.equipment && exercise.equipment.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
@@ -1820,6 +1831,16 @@ function SupersetBlockMobile({
               <span className="text-sm font-medium text-gray-900 truncate">{ex.exercise_name}</span>
             </div>
             <div className="text-[11px] text-gray-500 mt-0.5">Prescribed <b className="text-gray-700">{presc}</b></div>
+            {/* CR-EF-124: load chip in superset legend */}
+            {ex.load && (() => {
+              const p = parseLoad(ex.load);
+              if (!p) return null;
+              if (p.kind === "weight") return <div className="mt-1 inline-flex items-baseline gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-rose"><span className="text-[9px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>{p.value}<span className="text-[10px] font-bold text-rose/80">{p.unit}</span></div>;
+              if (p.kind === "pair") return <div className="mt-1 inline-flex items-baseline gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-rose"><span className="text-[9px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>{p.multiplier} × {p.value}<span className="text-[10px] font-bold text-rose/80">{p.unit}</span></div>;
+              if (p.kind === "token") return <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose"><span className="text-[9px] font-extrabold tracking-wider text-rose/80">Load</span>{p.label}{p.sub && <span className="text-[10px] font-semibold normal-case tracking-normal text-rose/70">{p.sub}</span>}</div>;
+              if (p.kind === "band") return <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold text-rose"><span className="text-[9px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>{p.colour} band</div>;
+              return null;
+            })()}
           </div>
         );
       })}
@@ -1840,7 +1861,19 @@ function SupersetBlockMobile({
           }
           roundRows.push(
             <div key={`${uid}-${roundIdx}`} className="border-b border-gray-50">
-              <div className="px-4 pt-2 text-[11px] text-gray-500 font-medium">{ex.exercise_name}</div>
+              {/* CR-EF-124: exercise name + load on one line */}
+              <div className="px-4 pt-2 flex flex-wrap items-center gap-1 text-[11px] text-gray-500 font-medium">
+                {ex.exercise_name}
+                {ex.load && (() => {
+                  const p = parseLoad(ex.load);
+                  if (!p) return null;
+                  if (p.kind === "weight") return <span className="inline-flex items-baseline gap-0.5 rounded border border-rose/20 bg-rose/5 px-1 py-px text-[10px] font-bold tabular-nums text-rose">{p.value}<span className="text-[9px] text-rose/80">{p.unit}</span></span>;
+                  if (p.kind === "pair") return <span className="inline-flex items-baseline gap-0.5 rounded border border-rose/20 bg-rose/5 px-1 py-px text-[10px] font-bold tabular-nums text-rose">{p.multiplier}×{p.value}<span className="text-[9px] text-rose/80">{p.unit}</span></span>;
+                  if (p.kind === "token") return <span className="inline-flex items-center rounded border border-rose/20 bg-rose/5 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-rose">{p.label}</span>;
+                  if (p.kind === "band") return <span className="inline-flex items-center gap-0.5 rounded border border-rose/20 bg-rose/5 px-1 py-px text-[10px] font-bold text-rose">{p.colour}</span>;
+                  return null;
+                })()}
+              </div>
               <SetRowMobile
                 exercise={ex}
                 set={set}

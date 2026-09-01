@@ -349,6 +349,11 @@ export interface Exercise {
   rest: string;
   coaching_cue: string;
   modification: string;
+  /** CR-EF-124 — prescribed load (working weight, band, bodyweight, or effort call).
+   *  A free-text field: "12 kg", "2 × 16 kg", "BODYWEIGHT", "POWER", "Green" (band).
+   *  Renders in the target line on both plain cards and superset round rows.
+   *  Absent on legacy data; the UI shows "Not prescribed" when missing. */
+  load?: string;
   equipment: string[];
   media?: ExerciseMedia;
   /** Format group within the main block — free-form, named after the session format it

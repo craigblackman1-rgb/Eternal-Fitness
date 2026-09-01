@@ -16,6 +16,7 @@ import {
   formatDurationEstimate,
 } from "@/lib/prescription";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
+import { parseLoad, loadText } from "@/lib/load-helpers";
 import {
   enqueue,
   getAllPending,
@@ -185,6 +186,60 @@ function BandChip({ band }: { band: Band }) {
       <span className="text-[var(--body)] font-semibold tabular-nums">{band.tension_label}</span>
     </span>
   );
+}
+
+/** CR-EF-124 — prescribed load chip. Rose = prescribed, matching the colour contract. */
+function LoadChip({ load }: { load: string | undefined | null }) {
+  const parsed = parseLoad(load);
+  if (!parsed) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md border border-dashed border-[var(--hub-field-border)] px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+        Not prescribed
+      </span>
+    );
+  }
+  switch (parsed.kind) {
+    case "weight":
+      return (
+        <span className="inline-flex items-baseline gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[12px] font-bold tabular-nums text-rose">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>
+          {parsed.value}<span className="text-[10px] font-bold text-rose/80">{parsed.unit}</span>
+        </span>
+      );
+    case "pair":
+      return (
+        <span className="inline-flex items-baseline gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[12px] font-bold tabular-nums text-rose">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>
+          {parsed.multiplier} × {parsed.value}<span className="text-[10px] font-bold text-rose/80">{parsed.unit}</span>
+        </span>
+      );
+    case "token":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-rose">
+          <span className="text-[10px] font-extrabold tracking-wider text-rose/80">Load</span>
+          {parsed.label}
+          {parsed.sub && <span className="text-[10px] font-semibold normal-case tracking-normal text-rose/70">{parsed.sub}</span>}
+        </span>
+      );
+    case "band":
+      return (
+        <span className="inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[12px] font-bold text-rose">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose/80">Load</span>
+          <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full border border-black/20" style={{ backgroundColor: bandColourHex(parsed.colour) }} />
+          {parsed.colour} band
+        </span>
+      );
+  }
+}
+
+/** Best-effort band colour to hex for the swatch. Falls back to a muted grey. */
+function bandColourHex(colour: string): string {
+  const map: Record<string, string> = {
+    red: "#ef4444", orange: "#f97316", yellow: "#eab308", green: "#22c55e",
+    blue: "#3b82f6", purple: "#a855f7", black: "#1a1a1a", white: "#e5e5e5",
+    pink: "#ec4899", grey: "#9ca3af", gray: "#9ca3af",
+  };
+  return map[colour.toLowerCase()] ?? "#9ca3af";
 }
 
 // ── PB logic (CR-EF-014) ─────────────────────────────────────────
@@ -1532,6 +1587,13 @@ function ExerciseCard({
             }
           </p>
 
+          {/* CR-EF-124: Prescribed load chip */}
+          {exercise.load && (
+            <div className="mt-1.5">
+              <LoadChip load={exercise.load} />
+            </div>
+          )}
+
           {/* CR-EF-010: PB + Last chips */}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {pbLabel ? (
@@ -1950,6 +2012,8 @@ function SupersetBlock({
                     <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isBandEx ? "border-teal/20 bg-teal/10 text-teal" : timeBased ? "border-teal/20 bg-teal/10 text-teal" : "border-rose/20 bg-rose/5 text-rose"}`}>
                       {isBandEx ? <><BandDot band={bandById(bands, ex.band_colour ?? "") ?? bands[0]} />Band</> : timeBased ? <>{ICO.clock}Time</> : <>{ICO.reps}Reps &amp; wt</>}
                     </span>
+                    {/* CR-EF-124: load chip on the legend card too */}
+                    {ex.load && <LoadChip load={ex.load} />}
                     <div className="ml-auto flex shrink-0 gap-1">
                       <button type="button" onClick={() => onNoteToggle(ref)} className={`grid h-7 w-7 place-items-center rounded-md border ${note ? "border-rose/20 bg-rose/5 text-rose" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"}`} aria-label="Add note">{ICO.note}</button>
                     </div>
@@ -1990,7 +2054,12 @@ function SupersetBlock({
 
                 rows.push(
                   <div key={`${ref}-${roundIdx}`}>
-                    <div className="mb-1.5 px-0.5 text-[12.5px] font-bold text-foreground">{ex.exercise_name}</div>
+                    {/* CR-EF-124: exercise name + load on one line, so the weight is
+                        readable at the moment the round is performed. */}
+                    <div className="mb-1.5 flex flex-wrap items-center gap-1.5 px-0.5">
+                      <span className="text-[12.5px] font-bold text-foreground">{ex.exercise_name}</span>
+                      {ex.load && <LoadChip load={ex.load} />}
+                    </div>
                     <div className={`rounded-[11px] border p-2.5 transition-colors ${
                       set.status === "done"
                         ? "border-teal/20 bg-teal/10"

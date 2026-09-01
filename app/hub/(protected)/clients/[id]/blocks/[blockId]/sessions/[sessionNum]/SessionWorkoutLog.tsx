@@ -13,6 +13,7 @@ import {
   estimateSectionSeconds,
   formatDurationEstimate,
 } from "@/lib/prescription";
+import { parseLoad } from "@/lib/load-helpers";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
 import {
   enqueue,
@@ -1302,6 +1303,19 @@ function ExerciseCard({
               <p className="mt-2 border-t border-dashed border-[var(--hub-border)] pt-2 text-[12.5px] text-muted-foreground">
                 <b className="font-bold text-foreground">Prescribed:</b> {formatPrescription(exercise)}
               </p>
+              {/* CR-EF-124: prescribed load chip */}
+              {exercise.load && (() => {
+                const p = parseLoad(exercise.load);
+                if (!p) return null;
+                return (
+                  <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[12px] font-bold text-rose">
+                    {p.kind === "weight" && <>{p.value} {p.unit}</>}
+                    {p.kind === "pair" && <>{p.multiplier} × {p.value} {p.unit}</>}
+                    {p.kind === "token" && <>{p.label}{p.sub ? ` (${p.sub})` : ""}</>}
+                    {p.kind === "band" && <>{p.colour} band</>}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex shrink-0 gap-1">
               <button

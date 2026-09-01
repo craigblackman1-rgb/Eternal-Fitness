@@ -7,6 +7,7 @@ import type { PortalExercise, PortalSessionPlan, PortalTrainingPlan } from "@/li
 import { IconCheck, IconCheckCircle, IconVideo, IconX } from "@/components/icons";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps } from "@/lib/prescription";
 import { defaultUnitForEquipment, toKg, fromKg } from "@/lib/units";
+import { parseLoad } from "@/lib/load-helpers";
 import { derivedWeekLabel } from "@/lib/schedule-dates";
 
 /** Round a converted weight to 1 decimal and trim trailing .0 for display. */
@@ -307,6 +308,19 @@ function ExerciseCard({
       {exercise.coaching_cue && (
         <p className="mt-2 text-sm italic text-muted-foreground">{exercise.coaching_cue}</p>
       )}
+      {/* CR-EF-124: prescribed load chip */}
+      {exercise.load && (() => {
+        const p = parseLoad(exercise.load);
+        if (!p) return null;
+        return (
+          <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-2 py-0.5 text-xs font-semibold text-rose">
+            {p.kind === "weight" && <>{p.value} {p.unit}</>}
+            {p.kind === "pair" && <>{p.multiplier} × {p.value} {p.unit}</>}
+            {p.kind === "token" && <>{p.label}{p.sub ? ` (${p.sub})` : ""}</>}
+            {p.kind === "band" && <>{p.colour} band</>}
+          </div>
+        );
+      })()}
       {exercise.modification && (
         <p className="mt-1 text-sm text-[var(--status-warning)]">
           Easier option: {exercise.modification}

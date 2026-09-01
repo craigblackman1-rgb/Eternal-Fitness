@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import type { Exercise, SessionVersion } from "@/types";
 import { cn } from "@/lib/utils";
 import { computeGroups } from "@/lib/exercise-groups";
+import { parseLoad } from "@/lib/load-helpers";
 
 interface PrescriptionTableProps {
   version: SessionVersion;
@@ -33,6 +34,7 @@ function ExerciseRows({ ex, superset }: { ex: Exercise; superset: boolean }) {
     "font-medium text-foreground px-3 py-2",
     superset && "border-l-2 border-rose/30"
   );
+  const parsed = parseLoad(ex.load);
 
   return (
     <>
@@ -45,12 +47,23 @@ function ExerciseRows({ ex, superset }: { ex: Exercise; superset: boolean }) {
         </td>
         <td className="px-3 py-2 tabular-nums whitespace-nowrap text-foreground/90">{ex.sets ?? "—"}</td>
         <td className="px-3 py-2 tabular-nums whitespace-nowrap text-foreground/90">{ex.reps || "—"}</td>
+        <td className="px-3 py-2 tabular-nums whitespace-nowrap text-foreground/90">
+          {parsed ? (
+            parsed.kind === "weight" ? <>{parsed.value} {parsed.unit}</>
+            : parsed.kind === "pair" ? <>{parsed.multiplier} × {parsed.value} {parsed.unit}</>
+            : parsed.kind === "token" ? <span className="uppercase text-[10px] tracking-wide">{parsed.label}{parsed.sub ? ` (${parsed.sub})` : ""}</span>
+            : parsed.kind === "band" ? <>{parsed.colour} band</>
+            : "—"
+          ) : (
+            <span className="text-muted-foreground italic text-[11px]">Not prescribed</span>
+          )}
+        </td>
         <td className="px-3 py-2 tabular-nums whitespace-nowrap text-foreground/90">{ex.tempo || "—"}</td>
         <td className="px-3 py-2 tabular-nums whitespace-nowrap text-foreground/90">{ex.rest || "—"}</td>
       </tr>
       {hasDetail && (
         <tr className="border-b border-[var(--hub-border)]">
-          <td colSpan={5} className="px-3 pb-2 pt-0 text-xs">
+          <td colSpan={6} className="px-3 pb-2 pt-0 text-xs">
             {ex.coaching_cue && <span className="italic text-muted-foreground">Cue: {ex.coaching_cue}</span>}
             {ex.coaching_cue && ex.modification && " · "}
             {ex.modification && (
@@ -83,6 +96,9 @@ export function PrescriptionTable({ version, className }: PrescriptionTableProps
           </th>
           <th className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] px-3 py-2 text-left whitespace-nowrap">
             Reps
+          </th>
+          <th className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] px-3 py-2 text-left whitespace-nowrap">
+            Load
           </th>
           <th className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium bg-[var(--hub-hover)] px-3 py-2 text-left whitespace-nowrap">
             Tempo

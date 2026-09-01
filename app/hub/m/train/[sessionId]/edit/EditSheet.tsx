@@ -267,7 +267,7 @@ export function EditSheet({
   );
 
   const updateField = useCallback(
-    (sectionKey: string, idx: number, field: "sets" | "reps" | "tempo" | "rest" | "coaching_cue", value: string) => {
+    (sectionKey: string, idx: number, field: "sets" | "reps" | "tempo" | "rest" | "load" | "coaching_cue", value: string) => {
       setSections((prev) => {
         const next = deepClone(prev);
         const arr = next[sectionKey as keyof SessionVersion] as Exercise[];
@@ -1188,6 +1188,15 @@ export function EditSheet({
                               className="set-input"
                               value={ex.reps || ""}
                               onChange={(e) => updateField(sk, idx, "reps", e.target.value)}
+                            />
+                          </label>
+                          <label className="re-field">
+                            <span className="re-field-l">Load</span>
+                            <input
+                              className="set-input"
+                              value={ex.load || ""}
+                              onChange={(e) => updateField(sk, idx, "load", e.target.value)}
+                              placeholder="12 kg"
                             />
                           </label>
                           <label className="re-field">

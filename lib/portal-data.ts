@@ -50,6 +50,8 @@ export interface PortalExercise {
   rest: string;
   coaching_cue: string;
   modification: string;
+  /** CR-EF-124 — prescribed load. Absent on legacy data. */
+  load?: string;
   equipment: string[];
   group_label?: string;
   log_type?: "reps" | "time";

@@ -238,7 +238,7 @@ export function SessionEditor({
     };
   }, []);
 
-  const updateField = (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => {
+  const updateField = (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest" | "load", value: string) => {
     setSections((prev) => ({
       ...prev,
       [sectionKey]: prev[sectionKey].map((e) =>
@@ -1159,7 +1159,7 @@ function ExerciseRow({
   onPickToggle?: () => void;
   isFirst: boolean;
   isLast: boolean;
-  onField: (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest", value: string) => void;
+  onField: (sectionKey: SectionKey, uid: string, field: "sets" | "reps" | "tempo" | "rest" | "load", value: string) => void;
   onSetLogType: (sectionKey: SectionKey, uid: string, logType: "reps" | "time") => void;
   onMoveWithin: (sectionKey: SectionKey, uid: string, dir: 1 | -1) => void;
   onMoveTo: (fromSection: SectionKey, uid: string, toSection: SectionKey) => void;
@@ -1337,6 +1337,7 @@ function ExerciseRow({
       <div className="flex shrink-0 gap-2.5 basis-full sm:basis-auto">
         <EditField label="Sets" value={String(ex.sets ?? "")} onChange={(v) => onField(sectionKey, ex._uid, "sets", v)} width={56} type="number" />
         <EditField label="Reps" value={ex.reps || ""} onChange={(v) => onField(sectionKey, ex._uid, "reps", v)} width={64} />
+        <EditField label="Load" value={ex.load || ""} onChange={(v) => onField(sectionKey, ex._uid, "load", v)} width={120} placeholder="12 kg" />
         <EditField label="Tempo" value={ex.tempo || ""} onChange={(v) => onField(sectionKey, ex._uid, "tempo", v)} width={80} />
         <EditField label="Rest" value={ex.rest || ""} onChange={(v) => onField(sectionKey, ex._uid, "rest", v)} width={56} />
       </div>
@@ -1428,7 +1429,7 @@ function ExerciseRow({
   );
 }
 
-function EditField({ label, value, onChange, width, type = "text" }: { label: string; value: string; onChange: (v: string) => void; width: number; type?: string }) {
+function EditField({ label, value, onChange, width, type = "text", placeholder }: { label: string; value: string; onChange: (v: string) => void; width: number; type?: string; placeholder?: string }) {
   return (
     <div className="flex flex-col gap-0.5" style={{ width }}>
       <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
@@ -1436,6 +1437,7 @@ function EditField({ label, value, onChange, width, type = "text" }: { label: st
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
         className="h-[30px] w-full rounded-md border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-1.5 text-center text-[13px] text-foreground focus:border-rose focus:outline-none focus:ring-2 focus:ring-rose/30"
       />
     </div>

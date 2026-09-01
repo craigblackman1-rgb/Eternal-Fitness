@@ -8,6 +8,7 @@ import type { DBSession, Exercise } from "@/types";
 import { formatFrequency } from "@/types";
 import { derivedWeekLabel, isoToMonday } from "@/lib/schedule-dates";
 import { sessionWorkoutName } from "@/lib/session-display";
+import { parseLoad } from "@/lib/load-helpers";
 
 const phaseLabels: Record<string, string> = {
   foundation: "Foundation",
@@ -302,6 +303,7 @@ function ExerciseTable({
                 <th className="text-left py-1 pr-2 font-semibold">Exercise</th>
                 <th className="text-center px-1 py-1 font-semibold w-8">S</th>
                 <th className="text-center px-1 py-1 font-semibold w-12">R</th>
+                <th className="text-center px-1 py-1 font-semibold w-16">Load</th>
                 <th className="text-center px-1 py-1 font-semibold w-14">
                   Tempo
                 </th>
@@ -314,20 +316,38 @@ function ExerciseTable({
               </tr>
             </thead>
             <tbody>
-              {exercises.map((ex, i) => (
-                <tr key={i} className="border-b border-dashed border-gray-200">
-                  <td className="py-1 pr-2 font-medium">{ex.exercise_name}</td>
-                  <td className="text-center px-1 py-1">{ex.sets}</td>
-                  <td className="text-center px-1 py-1">{ex.reps}</td>
-                  <td className="text-center px-1 py-1">{ex.tempo || "-"}</td>
-                  <td className="text-center px-1 py-1">{ex.rest || "-"}</td>
-                  <td className="px-1 py-1">
-                    {ex.equipment?.length > 0
-                      ? ex.equipment.join(", ")
-                      : "-"}
-                  </td>
-                </tr>
-              ))}
+              {exercises.map((ex, i) => {
+                const parsed = parseLoad(ex.load);
+                return (
+                  <tr key={i} className="border-b border-dashed border-gray-200">
+                    <td className="py-1 pr-2 font-medium">{ex.exercise_name}</td>
+                    <td className="text-center px-1 py-1">{ex.sets}</td>
+                    <td className="text-center px-1 py-1">{ex.reps}</td>
+                    <td className="text-center px-1 py-1">
+                      {parsed ? (
+                        parsed.kind === "weight" ? (
+                          <span className="font-semibold">{parsed.value}<span className="text-[10px] ml-0.5">{parsed.unit}</span></span>
+                        ) : parsed.kind === "pair" ? (
+                          <span className="font-semibold">{parsed.multiplier} × {parsed.value}<span className="text-[10px] ml-0.5">{parsed.unit}</span></span>
+                        ) : parsed.kind === "token" ? (
+                          <span className="font-semibold uppercase text-[10px] tracking-wide">{parsed.label}{parsed.sub && <span className="normal-case block text-[9px] text-gray-500">{parsed.sub}</span>}</span>
+                        ) : parsed.kind === "band" ? (
+                          <span className="font-semibold">{parsed.colour} band</span>
+                        ) : null
+                      ) : (
+                        <span className="italic text-gray-400 text-[10px]">Not prescribed</span>
+                      )}
+                    </td>
+                    <td className="text-center px-1 py-1">{ex.tempo || "-"}</td>
+                    <td className="text-center px-1 py-1">{ex.rest || "-"}</td>
+                    <td className="px-1 py-1">
+                      {ex.equipment?.length > 0
+                        ? ex.equipment.join(", ")
+                        : "-"}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {exercises.some((ex) => ex.coaching_cue || ex.modification) && (
