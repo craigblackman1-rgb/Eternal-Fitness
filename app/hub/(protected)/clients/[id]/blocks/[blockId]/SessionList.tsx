@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { SessionRow } from "./SessionRow";
+import { SubSessionRow } from "./SubSessionRow";
 import { AssignWorkoutDialog } from "./AssignWorkoutDialog";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { isoToLocalTime } from "@/lib/schedule-dates";
 import { sessionWorkoutName } from "@/lib/session-display";
-import type { SessionStatus } from "@/types";
+import type { SessionStatus, DBSession } from "@/types";
 
 interface SessionItem {
   id: string;
@@ -38,6 +39,8 @@ interface SessionListProps {
   /** Chronological positions keyed by session id — derived from scheduled_at,
    *  NOT from session_number. */
   chronologicalPositions: Map<string, { position: number; total: number }>;
+  /** CR-EF-126 — all sessions in the block (including sub-sessions) for nesting */
+  allSessions?: DBSession[];
 }
 
 function sessionStatus(s: SessionItem): SessionStatus {
@@ -79,8 +82,19 @@ export function SessionList({
   blockId,
   archetypeTint,
   chronologicalPositions,
+  allSessions = [],
 }: SessionListProps) {
   const [assignSessionId, setAssignSessionId] = useState<string | null>(null);
+
+  // CR-EF-126 — build map of parent_session_id → sub-sessions for nesting
+  const subSessionsByParent = new Map<string, DBSession[]>();
+  for (const s of allSessions) {
+    if (s.parent_session_id) {
+      const existing = subSessionsByParent.get(s.parent_session_id) ?? [];
+      existing.push(s);
+      subSessionsByParent.set(s.parent_session_id, existing);
+    }
+  }
 
   return (
     <>
@@ -89,24 +103,35 @@ export function SessionList({
         const status = sessionStatus(session);
         const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${session.session_number}`;
         const dayLabel = formatDayLabel(session, totalSessions, chronologicalPositions);
+        const children = subSessionsByParent.get(session.id) ?? [];
 
         return (
-          <SessionRow
-            key={session.id}
-            sessionId={session.id}
-            archetypeLabel={session.archetype || "Session"}
-            archetypeTint={session.archetype ? (archetypeTint[session.archetype] || "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"}
-            focusLabel={focusLabel}
-            status={status}
-            dayLabel={dayLabel}
-            chronologicalPosition={chronologicalPositions.get(session.id) ?? null}
-            sessionUrl={sessionUrl}
-            scheduledAt={session.scheduled_at}
-            cancelReason={session.cancel_reason}
-            chargedFree={session.charged_free}
-            isEmpty={isSessionEmpty(session)}
-            onAssignWorkout={setAssignSessionId}
-          />
+          <div key={session.id}>
+            <SessionRow
+              sessionId={session.id}
+              archetypeLabel={session.archetype || "Session"}
+              archetypeTint={session.archetype ? (archetypeTint[session.archetype] || "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"}
+              focusLabel={focusLabel}
+              status={status}
+              dayLabel={dayLabel}
+              chronologicalPosition={chronologicalPositions.get(session.id) ?? null}
+              sessionUrl={sessionUrl}
+              scheduledAt={session.scheduled_at}
+              cancelReason={session.cancel_reason}
+              chargedFree={session.charged_free}
+              isEmpty={isSessionEmpty(session)}
+              onAssignWorkout={setAssignSessionId}
+            />
+            {/* CR-EF-126 — sub-sessions nested under parent */}
+            {children.map((child) => (
+              <SubSessionRow
+                key={child.id}
+                subSession={child}
+                clientId={clientId}
+                blockId={blockId}
+              />
+            ))}
+          </div>
         );
       })}
 

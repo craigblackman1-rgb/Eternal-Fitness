@@ -76,12 +76,17 @@ export default function SessionViewPage({
   const [rescheduling, setRescheduling] = useState(false);
   // CR-EF-122 — "Add supplementary work" dialog state
   const [addSupplementaryOpen, setAddSupplementaryOpen] = useState(false);
+  // CR-EF-126 — sub-sessions (supplementary work) attached to this session
+  const [subSessions, setSubSessions] = useState<DBSession[]>([]);
+  const [subSessionSetLogs, setSubSessionSetLogs] = useState<Record<string, SetLog[]>>({});
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [scheduling, setScheduling] = useState(false);
   // Track whether the trainer has manually clicked the Studio/Home tab so we
   // don't override their choice once client data arrives.
   const tabManuallyClicked = useRef(false);
+  // CR-EF-126 — cache all sessions for sub-session lookup (Response body is single-use)
+  const allSessionsRef = useRef<DBSession[]>([]);
   // Equipment backfill: fetch the exercise library once and derive equipment
   // for prescriptions that arrive with empty equipment arrays (e.g. from
   // stripEquipment on home-version creation, or AI plan generation).
@@ -134,9 +139,11 @@ export default function SessionViewPage({
         setPbDates(lsData.pbDates ?? {});
       }
       if (allSessionsRes.ok) {
-        const allSessions: { id: string; scheduled_at: string | null }[] = await allSessionsRes.json();
-        setBlockSessions(allSessions);
+        const allSessions: DBSession[] = await allSessionsRes.json();
+        setBlockSessions(allSessions as { id: string; scheduled_at: string | null }[]);
         setTotalSessions(allSessions.length);
+        // CR-EF-126 — sub-sessions are filtered once, reused below
+        allSessionsRef.current = allSessions;
       }
       if (sessionRes.ok) {
         const data = await sessionRes.json();
@@ -150,6 +157,26 @@ export default function SessionViewPage({
             for (const row of rows) map[`${row.exercise_ref}::${row.set_number}`] = row;
             setSetLogs(map);
           }
+          // CR-EF-126 — fetch sub-sessions attached to this session
+          const subs = allSessionsRef.current.filter(
+            (s) => s.parent_session_id === data.id,
+          );
+          setSubSessions(subs);
+          // Fetch set logs for each sub-session to derive logged state
+          const subLogsMap: Record<string, SetLog[]> = {};
+          await Promise.all(
+            subs.map(async (sub: DBSession) => {
+              try {
+                const res = await fetch(`/api/sessions/${sub.id}/set-logs`);
+                if (res.ok) {
+                  subLogsMap[sub.id] = await res.json();
+                }
+              } catch {
+                // Sub-session log fetch failed — treat as no logs
+              }
+            }),
+          );
+          setSubSessionSetLogs(subLogsMap);
         }
       }
       setLoading(false);
@@ -495,7 +522,7 @@ export default function SessionViewPage({
                 onClick={() => setAddSupplementaryOpen(true)}
               >
                 <IconPlus className="h-4 w-4" />
-                Add supplementary work
+                {subSessions.length > 0 ? "Add more supplementary work" : "Add supplementary work"}
               </Button>
             )}
             {sessionNum > 1 && (
@@ -589,6 +616,165 @@ export default function SessionViewPage({
             ? "Session completed — reopen it above to edit the prescription."
             : mode === "log" ? "Log what happened, or edit the prescription — both live here now." : "Editing the prescription — saves to this session only."}
         </span>
+      </div>
+
+      {/* ── CR-EF-126 · Supplementary work on this session ────────────── */}
+      <div className="rounded-[16px] border border-rose/20 bg-rose/5 overflow-hidden">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-rose/20 bg-rose/10">
+          <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={16} height={16}>
+              <path d="M16 6v20M6 16h20" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-[13.5px] font-bold text-foreground leading-tight">Also in this session</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {subSessions.length > 0
+                ? `${subSessions.length} piece${subSessions.length > 1 ? "s" : ""} of extra work in this slot`
+                : "No extra work attached to this slot yet"}
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg gap-1.5"
+              onClick={() => setAddSupplementaryOpen(true)}
+            >
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={14} height={14}>
+                <path d="M16 6v20M6 16h20" />
+              </svg>
+              {subSessions.length > 0 ? "Add more supplementary work" : "Add supplementary work"}
+            </Button>
+          </div>
+        </div>
+        {subSessions.length > 0 ? (
+          <div className="p-4 flex flex-col gap-2.5">
+            {subSessions.map((sub) => {
+              const subLogs = subSessionSetLogs[sub.id] ?? [];
+              const subVersion = sub.data?.versions?.[activeTab] ?? sub.data?.versions?.studio;
+              const totalExercises = subVersion
+                ? (subVersion.warm_up?.length ?? 0) + (subVersion.main_block?.length ?? 0) + (subVersion.cooldown?.length ?? 0)
+                : 0;
+              const loggedExercises = new Set(
+                subLogs.filter((l) => l.completed).map((l) => l.exercise_ref),
+              ).size;
+              const isSettled = sub.status === "completed" || sub.status === "cancelled";
+              const hasLogged = loggedExercises > 0;
+              // Logged state: neutral until proven — grey for "not logged yet",
+              // never green for nothing (§1 clinical honesty).
+              let stateLabel: string;
+              let stateClass: string;
+              if (hasLogged && loggedExercises < totalExercises) {
+                stateLabel = `Logged ${loggedExercises} of ${totalExercises}`;
+                stateClass = "text-[var(--status-warning)] bg-[var(--status-warning-bg)] border-[var(--status-warning-border)]";
+              } else if (hasLogged) {
+                stateLabel = "Logged";
+                stateClass = "text-[var(--teal)] bg-[var(--status-success-bg)] border-[var(--status-success-border)]";
+              } else if (isSettled) {
+                stateLabel = "Never logged";
+                stateClass = "text-[var(--status-danger)] bg-[var(--status-danger-bg)] border-[var(--status-danger-border)]";
+              } else {
+                stateLabel = "Not logged yet";
+                stateClass = "text-muted-foreground bg-[var(--hub-hover)] border-[var(--hub-border)]";
+              }
+              const subUrl = `/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${sub.session_number}`;
+              return (
+                <div key={sub.id} className="relative flex items-center gap-3 pl-4 py-2.5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px]">
+                  {/* Rose spine — "hangs off the session" cue */}
+                  <div className="absolute left-[-1px] top-[-1px] bottom-[-1px] w-[3px] bg-rose rounded-l-[10px]" />
+                  <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
+                    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={14} height={14}>
+                      <path d="M16 6v20M6 16h20" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
+                      {sub.data?.focus_label || "Supplementary work"}
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider rounded-full px-2 py-0.5 bg-rose/10 text-rose border border-rose/20">
+                        Every session
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {totalExercises > 0
+                        ? `${totalExercises} exercise${totalExercises > 1 ? "s" : ""} — attached automatically from this client\u2019s supplementary list`
+                        : "Supplementary work"}
+                    </div>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[12px] font-semibold shrink-0 ${stateClass}`}>
+                    {stateLabel}
+                  </span>
+                  <span className="text-[11.5px] font-bold text-muted-foreground whitespace-nowrap shrink-0">
+                    no session used
+                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Link
+                      href={subUrl}
+                      className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                    >
+                      Open and log
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-lg h-7 text-xs gap-1 text-muted-foreground"
+                      onClick={() => {
+                        // Take off = unlink supplementary from this session
+                        fetch(`/api/sessions/${sub.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ parent_session_id: null }),
+                        }).then((res) => {
+                          if (res.ok) {
+                            setSubSessions((prev) => prev.filter((s) => s.id !== sub.id));
+                            toast.success("Supplementary work removed from this session");
+                          } else {
+                            toast.error("Failed to remove");
+                          }
+                        });
+                      }}
+                    >
+                      Take off
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-4 py-4 flex items-center gap-3.5">
+            <div className="w-[38px] h-[38px] rounded-lg border-[1.5px] border-dashed border-[var(--hub-field-border)] flex items-center justify-center text-muted-foreground shrink-0">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={16} height={16}>
+                <path d="M16 6v20M6 16h20" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13.5px] font-bold text-foreground">No supplementary work on this session yet</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Add a technique drill, rehab progression or assessment — it will not use a session from the block.</div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg gap-1.5 shrink-0"
+              onClick={() => setAddSupplementaryOpen(true)}
+            >
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={14} height={14}>
+                <path d="M16 6v20M6 16h20" />
+              </svg>
+              Add supplementary work
+            </Button>
+          </div>
+        )}
+        <div className="flex items-start gap-2.5 px-4 py-3 border-t border-dashed border-rose/20 bg-rose/5 text-xs text-muted-foreground">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} className="shrink-0 mt-0.5 text-rose">
+            <circle cx="16" cy="16" r="10" />
+            <path d="M16 12v5M16 20h.01" />
+          </svg>
+          <span>
+            <b className="text-body">Extra work in this slot never costs an extra session.</b>{" "}
+            {clientName} uses one session from their block, and that stays true however much supplementary work is attached to it.
+          </span>
+        </div>
       </div>
 
       {/* ── Studio / Home version tabs ──────────────────────────── */}

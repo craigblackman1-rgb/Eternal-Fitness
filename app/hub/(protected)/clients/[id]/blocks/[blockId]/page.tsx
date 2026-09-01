@@ -312,6 +312,7 @@ export default async function BlockViewPage({
                   blockId={params.blockId}
                   archetypeTint={archetypeTint}
                   chronologicalPositions={chronologicalPositions}
+                  allSessions={sessions as unknown as DBSession[]}
                 />
               </div>
             </details>
