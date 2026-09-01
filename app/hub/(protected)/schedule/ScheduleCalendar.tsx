@@ -55,7 +55,7 @@ export interface ScheduledEntry {
   /** Free-text cancellation reason — shown on the day view when a cancelled
    *  entry is revealed via the "Show cancelled" toggle. */
   cancelReason: string | null;
-  /** CR-EF-115 — workout name (focus_label), the primary display name. */
+  /** CR-EF-115 — resolved workout name via sessionWorkoutName(). */
   focusLabel: string;
 }
 
@@ -327,8 +327,7 @@ export function ScheduleCalendar({
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-[3px]">
-                          {entry.focusLabel || (entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`)}
-                          {entry.blockNumber != null && ` · Block ${entry.blockNumber} · Session ${entry.sessionNumber}`}
+                          {entry.focusLabel}
                           {` · ${entry.durationMinutes} min`}
                           {cancelled && entry.cancelReason && ` · ${entry.cancelReason}`}
                         </p>

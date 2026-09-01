@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { sessionDurationMinutes } from "@/lib/scheduling";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { Session, TimeTier, Task } from "@/types";
 import { TodayScreen } from "./TodayScreen";
 
@@ -17,6 +18,7 @@ export interface TodayEntry {
   sessionLogCompletedAt: string | null;
   sessionLogStartedAt: string | null;
   focusLabel: string;
+  displayName: string;
 }
 
 export default async function TodayPage() {
@@ -74,6 +76,7 @@ export default async function TodayPage() {
         sessionLogCompletedAt: sessionLog?.completed_at ?? null,
         sessionLogStartedAt: sessionLog?.started_at ?? null,
         focusLabel: s.data?.focus_label ?? "",
+        displayName: sessionWorkoutName(s, `Session ${s.session_number}`),
       };
     });
 

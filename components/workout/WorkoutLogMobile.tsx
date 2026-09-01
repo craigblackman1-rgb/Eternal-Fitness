@@ -7,6 +7,7 @@ import type { Session, SessionLog, SetLog, Exercise } from "@/types";
 import { computeGroups, nextGroupLabel } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
+import { sessionWorkoutName } from "@/lib/session-display";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
@@ -939,8 +940,7 @@ export function WorkoutLogMobile({
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-gray-900 truncate">{clientName}</div>
             <div className="text-xs text-gray-500 truncate">
-              {data?.focus_label || (archetype ? `${archetype} session` : `Session ${sessionNumber}`)}
-              {blockNumber != null ? ` · Block ${blockNumber} · Session ${sessionNumber}` : ""}
+              {sessionWorkoutName({ archetype, data, week, phase }, `Session ${sessionNumber}`)}
               {` · ${phase ?? ""}`}
               {scheduledAt ? ` · Wk ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : week != null ? ` · Plan wk ${week}` : ""}
             </div>

@@ -10,6 +10,7 @@ import { SessionPotCounter } from "@/components/hub/SessionPotCounter";
 import { deriveSessionPot } from "@/lib/session-pot";
 import { isoToLocalDate, isoToLocalTime, localPartsToISO, todayLocalISODate } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { DBSession, SessionStatus, ChargedFree } from "@/types";
 
 interface BlockPoolViewProps {
@@ -79,10 +80,10 @@ export function BlockPoolView({
       session_log: s.data?.session_log,
     });
     const hasWorkout = hasWorkoutContent(s);
-    const focusLabel = s.data?.focus_label?.trim() || (s.archetype ? `${s.archetype} session` : `Session ${s.session_number}`);
+    const focusLabel = sessionWorkoutName(s, `Session ${s.session_number}`);
     const dayLabel = s.scheduled_at
       ? new Date(s.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-      : (s.data?.focus_label?.trim() || `Session ${s.session_number}`);
+      : sessionWorkoutName(s, `Session ${s.session_number}`);
     const dayTime = s.scheduled_at ? isoToLocalTime(s.scheduled_at) : "";
     return { session: s, status, hasWorkout, focusLabel, dayLabel, dayTime };
   });

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
+import { sessionWorkoutName } from "@/lib/session-display";
 import { LapseReview } from "@/components/hub/LapseReview";
 import type { DBSession } from "@/types";
 
@@ -76,7 +77,7 @@ export default async function LapseReviewPage() {
       sessionNumber: s.session_number,
       scheduledAt: s.scheduled_at,
       blockNumber: blockNumberMap.get(s.block_id) ?? 0,
-      workoutLabel: s.data?.focus_label ?? null,
+      workoutLabel: sessionWorkoutName(s, `Session ${s.session_number}`),
     });
   }
 

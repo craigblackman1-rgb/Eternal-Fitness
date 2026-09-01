@@ -225,7 +225,7 @@ export function ScheduleShell({
                   setGuardSession({
                     id: entry.id,
                     clientName: entry.clientName,
-                    focus: entry.focusLabel || (entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`),
+                    focus: entry.focusLabel,
                     scheduledAt: entry.scheduledAt,
                     durationMinutes: entry.durationMinutes,
                   });

@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase-server";
 import { deriveSessionPot } from "@/lib/session-pot";
+import { sessionWorkoutName } from "@/lib/session-display";
 import { CancellationReview } from "@/components/hub/CancellationReview";
 import type { DBSession } from "@/types";
 
 export const metadata = { robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-type SessionRow = Pick<DBSession, "id" | "block_id" | "session_number" | "scheduled_at" | "cancel_reason" | "charged_free" | "status" | "cancelled_at" | "parent_session_id">;
+type SessionRow = Pick<DBSession, "id" | "block_id" | "session_number" | "scheduled_at" | "cancel_reason" | "charged_free" | "status" | "cancelled_at" | "parent_session_id" | "archetype" | "data">;
 
 export default async function CancellationReviewPage() {
   const supabase = createClient();
@@ -18,7 +19,7 @@ export default async function CancellationReviewPage() {
   //    have no allowance implication, so asking Esther charged/free is meaningless)
   const { data: unreviewedRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, scheduled_at, cancel_reason, charged_free, status, cancelled_at, parent_session_id, data")
+    .select("id, block_id, session_number, scheduled_at, cancel_reason, charged_free, status, cancelled_at, parent_session_id, archetype, data")
     .eq("status", "cancelled")
     .is("charged_free", null)
     .is("parent_session_id", null)
@@ -101,7 +102,7 @@ export default async function CancellationReviewPage() {
         scheduledAt: s.scheduled_at,
         cancelReason: s.cancel_reason,
         blockNumber: blockNumberMap.get(s.block_id) ?? 0,
-        focusLabel: (s as any).data?.focus_label ?? "",
+        focusLabel: sessionWorkoutName(s, `Session ${s.session_number}`),
       })),
     };
   }).filter((c) => c.sessions.length > 0)

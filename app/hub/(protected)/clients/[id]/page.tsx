@@ -33,7 +33,7 @@ import { buildExerciseHistory } from "@/lib/exercise-history";
 import { aggregateExerciseNotes } from "@/lib/exercise-notes";
 import { getLastClientLogAt } from "@/lib/progress-db";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
-import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
+import { sessionWorkoutName } from "@/lib/session-display";
 import { RESOURCES } from "@/lib/resources";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
@@ -116,11 +116,7 @@ function formatHubDate(value: string | null | undefined): string {
 
 /** Session names are `focus_label`, never `Block {n} · S{n}` (CR-EF-034). */
 function sessionDisplayName(s: any): string {
-  return (
-    s?.data?.focus_label?.trim() ||
-    DEFAULT_ARCHETYPE_FOCUS_LABELS[s?.archetype ?? ""] ||
-    (s?.session_number != null ? `Session ${s.session_number}` : "—")
-  );
+  return sessionWorkoutName(s, s?.session_number != null ? `Session ${s.session_number}` : "—");
 }
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {

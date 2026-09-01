@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { DBSession, DeliveryMode } from "@/types";
 import { EditSheet } from "./EditSheet";
 
@@ -48,6 +49,7 @@ export default async function EditSessionPage({ params }: { params: { sessionId:
       clientNumber={client?.client_number ?? null}
       deliveryMode={deliveryMode}
       blockNumber={block?.block_number ?? null}
+      displayName={sessionWorkoutName(sessionRow, `Session ${sessionRow.session_number}`)}
     />
   );
 }

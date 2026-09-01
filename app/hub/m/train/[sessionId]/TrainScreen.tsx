@@ -10,6 +10,7 @@ import { computeGroups, nextGroupLabel, checkSupersetSetCounts } from "@/lib/exe
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { defaultUnitForEquipment, isBandEquipment, toKg, fromKg } from "@/lib/units";
+import { sessionWorkoutName } from "@/lib/session-display";
 import { enqueue, getAllPending, remove, type PendingSetLogEntry } from "@/lib/hub/offline-set-log-queue";
 
 /** Round a converted weight to 1 decimal and trim trailing .0 for display. */
@@ -1127,8 +1128,7 @@ export function TrainScreen({
           <div className="top-id">
             <div className="top-client">{clientName}</div>
             <div className="top-meta">
-              {data?.focus_label || (archetype ? `${archetype} session` : `Session ${sessionNumber}`)}
-              {blockNumber != null ? ` · Block ${blockNumber} · Session ${sessionNumber}` : ""}
+              {sessionWorkoutName({ archetype, data, week, phase }, `Session ${sessionNumber}`)}
               {` · ${phase}`}
               {scheduledAt ? ` · Wk ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : week != null ? ` · Plan wk ${week}` : ""}
             </div>

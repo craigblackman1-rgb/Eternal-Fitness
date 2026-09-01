@@ -49,7 +49,7 @@ export function PlannedSessionsStrip({ plannedEntries, onSelectSession, selected
         >
           <span className="text-xs">{e.clientName}</span>
           <span className="text-[11px] text-muted-foreground">
-            {e.focusLabel || (e.archetype ? `${e.archetype} session` : `S${e.sessionNumber}`)}
+            {e.focusLabel}
           </span>
         </button>
       ))}

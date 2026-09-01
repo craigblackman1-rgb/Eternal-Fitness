@@ -3,6 +3,7 @@ import { HubPageHeader, HubQuickActions } from "@/components/hub";
 import { IconUserPlus, IconFileText, IconUsers } from "@/components/icons";
 import { sessionDurationMinutes } from "@/lib/scheduling";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { Session, TimeTier } from "@/types";
 import type { ScheduledEntry } from "./ScheduleCalendar";
 import type { UnconfirmedBooking } from "./ScheduleCalendar";
@@ -102,7 +103,7 @@ export default async function SchedulePage() {
         completedAt: s.completed_at ?? null,
         cancelledAt: s.cancelled_at ?? null,
         cancelReason: s.cancel_reason ?? null,
-        focusLabel: s.data?.focus_label ?? "",
+        focusLabel: sessionWorkoutName(s, ""),
       };
     });
 

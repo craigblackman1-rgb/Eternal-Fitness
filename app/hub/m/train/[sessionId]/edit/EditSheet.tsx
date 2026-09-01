@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { Session, Exercise, SessionVersion, DeliveryMode, ExerciseMedia } from "@/types";
 import { computeGroups, nextGroupLabel, normalizeGroups, checkSupersetSetCounts } from "@/lib/exercise-groups";
 import { formatPrescription } from "@/lib/prescription";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { ExerciseEntry } from "@/app/hub/(protected)/exercises/page";
 
 // ── Types ─────────────────────────────────────────────────────────
@@ -101,6 +102,7 @@ export function EditSheet({
   clientNumber,
   deliveryMode,
   blockNumber,
+  displayName,
 }: {
   sessionId: string;
   sessionNumber: number;
@@ -109,6 +111,7 @@ export function EditSheet({
   clientNumber: number | null;
   deliveryMode: DeliveryMode;
   blockNumber: number | null;
+  displayName: string;
 }) {
   const router = useRouter();
   const version = deliveryMode === "home_training" ? "home" : "studio";
@@ -1340,7 +1343,7 @@ export function EditSheet({
           <div className="sh-title">
             <h1 id="editSheetTitle">Edit workout</h1>
               <p>
-              {data?.focus_label || `Session ${sessionNumber}`}
+              {displayName}
               {blockNumber != null ? ` · Block ${blockNumber} · Session ${sessionNumber}` : ""}
               {" · "}{clientName} · changes apply to this session only
             </p>
@@ -1461,7 +1464,7 @@ function PastPack({
       >
         <span className="pack-ic">{ICO.hist}</span>
         <span className="pack-b">
-          <span className="pack-t">{ps.data?.focus_label || `Session ${ps.session_number}`}</span>
+          <span className="pack-t">{sessionWorkoutName({ data: ps.data, archetype: ps.archetype } as Parameters<typeof sessionWorkoutName>[0], `Session ${ps.session_number}`)}</span>
           <span className="pack-s">
             Block {ps.block_number} · {noteBits.join(" · ")} · {items.length} exercises
           </span>

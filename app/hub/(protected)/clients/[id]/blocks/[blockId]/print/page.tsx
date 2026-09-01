@@ -7,6 +7,7 @@ import { PrintButton } from "./print-button";
 import type { DBSession, Exercise } from "@/types";
 import { formatFrequency } from "@/types";
 import { derivedWeekLabel, isoToMonday } from "@/lib/schedule-dates";
+import { sessionWorkoutName } from "@/lib/session-display";
 
 const phaseLabels: Record<string, string> = {
   foundation: "Foundation",
@@ -203,7 +204,7 @@ function SessionPrintSection({
     <div className={first ? "pt-2" : "print-break pt-6"}>
       <div className="flex items-baseline justify-between border-b pb-1 mb-3">
         <h3 className="text-lg font-bold">
-          {s?.focus_label || `Session ${session.session_number}`}
+          {sessionWorkoutName(session, `Session ${session.session_number}`)}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
             Archetype {session.archetype} &middot; {derivedWeekLabel(session.scheduled_at ?? null, session.week)}
           </span>

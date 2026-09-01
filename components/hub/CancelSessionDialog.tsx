@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { deriveSessionPot } from "@/lib/session-pot";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { DBSession, ChargedFree } from "@/types";
 
 interface CancelSessionDialogProps {
@@ -85,7 +86,7 @@ export function CancelSessionDialog({
   const afterCharged = pot.remaining - 1;
   const sessionLabel = session.scheduled_at
     ? new Date(session.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-    : (session.data?.focus_label?.trim() || `Session ${session.session_number}`);
+    : sessionWorkoutName(session, `Session ${session.session_number}`);
 
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center">
