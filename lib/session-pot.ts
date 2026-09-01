@@ -33,6 +33,10 @@ export interface SessionPotBreakdown {
   purchasedIsEstimate: boolean;
   /** Remaining = purchased - used, or null when purchased is unknown. */
   remaining: number | null;
+  /** Best available total when purchased is not recorded — derived from session row count. */
+  estimatedPurchase: number;
+  /** Remaining derived from the estimate, for display when recorded purchased is unknown. */
+  estimatedRemaining: number;
   /** Total sessions in the block (session rows). */
   totalInBlock: number;
   /** Unreviewed cancellations that may affect the count — surfaced for human decision. */
@@ -81,6 +85,9 @@ export function deriveSessionPot(
   const purchased = purchasedIsEstimate ? null : sessionsPurchased;
   const remaining = purchased != null ? Math.max(purchased - used, 0) : null;
 
+  const estimatedPurchase = potSessions.length;
+  const estimatedRemaining = Math.max(estimatedPurchase - used, 0);
+
   return {
     completed,
     chargedCancellations,
@@ -90,6 +97,8 @@ export function deriveSessionPot(
     purchased,
     purchasedIsEstimate,
     remaining,
+    estimatedPurchase,
+    estimatedRemaining,
     totalInBlock: potSessions.length,
     unreviewed: unreviewedCancellations,
   };

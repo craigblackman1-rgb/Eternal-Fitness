@@ -90,7 +90,7 @@ export function PortalBookingClient({
 }: PortalBookingClientProps) {
   const sessionLen = settings?.session_length ?? 60;
   const noticeHours = settings?.notice_hours ?? 24;
-  const free = pot.remaining;
+  const free = pot.remaining ?? pot.estimatedRemaining;
 
   const [weeks, setWeeks] = useState<WeekData[]>([]);
   const [weekIdx, setWeekIdx] = useState(0);
@@ -250,10 +250,11 @@ export function PortalBookingClient({
           <div className="min-w-[184px]">
             <p className="text-[11px] font-extrabold uppercase tracking-[.1em] text-muted-foreground">Sessions left</p>
             <p className="text-5xl font-bold tracking-[-.035em] text-foreground mt-1 tabular-nums" style={{ fontFamily: "var(--serif, Georgia)" }}>
-              {pot.remaining ?? "?"}
+              {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"}
             </p>
             <p className="text-sm text-body mt-0.5">
-              of your <b className="text-foreground">{pot.purchased ?? "?"}-session block</b>
+              of your <b className="text-foreground">{pot.purchasedIsEstimate ? pot.estimatedPurchase : pot.purchased ?? "?"}-session block</b>
+              {pot.purchasedIsEstimate && <span className="text-muted-foreground ml-1">(not yet confirmed on your record)</span>}
             </p>
           </div>
 
@@ -283,9 +284,15 @@ export function PortalBookingClient({
 
           {/* Badge */}
           <div className="shrink-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold bg-[rgba(193,131,159,.10)] text-[#94566F] border border-[rgba(193,131,159,.22)]">
-              Block in progress
-            </span>
+            {pot.purchasedIsEstimate ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold bg-[#F7EFDD] text-[#7A5A17] border border-[rgba(176,138,62,.26)]">
+                Estimate — not yet confirmed
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold bg-[rgba(193,131,159,.10)] text-[#94566F] border border-[rgba(193,131,159,.22)]">
+                Block in progress
+              </span>
+            )}
           </div>
         </div>
 
@@ -332,7 +339,7 @@ export function PortalBookingClient({
               <p className="text-sm font-bold text-foreground">When would you like to come in?</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Esther&apos;s live studio hours. Tap as many times as you want — you can
-                book up to <b className="text-foreground">{free}</b> right now.
+                book up to <b className="text-foreground">{free}</b> right now{pot.purchasedIsEstimate ? " (based on your estimated block)" : ""}.
               </p>
             </div>
           </div>

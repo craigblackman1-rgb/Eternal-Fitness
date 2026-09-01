@@ -61,6 +61,9 @@ export interface SessionPotView {
   remaining: number | null;
   used: number;
   purchased: number | null;
+  purchasedIsEstimate: boolean;
+  estimatedPurchase: number;
+  estimatedRemaining: number;
   completed: number;
   chargedCancellations: number;
   freeCancellations: number;
@@ -396,9 +399,11 @@ export function ClientModeView({
                 <span className="panel-h-t">Sessions</span>
                 <span className="panel-h-s">
                   {block
-                    ? potView.purchased != null
-                      ? `${potView.used} of ${potView.purchased} used · ${potView.remaining} remaining`
-                      : `${potView.used} used · purchased not recorded`
+                    ? potView.purchasedIsEstimate
+                      ? `${potView.used} of ${potView.estimatedPurchase} used (est.) · ${potView.estimatedRemaining} remaining (est.)`
+                      : potView.purchased != null
+                        ? `${potView.used} of ${potView.purchased} used · ${potView.remaining} remaining`
+                        : `${potView.used} used · purchased not recorded`
                     : "No active programme"}
                 </span>
               </span>
@@ -418,7 +423,7 @@ export function ClientModeView({
                   </div>
                   <div className="blockmeta">
                     <span>Tap to see which sessions, and what&apos;s attached</span>
-                    <span>{potView.remaining ?? "?"} left</span>
+                    <span>{potView.purchasedIsEstimate ? potView.estimatedRemaining : potView.remaining ?? "?"}{potView.purchasedIsEstimate ? " (est.)" : ""} left</span>
                   </div>
                 </>
               )}
@@ -498,10 +503,10 @@ export function ClientModeView({
           {/* Pot strip */}
           <div className="mpot">
             <div className="mpot-row">
-              <span className="mpot-n">{potView.remaining ?? "?"}</span>
+              <span className="mpot-n">{potView.purchasedIsEstimate ? potView.estimatedRemaining : potView.remaining ?? "?"}</span>
               <span className="mpot-l">left</span>
               <span className="mpot-side">
-                <b>{potView.used}</b> used{potView.purchased != null ? <> of <b>{potView.purchased}</b></> : null}
+                <b>{potView.used}</b> used{potView.purchasedIsEstimate ? <> of <b>{potView.estimatedPurchase}</b> (est.)</> : potView.purchased != null ? <> of <b>{potView.purchased}</b></> : null}
                 <br />
                 {potView.bookedAhead} booked ahead
               </span>
