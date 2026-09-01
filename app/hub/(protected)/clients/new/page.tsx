@@ -984,11 +984,11 @@ export default function NewClientPage() {
                       className="sr-only"
                     />
                     <p className="text-[13px] font-bold text-foreground">Send the PAR-Q to the client</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Emails the standard form for the client to complete and sign themselves.</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">The client completes and signs the PAR-Q themselves. The link is sent from the Compliance tab after the client record is created.</p>
                     {parqMode === "send" && (
                       <div className="mt-2.5 pt-2.5 border-t border-[var(--hub-border)]">
                         <span className="pill warning">
-                          Sent · awaiting signature
+                          Not yet sent · needs signing
                         </span>
                         <p className="text-[11.5px] text-muted-foreground mt-1.5">The PAR-Q link will be available from the client&apos;s Compliance tab after creation. Send it from there — the client completes and signs it themselves. Plan generation stays open, but the compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
                       </div>
@@ -1278,6 +1278,7 @@ export default function NewClientPage() {
                       placeholder="e.g. 3-band set from a previous PT, colours unlabelled"
                       className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
                     />
+                    <p className="text-[11.5px] text-muted-foreground">This note is carried across but no band set is linked to the client yet. The set itself still needs to be set up from studio equipment settings before resistance comparisons work.</p>
                   </div>
                 )}
               </div>
