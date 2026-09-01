@@ -312,45 +312,29 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   };
 
   /* ── CR-EF-113: Pool workout view ── */
-  // Each distinct workout in the programme is one pool entry. The workout
-  // identity is the archetype (A/B/C/etc) — stable across sessions. For
-  // sessions without an archetype (e.g. trainer-created ad-hoc sessions),
-  // the workout name is used as the key. Outlook placeholders (no workout
-  // assigned) are excluded from the pool — they represent empty calendar
-  // slots, not workouts in the programme.
-  // Pool status: "used" (completed), "assigned" (scheduled, none completed),
-  // "unused" (not scheduled), or "next" (first unused in sequence order).
+  // One pool entry per session (no archetype de-duplication). Sub-sessions
+  // (parent_session_id set) and placeholders ("No workout assigned yet") are
+  // excluded — sub-sessions are supplementary work and never occupy a pool slot.
+  // Pool status: "used" (completed), "assigned" (scheduled, not cancelled),
+  // "unused" (not scheduled), or "next" (first unused in session_number order).
   const poolWorkouts: PoolWorkoutView[] = [];
-  const seenPoolKeys = new Set<string>();
   const sortedBlockSessions = [...currentBlockSessions].sort((a, b) => a.session_number - b.session_number);
   for (const s of sortedBlockSessions) {
     const name = sessionWorkoutName(s);
     if (name === "No workout assigned yet") continue;
-    // Key: archetype for structured workouts, name for ad-hoc (no archetype)
-    const poolKey = s.archetype ?? name;
-    if (seenPoolKeys.has(poolKey)) continue;
-    seenPoolKeys.add(poolKey);
+    if (s.parent_session_id) continue;
 
-    // Find all sessions belonging to this pool entry
-    const poolSessions = currentBlockSessions.filter(
-      (ss) => (ss.archetype ?? sessionWorkoutName(ss)) === poolKey,
-    );
-    const completedSessions = poolSessions.filter((ss) => ss.data?.session_log?.completed_at);
-    const scheduledSessions = poolSessions.filter((ss) => ss.scheduled_at && !ss.cancelled_at);
-    const isUsed = completedSessions.length > 0;
-    const isAssigned = scheduledSessions.length > 0 && !isUsed;
-
-    const deliveryDate = completedSessions[0]?.data?.session_log?.completed_at ?? null;
-    const assignedDate = scheduledSessions[0]?.scheduled_at ?? null;
+    const isCompleted = !!s.data?.session_log?.completed_at;
+    const isAssigned = !!s.scheduled_at && !s.cancelled_at;
 
     const poolIndex = poolWorkouts.length;
     poolWorkouts.push({
       id: s.id,
       letter: String.fromCharCode(65 + poolIndex),
       name,
-      status: isUsed ? "used" : isAssigned ? "assigned" : "unused",
-      deliveryDate,
-      assignedDate,
+      status: isCompleted ? "used" : isAssigned ? "assigned" : "unused",
+      deliveryDate: s.data?.session_log?.completed_at ?? null,
+      assignedDate: s.scheduled_at ?? null,
     });
   }
 
