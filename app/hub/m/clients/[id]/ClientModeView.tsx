@@ -563,7 +563,7 @@ export function ClientModeView({
                   </div>
                   <div className="blist">
                     {wk.sessions.map((s) => (
-                      <SessionRow key={s.id} session={s} firstName={firstName} nextPool={s.name === "No workout assigned yet" ? nextPool : undefined} />
+                      <SessionRow key={s.id} session={s} firstName={firstName} nextPool={s.name === "No workout assigned yet" ? nextPool : undefined} clientNumber={clientNumber} />
                     ))}
                   </div>
                 </div>
@@ -610,7 +610,7 @@ export function ClientModeView({
                   </div>
                   <div className="blist">
                     {wk.sessions.map((s) => (
-                      <SessionRow key={s.id} session={s} firstName={firstName} />
+                      <SessionRow key={s.id} session={s} firstName={firstName} clientNumber={clientNumber} />
                     ))}
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export function ClientModeView({
                   </div>
                 ) : null}
                 <button className="mbtn" onClick={() => setTab("sessions")}>
-                  Attach to {earliestUnattached ? formatShortDate(earliestUnattached.scheduledAt) : "next session"}
+                  View sessions
                 </button>
                 <button className="mbtn ghost" onClick={() => setTab("sessions")}>
                   Choose a different session
@@ -764,7 +764,7 @@ export function ClientModeView({
 
 /* ── Session row sub-component ── */
 
-function SessionRow({ session: s, firstName, nextPool }: { session: SessionView; firstName: string; nextPool?: PoolWorkoutView }) {
+function SessionRow({ session: s, firstName, nextPool, clientNumber }: { session: SessionView; firstName: string; nextPool?: PoolWorkoutView; clientNumber: number }) {
   const positionLabel = s.position != null && s.total != null ? `Session ${s.position} of ${s.total}` : null;
   const isCompleted = s.status === "completed";
   const isCancelled = s.status === "cancelled";
@@ -837,7 +837,7 @@ function SessionRow({ session: s, firstName, nextPool }: { session: SessionView;
           )}
         </div>
         {s.name === "No workout assigned yet" && nextPool && (
-          <button className="mfill-btn">Attach {nextPool.name}</button>
+          <Link className="mfill-btn" href={`/hub/m/clients/${clientNumber}/add-workout`}>Add workout</Link>
         )}
       </div>
     </div>

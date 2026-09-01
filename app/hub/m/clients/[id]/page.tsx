@@ -146,7 +146,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   flags.push(...buildMedicalFlags({ profile: row.profile, exercise_modifications: row.exercise_modifications }));
 
   if (flags.length === 0) {
-    flags.push({ tone: "ok", title: "No active medical flags", detail: "PAR-Q and agreement on file. Nothing outstanding before training." });
+    flags.push({ tone: "ok", title: "No active medical flags", detail: "Nothing recorded to flag." });
   }
 
   const activeFlagCount = flags.filter((f) => f.tone !== "ok").length;
@@ -193,7 +193,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
     ? {
         id: currentBlock.id,
         number: currentBlock.block_number,
-        focus: currentBlock.block_note ?? null,
+        focus: currentBlock.block_note && currentBlock.block_note !== "Auto-created when adding a workout." ? currentBlock.block_note : null,
         done: blockDone,
         total: blockTotal,
         pct: blockPct,
