@@ -360,7 +360,7 @@ export function ClientModeView({
                 <span className="panel-h-s">
                   {activeFlagCount > 0
                     ? `${activeFlagCount} active flag${activeFlagCount !== 1 ? "s" : ""}`
-                    : "Nothing outstanding"}
+                    : "Nothing recorded"}
                 </span>
               </span>
             </div>
