@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ClientNote } from "@/types";
+import type { ClientNote, SessionNoteData, MergedNote, NoteOrigin, PinnedNoteRef } from "@/types";
 import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
 
 interface ClientNotesPaneProps {
   clientId: string;
+  clientName: string;
   exerciseNotes?: AggregatedExerciseNote[];
+  sessionNotes?: SessionNoteData[];
+  pinnedNoteRefs?: PinnedNoteRef[];
 }
 
 const ICO = {
@@ -25,19 +28,44 @@ const ICO = {
   ),
 };
 
-export function ClientNotesPane({ clientId, exerciseNotes = [] }: ClientNotesPaneProps) {
-  const [notes, setNotes] = useState<ClientNote[]>([]);
+type FilterKey = "all" | "profile" | "session" | "exercise" | "pinned";
+
+const ORIGIN_LABEL: Record<NoteOrigin, string> = {
+  profile: "Profile",
+  session: "Session",
+  exercise: "Exercise",
+};
+
+function formatWhen(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export function ClientNotesPane({
+  clientId,
+  clientName,
+  exerciseNotes = [],
+  sessionNotes = [],
+  pinnedNoteRefs = [],
+}: ClientNotesPaneProps) {
+  const [profileNotes, setProfileNotes] = useState<ClientNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "pinned" | "exercises">("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
   const [savingPin, setSavingPin] = useState<string | null>(null);
+  const [localPins, setLocalPins] = useState<PinnedNoteRef[]>(pinnedNoteRefs);
 
   const fetchNotes = useCallback(async () => {
     const res = await fetch(`/api/client-notes?client_id=${encodeURIComponent(clientId)}`);
     if (res.ok) {
       const data = (await res.json()) as ClientNote[];
-      if (Array.isArray(data)) setNotes(data);
+      if (Array.isArray(data)) setProfileNotes(data);
     }
     setLoading(false);
   }, [clientId]);
@@ -62,51 +90,186 @@ export function ClientNotesPane({ clientId, exerciseNotes = [] }: ClientNotesPan
 
   async function handleDelete(id: string) {
     const res = await fetch(`/api/client-notes/${id}`, { method: "DELETE" });
-    if (res.ok) setNotes((prev) => prev.filter((n) => n.id !== id));
+    if (res.ok) setProfileNotes((prev) => prev.filter((n) => n.id !== id));
   }
 
-  async function handlePinToggle(note: ClientNote) {
-    const next = !note.pinned;
+  async function handlePinToggle(note: MergedNote) {
+    const nextPinned = !note.pinned;
     setSavingPin(note.id);
-    setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, pinned: next } : n)));
-    try {
-      const res = await fetch(`/api/client-notes/${note.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pinned: next }),
-      });
-      if (!res.ok) {
-        setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, pinned: note.pinned } : n)));
+
+    if (note.origin === "profile") {
+      setProfileNotes((prev) =>
+        prev.map((n) => (n.id === note.id ? { ...n, pinned: nextPinned } : n)),
+      );
+      try {
+        const res = await fetch(`/api/client-notes/${note.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pinned: nextPinned }),
+        });
+        if (!res.ok) {
+          setProfileNotes((prev) =>
+            prev.map((n) => (n.id === note.id ? { ...n, pinned: !nextPinned } : n)),
+          );
+        }
+      } catch {
+        setProfileNotes((prev) =>
+          prev.map((n) => (n.id === note.id ? { ...n, pinned: !nextPinned } : n)),
+        );
+      } finally {
+        setSavingPin(null);
       }
-    } catch {
-      setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, pinned: note.pinned } : n)));
-    } finally {
-      setSavingPin(null);
+    } else {
+      const ref = {
+        source: note.origin as "session" | "exercise",
+        session_id: note.sessionId!,
+        ...(note.origin === "exercise" && note.exerciseName
+          ? { exercise_uid: note.id.split(":")[2] }
+          : {}),
+      };
+      setLocalPins((prev) => {
+        if (nextPinned) return [...prev, ref];
+        return prev.filter(
+          (p) =>
+            !(
+              p.source === ref.source &&
+              p.session_id === ref.session_id &&
+              (p.exercise_uid ?? "") === (ref.exercise_uid ?? "")
+            ),
+        );
+      });
+      try {
+        const res = await fetch(`/api/clients/${clientId}/note-pin`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...ref, pinned: nextPinned }),
+        });
+        if (!res.ok) {
+          setLocalPins((prev) => {
+            if (nextPinned)
+              return prev.filter(
+                (p) =>
+                  !(
+                    p.source === ref.source &&
+                    p.session_id === ref.session_id &&
+                    (p.exercise_uid ?? "") === (ref.exercise_uid ?? "")
+                  ),
+              );
+            return [...prev, ref];
+          });
+        }
+      } catch {
+        setLocalPins((prev) => {
+          if (nextPinned)
+            return prev.filter(
+              (p) =>
+                !(
+                  p.source === ref.source &&
+                  p.session_id === ref.session_id &&
+                  (p.exercise_uid ?? "") === (ref.exercise_uid ?? "")
+                ),
+            );
+          return [...prev, ref];
+        });
+      } finally {
+        setSavingPin(null);
+      }
     }
   }
 
+  // Build merged note list
+  const allNotes = useMemo<MergedNote[]>(() => {
+    const isPinnedSession = (sid: string) =>
+      localPins.some((p) => p.source === "session" && p.session_id === sid);
+    const isPinnedExercise = (sid: string, uid: string) =>
+      localPins.some(
+        (p) => p.source === "exercise" && p.session_id === sid && p.exercise_uid === uid,
+      );
+
+    const result: MergedNote[] = [];
+
+    for (const n of profileNotes) {
+      result.push({
+        id: n.id,
+        origin: "profile",
+        text: n.note,
+        iso: n.created_at,
+        when: formatWhen(n.created_at),
+        author: n.author || "Esther Fair",
+        pinned: !!n.pinned,
+        sessionId: n.session_id ?? undefined,
+        editable: true,
+      });
+    }
+
+    for (const sn of sessionNotes) {
+      if (!sn.note?.trim()) continue;
+      result.push({
+        id: `session:${sn.sessionId}`,
+        origin: "session",
+        text: sn.note,
+        iso: sn.sessionDate,
+        when: formatWhen(sn.sessionDate),
+        author: sn.author,
+        pinned: isPinnedSession(sn.sessionId),
+        sessionName: sn.sessionName,
+        sessionPos: sn.sessionPos,
+        sessionId: sn.sessionId,
+        editable: false,
+      });
+    }
+
+    for (const en of exerciseNotes) {
+      if (!en.note?.trim()) continue;
+      result.push({
+        id: `exercise:${en.sessionId}:${en.exerciseUid}`,
+        origin: "exercise",
+        text: en.note,
+        iso: en.sessionDate,
+        when: formatWhen(en.sessionDate),
+        author: "Esther Fair",
+        pinned: isPinnedExercise(en.sessionId, en.exerciseUid),
+        sessionName: en.sessionName,
+        exerciseName: en.exerciseName,
+        sessionId: en.sessionId,
+        editable: false,
+      });
+    }
+
+    result.sort((a, b) => {
+      const da = new Date(a.iso).getTime();
+      const db = new Date(b.iso).getTime();
+      if (!isNaN(da) && !isNaN(db)) return db - da;
+      return 0;
+    });
+
+    return result;
+  }, [profileNotes, sessionNotes, exerciseNotes, localPins]);
+
+  // Counts
+  const counts = useMemo(() => {
+    const c = { all: allNotes.length, profile: 0, session: 0, exercise: 0, pinned: 0 };
+    for (const n of allNotes) {
+      c[n.origin]++;
+      if (n.pinned) c.pinned++;
+    }
+    return c;
+  }, [allNotes]);
+
+  // Filter + search
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return notes.filter((n) => !q || n.note.toLowerCase().includes(q));
-  }, [notes, query]);
-
-  const shown = useMemo(() => {
-    if (filter === "pinned") return filtered.filter((n) => n.pinned);
-    return [...filtered].sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return allNotes.filter((n) => {
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "pinned" && n.pinned) ||
+        filter === n.origin;
+      if (!matchesFilter) return false;
+      if (!q) return true;
+      const hay = `${n.text} ${n.exerciseName ?? ""} ${n.sessionName ?? ""} ${ORIGIN_LABEL[n.origin]}`.toLowerCase();
+      return hay.includes(q);
     });
-  }, [filtered, filter]);
-
-  const filteredExercises = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return exerciseNotes.filter(
-      (en) => !q || en.note.toLowerCase().includes(q) || en.exerciseName.toLowerCase().includes(q),
-    );
-  }, [exerciseNotes, query]);
-
-  const pinnedCount = notes.filter((n) => n.pinned).length;
+  }, [allNotes, filter, query]);
 
   return (
     <>
@@ -137,76 +300,75 @@ export function ClientNotesPane({ clientId, exerciseNotes = [] }: ClientNotesPan
           onClick={() => setFilter("all")}
           aria-pressed={filter === "all"}
         >
-          All
+          All · {counts.all}
+        </button>
+        <button
+          className={`npill${filter === "profile" ? " on" : ""}`}
+          onClick={() => setFilter("profile")}
+          aria-pressed={filter === "profile"}
+        >
+          Profile · {counts.profile}
+        </button>
+        <button
+          className={`npill${filter === "session" ? " on" : ""}`}
+          onClick={() => setFilter("session")}
+          aria-pressed={filter === "session"}
+        >
+          Sessions · {counts.session}
+        </button>
+        <button
+          className={`npill${filter === "exercise" ? " on" : ""}`}
+          onClick={() => setFilter("exercise")}
+          aria-pressed={filter === "exercise"}
+        >
+          Exercises · {counts.exercise}
         </button>
         <button
           className={`npill${filter === "pinned" ? " on" : ""}`}
           onClick={() => setFilter("pinned")}
           aria-pressed={filter === "pinned"}
         >
-          Pinned · {pinnedCount}
+          Pinned · {counts.pinned}
         </button>
-        {exerciseNotes.length > 0 && (
-          <button
-            className={`npill${filter === "exercises" ? " on" : ""}`}
-            onClick={() => setFilter("exercises")}
-            aria-pressed={filter === "exercises"}
-          >
-            Exercises · {exerciseNotes.length}
-          </button>
-        )}
       </div>
       <div className="panel">
         {loading ? (
           <div className="t-empty">Loading notes…</div>
-        ) : filter === "exercises" ? (
-          filteredExercises.length === 0 ? (
-            <div className="t-empty">
-              {query.trim() ? "No exercise notes match your search." : "No exercise notes yet."}
-            </div>
-          ) : (
-            filteredExercises.map((en, i) => (
-              <div key={`${en.sessionId}-${en.exerciseUid}-${i}`} className="note-item" style={{ background: "var(--hub-hover, rgba(0,0,0,.02))" }}>
-                <div className="note-body">
-                  <span className="note-t">{en.exerciseName}</span>
-                  <span className="note-when">
-                    {en.sessionName} ·{" "}
-                    {new Date(en.sessionDate).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <div className="note-txt">{en.note}</div>
-                </div>
-              </div>
-            ))
-          )
-        ) : shown.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="t-empty">
-            {filter === "pinned"
-              ? "No pinned notes — pin one from the list."
-              : notes.length === 0
-                ? "No notes yet — add one above."
+            {allNotes.length === 0
+              ? `Nothing recorded for ${clientName} — no notes from any source.`
+              : filter === "pinned"
+                ? "No pinned notes — pin one from the list."
                 : "No notes match your search."}
           </div>
         ) : (
-          shown.map((n) => (
+          filtered.map((n) => (
             <div key={n.id} className="note-item">
               <div className="note-body">
-                {n.session_name ? (
-                  <span className="note-t">{n.session_name}</span>
-                ) : null}
-                <span className="note-when" style={n.session_name ? undefined : { fontWeight: 600 }}>
-                  {!n.session_name ? "Added on " : ""}
-                  {new Date(n.created_at).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                <span className="note-t" style={{ textTransform: "uppercase", fontSize: "10px", letterSpacing: "0.09em", fontWeight: 800, color: "var(--color-muted)" }}>
+                  {ORIGIN_LABEL[n.origin]}
+                </span>
+                {n.exerciseName && (
+                  <span className="note-t" style={{ display: "block", marginTop: 2 }}>{n.exerciseName}</span>
+                )}
+                {n.sessionName && (
+                  <span className="note-t" style={{ display: "block", marginTop: 2 }}>{n.sessionName}</span>
+                )}
+                <span className="note-when">
+                  {n.when}
                   {n.author ? ` · ${n.author}` : ""}
                 </span>
-                <div className="note-txt">{n.note}</div>
+                <div className="note-txt">{n.text}</div>
+                {n.sessionId && (
+                  <a
+                    href={`/hub/sessions/${n.sessionId}`}
+                    className="note-src"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--hub-border)", background: "var(--hub-card)", color: "var(--color-teal)", fontSize: 11, fontWeight: 700, textDecoration: "none" }}
+                  >
+                    {n.origin === "exercise" ? `Open ${n.exerciseName} in session` : "Open session"}
+                  </a>
+                )}
               </div>
               <button
                 className="note-pin"
@@ -218,9 +380,11 @@ export function ClientNotesPane({ clientId, exerciseNotes = [] }: ClientNotesPan
               >
                 {ICO.pin}
               </button>
-              <button className="note-pin" onClick={() => handleDelete(n.id)} aria-label="Delete note">
-                {ICO.trash}
-              </button>
+              {n.editable ? (
+                <button className="note-pin" onClick={() => handleDelete(n.id)} aria-label="Delete note">
+                  {ICO.trash}
+                </button>
+              ) : null}
             </div>
           ))
         )}

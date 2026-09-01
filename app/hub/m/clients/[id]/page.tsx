@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ClientProfile, DBClient, DBSession, SignedAgreement, SignedPARQ } from "@/types";
+import type { ClientProfile, DBClient, DBSession, SignedAgreement, SignedPARQ, SessionNoteData, PinnedNoteRef } from "@/types";
 import { computeComplianceFlags } from "@/lib/compliance";
 import { buildMedicalFlags, type ClientFlag } from "@/lib/mobile-client-flags";
 import { deriveSessionStatus } from "@/lib/session-status";
@@ -67,6 +67,7 @@ interface SessionRow {
     };
     session_log?: {
       completed_at?: string | null;
+      notes?: string | null;
       rpe?: number | null;
       fatigue?: "low" | "moderate" | "high" | null;
     } | null;
@@ -167,6 +168,34 @@ export default async function MobileClientModePage({ params }: { params: { id: s
     : { data: [] as SessionRow[] };
   const sessions = (sessionsData ?? []) as SessionRow[];
   const exerciseNotes: AggregatedExerciseNote[] = aggregateExerciseNotes(sessions as any);
+
+  // CR-EF-098 — session-level notes for the merged notes pane
+  const sessionNotes: SessionNoteData[] = sessions
+    .filter((s) => {
+      const log = s.data?.session_log as Record<string, unknown> | undefined;
+      return log && typeof log.notes === "string" && log.notes.trim();
+    })
+    .map((s) => {
+      const log = s.data?.session_log as { completed_at?: string | null; notes: string };
+      const sessName = sessionWorkoutName(s, s.session_number != null ? `Session ${s.session_number}` : "—");
+      return {
+        note: log.notes,
+        sessionName: sessName,
+        sessionPos: s.session_number != null ? `Session ${s.session_number}` : "",
+        sessionDate:
+          s.scheduled_at ??
+          log.completed_at ??
+          "",
+        sessionId: s.id,
+        author: "Esther Fair",
+      };
+    });
+
+  const pinnedNoteRefs: PinnedNoteRef[] = Array.isArray(
+    (row as unknown as Record<string, unknown>).pinned_note_refs,
+  )
+    ? ((row as unknown as Record<string, unknown>).pinned_note_refs as PinnedNoteRef[])
+    : [];
 
   // Pinned note for the overview panel
   const { data: pinnedNotes } = await supabase
@@ -398,6 +427,8 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         unusedPoolCount={unusedCount}
         trainTargetId={trainTargetId}
         exerciseNotes={exerciseNotes}
+        sessionNotes={sessionNotes}
+        pinnedNoteRefs={pinnedNoteRefs}
         pinnedNote={pinnedNote}
         earliestUnattached={earliestUnattached ? { scheduledAt: earliestUnattached.scheduled_at as string } : null}
       />

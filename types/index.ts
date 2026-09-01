@@ -215,6 +215,48 @@ export interface ClientNote {
   pinned?: boolean;
 }
 
+// ── CR-EF-098: Merged notes ──────────────────────────────────────────
+
+export type NoteOrigin = "profile" | "session" | "exercise";
+
+/** A session-level note extracted from sessions.data.session_log.notes. */
+export interface SessionNoteData {
+  note: string;
+  sessionName: string;
+  sessionPos: string;
+  sessionDate: string;
+  sessionId: string;
+  author: string;
+}
+
+/** A single row in the merged notes timeline — normalised from three sources. */
+export interface MergedNote {
+  id: string;
+  origin: NoteOrigin;
+  text: string;
+  /** ISO date string for sorting and month bucketing. */
+  iso: string;
+  /** Human-readable timestamp, e.g. "30 Jan 2026, 10:52". */
+  when: string;
+  author: string;
+  pinned: boolean;
+  sessionName?: string;
+  sessionPos?: string;
+  exerciseName?: string;
+  sessionId?: string;
+  /** Profile notes are editable/deletable here; session/exercise are not. */
+  editable: boolean;
+}
+
+/** Reference stored in clients.pinned_note_refs for session/exercise pins. */
+export interface PinnedNoteRef {
+  source: "session" | "exercise";
+  session_id: string;
+  exercise_uid?: string;
+}
+
+// ── End CR-EF-098 ────────────────────────────────────────────────────
+
 /** A structured, per-client instance of a TrainingRuleType — replaces bare-string
   *  programming_adaptations so the Plan Agent applies it systematically rather than
   *  parsing prose. Stored inline in ClientProfile, not a separate table. */

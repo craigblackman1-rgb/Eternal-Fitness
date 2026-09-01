@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import type { SessionStatus } from "@/types";
 import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
+import type { SessionNoteData, PinnedNoteRef } from "@/types";
 import type { ClientFlag } from "@/lib/mobile-client-flags";
 import { DayAgenda, type AgendaSession } from "@/components/hub/DayAgenda";
 import { ClientNotesPane } from "./ClientNotesPane";
@@ -253,6 +254,8 @@ interface ClientModeViewProps {
   unusedPoolCount: number;
   trainTargetId: string | null;
   exerciseNotes?: AggregatedExerciseNote[];
+  sessionNotes?: SessionNoteData[];
+  pinnedNoteRefs?: PinnedNoteRef[];
   pinnedNote?: PinnedNoteView | null;
   earliestUnattached?: { scheduledAt: string } | null;
 }
@@ -273,6 +276,8 @@ export function ClientModeView({
   unusedPoolCount,
   trainTargetId,
   exerciseNotes = [],
+  sessionNotes = [],
+  pinnedNoteRefs = [],
   pinnedNote = null,
   earliestUnattached = null,
 }: ClientModeViewProps) {
@@ -746,7 +751,13 @@ export function ClientModeView({
 
         {/* ══════════════ NOTES ══════════════ */}
         <section className={`pane${tab === "notes" ? " on" : ""}`}>
-          <ClientNotesPane clientId={clientId} exerciseNotes={exerciseNotes} />
+          <ClientNotesPane
+            clientId={clientId}
+            clientName={clientName}
+            exerciseNotes={exerciseNotes}
+            sessionNotes={sessionNotes}
+            pinnedNoteRefs={pinnedNoteRefs}
+          />
         </section>
       </main>
 

@@ -7,7 +7,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconCheckSquare, IconActivity, IconPanelLeft, IconCalendar, IconBarChart3 } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
 import { ClientTasksPanel } from "./ClientTasksPanel";
-import { ClientNotesPanel } from "./ClientNotesPanel";
+import { MergedNotesPanel } from "./MergedNotesPanel";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { HubCard, HubCardHeader, HubDataGrid, HubDataField, HubQuickActions, HubAccordionSection, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
 import type { TrainerizeHistoryData } from "@/components/hub";
@@ -15,7 +15,7 @@ import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
 import { HubAlert } from "@/components/hub/HubAlert";
 import { lookupStatus, type StatusToken } from "@/lib/hubStatus";
 import { computeComplianceFlags } from "@/lib/compliance";
-import type { DBClientGroupType, DBClientPaceMode } from "@/types";
+import type { DBClientGroupType, DBClientPaceMode, SessionNoteData, PinnedNoteRef } from "@/types";
 import { formatFrequency } from "@/types";
 import { PlanAgentTab } from "./PlanAgentTab";
 import { ClientDetailTabs } from "./ClientDetailTabs";
@@ -184,6 +184,39 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const exerciseTrends = buildExerciseTrends(combinedSetLogs, trendSessionMeta);
   const exerciseHistory = buildExerciseHistory(combinedSetLogs);
   const exerciseNotes = aggregateExerciseNotes(sessions ?? []);
+
+  // CR-EF-098 — build session-level notes for the merged notes panel.
+  // Session notes live in sessions.data.session_log.notes (a free-text string).
+  // Session position is "Session N" without the total — the total per block is
+  // computed further down and the capped 50-row window makes an accurate "of Y"
+  // unreliable anyway.
+  const sessionNotes: SessionNoteData[] = (sessions ?? [])
+    .filter((s: any) => {
+      const log = s.data?.session_log as Record<string, unknown> | undefined;
+      return log && typeof log.notes === "string" && log.notes.trim();
+    })
+    .map((s: any) => {
+      const log = s.data?.session_log as { completed_at?: string | null; notes: string };
+      const sessName = sessionDisplayName(s);
+      return {
+        note: log.notes,
+        sessionName: sessName,
+        sessionPos: s.session_number != null ? `Session ${s.session_number}` : "",
+        sessionDate:
+          (s.data?.scheduled_at as string | null) ??
+          log.completed_at ??
+          s.created_at ??
+          "",
+        sessionId: s.id,
+        author: "Esther Fair",
+      };
+    });
+
+  const pinnedNoteRefs: PinnedNoteRef[] = Array.isArray(
+    (client as Record<string, unknown>).pinned_note_refs,
+  )
+    ? ((client as Record<string, unknown>).pinned_note_refs as PinnedNoteRef[])
+    : [];
 
   const isHomeTraining = client.delivery_mode === "home_training";
   const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
@@ -540,7 +573,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                   closed by default. "Active Block" opens first: it's the single most-
                   checked fact on a client record (what's their programme doing right
                   now), and the real compliance signal already has its own alert banner
-                  above rather than needing to live in the accordion. ClientNotesPanel
+                  above rather than needing to live in the accordion. MergedNotesPanel
                   stays outside the stack — it's an editable panel, not a collapsible
                   info section. */}
               <div className="flex flex-col gap-3">
@@ -605,7 +638,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                 </div>
               </HubAccordionSection>
 
-              <ClientNotesPanel clientId={client.id} exerciseNotes={exerciseNotes} />
+              <MergedNotesPanel
+                clientId={client.id}
+                clientName={client.name}
+                sessionNotes={sessionNotes}
+                exerciseNotes={exerciseNotes}
+                pinnedNoteRefs={pinnedNoteRefs}
+              />
 
               {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
                 <HubAccordionSection
