@@ -102,6 +102,23 @@ function estimateMinutes(exerciseCount: number): number {
   return Math.max(5, exerciseCount * 4);
 }
 
+function parsePrescription(text: string): { sets?: number; reps?: string } | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  const multMatch = trimmed.match(/(\d+)\s*[x×]\s*(.+)/i);
+  if (multMatch) {
+    return { sets: parseInt(multMatch[1], 10), reps: multMatch[2].trim() };
+  }
+
+  const setsMatch = trimmed.match(/(\d+)\s*(?:sets?)/i);
+  if (setsMatch) {
+    return { sets: parseInt(setsMatch[1], 10), reps: "" };
+  }
+
+  return null;
+}
+
 function formatDeliveryMode(mode: string | null): string {
   if (!mode) return "—";
   return mode === "studio_1to1" ? "Studio 1:1" : mode === "home_training" ? "Home training" : mode;
@@ -209,6 +226,12 @@ export function AddWorkoutClient({
   const [completedName, setCompletedName] = useState("");
   const [completedLabel, setCompletedLabel] = useState("");
 
+  /* Edit-before-add loading state */
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+
+  /* Per-exercise prescription edits on the Review & edit step */
+  const [reviewEdits, setReviewEdits] = useState<Record<string, string>>({});
+
   /* Busy state */
   const [busy, setBusy] = useState(false);
 
@@ -280,6 +303,7 @@ export function AddWorkoutClient({
             equipment: collectEquipment(full.data),
             source: "template",
             sourceId: full.id,
+            workoutData: full.data,
           });
           goTo("preview");
         }
@@ -318,13 +342,38 @@ export function AddWorkoutClient({
 
   function previewFromPasteReview() {
     if (!reviewData) return;
-    const exs = collectExercises(reviewData);
+
+    const hasEdits = Object.keys(reviewEdits).length > 0;
+    let dataForPreview = reviewData;
+    if (hasEdits) {
+      dataForPreview = {
+        warm_up: [...reviewData.warm_up],
+        main_block: [...reviewData.main_block],
+        cooldown: [...reviewData.cooldown],
+      };
+      (["warm_up", "main_block", "cooldown"] as const).forEach((section) => {
+        (reviewData[section] ?? []).forEach((ex, i) => {
+          const key = `${section}:${i}`;
+          const editedText = reviewEdits[key];
+          if (editedText === undefined) return;
+          const parsed = parsePrescription(editedText);
+          if (!parsed) return;
+          const patched = { ...ex };
+          if (parsed.sets !== undefined) patched.sets = parsed.sets;
+          if (parsed.reps !== undefined) patched.reps = parsed.reps;
+          dataForPreview[section] = [...dataForPreview[section]];
+          dataForPreview[section][i] = patched;
+        });
+      });
+    }
+
+    const exs = collectExercises(dataForPreview);
     setPreview({
       name: reviewName || "Pasted workout",
       exercises: exs,
-      equipment: collectEquipment(reviewData),
+      equipment: collectEquipment(dataForPreview),
       source: "paste",
-      workoutData: reviewData,
+      workoutData: dataForPreview,
     });
     goTo("preview");
   }
@@ -338,7 +387,25 @@ export function AddWorkoutClient({
     } else if (preview.workoutData) {
       setReviewName(preview.name);
       setReviewData(preview.workoutData);
+      setReviewEdits({});
       goTo("paste-review");
+    } else if (preview.source === "template" && preview.sourceId) {
+      setEditingTemplateId(preview.sourceId);
+      fetch("/api/workout-templates")
+        .then((r) => (r.ok ? r.json() : []))
+        .then((list: { id: string; name: string; data: SessionVersion }[]) => {
+          const full = list.find((tpl) => tpl.id === preview!.sourceId);
+          if (full) {
+            setReviewName(full.name);
+            setReviewData(full.data);
+            setReviewEdits({});
+            goTo("paste-review");
+          } else {
+            toast.error("Could not load template for editing");
+          }
+        })
+        .catch(() => toast.error("Could not load template for editing"))
+        .finally(() => setEditingTemplateId(null));
     }
   }
 
@@ -350,10 +417,10 @@ export function AddWorkoutClient({
         source: preview.source,
         name: preview.name,
       };
-      if (preview.source === "template" && preview.sourceId) {
-        body.template_id = preview.sourceId;
-      } else if (preview.workoutData) {
+      if (preview.workoutData) {
         body.workout_data = preview.workoutData;
+      } else if (preview.source === "template" && preview.sourceId) {
+        body.template_id = preview.sourceId;
       }
 
       const res = await fetch(`/api/clients/${clientNumber}/add-workout`, {
@@ -748,9 +815,10 @@ export function AddWorkoutClient({
                         <div key={i} className="flex items-center gap-2.5 text-[13px] py-2 px-2.5 border border-[var(--hub-border)] rounded-[10px]">
                           <span className="text-muted-foreground font-variant-numeric:tabular-nums w-4 shrink-0 text-[12px] font-extrabold">{i + 1}</span>
                           <span className="text-[var(--color-ink)] font-semibold flex-1 min-w-0">{ex.exercise_name}</span>
-                          <input
+                           <input
                             type="text"
-                            defaultValue={exercisePrescription(ex)}
+                            value={reviewEdits[`${section}:${i}`] ?? exercisePrescription(ex)}
+                            onChange={(e) => setReviewEdits((prev) => ({ ...prev, [`${section}:${i}`]: e.target.value }))}
                             className="w-[130px] h-[30px] border border-[var(--hub-field-border)] rounded-md px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-[var(--color-ink)] focus:outline-none focus:border-rose focus:shadow-[0_0_0_3px_rgba(193,131,159,.28)] shrink-0"
                           />
                         </div>
@@ -761,8 +829,8 @@ export function AddWorkoutClient({
               })}
             </div>
             <div className="flex items-center gap-2 px-4 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] flex-wrap">
-              <button onClick={() => goTo("paste")} className="inline-flex items-center h-9 px-3.5 rounded-lg border border-transparent text-[13px] font-medium text-[var(--color-body)] hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] transition-colors">
-                Back to paste
+              <button onClick={() => goTo(preview ? "paste" : "chooser")} className="inline-flex items-center h-9 px-3.5 rounded-lg border border-transparent text-[13px] font-medium text-[var(--color-body)] hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] transition-colors">
+                {preview ? "Back to paste" : "Back"}
               </button>
               <span className="ml-auto" />
               <button
@@ -816,8 +884,8 @@ export function AddWorkoutClient({
               Start again
             </button>
             <span className="ml-auto" />
-            <button onClick={editBeforeAdd} className="inline-flex items-center justify-center h-9 px-3.5 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[13px] font-semibold transition-colors">
-              {IC.edit} Edit before adding
+            <button onClick={editBeforeAdd} disabled={!!editingTemplateId} className="inline-flex items-center justify-center h-9 px-3.5 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[13px] font-semibold transition-colors disabled:opacity-50">
+              {IC.edit} {editingTemplateId ? "Loading…" : "Edit before adding"}
             </button>
             <button
               onClick={confirmAdd}
@@ -848,6 +916,7 @@ export function AddWorkoutClient({
                   setPasteHtml("");
                   setReviewName("");
                   setReviewData(null);
+                  setReviewEdits({});
                   goTo("chooser");
                 }}
                 className="inline-flex items-center justify-center h-9 px-3.5 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[13px] font-semibold transition-colors"
