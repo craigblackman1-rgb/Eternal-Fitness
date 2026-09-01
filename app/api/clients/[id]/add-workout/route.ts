@@ -202,6 +202,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
 
+  if (client.equipment === null) {
+    return NextResponse.json({ error: "Equipment must be set before adding workouts" }, { status: 400 });
+  }
+
   /* Find or create active block */
   let { data: blocks } = await supabase
     .from("blocks")

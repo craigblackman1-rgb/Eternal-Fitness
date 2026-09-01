@@ -1,9 +1,7 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { RichTextEditor } from "@/components/hub/RichTextEditor";
 import { toast } from "sonner";
 import type { SessionVersion, Exercise } from "@/types";
@@ -176,40 +174,28 @@ function EqChip({ name }: { name: string }) {
 interface AddWorkoutProps {
   clientNumber: number;
   clientName: string;
-  clientId: string;
   deliveryMode: string | null;
   equipment: string[] | null;
-  packageType: string | null;
 }
 
 export function AddWorkoutClient({
   clientNumber,
   clientName,
-  clientId,
   deliveryMode,
   equipment,
-  packageType,
 }: AddWorkoutProps) {
-  const params = useParams<{ id: string }>();
-  const router = useRouter();
-
   const [view, setView] = useState<View>(equipment === null ? "guard" : "chooser");
   const [ctx, setCtx] = useState<ClientContext | null>(null);
-  const [loading, setLoading] = useState(true);
 
   /* Q&A state */
   const [qaFocus, setQaFocus] = useState("Full body strength");
   const [qaEffort, setQaEffort] = useState("Building up gently");
   const [qaNotes, setQaNotes] = useState("");
 
-  /* Template state */
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateSummary | null>(null);
-
   /* Paste state */
   const [pasteHtml, setPasteHtml] = useState("");
   const [structuring, setStructuring] = useState(false);
   const [structureError, setStructureError] = useState<string | null>(null);
-  const [draft, setDraft] = useState<StructuredDraft | null>(null);
   const [reviewName, setReviewName] = useState("");
   const [reviewData, setReviewData] = useState<SessionVersion | null>(null);
 
@@ -233,8 +219,7 @@ export function AddWorkoutClient({
           if (data.equipmentGuard) setView("guard");
         }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, [clientNumber]);
 
   /* ── Navigation helpers ─────────────────────────────────────────────── */
@@ -275,7 +260,6 @@ export function AddWorkoutClient({
   /* ── Templates: preview ─────────────────────────────────────────────── */
 
   function previewTemplate(t: TemplateSummary) {
-    setSelectedTemplate(t);
     /* Fetch the full template data for preview */
     fetch("/api/workout-templates")
       .then((r) => (r.ok ? r.json() : []))
@@ -311,7 +295,6 @@ export function AddWorkoutClient({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Structuring failed");
-      setDraft(data as StructuredDraft);
       setReviewName(data.name || "");
       setReviewData(data.data);
       goTo("paste-review");
@@ -340,6 +323,17 @@ export function AddWorkoutClient({
   }
 
   /* ── Confirm: write to DB ──────────────────────────────────────────── */
+
+  function editBeforeAdd() {
+    if (!preview) return;
+    if (preview.source === "paste") {
+      goTo("paste");
+    } else if (preview.workoutData) {
+      setReviewName(preview.name);
+      setReviewData(preview.workoutData);
+      goTo("paste-review");
+    }
+  }
 
   async function confirmAdd() {
     if (!preview) return;
@@ -378,7 +372,6 @@ export function AddWorkoutClient({
 
   const deliveryLabel = formatDeliveryMode(ctx?.client.deliveryMode ?? deliveryMode);
   const equipmentDisplay = ctx?.equipmentNames ?? equipment ?? [];
-  const eqNull = equipment === null && ctx?.equipmentGuard;
 
   /* ════════════════════════════════════════════════════════════════════ */
   /* ── RENDER ─────────────────────────────────────────────────────────── */
@@ -441,6 +434,15 @@ export function AddWorkoutClient({
             {equipmentDisplay.length === 0 && (
               <p className="text-[11.5px] text-muted-foreground mt-1.5">Bodyweight only — no equipment on file.</p>
             )}
+            {deliveryLabel === "Home training" && ctx?.equipmentCatalog && equipmentDisplay.length > 0 && (() => {
+              const notes = ctx.equipmentCatalog
+                .filter((cat) => equipmentDisplay.some((e) => e.toLowerCase() === cat.name.toLowerCase()) && cat.homeEquivalent)
+                .map((cat) => cat.homeEquivalent!);
+              if (notes.length === 0) return null;
+              return (
+                <p className="text-[11.5px] text-muted-foreground mt-1.5">{notes.join("; ")}.</p>
+              );
+            })()}
           </div>
           <Link
             href={`/hub/clients/${clientNumber}/edit`}
@@ -540,14 +542,21 @@ export function AddWorkoutClient({
                     const profile = ctx.client.profile as Record<string, unknown>;
                     const health = (profile.health ?? {}) as Record<string, unknown>;
                     const watchFor = (profile.notes as Record<string, unknown> | undefined)?.watch_for;
-                    if (watchFor && typeof watchFor === "string") {
-                      return (
-                        <p className="text-[11.5px] text-muted-foreground mt-1.5">
-                          <b className="text-[var(--s-warning-tx)] font-bold">Known restriction on file:</b> {watchFor} — carried into the build automatically.
-                        </p>
-                      );
+                    const contraindications = Array.isArray(health.contraindications)
+                      ? (health.contraindications as string[])
+                      : [];
+                    const items: string[] = [];
+                    if (watchFor && typeof watchFor === "string") items.push(watchFor);
+                    for (const c of contraindications) {
+                      if (typeof c === "string" && c) items.push(c);
                     }
-                    return null;
+                    if (items.length === 0) return null;
+                    return (
+                      <p className="text-[11.5px] text-muted-foreground mt-1.5">
+                        <b className="text-[var(--s-warning-tx)] font-bold">Known restriction{items.length > 1 ? "s" : ""} on file:</b>{" "}
+                        {items.join("; ")} — carried into the build automatically.
+                      </p>
+                    );
                   })()
                 )}
               </div>
@@ -800,7 +809,7 @@ export function AddWorkoutClient({
               Start again
             </button>
             <span className="ml-auto" />
-            <button className="inline-flex items-center justify-center h-9 px-3.5 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[13px] font-semibold transition-colors">
+            <button onClick={editBeforeAdd} className="inline-flex items-center justify-center h-9 px-3.5 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[13px] font-semibold transition-colors">
               {IC.edit} Edit before adding
             </button>
             <button
@@ -829,7 +838,6 @@ export function AddWorkoutClient({
               <button
                 onClick={() => {
                   setPreview(null);
-                  setDraft(null);
                   setPasteHtml("");
                   setReviewName("");
                   setReviewData(null);

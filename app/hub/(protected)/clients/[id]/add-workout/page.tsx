@@ -19,10 +19,8 @@ export default async function AddWorkoutPage({ params }: { params: { id: string 
     <AddWorkoutClient
       clientNumber={client.client_number}
       clientName={client.name}
-      clientId={client.id}
       deliveryMode={client.delivery_mode}
       equipment={client.equipment}
-      packageType={client.package_type}
     />
   );
 }
