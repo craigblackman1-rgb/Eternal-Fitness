@@ -585,10 +585,7 @@ export default function NewClientPage() {
       const data = await res.json();
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
       toast.success("Client created");
-      const routeParam = firstWorkoutRoute === "templates" ? "template"
-        : firstWorkoutRoute === "qa" ? "qa"
-        : "paste";
-      router.push(`/hub/clients/${data.client_number}/add-workout?view=${routeParam}`);
+      router.push(`/hub/clients/${data.client_number}/add-workout?view=${firstWorkoutRoute}`);
     } catch {
       toast.error("Failed to save client — please try again");
       setSaving(false);
