@@ -20,6 +20,7 @@ import {
   IconCheck,
   IconAlertTriangle,
   IconTrash2,
+  IconUpload,
   IconX,
 } from "@/components/icons";
 import Link from "next/link";
@@ -53,7 +54,7 @@ const STEPS = [
 ] as const;
 
 type StepKey = 1 | 2 | 3 | 4 | 5;
-type ParqMode = "send" | "override" | null;
+type ParqMode = "send" | "upload" | "override" | null;
 
 function calculateAge(dob: string | null): number {
   if (!dob) return 0;
@@ -312,6 +313,7 @@ export default function NewClientPage() {
   /* ── Step 2 state ── */
   const [parqMode, setParqMode] = useState<ParqMode>(() => initDraft(null, (d) => d.parqMode));
   const [overrideNote, setOverrideNote] = useState(() => initDraft("", (d) => d.overrideNote));
+  const [parqFile, setParqFile] = useState<File | null>(null);
   const [gpClearanceRequired, setGpClearanceRequired] = useState(() => initDraft(false, (d) => d.gpClearanceRequired));
   const [gpClearanceNote, setGpClearanceNote] = useState(() => initDraft("", (d) => d.gpClearanceNote));
   const [conditions, setConditions] = useState<string[]>(() => initDraft([], (d) => d.conditions));
@@ -392,7 +394,8 @@ export default function NewClientPage() {
   /* ── Step validation ── */
   const step1Valid = name.trim().length > 0 && email.trim().length > 0;
   const step2Valid =
-    parqMode !== null && (parqMode !== "override" || overrideNote.trim().length > 0);
+    parqMode !== null && (parqMode !== "override" || overrideNote.trim().length > 0) &&
+    (parqMode !== "upload" || parqFile !== null);
   const step4Valid = bodyweightOnly || (equipment !== null && equipment.length > 0);
 
   const canContinue = useMemo(() => {
@@ -502,6 +505,12 @@ export default function NewClientPage() {
       setAttempted((prev) => ({ ...prev, 2: true }));
       return;
     }
+    if (parqMode === "upload" && !parqFile) {
+      toast.error("A signed PAR-Q file is required — upload the document or choose a different route.");
+      setStep(2);
+      setAttempted((prev) => ({ ...prev, 2: true }));
+      return;
+    }
     if (!bodyweightOnly && (equipment === null || equipment.length === 0)) {
       toast.error("Equipment is required — pick available equipment or confirm bodyweight only.");
       setStep(4);
@@ -605,6 +614,26 @@ export default function NewClientPage() {
       }
 
       const data = await res.json();
+
+      // Upload signed PAR-Q if applicable — client must exist first
+      if (parqMode === "upload" && parqFile) {
+        const formData = new FormData();
+        formData.append("client_id", String(data.client_number));
+        formData.append("kind", "parq");
+        formData.append("title", "PAR-Q (uploaded)");
+        formData.append("file", parqFile);
+
+        const uploadRes = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadErr = await uploadRes.json().catch(() => ({ error: "Upload failed" }));
+          toast.error(`Client created, but the PAR-Q upload failed: ${uploadErr.error}. Upload it from the client's Compliance tab.`);
+        }
+      }
+
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
       toast.success("Client created");
       router.push(`/hub/clients/${data.client_number}/add-workout?view=${firstWorkoutRoute}`);
@@ -617,7 +646,7 @@ export default function NewClientPage() {
     gpName, gpSurgery, gpPhone, packageType, frequency, deliveryMode,
     equipment, bandSet, bandNote, conditions, contraindications, medications,
     injuryHistory, primaryGoal, milestones, baseline, successLooks,
-    gpClearanceRequired, parqMode, overrideNote, router, firstWorkoutRoute,
+    gpClearanceRequired, parqMode, overrideNote, parqFile, router, firstWorkoutRoute,
   ]);
 
   /* ── Cadence label ── */
@@ -628,6 +657,8 @@ export default function NewClientPage() {
     const flags: { text: string; note?: string }[] = [];
     if (parqMode === "send")
       flags.push({ text: "No PAR-Q on file", note: "Send from the client's Compliance tab after creation." });
+    else if (parqMode === "upload")
+      flags.push({ text: "Signed PAR-Q ready to upload", note: "The scanned document will be stored after the client record is created." });
     else if (parqMode === "override")
       flags.push({ text: "PAR-Q trainer-overridden — pending migration from Microsoft Forms" });
     else if (!parqMode)
@@ -648,6 +679,7 @@ export default function NewClientPage() {
     if (maxStepReached >= 2) {
       const parqLabel =
         parqMode === "send" ? "Not yet sent"
+        : parqMode === "upload" ? "File ready"
         : parqMode === "override" ? "Trainer override"
         : "";
       fields.push({ label: "PAR-Q", value: parqLabel, pending: parqMode === "send" });
@@ -991,6 +1023,49 @@ export default function NewClientPage() {
                           Not yet sent · needs signing
                         </span>
                         <p className="text-[11.5px] text-muted-foreground mt-1.5">The PAR-Q link will be available from the client&apos;s Compliance tab after creation. Send it from there — the client completes and signs it themselves. Plan generation stays open, but the compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
+                      </div>
+                    )}
+                  </label>
+
+                  {/* Upload signed PAR-Q */}
+                  <label
+                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                      parqMode === "upload"
+                        ? "bg-rose/5 border-rose/20"
+                        : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="parq"
+                      value="upload"
+                      checked={parqMode === "upload"}
+                      onChange={() => setParqMode("upload")}
+                      className="sr-only"
+                    />
+                    <p className="text-[13px] font-bold text-foreground">Upload a signed PAR-Q</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">The client has already signed a paper or PDF PAR-Q. Upload the scanned document — it will be stored as a signed PAR-Q on the client&apos;s compliance record.</p>
+                    {parqMode === "upload" && (
+                      <div className="mt-2.5 pt-2.5 border-t border-[var(--hub-border)] space-y-2">
+                        <Label>
+                          Signed PAR-Q file <span className="text-muted-foreground font-medium">(required)</span>
+                        </Label>
+                        <Input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) => setParqFile(e.target.files?.[0] ?? null)}
+                          className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                        />
+                        <p className="text-[11.5px] text-muted-foreground">PDF, JPG, or PNG — max 10 MB. The file is uploaded and stored after the client record is created.</p>
+                        {parqFile && (
+                          <p className="text-[11.5px] text-foreground">
+                            <IconUpload className="w-3.5 h-3.5 inline mr-1" />
+                            {parqFile.name} ({(parqFile.size / 1024).toFixed(0)} KB)
+                          </p>
+                        )}
+                        {attempted[2] && !parqFile && (
+                          <p className="text-[11.5px] font-semibold text-destructive">A file is required — upload the signed PAR-Q or choose a different route.</p>
+                        )}
                       </div>
                     )}
                   </label>
@@ -1349,6 +1424,7 @@ export default function NewClientPage() {
                     {
                       label: "Health",
                       value: parqMode === "send" ? "PAR-Q needs to be sent from the Compliance tab"
+                        : parqMode === "upload" ? "Signed PAR-Q ready to upload"
                         : parqMode === "override" ? "Trainer override, reviewed on Microsoft Forms"
                         : "Not answered",
                       sub: gpClearanceRequired ? "GP clearance required — not yet obtained" : undefined,
@@ -1356,7 +1432,7 @@ export default function NewClientPage() {
                     },
                     { label: "Goals", value: primaryGoal.replace(/_/g, " "), editStep: 3 as StepKey },
                     { label: "Where they train", value: reviewDeliveryLabel, sub: reviewEqLabel || "Not answered", editStep: 4 as StepKey },
-                    { label: "Band set", value: bandSet === "ef" ? "EF Studio set" : "Their own set", sub: "Captured as a note — band set still needs to be linked on the Compliance tab", editStep: 4 as StepKey },
+                    { label: "Band set", value: bandSet === "ef" ? "EF Studio set" : "Their own set", sub: "Captured as a note — band set still needs to be linked in studio equipment settings", editStep: 4 as StepKey },
                     { label: "First workouts", value: reviewRouteLabel, sub: "You'll build after the client is saved", editStep: 5 as StepKey },
                   ].map((row) => (
                     <div key={row.label} className="flex items-start gap-3 py-3 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">

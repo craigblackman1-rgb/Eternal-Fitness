@@ -55,12 +55,32 @@ export async function POST(request: Request) {
     enrichedProfile.health.gp_clearance_note = gp_clearance_note;
   }
 
+  // Compute sessions_purchased from package duration and cadence
+  let sessionsPurchased: number | null = null;
+  if (package_type && enrichedProfile?.logistics?.frequency) {
+    const freq = enrichedProfile.logistics.frequency;
+    if (freq.unit !== "irregular") {
+      const packageWeeks: Record<string, number> = {
+        "4-week": 4, "6-week": 6, "12-week": 12, "24-week": 24,
+      };
+      const weeks = packageWeeks[package_type];
+      if (weeks) {
+        switch (freq.unit) {
+          case "week": sessionsPurchased = weeks * freq.per_unit; break;
+          case "fortnight": sessionsPurchased = Math.round(weeks / 2) * freq.per_unit; break;
+          case "month": sessionsPurchased = Math.round(weeks / 4) * freq.per_unit; break;
+        }
+      }
+    }
+  }
+
   const insertRow: Record<string, unknown> = {
     name: name.trim(),
     email: email || null,
     phone: phone || null,
     profile: enrichedProfile,
     package_type: package_type ?? null,
+    sessions_purchased: sessionsPurchased,
   };
 
   // CR-EF-118 — wizard passes delivery_mode and equipment directly on the clients row
