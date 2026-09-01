@@ -209,7 +209,7 @@ export function SlotPicker({
       });
 
       if (res.ok) {
-        const label = bookingSession.focus_label || `Session ${bookingSession.session_number}`;
+        const label = `Session ${bookingSession.session_number}`;
         const detail = mode === "reschedule"
           ? `${label} is now booked for ${selectedDayLabel}. Your previous time has been released.`
           : `${label} is now booked for ${selectedDayLabel}.`;
@@ -263,7 +263,7 @@ export function SlotPicker({
               {/* Main content */}
               <div className="min-w-0 flex-1">
                 <h3 className="text-base font-bold text-foreground m-0">
-                  {sess.focus_label || `Session ${sess.session_number}`}
+                  Session {sess.session_number}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0.5 m-0">
                   {isBooked
@@ -273,6 +273,9 @@ export function SlotPicker({
                 </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
                   {dueLabel && <span>Due <strong className="text-foreground">{dueLabel}</strong></span>}
+                  {sess.focus_label && (
+                    <span>Focus: <strong className="text-foreground">{sess.focus_label}</strong></span>
+                  )}
                 </div>
               </div>
 

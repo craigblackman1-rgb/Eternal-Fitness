@@ -142,7 +142,7 @@ export default function TrainingClient({
                 }`}
               >
                 {done && <IconCheckCircle className="h-3.5 w-3.5" aria-hidden="true" />}
-                {s.focus_label || `Session ${chronologicalPositions?.get(s.id)?.position ?? s.session_number}`}
+                Session {chronologicalPositions?.get(s.id)?.position ?? s.session_number}
               </button>
             );
           })}
@@ -153,10 +153,10 @@ export default function TrainingClient({
       <section aria-label={`Session ${chronologicalPositions?.get(session.id)?.position ?? session.session_number}`} className="space-y-4">
         <div className="rounded-2xl border border-border/60 bg-white p-4 sm:p-5">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-lg font-semibold">{session.focus_label || `Session ${chronologicalPositions?.get(session.id)?.position ?? session.session_number}`}</h2>
+            <h2 className="text-lg font-semibold">Session {chronologicalPositions?.get(session.id)?.position ?? session.session_number}</h2>
             <span className="text-sm capitalize text-muted-foreground">
               {derivedWeekLabel(session.scheduled_at ?? null, session.week)}
-              {chronologicalPositions?.get(session.id) ? ` · Session ${chronologicalPositions.get(session.id)!.position} of ${chronologicalPositions.get(session.id)!.total}` : ""}
+              {session.focus_label ? ` · ${session.focus_label}` : ""}
             </span>
           </div>
           {session.client_intro && (

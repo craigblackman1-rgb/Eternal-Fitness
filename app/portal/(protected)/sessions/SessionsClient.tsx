@@ -23,7 +23,6 @@ interface PastSession {
   chargedFree: "charged" | "free" | null;
   completedAt: string | null;
   cancelledAt: string | null;
-  focusLabel: string;
 }
 
 interface SessionsClientProps {
@@ -409,7 +408,7 @@ export function SessionsClient({
                           {s.scheduledAt ? fmtWhen(s.scheduledAt) : "Unscheduled"}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          {isCompleted ? `${s.focusLabel || `Session ${s.chronologicalPosition?.position ?? s.sessionNumber}`} · Session ${s.chronologicalPosition?.position ?? s.sessionNumber} of ${s.chronologicalPosition?.total ?? sessionsPurchased ?? "?"} · logged by Esther`
+                          {isCompleted ? `Session ${s.chronologicalPosition?.position ?? s.sessionNumber} of ${s.chronologicalPosition?.total ?? sessionsPurchased ?? "?"} · logged by Esther`
                             : isCancelled
                               ? `Cancelled ${s.chargedFree === "charged" ? "— this used a session" : "— went back into your block"}`
                               : ""}

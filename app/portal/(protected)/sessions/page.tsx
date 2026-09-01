@@ -127,7 +127,6 @@ export default async function PortalSessionsPage() {
         chargedFree: s.charged_free as "charged" | "free" | null,
         completedAt: s.completed_at,
         cancelledAt: s.cancelled_at,
-        focusLabel: (s as any).data?.focus_label ?? "",
       }))}
       noticeHours={noticeHours}
       sessionLength={sessionLength}
