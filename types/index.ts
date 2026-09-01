@@ -787,3 +787,26 @@ export interface InvoiceTemplateLineItem {
   quantity: number;
   unit_price: number;
 }
+
+// ── CR-EF-119 — Guided client review flow ────────────────────────────────
+
+/** The three valid review decisions. Must match the CHECK constraint in the migration. */
+export type ReviewDecision = "continue" | "adjust" | "restart";
+
+/** A recorded client review row from the `client_reviews` table. */
+export interface DBClientReview {
+  id: string;
+  client_id: string;
+  decision: ReviewDecision;
+  note: string;
+  recorded_by: string;
+  recorded_by_name: string;
+  created_at: string;
+}
+
+/** Shape of the review POST request body. */
+export interface ReviewDecisionInput {
+  decision: ReviewDecision;
+  note: string;
+  recorded_by_name: string;
+}
