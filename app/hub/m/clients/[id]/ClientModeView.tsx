@@ -58,9 +58,12 @@ export interface PoolWorkoutView {
 }
 
 export interface SessionPotView {
-  remaining: number;
+  remaining: number | null;
   used: number;
-  purchased: number;
+  purchased: number | null;
+  purchasedIsEstimate: boolean;
+  estimatedPurchase: number;
+  estimatedRemaining: number;
   completed: number;
   chargedCancellations: number;
   freeCancellations: number;
@@ -396,7 +399,11 @@ export function ClientModeView({
                 <span className="panel-h-t">Sessions</span>
                 <span className="panel-h-s">
                   {block
-                    ? `${potView.used} of ${potView.purchased} used · ${potView.remaining} remaining`
+                    ? potView.purchasedIsEstimate
+                      ? `${potView.used} of ${potView.estimatedPurchase} used (est.) · ${potView.estimatedRemaining} remaining (est.)`
+                      : potView.purchased != null
+                        ? `${potView.used} of ${potView.purchased} used · ${potView.remaining} remaining`
+                        : `${potView.used} used · purchased not recorded`
                     : "No active programme"}
                 </span>
               </span>
@@ -416,7 +423,7 @@ export function ClientModeView({
                   </div>
                   <div className="blockmeta">
                     <span>Tap to see which sessions, and what&apos;s attached</span>
-                    <span>{potView.remaining} left</span>
+                    <span>{potView.purchasedIsEstimate ? potView.estimatedRemaining : potView.remaining ?? "?"}{potView.purchasedIsEstimate ? " (est.)" : ""} left</span>
                   </div>
                 </>
               )}
@@ -496,36 +503,38 @@ export function ClientModeView({
           {/* Pot strip */}
           <div className="mpot">
             <div className="mpot-row">
-              <span className="mpot-n">{potView.remaining}</span>
+              <span className="mpot-n">{potView.purchasedIsEstimate ? potView.estimatedRemaining : potView.remaining ?? "?"}</span>
               <span className="mpot-l">left</span>
               <span className="mpot-side">
-                <b>{potView.used}</b> used of <b>{potView.purchased}</b>
+                <b>{potView.used}</b> used{potView.purchasedIsEstimate ? <> of <b>{potView.estimatedPurchase}</b> (est.)</> : potView.purchased != null ? <> of <b>{potView.purchased}</b></> : null}
                 <br />
                 {potView.bookedAhead} booked ahead
               </span>
             </div>
-            <div className="mbar">
-              {potView.completed > 0 && (
-                <span className="mseg done" style={{ width: `${(potView.completed / potView.purchased) * 100}%` }} />
-              )}
-              {potView.chargedCancellations > 0 && (
-                <span className="mseg charged" style={{ width: `${(potView.chargedCancellations / potView.purchased) * 100}%` }} />
-              )}
-              {potView.bookedAhead > 0 && (
-                <span className="mseg booked" style={{ width: `${(potView.bookedAhead / potView.purchased) * 100}%` }} />
-              )}
-              {(() => {
-                const notBooked = Math.max(potView.remaining - potView.bookedAhead, 0);
-                return notBooked > 0 ? (
-                  <span
-                    className="mseg free"
-                    style={{
-                      width: `${(notBooked / potView.purchased) * 100}%`,
-                    }}
-                  />
-                ) : null;
-              })()}
-            </div>
+            {potView.purchased != null ? (
+              <div className="mbar">
+                {potView.completed > 0 && (
+                  <span className="mseg done" style={{ width: `${(potView.completed / potView.purchased) * 100}%` }} />
+                )}
+                {potView.chargedCancellations > 0 && (
+                  <span className="mseg charged" style={{ width: `${(potView.chargedCancellations / potView.purchased) * 100}%` }} />
+                )}
+                {potView.bookedAhead > 0 && (
+                  <span className="mseg booked" style={{ width: `${(potView.bookedAhead / potView.purchased) * 100}%` }} />
+                )}
+                {(() => {
+                  const notBooked = Math.max((potView.remaining ?? 0) - potView.bookedAhead, 0);
+                  return notBooked > 0 ? (
+                    <span
+                      className="mseg free"
+                      style={{
+                        width: `${(notBooked / potView.purchased) * 100}%`,
+                      }}
+                    />
+                  ) : null;
+                })()}
+              </div>
+            ) : null}
             <div className="mpot-legend">
               <span className="mleg">
                 <i style={{ background: "var(--teal)" }} />Completed <b>{potView.completed}</b>
@@ -539,7 +548,7 @@ export function ClientModeView({
                 <i style={{ background: "var(--rose)" }} />Booked <b>{potView.bookedAhead}</b>
               </span>
               <span className="mleg">
-                <i style={{ background: "var(--hover)" }} />Not booked <b>{Math.max(potView.remaining - potView.bookedAhead, 0)}</b>
+                <i style={{ background: "var(--hover)" }} />Not booked <b>{Math.max((potView.remaining ?? 0) - potView.bookedAhead, 0)}</b>
               </span>
             </div>
             {potView.unreviewedCancellations > 0 && (

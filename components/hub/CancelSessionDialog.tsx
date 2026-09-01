@@ -63,8 +63,8 @@ export function CancelSessionDialog({
       }
       toast.success(
         chargedFree === "charged"
-          ? `Cancelled and charged — ${clientName} now has ${pot.remaining - 1} sessions remaining`
-          : `Cancelled free of charge — ${clientName} still has ${pot.remaining} sessions remaining`,
+          ? `Cancelled and charged — ${clientName} now has ${pot.purchasedIsEstimate ? pot.estimatedRemaining - 1 : pot.remaining != null ? pot.remaining - 1 : "?"} sessions remaining`
+          : `Cancelled free of charge — ${clientName} still has ${pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"} sessions remaining`,
       );
       onOpenChange(false);
       setChargedFree(null);
@@ -83,7 +83,7 @@ export function CancelSessionDialog({
 
   if (!open) return null;
 
-  const afterCharged = pot.remaining - 1;
+  const afterCharged = pot.remaining != null ? pot.remaining - 1 : null;
   const sessionLabel = session.scheduled_at
     ? new Date(session.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
     : sessionWorkoutName(session, `Session ${session.session_number}`);
@@ -213,7 +213,7 @@ export function CancelSessionDialog({
                 <p className="text-[13.5px] font-bold text-foreground leading-snug">
                   {chargedFree === "charged" ? (
                     <>
-                      This <em className="font-extrabold not-italic text-[var(--status-danger)]">will use one</em> of {clientName}&apos;s {pot.remaining} remaining sessions.
+                      This <em className="font-extrabold not-italic text-[var(--status-danger)]">will use one</em> of {clientName}&apos;s {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"} remaining sessions{pot.purchasedIsEstimate ? " (est.)" : ""}.
                     </>
                   ) : (
                     <>
@@ -224,18 +224,18 @@ export function CancelSessionDialog({
                 <p className="text-xs text-body mt-1">
                   {chargedFree === "charged" ? (
                     <>
-                      {clientName} would be left with {afterCharged} session{afterCharged === 1 ? "" : "s"}.
+                      {clientName} would be left with {afterCharged != null ? afterCharged : "?"} session{afterCharged === 1 ? "" : "s"}{pot.purchasedIsEstimate && afterCharged != null ? " (est.)" : ""}.
                     </>
                   ) : (
                     <>
-                      {clientName} keeps all {pot.remaining} remaining sessions. The slot is released back to the calendar.
+                      {clientName} keeps all {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"} remaining sessions. The slot is released back to the calendar.
                     </>
                   )}
                 </p>
                 <div className="inline-flex items-center gap-2 mt-2.5 text-xs font-bold text-body bg-white/80 border border-[var(--hub-border)] rounded-full px-3 py-0.5 tabular-nums">
-                  <span>{pot.remaining} remaining</span>
+                  <span>{pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"}{pot.purchasedIsEstimate ? " (est.)" : ""} remaining</span>
                   <span className="text-muted-foreground font-semibold">&rarr;</span>
-                  <span className="text-foreground">{chargedFree === "charged" ? afterCharged : pot.remaining} remaining</span>
+                  <span className="text-foreground">{chargedFree === "charged" ? (afterCharged != null ? afterCharged : "?") : (pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?")}{chargedFree === "charged" && pot.purchasedIsEstimate && afterCharged != null ? " (est.)" : ""} remaining</span>
                 </div>
               </div>
             </div>

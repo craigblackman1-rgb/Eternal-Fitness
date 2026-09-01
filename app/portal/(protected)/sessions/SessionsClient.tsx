@@ -140,8 +140,8 @@ export function SessionsClient({
       });
       if (!res.ok) throw new Error("Cancel failed");
       setToast(nt.inside
-        ? `Session cancelled. It came out of your block — ${pot.remaining - 1} left. Esther has been told.`
-        : `Session cancelled and returned to your block — still ${pot.remaining} left.`);
+        ? `Session cancelled. It came out of your block — ${pot.purchasedIsEstimate ? pot.estimatedRemaining - 1 : pot.remaining != null ? pot.remaining - 1 : "?"} left. Esther has been told.`
+        : `Session cancelled and returned to your block — still ${pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"} left.`);
       setCancelSession(null);
       setTimeout(() => setToast(null), 5000);
     } catch (err) {
@@ -197,15 +197,16 @@ export function SessionsClient({
       <section className="flex flex-wrap items-center gap-4 lg:gap-6 bg-white border border-border rounded-2xl shadow-sm p-4">
         <div className="flex items-baseline gap-2.5 shrink-0">
           <span className="text-4xl font-bold tracking-[-.03em] text-foreground tabular-nums" style={{ fontFamily: "var(--serif, Georgia)" }}>
-            {pot.remaining}
+            {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"}
           </span>
           <span className="text-[13px] font-semibold text-body">
             sessions left<br />
-            of your <b className="text-foreground">{pot.purchased}-session block</b>
+            of your <b className="text-foreground">{pot.purchasedIsEstimate ? pot.estimatedPurchase : pot.purchased ?? "?"}-session block</b>
+            {pot.purchasedIsEstimate && <span className="text-muted-foreground ml-1">(not yet confirmed on your record)</span>}
           </span>
         </div>
         <div className="flex gap-1 flex-1 min-w-[160px]">
-          {Array.from({ length: pot.purchased }, (_, i) => (
+          {pot.purchased != null && Array.from({ length: pot.purchased }, (_, i) => (
             <i
               key={i}
               className={cn(
@@ -245,7 +246,7 @@ export function SessionsClient({
               {upcoming.length === 0 ? (
                 <li className="p-8 text-center text-sm text-muted-foreground">
                   <b className="block text-foreground text-[15px] mb-1">Nothing booked yet</b>
-                  You have {pot.remaining} sessions left in this block.{" "}
+                  You have {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"} sessions left in this block.{" "}
                   <a href="/portal/book" className="font-bold text-foreground">Book a time</a>.
                 </li>
               ) : (
@@ -486,7 +487,8 @@ export function SessionsClient({
           session={cancelSession}
           noticeHours={noticeHours}
           sessionLength={sessionLength}
-          sessionsRemaining={pot.remaining}
+          sessionsRemaining={pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining}
+          isEstimated={pot.purchasedIsEstimate}
           onClose={() => setCancelSession(null)}
           onConfirm={handleCancel}
         />
@@ -514,13 +516,15 @@ function CancelDialog({
   noticeHours,
   sessionLength,
   sessionsRemaining,
+  isEstimated,
   onClose,
   onConfirm,
 }: {
   session: UpcomingSession;
   noticeHours: number;
   sessionLength: number;
-  sessionsRemaining: number;
+  sessionsRemaining: number | null;
+  isEstimated: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }) {
@@ -586,14 +590,14 @@ function CancelDialog({
             <div className="flex bg-white border border-border rounded-xl overflow-hidden">
               <div className="flex-1 p-3 text-center">
                 <div className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-muted-foreground">Sessions left now</div>
-                <div className="text-[30px] font-bold text-foreground leading-tight mt-0.5 tabular-nums">{sessionsRemaining}</div>
-                <div className="text-[11.5px] text-muted-foreground mt-0.5">before cancelling</div>
+                <div className="text-[30px] font-bold text-foreground leading-tight mt-0.5 tabular-nums">{sessionsRemaining ?? "?"}</div>
+                <div className="text-[11.5px] text-muted-foreground mt-0.5">before cancelling{isEstimated && " (est.)"}</div>
               </div>
               <div className="w-px bg-border" />
               <div className={cn("flex-1 p-3 text-center", nt.inside ? "" : "")}>
                 <div className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-muted-foreground">After cancelling</div>
                 <div className={cn("text-[30px] font-bold leading-tight mt-0.5 tabular-nums flex items-center justify-center gap-1.5", nt.inside ? "text-[var(--status-danger)]" : "text-[var(--color-teal)]")}>
-                  {nt.inside ? sessionsRemaining - 1 : sessionsRemaining}
+                  {nt.inside ? (sessionsRemaining != null ? sessionsRemaining - 1 : "?") : sessionsRemaining ?? "?"}
                   {nt.inside && (
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-6-6 6 6 6-6" /></svg>
                   )}

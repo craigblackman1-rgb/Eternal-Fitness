@@ -171,7 +171,9 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
   return (
     <div className="space-y-6">
       {remainingClients.map((client) => {
-        const remainingAfterCharged = Math.max(client.pot.remaining - 1, 0);
+        const remainingAfterCharged = (client.pot.remaining ?? (client.pot.purchasedIsEstimate ? client.pot.estimatedRemaining : null)) != null
+          ? Math.max((client.pot.remaining ?? client.pot.estimatedRemaining) - 1, 0)
+          : null;
 
         return (
           <div key={client.clientId} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden">
@@ -190,9 +192,14 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-foreground tabular-nums">{client.pot.remaining} remaining</div>
+                  <div className="text-sm font-bold text-foreground tabular-nums">
+                    {client.pot.purchasedIsEstimate ? client.pot.estimatedRemaining : client.pot.remaining ?? "?"}
+                    {client.pot.purchasedIsEstimate && <span className="text-muted-foreground font-semibold ml-1">(est.)</span>}
+                    {" remaining"}
+                  </div>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    of {client.pot.purchased} purchased
+                    of {client.pot.purchasedIsEstimate ? client.pot.estimatedPurchase : client.pot.purchased ?? "?"} purchased
+                    {client.pot.purchasedIsEstimate && " (est.)"}
                   </div>
                 </div>
               </div>
@@ -284,13 +291,13 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                       }`}>
                         {currentDecision === "charged" ? (
                           <span>
-                            Counts as used &mdash; {client.clientName} drops from {client.pot.remaining} to{" "}
-                            <strong>{remainingAfterCharged}</strong> remaining.
+                            Counts as used &mdash; {client.clientName} drops from {(client.pot.remaining ?? (client.pot.purchasedIsEstimate ? client.pot.estimatedRemaining : null)) ?? "?"} to{" "}
+                            <strong>{remainingAfterCharged ?? "?"}</strong> remaining{client.pot.purchasedIsEstimate ? " (est.)" : ""}.
                           </span>
                         ) : (
                           <span>
                             Does not count &mdash; {client.clientName} keeps all{" "}
-                            <strong>{client.pot.remaining}</strong> remaining sessions.
+                            <strong>{(client.pot.remaining ?? (client.pot.purchasedIsEstimate ? client.pot.estimatedRemaining : null)) ?? "?"}</strong> remaining sessions{client.pot.purchasedIsEstimate ? " (est.)" : ""}.
                           </span>
                         )}
                       </div>
