@@ -250,17 +250,17 @@ export function PortalBookingClient({
           <div className="min-w-[184px]">
             <p className="text-[11px] font-extrabold uppercase tracking-[.1em] text-muted-foreground">Sessions left</p>
             <p className="text-5xl font-bold tracking-[-.035em] text-foreground mt-1 tabular-nums" style={{ fontFamily: "var(--serif, Georgia)" }}>
-              {pot.remaining}
+              {pot.remaining ?? "?"}
             </p>
             <p className="text-sm text-body mt-0.5">
-              of your <b className="text-foreground">{pot.purchased}-session block</b>
+              of your <b className="text-foreground">{pot.purchased ?? "?"}-session block</b>
             </p>
           </div>
 
           {/* Pips */}
           <div className="flex-1 min-w-0 self-center">
             <div className="flex gap-1.5 mb-3" role="img" aria-label={`${pot.completed} sessions used, ${pot.chargedCancellations + pot.freeCancellations} cancellations, ${free} free to book`}>
-              {Array.from({ length: pot.purchased }, (_, i) => {
+              {pot.purchased != null && Array.from({ length: pot.purchased }, (_, i) => {
                 const cls = i < pot.completed ? "" : i < pot.completed + (pot.chargedCancellations) ? "bg-[var(--color-rose)]" : i < pot.used ? "bg-[var(--color-rose)]" : "bg-white border-2 border-[var(--color-rose)]";
                 return <i key={i} className={cn("h-[34px] flex-1 min-w-[9px] rounded-[5px]", cls)} />;
               })}

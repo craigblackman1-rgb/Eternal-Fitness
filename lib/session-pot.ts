@@ -27,10 +27,12 @@ export interface SessionPotBreakdown {
   unreviewedCancellations: number;
   /** Total sessions that consumed a slot: completed + charged. */
   used: number;
-  /** Total purchased (from the client record). */
-  purchased: number;
-  /** Remaining = purchased - used. */
-  remaining: number;
+  /** Total purchased from the client record, or null when not recorded. */
+  purchased: number | null;
+  /** Whether purchased fell back to a row count (sessions_purchased was NULL). */
+  purchasedIsEstimate: boolean;
+  /** Remaining = purchased - used, or null when purchased is unknown. */
+  remaining: number | null;
   /** Total sessions in the block (session rows). */
   totalInBlock: number;
   /** Unreviewed cancellations that may affect the count — surfaced for human decision. */
@@ -75,8 +77,9 @@ export function deriveSessionPot(
   }
 
   const used = completed + chargedCancellations;
-  const purchased = sessionsPurchased ?? potSessions.length;
-  const remaining = Math.max(purchased - used, 0);
+  const purchasedIsEstimate = sessionsPurchased == null;
+  const purchased = purchasedIsEstimate ? null : sessionsPurchased;
+  const remaining = purchased != null ? Math.max(purchased - used, 0) : null;
 
   return {
     completed,
@@ -85,6 +88,7 @@ export function deriveSessionPot(
     unreviewedCancellations,
     used,
     purchased,
+    purchasedIsEstimate,
     remaining,
     totalInBlock: potSessions.length,
     unreviewed: unreviewedCancellations,

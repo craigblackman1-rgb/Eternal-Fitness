@@ -28,6 +28,7 @@ interface ReviewFlowClientProps {
   chronologicalTotal: number;
   blockExpiryDate: string | null;
   clientNumber: number;
+  currentUserName: string;
 }
 
 const STEPS = ["Progress", "Outstanding", "Position", "Health check-in", "Decision"] as const;
@@ -91,6 +92,7 @@ export function ReviewFlowClient({
   chronologicalTotal,
   blockExpiryDate,
   clientNumber,
+  currentUserName,
 }: ReviewFlowClientProps) {
   const [step, setStep] = useState(1);
   const [decision, setDecision] = useState<ReviewDecision | null>(null);
@@ -126,7 +128,7 @@ export function ReviewFlowClient({
         body: JSON.stringify({
           decision,
           note: note.trim(),
-          recorded_by_name: "Esther Fair",
+          recorded_by_name: currentUserName || "Staff",
         }),
       });
       if (!res.ok) {
@@ -210,6 +212,7 @@ export function ReviewFlowClient({
             lapsedSessions={lapsedSessions}
             hasDeliveredSessions={hasDeliveredSessions}
             clientName={client.name}
+            annualReviewDateSet={!!annualReviewDue}
           />
         </StepPanel>
       )}
@@ -466,7 +469,7 @@ function ProgressStep({
       <HubCardHeader
         icon={<IconClipboardList className="w-4 h-4" />}
         title="Progress"
-        subtitle="Sessions delivered, PBs (per rep-bracket), position in programme"
+        subtitle="Sessions delivered, PBs this period, position in programme"
       />
       <div>
         {!hasDeliveredSessions ? (
@@ -487,7 +490,7 @@ function ProgressStep({
                 <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{completedSessions.length}</p>
               </div>
               <div className="px-4 py-3 border-l border-[var(--hub-border)]">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">PBs (rep-bracket)</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">PBs this period</p>
                 <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{pbsCount}</p>
               </div>
               <div className="px-4 py-3 border-l border-[var(--hub-border)]">
@@ -512,12 +515,14 @@ function OutstandingStep({
   lapsedSessions,
   hasDeliveredSessions,
   clientName,
+  annualReviewDateSet,
 }: {
   complianceFlags: ComplianceFlags;
   unreviewedCancellations: any[];
   lapsedSessions: any[];
   hasDeliveredSessions: boolean;
   clientName: string;
+  annualReviewDateSet: boolean;
 }) {
   const openCount = complianceFlags.autoOutstanding.length + unreviewedCancellations.length + lapsedSessions.length;
 
@@ -533,8 +538,10 @@ function OutstandingStep({
         {/* Compliance actions */}
         <SectionHeader title="Compliance actions" />
         {complianceFlags.autoOutstanding.length === 0 ? (
-          <InfoLine variant="success">
-            No outstanding compliance actions — all flags derived from stored records are clear.
+          <InfoLine variant={annualReviewDateSet ? "success" : "muted"}>
+            {annualReviewDateSet
+              ? "No outstanding compliance actions — all flags derived from stored records are clear."
+              : "No outstanding compliance actions from stored records — annual review date is not set, so overdue status cannot be checked."}
           </InfoLine>
         ) : (
           <HubAccordion>
@@ -600,7 +607,7 @@ function OutstandingStep({
           </div>
         ) : (
           <p className="text-[12.5px] text-muted-foreground">
-            No cancellations recorded — none have happened{!hasDeliveredSessions ? " yet" : ""}.
+            No cancellations awaiting a charged/free decision{!hasDeliveredSessions ? " — sessions have not started yet" : ""}.
           </p>
         )}
 
@@ -647,7 +654,7 @@ function PositionStep({
 }) {
   const pctCompleted = pot.purchased ? (pot.completed / pot.purchased) * 100 : 0;
   const pctCharged = pot.purchased ? (pot.chargedCancellations / pot.purchased) * 100 : 0;
-  const pctRemaining = pot.purchased ? (pot.remaining / pot.purchased) * 100 : 0;
+  const pctRemaining = pot.purchased && pot.remaining != null ? (pot.remaining / pot.purchased) * 100 : 0;
   const isExpired = blockExpiryDate ? new Date(blockExpiryDate) < new Date() : false;
 
   return (
@@ -655,14 +662,16 @@ function PositionStep({
       <HubCardHeader
         icon={<IconClock className="w-4 h-4" />}
         title="Position"
-        subtitle={`${pot.purchased} purchased · ${pot.used} used · ${pot.remaining} remaining`}
+        subtitle={pot.purchased != null
+          ? `${pot.purchased} purchased · ${pot.used} used · ${pot.remaining} remaining`
+          : `Purchased not recorded · ${pot.used} used`}
       />
       <div className="space-y-4">
         {/* Hero */}
         <div className="flex items-baseline gap-6 flex-wrap">
           <div className="flex items-baseline gap-2.5">
             <span className={cn("text-[40px] font-extrabold tracking-tight leading-none tabular-nums", !hasDeliveredSessions ? "text-muted-foreground" : "text-foreground")}>
-              {pot.remaining}
+              {pot.remaining ?? "?"}
             </span>
             <span className="text-[12px] font-bold text-muted-foreground max-w-[88px] leading-tight">
               sessions remaining
@@ -674,17 +683,23 @@ function PositionStep({
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Used</div>
             </div>
             <div>
-              <div className="text-[19px] font-bold text-foreground leading-tight tabular-nums">{pot.purchased}</div>
+              <div className="text-[19px] font-bold text-foreground leading-tight tabular-nums">{pot.purchased ?? "—"}</div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Purchased</div>
             </div>
           </div>
         </div>
 
+        {pot.purchasedIsEstimate && (
+          <InfoLine variant="muted">
+            Purchased count is not recorded on this client — the figure above is not a known value. Set it on the client record for an accurate position.
+          </InfoLine>
+        )}
+
         {!hasDeliveredSessions ? (
           <InfoLine variant="muted">
             No sessions delivered yet — nothing has been used. The number above is unearned, not a sign anything is on track.
           </InfoLine>
-        ) : (
+        ) : pot.purchased != null ? (
           <>
             {/* Bar */}
             <div className="flex h-3 rounded-full overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session position breakdown">
@@ -695,9 +710,13 @@ function PositionStep({
             <div className="flex flex-wrap gap-1.5">
               <Legend color="var(--status-success)" label="Completed" count={pot.completed} />
               {pot.chargedCancellations > 0 && <Legend color="var(--status-danger)" label="Charged cancellation" count={pot.chargedCancellations} />}
-              <Legend color="repeating-linear-gradient(135deg,#E4E7EC 0 3px,#F2F3F6 3px 6px)" label="Remaining" count={pot.remaining} />
+              {pot.remaining != null && <Legend color="repeating-linear-gradient(135deg,#E4E7EC 0 3px,#F2F3F6 3px 6px)" label="Remaining" count={pot.remaining} />}
             </div>
           </>
+        ) : (
+          <InfoLine variant="muted">
+            {pot.completed} session{pot.completed === 1 ? "" : "s"} completed — purchased count is not set, so a position bar cannot be drawn.
+          </InfoLine>
         )}
 
         {/* Unreviewed — shown again as "not counted above" */}
@@ -782,11 +801,7 @@ function HealthStep({
       <div className="space-y-4">
         {/* Medication changes */}
         <SectionHeader title="Current medications" />
-        {!hasPriorReview ? (
-          <p className="text-[12.5px] text-muted-foreground">
-            No prior review to compare against — this is {firstName(client.name)}&apos;s first review.
-          </p>
-        ) : medications.length > 0 ? (
+        {medications.length > 0 ? (
           <div className="space-y-2">
             {medications.map((m: any) => (
               <div key={m.id} className="flex items-start gap-2.5">
@@ -803,6 +818,10 @@ function HealthStep({
               </div>
             ))}
           </div>
+        ) : !hasPriorReview ? (
+          <p className="text-[12.5px] text-muted-foreground">
+            No medication on file — this is {firstName(client.name)}&apos;s first review, so there is nothing to compare against yet.
+          </p>
         ) : (
           <p className="text-[12.5px] text-muted-foreground">
             No medication on file.

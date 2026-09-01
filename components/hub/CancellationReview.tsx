@@ -171,7 +171,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
   return (
     <div className="space-y-6">
       {remainingClients.map((client) => {
-        const remainingAfterCharged = Math.max(client.pot.remaining - 1, 0);
+        const remainingAfterCharged = client.pot.remaining != null ? Math.max(client.pot.remaining - 1, 0) : null;
 
         return (
           <div key={client.clientId} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden">
@@ -190,9 +190,9 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-foreground tabular-nums">{client.pot.remaining} remaining</div>
+                  <div className="text-sm font-bold text-foreground tabular-nums">{client.pot.remaining ?? "?"} remaining</div>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    of {client.pot.purchased} purchased
+                    of {client.pot.purchased ?? "?"} purchased
                   </div>
                 </div>
               </div>
@@ -284,13 +284,13 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                       }`}>
                         {currentDecision === "charged" ? (
                           <span>
-                            Counts as used &mdash; {client.clientName} drops from {client.pot.remaining} to{" "}
-                            <strong>{remainingAfterCharged}</strong> remaining.
+                            Counts as used &mdash; {client.clientName} drops from {client.pot.remaining ?? "?"} to{" "}
+                            <strong>{remainingAfterCharged ?? "?"}</strong> remaining.
                           </span>
                         ) : (
                           <span>
                             Does not count &mdash; {client.clientName} keeps all{" "}
-                            <strong>{client.pot.remaining}</strong> remaining sessions.
+                            <strong>{client.pot.remaining ?? "?"}</strong> remaining sessions.
                           </span>
                         )}
                       </div>

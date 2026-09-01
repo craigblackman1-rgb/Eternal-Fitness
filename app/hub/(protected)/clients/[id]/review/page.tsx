@@ -13,6 +13,9 @@ export const dynamic = "force-dynamic";
 export default async function ReviewPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentUserName = user?.name || "Staff";
+
   const numericId = parseInt(params.id);
   if (isNaN(numericId)) notFound();
 
@@ -77,11 +80,12 @@ export default async function ReviewPage({ params }: { params: { id: string } })
   });
 
   const activeBlock = blocks?.find((b) => b.status === "active");
-  const pot = deriveSessionPot(sessions, client.sessions_purchased);
+  const activeBlockSessions = activeBlock ? sessions.filter((s) => s.block_id === activeBlock.id) : [];
+  const pot = deriveSessionPot(activeBlockSessions, client.sessions_purchased);
 
-  const positions = deriveChronologicalPositions(sessions);
+  const positions = deriveChronologicalPositions(activeBlockSessions);
   const chronologicalTotal = Array.from(positions.values())[0]?.total ?? 0;
-  const completedSessions = sessions.filter((s) => {
+  const completedSessions = activeBlockSessions.filter((s) => {
     const st = (s as any).status ?? (s.cancelled_at ? "cancelled" : "planned");
     return st === "completed";
   });
@@ -96,12 +100,13 @@ export default async function ReviewPage({ params }: { params: { id: string } })
       .in("session_id", completedIds);
     const exerciseHistory = buildExerciseHistory((setLogs ?? []) as SetLog[]);
     const blockStartedAt = activeBlock?.scheduled_start;
-    pbsCount = exerciseHistory.reduce((count, entry) => {
-      return count + entry.personalBests.filter((pb) => {
-        if (!blockStartedAt) return true;
-        return new Date(pb.achievedAt) >= new Date(blockStartedAt);
-      }).length;
-    }, 0);
+    pbsCount = blockStartedAt
+      ? exerciseHistory.reduce((count, entry) => {
+          return count + entry.personalBests.filter((pb) => {
+            return new Date(pb.achievedAt) >= new Date(blockStartedAt);
+          }).length;
+        }, 0)
+      : 0;
   }
 
   const completedWithNames = completedSessions.map((s) => {
@@ -114,12 +119,12 @@ export default async function ReviewPage({ params }: { params: { id: string } })
     };
   });
 
-  const unreviewedCancellations = sessions.filter((s) => {
+  const unreviewedCancellations = activeBlockSessions.filter((s) => {
     const st = (s as any).status ?? (s.cancelled_at ? "cancelled" : "planned");
     return st === "cancelled" && s.charged_free == null && !s.parent_session_id;
   });
 
-  const lapsedSessions = sessions.filter(
+  const lapsedSessions = activeBlockSessions.filter(
     (s) => s.lapse_flagged_at && !s.parent_session_id,
   );
 
@@ -150,6 +155,7 @@ export default async function ReviewPage({ params }: { params: { id: string } })
       chronologicalTotal={chronologicalTotal}
       blockExpiryDate={client.block_expiry_date}
       clientNumber={numericId}
+      currentUserName={currentUserName}
     />
   );
 }
