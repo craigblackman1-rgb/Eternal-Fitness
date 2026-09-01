@@ -55,6 +55,7 @@ interface SessionRow {
   data: { session_log?: { completed_at?: string | null } } | null;
   scheduled_at: string | null;
   cancelled_at: string | null;
+  parent_session_id?: string | null;
 }
 
 function initialsFor(name: string): string {
@@ -103,7 +104,7 @@ export default async function MobileClientsPage() {
 
   const { data: sessionRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, data, scheduled_at, cancelled_at");
+    .select("id, block_id, session_number, data, scheduled_at, cancelled_at, parent_session_id");
   const sessions = (sessionRows ?? []) as SessionRow[];
 
   const blockById = new Map(blocks.map((b) => [b.id, b]));
@@ -149,9 +150,11 @@ export default async function MobileClientsPage() {
 
       let blockLabel: string | null = null;
       if (currentBlock) {
-        const blockSessions = sessionsByBlock.get(currentBlock.id) ?? [];
-        const done = blockSessions.filter((s) => s.data?.session_log?.completed_at).length;
-        blockLabel = `Block ${currentBlock.block_number} · ${done}/${blockSessions.length}`;
+        const blockSessions = (sessionsByBlock.get(currentBlock.id) ?? []);
+        // CR-EF-101 — exclude sub-sessions from block progress: they occupy no slot.
+        const potSessions = blockSessions.filter((s) => !s.parent_session_id);
+        const done = potSessions.filter((s) => s.data?.session_log?.completed_at).length;
+        blockLabel = `Block ${currentBlock.block_number} · ${done}/${potSessions.length}`;
       }
 
       const clientSessions = (sessionsByClient.get(client.id) ?? [])

@@ -235,7 +235,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // taking sessions[0] — array order now follows scheduled_at (see the query
   // above), so an upcoming future session could otherwise sort first and this
   // would silently pick up a session with no log at all.
-  const completedSessions = (sessions ?? []).filter((s: any) => s.completed_at);
+  // CR-EF-101 — exclude sub-sessions: "last completed session" should be a
+  // main session, not supplementary work.
+  const completedSessions = (sessions ?? []).filter((s: any) => s.completed_at && !s.parent_session_id);
   const latestCompletedSession = completedSessions.length > 0
     ? completedSessions.reduce((latest: any, s: any) =>
         new Date(s.completed_at) > new Date(latest.completed_at) ? s : latest,

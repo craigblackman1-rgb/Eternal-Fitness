@@ -95,7 +95,7 @@ export default async function DashboardPage() {
   const { data: activeSessions } = activeBlockIds.length > 0
     ? await supabase
         .from("sessions")
-        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, blocks!inner(block_number, client_id)")
+        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, parent_session_id, blocks!inner(block_number, client_id)")
         .in("block_id", activeBlockIds)
         .order("session_number", { ascending: false })
     : { data: [] as any[] };
@@ -103,8 +103,9 @@ export default async function DashboardPage() {
   const nextUpByBlock = activeBlocks.map((block) => {
     const blockSessions = (activeSessions ?? []).filter((s) => s.block_id === block.id);
     const nextSession = blockSessions.find((s) => !s.data?.session_log?.completed_at);
-    const completedCount = blockSessions.filter((s) => s.data?.session_log?.completed_at).length;
-    return { block, nextSession, completedCount, totalCount: blockSessions.length };
+    const potSessions = blockSessions.filter((s: any) => !s.parent_session_id);
+    const completedCount = potSessions.filter((s: any) => s.data?.session_log?.completed_at).length;
+    return { block, nextSession, completedCount, totalCount: potSessions.length };
   });
 
   const activeClientCount = new Set(activeBlocks.map((b) => b.client_id)).size;
@@ -194,7 +195,10 @@ export default async function DashboardPage() {
     .from("sessions")
     .select("id, block_id, session_number, data, blocks!inner(block_number, client_id)");
 
-  const loggedRows = (allSessionRows ?? []).filter((s) => s.data?.session_log?.completed_at);
+  // CR-EF-101 — exclude sub-sessions from check-in counts (KPI tiles, recent
+  // check-ins table). Sub-sessions are supplementary work that occupy no slot;
+  // counting them would inflate session-delivery metrics.
+  const loggedRows = (allSessionRows ?? []).filter((s) => s.data?.session_log?.completed_at && !(s as any).parent_session_id);
   const checkInsThisWeek = loggedRows.filter((s) => {
     const t = new Date(s.data.session_log.completed_at as string);
     return t >= weekStart && t < weekEnd;
