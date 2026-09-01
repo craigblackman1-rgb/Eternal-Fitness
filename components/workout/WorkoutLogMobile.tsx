@@ -939,9 +939,9 @@ export function WorkoutLogMobile({
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold text-gray-900 truncate">{clientName}</div>
             <div className="text-xs text-gray-500 truncate">
-              Session {sessionNumber}
-              {blockNumber != null ? ` · Block ${blockNumber}` : ""}
-              {archetype ? ` · ${archetype}` : ""} · {phase ?? ""}
+              {data?.focus_label || (archetype ? `${archetype} session` : `Session ${sessionNumber}`)}
+              {blockNumber != null ? ` · Block ${blockNumber} · Session ${sessionNumber}` : ""}
+              {` · ${phase ?? ""}`}
               {scheduledAt ? ` · Wk ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : week != null ? ` · Plan wk ${week}` : ""}
             </div>
           </div>

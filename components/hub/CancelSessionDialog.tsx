@@ -85,7 +85,7 @@ export function CancelSessionDialog({
   const afterCharged = pot.remaining - 1;
   const sessionLabel = session.scheduled_at
     ? new Date(session.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-    : `Session ${session.session_number}`;
+    : (session.data?.focus_label?.trim() || `Session ${session.session_number}`);
 
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center">

@@ -8,6 +8,7 @@ import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
 import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus, DBSession } from "@/types";
@@ -151,11 +152,12 @@ export default async function BlockViewPage({
   const nextSessionLabel = firstIncomplete
     ? (() => {
         const pos = chronologicalPositions.get(firstIncomplete.id);
-        if (!pos) return "All sessions done";
+        const workoutName = firstIncomplete.data?.focus_label?.trim() || DEFAULT_ARCHETYPE_FOCUS_LABELS[firstIncomplete.archetype ?? ""] || (pos ? `Session ${pos.position}` : "Session");
+        if (!pos) return workoutName;
         if (firstIncomplete.scheduled_at) {
-          return `${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · Session ${pos.position} of ${pos.total}`;
+          return `${workoutName} · ${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`;
         }
-        return `Session ${pos.position} of ${pos.total} · not yet booked`;
+        return `${workoutName} · not yet booked`;
       })()
     : "All sessions done";
 

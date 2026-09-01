@@ -106,7 +106,9 @@ export function SessionDetail({ entry, now, onComplete }: SessionDetailProps) {
         {/* Client name */}
         <p className="text-[15px] font-bold text-foreground m-0">{entry.clientName}</p>
         <p className="text-[12.5px] text-muted-foreground mt-0.5 mb-2.5">
-          {entry.archetype ? `${entry.archetype} · ` : ""}Session {entry.sessionNumber} · {entry.durationMinutes} min
+          {entry.focusLabel || (entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`)}
+          {entry.blockNumber != null && ` · Block ${entry.blockNumber} · Session ${entry.sessionNumber}`}
+          {` · ${entry.durationMinutes} min`}
         </p>
 
         {/* Status pill + flags */}

@@ -19,6 +19,7 @@ interface CompletedSession {
   archetype: string;
   completed_at: string | null;
   versions: Record<string, SessionVersion>;
+  data?: { focus_label?: string };
 }
 
 interface TemplateEntry {
@@ -1338,9 +1339,10 @@ export function EditSheet({
         <header className="sh-head">
           <div className="sh-title">
             <h1 id="editSheetTitle">Edit workout</h1>
-            <p>
-              Session {sessionNumber} · {clientName} · changes apply to this
-              session only
+              <p>
+              {data?.focus_label || `Session ${sessionNumber}`}
+              {blockNumber != null ? ` · Block ${blockNumber} · Session ${sessionNumber}` : ""}
+              {" · "}{clientName} · changes apply to this session only
             </p>
           </div>
           <button
@@ -1459,7 +1461,7 @@ function PastPack({
       >
         <span className="pack-ic">{ICO.hist}</span>
         <span className="pack-b">
-          <span className="pack-t">Session {ps.session_number}</span>
+          <span className="pack-t">{ps.data?.focus_label || `Session ${ps.session_number}`}</span>
           <span className="pack-s">
             Block {ps.block_number} · {noteBits.join(" · ")} · {items.length} exercises
           </span>

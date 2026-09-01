@@ -18,7 +18,7 @@ export default async function CancellationReviewPage() {
   //    have no allowance implication, so asking Esther charged/free is meaningless)
   const { data: unreviewedRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, scheduled_at, cancel_reason, charged_free, status, cancelled_at, parent_session_id")
+    .select("id, block_id, session_number, scheduled_at, cancel_reason, charged_free, status, cancelled_at, parent_session_id, data")
     .eq("status", "cancelled")
     .is("charged_free", null)
     .is("parent_session_id", null)
@@ -101,6 +101,7 @@ export default async function CancellationReviewPage() {
         scheduledAt: s.scheduled_at,
         cancelReason: s.cancel_reason,
         blockNumber: blockNumberMap.get(s.block_id) ?? 0,
+        focusLabel: (s as any).data?.focus_label ?? "",
       })),
     };
   }).filter((c) => c.sessions.length > 0)

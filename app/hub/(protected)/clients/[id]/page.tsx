@@ -265,9 +265,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const workoutName = workoutSession ? sessionDisplayName(workoutSession) : null;
 
   const blockSessionCounts: Record<number, number> = {};
+  const blockCompletedCounts: Record<number, number> = {};
   for (const s of sessions ?? []) {
     const bn = (s as any).blocks?.block_number;
-    if (bn != null) blockSessionCounts[bn] = (blockSessionCounts[bn] ?? 0) + 1;
+    if (bn != null) {
+      blockSessionCounts[bn] = (blockSessionCounts[bn] ?? 0) + 1;
+      if (s.completed_at) {
+        blockCompletedCounts[bn] = (blockCompletedCounts[bn] ?? 0) + 1;
+      }
+    }
   }
 
   /**
@@ -552,7 +558,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         </Link>
                       </HubDataField>
                       <HubDataField label="Dates">{latestBlockDateRangeLabel}</HubDataField>
-                      <HubDataField label="Progress">{blockSessionCounts[latestBlock.block_number] ?? 0} sessions</HubDataField>
+                      <HubDataField label="Progress">
+                        {(() => {
+                          const total = blockSessionCounts[latestBlock.block_number] ?? 0;
+                          const done = blockCompletedCounts[latestBlock.block_number] ?? 0;
+                          return `${done} of ${total} complete`;
+                        })()}
+                      </HubDataField>
                       {workoutName && (
                         <HubDataField label={nextSession ? "Next session" : "Last workout"}>{workoutName}</HubDataField>
                       )}

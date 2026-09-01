@@ -14,6 +14,7 @@ interface ReviewSession {
   scheduledAt: string | null;
   cancelReason: string | null;
   blockNumber: number;
+  focusLabel: string;
 }
 
 interface ReviewClient {
@@ -210,10 +211,10 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-semibold text-foreground">
-                            Session {session.sessionNumber}
+                            {session.focusLabel || `Session ${session.sessionNumber}`}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            Block {session.blockNumber}
+                            Block {session.blockNumber} · Session {session.sessionNumber}
                           </span>
                           {session.scheduledAt && (
                             <span className="text-xs text-muted-foreground">

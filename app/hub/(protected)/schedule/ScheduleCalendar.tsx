@@ -55,6 +55,8 @@ export interface ScheduledEntry {
   /** Free-text cancellation reason — shown on the day view when a cancelled
    *  entry is revealed via the "Show cancelled" toggle. */
   cancelReason: string | null;
+  /** CR-EF-115 — workout name (focus_label), the primary display name. */
+  focusLabel: string;
 }
 
 /** Outlook booking that hasn't been triaged into a session yet. */
@@ -325,9 +327,9 @@ export function ScheduleCalendar({
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-[3px]">
-                          {entry.blockNumber != null && `Block ${entry.blockNumber} · `}
-                          Session {entry.sessionNumber}
-                          {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
+                          {entry.focusLabel || (entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`)}
+                          {entry.blockNumber != null && ` · Block ${entry.blockNumber} · Session ${entry.sessionNumber}`}
+                          {` · ${entry.durationMinutes} min`}
                           {cancelled && entry.cancelReason && ` · ${entry.cancelReason}`}
                         </p>
                       </div>

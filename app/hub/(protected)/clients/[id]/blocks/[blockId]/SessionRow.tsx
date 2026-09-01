@@ -102,14 +102,16 @@ export function SessionRow({
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold shrink-0 ${archetypeTint}`}>
             {archetypeLabel}
           </span>
-          <span className={`text-sm font-semibold truncate ${settled ? "text-muted-foreground" : "text-foreground"}`}>
-            {focusLabel}
-          </span>
-          {scheduledAt && chronologicalPosition && (
-            <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
-              Session {chronologicalPosition.position} of {chronologicalPosition.total}
+          <div className="flex flex-col min-w-0">
+            <span className={`text-sm font-semibold truncate ${settled ? "text-muted-foreground" : "text-foreground"}`}>
+              {focusLabel}
             </span>
-          )}
+            {chronologicalPosition && (
+              <span className="text-[11px] text-muted-foreground">
+                Session {chronologicalPosition.position} of {chronologicalPosition.total}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3.5 w-full justify-end sm:w-auto sm:contents">
           <span className="w-[150px] shrink-0 flex justify-end">

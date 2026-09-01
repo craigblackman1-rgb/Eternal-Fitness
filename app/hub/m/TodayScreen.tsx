@@ -359,9 +359,9 @@ export function TodayScreen({ entries, tasks, openBookingCount, currentUserName 
                             <span className="sname">{entry.clientName}</span>
                           </div>
                           <div className="smeta">
-                            Session {entry.sessionNumber}
-                            {entry.blockNumber != null && ` · Block ${entry.blockNumber}`}
-                            {entry.archetype && ` · ${entry.archetype}`} · {entry.durationMinutes} min
+                            {entry.focusLabel || (entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`)}
+                            {entry.blockNumber != null && ` · Block ${entry.blockNumber} · Session ${entry.sessionNumber}`}
+                            {` · ${entry.durationMinutes} min`}
                           </div>
                           {(clash || isLive || isLogged || hasMedicalFlag) && (
                             <div className="sflags">

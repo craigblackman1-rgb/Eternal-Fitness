@@ -79,10 +79,10 @@ export function BlockPoolView({
       session_log: s.data?.session_log,
     });
     const hasWorkout = hasWorkoutContent(s);
-    const focusLabel = s.data?.focus_label ?? `Session ${s.session_number}`;
+    const focusLabel = s.data?.focus_label?.trim() || (s.archetype ? `${s.archetype} session` : `Session ${s.session_number}`);
     const dayLabel = s.scheduled_at
       ? new Date(s.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-      : `Session ${s.session_number}`;
+      : (s.data?.focus_label?.trim() || `Session ${s.session_number}`);
     const dayTime = s.scheduled_at ? isoToLocalTime(s.scheduled_at) : "";
     return { session: s, status, hasWorkout, focusLabel, dayLabel, dayTime };
   });

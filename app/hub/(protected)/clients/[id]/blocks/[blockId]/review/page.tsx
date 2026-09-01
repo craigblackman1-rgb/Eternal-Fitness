@@ -133,7 +133,7 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
                     key={session.id}
                     className="border-[var(--hub-border)] hover:bg-[var(--hub-hover)] transition-colors"
                   >
-                    <TableCell className="font-medium text-sm py-2.5">{session.session_number}</TableCell>
+                    <TableCell className="font-medium text-sm py-2.5">{session.data?.focus_label || `Session ${session.session_number}`}</TableCell>
                     <TableCell className="text-sm py-2.5">
                       <Badge variant={session.archetype === "A" ? "secondary" : session.archetype === "B" ? "default" : "outline"} className="rounded-full">
                         {session.archetype}

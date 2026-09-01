@@ -102,6 +102,7 @@ export default async function SchedulePage() {
         completedAt: s.completed_at ?? null,
         cancelledAt: s.cancelled_at ?? null,
         cancelReason: s.cancel_reason ?? null,
+        focusLabel: s.data?.focus_label ?? "",
       };
     });
 
@@ -118,6 +119,7 @@ export default async function SchedulePage() {
       sessionNumber: s.session_number,
       archetype: s.archetype,
       durationMinutes: sessionDurationMinutes(timeTier),
+      focusLabel: s.data?.focus_label ?? "",
     };
   });
 

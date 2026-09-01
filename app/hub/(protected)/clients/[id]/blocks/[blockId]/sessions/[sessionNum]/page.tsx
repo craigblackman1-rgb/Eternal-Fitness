@@ -9,6 +9,7 @@ import { HubCard } from "@/components/hub/HubCard";
 import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
+import { sessionWorkoutName, sessionBlockContext } from "@/lib/session-display";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
@@ -178,12 +179,10 @@ export default function SessionViewPage({
 
   // Browser tab title mirrors the header name (CR-EF-034) — "Workout A", not
   // "Session 3". CR-EF-111: "No workout assigned yet" for Outlook placeholders.
+  // CR-EF-115: uses shared sessionWorkoutName resolver.
   useEffect(() => {
     if (!session) return;
-    document.title = (session.data?.focus_label ?? "").startsWith("Outlook booking — ") &&
-      session.archetype == null && session.week == null && session.phase == null
-      ? "No workout assigned yet"
-      : (session.data?.focus_label || `Session ${sessionNum}`);
+    document.title = sessionWorkoutName(session, `Session ${sessionNum}`);
   }, [session, sessionNum]);
 
   const saveNotes = async () => {
@@ -370,20 +369,8 @@ export default function SessionViewPage({
   // matching the block page and the consolidated mockup header.
   // CR-EF-111 — Outlook-auto-created sessions with no workout assigned show
   // "No workout assigned yet" instead of the raw "Outlook booking — X" artefact.
-  const isOutlookPlaceholder =
-    session.archetype == null &&
-    session.week == null &&
-    session.phase == null &&
-    (session.data?.versions?.studio?.warm_up?.length ?? 0) === 0 &&
-    (session.data?.versions?.studio?.main_block?.length ?? 0) === 0 &&
-    (session.data?.versions?.studio?.cooldown?.length ?? 0) === 0 &&
-    (session.data?.versions?.home?.warm_up?.length ?? 0) === 0 &&
-    (session.data?.versions?.home?.main_block?.length ?? 0) === 0 &&
-    (session.data?.versions?.home?.cooldown?.length ?? 0) === 0 &&
-    (session.data?.focus_label ?? "").startsWith("Outlook booking — ");
-  const focusLabel = isOutlookPlaceholder
-    ? "No workout assigned yet"
-    : (session.data?.focus_label || `Session ${sessionNum}`);
+  // CR-EF-115 — workout name is primary; use the shared resolver.
+  const focusLabel = sessionWorkoutName(session, `Session ${sessionNum}`);
   // First-class `status` column is the source of truth; derive defensively only
   // as a fallback for legacy rows created before the Phase 1 backfill.
   const status = deriveSessionStatus({

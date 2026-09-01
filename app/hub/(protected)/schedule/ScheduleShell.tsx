@@ -23,6 +23,7 @@ interface PlannedEntry {
   sessionNumber: number;
   archetype: string;
   durationMinutes: number;
+  focusLabel: string;
 }
 
 async function patchSession(id: string, body: Record<string, unknown>): Promise<boolean> {
@@ -224,7 +225,7 @@ export function ScheduleShell({
                   setGuardSession({
                     id: entry.id,
                     clientName: entry.clientName,
-                    focus: entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`,
+                    focus: entry.focusLabel || (entry.archetype ? `${entry.archetype} session` : `Session ${entry.sessionNumber}`),
                     scheduledAt: entry.scheduledAt,
                     durationMinutes: entry.durationMinutes,
                   });

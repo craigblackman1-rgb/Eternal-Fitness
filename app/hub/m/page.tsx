@@ -16,6 +16,7 @@ export interface TodayEntry {
   durationMinutes: number;
   sessionLogCompletedAt: string | null;
   sessionLogStartedAt: string | null;
+  focusLabel: string;
 }
 
 export default async function TodayPage() {
@@ -72,6 +73,7 @@ export default async function TodayPage() {
         durationMinutes: sessionDurationMinutes(timeTier),
         sessionLogCompletedAt: sessionLog?.completed_at ?? null,
         sessionLogStartedAt: sessionLog?.started_at ?? null,
+        focusLabel: s.data?.focus_label ?? "",
       };
     });
 

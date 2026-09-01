@@ -203,7 +203,7 @@ function SessionPrintSection({
     <div className={first ? "pt-2" : "print-break pt-6"}>
       <div className="flex items-baseline justify-between border-b pb-1 mb-3">
         <h3 className="text-lg font-bold">
-          Session {session.session_number}
+          {s?.focus_label || `Session ${session.session_number}`}
           <span className="ml-2 text-sm font-normal text-muted-foreground">
             Archetype {session.archetype} &middot; {derivedWeekLabel(session.scheduled_at ?? null, session.week)}
           </span>

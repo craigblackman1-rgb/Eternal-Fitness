@@ -20,6 +20,7 @@ import type { SetLog } from "@/types";
 import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
+import { sessionWorkoutName, sessionBlockContext } from "@/lib/session-display";
 import { isoToLocalTime, localPartsToISO, todayLocalISODate } from "@/lib/schedule-dates";
 import {
   IconFileText,
@@ -580,13 +581,22 @@ export function TrainingTabContent({
                           <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
                             <SessionDateCell session={session} />
                           </td>
-                          <td className="py-2.5 px-5 font-semibold text-foreground">
+                          <td className="py-2.5 px-5">
                             {(() => {
+                              const workoutName = sessionWorkoutName(session, `Session ${session.session_number}`);
                               const blockChrono = chronoByBlock.get(session.block_id);
                               const pos = blockChrono?.get(session.id);
-                              return blockNum != null
-                                ? `Block ${blockNum} \u00b7 Session ${pos?.position ?? session.session_number}`
-                                : `Session ${pos?.position ?? session.session_number}`;
+                              const blockCtx = sessionBlockContext(blockNum, pos?.position ?? null, pos?.total ?? null);
+                              return (
+                                <div className="flex flex-col">
+                                  <span className={`font-semibold text-sm ${workoutName === "No workout assigned yet" ? "text-muted-foreground italic" : "text-foreground"}`}>
+                                    {workoutName}
+                                  </span>
+                                  {blockCtx && (
+                                    <span className="text-[11px] text-muted-foreground">{blockCtx}</span>
+                                  )}
+                                </div>
+                              );
                             })()}
                           </td>
                           <td className="py-2.5 px-5">

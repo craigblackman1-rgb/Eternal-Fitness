@@ -1127,9 +1127,10 @@ export function TrainScreen({
           <div className="top-id">
             <div className="top-client">{clientName}</div>
             <div className="top-meta">
-              Session {sessionNumber}
-              {blockNumber != null ? ` · Block ${blockNumber}` : ""}
-              {archetype ? ` · ${archetype}` : ""} · {phase} · {scheduledAt ? `Week of ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : `Plan week ${week}`}
+              {data?.focus_label || (archetype ? `${archetype} session` : `Session ${sessionNumber}`)}
+              {blockNumber != null ? ` · Block ${blockNumber} · Session ${sessionNumber}` : ""}
+              {` · ${phase}`}
+              {scheduledAt ? ` · Wk ${new Date(scheduledAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : week != null ? ` · Plan wk ${week}` : ""}
             </div>
           </div>
           <span className={`top-status ${topStatusClass}`}>{topStatusLabel}</span>
@@ -1398,7 +1399,7 @@ export function TrainScreen({
             <div className="sh-grab" />
             <div className="sh-h">
               <span className="sh-t" id="noteSheetTitle">
-                Note — {data?.focus_label || `Session ${sessionNumber}`}
+                Note — {data?.focus_label || (archetype ? `${archetype} session` : `Session ${sessionNumber}`)}
               </span>
               <button className="sh-close" onClick={() => setNoteOpen(false)} aria-label="Close">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

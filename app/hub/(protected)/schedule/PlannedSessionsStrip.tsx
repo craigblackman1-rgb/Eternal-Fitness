@@ -11,6 +11,7 @@ interface PlannedSessionsStripProps {
     sessionNumber: number;
     archetype: string;
     durationMinutes: number;
+    focusLabel: string;
   }>;
   onSelectSession: (id: string) => void;
   selectedId: string | null;
@@ -48,7 +49,7 @@ export function PlannedSessionsStrip({ plannedEntries, onSelectSession, selected
         >
           <span className="text-xs">{e.clientName}</span>
           <span className="text-[11px] text-muted-foreground">
-            {e.archetype ? `${e.archetype} · ` : ""}S{e.sessionNumber}
+            {e.focusLabel || (e.archetype ? `${e.archetype} session` : `S${e.sessionNumber}`)}
           </span>
         </button>
       ))}
