@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { RichTextEditor } from "@/components/hub/RichTextEditor";
 import { toast } from "sonner";
 import type { SessionVersion, Exercise } from "@/types";
@@ -184,6 +185,8 @@ export function AddWorkoutClient({
   deliveryMode,
   equipment,
 }: AddWorkoutProps) {
+  const searchParams = useSearchParams();
+  const preselectedView = searchParams.get("view");
   const [view, setView] = useState<View>(equipment === null ? "guard" : "chooser");
   const [ctx, setCtx] = useState<ClientContext | null>(null);
 
@@ -216,11 +219,15 @@ export function AddWorkoutClient({
       .then((data: ClientContext | null) => {
         if (data) {
           setCtx(data);
-          if (data.equipmentGuard) setView("guard");
+          if (data.equipmentGuard) {
+            setView("guard");
+          } else if (preselectedView && ["qa", "templates", "paste"].includes(preselectedView)) {
+            setView(preselectedView as View);
+          }
         }
       })
       .catch(() => {});
-  }, [clientNumber]);
+  }, [clientNumber, preselectedView]);
 
   /* ── Navigation helpers ─────────────────────────────────────────────── */
 
