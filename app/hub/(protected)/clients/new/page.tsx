@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -171,58 +171,171 @@ const emptyProfile: ClientProfile = {
   notes: { client_intro: "", esther_observations: "", motivation_notes: "", watch_for: "" },
 };
 
+/* ── Draft persistence ── */
+const DRAFT_KEY = "ef-new-client-draft";
+const DRAFT_VERSION = 1;
+
+type DraftData = {
+  v: number;
+  step: StepKey;
+  maxStepReached: StepKey;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  dob: string;
+  gender: Gender | "";
+  ecName: string;
+  ecRel: string;
+  ecPhone: string;
+  gpName: string;
+  gpSurgery: string;
+  gpPhone: string;
+  packageType: Package;
+  cadenceUnit: Frequency["unit"];
+  cadencePerUnit: number;
+  parqMode: ParqMode;
+  overrideNote: string;
+  uploadAttached: boolean;
+  gpClearanceRequired: boolean;
+  gpClearanceNote: string;
+  conditions: string[];
+  contraindications: string[];
+  medications: ClientProfile["health"]["medications"];
+  injuryHistory: ClientProfile["health"]["injury_history"];
+  primaryGoal: PrimaryGoal;
+  milestones: string[];
+  baseline: string;
+  successLooks: string;
+  deliveryMode: "studio_1to1" | "home_training";
+  equipment: string[] | null;
+  bodyweightOnly: boolean;
+  bandSet: "ef" | "own";
+  bandNote: string;
+  firstWorkoutRoute: "qa" | "templates" | "paste";
+};
+
+function serializeDraft(s: {
+  step: StepKey; maxStepReached: StepKey;
+  name: string; email: string; phone: string; address: string; dob: string; gender: Gender | "";
+  ecName: string; ecRel: string; ecPhone: string;
+  gpName: string; gpSurgery: string; gpPhone: string;
+  packageType: Package; cadenceUnit: Frequency["unit"]; cadencePerUnit: number;
+  parqMode: ParqMode; overrideNote: string; uploadAttached: boolean;
+  gpClearanceRequired: boolean; gpClearanceNote: string;
+  conditions: string[]; contraindications: string[];
+  medications: ClientProfile["health"]["medications"];
+  injuryHistory: ClientProfile["health"]["injury_history"];
+  primaryGoal: PrimaryGoal; milestones: string[]; baseline: string; successLooks: string;
+  deliveryMode: "studio_1to1" | "home_training";
+  equipment: string[] | null; bodyweightOnly: boolean;
+  bandSet: "ef" | "own"; bandNote: string;
+  firstWorkoutRoute: "qa" | "templates" | "paste";
+}): DraftData {
+  return {
+    v: DRAFT_VERSION,
+    step: s.step, maxStepReached: s.maxStepReached,
+    name: s.name, email: s.email, phone: s.phone, address: s.address,
+    dob: s.dob, gender: s.gender,
+    ecName: s.ecName, ecRel: s.ecRel, ecPhone: s.ecPhone,
+    gpName: s.gpName, gpSurgery: s.gpSurgery, gpPhone: s.gpPhone,
+    packageType: s.packageType, cadenceUnit: s.cadenceUnit, cadencePerUnit: s.cadencePerUnit,
+    parqMode: s.parqMode, overrideNote: s.overrideNote, uploadAttached: s.uploadAttached,
+    gpClearanceRequired: s.gpClearanceRequired, gpClearanceNote: s.gpClearanceNote,
+    conditions: s.conditions, contraindications: s.contraindications,
+    medications: s.medications, injuryHistory: s.injuryHistory,
+    primaryGoal: s.primaryGoal, milestones: s.milestones,
+    baseline: s.baseline, successLooks: s.successLooks,
+    deliveryMode: s.deliveryMode,
+    equipment: s.equipment, bodyweightOnly: s.bodyweightOnly,
+    bandSet: s.bandSet, bandNote: s.bandNote,
+    firstWorkoutRoute: s.firstWorkoutRoute,
+  };
+}
+
+function deserializeDraft(raw: string): DraftData | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.v === DRAFT_VERSION) return parsed as DraftData;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Main wizard component
    ═══════════════════════════════════════════════════════════════ */
 export default function NewClientPage() {
   const router = useRouter();
-  const [step, setStep] = useState<StepKey>(1);
-  const [maxStepReached, setMaxStepReached] = useState<StepKey>(1);
+
+  /* ── Draft restore ── */
+  const draftLoadedRef = useRef(false);
+  const [isResumingDraft, setIsResumingDraft] = useState(false);
+  const initDraft = <T,>(fallback: T, extract: (d: DraftData) => T): T => {
+    if (draftLoadedRef.current || typeof window === "undefined") return fallback;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return fallback;
+      const draft = deserializeDraft(raw);
+      if (!draft) return fallback;
+      draftLoadedRef.current = true;
+      return extract(draft);
+    } catch { return fallback; }
+  };
+
+  const [step, setStep] = useState<StepKey>(() => initDraft(1, (d) => d.step));
+  const [maxStepReached, setMaxStepReached] = useState<StepKey>(() => initDraft(1, (d) => d.maxStepReached));
   const [saving, setSaving] = useState(false);
 
   /* ── Step 1 state ── */
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [dob, setDob] = useState("");
-  const [gender, setGender] = useState<Gender | "">("");
-  const [ecName, setEcName] = useState("");
-  const [ecRel, setEcRel] = useState("");
-  const [ecPhone, setEcPhone] = useState("");
-  const [gpName, setGpName] = useState("");
-  const [gpSurgery, setGpSurgery] = useState("");
-  const [gpPhone, setGpPhone] = useState("");
-  const [packageType, setPackageType] = useState<Package>("12-week");
-  const [cadenceUnit, setCadenceUnit] = useState<Frequency["unit"]>("week");
-  const [cadencePerUnit, setCadencePerUnit] = useState(2);
+  const [name, setName] = useState(() => initDraft("", (d) => d.name));
+  const [email, setEmail] = useState(() => initDraft("", (d) => d.email));
+  const [phone, setPhone] = useState(() => initDraft("", (d) => d.phone));
+  const [address, setAddress] = useState(() => initDraft("", (d) => d.address));
+  const [dob, setDob] = useState(() => initDraft("", (d) => d.dob));
+  const [gender, setGender] = useState<Gender | "">(() => initDraft("", (d) => d.gender));
+  const [ecName, setEcName] = useState(() => initDraft("", (d) => d.ecName));
+  const [ecRel, setEcRel] = useState(() => initDraft("", (d) => d.ecRel));
+  const [ecPhone, setEcPhone] = useState(() => initDraft("", (d) => d.ecPhone));
+  const [gpName, setGpName] = useState(() => initDraft("", (d) => d.gpName));
+  const [gpSurgery, setGpSurgery] = useState(() => initDraft("", (d) => d.gpSurgery));
+  const [gpPhone, setGpPhone] = useState(() => initDraft("", (d) => d.gpPhone));
+  const [packageType, setPackageType] = useState<Package>(() => initDraft("12-week", (d) => d.packageType));
+  const [cadenceUnit, setCadenceUnit] = useState<Frequency["unit"]>(() => initDraft("week", (d) => d.cadenceUnit));
+  const [cadencePerUnit, setCadencePerUnit] = useState(() => initDraft(2, (d) => d.cadencePerUnit));
 
   /* ── Step 2 state ── */
-  const [parqMode, setParqMode] = useState<ParqMode>(null);
-  const [overrideNote, setOverrideNote] = useState("");
-  const [uploadAttached, setUploadAttached] = useState(false);
-  const [gpClearanceRequired, setGpClearanceRequired] = useState(false);
-  const [gpClearanceNote, setGpClearanceNote] = useState("");
-  const [conditions, setConditions] = useState<string[]>([]);
-  const [contraindications, setContraindications] = useState<string[]>([]);
-  const [medications, setMedications] = useState<ClientProfile["health"]["medications"]>([]);
-  const [injuryHistory, setInjuryHistory] = useState<ClientProfile["health"]["injury_history"]>([]);
+  const [parqMode, setParqMode] = useState<ParqMode>(() => initDraft(null, (d) => d.parqMode));
+  const [overrideNote, setOverrideNote] = useState(() => initDraft("", (d) => d.overrideNote));
+  const [uploadAttached, setUploadAttached] = useState(() => initDraft(false, (d) => d.uploadAttached));
+  const [gpClearanceRequired, setGpClearanceRequired] = useState(() => initDraft(false, (d) => d.gpClearanceRequired));
+  const [gpClearanceNote, setGpClearanceNote] = useState(() => initDraft("", (d) => d.gpClearanceNote));
+  const [conditions, setConditions] = useState<string[]>(() => initDraft([], (d) => d.conditions));
+  const [contraindications, setContraindications] = useState<string[]>(() => initDraft([], (d) => d.contraindications));
+  const [medications, setMedications] = useState<ClientProfile["health"]["medications"]>(() => initDraft([], (d) => d.medications));
+  const [injuryHistory, setInjuryHistory] = useState<ClientProfile["health"]["injury_history"]>(() => initDraft([], (d) => d.injuryHistory));
 
   /* ── Step 3 state ── */
-  const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoal>("general_fitness");
-  const [milestones, setMilestones] = useState<string[]>([]);
-  const [baseline, setBaseline] = useState("");
-  const [successLooks, setSuccessLooks] = useState("");
+  const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoal>(() => initDraft("general_fitness", (d) => d.primaryGoal));
+  const [milestones, setMilestones] = useState<string[]>(() => initDraft([], (d) => d.milestones));
+  const [baseline, setBaseline] = useState(() => initDraft("", (d) => d.baseline));
+  const [successLooks, setSuccessLooks] = useState(() => initDraft("", (d) => d.successLooks));
 
   /* ── Step 4 state ── */
-  const [deliveryMode, setDeliveryMode] = useState<"studio_1to1" | "home_training">("studio_1to1");
-  const [equipment, setEquipment] = useState<string[] | null>(null); // null = not configured, [] = bodyweight, [names] = constrained
-  const [bodyweightOnly, setBodyweightOnly] = useState(false);
-  const [bandSet, setBandSet] = useState<"ef" | "own">("ef");
-  const [bandNote, setBandNote] = useState("");
+  const [deliveryMode, setDeliveryMode] = useState<"studio_1to1" | "home_training">(() => initDraft("studio_1to1", (d) => d.deliveryMode));
+  const [equipment, setEquipment] = useState<string[] | null>(() => initDraft(null, (d) => d.equipment));
+  const [bodyweightOnly, setBodyweightOnly] = useState(() => initDraft(false, (d) => d.bodyweightOnly));
+  const [bandSet, setBandSet] = useState<"ef" | "own">(() => initDraft("ef", (d) => d.bandSet));
+  const [bandNote, setBandNote] = useState(() => initDraft("", (d) => d.bandNote));
 
   /* ── Step 5 state ── */
-  const [firstWorkoutRoute, setFirstWorkoutRoute] = useState<"qa" | "templates" | "paste">("qa");
+  const [firstWorkoutRoute, setFirstWorkoutRoute] = useState<"qa" | "templates" | "paste">(() => initDraft("qa", (d) => d.firstWorkoutRoute));
+
+  /* ── Show resume banner after draft is restored ── */
+  useEffect(() => {
+    if (draftLoadedRef.current) setIsResumingDraft(true);
+  }, []);
 
   /* ── Validation tracking ── */
   const [attempted, setAttempted] = useState<Record<number, boolean>>({});
@@ -292,7 +405,39 @@ export default function NewClientPage() {
 
   /* ── Save and finish later ── */
   const handleSaveDraft = useCallback(() => {
-    toast.success("Draft saved — resume any time from Clients → New client.");
+    const draft = serializeDraft({
+      step, maxStepReached, name, email, phone, address, dob, gender,
+      ecName, ecRel, ecPhone, gpName, gpSurgery, gpPhone,
+      packageType, cadenceUnit, cadencePerUnit,
+      parqMode, overrideNote, uploadAttached,
+      gpClearanceRequired, gpClearanceNote,
+      conditions, contraindications, medications, injuryHistory,
+      primaryGoal, milestones, baseline, successLooks,
+      deliveryMode, equipment, bodyweightOnly, bandSet, bandNote,
+      firstWorkoutRoute,
+    });
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      toast.success("Draft saved — resume any time from Clients → New client.");
+    } catch {
+      toast.error("Couldn't save the draft in this browser — try a different browser or finish now.");
+    }
+  }, [
+    step, maxStepReached, name, email, phone, address, dob, gender,
+    ecName, ecRel, ecPhone, gpName, gpSurgery, gpPhone,
+    packageType, cadenceUnit, cadencePerUnit,
+    parqMode, overrideNote, uploadAttached,
+    gpClearanceRequired, gpClearanceNote,
+    conditions, contraindications, medications, injuryHistory,
+    primaryGoal, milestones, baseline, successLooks,
+    deliveryMode, equipment, bodyweightOnly, bandSet, bandNote,
+    firstWorkoutRoute,
+  ]);
+
+  /* ── Discard draft and start fresh ── */
+  const handleDiscardDraft = useCallback(() => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+    setIsResumingDraft(false);
   }, []);
 
   /* ── Create client ── */
@@ -392,6 +537,7 @@ export default function NewClientPage() {
       }
 
       const data = await res.json();
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
       toast.success("Client created");
       router.push(`/hub/clients/${data.client_number}`);
     } catch {
@@ -485,6 +631,23 @@ export default function NewClientPage() {
           subtitle="Five short steps — who they are, their health, their goals, where they train, and their first workouts. Everything here feeds the Plan Agent."
         />
       </div>
+
+      {/* Draft resumed banner */}
+      {isResumingDraft && (
+        <div className="flex items-center gap-3 p-3 rounded-[10px] border border-teal/20 bg-teal/5">
+          <IconCheck className="w-4 h-4 shrink-0 text-teal" />
+          <p className="flex-1 text-[12.5px] text-foreground">
+            <strong>Draft restored.</strong> Picking up from step {step} — everything you entered is here.
+          </p>
+          <button
+            type="button"
+            onClick={handleDiscardDraft}
+            className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-md px-2 py-1 transition-colors"
+          >
+            Start fresh
+          </button>
+        </div>
+      )}
 
       {/* Stepper */}
       <nav className="flex items-center gap-2 flex-wrap" aria-label="Onboarding steps">
