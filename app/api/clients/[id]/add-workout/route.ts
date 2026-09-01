@@ -60,7 +60,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
 
-  const equipmentGuard = client.equipment === null;
+  const equipmentGuard = client.equipment === null || client.delivery_mode === null;
 
   /* Active block + sessions */
   const { data: blocks } = await supabase
@@ -202,8 +202,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (!client) return NextResponse.json({ error: "Client not found" }, { status: 404 });
 
-  if (client.equipment === null) {
-    return NextResponse.json({ error: "Equipment must be set before adding workouts" }, { status: 400 });
+  if (client.equipment === null || client.delivery_mode === null) {
+    return NextResponse.json({ error: "Equipment and training location must be set before adding workouts" }, { status: 400 });
   }
 
   /* Find or create active block */
@@ -348,17 +348,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const lastSess = nonParent
     .sort((a: { scheduled_at: string | null }, b: { scheduled_at: string | null }) => (b.scheduled_at ?? "").localeCompare(a.scheduled_at ?? ""))[0] ?? null;
 
-  const nextSessionLabel = (() => {
-    if (nextSess?.scheduled_at) {
-      const day = new Date(nextSess.scheduled_at).toLocaleDateString("en-GB", { weekday: "long" });
-      return `next up after ${day}'s session`;
-    }
-    if (lastSess?.scheduled_at) {
-      const day = new Date(lastSess.scheduled_at).toLocaleDateString("en-GB", { weekday: "long" });
-      return `next up after ${day}'s session`;
-    }
-    return "first in the programme";
-  })();
+  const totalSessions = nonParent.length;
+  const nextSessionLabel = totalSessions === 0
+    ? "first in the programme"
+    : `session ${sessionNumber} of ${totalSessions} in the programme`;
 
   return NextResponse.json({
     sessionId: created.id,
