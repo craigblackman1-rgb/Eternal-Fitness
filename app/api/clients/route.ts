@@ -33,15 +33,49 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, email, phone, profile, package_type } = body;
+  const { name, email, phone, profile, package_type, delivery_mode, equipment, address, emergency_contact, gp, band_set_note, gp_clearance_note } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
+  // Merge optional wizard fields into profile where appropriate
+  const enrichedProfile = { ...profile };
+  if (emergency_contact) {
+    enrichedProfile.emergency_contact = emergency_contact;
+  }
+  if (gp) {
+    enrichedProfile.gp = gp;
+  }
+  if (band_set_note !== undefined) {
+    enrichedProfile.band_set_note = band_set_note;
+  }
+  if (gp_clearance_note !== undefined) {
+    enrichedProfile.gp_clearance_note = gp_clearance_note;
+  }
+
+  const insertRow: Record<string, unknown> = {
+    name: name.trim(),
+    email: email || null,
+    phone: phone || null,
+    profile: enrichedProfile,
+    package_type: package_type ?? null,
+  };
+
+  // CR-EF-118 — wizard passes delivery_mode and equipment directly on the clients row
+  if (delivery_mode !== undefined) {
+    insertRow.delivery_mode = delivery_mode;
+  }
+  if (equipment !== undefined) {
+    insertRow.equipment = equipment;
+  }
+  if (address !== undefined) {
+    insertRow.address = address || null;
+  }
+
   const { data, error } = await supabase
     .from("clients")
-    .insert({ name: name.trim(), email: email || null, phone: phone || null, profile, package_type: package_type ?? null })
+    .insert(insertRow)
     .select()
     .single();
 

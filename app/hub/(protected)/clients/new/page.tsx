@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,14 +8,52 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { IconChevronLeft, IconUsers, IconMapPin, IconHeart, IconTarget, IconClipboardList, IconEdit3, IconCheck, IconPlus } from "@/components/icons";
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconUsers,
+  IconHeart,
+  IconTarget,
+  IconMapPin,
+  IconClipboardList,
+  IconClock,
+  IconCheck,
+  IconAlertTriangle,
+  IconTrash2,
+  IconX,
+} from "@/components/icons";
 import Link from "next/link";
 import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
-import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
-import type { ClientProfile, Gender, Frequency, Package } from "@/types";
-import { DEFAULT_FREQUENCY } from "@/types";
+import { EquipmentMultiSelect } from "@/components/hub/EquipmentMultiSelect";
+import { MedicationTable } from "@/components/hub/MedicationTable";
+import type {
+  ClientProfile,
+  Gender,
+  Frequency,
+  Package,
+  PrimaryGoal,
+  TrainingLocation,
+} from "@/types";
+import { DEFAULT_FREQUENCY, formatFrequency } from "@/types";
+
+/* ─────────────────────────────────────────────────────────────
+   CR-EF-118 — Guided onboarding wizard
+   Five steps: Who they are → Health → Goals → Where they train → First workouts
+   The programme is created behind the flow and never asked about.
+   ───────────────────────────────────────────────────────────── */
+
+const STEPS = [
+  { key: 1, label: "Who they are", icon: IconUsers },
+  { key: 2, label: "Health", icon: IconHeart },
+  { key: 3, label: "Goals", icon: IconTarget },
+  { key: 4, label: "Where they train", icon: IconMapPin },
+  { key: 5, label: "First workouts", icon: IconClipboardList },
+] as const;
+
+type StepKey = 1 | 2 | 3 | 4 | 5;
+type ParqMode = "send" | "override" | null;
 
 function calculateAge(dob: string | null): number {
   if (!dob) return 0;
@@ -24,17 +62,11 @@ function calculateAge(dob: string | null): number {
   const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
   return age;
 }
 
-/**
- * Segmented control — used for the short exclusive sets (training location,
- * sessions/week, time tier, fitness level, pace mode) so every option is
- * visible at once. Mirrors the reference edit mockup's .seg component.
- */
+/* ── Segmented control (verbatim from existing page) ── */
 function SegmentedControl<T extends string | number>({
   legend,
   name,
@@ -69,11 +101,15 @@ function SegmentedControl<T extends string | number>({
                   "flex min-h-[30px] cursor-pointer items-center justify-center rounded-md px-2.5 text-center text-sm font-semibold transition-colors " +
                   (active
                     ? "bg-[var(--hub-card)] text-foreground shadow-sm"
-                    : "text-[var(--color-body)] hover:text-foreground")
+                    : "text-[var(--body)] hover:text-foreground")
                 }
               >
                 {opt.label}
-                {opt.sub && <span className="ml-1 text-[11px] font-medium text-muted-foreground">{opt.sub}</span>}
+                {opt.sub && (
+                  <span className="ml-1 text-[11px] font-medium text-muted-foreground">
+                    {opt.sub}
+                  </span>
+                )}
               </span>
             </label>
           );
@@ -83,70 +119,551 @@ function SegmentedControl<T extends string | number>({
   );
 }
 
+/* ── Gate alert ── */
+function GateAlert({
+  children,
+  variant = "warning",
+}: {
+  children: React.ReactNode;
+  variant?: "warning" | "clear";
+}) {
+  const styles =
+    variant === "warning"
+      ? "bg-[var(--s-warning-bg)] border-[var(--s-warning-bd)] text-[var(--s-warning-tx)]"
+      : "bg-[var(--s-success-bg)] border-[var(--s-success-bd)] text-[var(--s-success-tx)]";
+  return (
+    <div className={`flex gap-2.5 p-3 rounded-[10px] border ${styles}`}>
+      <IconAlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+      <div className="text-[12.5px] leading-relaxed">{children}</div>
+    </div>
+  );
+}
+
+/* ── Empty profile ── */
 const emptyProfile: ClientProfile = {
   client: { id: "", name: "", age: 0, date_of_birth: null, gender: "" },
-  logistics: { training_location: "studio", frequency: DEFAULT_FREQUENCY, time_tier: "standard", block_number: 1 },
-  health: { gp_clearance: false, gp_clearance_required: false, conditions: [], contraindications: [], medications_relevant: [], medications: [], injury_history: [], pain_points: [], parq_trainer_override: false, parq_trainer_override_note: "" },
-  physical_baseline: { fitness_level: 3, movement_quality_flags: [], strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" } },
+  logistics: {
+    training_location: "studio",
+    frequency: DEFAULT_FREQUENCY,
+    time_tier: "standard",
+    block_number: 1,
+  },
+  health: {
+    gp_clearance: false,
+    gp_clearance_required: false,
+    conditions: [],
+    contraindications: [],
+    medications_relevant: [],
+    medications: [],
+    injury_history: [],
+    pain_points: [],
+    parq_trainer_override: false,
+    parq_trainer_override_note: "",
+  },
+  physical_baseline: {
+    fitness_level: 3,
+    movement_quality_flags: [],
+    strength_baseline: { lower_body: "beginner", upper_body: "beginner", core: "beginner" },
+  },
   programming_adaptations: [],
   goals: { primary: "general_fitness", secondary: [], milestones: [] },
   notes: { client_intro: "", esther_observations: "", motivation_notes: "", watch_for: "" },
 };
 
+/* ── Draft persistence ── */
+const DRAFT_KEY = "ef-new-client-draft";
+const DRAFT_VERSION = 1;
+
+type DraftData = {
+  v: number;
+  step: StepKey;
+  maxStepReached: StepKey;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  dob: string;
+  gender: Gender | "";
+  ecName: string;
+  ecRel: string;
+  ecPhone: string;
+  gpName: string;
+  gpSurgery: string;
+  gpPhone: string;
+  packageType: Package;
+  cadenceUnit: Frequency["unit"];
+  cadencePerUnit: number;
+  parqMode: ParqMode;
+  overrideNote: string;
+  gpClearanceRequired: boolean;
+  gpClearanceNote: string;
+  conditions: string[];
+  contraindications: string[];
+  medications: ClientProfile["health"]["medications"];
+  injuryHistory: ClientProfile["health"]["injury_history"];
+  primaryGoal: PrimaryGoal;
+  milestones: string[];
+  baseline: string;
+  successLooks: string;
+  deliveryMode: "studio_1to1" | "home_training";
+  equipment: string[] | null;
+  bodyweightOnly: boolean;
+  bandSet: "ef" | "own";
+  bandNote: string;
+  firstWorkoutRoute: "qa" | "templates" | "paste";
+};
+
+function serializeDraft(s: {
+  step: StepKey; maxStepReached: StepKey;
+  name: string; email: string; phone: string; address: string; dob: string; gender: Gender | "";
+  ecName: string; ecRel: string; ecPhone: string;
+  gpName: string; gpSurgery: string; gpPhone: string;
+  packageType: Package; cadenceUnit: Frequency["unit"]; cadencePerUnit: number;
+  parqMode: ParqMode; overrideNote: string;
+  gpClearanceRequired: boolean; gpClearanceNote: string;
+  conditions: string[]; contraindications: string[];
+  medications: ClientProfile["health"]["medications"];
+  injuryHistory: ClientProfile["health"]["injury_history"];
+  primaryGoal: PrimaryGoal; milestones: string[]; baseline: string; successLooks: string;
+  deliveryMode: "studio_1to1" | "home_training";
+  equipment: string[] | null; bodyweightOnly: boolean;
+  bandSet: "ef" | "own"; bandNote: string;
+  firstWorkoutRoute: "qa" | "templates" | "paste";
+}): DraftData {
+  return {
+    v: DRAFT_VERSION,
+    step: s.step, maxStepReached: s.maxStepReached,
+    name: s.name, email: s.email, phone: s.phone, address: s.address,
+    dob: s.dob, gender: s.gender,
+    ecName: s.ecName, ecRel: s.ecRel, ecPhone: s.ecPhone,
+    gpName: s.gpName, gpSurgery: s.gpSurgery, gpPhone: s.gpPhone,
+    packageType: s.packageType, cadenceUnit: s.cadenceUnit, cadencePerUnit: s.cadencePerUnit,
+    parqMode: s.parqMode, overrideNote: s.overrideNote,
+    gpClearanceRequired: s.gpClearanceRequired, gpClearanceNote: s.gpClearanceNote,
+    conditions: s.conditions, contraindications: s.contraindications,
+    medications: s.medications, injuryHistory: s.injuryHistory,
+    primaryGoal: s.primaryGoal, milestones: s.milestones,
+    baseline: s.baseline, successLooks: s.successLooks,
+    deliveryMode: s.deliveryMode,
+    equipment: s.equipment, bodyweightOnly: s.bodyweightOnly,
+    bandSet: s.bandSet, bandNote: s.bandNote,
+    firstWorkoutRoute: s.firstWorkoutRoute,
+  };
+}
+
+function deserializeDraft(raw: string): DraftData | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.v === DRAFT_VERSION) return parsed as DraftData;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Main wizard component
+   ═══════════════════════════════════════════════════════════════ */
 export default function NewClientPage() {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [profile, setProfile] = useState<ClientProfile>(emptyProfile);
-  const [packageType, setPackageType] = useState<Package | null>("12-week");
 
-  const updateProfile = <K extends keyof ClientProfile>(section: K, updates: Partial<ClientProfile[K]>) => {
-    setProfile((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], ...updates },
-    }));
+  /* ── Draft restore ── */
+  const draftCacheRef = useRef<DraftData | null>(null);
+  const draftCacheReadRef = useRef(false);
+  const draftRestoreReadyRef = useRef(false);
+  const [isResumingDraft, setIsResumingDraft] = useState(false);
+  const initDraft = <T,>(fallback: T, extract: (d: DraftData) => T): T => {
+    if (typeof window === "undefined") return fallback;
+    if (!draftCacheReadRef.current) {
+      draftCacheReadRef.current = true;
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) draftCacheRef.current = deserializeDraft(raw);
+      } catch { draftCacheRef.current = null; }
+    }
+    if (!draftRestoreReadyRef.current) return fallback;
+    const draft = draftCacheRef.current;
+    if (!draft) return fallback;
+    try { return extract(draft); } catch { return fallback; }
   };
 
-  const handleSave = async () => {
+  const [step, setStep] = useState<StepKey>(() => initDraft(1, (d) => d.step));
+  const [maxStepReached, setMaxStepReached] = useState<StepKey>(() => initDraft(1, (d) => d.maxStepReached));
+  const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  /* ── Step 1 state ── */
+  const [name, setName] = useState(() => initDraft("", (d) => d.name));
+  const [email, setEmail] = useState(() => initDraft("", (d) => d.email));
+  const [phone, setPhone] = useState(() => initDraft("", (d) => d.phone));
+  const [address, setAddress] = useState(() => initDraft("", (d) => d.address));
+  const [dob, setDob] = useState(() => initDraft("", (d) => d.dob));
+  const [gender, setGender] = useState<Gender | "">(() => initDraft("", (d) => d.gender));
+  const [ecName, setEcName] = useState(() => initDraft("", (d) => d.ecName));
+  const [ecRel, setEcRel] = useState(() => initDraft("", (d) => d.ecRel));
+  const [ecPhone, setEcPhone] = useState(() => initDraft("", (d) => d.ecPhone));
+  const [gpName, setGpName] = useState(() => initDraft("", (d) => d.gpName));
+  const [gpSurgery, setGpSurgery] = useState(() => initDraft("", (d) => d.gpSurgery));
+  const [gpPhone, setGpPhone] = useState(() => initDraft("", (d) => d.gpPhone));
+  const [packageType, setPackageType] = useState<Package>(() => initDraft("12-week", (d) => d.packageType));
+  const [cadenceUnit, setCadenceUnit] = useState<Frequency["unit"]>(() => initDraft("week", (d) => d.cadenceUnit));
+  const [cadencePerUnit, setCadencePerUnit] = useState(() => initDraft(2, (d) => d.cadencePerUnit));
+
+  /* ── Step 2 state ── */
+  const [parqMode, setParqMode] = useState<ParqMode>(() => initDraft(null, (d) => d.parqMode));
+  const [overrideNote, setOverrideNote] = useState(() => initDraft("", (d) => d.overrideNote));
+  const [gpClearanceRequired, setGpClearanceRequired] = useState(() => initDraft(false, (d) => d.gpClearanceRequired));
+  const [gpClearanceNote, setGpClearanceNote] = useState(() => initDraft("", (d) => d.gpClearanceNote));
+  const [conditions, setConditions] = useState<string[]>(() => initDraft([], (d) => d.conditions));
+  const [contraindications, setContraindications] = useState<string[]>(() => initDraft([], (d) => d.contraindications));
+  const [medications, setMedications] = useState<ClientProfile["health"]["medications"]>(() => initDraft([], (d) => d.medications));
+  const [injuryHistory, setInjuryHistory] = useState<ClientProfile["health"]["injury_history"]>(() => initDraft([], (d) => d.injuryHistory));
+
+  /* ── Step 3 state ── */
+  const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoal>(() => initDraft("general_fitness", (d) => d.primaryGoal));
+  const [milestones, setMilestones] = useState<string[]>(() => initDraft([], (d) => d.milestones));
+  const [baseline, setBaseline] = useState(() => initDraft("", (d) => d.baseline));
+  const [successLooks, setSuccessLooks] = useState(() => initDraft("", (d) => d.successLooks));
+
+  /* ── Step 4 state ── */
+  const [deliveryMode, setDeliveryMode] = useState<"studio_1to1" | "home_training">(() => initDraft("studio_1to1", (d) => d.deliveryMode));
+  const [equipment, setEquipment] = useState<string[] | null>(() => initDraft(null, (d) => d.equipment));
+  const [bodyweightOnly, setBodyweightOnly] = useState(() => initDraft(false, (d) => d.bodyweightOnly));
+  const [bandSet, setBandSet] = useState<"ef" | "own">(() => initDraft("ef", (d) => d.bandSet));
+  const [bandNote, setBandNote] = useState(() => initDraft("", (d) => d.bandNote));
+
+  /* ── Step 5 state ── */
+  const [firstWorkoutRoute, setFirstWorkoutRoute] = useState<"qa" | "templates" | "paste">(() => initDraft("qa", (d) => d.firstWorkoutRoute));
+
+  /* ── Show resume banner after draft is restored ── */
+  useEffect(() => {
+    draftRestoreReadyRef.current = true;
+    const draft = draftCacheRef.current;
+    if (draft) {
+      setStep(draft.step);
+      setMaxStepReached(draft.maxStepReached);
+      setName(draft.name);
+      setEmail(draft.email);
+      setPhone(draft.phone);
+      setAddress(draft.address);
+      setDob(draft.dob);
+      setGender(draft.gender);
+      setEcName(draft.ecName);
+      setEcRel(draft.ecRel);
+      setEcPhone(draft.ecPhone);
+      setGpName(draft.gpName);
+      setGpSurgery(draft.gpSurgery);
+      setGpPhone(draft.gpPhone);
+      setPackageType(draft.packageType);
+      setCadenceUnit(draft.cadenceUnit);
+      setCadencePerUnit(draft.cadencePerUnit);
+      setParqMode(draft.parqMode);
+      setOverrideNote(draft.overrideNote);
+      setGpClearanceRequired(draft.gpClearanceRequired);
+      setGpClearanceNote(draft.gpClearanceNote);
+      setConditions(draft.conditions);
+      setContraindications(draft.contraindications);
+      setMedications(draft.medications);
+      setInjuryHistory(draft.injuryHistory);
+      setPrimaryGoal(draft.primaryGoal);
+      setMilestones(draft.milestones);
+      setBaseline(draft.baseline);
+      setSuccessLooks(draft.successLooks);
+      setDeliveryMode(draft.deliveryMode);
+      setEquipment(draft.equipment);
+      setBodyweightOnly(draft.bodyweightOnly);
+      setBandSet(draft.bandSet);
+      setBandNote(draft.bandNote);
+      setFirstWorkoutRoute(draft.firstWorkoutRoute);
+      setIsResumingDraft(true);
+    }
+    setMounted(true);
+  }, []);
+
+  /* ── Validation tracking ── */
+  const [attempted, setAttempted] = useState<Record<number, boolean>>({});
+
+  /* ── Cadence derived ── */
+  const frequency: Frequency = useMemo(
+    () => ({ unit: cadenceUnit, per_unit: cadenceUnit === "irregular" ? 0 : cadencePerUnit }),
+    [cadenceUnit, cadencePerUnit]
+  );
+
+  /* ── Step validation ── */
+  const step1Valid = name.trim().length > 0 && email.trim().length > 0;
+  const step2Valid =
+    parqMode !== null && (parqMode !== "override" || overrideNote.trim().length > 0);
+  const step4Valid = bodyweightOnly || (equipment !== null && equipment.length > 0);
+
+  const canContinue = useMemo(() => {
+    switch (step) {
+      case 1: return step1Valid;
+      case 2: return step2Valid;
+      case 4: return step4Valid;
+      default: return true;
+    }
+  }, [step, step1Valid, step2Valid, step4Valid]);
+
+  /* ── Navigation ── */
+  const goTo = useCallback(
+    (n: StepKey) => {
+      setStep(n);
+      setMaxStepReached((prev) => Math.max(prev, n) as StepKey);
+      window.scrollTo({ top: 0, behavior: "auto" });
+    },
+    []
+  );
+
+  const goNext = useCallback(() => {
+    setAttempted((prev) => ({ ...prev, [step]: true }));
+    if (!canContinue) return;
+    const next = Math.min(step + 1, 5) as StepKey;
+    goTo(next);
+  }, [step, canContinue, goTo]);
+
+  const goBack = useCallback(() => {
+    if (step > 1) goTo((step - 1) as StepKey);
+  }, [step, goTo]);
+
+  /* ── Handle bodyweight only toggle ── */
+  const toggleBodyweight = useCallback(() => {
+    if (!bodyweightOnly) {
+      setEquipment([]); // explicit empty array = bodyweight only
+      setBodyweightOnly(true);
+    } else {
+      setEquipment(null); // not configured
+      setBodyweightOnly(false);
+    }
+  }, [bodyweightOnly]);
+
+  /* ── Handle equipment change from EquipmentMultiSelect ── */
+  const handleEquipmentChange = useCallback((val: string[] | null) => {
+    setEquipment(val);
+    if (val !== null && val.length > 0) {
+      setBodyweightOnly(false);
+    }
+  }, []);
+
+  /* ── Save and finish later ── */
+  const handleSaveDraft = useCallback(() => {
+    const draft = serializeDraft({
+      step, maxStepReached, name, email, phone, address, dob, gender,
+      ecName, ecRel, ecPhone, gpName, gpSurgery, gpPhone,
+      packageType, cadenceUnit, cadencePerUnit,
+      parqMode, overrideNote,
+      gpClearanceRequired, gpClearanceNote,
+      conditions, contraindications, medications, injuryHistory,
+      primaryGoal, milestones, baseline, successLooks,
+      deliveryMode, equipment, bodyweightOnly, bandSet, bandNote,
+      firstWorkoutRoute,
+    });
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      toast.success("Draft saved — resume any time from Clients → New client.");
+    } catch {
+      toast.error("Couldn't save the draft in this browser — try a different browser or finish now.");
+    }
+  }, [
+    step, maxStepReached, name, email, phone, address, dob, gender,
+    ecName, ecRel, ecPhone, gpName, gpSurgery, gpPhone,
+    packageType, cadenceUnit, cadencePerUnit,
+    parqMode, overrideNote,
+    gpClearanceRequired, gpClearanceNote,
+    conditions, contraindications, medications, injuryHistory,
+    primaryGoal, milestones, baseline, successLooks,
+    deliveryMode, equipment, bodyweightOnly, bandSet, bandNote,
+    firstWorkoutRoute,
+  ]);
+
+  /* ── Discard draft and start fresh ── */
+  const handleDiscardDraft = useCallback(() => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+    setIsResumingDraft(false);
+  }, []);
+
+  /* ── Create client ── */
+  const handleCreate = useCallback(async () => {
     if (!name.trim()) {
       toast.error("Client name is required");
       return;
     }
-
     setSaving(true);
-    const fullProfile: ClientProfile = {
-      ...profile,
-      client: { ...profile.client, name: name.trim(), age: calculateAge(profile.client.date_of_birth) },
+
+    const profile: ClientProfile = {
+      ...emptyProfile,
+      client: {
+        ...emptyProfile.client,
+        name: name.trim(),
+        age: calculateAge(dob || null),
+        date_of_birth: dob || null,
+        gender: gender || "",
+      },
+      logistics: {
+        ...emptyProfile.logistics,
+        training_location: (deliveryMode === "home_training" ? "home" : "studio") as TrainingLocation,
+        frequency,
+      },
+      health: {
+        ...emptyProfile.health,
+        gp_clearance_required: gpClearanceRequired,
+        conditions,
+        contraindications,
+        medications,
+        injury_history: injuryHistory,
+        parq_trainer_override: parqMode === "override",
+        parq_trainer_override_note: parqMode === "override" ? overrideNote : "",
+      },
+      goals: {
+        primary: primaryGoal,
+        secondary: [],
+        milestones,
+      },
+      notes: {
+        client_intro: "",
+        esther_observations: baseline,
+        motivation_notes: successLooks,
+        watch_for: "",
+      },
     };
 
-    const res = await fetch("/api/clients", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name.trim(),
-        email: email.trim() || null,
-        phone: phone.trim() || null,
-        profile: fullProfile,
-        package_type: packageType,
-      }),
-    });
+    const body: Record<string, unknown> = {
+      name: name.trim(),
+      email: email.trim() || null,
+      phone: phone.trim() || null,
+      profile,
+      package_type: packageType,
+      delivery_mode: deliveryMode,
+      equipment: equipment,
+    };
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to save client" }));
-      toast.error(`Failed to save client: ${err.error}`);
-      setSaving(false);
-      return;
+    // Emergency contact and GP go into the profile
+    const profileExtra = profile as unknown as Record<string, unknown>;
+    if (ecName.trim() || ecPhone.trim()) {
+      profileExtra.emergency_contact = {
+        name: ecName.trim() || null,
+        relationship: ecRel.trim() || null,
+        phone: ecPhone.trim() || null,
+      };
+    }
+    if (gpName.trim() || gpSurgery.trim() || gpPhone.trim()) {
+      profileExtra.gp = {
+        name: gpName.trim() || null,
+        surgery: gpSurgery.trim() || null,
+        phone: gpPhone.trim() || null,
+      };
     }
 
-    const data = await res.json();
-    toast.success("Client created");
-    router.push(`/hub/clients/${data.client_number}`);
-  };
+    // Band set
+    if (bandSet === "own") {
+      body.band_set_note = bandNote.trim() || null;
+    }
+
+    // GP clearance note
+    if (gpClearanceRequired && gpClearanceNote.trim()) {
+      body.gp_clearance_note = gpClearanceNote.trim();
+    }
+
+    // Address
+    if (address.trim()) {
+      body.address = address.trim();
+    }
+
+    try {
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to save client" }));
+        toast.error(`Failed to save client: ${err.error}`);
+        setSaving(false);
+        return;
+      }
+
+      const data = await res.json();
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+      toast.success("Client created");
+      const routeParam = firstWorkoutRoute === "templates" ? "template"
+        : firstWorkoutRoute === "paste" ? "scratch"
+        : "scratch";
+      router.push(`/hub/m/clients/${data.client_number}/add-workout?view=${routeParam}`);
+    } catch {
+      toast.error("Failed to save client — please try again");
+      setSaving(false);
+    }
+  }, [
+    name, dob, gender, email, phone, address, ecName, ecRel, ecPhone,
+    gpName, gpSurgery, gpPhone, packageType, frequency, deliveryMode,
+    equipment, bandSet, bandNote, conditions, contraindications, medications,
+    injuryHistory, primaryGoal, milestones, baseline, successLooks,
+    gpClearanceRequired, parqMode, overrideNote, router, firstWorkoutRoute,
+  ]);
+
+  /* ── Cadence label ── */
+  const cadenceLabel = formatFrequency(frequency);
+
+  /* ── Compliance flags for review ── */
+  const complianceFlags = useMemo(() => {
+    const flags: { text: string; note?: string }[] = [];
+    if (parqMode === "send")
+      flags.push({ text: "No PAR-Q on file", note: "Sent — awaiting signature back from the client." });
+    else if (parqMode === "override")
+      flags.push({ text: "PAR-Q trainer-overridden — pending migration from Microsoft Forms" });
+    else if (!parqMode)
+      flags.push({ text: "No PAR-Q on file", note: "No PAR-Q route chosen in step 2." });
+    if (gpClearanceRequired)
+      flags.push({ text: "GP clearance required — not yet obtained" });
+    return flags;
+  }, [parqMode, gpClearanceRequired]);
+
+  /* ── Rail fields ── */
+  const railFields = useMemo(() => {
+    const fields: { label: string; value: string; pending?: boolean }[] = [];
+    fields.push({ label: "Name", value: name.trim() || "" });
+    if (step >= 1 || maxStepReached >= 1) {
+      fields.push({ label: "Package", value: packageType });
+      fields.push({ label: "Cadence", value: cadenceLabel });
+    }
+    if (maxStepReached >= 2) {
+      const parqLabel =
+        parqMode === "send" ? "Sent · awaiting signature"
+        : parqMode === "override" ? "Trainer override"
+        : "";
+      fields.push({ label: "PAR-Q", value: parqLabel, pending: parqMode === "send" });
+      fields.push({ label: "GP clearance", value: gpClearanceRequired ? "Required" : "Not required", pending: gpClearanceRequired });
+    }
+    if (maxStepReached >= 3) {
+      fields.push({ label: "Goals", value: primaryGoal.replace("_", " ") });
+    }
+    if (maxStepReached >= 4) {
+      const deliveryLabel = deliveryMode === "home_training" ? "Home training" : "Studio 1:1";
+      const eqLabel = bodyweightOnly ? "Bodyweight only" : equipment && equipment.length > 0 ? `${equipment.length} item${equipment.length === 1 ? "" : "s"}` : "";
+      fields.push({ label: "Where", value: deliveryLabel });
+      fields.push({ label: "Equipment", value: eqLabel, pending: maxStepReached >= 4 && !eqLabel });
+    }
+    return fields;
+  }, [
+    name, step, maxStepReached, packageType, cadenceLabel, parqMode,
+    gpClearanceRequired, primaryGoal, deliveryMode, bodyweightOnly, equipment,
+  ]);
+
+  /* ── Review preview ── */
+  const reviewDeliveryLabel = deliveryMode === "home_training" ? "Home training" : "Studio 1:1";
+  const reviewEqLabel = bodyweightOnly
+    ? "Bodyweight only — no equipment"
+    : equipment && equipment.length > 0
+    ? equipment.join(", ")
+    : "";
+  const reviewRouteLabel =
+    firstWorkoutRoute === "templates" ? "Picked from templates"
+    : firstWorkoutRoute === "paste" ? "Pasted in"
+    : "Built from a short Q&A";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Page header */}
       <div>
         <Link
           href="/hub/clients"
@@ -157,325 +674,783 @@ export default function NewClientPage() {
         </Link>
         <HubPageHeader
           title="New client"
-          subtitle="Create a new client profile — the Plan Agent reads everything here when it builds a block."
+          subtitle="Five short steps — who they are, their health, their goals, where they train, and their first workouts. Everything here feeds the Plan Agent."
         />
       </div>
 
-      <div className="space-y-6">
-        <HubCard>
-          <HubCardHeader icon={<IconUsers className="w-4 h-4" />} title="Basic info" subtitle="Who the client is, and how to reach them" color="navy" noBottomPadding />
-          <div className="px-5 pb-5 pt-4 space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Client name" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={profile.client.date_of_birth ?? ""}
-                  onChange={(e) => updateProfile("client", { date_of_birth: e.target.value || null })}
-                  className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {profile.client.date_of_birth ? `Age: ${calculateAge(profile.client.date_of_birth)}` : "Age will be calculated from date of birth"}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select value={profile.client.gender || undefined} onValueChange={(v: Gender) => updateProfile("client", { gender: v })}>
-                  <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="non_binary">Non-binary</SelectItem>
-                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="client@example.com"
-                  className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
-                />
-                <p className="text-xs text-muted-foreground">Used to send 6-week updates.</p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="07…"
-                  className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
-                />
-              </div>
-            </div>
-          </div>
-        </HubCard>
+      {/* Draft resumed banner */}
+      {isResumingDraft && (
+        <div className="flex items-center gap-3 p-3 rounded-[10px] border border-teal/20 bg-teal/5">
+          <IconCheck className="w-4 h-4 shrink-0 text-teal" />
+          <p className="flex-1 text-[12.5px] text-foreground">
+            <strong>Draft restored.</strong> Picking up from step {step} — everything you entered is here.
+          </p>
+          <button
+            type="button"
+            onClick={handleDiscardDraft}
+            className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-md px-2 py-1 transition-colors"
+          >
+            Start fresh
+          </button>
+        </div>
+      )}
 
-        <HubCard>
-          <HubCardHeader icon={<IconMapPin className="w-4 h-4" />} title="Logistics" subtitle="Where, how often and how long" color="slate" noBottomPadding />
-          <div className="px-5 pb-5 pt-4 space-y-4">
-            <SegmentedControl
-              legend="Training location"
-              name="training_location"
-              value={profile.logistics.training_location}
-              onChange={(v) => updateProfile("logistics", { training_location: v })}
-              options={[
-                { value: "studio", label: "Studio" },
-                { value: "home", label: "Home" },
-                { value: "both", label: "Both" },
-              ]}
-            />
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Cadence</Label>
-                <Select
-                  value={profile.logistics.frequency?.unit ?? "week"}
-                  onValueChange={(v: Frequency["unit"]) => {
-                    const unit = v;
-                    const per_unit = unit === "irregular" ? 0
-                      : unit === "fortnight" ? 1
-                      : unit === "month" ? 1
-                      : (profile.logistics.frequency?.per_unit ?? 2);
-                    updateProfile("logistics", { frequency: { unit, per_unit } });
-                  }}
+      {/* Stepper */}
+      <nav className="flex items-center gap-2 flex-wrap" aria-label="Onboarding steps">
+        {STEPS.map((s, i) => {
+          const isOn = step === s.key;
+          const isDone = s.key < step;
+          const isClickable = s.key <= maxStepReached;
+          const StepIcon = s.icon;
+          return (
+            <span key={s.key} className="flex items-center gap-2">
+              {i > 0 && <span className="w-6 h-px bg-[var(--hub-border)] shrink-0" />}
+              <button
+                type="button"
+                onClick={() => isClickable && goTo(s.key)}
+                disabled={!isClickable}
+                className={`inline-flex items-center gap-2 text-[13px] font-semibold transition-colors ${
+                  isOn
+                    ? "text-foreground"
+                    : isDone
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                } ${isClickable ? "cursor-pointer" : "cursor-default"}`}
+              >
+                <span
+                  className={`w-[26px] h-[26px] rounded-full border grid place-items-center text-[12px] font-bold shrink-0 transition-colors ${
+                    isOn
+                      ? "bg-rose border-rose text-white"
+                      : isDone
+                      ? "bg-teal/10 border-teal/20 text-teal"
+                      : "bg-[var(--hub-card)] border-[var(--color-muted-text)] text-muted-foreground"
+                  }`}
                 >
-                  <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">Weekly</SelectItem>
-                    <SelectItem value="fortnight">Fortnightly</SelectItem>
-                    <SelectItem value="month">Monthly</SelectItem>
-                    <SelectItem value="irregular">Irregular</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Package</Label>
-                <Select value={packageType ?? ""} onValueChange={(v: Package) => setPackageType(v)}>
-                  <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="4-week">4-week</SelectItem>
-                    <SelectItem value="6-week">6-week</SelectItem>
-                    <SelectItem value="12-week">12-week</SelectItem>
-                    <SelectItem value="24-week">24-week</SelectItem>
-                    <SelectItem value="ongoing">Ongoing</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {profile.logistics.frequency && profile.logistics.frequency.unit !== "irregular" && (
-              <SegmentedControl
-                legend={`Sessions per ${profile.logistics.frequency.unit === "week" ? "week" : profile.logistics.frequency.unit === "fortnight" ? "fortnight" : "month"}`}
-                name="frequency_per_unit"
-                value={profile.logistics.frequency.per_unit}
-                onChange={(v) => updateProfile("logistics", { frequency: { ...profile.logistics.frequency!, per_unit: v as number } })}
-                options={
-                  profile.logistics.frequency.unit === "week"
-                    ? [{ value: 1, label: "1×" }, { value: 2, label: "2×" }, { value: 3, label: "3×" }]
-                    : profile.logistics.frequency.unit === "fortnight"
-                    ? [{ value: 1, label: "1×" }, { value: 2, label: "2×" }]
-                    : [{ value: 1, label: "1×" }, { value: 2, label: "2×" }]
-                }
-              />
-            )}
-            <SegmentedControl
-              legend="Time tier"
-              name="time_tier"
-              value={profile.logistics.time_tier}
-              onChange={(v) => updateProfile("logistics", { time_tier: v })}
-              options={[
-                { value: "compact", label: "Compact", sub: "~45m" },
-                { value: "standard", label: "Standard", sub: "~60m" },
-                { value: "extended", label: "Extended", sub: "~75–90m" },
-              ]}
-            />
-          </div>
-        </HubCard>
-
-        <HubCard>
-          <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health and clearance" subtitle="What has to be adapted around, and what unblocks planning" color="rose" noBottomPadding />
-          <div className="px-5 pb-5 pt-4 space-y-4">
-            <div className="flex items-start gap-3 py-3.5 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
-              <label htmlFor="gp_clearance" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
-                <input
-                  type="checkbox"
-                  id="gp_clearance"
-                  checked={profile.health.gp_clearance}
-                  onChange={(e) => updateProfile("health", { gp_clearance: e.target.checked })}
-                  className="sr-only"
-                />
-                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
-                  {profile.health.gp_clearance && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                  {isDone ? <IconCheck className="w-3 h-3" /> : s.key}
                 </span>
-              </label>
-              <div className="min-w-0">
-                <Label htmlFor="gp_clearance" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance obtained</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Tick once the written clearance letter is on file.</p>
-              </div>
-            </div>
-            <div className="space-y-2 rounded-[12px] border border-[var(--hub-border)] p-3">
-              <div className="flex items-start gap-3">
-                <label htmlFor="parq_trainer_override" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="parq_trainer_override"
-                    checked={profile.health.parq_trainer_override ?? false}
-                    onChange={(e) => updateProfile("health", { parq_trainer_override: e.target.checked })}
-                    className="sr-only"
+                <span className="hidden sm:inline">{s.label}</span>
+              </button>
+            </span>
+          );
+        })}
+      </nav>
+
+      {/* Layout: main + rail */}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] items-start">
+        {/* ── Main column ── */}
+        <div className="space-y-5 min-w-0">
+
+          {/* ══ STEP 1 · WHO THEY ARE ══ */}
+          {step === 1 && (
+            <HubCard padded={false}>
+              <HubCardHeader
+                icon={<IconUsers className="w-4 h-4" />}
+                title="Who they are"
+                subtitle="Contact details, GP, and how often they'll train"
+                color="navy"
+                noBottomPadding
+                divider
+              />
+              <div className="px-5 pb-5 pt-4 space-y-5">
+                {/* Contact */}
+                <SectionHeader title="Contact" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">
+                      Name <span className="text-muted-foreground font-medium">(required)</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Client name"
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                    {attempted[1] && !name.trim() && (
+                      <p className="text-[11.5px] font-semibold text-destructive">Name is required — this is who the wizard is for.</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dob">Date of birth</Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gender</Label>
+                    <Select value={gender || undefined} onValueChange={(v) => setGender(v as Gender)}>
+                      <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30">
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="non_binary">Non-binary</SelectItem>
+                        <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">
+                      Email <span className="text-muted-foreground font-medium">(required)</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="client@example.com"
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                    {attempted[1] && !email.trim() && (
+                      <p className="text-[11.5px] font-semibold text-destructive">An email address is needed to send the 6-week updates.</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="07…"
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="For home-training visits"
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                  </div>
+                </div>
+
+                {/* Emergency contact */}
+                <SectionHeader title="Emergency contact" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="ecName">Name</Label>
+                    <Input id="ecName" value={ecName} onChange={(e) => setEcName(e.target.value)} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ecRel">Relationship</Label>
+                    <Input id="ecRel" value={ecRel} onChange={(e) => setEcRel(e.target.value)} placeholder="e.g. Spouse" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ecPhone">Phone</Label>
+                    <Input id="ecPhone" type="tel" value={ecPhone} onChange={(e) => setEcPhone(e.target.value)} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  </div>
+                </div>
+
+                {/* GP */}
+                <SectionHeader title="GP" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="gpName">GP name</Label>
+                    <Input id="gpName" value={gpName} onChange={(e) => setGpName(e.target.value)} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gpSurgery">Surgery</Label>
+                    <Input id="gpSurgery" value={gpSurgery} onChange={(e) => setGpSurgery(e.target.value)} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gpPhone">Surgery phone</Label>
+                    <Input id="gpPhone" type="tel" value={gpPhone} onChange={(e) => setGpPhone(e.target.value)} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  </div>
+                </div>
+
+                {/* Package & cadence */}
+                <SectionHeader title="Package & cadence" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Package</Label>
+                    <Select value={packageType} onValueChange={(v) => setPackageType(v as Package)}>
+                      <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="4-week">4-week</SelectItem>
+                        <SelectItem value="6-week">6-week</SelectItem>
+                        <SelectItem value="12-week">12-week</SelectItem>
+                        <SelectItem value="24-week">24-week</SelectItem>
+                        <SelectItem value="ongoing">Ongoing</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <SegmentedControl
+                    legend="Cadence"
+                    name="cadenceUnit"
+                    value={cadenceUnit}
+                    onChange={(v) => {
+                      setCadenceUnit(v);
+                      if (v === "irregular") setCadencePerUnit(0);
+                      else if (cadencePerUnit === 0) setCadencePerUnit(2);
+                    }}
+                    options={[
+                      { value: "week", label: "Weekly" },
+                      { value: "fortnight", label: "Fortnightly" },
+                      { value: "month", label: "Monthly" },
+                      { value: "irregular", label: "Irregular" },
+                    ]}
                   />
-                  <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
-                    {(profile.health.parq_trainer_override ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
-                  </span>
-                </label>
-                <div className="min-w-0">
-                  <Label htmlFor="parq_trainer_override" className="text-[13px] font-semibold text-foreground cursor-pointer">PAR-Q trainer override — completed on Microsoft Forms, not yet in system</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Only tick this once you've personally reviewed the client's submitted PAR-Q. This unblocks plan
-                    generation until the record is migrated into the hub — it does not replace a signed PAR-Q on file.
-                  </p>
+                  {cadenceUnit !== "irregular" && (
+                    <div className="space-y-2">
+                      <Label>Sessions per {cadenceUnit === "week" ? "week" : cadenceUnit === "fortnight" ? "fortnight" : "month"}</Label>
+                      <Select
+                        value={String(cadencePerUnit)}
+                        onValueChange={(v) => setCadencePerUnit(Number(v))}
+                      >
+                        <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1×</SelectItem>
+                          <SelectItem value="2">2×</SelectItem>
+                          <SelectItem value="3">3×</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  {cadenceUnit === "irregular" && (
+                    <div className="md:col-span-2">
+                      <GateAlert variant="warning">
+                        <p><strong>Heads up.</strong> Sessions will be planned on a default weekly cadence and every one will carry a visible &ldquo;default cadence&rdquo; note until a real pattern settles.</p>
+                      </GateAlert>
+                    </div>
+                  )}
                 </div>
               </div>
-              {profile.health.parq_trainer_override && (
-                <Textarea
-                  placeholder="Optional note — anything flagged on the form Esther should know (e.g. risk factors, restrictions)"
-                  value={profile.health.parq_trainer_override_note ?? ""}
-                  onChange={(e) => updateProfile("health", { parq_trainer_override_note: e.target.value })}
-                  rows={2}
-                  className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
-                />
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Conditions</Label>
-              <TagMultiSelect
-                category="condition"
-                selected={profile.health.conditions}
-                onChange={(conditions) => updateProfile("health", { conditions })}
-                placeholder="Select known conditions or add new..."
+            </HubCard>
+          )}
+
+          {/* ══ STEP 2 · HEALTH ══ */}
+          {step === 2 && (
+            <HubCard padded={false}>
+              <HubCardHeader
+                icon={<IconHeart className="w-4 h-4" />}
+                title="Health"
+                subtitle="Required, not skippable — this is what programming has to be safe around"
+                color="rose"
+                noBottomPadding
+                divider
               />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Contraindications</Label>
-                <TagMultiSelect
-                  category="contraindication"
-                  selected={profile.health.contraindications}
-                  onChange={(contraindications) => updateProfile("health", { contraindications })}
-                  placeholder="Select contraindications or add new..."
-                />
+              <div className="px-5 pb-5 pt-4 space-y-5">
+                {/* PAR-Q three-way OR */}
+                <SectionHeader title="PAR-Q health screening" />
+                <div className="space-y-2.5">
+                  {/* Send to client */}
+                  <label
+                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                      parqMode === "send"
+                        ? "bg-rose/5 border-rose/20"
+                        : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="parq"
+                      value="send"
+                      checked={parqMode === "send"}
+                      onChange={() => setParqMode("send")}
+                      className="sr-only"
+                    />
+                    <p className="text-[13px] font-bold text-foreground">Send the PAR-Q to the client</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Emails the standard form for the client to complete and sign themselves.</p>
+                    {parqMode === "send" && (
+                      <div className="mt-2.5 pt-2.5 border-t border-[var(--hub-border)]">
+                        <span className="pill warning">
+                          Sent · awaiting signature
+                        </span>
+                        <p className="text-[11.5px] text-muted-foreground mt-1.5">The PAR-Q form will be emailed to {email.trim() || "the client&apos;s email address"} once the client is created. Plan generation stays open, but the client&apos;s compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
+                      </div>
+                    )}
+                  </label>
+
+                  {/* Trainer override */}
+                  <label
+                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                      parqMode === "override"
+                        ? "bg-rose/5 border-rose/20"
+                        : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="parq"
+                      value="override"
+                      checked={parqMode === "override"}
+                      onChange={() => setParqMode("override")}
+                      className="sr-only"
+                    />
+                    <p className="text-[13px] font-bold text-foreground">Trainer override — screened on Microsoft Forms</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Covers a client already screened through the external Forms process, pending migration into the hub.</p>
+                    {parqMode === "override" && (
+                      <div className="mt-2.5 pt-2.5 border-t border-[var(--hub-border)] space-y-2">
+                        <Label>
+                          Note <span className="text-muted-foreground font-medium">(required — what did the form flag?)</span>
+                        </Label>
+                        <Textarea
+                          value={overrideNote}
+                          onChange={(e) => setOverrideNote(e.target.value)}
+                          placeholder="e.g. Cleared, mild lower-back sensitivity noted, avoid loaded spinal flexion"
+                          rows={2}
+                          className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                        />
+                        {attempted[2] && !overrideNote.trim() && (
+                          <p className="text-[11.5px] font-semibold text-destructive">A note is required — an override with nothing recorded isn&apos;t a real screening decision.</p>
+                        )}
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                {/* PAR-Q gate */}
+                {!parqMode && (
+                  <GateAlert variant="warning">
+                    <p><strong>Choose one before continuing.</strong> Health is a required step — an onboarding that skips it is exactly how a client ends up training with no screening on record.</p>
+                  </GateAlert>
+                )}
+
+                {/* PAR-Q structure (accordion) */}
+                <div>
+                  <Label>What&apos;s on the form — structure only</Label>
+                  <div className="mt-2 rounded-[10px] border border-[var(--hub-border)] divide-y divide-[var(--hub-border)]">
+                    {[
+                      { title: "Section 1 · Cardiovascular and general health", count: 11 },
+                      { title: "Section 2 · Musculoskeletal, neurological and surgical history", count: 7 },
+                      { title: "Section 3 · Blood conditions, medication and diagnosed conditions", count: 8 },
+                      { title: "Section 4 · Lifestyle and activity", count: 3 },
+                    ].map((sec) => (
+                      <details key={sec.title} className="group">
+                        <summary className="flex items-center gap-2.5 px-3.5 min-h-[44px] cursor-pointer text-[12.5px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors list-none [&::-webkit-details-marker]:hidden">
+                          <svg className="w-3.5 h-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                          <span className="flex-1 min-w-0">{sec.title}</span>
+                          <span className="inline-grid place-items-center min-w-[20px] h-5 px-1.5 rounded-full bg-[var(--s-neutral-bg)] border border-[var(--s-neutral-bd)] text-[11.5px] font-bold text-[var(--body)]">{sec.count}</span>
+                        </summary>
+                        <div className="px-3.5 pb-3 pt-2 text-xs text-[var(--body)]">
+                          Pulled from the live document template at send time — not editable here.
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+
+                {/* GP clearance */}
+                <SectionHeader title="GP clearance" />
+                <div className="flex items-start gap-3">
+                  <label htmlFor="gpRequired" className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="gpRequired"
+                      checked={gpClearanceRequired}
+                      onChange={(e) => {
+                        setGpClearanceRequired(e.target.checked);
+                        if (!e.target.checked) setGpClearanceNote("");
+                      }}
+                      className="sr-only"
+                    />
+                    <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${gpClearanceRequired ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                      {gpClearanceRequired && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                    </span>
+                  </label>
+                  <div className="min-w-0">
+                    <Label htmlFor="gpRequired" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance required before training</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Trainer judgement — defaults to not required. Whether the letter has actually been obtained is tracked afterwards on the Compliance tab, not here.</p>
+                  </div>
+                </div>
+                {gpClearanceRequired && (
+                  <div className="space-y-2">
+                    <Label htmlFor="gpNote">Why clearance is required</Label>
+                    <Textarea
+                      id="gpNote"
+                      value={gpClearanceNote}
+                      onChange={(e) => setGpClearanceNote(e.target.value)}
+                      placeholder="e.g. Referring consultant asked for written sign-off before loaded work"
+                      rows={2}
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                  </div>
+                )}
+
+                {/* Conditions & contraindications */}
+                <SectionHeader title="Conditions, contraindications and pain points" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Conditions</Label>
+                    <TagMultiSelect
+                      category="condition"
+                      selected={conditions}
+                      onChange={setConditions}
+                      placeholder="Select known conditions or add new…"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Contraindications</Label>
+                    <TagMultiSelect
+                      category="contraindication"
+                      selected={contraindications}
+                      onChange={setContraindications}
+                      placeholder="Select contraindications or add new…"
+                    />
+                  </div>
+                </div>
+
+                {/* Medication */}
+                <SectionHeader title="Medication" />
+                <MedicationTable value={medications} onChange={setMedications} />
+
+                {/* Injury history */}
+                <SectionHeader title="Injury history" />
+                <InjuryHistoryTable value={injuryHistory} onChange={setInjuryHistory} />
               </div>
-              <div className="space-y-2">
-                <Label>Pain Points</Label>
-                <TagMultiSelect
-                  category="pain_point"
-                  selected={profile.health.pain_points}
-                  onChange={(pain_points) => updateProfile("health", { pain_points })}
-                  placeholder="Select pain points or add new..."
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Injury History</Label>
-              <InjuryHistoryTable
-                value={profile.health.injury_history}
-                onChange={(injury_history) => updateProfile("health", { injury_history })}
+            </HubCard>
+          )}
+
+          {/* ══ STEP 3 · GOALS ══ */}
+          {step === 3 && (
+            <HubCard padded={false}>
+              <HubCardHeader
+                icon={<IconTarget className="w-4 h-4" />}
+                title="Goals"
+                subtitle="What the client is working towards, and where they're starting from"
+                color="teal"
+                noBottomPadding
+                divider
               />
-            </div>
-          </div>
-        </HubCard>
+              <div className="px-5 pb-5 pt-4 space-y-5">
+                <div className="space-y-2">
+                  <Label>Primary goal</Label>
+                  <Select value={primaryGoal} onValueChange={(v) => setPrimaryGoal(v as PrimaryGoal)}>
+                    <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general_fitness">General fitness</SelectItem>
+                      <SelectItem value="strength">Strength</SelectItem>
+                      <SelectItem value="mobility">Mobility</SelectItem>
+                      <SelectItem value="weight_loss">Weight management</SelectItem>
+                      <SelectItem value="rehabilitation">Rehabilitation</SelectItem>
+                      <SelectItem value="confidence">Confidence</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Milestones</Label>
+                  <TagMultiSelect
+                    category="milestone"
+                    selected={milestones}
+                    onChange={setMilestones}
+                    placeholder="Select milestones or add new…"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="baseline">Physical baseline</Label>
+                  <Textarea
+                    id="baseline"
+                    value={baseline}
+                    onChange={(e) => setBaseline(e.target.value)}
+                    placeholder="Current activity level, mobility, strength — whatever the Plan Agent should start from."
+                    rows={3}
+                    className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="successLooks">What success looks like</Label>
+                  <Textarea
+                    id="successLooks"
+                    value={successLooks}
+                    onChange={(e) => setSuccessLooks(e.target.value)}
+                    placeholder="In the client's own words if possible."
+                    rows={3}
+                    className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                  />
+                </div>
+              </div>
+            </HubCard>
+          )}
 
-        <HubCard>
-          <HubCardHeader icon={<IconTarget className="w-4 h-4" />} title="Goals" subtitle="What the client is working towards" color="teal" noBottomPadding />
-          <div className="px-5 pb-5 pt-4 space-y-4">
-            <div className="space-y-2">
-              <Label>Primary Goal</Label>
-              <Select value={profile.goals.primary} onValueChange={(v: ClientProfile["goals"]["primary"]) => updateProfile("goals", { primary: v })}>
-                <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="strength">Strength</SelectItem>
-                  <SelectItem value="mobility">Mobility</SelectItem>
-                  <SelectItem value="weight_loss">Weight Loss</SelectItem>
-                  <SelectItem value="rehabilitation">Rehabilitation</SelectItem>
-                  <SelectItem value="confidence">Confidence</SelectItem>
-                  <SelectItem value="general_fitness">General Fitness</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Milestones</Label>
-              <TagMultiSelect
-                category="milestone"
-                selected={profile.goals.milestones}
-                onChange={(milestones) => updateProfile("goals", { milestones })}
-                placeholder="Select milestones or add new..."
+          {/* ══ STEP 4 · WHERE THEY TRAIN ══ */}
+          {step === 4 && (
+            <HubCard padded={false}>
+              <HubCardHeader
+                icon={<IconMapPin className="w-4 h-4" />}
+                title="Where they train"
+                subtitle="And what they've got — this decides what a workout is allowed to include"
+                color="teal"
+                noBottomPadding
+                divider
               />
-            </div>
-          </div>
-        </HubCard>
+              <div className="px-5 pb-5 pt-4 space-y-5">
+                <SegmentedControl
+                  legend="Where they train"
+                  name="deliveryMode"
+                  value={deliveryMode}
+                  onChange={(v) => setDeliveryMode(v as typeof deliveryMode)}
+                  options={[
+                    { value: "studio_1to1", label: "Studio 1:1" },
+                    { value: "home_training", label: "Home training" },
+                  ]}
+                />
+                <p className="text-[11.5px] text-muted-foreground">Exactly these two — there&apos;s no third option and no &ldquo;both&rdquo;. This decides which set of workouts gets served, in the hub and the client&apos;s own app.</p>
 
-        <HubCard>
-          <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Training rules" subtitle="Applied systematically by the Plan Agent" color="navy" noBottomPadding />
-          <div className="px-5 pb-5 pt-4">
-            <TrainingRulesEditor
-              value={profile.programming_adaptations}
-              onChange={(programming_adaptations) => setProfile((prev) => ({ ...prev, programming_adaptations }))}
-            />
-          </div>
-        </HubCard>
+                {/* Equipment — the critical gate */}
+                <SectionHeader title="Equipment" />
+                <p className="text-[11.5px] text-muted-foreground">Choose everything available, or confirm there&apos;s none. Leaving this unanswered isn&apos;t a valid state — an unconstrained profile is how a dumbbell exercise ends up assigned to someone with no dumbbells.</p>
 
-        <HubCard>
-          <HubCardHeader icon={<IconEdit3 className="w-4 h-4" />} title="Notes" subtitle="Prose the Plan Agent reads for context" color="slate" noBottomPadding />
-          <div className="px-5 pb-5 pt-4 space-y-4">
-            <div className="space-y-2">
-              <Label>Client intro</Label>
-              <p className="text-xs text-muted-foreground">Shown at the top of each session. A short note Esther writes to set the tone for this client&rsquo;s workouts.</p>
-              <Textarea value={profile.notes.client_intro} onChange={(e) => updateProfile("notes", { client_intro: e.target.value })} rows={2} placeholder="e.g. &quot;Welcome back — let&rsquo;s keep the momentum going this week.&quot;" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
-            </div>
-            <div className="space-y-2">
-              <Label>Esther's Observations</Label>
-              <Textarea value={profile.notes.esther_observations} onChange={(e) => updateProfile("notes", { esther_observations: e.target.value })} rows={3} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Motivation Notes</Label>
-                <Textarea value={profile.notes.motivation_notes} onChange={(e) => updateProfile("notes", { motivation_notes: e.target.value })} rows={2} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                {/* Bodyweight only checkbox */}
+                <label className="flex items-start gap-3 p-2.5 rounded-[10px] border border-[var(--color-muted-text)] bg-[var(--hub-hover)] cursor-pointer transition-colors">
+                  <span className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bodyweightOnly}
+                      onChange={toggleBodyweight}
+                      className="sr-only"
+                    />
+                    <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${bodyweightOnly ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                      {bodyweightOnly && <IconCheck className="w-3.5 h-3.5 text-white" />}
+                    </span>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-foreground">Bodyweight only — no equipment</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Ticking this writes an explicit empty list, not a blank field. It&apos;s a deliberate answer, not what happens by default when nothing&apos;s picked.</p>
+                  </div>
+                </label>
+
+                {/* Equipment grid */}
+                <div className={bodyweightOnly ? "opacity-40 pointer-events-none" : ""}>
+                  <EquipmentMultiSelect selected={equipment} onChange={handleEquipmentChange} hideControls showHomeEquivalent={deliveryMode === "home_training"} />
+                </div>
+
+                {/* Equipment gate */}
+                {!step4Valid && (
+                  <GateAlert variant="warning">
+                    <p><strong>Continue is disabled until you answer this.</strong> Pick from the list above, or confirm Bodyweight only. Skipping this step would leave the client&apos;s profile unconstrained, and workouts could get generated calling for kit they don&apos;t actually have.</p>
+                  </GateAlert>
+                )}
+
+                {/* Resistance bands */}
+                <SegmentedControl
+                  legend="Resistance bands"
+                  name="bandSet"
+                  value={bandSet}
+                  onChange={(v) => setBandSet(v as typeof bandSet)}
+                  options={[
+                    { value: "ef", label: "EF Studio set", sub: "Blue 9.1 → Black 52.2kg" },
+                    { value: "own", label: "Their own set", sub: "Different tensions" },
+                  ]}
+                />
+                {bandSet === "own" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="bandNote">Their set, briefly</Label>
+                    <Input
+                      id="bandNote"
+                      value={bandNote}
+                      onChange={(e) => setBandNote(e.target.value)}
+                      placeholder="e.g. 3-band set from a previous PT, colours unlabelled"
+                      className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
+                    />
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label>Watch For</Label>
-                <Textarea value={profile.notes.watch_for} onChange={(e) => updateProfile("notes", { watch_for: e.target.value })} rows={2} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
-              </div>
-            </div>
-          </div>
-        </HubCard>
+            </HubCard>
+          )}
 
-        {/* Sticky save bar — mirrors the reference edit mockup */}
-        <div className="sticky bottom-0 z-15 flex items-center gap-3 mt-6 rounded-[12px] border border-[var(--hub-border)] bg-white/90 backdrop-blur px-5 py-3 shadow-[0_-1px_3px_rgba(16,24,40,0.05)]">
-          <p className="m-0 text-xs text-muted-foreground">
-            <span><b className="text-foreground font-semibold">Ready to create client.</b></span>
-          </p>
-          <div className="ml-auto flex gap-2">
-            <Link href="/hub/clients">
-              <Button variant="outline" className="rounded-lg border border-[var(--color-muted-text)]">Cancel</Button>
-            </Link>
-            <Button onClick={handleSave} disabled={saving} className="rounded-lg gap-2 bg-rose hover:bg-rose/90 text-white">
-              {!saving && <IconPlus className="w-4 h-4" />}
-              {saving ? "Saving..." : "Create client"}
+          {/* ══ STEP 5 · FIRST WORKOUTS + REVIEW ══ */}
+          {step === 5 && (
+            <HubCard padded={false}>
+              <HubCardHeader
+                icon={<IconClipboardList className="w-4 h-4" />}
+                title="First workouts"
+                subtitle="Pick how you want to build the first workouts — you'll go straight there after the client is saved"
+                color="navy"
+                noBottomPadding
+                divider
+              />
+              <div className="px-5 pb-5 pt-4 space-y-5">
+                {/* Three routes */}
+                <div className="space-y-2.5">
+                  {[
+                    { value: "qa" as const, title: "Answer a few questions", desc: "A short Q&A — you'll be taken to the workout builder to build from the answers." },
+                    { value: "templates" as const, title: "Pick from templates", desc: "Browse the template library and add one directly to the client's schedule." },
+                    { value: "paste" as const, title: "Paste in workouts", desc: "Already got them written down — you'll start a blank workout and paste exercises in." },
+                  ].map((route) => (
+                    <label
+                      key={route.value}
+                      className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                        firstWorkoutRoute === route.value
+                          ? "bg-rose/5 border-rose/20"
+                          : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="route"
+                        value={route.value}
+                        checked={firstWorkoutRoute === route.value}
+                        onChange={() => setFirstWorkoutRoute(route.value)}
+                        className="sr-only"
+                      />
+                      <p className="text-[13px] font-bold text-foreground">{route.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{route.desc}</p>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Preview line */}
+                <div className="flex items-center gap-2.5 p-3 rounded-[10px] bg-teal/5 border border-teal/20">
+                  <IconCheck className="w-4 h-4 shrink-0 text-teal" />
+                  <span className="text-[12.5px]">
+                    <strong className="text-foreground">After creating the client, you'll be taken straight to add the first workout.</strong>{" "}
+                    {firstWorkoutRoute === "templates"
+                      ? "Template library, ready to search and assign."
+                      : firstWorkoutRoute === "paste"
+                      ? "Blank workout editor — paste exercises in."
+                      : "Workout builder, starting from a short Q&A."}
+                  </span>
+                </div>
+
+                {/* Review summary */}
+                <SectionHeader title="Review & finish" end={<span>{complianceFlags.length > 0 ? <span className="pill warning">{complianceFlags.length} outstanding</span> : <span className="pill success">Ready</span>}</span>} />
+
+                <div className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
+                  {[
+                    { label: "Who they are", value: name.trim() || "This client", sub: email.trim() || "no email yet", editStep: 1 as StepKey },
+                    { label: "Package & cadence", value: `${packageType} · ${cadenceLabel}`, editStep: 1 as StepKey },
+                    {
+                      label: "Health",
+                      value: parqMode === "send" ? "PAR-Q sent to client"
+                        : parqMode === "override" ? "Trainer override, reviewed on Microsoft Forms"
+                        : "Not answered",
+                      sub: gpClearanceRequired ? "GP clearance required — not yet obtained" : undefined,
+                      editStep: 2 as StepKey,
+                    },
+                    { label: "Goals", value: primaryGoal.replace(/_/g, " "), editStep: 3 as StepKey },
+                    { label: "Where they train", value: reviewDeliveryLabel, sub: reviewEqLabel || "Not answered", editStep: 4 as StepKey },
+                    { label: "First workouts", value: reviewRouteLabel, sub: "You'll build after the client is saved", editStep: 5 as StepKey },
+                  ].map((row) => (
+                    <div key={row.label} className="flex items-start gap-3 py-3 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-muted-foreground w-[132px] shrink-0 pt-0.5">{row.label}</span>
+                      <span className="flex-1 text-[13px] text-foreground leading-relaxed">
+                        {row.value}
+                        {row.sub && <span className="block text-xs text-muted-foreground mt-0.5">{row.sub}</span>}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => goTo(row.editStep)}
+                        className="shrink-0 text-xs font-semibold text-rose hover:bg-rose/5 rounded-md px-1.5 py-0.5 transition-colors"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Outstanding */}
+                <Label>Still outstanding</Label>
+                <div className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-3.5">
+                  {complianceFlags.length > 0 ? (
+                    complianceFlags.map((flag, i) => (
+                      <div key={i} className={`flex items-start gap-2.5 py-2.5 ${i > 0 ? "border-t border-[var(--hub-border)]" : ""}`}>
+                        <IconAlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[var(--s-warning-tx)]" />
+                        <div>
+                          <p className="text-[12.5px] text-foreground">{flag.text}</p>
+                          {flag.note && <span className="text-[11px] text-muted-foreground">{flag.note}</span>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-3">
+                      <p className="text-[13.5px] font-bold text-foreground">Nothing outstanding</p>
+                      <p className="text-xs text-muted-foreground">PAR-Q is on file and no GP clearance is pending.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </HubCard>
+          )}
+
+          {/* ── Wizard footer ── */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {step > 1 && (
+              <Button type="button" variant="outline" onClick={goBack} className="gap-1.5 rounded-lg">
+                <IconChevronLeft className="w-3.5 h-3.5" />
+                Back
+              </Button>
+            )}
+            <Button type="button" variant="ghost" onClick={handleSaveDraft} className="rounded-lg text-muted-foreground">
+              Save and finish later
             </Button>
+            <div className="flex-1" />
+            {step < 5 ? (
+              <Button
+                type="button"
+                onClick={goNext}
+                disabled={!canContinue}
+                className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white"
+              >
+                Continue
+                <IconChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleCreate}
+                disabled={saving}
+                className="gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white"
+              >
+                {saving ? "Creating…" : "Create client"}
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* ── Rail ── */}
+        <aside className="hidden lg:block sticky top-20 space-y-4" aria-label="Captured so far">
+          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+            <p className="px-4 py-3 border-b border-[var(--hub-border)] text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Captured so far</p>
+            <div className="px-4 py-2">
+              <dl className="space-y-0">
+                {railFields.map((f) => (
+                  <div key={f.label} className="flex justify-between gap-2.5 py-2 border-b border-[var(--hub-border)] last:border-b-0">
+                    <dt className="text-xs text-muted-foreground shrink-0">{f.label}</dt>
+                    <dd className={`text-xs font-semibold text-right ${f.value ? (f.pending ? "text-[var(--s-warning-tx)]" : "text-foreground") : "text-muted-foreground font-medium italic"}`}>
+                      {f.value || "Not yet"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <p className="px-4 py-2.5 text-[11.5px] text-muted-foreground leading-relaxed">Updates live as you move through the steps. Nothing here is written until &ldquo;Create client&rdquo; on the review step.</p>
+          </div>
+        </aside>
       </div>
+    </div>
+  );
+}
+
+/* ── Section header helper ── */
+function SectionHeader({
+  title,
+  end,
+}: {
+  title: string;
+  end?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{title}</span>
+      <span className="flex-1 h-px bg-[var(--hub-section-border)]" />
+      {end && <span className="shrink-0">{end}</span>}
     </div>
   );
 }

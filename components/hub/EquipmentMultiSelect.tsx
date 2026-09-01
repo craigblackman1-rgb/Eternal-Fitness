@@ -8,6 +8,8 @@ import type { StudioEquipment } from "@/types";
 interface EquipmentMultiSelectProps {
   selected: string[] | null;
   onChange: (values: string[] | null) => void;
+  hideControls?: boolean;
+  showHomeEquivalent?: boolean;
 }
 
 /**
@@ -15,7 +17,7 @@ interface EquipmentMultiSelectProps {
  * catalog. Renders as a grid of labelled checkboxes. NULL = not configured
  * (unconstrained generation), empty array = bodyweight only.
  */
-export function EquipmentMultiSelect({ selected, onChange }: EquipmentMultiSelectProps) {
+export function EquipmentMultiSelect({ selected, onChange, hideControls, showHomeEquivalent }: EquipmentMultiSelectProps) {
   const [catalog, setCatalog] = useState<StudioEquipment[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,38 +87,42 @@ export function EquipmentMultiSelect({ selected, onChange }: EquipmentMultiSelec
               </span>
               <span className="min-w-0">
                 <span className="text-[13px] font-medium text-foreground leading-tight">{item.name}</span>
-                {item.detail && (
-                  <span className="text-[11px] text-muted-foreground leading-tight block">{item.detail}</span>
+                {(item.detail || (showHomeEquivalent && item.home_equivalent)) && (
+                  <span className="text-[11px] text-muted-foreground leading-tight block">
+                    {item.detail}{item.detail && showHomeEquivalent && item.home_equivalent ? " · " : ""}{showHomeEquivalent && item.home_equivalent ? `home: ${item.home_equivalent}` : ""}
+                  </span>
                 )}
               </span>
             </label>
           );
         })}
       </div>
-      <div className="flex items-center gap-3 pt-1">
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
-            selected === null
-              ? "bg-[var(--hub-card)] text-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)]"
-          }`}
-        >
-          Not configured
-        </button>
-        <button
-          type="button"
-          onClick={clearAll}
-          className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
-            selected !== null && selected.length === 0
-              ? "bg-[var(--hub-card)] text-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)]"
-          }`}
-        >
-          Bodyweight only
-        </button>
-      </div>
+      {!hideControls && (
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
+              selected === null
+                ? "bg-[var(--hub-card)] text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)]"
+            }`}
+          >
+            Not configured
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
+              selected !== null && selected.length === 0
+                ? "bg-[var(--hub-card)] text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)]"
+            }`}
+          >
+            Bodyweight only
+          </button>
+        </div>
+      )}
     </div>
   );
 }
