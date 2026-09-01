@@ -428,7 +428,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       <HubQuickActions
         variant="bar"
         actions={[
-          { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" />, primary: true },
+          { href: `/hub/clients/${client.client_number}/add-workout`, label: "Add workout", icon: <IconDumbbell className="w-4 h-4" />, primary: true },
+          { href: `/hub/clients/${client.client_number}/review`, label: "Review", icon: <IconClipboardCheck className="w-4 h-4" /> },
+          { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" /> },
           { href: `/hub/clients/${client.client_number}?tab=comms&view=tasks`, label: "Tasks", icon: <IconCheckSquare className="w-4 h-4" />, badgeCount: pendingTaskCount },
           { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
           { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },

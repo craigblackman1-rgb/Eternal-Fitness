@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StatusBadge } from "@/components/hub/StatusBadge";
-import { IconChevronLeft } from "@/components/icons";
+import { IconChevronLeft, IconDumbbell } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
@@ -206,6 +206,12 @@ export default async function BlockViewPage({
             {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {blockDateSpanLabel} · {totalSessions}-session block
           </p>
         </div>
+        <Link
+          href={`/hub/clients/${clientId}/add-workout`}
+          className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-rose hover:bg-rose/90 text-white text-[13px] font-semibold transition-colors shrink-0"
+        >
+          <IconDumbbell className="w-4 h-4" /> Add workout
+        </Link>
       </div>
 
       <BlockOverviewClient
