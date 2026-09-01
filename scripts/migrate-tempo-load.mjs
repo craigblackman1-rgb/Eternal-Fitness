@@ -102,7 +102,7 @@ async function main() {
 
   // ── Scan sessions ──
   const sessions = await client.query(
-    "SELECT session_id, data FROM sessions WHERE data IS NOT NULL"
+    "SELECT id, data FROM sessions WHERE data IS NOT NULL"
   );
   console.log(`\nSessions to scan: ${sessions.rows.length}`);
 
@@ -125,16 +125,16 @@ async function main() {
         // Tempo looks like it might contain a load but we can't split confidently
         sessionUntouched++;
         sessionUntouchedList.push({
-          session_id: row.session_id,
+          session_id: row.id,
           exercise: ex.exercise_name,
           tempo: ex.tempo,
         });
       }
     }
     if (!isDryRun && sessionSplit > 0) {
-      await client.query("UPDATE sessions SET data = $1 WHERE session_id = $2", [
+      await client.query("UPDATE sessions SET data = $1 WHERE id = $2", [
         JSON.stringify(row.data),
-        row.session_id,
+        row.id,
       ]);
     }
   }
