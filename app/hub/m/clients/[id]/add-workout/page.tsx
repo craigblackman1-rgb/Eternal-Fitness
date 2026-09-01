@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import type { Session, SessionVersion, WorkoutTemplate } from "@/types";
 
@@ -143,9 +143,16 @@ function estimateMinutes(exerciseCount: number): number {
 export default function AddWorkoutPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const clientNumber = parseInt(params.id, 10);
 
-  const [step, setStep] = useState<Step>("source");
+  const initialStep: Step = (() => {
+    const view = searchParams.get("view");
+    if (view === "template" || view === "block" || view === "scratch") return view;
+    return "source";
+  })();
+
+  const [step, setStep] = useState<Step>(initialStep);
   const [clientName, setClientName] = useState("");
   const [block, setBlock] = useState<ClientBlock | null>(null);
   const [blockWorkouts, setBlockWorkouts] = useState<BlockWorkout[]>([]);

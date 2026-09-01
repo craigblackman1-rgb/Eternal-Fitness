@@ -585,7 +585,10 @@ export default function NewClientPage() {
       const data = await res.json();
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
       toast.success("Client created");
-      router.push(`/hub/clients/${data.client_number}`);
+      const routeParam = firstWorkoutRoute === "templates" ? "template"
+        : firstWorkoutRoute === "paste" ? "scratch"
+        : "scratch";
+      router.push(`/hub/m/clients/${data.client_number}/add-workout?view=${routeParam}`);
     } catch {
       toast.error("Failed to save client — please try again");
       setSaving(false);
@@ -595,7 +598,7 @@ export default function NewClientPage() {
     gpName, gpSurgery, gpPhone, packageType, frequency, deliveryMode,
     equipment, bandSet, bandNote, conditions, contraindications, medications,
     injuryHistory, primaryGoal, milestones, baseline, successLooks,
-    gpClearanceRequired, parqMode, overrideNote, router,
+    gpClearanceRequired, parqMode, overrideNote, router, firstWorkoutRoute,
   ]);
 
   /* ── Cadence label ── */
@@ -1268,7 +1271,7 @@ export default function NewClientPage() {
               <HubCardHeader
                 icon={<IconClipboardList className="w-4 h-4" />}
                 title="First workouts"
-                subtitle="Pick how the first workouts get built — the structure underneath is created for you"
+                subtitle="Pick how you want to build the first workouts — you'll go straight there after the client is saved"
                 color="navy"
                 noBottomPadding
                 divider
@@ -1277,9 +1280,9 @@ export default function NewClientPage() {
                 {/* Three routes */}
                 <div className="space-y-2.5">
                   {[
-                    { value: "qa" as const, title: "Answer a few questions", desc: "A short Q&A — the agent builds the first workouts from the answers." },
-                    { value: "templates" as const, title: "Pick from templates", desc: "Browse the template library, already filtered to what was set in step 4." },
-                    { value: "paste" as const, title: "Paste in workouts", desc: "Already got them written down somewhere else — paste, review, and it's structured for you." },
+                    { value: "qa" as const, title: "Answer a few questions", desc: "A short Q&A — you'll be taken to the workout builder to build from the answers." },
+                    { value: "templates" as const, title: "Pick from templates", desc: "Browse the template library and add one directly to the client's schedule." },
+                    { value: "paste" as const, title: "Paste in workouts", desc: "Already got them written down — you'll start a blank workout and paste exercises in." },
                   ].map((route) => (
                     <label
                       key={route.value}
@@ -1307,13 +1310,12 @@ export default function NewClientPage() {
                 <div className="flex items-center gap-2.5 p-3 rounded-[10px] bg-teal/5 border border-teal/20">
                   <IconCheck className="w-4 h-4 shrink-0 text-teal" />
                   <span className="text-[12.5px]">
-                    <strong className="text-foreground">Programme created after you finish — {cadenceLabel.toLowerCase()} sessions.</strong>{" "}
+                    <strong className="text-foreground">After creating the client, you'll be taken straight to add the first workout.</strong>{" "}
                     {firstWorkoutRoute === "templates"
-                      ? "Picked from the template library"
+                      ? "Template library, ready to search and assign."
                       : firstWorkoutRoute === "paste"
-                      ? "Structured from the paste"
-                      : "Built from the Q&A answers"}{" "}
-                    once you pick a route — nothing to build by hand right now.
+                      ? "Blank workout editor — paste exercises in."
+                      : "Workout builder, starting from a short Q&A."}
                   </span>
                 </div>
 
@@ -1334,7 +1336,7 @@ export default function NewClientPage() {
                     },
                     { label: "Goals", value: primaryGoal.replace(/_/g, " "), editStep: 3 as StepKey },
                     { label: "Where they train", value: reviewDeliveryLabel, sub: reviewEqLabel || "Not answered", editStep: 4 as StepKey },
-                    { label: "First workouts", value: reviewRouteLabel, sub: `${cadenceLabel.toLowerCase()} sessions — programme created after finish`, editStep: 5 as StepKey },
+                    { label: "First workouts", value: reviewRouteLabel, sub: "You'll build after the client is saved", editStep: 5 as StepKey },
                   ].map((row) => (
                     <div key={row.label} className="flex items-start gap-3 py-3 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
                       <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-muted-foreground w-[132px] shrink-0 pt-0.5">{row.label}</span>
