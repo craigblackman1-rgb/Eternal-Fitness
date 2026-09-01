@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       decision: body.decision,
       note: body.note.trim(),
       recorded_by: user.id,
-      recorded_by_name: body.recorded_by_name || user.name || "Staff",
+      recorded_by_name: body.recorded_by_name || "Staff",
     })
     .select()
     .single();

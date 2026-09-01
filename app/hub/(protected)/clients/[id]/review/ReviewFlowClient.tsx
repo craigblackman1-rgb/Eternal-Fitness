@@ -15,7 +15,6 @@ import { formatFrequency } from "@/types";
 interface ReviewFlowClientProps {
   client: DBClient;
   sessions: any[];
-  blocks: DBBlock[];
   activeBlock: DBBlock | undefined;
   pot: SessionPotBreakdown;
   completedSessions: { id: string; name: string; scheduled_at: string | null; position: string }[];
@@ -23,8 +22,10 @@ interface ReviewFlowClientProps {
   lapsedSessions: any[];
   complianceFlags: ComplianceFlags;
   reviews: DBClientReview[];
-  positions: Record<string, { position: number; total: number }>;
   extensionHistory: { from: string; to: string; at: string; reason?: string }[];
+  pbsCount: number;
+  hasDeliveredSessions: boolean;
+  blockExpiryDate: string | null;
   clientNumber: number;
 }
 
@@ -76,7 +77,6 @@ function formatDeliveryLabel(mode: string | null): string {
 export function ReviewFlowClient({
   client,
   sessions,
-  blocks,
   activeBlock,
   pot,
   completedSessions,
@@ -84,8 +84,10 @@ export function ReviewFlowClient({
   lapsedSessions,
   complianceFlags,
   reviews,
-  positions,
   extensionHistory,
+  pbsCount,
+  hasDeliveredSessions,
+  blockExpiryDate,
   clientNumber,
 }: ReviewFlowClientProps) {
   const [step, setStep] = useState(1);
@@ -108,10 +110,6 @@ export function ReviewFlowClient({
   const annualReviewDue = client.annual_review_due_date;
   const annualOverdue = annualReviewDue ? new Date(annualReviewDue) < new Date() : false;
   const daysOverdue = annualOverdue ? daysBetween(annualReviewDue!, new Date().toISOString().split("T")[0]) : 0;
-
-  const hasSessions = sessions.length > 0;
-  const completedCount = completedSessions.length;
-  const outstandingCount = complianceFlags.autoOutstanding.length + unreviewedCancellations.length;
 
   const canRecord = decision !== null && note.trim().length > 0;
 
@@ -144,7 +142,7 @@ export function ReviewFlowClient({
   }
 
   if (saved && savedReview) {
-    return <ConfirmationPanel review={savedReview} client={client} decision={decision!} clientNumber={clientNumber} />;
+    return <ConfirmationPanel review={savedReview} previousReviews={reviews} client={client} decision={decision!} clientNumber={clientNumber} />;
   }
 
   return (
@@ -198,7 +196,7 @@ export function ReviewFlowClient({
       {/* Step panels */}
       {step === 1 && (
         <StepPanel onContinue={() => setStep(2)}>
-          <ProgressStep client={client} completedSessions={completedSessions} hasSessions={hasSessions} totalSessions={sessions.length || client.sessions_purchased || 0} />
+          <ProgressStep client={client} completedSessions={completedSessions} hasDeliveredSessions={hasDeliveredSessions} totalSessions={sessions.length || client.sessions_purchased || 0} pbsCount={pbsCount} />
         </StepPanel>
       )}
 
@@ -208,7 +206,7 @@ export function ReviewFlowClient({
             complianceFlags={complianceFlags}
             unreviewedCancellations={unreviewedCancellations}
             lapsedSessions={lapsedSessions}
-            hasSessions={hasSessions}
+            hasDeliveredSessions={hasDeliveredSessions}
             clientName={client.name}
           />
         </StepPanel>
@@ -218,9 +216,9 @@ export function ReviewFlowClient({
         <StepPanel onBack={() => setStep(2)} onContinue={() => setStep(4)}>
           <PositionStep
             pot={pot}
-            blockExpiryDate={activeBlock?.scheduled_start ?? client.block_expiry_date}
+            blockExpiryDate={blockExpiryDate}
             extensionHistory={extensionHistory}
-            hasSessions={hasSessions}
+            hasDeliveredSessions={hasDeliveredSessions}
             unreviewedCount={unreviewedCancellations.length}
           />
         </StepPanel>
@@ -451,13 +449,15 @@ function StepPanel({
 function ProgressStep({
   client,
   completedSessions,
-  hasSessions,
+  hasDeliveredSessions,
   totalSessions,
+  pbsCount,
 }: {
   client: DBClient;
   completedSessions: { id: string; name: string; scheduled_at: string | null; position: string }[];
-  hasSessions: boolean;
+  hasDeliveredSessions: boolean;
   totalSessions: number;
+  pbsCount: number;
 }) {
   return (
     <HubCard>
@@ -467,7 +467,7 @@ function ProgressStep({
         subtitle="Sessions delivered vs planned, PBs, exercise trend, attendance"
       />
       <div>
-        {!hasSessions ? (
+        {!hasDeliveredSessions ? (
           <EmptyState
             icon={<IconClock className="w-5 h-5" />}
             title="No sessions logged yet"
@@ -479,22 +479,18 @@ function ProgressStep({
           />
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden mb-4">
               <div className="px-4 py-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Delivered</p>
                 <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{completedSessions.length}</p>
               </div>
               <div className="px-4 py-3 border-l border-[var(--hub-border)]">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">PBs this period</p>
+                <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{pbsCount}</p>
+              </div>
+              <div className="px-4 py-3 border-l border-[var(--hub-border)]">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Position</p>
                 <p className="text-[13px] font-bold text-foreground mt-0.5">Session {completedSessions.length} of {totalSessions || "?"}</p>
-              </div>
-              <div className="px-4 py-3 border-l border-[var(--hub-border)]">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">PBs this period</p>
-                <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">0</p>
-              </div>
-              <div className="px-4 py-3 border-l border-[var(--hub-border)]">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Attendance</p>
-                <p className="text-[13px] font-bold text-foreground mt-0.5">—</p>
               </div>
             </div>
 
@@ -512,13 +508,13 @@ function OutstandingStep({
   complianceFlags,
   unreviewedCancellations,
   lapsedSessions,
-  hasSessions,
+  hasDeliveredSessions,
   clientName,
 }: {
   complianceFlags: ComplianceFlags;
   unreviewedCancellations: any[];
   lapsedSessions: any[];
-  hasSessions: boolean;
+  hasDeliveredSessions: boolean;
   clientName: string;
 }) {
   const openCount = complianceFlags.autoOutstanding.length + unreviewedCancellations.length;
@@ -536,7 +532,7 @@ function OutstandingStep({
         <SectionHeader title="Compliance actions" />
         {complianceFlags.autoOutstanding.length === 0 ? (
           <InfoLine variant="success">
-            No outstanding compliance actions — all checks confirmed clear.
+            No outstanding compliance actions — all checked and confirmed clear on {formatDate(new Date().toISOString())}.
           </InfoLine>
         ) : (
           <HubAccordion>
@@ -602,7 +598,7 @@ function OutstandingStep({
           </div>
         ) : (
           <p className="text-[12.5px] text-muted-foreground">
-            No cancellations recorded — none have happened{!hasSessions ? " yet" : ""}.
+            No cancellations recorded — none have happened{!hasDeliveredSessions ? " yet" : ""}.
           </p>
         )}
 
@@ -626,7 +622,7 @@ function OutstandingStep({
           </div>
         ) : (
           <p className="text-[12.5px] text-muted-foreground">
-            No sessions flagged as lapsed{!hasSessions ? " — none have started yet" : ""}.
+            No sessions flagged as lapsed{!hasDeliveredSessions ? " — none have started yet" : ""}.
           </p>
         )}
       </div>
@@ -636,19 +632,21 @@ function OutstandingStep({
 
 function PositionStep({
   pot,
+  blockExpiryDate,
   extensionHistory,
-  hasSessions,
+  hasDeliveredSessions,
   unreviewedCount,
 }: {
   pot: SessionPotBreakdown;
   blockExpiryDate: string | null;
   extensionHistory: { from: string; to: string; at: string; reason?: string }[];
-  hasSessions: boolean;
+  hasDeliveredSessions: boolean;
   unreviewedCount: number;
 }) {
   const pctCompleted = pot.purchased ? (pot.completed / pot.purchased) * 100 : 0;
   const pctCharged = pot.purchased ? (pot.chargedCancellations / pot.purchased) * 100 : 0;
   const pctRemaining = pot.purchased ? (pot.remaining / pot.purchased) * 100 : 0;
+  const isExpired = blockExpiryDate ? new Date(blockExpiryDate) < new Date() : false;
 
   return (
     <HubCard>
@@ -661,7 +659,7 @@ function PositionStep({
         {/* Hero */}
         <div className="flex items-baseline gap-6 flex-wrap">
           <div className="flex items-baseline gap-2.5">
-            <span className={cn("text-[40px] font-extrabold tracking-tight leading-none tabular-nums", !hasSessions ? "text-muted-foreground" : "text-foreground")}>
+            <span className={cn("text-[40px] font-extrabold tracking-tight leading-none tabular-nums", !hasDeliveredSessions ? "text-muted-foreground" : "text-foreground")}>
               {pot.remaining}
             </span>
             <span className="text-[12px] font-bold text-muted-foreground max-w-[88px] leading-tight">
@@ -680,7 +678,7 @@ function PositionStep({
           </div>
         </div>
 
-        {!hasSessions ? (
+        {!hasDeliveredSessions ? (
           <InfoLine variant="muted">
             No sessions delivered yet — nothing has been used. The number above is unearned, not a sign anything is on track.
           </InfoLine>
@@ -725,22 +723,25 @@ function PositionStep({
         )}
 
         {/* Expiry */}
-        {extensionHistory.length > 0 && (
-          <div className="flex items-center gap-3 pt-3.5 border-t border-[var(--hub-border)]">
-            <div className="w-[30px] h-[30px] rounded-lg bg-amber/10 text-amber grid place-items-center shrink-0">
-              <IconClock className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[13px] font-bold text-foreground">
-                Extended from {formatDate(extensionHistory[0].from)}
-              </p>
-              <p className="text-[12px] text-muted-foreground mt-0.5">
-                {extensionHistory[0].reason ? `${extensionHistory[0].reason} · ` : ""}
-                {extensionHistory[0].at ? `Extended ${formatDate(extensionHistory[0].at)}` : ""}
-              </p>
-            </div>
+        <div className="flex items-center gap-3 pt-3.5 border-t border-[var(--hub-border)]">
+          <div className={cn("w-[30px] h-[30px] rounded-lg grid place-items-center shrink-0", isExpired ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)]" : "bg-[var(--hub-hover)] text-muted-foreground")}>
+            <IconClock className="w-4 h-4" />
           </div>
-        )}
+          <div className="min-w-0">
+            <p className="text-[13px] font-bold text-foreground">
+              {blockExpiryDate
+                ? isExpired
+                  ? <>{formatDate(blockExpiryDate)} <span className="line-through font-normal text-muted-foreground mr-1.5">Expired</span></>
+                  : <>Expires {formatDate(blockExpiryDate)}</>
+                : "No expiry date set"}
+            </p>
+            <p className="text-[12px] text-muted-foreground mt-0.5">
+              {extensionHistory.length > 0
+                ? <>Extended from {formatDate(extensionHistory[0].from)}{extensionHistory[0].reason ? ` (${extensionHistory[0].reason})` : ""}{extensionHistory[0].at ? ` · ${formatDate(extensionHistory[0].at)}` : ""}</>
+                : "No extensions on this record."}
+            </p>
+          </div>
+        </div>
       </div>
     </HubCard>
   );
@@ -787,8 +788,8 @@ function HealthStep({
           <div className="space-y-2">
             {medications.map((m: any) => (
               <div key={m.id} className="flex items-start gap-2.5">
-                <div className="w-[26px] h-[26px] rounded-lg bg-amber/10 text-amber grid place-items-center shrink-0 mt-0.5">
-                  <IconTriangleAlert className="w-3.5 h-3.5" />
+                <div className="w-[26px] h-[26px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground grid place-items-center shrink-0 mt-0.5">
+                  <IconHeart className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13px] font-bold text-foreground">{m.name}</p>
@@ -802,8 +803,7 @@ function HealthStep({
           </div>
         ) : (
           <p className="text-[12.5px] text-muted-foreground">
-            {conditions.length > 0 ? `Current conditions: ${conditions.join(", ")}. ` : ""}
-            No medication changes recorded{lastReviewDate ? ` since the last review (${formatDate(lastReviewDate)})` : ""}.
+            No medication on file.
           </p>
         )}
 
@@ -812,7 +812,6 @@ function HealthStep({
         <dl className="space-y-0">
           <DataRow label="GP clearance required" value={gpClearanceRequired ? "Yes" : "No"} />
           <DataRow label="Status" value={gpClearanceObtained ? "Obtained" : "Not yet obtained"} muted={!gpClearanceObtained} />
-          <DataRow label="Note" value={client.profile?.health?.gp_clearance_required ? "Trainer-flagged clearance" : "Not flagged as required"} muted />
         </dl>
 
         {/* Annual medical review */}
@@ -837,11 +836,13 @@ function HealthStep({
 
 function ConfirmationPanel({
   review,
+  previousReviews,
   client,
   decision,
   clientNumber,
 }: {
   review: DBClientReview;
+  previousReviews: DBClientReview[];
   client: DBClient;
   decision: ReviewDecision;
   clientNumber: number;
@@ -904,6 +905,7 @@ function ConfirmationPanel({
           subtitle="Every recorded decision for this client, most recent first"
         />
         <div>
+          {/* Just-recorded review */}
           <div className="flex items-center gap-3 px-5 py-2.5 bg-[var(--status-success-bg)]">
             <span className="text-[11.5px] font-bold text-muted-foreground w-[92px] shrink-0 uppercase tracking-wider">
               {formatDate(review.created_at)}
@@ -918,6 +920,23 @@ function ConfirmationPanel({
               {review.note && <p className="text-[12px] text-muted-foreground mt-0.5">{review.note}</p>}
             </div>
           </div>
+          {/* Previous reviews */}
+          {previousReviews.map((r) => (
+            <div key={r.id} className="flex items-center gap-3 px-5 py-2.5 border-t border-[var(--hub-border)]">
+              <span className="text-[11.5px] font-bold text-muted-foreground w-[92px] shrink-0 uppercase tracking-wider">
+                {formatDate(r.created_at)}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-foreground">
+                  {DECISIONS[r.decision]?.label ?? r.decision}
+                </p>
+                {r.note && <p className="text-[12px] text-muted-foreground mt-0.5">{r.note}</p>}
+              </div>
+            </div>
+          ))}
+          {previousReviews.length === 0 && !review && (
+            <p className="text-[12.5px] text-muted-foreground p-5">No previous reviews — this is the first entry on file.</p>
+          )}
         </div>
       </HubCard>
     </div>

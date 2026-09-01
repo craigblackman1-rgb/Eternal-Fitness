@@ -4,8 +4,9 @@ import { computeComplianceFlags } from "@/lib/compliance";
 import { deriveSessionPot } from "@/lib/session-pot";
 import { deriveChronologicalPositions, sessionChronologicalLabel } from "@/lib/session-chronological-order";
 import { sessionWorkoutName } from "@/lib/session-display";
+import { buildExerciseHistory } from "@/lib/exercise-history";
+import type { SetLog, DBClientReview } from "@/types";
 import { ReviewFlowClient } from "./ReviewFlowClient";
-import type { DBClientReview } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,24 @@ export default async function ReviewPage({ params }: { params: { id: string } })
     return st === "completed";
   });
 
+  // Compute personal bests from set_logs for completed sessions
+  const completedIds = completedSessions.map((s) => s.id);
+  let pbsCount = 0;
+  if (completedIds.length > 0) {
+    const { data: setLogs } = await supabase
+      .from("set_logs")
+      .select("*")
+      .in("session_id", completedIds);
+    const exerciseHistory = buildExerciseHistory((setLogs ?? []) as SetLog[]);
+    const blockStartedAt = activeBlock?.scheduled_start;
+    pbsCount = exerciseHistory.reduce((count, entry) => {
+      return count + entry.personalBests.filter((pb) => {
+        if (!blockStartedAt) return true;
+        return new Date(pb.achievedAt) >= new Date(blockStartedAt);
+      }).length;
+    }, 0);
+  }
+
   const completedWithNames = completedSessions.map((s) => {
     const pos = positions.get(s.id);
     return {
@@ -111,11 +130,12 @@ export default async function ReviewPage({ params }: { params: { id: string } })
 
   const extensionHistory = (client as any).block_expiry_extensions ?? [];
 
+  const hasDeliveredSessions = completedSessions.length > 0;
+
   return (
     <ReviewFlowClient
       client={client}
       sessions={sessions}
-      blocks={blocks ?? []}
       activeBlock={activeBlock}
       pot={pot}
       completedSessions={completedWithNames}
@@ -123,8 +143,10 @@ export default async function ReviewPage({ params }: { params: { id: string } })
       lapsedSessions={lapsedSessions}
       complianceFlags={complianceFlags}
       reviews={(reviews ?? []) as DBClientReview[]}
-      positions={Object.fromEntries(positions.entries())}
       extensionHistory={extensionHistory}
+      pbsCount={pbsCount}
+      hasDeliveredSessions={hasDeliveredSessions}
+      blockExpiryDate={client.block_expiry_date}
       clientNumber={numericId}
     />
   );
