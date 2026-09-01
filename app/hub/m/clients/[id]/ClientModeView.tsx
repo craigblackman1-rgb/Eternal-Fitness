@@ -542,6 +542,11 @@ export function ClientModeView({
                 <i style={{ background: "var(--hover)" }} />Not booked <b>{Math.max(potView.remaining - potView.bookedAhead, 0)}</b>
               </span>
             </div>
+            {potView.unreviewedCancellations > 0 && (
+              <div className="mpot-note">
+                {potView.unreviewedCancellations} cancellation{potView.unreviewedCancellations === 1 ? "" : "s"} not counted above — needs review
+              </div>
+            )}
           </div>
 
           {/* Upcoming */}
@@ -782,6 +787,10 @@ function SessionRow({ session: s, firstName, nextPool }: { session: SessionView;
     statusPillClass = "freecx";
     statusPillLabel = "Cancelled — free";
     statusPillIcon = ICO.xCircle;
+  } else if (isCancelled) {
+    statusPillClass = "unreviewed";
+    statusPillLabel = "Cancelled — needs review";
+    statusPillIcon = ICO.warn;
   } else if (s.scheduledAt && !isCancelled) {
     statusPillClass = "booked";
     statusPillLabel = "Booked";
@@ -819,6 +828,7 @@ function SessionRow({ session: s, firstName, nextPool }: { session: SessionView;
           {isCompleted && <span className="cost-flag minus">−1</span>}
           {isCharged && <span className="cost-flag minus">−1</span>}
           {isFree && <span className="cost-flag zero">no session used</span>}
+          {isCancelled && !isCharged && !isFree && <span className="cost-flag unreviewed">? pending review</span>}
           {s.name === "No workout assigned yet" && nextPool && (
             <span className="next-hint">
               {ICO.arrowRight}
