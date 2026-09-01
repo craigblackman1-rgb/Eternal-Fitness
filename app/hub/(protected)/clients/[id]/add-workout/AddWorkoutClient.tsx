@@ -106,14 +106,34 @@ function parsePrescription(text: string): { sets?: number; reps?: string } | nul
   const trimmed = text.trim();
   if (!trimmed) return null;
 
+  /* "3 x 12" / "3 × 12 reps" / "3 x 30 sec" */
   const multMatch = trimmed.match(/(\d+)\s*[x×]\s*(.+)/i);
   if (multMatch) {
     return { sets: parseInt(multMatch[1], 10), reps: multMatch[2].trim() };
   }
 
-  const setsMatch = trimmed.match(/(\d+)\s*(?:sets?)/i);
-  if (setsMatch) {
-    return { sets: parseInt(setsMatch[1], 10), reps: "" };
+  /* "3 sets of 12" / "3 sets of 12 reps" / "3 sets of 30 sec" */
+  const setsOfMatch = trimmed.match(/(\d+)\s+sets?\s+of\s+(.+)/i);
+  if (setsOfMatch) {
+    return { sets: parseInt(setsOfMatch[1], 10), reps: setsOfMatch[2].trim() };
+  }
+
+  /* "12 reps" / "10 slow reps" — reps only */
+  const repsOnlyMatch = trimmed.match(/^(\d+(?:\s+\w+)*\s+reps?)$/i);
+  if (repsOnlyMatch) {
+    return { reps: trimmed };
+  }
+
+  /* "3 sets" — sets only, no reps */
+  const setsOnlyMatch = trimmed.match(/(\d+)\s+sets?$/i);
+  if (setsOnlyMatch) {
+    return { sets: parseInt(setsOnlyMatch[1], 10), reps: "" };
+  }
+
+  /* Time-based: "30 sec" / "45 seconds" / "2 min" / "90s" */
+  const timeMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*(?:sec(?:ond)?s?|min(?:ute)?s?|s|m)$/i);
+  if (timeMatch) {
+    return { reps: trimmed };
   }
 
   return null;
@@ -204,8 +224,9 @@ export function AddWorkoutClient({
 }: AddWorkoutProps) {
   const searchParams = useSearchParams();
   const preselectedView = searchParams.get("view");
-  const [view, setView] = useState<View>(equipment === null ? "guard" : "chooser");
+  const [view, setView] = useState<View>(equipment === null || deliveryMode === null ? "guard" : "chooser");
   const [ctx, setCtx] = useState<ClientContext | null>(null);
+  const [ctxError, setCtxError] = useState(false);
 
   /* Q&A state */
   const [qaFocus, setQaFocus] = useState("Full body strength");
@@ -231,6 +252,7 @@ export function AddWorkoutClient({
 
   /* Per-exercise prescription edits on the Review & edit step */
   const [reviewEdits, setReviewEdits] = useState<Record<string, string>>({});
+  const [reviewParseErrors, setReviewParseErrors] = useState<Record<string, string>>({});
 
   /* Busy state */
   const [busy, setBusy] = useState(false);
@@ -242,14 +264,17 @@ export function AddWorkoutClient({
       .then((data: ClientContext | null) => {
         if (data) {
           setCtx(data);
+          setCtxError(false);
           if (data.equipmentGuard) {
             setView("guard");
           } else if (preselectedView && ["qa", "templates", "paste"].includes(preselectedView)) {
             setView(preselectedView as View);
           }
+        } else {
+          setCtxError(true);
         }
       })
-      .catch(() => {});
+      .catch(() => setCtxError(true));
   }, [clientNumber, preselectedView]);
 
   /* ── Navigation helpers ─────────────────────────────────────────────── */
@@ -328,6 +353,7 @@ export function AddWorkoutClient({
       if (!res.ok) throw new Error(data.error || "Structuring failed");
       setReviewName(data.name || "");
       setReviewData(data.data);
+      setReviewEdits({});
       goTo("paste-review");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
@@ -342,6 +368,24 @@ export function AddWorkoutClient({
 
   function previewFromPasteReview() {
     if (!reviewData) return;
+
+    /* Validate all edited prescriptions before proceeding */
+    const errors: Record<string, string> = {};
+    for (const [key, editedText] of Object.entries(reviewEdits)) {
+      if (!editedText.trim()) {
+        errors[key] = "Prescription can't be empty";
+        continue;
+      }
+      const parsed = parsePrescription(editedText);
+      if (!parsed) {
+        errors[key] = `Can't read "${editedText}" — try a format like 3 × 12, 3 sets of 12, or 30 sec`;
+      }
+    }
+    if (Object.keys(errors).length > 0) {
+      setReviewParseErrors(errors);
+      return;
+    }
+    setReviewParseErrors({});
 
     const hasEdits = Object.keys(reviewEdits).length > 0;
     let dataForPreview = reviewData;
@@ -383,6 +427,7 @@ export function AddWorkoutClient({
   function editBeforeAdd() {
     if (!preview) return;
     if (preview.source === "paste") {
+      setReviewEdits({});
       goTo("paste");
     } else if (preview.workoutData) {
       setReviewName(preview.name);
@@ -469,6 +514,14 @@ export function AddWorkoutClient({
         </p>
       </div>
 
+      {/* ── CONTEXT FETCH ERROR ──────────────────────────────────────── */}
+      {ctxError && !ctx && view !== "guard" && (
+        <div className="rounded-[16px] border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] p-4 text-[13px]">
+          <p className="font-bold text-[var(--status-danger)]">Could not load client data</p>
+          <p className="text-[var(--color-body)] mt-1">The connection dropped while fetching equipment and template data. Try reloading the page.</p>
+        </div>
+      )}
+
       {/* ── GUARD: equipment is NULL ──────────────────────────────────── */}
       {view === "guard" && (
         <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
@@ -546,7 +599,7 @@ export function AddWorkoutClient({
             <span className="w-10 h-10 rounded-lg bg-[var(--s-primary-bg)] text-[var(--s-primary-tx)] grid place-items-center shrink-0">{IC.doc}</span>
             <span className="text-[15px] font-bold text-[var(--color-ink)]">Pick from a template</span>
             <span className="text-[12.5px] text-muted-foreground leading-[1.55]">Choose from your saved templates — filtered to what {clientName}&rsquo;s got and where they train.</span>
-            <span className="mt-auto pt-2 text-[11.5px] font-bold text-rose uppercase tracking-[.04em]">{ctx?.matchedTemplates.length ?? 0} templates match</span>
+            <span className="mt-auto pt-2 text-[11.5px] font-bold text-rose uppercase tracking-[.04em]">{ctx ? `${ctx.matchedTemplates.length} templates match` : ctxError ? "Couldn't load templates" : "Loading…"}</span>
           </button>
           <button
             onClick={() => goTo("paste")}
@@ -815,12 +868,26 @@ export function AddWorkoutClient({
                         <div key={i} className="flex items-center gap-2.5 text-[13px] py-2 px-2.5 border border-[var(--hub-border)] rounded-[10px]">
                           <span className="text-muted-foreground font-variant-numeric:tabular-nums w-4 shrink-0 text-[12px] font-extrabold">{i + 1}</span>
                           <span className="text-[var(--color-ink)] font-semibold flex-1 min-w-0">{ex.exercise_name}</span>
-                           <input
-                            type="text"
-                            value={reviewEdits[`${section}:${i}`] ?? exercisePrescription(ex)}
-                            onChange={(e) => setReviewEdits((prev) => ({ ...prev, [`${section}:${i}`]: e.target.value }))}
-                            className="w-[130px] h-[30px] border border-[var(--hub-field-border)] rounded-md px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-[var(--color-ink)] focus:outline-none focus:border-rose focus:shadow-[0_0_0_3px_rgba(193,131,159,.28)] shrink-0"
-                          />
+                           <div className="shrink-0 flex flex-col gap-0.5">
+                            <input
+                              type="text"
+                              value={reviewEdits[`${section}:${i}`] ?? exercisePrescription(ex)}
+                              onChange={(e) => {
+                                setReviewEdits((prev) => ({ ...prev, [`${section}:${i}`]: e.target.value }));
+                                if (reviewParseErrors[`${section}:${i}`]) {
+                                  setReviewParseErrors((prev) => {
+                                    const next = { ...prev };
+                                    delete next[`${section}:${i}`];
+                                    return next;
+                                  });
+                                }
+                              }}
+                              className={`w-[130px] h-[30px] border rounded-md px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-[var(--color-ink)] focus:outline-none focus:shadow-[0_0_0_3px_rgba(193,131,159,.28)] shrink-0 ${reviewParseErrors[`${section}:${i}`] ? "border-[var(--status-danger)] focus:border-[var(--status-danger)]" : "border-[var(--hub-field-border)] focus:border-rose"}`}
+                            />
+                            {reviewParseErrors[`${section}:${i}`] && (
+                              <p className="text-[10.5px] text-[var(--status-danger)] leading-tight max-w-[140px] text-right">{reviewParseErrors[`${section}:${i}`]}</p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -853,7 +920,7 @@ export function AddWorkoutClient({
             <div>
               <p className="text-base font-extrabold text-[var(--color-ink)] tracking-tight">{preview.name}</p>
               <p className="text-[12.5px] text-muted-foreground mt-0.5">
-                This becomes {clientName}&rsquo;s next workout — {ctx?.nextScheduledSession ? `first up after ${ctx.nextScheduledSession.dayOfWeek}'s session` : ctx?.lastScheduledSession ? `next up after ${ctx.lastScheduledSession.dayOfWeek}'s session` : "first in the programme"}. Nothing has been saved yet.
+                This becomes {clientName}&rsquo;s {ctx?.sessionCount === 0 ? "first workout in the programme" : `workout — appended to the end of the programme`}. Nothing has been saved yet.
               </p>
             </div>
           </div>
