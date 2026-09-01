@@ -25,6 +25,7 @@ interface ReviewFlowClientProps {
   extensionHistory: { from: string; to: string; at: string; reason?: string }[];
   pbsCount: number;
   hasDeliveredSessions: boolean;
+  chronologicalTotal: number;
   blockExpiryDate: string | null;
   clientNumber: number;
 }
@@ -44,7 +45,7 @@ const DECISIONS: Record<ReviewDecision, { label: string; desc: string; tone: str
   },
   restart: {
     label: "Start a new programme",
-    desc: "What has been delivered no longer fits — time for a fresh programme.",
+    desc: "What has been delivered no longer fits — record the decision and set up a new programme manually.",
     tone: "warning",
   },
 };
@@ -87,6 +88,7 @@ export function ReviewFlowClient({
   extensionHistory,
   pbsCount,
   hasDeliveredSessions,
+  chronologicalTotal,
   blockExpiryDate,
   clientNumber,
 }: ReviewFlowClientProps) {
@@ -196,7 +198,7 @@ export function ReviewFlowClient({
       {/* Step panels */}
       {step === 1 && (
         <StepPanel onContinue={() => setStep(2)}>
-          <ProgressStep client={client} completedSessions={completedSessions} hasDeliveredSessions={hasDeliveredSessions} totalSessions={sessions.length || client.sessions_purchased || 0} pbsCount={pbsCount} />
+          <ProgressStep client={client} completedSessions={completedSessions} hasDeliveredSessions={hasDeliveredSessions} totalSessions={chronologicalTotal || client.sessions_purchased || 0} pbsCount={pbsCount} />
         </StepPanel>
       )}
 
@@ -313,7 +315,7 @@ export function ReviewFlowClient({
                   <p className="text-[12.5px] text-foreground/75 mt-0.5 leading-relaxed">
                     {decision === "continue" && `Recorded as on track for ${firstName(client.name)}. No follow-up task is created.`}
                     {decision === "adjust" && `Takes you to Add a workout for ${firstName(client.name)} next, to bring in the change — the same short flow used to add any workout, nothing else to set up first.`}
-                    {decision === "restart" && `Ends the current programme and takes you to Add a workout for ${firstName(client.name)} to start again from a blank slate — a new programme is set up automatically, with nothing else to answer first.`}
+                    {decision === "restart" && `Records the decision to start fresh. The current programme stays open — you end it and set up the new one from Add a workout, which is available on the next screen.`}
                     {!decision && "Nothing is recorded until you confirm below."}
                   </p>
                 </div>
@@ -464,7 +466,7 @@ function ProgressStep({
       <HubCardHeader
         icon={<IconClipboardList className="w-4 h-4" />}
         title="Progress"
-        subtitle="Sessions delivered vs planned, PBs, exercise trend, attendance"
+        subtitle="Sessions delivered, PBs (per rep-bracket), position in programme"
       />
       <div>
         {!hasDeliveredSessions ? (
@@ -485,7 +487,7 @@ function ProgressStep({
                 <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{completedSessions.length}</p>
               </div>
               <div className="px-4 py-3 border-l border-[var(--hub-border)]">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">PBs this period</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">PBs (rep-bracket)</p>
                 <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{pbsCount}</p>
               </div>
               <div className="px-4 py-3 border-l border-[var(--hub-border)]">
@@ -517,7 +519,7 @@ function OutstandingStep({
   hasDeliveredSessions: boolean;
   clientName: string;
 }) {
-  const openCount = complianceFlags.autoOutstanding.length + unreviewedCancellations.length;
+  const openCount = complianceFlags.autoOutstanding.length + unreviewedCancellations.length + lapsedSessions.length;
 
   return (
     <HubCard>
@@ -532,7 +534,7 @@ function OutstandingStep({
         <SectionHeader title="Compliance actions" />
         {complianceFlags.autoOutstanding.length === 0 ? (
           <InfoLine variant="success">
-            No outstanding compliance actions — all checked and confirmed clear on {formatDate(new Date().toISOString())}.
+            No outstanding compliance actions — all flags derived from stored records are clear.
           </InfoLine>
         ) : (
           <HubAccordion>
@@ -779,7 +781,7 @@ function HealthStep({
       />
       <div className="space-y-4">
         {/* Medication changes */}
-        <SectionHeader title="Medication changes since last review" />
+        <SectionHeader title="Current medications" />
         {!hasPriorReview ? (
           <p className="text-[12.5px] text-muted-foreground">
             No prior review to compare against — this is {firstName(client.name)}&apos;s first review.
@@ -817,9 +819,9 @@ function HealthStep({
         {/* Annual medical review */}
         <SectionHeader title="Annual medical review" />
         {!annualReviewDue ? (
-          <p className="text-[12.5px] text-muted-foreground">
-            No annual review date set yet — too early in the programme to be due.
-          </p>
+          <InfoLine variant="muted">
+            No annual review date on record — cannot judge whether one is overdue without a date.
+          </InfoLine>
         ) : annualOverdue ? (
           <InfoLine variant="danger">
             Annual review was due <span className="font-bold">{formatDate(annualReviewDue)}</span> — <span className="font-bold">{daysOverdue} days overdue</span>. Treat the clearance above as stale until it happens.
@@ -874,7 +876,7 @@ function ConfirmationPanel({
           <div className="max-w-[440px] mx-auto mt-4 text-left text-[12.5px] text-foreground/75 bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-[10px] p-3 leading-relaxed">
             <span className="font-bold text-foreground">Where this shows up: </span>
             {client.name}&apos;s overview panel as the latest review outcome, and in the review history below.
-            {decision !== "continue" && <> You are being taken to Add a workout for {firstName(client.name)} next.</>}
+            {decision !== "continue" && <> Add a workout for {firstName(client.name)} is available on the next screen if you are ready to set up the new programme.</>}
             {decision === "continue" && <> No further action is scheduled.</>}
           </div>
 

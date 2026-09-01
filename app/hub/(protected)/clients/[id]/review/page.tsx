@@ -80,6 +80,7 @@ export default async function ReviewPage({ params }: { params: { id: string } })
   const pot = deriveSessionPot(sessions, client.sessions_purchased);
 
   const positions = deriveChronologicalPositions(sessions);
+  const chronologicalTotal = Array.from(positions.values())[0]?.total ?? 0;
   const completedSessions = sessions.filter((s) => {
     const st = (s as any).status ?? (s.cancelled_at ? "cancelled" : "planned");
     return st === "completed";
@@ -146,6 +147,7 @@ export default async function ReviewPage({ params }: { params: { id: string } })
       extensionHistory={extensionHistory}
       pbsCount={pbsCount}
       hasDeliveredSessions={hasDeliveredSessions}
+      chronologicalTotal={chronologicalTotal}
       blockExpiryDate={client.block_expiry_date}
       clientNumber={numericId}
     />
