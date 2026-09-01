@@ -18,7 +18,6 @@ import {
   IconClipboardList,
   IconClock,
   IconCheck,
-  IconPlus,
   IconAlertTriangle,
   IconTrash2,
   IconX,
@@ -54,7 +53,7 @@ const STEPS = [
 ] as const;
 
 type StepKey = 1 | 2 | 3 | 4 | 5;
-type ParqMode = "send" | "upload" | "override" | null;
+type ParqMode = "send" | "override" | null;
 
 function calculateAge(dob: string | null): number {
   if (!dob) return 0;
@@ -196,7 +195,6 @@ type DraftData = {
   cadencePerUnit: number;
   parqMode: ParqMode;
   overrideNote: string;
-  uploadAttached: boolean;
   gpClearanceRequired: boolean;
   gpClearanceNote: string;
   conditions: string[];
@@ -221,7 +219,7 @@ function serializeDraft(s: {
   ecName: string; ecRel: string; ecPhone: string;
   gpName: string; gpSurgery: string; gpPhone: string;
   packageType: Package; cadenceUnit: Frequency["unit"]; cadencePerUnit: number;
-  parqMode: ParqMode; overrideNote: string; uploadAttached: boolean;
+  parqMode: ParqMode; overrideNote: string;
   gpClearanceRequired: boolean; gpClearanceNote: string;
   conditions: string[]; contraindications: string[];
   medications: ClientProfile["health"]["medications"];
@@ -240,7 +238,7 @@ function serializeDraft(s: {
     ecName: s.ecName, ecRel: s.ecRel, ecPhone: s.ecPhone,
     gpName: s.gpName, gpSurgery: s.gpSurgery, gpPhone: s.gpPhone,
     packageType: s.packageType, cadenceUnit: s.cadenceUnit, cadencePerUnit: s.cadencePerUnit,
-    parqMode: s.parqMode, overrideNote: s.overrideNote, uploadAttached: s.uploadAttached,
+    parqMode: s.parqMode, overrideNote: s.overrideNote,
     gpClearanceRequired: s.gpClearanceRequired, gpClearanceNote: s.gpClearanceNote,
     conditions: s.conditions, contraindications: s.contraindications,
     medications: s.medications, injuryHistory: s.injuryHistory,
@@ -272,6 +270,7 @@ export default function NewClientPage() {
   /* ── Draft restore ── */
   const draftCacheRef = useRef<DraftData | null>(null);
   const draftCacheReadRef = useRef(false);
+  const draftRestoreReadyRef = useRef(false);
   const [isResumingDraft, setIsResumingDraft] = useState(false);
   const initDraft = <T,>(fallback: T, extract: (d: DraftData) => T): T => {
     if (typeof window === "undefined") return fallback;
@@ -282,6 +281,7 @@ export default function NewClientPage() {
         if (raw) draftCacheRef.current = deserializeDraft(raw);
       } catch { draftCacheRef.current = null; }
     }
+    if (!draftRestoreReadyRef.current) return fallback;
     const draft = draftCacheRef.current;
     if (!draft) return fallback;
     try { return extract(draft); } catch { return fallback; }
@@ -290,6 +290,7 @@ export default function NewClientPage() {
   const [step, setStep] = useState<StepKey>(() => initDraft(1, (d) => d.step));
   const [maxStepReached, setMaxStepReached] = useState<StepKey>(() => initDraft(1, (d) => d.maxStepReached));
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   /* ── Step 1 state ── */
   const [name, setName] = useState(() => initDraft("", (d) => d.name));
@@ -311,7 +312,6 @@ export default function NewClientPage() {
   /* ── Step 2 state ── */
   const [parqMode, setParqMode] = useState<ParqMode>(() => initDraft(null, (d) => d.parqMode));
   const [overrideNote, setOverrideNote] = useState(() => initDraft("", (d) => d.overrideNote));
-  const [uploadAttached, setUploadAttached] = useState(() => initDraft(false, (d) => d.uploadAttached));
   const [gpClearanceRequired, setGpClearanceRequired] = useState(() => initDraft(false, (d) => d.gpClearanceRequired));
   const [gpClearanceNote, setGpClearanceNote] = useState(() => initDraft("", (d) => d.gpClearanceNote));
   const [conditions, setConditions] = useState<string[]>(() => initDraft([], (d) => d.conditions));
@@ -337,7 +337,47 @@ export default function NewClientPage() {
 
   /* ── Show resume banner after draft is restored ── */
   useEffect(() => {
-    if (draftCacheRef.current) setIsResumingDraft(true);
+    draftRestoreReadyRef.current = true;
+    const draft = draftCacheRef.current;
+    if (draft) {
+      setStep(draft.step);
+      setMaxStepReached(draft.maxStepReached);
+      setName(draft.name);
+      setEmail(draft.email);
+      setPhone(draft.phone);
+      setAddress(draft.address);
+      setDob(draft.dob);
+      setGender(draft.gender);
+      setEcName(draft.ecName);
+      setEcRel(draft.ecRel);
+      setEcPhone(draft.ecPhone);
+      setGpName(draft.gpName);
+      setGpSurgery(draft.gpSurgery);
+      setGpPhone(draft.gpPhone);
+      setPackageType(draft.packageType);
+      setCadenceUnit(draft.cadenceUnit);
+      setCadencePerUnit(draft.cadencePerUnit);
+      setParqMode(draft.parqMode);
+      setOverrideNote(draft.overrideNote);
+      setGpClearanceRequired(draft.gpClearanceRequired);
+      setGpClearanceNote(draft.gpClearanceNote);
+      setConditions(draft.conditions);
+      setContraindications(draft.contraindications);
+      setMedications(draft.medications);
+      setInjuryHistory(draft.injuryHistory);
+      setPrimaryGoal(draft.primaryGoal);
+      setMilestones(draft.milestones);
+      setBaseline(draft.baseline);
+      setSuccessLooks(draft.successLooks);
+      setDeliveryMode(draft.deliveryMode);
+      setEquipment(draft.equipment);
+      setBodyweightOnly(draft.bodyweightOnly);
+      setBandSet(draft.bandSet);
+      setBandNote(draft.bandNote);
+      setFirstWorkoutRoute(draft.firstWorkoutRoute);
+      setIsResumingDraft(true);
+    }
+    setMounted(true);
   }, []);
 
   /* ── Validation tracking ── */
@@ -399,9 +439,7 @@ export default function NewClientPage() {
   /* ── Handle equipment change from EquipmentMultiSelect ── */
   const handleEquipmentChange = useCallback((val: string[] | null) => {
     setEquipment(val);
-    if (val === null || val.length === 0) {
-      setBodyweightOnly(val !== null && val.length === 0);
-    } else {
+    if (val !== null && val.length > 0) {
       setBodyweightOnly(false);
     }
   }, []);
@@ -412,7 +450,7 @@ export default function NewClientPage() {
       step, maxStepReached, name, email, phone, address, dob, gender,
       ecName, ecRel, ecPhone, gpName, gpSurgery, gpPhone,
       packageType, cadenceUnit, cadencePerUnit,
-      parqMode, overrideNote, uploadAttached,
+      parqMode, overrideNote,
       gpClearanceRequired, gpClearanceNote,
       conditions, contraindications, medications, injuryHistory,
       primaryGoal, milestones, baseline, successLooks,
@@ -429,7 +467,7 @@ export default function NewClientPage() {
     step, maxStepReached, name, email, phone, address, dob, gender,
     ecName, ecRel, ecPhone, gpName, gpSurgery, gpPhone,
     packageType, cadenceUnit, cadencePerUnit,
-    parqMode, overrideNote, uploadAttached,
+    parqMode, overrideNote,
     gpClearanceRequired, gpClearanceNote,
     conditions, contraindications, medications, injuryHistory,
     primaryGoal, milestones, baseline, successLooks,
@@ -520,6 +558,11 @@ export default function NewClientPage() {
       body.band_set_note = bandNote.trim() || null;
     }
 
+    // GP clearance note
+    if (gpClearanceRequired && gpClearanceNote.trim()) {
+      body.gp_clearance_note = gpClearanceNote.trim();
+    }
+
     // Address
     if (address.trim()) {
       body.address = address.trim();
@@ -563,8 +606,6 @@ export default function NewClientPage() {
     const flags: { text: string; note?: string }[] = [];
     if (parqMode === "send")
       flags.push({ text: "No PAR-Q on file", note: "Sent — awaiting signature back from the client." });
-    else if (parqMode === "upload" && !uploadAttached)
-      flags.push({ text: "No PAR-Q on file", note: "Upload chosen but no file attached yet." });
     else if (parqMode === "override")
       flags.push({ text: "PAR-Q trainer-overridden — pending migration from Microsoft Forms" });
     else if (!parqMode)
@@ -572,7 +613,7 @@ export default function NewClientPage() {
     if (gpClearanceRequired)
       flags.push({ text: "GP clearance required — not yet obtained" });
     return flags;
-  }, [parqMode, uploadAttached, gpClearanceRequired]);
+  }, [parqMode, gpClearanceRequired]);
 
   /* ── Rail fields ── */
   const railFields = useMemo(() => {
@@ -585,10 +626,9 @@ export default function NewClientPage() {
     if (maxStepReached >= 2) {
       const parqLabel =
         parqMode === "send" ? "Sent · awaiting signature"
-        : parqMode === "upload" ? (uploadAttached ? "Signed copy attached" : "Upload started")
         : parqMode === "override" ? "Trainer override"
         : "";
-      fields.push({ label: "PAR-Q", value: parqLabel, pending: parqMode === "send" || (parqMode === "upload" && !uploadAttached) });
+      fields.push({ label: "PAR-Q", value: parqLabel, pending: parqMode === "send" });
       fields.push({ label: "GP clearance", value: gpClearanceRequired ? "Required" : "Not required", pending: gpClearanceRequired });
     }
     if (maxStepReached >= 3) {
@@ -602,7 +642,7 @@ export default function NewClientPage() {
     }
     return fields;
   }, [
-    name, step, maxStepReached, packageType, cadenceLabel, parqMode, uploadAttached,
+    name, step, maxStepReached, packageType, cadenceLabel, parqMode,
     gpClearanceRequired, primaryGoal, deliveryMode, bodyweightOnly, equipment,
   ]);
 
@@ -925,51 +965,10 @@ export default function NewClientPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">Emails the standard form for the client to complete and sign themselves.</p>
                     {parqMode === "send" && (
                       <div className="mt-2.5 pt-2.5 border-t border-[var(--hub-border)]">
-                        <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[var(--s-warning-tx)] bg-[var(--s-warning-bg)] border border-[var(--s-warning-bd)] rounded-full px-2.5 py-0.5">
+                        <span className="pill warning">
                           Sent · awaiting signature
                         </span>
-                        <p className="text-[11.5px] text-muted-foreground mt-1.5">Sent to {email.trim() || "their email above"} just now. Plan generation stays open, but the client&apos;s compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
-                      </div>
-                    )}
-                  </label>
-
-                  {/* Upload existing */}
-                  <label
-                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
-                      parqMode === "upload"
-                        ? "bg-rose/5 border-rose/20"
-                        : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="parq"
-                      value="upload"
-                      checked={parqMode === "upload"}
-                      onChange={() => setParqMode("upload")}
-                      className="sr-only"
-                    />
-                    <p className="text-[13px] font-bold text-foreground">Upload a signed PAR-Q</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">For a scanned paper form or an existing signed document.</p>
-                    {parqMode === "upload" && (
-                      <div className="mt-2.5 pt-2.5 border-t border-[var(--hub-border)]">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setUploadAttached(true);
-                            toast.success("Signed PAR-Q attached.");
-                          }}
-                          className="gap-1.5"
-                        >
-                          {uploadAttached ? <IconCheck className="w-3.5 h-3.5 text-teal" /> : <IconPlus className="w-3.5 h-3.5" />}
-                          {uploadAttached ? "Attached: PARQ_signed_scan.pdf" : "Attach signed PAR-Q"}
-                        </Button>
-                        {!uploadAttached && (
-                          <p className="text-[11.5px] text-muted-foreground mt-1.5">No file attached yet.</p>
-                        )}
+                        <p className="text-[11.5px] text-muted-foreground mt-1.5">The PAR-Q form will be emailed to {email.trim() || "the client&apos;s email address"} once the client is created. Plan generation stays open, but the client&apos;s compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
                       </div>
                     )}
                   </label>
@@ -1226,7 +1225,7 @@ export default function NewClientPage() {
 
                 {/* Equipment grid */}
                 <div className={bodyweightOnly ? "opacity-40 pointer-events-none" : ""}>
-                  <EquipmentMultiSelect selected={equipment} onChange={handleEquipmentChange} />
+                  <EquipmentMultiSelect selected={equipment} onChange={handleEquipmentChange} hideControls showHomeEquivalent={deliveryMode === "home_training"} />
                 </div>
 
                 {/* Equipment gate */}
@@ -1308,18 +1307,18 @@ export default function NewClientPage() {
                 <div className="flex items-center gap-2.5 p-3 rounded-[10px] bg-teal/5 border border-teal/20">
                   <IconCheck className="w-4 h-4 shrink-0 text-teal" />
                   <span className="text-[12.5px]">
-                    <strong className="text-foreground">6 workouts, {cadenceLabel.toLowerCase()}, starting Mon 8 Sep.</strong>{" "}
+                    <strong className="text-foreground">Programme created after you finish — {cadenceLabel.toLowerCase()} sessions.</strong>{" "}
                     {firstWorkoutRoute === "templates"
                       ? "Picked from the template library"
                       : firstWorkoutRoute === "paste"
                       ? "Structured from the paste"
                       : "Built from the Q&A answers"}{" "}
-                    automatically once you finish — nothing to build by hand right now.
+                    once you pick a route — nothing to build by hand right now.
                   </span>
                 </div>
 
                 {/* Review summary */}
-                <SectionHeader title="Review & finish" end={<span className="text-[11.5px] font-semibold text-muted-foreground">{complianceFlags.length > 0 ? `${complianceFlags.length} outstanding` : "Ready"}</span>} />
+                <SectionHeader title="Review & finish" end={<span>{complianceFlags.length > 0 ? <span className="pill warning">{complianceFlags.length} outstanding</span> : <span className="pill success">Ready</span>}</span>} />
 
                 <div className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
                   {[
@@ -1328,7 +1327,6 @@ export default function NewClientPage() {
                     {
                       label: "Health",
                       value: parqMode === "send" ? "PAR-Q sent to client"
-                        : parqMode === "upload" ? (uploadAttached ? "Signed PAR-Q on file" : "PAR-Q upload started")
                         : parqMode === "override" ? "Trainer override, reviewed on Microsoft Forms"
                         : "Not answered",
                       sub: gpClearanceRequired ? "GP clearance required — not yet obtained" : undefined,
@@ -1336,7 +1334,7 @@ export default function NewClientPage() {
                     },
                     { label: "Goals", value: primaryGoal.replace(/_/g, " "), editStep: 3 as StepKey },
                     { label: "Where they train", value: reviewDeliveryLabel, sub: reviewEqLabel || "Not answered", editStep: 4 as StepKey },
-                    { label: "First workouts", value: reviewRouteLabel, sub: `6 workouts, ${cadenceLabel.toLowerCase()}, starting Mon 8 Sep`, editStep: 5 as StepKey },
+                    { label: "First workouts", value: reviewRouteLabel, sub: `${cadenceLabel.toLowerCase()} sessions — programme created after finish`, editStep: 5 as StepKey },
                   ].map((row) => (
                     <div key={row.label} className="flex items-start gap-3 py-3 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">
                       <span className="text-[11px] font-bold uppercase tracking-[0.05em] text-muted-foreground w-[132px] shrink-0 pt-0.5">{row.label}</span>

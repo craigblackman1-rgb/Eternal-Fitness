@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, email, phone, profile, package_type, delivery_mode, equipment, address, emergency_contact, gp, band_set_note } = body;
+  const { name, email, phone, profile, package_type, delivery_mode, equipment, address, emergency_contact, gp, band_set_note, gp_clearance_note } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -49,6 +49,9 @@ export async function POST(request: Request) {
   }
   if (band_set_note !== undefined) {
     enrichedProfile.band_set_note = band_set_note;
+  }
+  if (gp_clearance_note !== undefined) {
+    enrichedProfile.gp_clearance_note = gp_clearance_note;
   }
 
   const insertRow: Record<string, unknown> = {
