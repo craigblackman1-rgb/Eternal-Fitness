@@ -487,6 +487,28 @@ export default function NewClientPage() {
       toast.error("Client name is required");
       return;
     }
+
+    // Re-validate every gated step at submit time — clicking through
+    // and back can leave a step desatisfied (e.g. deselecting equipment).
+    if (parqMode === null) {
+      toast.error("Health screening is required — choose a PAR-Q route before creating the client.");
+      setStep(2);
+      setAttempted((prev) => ({ ...prev, 2: true }));
+      return;
+    }
+    if (parqMode === "override" && !overrideNote.trim()) {
+      toast.error("A trainer override note is required when overriding the PAR-Q.");
+      setStep(2);
+      setAttempted((prev) => ({ ...prev, 2: true }));
+      return;
+    }
+    if (!bodyweightOnly && (equipment === null || equipment.length === 0)) {
+      toast.error("Equipment is required — pick available equipment or confirm bodyweight only.");
+      setStep(4);
+      setAttempted((prev) => ({ ...prev, 4: true }));
+      return;
+    }
+
     setSaving(true);
 
     const profile: ClientProfile = {
@@ -605,7 +627,7 @@ export default function NewClientPage() {
   const complianceFlags = useMemo(() => {
     const flags: { text: string; note?: string }[] = [];
     if (parqMode === "send")
-      flags.push({ text: "No PAR-Q on file", note: "Sent — awaiting signature back from the client." });
+      flags.push({ text: "No PAR-Q on file", note: "Send from the client's Compliance tab after creation." });
     else if (parqMode === "override")
       flags.push({ text: "PAR-Q trainer-overridden — pending migration from Microsoft Forms" });
     else if (!parqMode)
@@ -625,7 +647,7 @@ export default function NewClientPage() {
     }
     if (maxStepReached >= 2) {
       const parqLabel =
-        parqMode === "send" ? "Sent · awaiting signature"
+        parqMode === "send" ? "Not yet sent"
         : parqMode === "override" ? "Trainer override"
         : "";
       fields.push({ label: "PAR-Q", value: parqLabel, pending: parqMode === "send" });
@@ -968,7 +990,7 @@ export default function NewClientPage() {
                         <span className="pill warning">
                           Sent · awaiting signature
                         </span>
-                        <p className="text-[11.5px] text-muted-foreground mt-1.5">The PAR-Q form will be emailed to {email.trim() || "the client&apos;s email address"} once the client is created. Plan generation stays open, but the client&apos;s compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
+                        <p className="text-[11.5px] text-muted-foreground mt-1.5">The PAR-Q link will be available from the client&apos;s Compliance tab after creation. Send it from there — the client completes and signs it themselves. Plan generation stays open, but the compliance record reads &ldquo;No PAR-Q on file&rdquo; until it comes back signed.</p>
                       </div>
                     )}
                   </label>
@@ -1325,7 +1347,7 @@ export default function NewClientPage() {
                     { label: "Package & cadence", value: `${packageType} · ${cadenceLabel}`, editStep: 1 as StepKey },
                     {
                       label: "Health",
-                      value: parqMode === "send" ? "PAR-Q sent to client"
+                      value: parqMode === "send" ? "PAR-Q needs to be sent from the Compliance tab"
                         : parqMode === "override" ? "Trainer override, reviewed on Microsoft Forms"
                         : "Not answered",
                       sub: gpClearanceRequired ? "GP clearance required — not yet obtained" : undefined,
@@ -1333,6 +1355,7 @@ export default function NewClientPage() {
                     },
                     { label: "Goals", value: primaryGoal.replace(/_/g, " "), editStep: 3 as StepKey },
                     { label: "Where they train", value: reviewDeliveryLabel, sub: reviewEqLabel || "Not answered", editStep: 4 as StepKey },
+                    { label: "Band set", value: bandSet === "ef" ? "EF Studio set" : "Their own set", sub: "Captured as a note — band set still needs to be linked on the Compliance tab", editStep: 4 as StepKey },
                     { label: "First workouts", value: reviewRouteLabel, sub: "You'll build after the client is saved", editStep: 5 as StepKey },
                   ].map((row) => (
                     <div key={row.label} className="flex items-start gap-3 py-3 border-t border-[var(--hub-border)] first:border-t-0 first:pt-0">

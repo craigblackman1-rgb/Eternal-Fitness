@@ -51,7 +51,8 @@ export async function POST(request: Request) {
     enrichedProfile.band_set_note = band_set_note;
   }
   if (gp_clearance_note !== undefined) {
-    enrichedProfile.gp_clearance_note = gp_clearance_note;
+    if (!enrichedProfile.health) enrichedProfile.health = {};
+    enrichedProfile.health.gp_clearance_note = gp_clearance_note;
   }
 
   const insertRow: Record<string, unknown> = {
