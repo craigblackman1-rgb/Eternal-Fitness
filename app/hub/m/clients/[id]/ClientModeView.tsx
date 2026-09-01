@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useCallback, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import type { SessionStatus } from "@/types";
 import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
@@ -9,6 +9,8 @@ import { DayAgenda, type AgendaSession } from "@/components/hub/DayAgenda";
 import { ClientNotesPane } from "./ClientNotesPane";
 import { ClientBookingPanel } from "@/components/hub/ClientBookingPanel";
 import { todayLocalISODate, shiftDay } from "@/lib/schedule-dates";
+
+/* ── Exported view types (derived in page.tsx server component) ── */
 
 export interface RecentSessionView {
   id: string;
@@ -28,14 +30,49 @@ export interface CalendarSessionView {
   status: SessionStatus;
 }
 
-export interface WorkoutView {
+export interface SessionView {
   id: string;
-  key: string;
+  name: string;
+  position: number | null;
+  total: number | null;
+  status: SessionStatus;
+  scheduledAt: string | null;
+  cancelledAt: string | null;
+  completedAt: string | null;
+  isToday: boolean;
+  dayOfWeek: string | null;
+  dayOfMonth: number | null;
+  monthShort: string | null;
+  time: string | null;
+  chargedFree: "charged" | "free" | null;
+  cancelReason: string | null;
+}
+
+export interface PoolWorkoutView {
+  id: string;
   letter: string;
   name: string;
-  emphasis: string;
-  done: number;
-  total: number;
+  status: "used" | "assigned" | "unused" | "next";
+  deliveryDate: string | null;
+  assignedDate: string | null;
+}
+
+export interface SessionPotView {
+  remaining: number;
+  used: number;
+  purchased: number;
+  completed: number;
+  chargedCancellations: number;
+  freeCancellations: number;
+  unreviewedCancellations: number;
+  bookedAhead: number;
+}
+
+export interface PinnedNoteView {
+  id: string;
+  text: string;
+  createdAt: string;
+  author: string | null;
 }
 
 export interface BlockView {
@@ -47,7 +84,7 @@ export interface BlockView {
   pct: number;
 }
 
-type TabKey = "overview" | "calendar" | "workouts" | "notes";
+/* ── Icons ── */
 
 const ICO = {
   plus: (
@@ -82,6 +119,12 @@ const ICO = {
       <path d="M3 9h18M9 21V9" />
     </svg>
   ),
+  calendar: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  ),
   pin: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 17v5" />
@@ -95,12 +138,6 @@ const ICO = {
       <path d="M12 8v4l3 2" />
     </svg>
   ),
-  cal: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-    </svg>
-  ),
   chev: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="9 18 15 12 9 6" />
@@ -108,27 +145,53 @@ const ICO = {
   ),
   overview: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="9" rx="1" />
-      <rect x="14" y="3" width="7" height="5" rx="1" />
-      <rect x="14" y="12" width="7" height="9" rx="1" />
-      <rect x="3" y="16" width="7" height="5" rx="1" />
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
     </svg>
   ),
-  calendar: (
+  sessions: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+    </svg>
+  ),
+  pool: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18M9 9v12" />
+    </svg>
+  ),
+  calendarTab: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
       <path d="M3 15h18M12 15v3" />
     </svg>
   ),
-  workouts: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6.5 6.5v11M17.5 6.5v11M3 10h1.5M3 14h1.5M19.5 10H21M19.5 14H21M9 10h6v4H9z" />
-    </svg>
-  ),
   notes: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
+  check: (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m5 13 4 4L19 7" />
+    </svg>
+  ),
+  xCircle: (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15 9-6 6M9 9l6 6" />
+    </svg>
+  ),
+  calSm: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  ),
+  arrowRight: (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
   ),
 };
@@ -138,6 +201,38 @@ function flagIcon(tone: ClientFlag["tone"]) {
   if (tone === "danger") return ICO.med;
   return ICO.warn;
 }
+
+/* ── Helper: group sessions into Monday–Sunday weeks ── */
+
+function mondayOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = (day + 6) % 7;
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function weekKey(date: Date): string {
+  const m = mondayOfWeek(date);
+  return m.toISOString().slice(0, 10);
+}
+
+function weekLabel(monday: Date): string {
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+  const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return `Week of ${fmt(monday)}`;
+}
+
+function formatShortDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+/* ── Component ── */
+
+type TabKey = "overview" | "sessions" | "pool" | "calendar" | "notes";
 
 interface ClientModeViewProps {
   clientId: string;
@@ -149,9 +244,14 @@ interface ClientModeViewProps {
   block: BlockView | null;
   recent: RecentSessionView[];
   calendarSessions: CalendarSessionView[];
-  workouts: WorkoutView[];
+  sessionsView: SessionView[];
+  poolWorkouts: PoolWorkoutView[];
+  potView: SessionPotView;
+  unusedPoolCount: number;
   trainTargetId: string | null;
   exerciseNotes?: AggregatedExerciseNote[];
+  pinnedNote?: PinnedNoteView | null;
+  earliestUnattached?: { scheduledAt: string } | null;
 }
 
 export function ClientModeView({
@@ -164,25 +264,92 @@ export function ClientModeView({
   block,
   recent,
   calendarSessions,
-  workouts,
+  sessionsView,
+  poolWorkouts,
+  potView,
+  unusedPoolCount,
   trainTargetId,
   exerciseNotes = [],
+  pinnedNote = null,
+  earliestUnattached = null,
 }: ClientModeViewProps) {
   const [tab, setTab] = useState<TabKey>("overview");
 
-  const tabs: { key: TabKey; label: string; icon: ReactNode }[] = [
+  const switchToSessions = useCallback(() => setTab("sessions"), []);
+
+  /* ── Sessions view: group by week ── */
+  const { upcomingSessions, unscheduledSessions, pastSessions, upcomingCount, pastCount } = useMemo(() => {
+    const now = new Date();
+    const upcoming: SessionView[] = [];
+    const unscheduled: SessionView[] = [];
+    const past: SessionView[] = [];
+
+    for (const s of sessionsView) {
+      if (!s.scheduledAt) {
+        unscheduled.push(s);
+      } else if (new Date(s.scheduledAt).getTime() >= now.getTime() || s.isToday) {
+        upcoming.push(s);
+      } else {
+        past.push(s);
+      }
+    }
+
+    return {
+      upcomingSessions: upcoming,
+      unscheduledSessions: unscheduled,
+      pastSessions: past,
+      upcomingCount: upcoming.length,
+      pastCount: past.length,
+    };
+  }, [sessionsView]);
+
+  /* ── Sessions view: group by week ── */
+  const upcomingWeeks = useMemo(() => {
+    const map = new Map<string, { monday: Date; sessions: SessionView[] }>();
+    for (const s of upcomingSessions) {
+      if (!s.scheduledAt) continue;
+      const d = new Date(s.scheduledAt);
+      const key = weekKey(d);
+      if (!map.has(key)) {
+        map.set(key, { monday: mondayOfWeek(d), sessions: [] });
+      }
+      map.get(key)!.sessions.push(s);
+    }
+    return Array.from(map.values()).sort((a, b) => a.monday.getTime() - b.monday.getTime());
+  }, [upcomingSessions]);
+
+  const pastWeeks = useMemo(() => {
+    const map = new Map<string, { monday: Date; sessions: SessionView[] }>();
+    for (const s of pastSessions) {
+      if (!s.scheduledAt) continue;
+      const d = new Date(s.scheduledAt);
+      const key = weekKey(d);
+      if (!map.has(key)) {
+        map.set(key, { monday: mondayOfWeek(d), sessions: [] });
+      }
+      map.get(key)!.sessions.push(s);
+    }
+    return Array.from(map.values()).sort((a, b) => b.monday.getTime() - a.monday.getTime());
+  }, [pastSessions]);
+
+  /* ── Pool view ── */
+  const nextPool = poolWorkouts.find((w) => w.status === "next");
+  const poolUsed = poolWorkouts.filter((w) => w.status === "used").length;
+  const poolAssigned = poolWorkouts.filter((w) => w.status === "assigned").length;
+
+  const tabs: { key: TabKey; label: string; icon: ReactNode; badge?: number }[] = [
     { key: "overview", label: "Overview", icon: ICO.overview },
-    { key: "calendar", label: "Calendar", icon: ICO.calendar },
-    { key: "workouts", label: "Workouts", icon: ICO.workouts },
+    { key: "sessions", label: "Sessions", icon: ICO.sessions },
+    { key: "pool", label: "Pool", icon: ICO.pool, badge: unusedPoolCount },
+    { key: "calendar", label: "Calendar", icon: ICO.calendarTab },
     { key: "notes", label: "Notes", icon: ICO.notes },
   ];
 
   return (
     <>
       <main className="mcontent">
-        {/* ── OVERVIEW ── */}
+        {/* ══════════════ OVERVIEW ══════════════ */}
         <section className={`pane${tab === "overview" ? " on" : ""}`}>
-          <ClientBookingPanel clientId={clientId} clientName={clientName} mobile />
           <div className="panel">
             <div className="panel-h">
               <span className={`panel-h-ic ${activeFlagCount > 0 ? "danger" : "teal"}`}>
@@ -207,44 +374,59 @@ export function ClientModeView({
                   </div>
                 </div>
               ))}
+              {/* CR-EF-113: dual action — Train primary, Session record one tap away */}
               {trainTargetId && (
                 <div className="actbar">
                   <Link className="btn btn-primary" href={`/hub/m/train/${trainTargetId}`}>
                     Train {firstName}
                   </Link>
+                  <button className="btn btn-outline" onClick={switchToSessions}>
+                    Session record
+                  </button>
                 </div>
               )}
             </div>
           </div>
 
-          {block && (
-            <div className="panel">
-              <div className="panel-h">
-                <span className="panel-h-ic navy">{ICO.block}</span>
-                <span>
-                  <span className="panel-h-t">Block {block.number}</span>
-                  <span className="panel-h-s">
-                    {block.done} of {block.total} sessions delivered
-                  </span>
+          {/* CR-EF-113: openable sessions summary — the specific complaint fix */}
+          <button className="panel panel-tap" onClick={switchToSessions} aria-label="Open Sessions">
+            <div className="panel-h">
+              <span className="panel-h-ic navy">{ICO.calendar}</span>
+              <span>
+                <span className="panel-h-t">Sessions</span>
+                <span className="panel-h-s">
+                  {block
+                    ? `${potView.used} of ${potView.purchased} used · ${potView.remaining} remaining`
+                    : "No active programme"}
                 </span>
-              </div>
-              <div className="panel-b">
-                {block.focus && (
-                  <div className="kv" style={{ paddingTop: 0 }}>
-                    <span className="kv-k">Focus</span>
-                    <span className="kv-v">{block.focus}</span>
-                  </div>
-                )}
-                <div className="blockbar">
-                  <i style={{ width: `${block.pct}%` }} />
-                </div>
-                <div className="blockmeta">
-                  <span>{block.pct}% through</span>
-                  <span>{Math.max(0, block.total - block.done)} remaining</span>
-                </div>
-              </div>
+              </span>
+              <span className="panel-chev">{ICO.chev}</span>
             </div>
-          )}
+            <div className="panel-b">
+              {block?.focus && (
+                <div className="kv" style={{ paddingTop: 0 }}>
+                  <span className="kv-k">Focus</span>
+                  <span className="kv-v">{block.focus}</span>
+                </div>
+              )}
+              {block && (
+                <>
+                  <div className="blockbar">
+                    <i style={{ width: `${block.pct}%` }} />
+                  </div>
+                  <div className="blockmeta">
+                    <span>Tap to see which sessions, and what&apos;s attached</span>
+                    <span>{potView.remaining} left</span>
+                  </div>
+                </>
+              )}
+              {!block && (
+                <div style={{ fontSize: 13, color: "var(--muted)" }}>
+                  Nothing has been planned for {firstName} yet — this isn&apos;t the same as being up to date.
+                </div>
+              )}
+            </div>
+          </button>
 
           <div className="panel">
             <div className="panel-h">
@@ -255,9 +437,22 @@ export function ClientModeView({
               </span>
             </div>
             <div className="panel-b">
-              <div className="pin-empty">
-                No pinned note yet — pinning notes lands with the notes upgrade.
-              </div>
+              {pinnedNote ? (
+                <div className="flagcard ok">
+                  <span className="flag-ic">{ICO.pin}</span>
+                  <div>
+                    <b>{pinnedNote.text.slice(0, 60)}{pinnedNote.text.length > 60 ? "…" : ""}</b>
+                    <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 2 }}>
+                      Added on {new Date(pinnedNote.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      {pinnedNote.author ? ` · ${pinnedNote.author}` : ""} · pinned
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="pin-empty">
+                  No pinned note yet — pin a note from the Notes tab to surface it here.
+                </div>
+              )}
             </div>
           </div>
 
@@ -296,7 +491,217 @@ export function ClientModeView({
           </div>
         </section>
 
-        {/* ── CALENDAR (client scope — shared DayAgenda) ── */}
+        {/* ══════════════ SESSIONS ══════════════ */}
+        <section className={`pane${tab === "sessions" ? " on" : ""}`}>
+          {/* Pot strip */}
+          <div className="mpot">
+            <div className="mpot-row">
+              <span className="mpot-n">{potView.remaining}</span>
+              <span className="mpot-l">left</span>
+              <span className="mpot-side">
+                <b>{potView.used}</b> used of <b>{potView.purchased}</b>
+                <br />
+                {potView.bookedAhead} booked ahead
+              </span>
+            </div>
+            <div className="mbar">
+              {potView.completed > 0 && (
+                <span className="mseg done" style={{ width: `${(potView.completed / potView.purchased) * 100}%` }} />
+              )}
+              {potView.chargedCancellations > 0 && (
+                <span className="mseg charged" style={{ width: `${(potView.chargedCancellations / potView.purchased) * 100}%` }} />
+              )}
+              {potView.bookedAhead > 0 && (
+                <span className="mseg booked" style={{ width: `${(potView.bookedAhead / potView.purchased) * 100}%` }} />
+              )}
+              {(() => {
+                const notBooked = Math.max(potView.remaining - potView.bookedAhead, 0);
+                return notBooked > 0 ? (
+                  <span
+                    className="mseg free"
+                    style={{
+                      width: `${(notBooked / potView.purchased) * 100}%`,
+                    }}
+                  />
+                ) : null;
+              })()}
+            </div>
+            <div className="mpot-legend">
+              <span className="mleg">
+                <i style={{ background: "var(--teal)" }} />Completed <b>{potView.completed}</b>
+              </span>
+              {potView.chargedCancellations > 0 && (
+                <span className="mleg">
+                  <i style={{ background: "var(--s-danger)" }} />Charged <b>{potView.chargedCancellations}</b>
+                </span>
+              )}
+              <span className="mleg">
+                <i style={{ background: "var(--rose)" }} />Booked <b>{potView.bookedAhead}</b>
+              </span>
+              <span className="mleg">
+                <i style={{ background: "var(--hover)" }} />Not booked <b>{Math.max(potView.remaining - potView.bookedAhead, 0)}</b>
+              </span>
+            </div>
+          </div>
+
+          {/* Upcoming */}
+          {upcomingSessions.length > 0 && (
+            <>
+              <div className="sec-lbl">
+                <h2>Upcoming</h2>
+                <span className="cnt">{upcomingCount} session{upcomingCount !== 1 ? "s" : ""}</span>
+              </div>
+              {upcomingWeeks.map((wk) => (
+                <div key={weekKey(wk.monday)}>
+                  <div className="week-band">
+                    <span className="week-band-t">{weekLabel(wk.monday)}</span>
+                  </div>
+                  <div className="blist">
+                    {wk.sessions.map((s) => (
+                      <SessionRow key={s.id} session={s} firstName={firstName} nextPool={s.name === "No workout assigned yet" ? nextPool : undefined} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Not yet booked */}
+          {unscheduledSessions.length > 0 && (
+            <>
+              <div className="sec-lbl plan">
+                <h2>Not yet booked</h2>
+                <span className="cnt">{unscheduledSessions.length} session{unscheduledSessions.length !== 1 ? "s" : ""}</span>
+              </div>
+              <div className="blist">
+                <div className="srow plan">
+                  <div className="srow-date" style={{ borderRight: 0 }}>
+                    <div className="srow-d" style={{ color: "var(--muted)" }}>—</div>
+                  </div>
+                  <div className="srow-body">
+                    <div className="srow-empty">
+                      Sessions {unscheduledSessions[0]?.position ?? "?"}–{unscheduledSessions[unscheduledSessions.length - 1]?.position ?? "?"} of {unscheduledSessions[0]?.total ?? "?"}
+                    </div>
+                    <div className="srow-sub">
+                      Nothing booked into Outlook yet — will appear here with real dates once they are.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Already happened */}
+          {pastSessions.length > 0 && (
+            <>
+              <div className="sec-lbl">
+                <h2>Already happened</h2>
+                <span className="cnt">{pastCount} session{pastCount !== 1 ? "s" : ""}</span>
+              </div>
+              {pastWeeks.map((wk) => (
+                <div key={weekKey(wk.monday)}>
+                  <div className="week-band">
+                    <span className="week-band-t">{weekLabel(wk.monday)}</span>
+                  </div>
+                  <div className="blist">
+                    {wk.sessions.map((s) => (
+                      <SessionRow key={s.id} session={s} firstName={firstName} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {sessionsView.length === 0 && (
+            <div className="empty">
+              <div className="empty-ic">{ICO.sessions}</div>
+              <p className="empty-t">No sessions yet</p>
+              <p className="empty-d">
+                Nothing has been planned for {firstName} yet — this isn&apos;t the same as being up to date.
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* ══════════════ POOL ══════════════ */}
+        <section className={`pane${tab === "pool" ? " on" : ""}`}>
+          {/* Next-up card */}
+          {nextPool && (
+            <div className="nextcard">
+              <div className="nextcard-top">
+                <span className="nextcard-let">{nextPool.letter}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="nextcard-lbl">Up next</div>
+                  <div className="nextcard-n">{nextPool.name}</div>
+                  <div className="nextcard-s">
+                    {nextPool.assignedDate
+                      ? `Assigned to ${formatShortDate(nextPool.assignedDate)}`
+                      : "Not delivered yet"}
+                  </div>
+                </div>
+              </div>
+              <div className="nextcard-b">
+                {earliestUnattached ? (
+                  <div className="nextcard-target">
+                    {ICO.calSm}
+                    <span>
+                      Earliest session without a workout is <b>{formatShortDate(earliestUnattached.scheduledAt)}</b>
+                    </span>
+                  </div>
+                ) : nextPool.assignedDate ? (
+                  <div className="nextcard-target">
+                    {ICO.calSm}
+                    <span>
+                      Assigned to <b>{formatShortDate(nextPool.assignedDate)}</b>
+                    </span>
+                  </div>
+                ) : null}
+                <button className="mbtn" onClick={() => setTab("sessions")}>
+                  Attach to {earliestUnattached ? formatShortDate(earliestUnattached.scheduledAt) : "next session"}
+                </button>
+                <button className="mbtn ghost" onClick={() => setTab("sessions")}>
+                  Choose a different session
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Workout sequence */}
+          <div className="sec-lbl">
+            <h2>Workout sequence</h2>
+            <span className="cnt">
+              {poolUsed} used · {poolAssigned} assigned · {unusedPoolCount} unused
+            </span>
+          </div>
+          <div className="pool-list">
+            {poolWorkouts.map((w) => (
+              <div
+                key={w.id}
+                className={`pool-item${w.status === "used" ? " done" : ""}${w.status === "assigned" ? " assigned" : ""}${w.status === "next" ? " next" : ""}`}
+              >
+                <span className="pool-let">{w.letter}</span>
+                <div className="pool-body">
+                  <div className="pool-n">{w.name}</div>
+                  <div className="pool-s">
+                    {w.status === "used" && w.deliveryDate && `Delivered ${formatShortDate(w.deliveryDate)}`}
+                    {w.status === "assigned" && w.assignedDate && `Attached to ${formatShortDate(w.assignedDate)}`}
+                    {w.status === "next" && "Not used yet"}
+                    {w.status === "unused" && "Not used yet"}
+                  </div>
+                </div>
+                <span className={`pool-tag ${w.status === "used" ? "used" : w.status === "assigned" ? "assig" : w.status === "next" ? "nextup" : "unused"}`}>
+                  {w.status === "used" && "Used"}
+                  {w.status === "assigned" && "Assigned"}
+                  {w.status === "next" && "Next up"}
+                  {w.status === "unused" && "Unused"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ══════════════ CALENDAR ══════════════ */}
         <section className={`pane${tab === "calendar" ? " on" : ""}`}>
           <DayAgenda
             sessions={calendarSessions.map(
@@ -325,54 +730,13 @@ export function ClientModeView({
           </Link>
         </section>
 
-        {/* ── WORKOUTS ── */}
-        <section className={`pane${tab === "workouts" ? " on" : ""}`}>
-          <div className="note">
-            <span className="note-b">i</span>
-            <div>
-              <b>Workouts live at block level.</b>
-              Adding a workout from the template library, this client&apos;s block, or scratch lands with
-              the add flow. No phase concept — Esther works at the workout level.
-            </div>
-          </div>
-          <div className="actbar" style={{ marginBottom: 12 }}>
-            <Link className="btn btn-primary" href={`/hub/m/clients/${clientNumber}/add-workout`}>
-              {ICO.plus}
-              Add workout
-            </Link>
-          </div>
-          {workouts.length === 0 ? (
-            <div className="empty">
-              <div className="empty-ic">{ICO.workouts}</div>
-              <p className="empty-t">No workouts</p>
-              <p className="empty-d">
-                {block
-                  ? `Block ${block.number} has no sessions yet.`
-                  : "This client has no current block yet."}
-              </p>
-            </div>
-          ) : (
-            workouts.map((w) => (
-              <div key={w.key} className="wcard">
-                <span className="wav">{w.letter}</span>
-                <span className="wbody">
-                  <span className="wtitle">{w.name}</span>
-                  <span className="wmeta">
-                    {w.emphasis} · {w.done} of {w.total} delivered
-                  </span>
-                </span>
-                <span className="wchev">{ICO.chev}</span>
-              </div>
-            ))
-          )}
-        </section>
-
-        {/* ── NOTES ── */}
+        {/* ══════════════ NOTES ══════════════ */}
         <section className={`pane${tab === "notes" ? " on" : ""}`}>
           <ClientNotesPane clientId={clientId} exerciseNotes={exerciseNotes} />
         </section>
       </main>
 
+      {/* CR-EF-113: 5-tab bottom bar — Overview · Sessions · Pool · Calendar · Notes */}
       <nav className="tabbar" aria-label="Client">
         {tabs.map((t) => (
           <button
@@ -383,9 +747,89 @@ export function ClientModeView({
           >
             {t.icon}
             {t.label}
+            {t.badge != null && t.badge > 0 && (
+              <span className="tab-badge">{t.badge}</span>
+            )}
           </button>
         ))}
       </nav>
     </>
+  );
+}
+
+/* ── Session row sub-component ── */
+
+function SessionRow({ session: s, firstName, nextPool }: { session: SessionView; firstName: string; nextPool?: PoolWorkoutView }) {
+  const positionLabel = s.position != null && s.total != null ? `Session ${s.position} of ${s.total}` : null;
+  const isCompleted = s.status === "completed";
+  const isCancelled = s.status === "cancelled";
+  const isCharged = s.chargedFree === "charged";
+  const isFree = s.chargedFree === "free";
+
+  let statusPillClass = "";
+  let statusPillLabel = "";
+  let statusPillIcon: ReactNode = null;
+
+  if (isCompleted) {
+    statusPillClass = "completed";
+    statusPillLabel = "Completed";
+    statusPillIcon = ICO.check;
+  } else if (isCancelled && isCharged) {
+    statusPillClass = "charged";
+    statusPillLabel = "Charged";
+    statusPillIcon = ICO.xCircle;
+  } else if (isCancelled && isFree) {
+    statusPillClass = "freecx";
+    statusPillLabel = "Cancelled — free";
+    statusPillIcon = ICO.xCircle;
+  } else if (s.scheduledAt && !isCancelled) {
+    statusPillClass = "booked";
+    statusPillLabel = "Booked";
+    statusPillIcon = ICO.calSm;
+  }
+
+  const subParts: string[] = [];
+  if (positionLabel) subParts.push(positionLabel);
+  if (s.isToday) subParts.push("today");
+  if (s.scheduledAt && !isCancelled && !isCompleted && s.name === "No workout assigned yet") {
+    subParts.push("booked via Outlook");
+  }
+
+  return (
+    <div className={`srow${s.isToday ? " today" : ""}${isCancelled ? " cx" : ""}`}>
+      <div className="srow-date">
+        <div className="srow-d">{s.dayOfMonth ?? "—"}</div>
+        {s.dayOfWeek && <div className="srow-dow">{s.dayOfWeek}</div>}
+        {s.time && <div className="srow-time">{s.time}</div>}
+      </div>
+      <div className="srow-body">
+        {s.name === "No workout assigned yet" ? (
+          <div className="srow-empty">{s.name}</div>
+        ) : (
+          <div className="srow-name">{s.name}</div>
+        )}
+        <div className="srow-sub">{subParts.join(" · ")}</div>
+        <div className="srow-flags">
+          {statusPillLabel && (
+            <span className={`s-pill ${statusPillClass}`}>
+              {statusPillIcon}
+              {statusPillLabel}
+            </span>
+          )}
+          {isCompleted && <span className="cost-flag minus">−1</span>}
+          {isCharged && <span className="cost-flag minus">−1</span>}
+          {isFree && <span className="cost-flag zero">no session used</span>}
+          {s.name === "No workout assigned yet" && nextPool && (
+            <span className="next-hint">
+              {ICO.arrowRight}
+              Up next: {nextPool.name}
+            </span>
+          )}
+        </div>
+        {s.name === "No workout assigned yet" && nextPool && (
+          <button className="mfill-btn">Attach {nextPool.name}</button>
+        )}
+      </div>
+    </div>
   );
 }

@@ -636,7 +636,6 @@
 
 /* Action row inside the Medical & compliance panel ("Train {name}") */
 .actbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-.actbar .btn { grid-column: 1 / -1; }
 
 /* Pinned note stub (no `pinned` column on client_notes yet — L5) */
 .pin-empty { color: var(--muted); font-size: 13px; }
@@ -727,6 +726,98 @@
 .note-txt { font-size: 13.5px; line-height: 1.55; color: var(--body); margin-top: 6px; overflow-wrap: anywhere; white-space: pre-wrap; }
 .note-pin { flex-shrink: 0; width: 38px; height: 38px; border-radius: 9px; border: 0; background: none; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
 .note-pin:hover { background: var(--s-danger-bg); color: var(--s-danger); }
+
+/* ── CR-EF-113: Openable sessions panel on Overview ── */
+.panel-tap { width: 100%; text-align: left; border: 1px solid var(--border); background: var(--card); cursor: pointer; padding: 0; font-family: inherit; display: flex; flex-direction: column; }
+.panel-tap:hover { background: var(--hover); }
+.panel-tap:hover .panel-b { background: var(--hover); }
+.panel-tap .panel-h { padding-right: 12px; }
+.panel-chev { margin-left: auto; flex-shrink: 0; color: var(--muted); }
+
+/* ── CR-EF-113: Sessions pot strip ── */
+.mpot { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 12px 14px; margin-bottom: 12px; }
+.mpot-row { display: flex; align-items: baseline; gap: 9px; }
+.mpot-n { font-size: 30px; font-weight: 800; letter-spacing: -.035em; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mpot-l { font-size: 12px; font-weight: 700; color: var(--muted); }
+.mpot-side { margin-left: auto; text-align: right; font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.mpot-side b { color: var(--ink); font-weight: 700; }
+.mbar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--hover); border: 1px solid var(--border); margin-top: 10px; }
+.mseg { height: 100%; }
+.mseg + .mseg { border-left: 1.5px solid var(--card); }
+.mseg.done { background: var(--teal); }
+.mseg.charged { background: var(--s-danger); }
+.mseg.booked { background: var(--rose); }
+.mseg.free { background: repeating-linear-gradient(135deg, #E4E7EC 0 5px, #F2F3F6 5px 10px); }
+.mpot-legend { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 8px; }
+.mleg { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--body); }
+.mleg i { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; display: block; }
+.mleg b { color: var(--ink); font-weight: 700; }
+
+/* ── CR-EF-113: Session rows + section labels ── */
+.sec-lbl { display: flex; align-items: center; gap: 8px; margin: 16px 2px 8px; }
+.sec-lbl h2 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin: 0; }
+.sec-lbl .cnt { font-size: 11px; color: var(--muted); margin-left: auto; }
+.sec-lbl.plan h2 { color: var(--s-primary); }
+.blist { display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
+.srow { display: flex; align-items: stretch; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 11px; }
+.srow.today { border-color: var(--s-primary-bd); box-shadow: 0 0 0 2px var(--s-primary-bg), var(--shadow-sm); }
+.srow.cx { border-style: dashed; }
+.srow.plan { border-style: dashed; background: var(--hover); }
+.srow-date { flex-shrink: 0; width: 52px; display: flex; flex-direction: column; align-items: center; padding-top: 2px; border-right: 1px solid var(--border); padding-right: 9px; text-align: center; }
+.srow-d { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.03em; line-height: 1; }
+.srow-dow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 2px; }
+.srow-time { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.srow.today .srow-d { color: var(--s-primary); }
+.srow-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; padding-top: 1px; }
+.srow-name { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.srow-sub { font-size: 11.5px; color: var(--muted); }
+.srow-empty { font-size: 13px; color: var(--muted); font-style: italic; }
+.srow-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; align-items: center; }
+.s-pill { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 8px; font-size: 10.5px; font-weight: 700; border: 1px solid; white-space: nowrap; }
+.s-pill svg { width: 10px; height: 10px; flex-shrink: 0; }
+.s-pill.completed { background: var(--s-success-bg); border-color: var(--s-success-bd); color: var(--s-success); }
+.s-pill.booked { background: var(--s-primary-bg); border-color: var(--s-primary-bd); color: var(--rose); }
+.s-pill.charged { background: var(--s-danger-bg); border-color: var(--s-danger-bd); color: var(--s-danger); }
+.s-pill.freecx { background: var(--s-neutral-bg); border-color: var(--s-neutral-bd); color: var(--s-neutral); }
+.s-pill.moved { background: var(--s-warning-bg); border-color: var(--s-warning-bd); color: var(--s-warning); }
+.cost-flag { font-size: 10.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cost-flag.minus { color: var(--s-danger); }
+.cost-flag.zero { color: var(--muted); }
+
+/* ── CR-EF-113: Pool tab ── */
+.next-hint { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; color: var(--rose); background: var(--s-primary-bg); border: 1px solid var(--s-primary-bd); border-radius: 999px; padding: 2px 8px; }
+.next-hint svg { width: 10px; height: 10px; flex-shrink: 0; }
+.mfill-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: var(--rose); color: var(--color-white); border: 0; cursor: pointer; margin-top: 7px; align-self: flex-start; }
+.mfill-btn:hover { background: var(--rose-deep, color-mix(in oklab, var(--color-rose) 90%, var(--color-ink))); }
+.mbtn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 48px; border-radius: 8px; border: 0; background: var(--rose); color: var(--color-white); font-size: 15px; font-weight: 700; cursor: pointer; }
+.mbtn:hover { background: var(--rose-deep, color-mix(in oklab, var(--color-rose) 90%, var(--color-ink))); }
+.mbtn.ghost { background: var(--card); border: 1px solid var(--border); color: var(--ink); min-height: 44px; font-size: 14px; margin-top: 8px; }
+.mbtn.ghost:hover { background: var(--hover); }
+.nextcard { background: var(--card); border: 1px solid var(--s-primary-bd); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 14px; }
+.nextcard-top { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--s-primary-bg); }
+.nextcard-let { width: 46px; height: 46px; border-radius: 8px; background: var(--rose); color: var(--color-white); display: grid; place-items: center; font-size: 19px; font-weight: 800; flex-shrink: 0; }
+.nextcard-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--rose); }
+.nextcard-n { font-size: 15.5px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; line-height: 1.25; }
+.nextcard-s { font-size: 12px; color: var(--body); margin-top: 2px; }
+.nextcard-b { padding: 12px 14px 14px; }
+.nextcard-target { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--body); margin-bottom: 10px; }
+.nextcard-target b { color: var(--ink); font-weight: 700; }
+.pool-list { display: flex; flex-direction: column; gap: 8px; }
+.pool-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+.pool-item.done { opacity: .78; }
+.pool-item.next { border-color: var(--rose); background: var(--s-primary-bg); }
+.pool-let { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 13px; font-weight: 800; flex-shrink: 0; background: var(--hover); border: 1px solid var(--border); color: var(--muted); }
+.pool-item.done .pool-let { background: var(--s-success-bg); border-color: var(--s-success-bd); color: var(--teal); }
+.pool-item.assigned .pool-let { background: var(--s-primary-bg); border-color: var(--s-primary-bd); color: var(--rose); }
+.pool-item.next .pool-let { background: var(--rose); border-color: var(--rose); color: var(--color-white); }
+.pool-body { min-width: 0; flex: 1; }
+.pool-n { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pool-s { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.pool-tag { flex-shrink: 0; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; border-radius: 999px; padding: 2px 7px; white-space: nowrap; }
+.pool-tag.used { background: var(--s-success-bg); color: var(--teal); border: 1px solid var(--s-success-bd); }
+.pool-tag.assig { background: var(--s-primary-bg); color: var(--rose); border: 1px solid var(--s-primary-bd); }
+.pool-tag.unused { background: var(--s-neutral-bg); color: var(--s-neutral); border: 1px solid var(--s-neutral-bd); }
+.pool-tag.nextup { background: var(--rose); color: var(--color-white); border: 1px solid var(--rose); }
 
 @media (prefers-reduced-motion: reduce) {
   .mobile-shell *, .mobile-shell *::before, .mobile-shell *::after {
