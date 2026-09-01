@@ -1,18 +1,22 @@
 import { createClient } from "@/lib/supabase-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ClientProfile, DBClient, SignedAgreement, SignedPARQ } from "@/types";
+import type { ClientProfile, DBClient, DBSession, SignedAgreement, SignedPARQ } from "@/types";
 import { computeComplianceFlags } from "@/lib/compliance";
 import { buildMedicalFlags, type ClientFlag } from "@/lib/mobile-client-flags";
 import { deriveSessionStatus } from "@/lib/session-status";
-import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
+import { sessionWorkoutName } from "@/lib/session-display";
+import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
+import { deriveSessionPot } from "@/lib/session-pot";
 import { aggregateExerciseNotes, type AggregatedExerciseNote } from "@/lib/exercise-notes";
 import { ClientModeView } from "./ClientModeView";
 import type {
   BlockView,
   CalendarSessionView,
   RecentSessionView,
-  WorkoutView,
+  SessionView,
+  PoolWorkoutView,
+  SessionPotView,
 } from "./ClientModeView";
 
 const ICO = {
@@ -56,6 +60,10 @@ interface SessionRow {
   completed_at: string | null;
   data: {
     focus_label?: string | null;
+    versions?: {
+      studio?: { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
+      home?: { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
+    };
     session_log?: {
       completed_at?: string | null;
       rpe?: number | null;
@@ -64,6 +72,11 @@ interface SessionRow {
   } | null;
   scheduled_at: string | null;
   cancelled_at: string | null;
+  week?: number | null;
+  phase?: string | null;
+  charged_free?: "charged" | "free" | null;
+  parent_session_id?: string | null;
+  cancel_reason?: string | null;
 }
 
 function initialsFor(name: string): string {
@@ -75,27 +88,18 @@ function initialsFor(name: string): string {
     .slice(0, 2);
 }
 
-/** Session names are `focus_label`, never `Block {n} · S{n}` (CR-EF-034). */
-function sessionName(s: SessionRow): string {
-  return (
-    s.data?.focus_label?.trim() ||
-    DEFAULT_ARCHETYPE_FOCUS_LABELS[s.archetype ?? ""] ||
-    `Session ${s.session_number}`
-  );
-}
-
 export default async function MobileClientModePage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const clientNumber = parseInt(params.id, 10);
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, name, client_number, email, phone, profile, compliance_status, gp_letter_status, annual_review_due_date, exercise_modifications")
+    .select("id, name, client_number, email, phone, profile, compliance_status, gp_letter_status, annual_review_due_date, exercise_modifications, sessions_purchased")
     .eq("client_number", clientNumber)
     .single();
 
   if (!client) notFound();
-  const row = client as ClientRow;
+  const row = client as ClientRow & { sessions_purchased: number | null };
 
   const { data: parqs } = await supabase
     .from("signed_parq")
@@ -157,7 +161,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   const { data: sessionsData } = blockIds.length
     ? await supabase
         .from("sessions")
-        .select("id, block_id, session_number, archetype, status, completed_at, data, scheduled_at, cancelled_at")
+        .select("id, block_id, session_number, archetype, status, completed_at, data, scheduled_at, cancelled_at, week, phase, charged_free, parent_session_id")
         .in("block_id", blockIds)
     : { data: [] as SessionRow[] };
   const sessions = (sessionsData ?? []) as SessionRow[];
@@ -203,7 +207,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         id: s.id,
         day: completedAt.getDate(),
         month: completedAt.toLocaleDateString("en-GB", { month: "short" }),
-        name: sessionName(s),
+        name: sessionWorkoutName(s),
         sub,
       };
     });
@@ -227,7 +231,7 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         month: d.toLocaleDateString("en-GB", { month: "short" }),
         time: d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
         scheduledAt: s.scheduled_at as string,
-        name: sessionName(s),
+        name: sessionWorkoutName(s),
         status: deriveSessionStatus({
           status: s.status,
           cancelled_at: s.cancelled_at,
@@ -238,29 +242,105 @@ export default async function MobileClientModePage({ params }: { params: { id: s
       };
     });
 
-  const workouts: WorkoutView[] = [];
-  const byArchetype = new Map<string, SessionRow[]>();
-  for (const s of currentBlockSessions) {
-    const a = s.archetype ?? "?";
-    const arr = byArchetype.get(a) ?? [];
-    arr.push(s);
-    byArchetype.set(a, arr);
-  }
-  const archetypeOrder = ["A", "B", "C", ...Array.from(byArchetype.keys()).filter((a) => !["A", "B", "C"].includes(a)).sort()];
-  for (const a of archetypeOrder) {
-    const list = byArchetype.get(a);
-    if (!list) continue;
-    const done = list.filter((s) => s.data?.session_log?.completed_at).length;
-    workouts.push({
-      id: list[0].id,
-      key: a,
-      letter: a,
-      name: sessionName(list[0]),
-      emphasis: DEFAULT_ARCHETYPE_FOCUS_LABELS[a] ?? "Session",
-      done,
-      total: list.length,
+  /* ── CR-EF-113: Sessions view ── */
+  const chronologicalPositions = deriveChronologicalPositions(currentBlockSessions);
+
+  const sessionsView: SessionView[] = currentBlockSessions.map((s) => {
+    const pos = chronologicalPositions.get(s.id);
+    const status = deriveSessionStatus({
+      status: s.status,
+      cancelled_at: s.cancelled_at,
+      completed_at: s.completed_at,
+      scheduled_at: s.scheduled_at,
+      session_log: s.data?.session_log,
+    });
+    const scheduledDate = s.scheduled_at ? new Date(s.scheduled_at) : null;
+    const isToday = scheduledDate && scheduledDate.toDateString() === now.toDateString();
+    return {
+      id: s.id,
+      name: sessionWorkoutName(s),
+      position: pos?.position ?? null,
+      total: pos?.total ?? null,
+      status: status as SessionView["status"],
+      scheduledAt: s.scheduled_at,
+      cancelledAt: s.cancelled_at,
+      completedAt: s.completed_at ?? s.data?.session_log?.completed_at ?? null,
+      isToday,
+      dayOfWeek: scheduledDate ? scheduledDate.toLocaleDateString("en-GB", { weekday: "short" }) : null,
+      dayOfMonth: scheduledDate ? scheduledDate.getDate() : null,
+      monthShort: scheduledDate ? scheduledDate.toLocaleDateString("en-GB", { month: "short" }) : null,
+      time: scheduledDate ? scheduledDate.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : null,
+      chargedFree: s.charged_free ?? null,
+      cancelReason: s.cancel_reason ?? null,
+    };
+  });
+
+  /* ── CR-EF-113: Session pot view ── */
+  const pot = deriveSessionPot(
+    currentBlockSessions.map((s) => ({
+      status: s.status as DBSession["status"],
+      cancelled_at: s.cancelled_at,
+      charged_free: s.charged_free,
+      parent_session_id: s.parent_session_id,
+    })),
+    row.sessions_purchased,
+  );
+  const potView: SessionPotView = {
+    remaining: pot.remaining,
+    used: pot.used,
+    purchased: pot.purchased,
+    completed: pot.completed,
+    chargedCancellations: pot.chargedCancellations,
+    freeCancellations: pot.freeCancellations,
+    unreviewedCancellations: pot.unreviewedCancellations,
+    bookedAhead: sessionsView.filter(
+      (s) => s.status === "scheduled" && s.scheduledAt && new Date(s.scheduledAt).getTime() >= now.getTime(),
+    ).length,
+  };
+
+  /* ── CR-EF-113: Pool workout view ── */
+  // Each distinct archetype in the current block represents one workout in the pool.
+  // Pool status: "used" (completed), "assigned" (scheduled to a future slot),
+  // "unused" (not scheduled), or "next" (first unused in sequence).
+  const poolWorkouts: PoolWorkoutView[] = [];
+  const seenArchetypes = new Set<string>();
+  // Sort by session_number to maintain sequence order
+  const sortedBlockSessions = [...currentBlockSessions].sort((a, b) => a.session_number - b.session_number);
+  for (const s of sortedBlockSessions) {
+    const arch = s.archetype;
+    if (!arch || seenArchetypes.has(arch)) continue;
+    seenArchetypes.add(arch);
+
+    // Find the first session with this archetype (for name resolution)
+    const firstSession = sortedBlockSessions.find((ss) => ss.archetype === arch);
+    if (!firstSession) continue;
+
+    const workoutSessions = currentBlockSessions.filter((ss) => ss.archetype === arch);
+    const completedSessions = workoutSessions.filter((ss) => ss.data?.session_log?.completed_at);
+    const scheduledSessions = workoutSessions.filter((ss) => ss.scheduled_at && !ss.cancelled_at);
+    const isUsed = completedSessions.length > 0;
+    const isAssigned = scheduledSessions.length > 0 && !isUsed;
+
+    // Get the delivery date (first completed session's completed_at)
+    const deliveryDate = completedSessions[0]?.data?.session_log?.completed_at ?? null;
+    // Get the assigned date (first scheduled session's scheduled_at)
+    const assignedDate = scheduledSessions[0]?.scheduled_at ?? null;
+
+    poolWorkouts.push({
+      id: firstSession.id,
+      letter: arch,
+      name: sessionWorkoutName(firstSession),
+      status: isUsed ? "used" : isAssigned ? "assigned" : "unused",
+      deliveryDate,
+      assignedDate,
     });
   }
+
+  // Mark the first "unused" workout as "next"
+  const nextUnused = poolWorkouts.find((w) => w.status === "unused");
+  if (nextUnused) nextUnused.status = "next";
+
+  const unusedCount = poolWorkouts.filter((w) => w.status === "unused" || w.status === "next").length;
 
   return (
     <>
@@ -301,7 +381,10 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         block={blockView}
         recent={recent}
         calendarSessions={calendarSessions}
-        workouts={workouts}
+        sessionsView={sessionsView}
+        poolWorkouts={poolWorkouts}
+        potView={potView}
+        unusedPoolCount={unusedCount}
         trainTargetId={trainTargetId}
         exerciseNotes={exerciseNotes}
       />
