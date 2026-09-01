@@ -183,8 +183,8 @@ export default async function MobileClientModePage({ params }: { params: { id: s
   const currentBlock = blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0] ?? null;
   const currentBlockSessions = currentBlock ? sessions.filter((s) => s.block_id === currentBlock.id) : [];
 
-  const blockDone = currentBlockSessions.filter((s) => s.data?.session_log?.completed_at).length;
-  const blockTotal = currentBlockSessions.length;
+  const blockDone = currentBlockSessions.filter((s) => s.data?.session_log?.completed_at && !s.parent_session_id).length;
+  const blockTotal = currentBlockSessions.filter((s) => !s.parent_session_id).length;
   const blockPct = blockTotal > 0 ? Math.round((blockDone / blockTotal) * 100) : 0;
   // block_note is the short, human-written note shown on the desktop block
   // overview — block.summary is the raw AI planning document and is never

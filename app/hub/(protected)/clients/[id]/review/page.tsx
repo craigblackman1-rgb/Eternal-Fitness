@@ -86,6 +86,7 @@ export default async function ReviewPage({ params }: { params: { id: string } })
   const positions = deriveChronologicalPositions(activeBlockSessions);
   const chronologicalTotal = Array.from(positions.values())[0]?.total ?? 0;
   const completedSessions = activeBlockSessions.filter((s) => {
+    if (s.parent_session_id) return false;
     const st = (s as any).status ?? (s.cancelled_at ? "cancelled" : "planned");
     return st === "completed";
   });

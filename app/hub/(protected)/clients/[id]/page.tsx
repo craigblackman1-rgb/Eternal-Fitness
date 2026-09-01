@@ -263,6 +263,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const blockSessionCounts: Record<number, number> = {};
   const blockCompletedCounts: Record<number, number> = {};
   for (const s of sessions ?? []) {
+    if ((s as any).parent_session_id) continue;
     const bn = (s as any).blocks?.block_number;
     if (bn != null) {
       blockSessionCounts[bn] = (blockSessionCounts[bn] ?? 0) + 1;
