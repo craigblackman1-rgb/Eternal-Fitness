@@ -652,9 +652,11 @@ function PositionStep({
   hasDeliveredSessions: boolean;
   unreviewedCount: number;
 }) {
-  const pctCompleted = pot.purchased ? (pot.completed / pot.purchased) * 100 : 0;
-  const pctCharged = pot.purchased ? (pot.chargedCancellations / pot.purchased) * 100 : 0;
-  const pctRemaining = pot.purchased && pot.remaining != null ? (pot.remaining / pot.purchased) * 100 : 0;
+  const effectivePurchased = pot.purchasedIsEstimate ? pot.estimatedPurchase : pot.purchased;
+  const effectiveRemaining = pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining;
+  const pctCompleted = effectivePurchased ? (pot.completed / effectivePurchased) * 100 : 0;
+  const pctCharged = effectivePurchased ? (pot.chargedCancellations / effectivePurchased) * 100 : 0;
+  const pctRemaining = effectivePurchased && effectiveRemaining != null ? (effectiveRemaining / effectivePurchased) * 100 : 0;
   const isExpired = blockExpiryDate ? new Date(blockExpiryDate) < new Date() : false;
 
   return (
@@ -664,18 +666,23 @@ function PositionStep({
         title="Position"
         subtitle={pot.purchased != null
           ? `${pot.purchased} purchased · ${pot.used} used · ${pot.remaining} remaining`
-          : `Purchased not recorded · ${pot.used} used`}
+          : pot.purchasedIsEstimate
+            ? `${pot.estimatedPurchase} purchased (est.) · ${pot.used} used · ${pot.estimatedRemaining} remaining (est.)`
+            : `Purchased not recorded · ${pot.used} used`}
       />
       <div className="space-y-4">
         {/* Hero */}
         <div className="flex items-baseline gap-6 flex-wrap">
           <div className="flex items-baseline gap-2.5">
             <span className={cn("text-[40px] font-extrabold tracking-tight leading-none tabular-nums", !hasDeliveredSessions ? "text-muted-foreground" : "text-foreground")}>
-              {pot.remaining ?? "?"}
+              {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"}
             </span>
             <span className="text-[12px] font-bold text-muted-foreground max-w-[88px] leading-tight">
               sessions remaining
             </span>
+            {pot.purchasedIsEstimate && (
+              <span className="text-[11px] text-muted-foreground leading-tight">est.</span>
+            )}
           </div>
           <div className="flex gap-5.5 pl-5.5 border-l border-[var(--hub-border)]">
             <div>
@@ -684,7 +691,7 @@ function PositionStep({
             </div>
             <div>
               <div className="text-[19px] font-bold text-foreground leading-tight tabular-nums">{pot.purchased ?? "—"}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Purchased</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Purchased{pot.purchasedIsEstimate ? " (est.)" : ""}</div>
             </div>
           </div>
         </div>
@@ -699,7 +706,7 @@ function PositionStep({
           <InfoLine variant="muted">
             No sessions delivered yet — nothing has been used. The number above is unearned, not a sign anything is on track.
           </InfoLine>
-        ) : pot.purchased != null ? (
+        ) : (effectivePurchased != null ? (
           <>
             {/* Bar */}
             <div className="flex h-3 rounded-full overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session position breakdown">
@@ -710,14 +717,14 @@ function PositionStep({
             <div className="flex flex-wrap gap-1.5">
               <Legend color="var(--status-success)" label="Completed" count={pot.completed} />
               {pot.chargedCancellations > 0 && <Legend color="var(--status-danger)" label="Charged cancellation" count={pot.chargedCancellations} />}
-              {pot.remaining != null && <Legend color="repeating-linear-gradient(135deg,#E4E7EC 0 3px,#F2F3F6 3px 6px)" label="Remaining" count={pot.remaining} />}
+              {effectiveRemaining != null && <Legend color="repeating-linear-gradient(135deg,#E4E7EC 0 3px,#F2F3F6 3px 6px)" label="Remaining" count={effectiveRemaining} />}
             </div>
           </>
         ) : (
           <InfoLine variant="muted">
             {pot.completed} session{pot.completed === 1 ? "" : "s"} completed — purchased count is not set, so a position bar cannot be drawn.
           </InfoLine>
-        )}
+        ))}
 
         {/* Unreviewed — shown again as "not counted above" */}
         {unreviewedCount > 0 && (
