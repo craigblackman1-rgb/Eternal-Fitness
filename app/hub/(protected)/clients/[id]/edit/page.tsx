@@ -124,6 +124,9 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [bandSetId, setBandSetId] = useState<string | null>(null);
   const [bandSets, setBandSets] = useState<{ id: string; name: string; owner_type: string }[]>([]);
   const [packageType, setPackageType] = useState<Package | null>(null);
+  const [ecName, setEcName] = useState("");
+  const [ecRel, setEcRel] = useState("");
+  const [ecPhone, setEcPhone] = useState("");
 
   useEffect(() => {
     // Split options come from the Plan Agent "splits" setting so Esther can add
@@ -189,6 +192,10 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setResourceVisibility(data.resource_visibility ?? {});
       setBandSetId(data.band_set_id ?? null);
       setPackageType(data.package_type ?? null);
+      const ec = p.emergency_contact;
+      setEcName(ec?.name ?? "");
+      setEcRel(ec?.relationship ?? "");
+      setEcPhone(ec?.phone ?? "");
       const blocks: any[] = data._blocks ?? [];
       setBlocksCompleted(blocks.filter((b: any) => b.status === "complete").length);
       const counts: Record<number, number> = data._sessionsCount ?? {};
@@ -222,6 +229,17 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       ...profile,
       client: { ...profile.client, name: name.trim(), age: calculateAge(profile.client.date_of_birth) || profile.client.age },
     };
+
+    // Merge emergency contact into profile
+    if (ecName.trim() || ecRel.trim() || ecPhone.trim()) {
+      (fullProfile as any).emergency_contact = {
+        name: ecName.trim() || null,
+        relationship: ecRel.trim() || null,
+        phone: ecPhone.trim() || null,
+      };
+    } else {
+      (fullProfile as any).emergency_contact = null;
+    }
 
     const res = await fetch(`/api/clients/${params.id}`, {
       method: "PATCH",
@@ -388,6 +406,29 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   placeholder="07…"
                   className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
                 />
+              </div>
+            </div>
+          </div>
+        </HubCard>
+
+        <HubCard>
+          <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Emergency contact" subtitle="Who to call if something goes wrong during a session" color="rose" noBottomPadding />
+          <div className="px-5 pb-5 pt-4 space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Clinically important — hard to leave empty for any client doing in-person training.
+            </p>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="ecName">Name</Label>
+                <Input id="ecName" value={ecName} onChange={(e) => { setDirty(true); setEcName(e.target.value); }} placeholder="Emergency contact name" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ecRel">Relationship</Label>
+                <Input id="ecRel" value={ecRel} onChange={(e) => { setDirty(true); setEcRel(e.target.value); }} placeholder="e.g. Spouse" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ecPhone">Phone</Label>
+                <Input id="ecPhone" type="tel" value={ecPhone} onChange={(e) => { setDirty(true); setEcPhone(e.target.value); }} placeholder="07…" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
               </div>
             </div>
           </div>

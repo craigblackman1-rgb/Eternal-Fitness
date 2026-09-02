@@ -774,6 +774,25 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                           <span className="text-sm font-medium text-foreground">{client.referral_source}</span>
                         </div>
                       )}
+                      {p?.emergency_contact && (p.emergency_contact.name || p.emergency_contact.phone) && (
+                        <div className="rounded-lg border border-[var(--hub-border)] p-3 space-y-1.5">
+                          <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Emergency contact</span>
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div>
+                              <span className="text-muted-foreground text-xs block">Name</span>
+                              <span className="font-medium text-foreground">{p.emergency_contact.name || "—"}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-xs block">Relationship</span>
+                              <span className="font-medium text-foreground">{p.emergency_contact.relationship || "—"}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-xs block">Phone</span>
+                              <span className="font-medium text-foreground">{p.emergency_contact.phone || "—"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <HubDataGrid cols={2}>
                         {p.health.conditions?.length > 0 && (
                           <HubDataField label="Conditions">
@@ -1095,6 +1114,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     sessions_used: client.sessions_used ?? 0,
                     sessions_remaining: client.sessions_remaining ?? null,
                     session_duration: client.session_duration ?? 60,
+                    client_rate: client.client_rate ?? null,
                     payment_method: client.payment_method ?? null,
                     payment_status: client.payment_status ?? "pending",
                     block_expiry_date: client.block_expiry_date ?? null,
