@@ -51,6 +51,7 @@ interface SessionRow {
   status?: string | null;
   cancelled_at?: string | null;
   completed_at?: string | null;
+  parent_session_id?: string | null;
   blocks?: { block_number: number };
 }
 
@@ -648,7 +649,7 @@ export function TrainingTabContent({
                                 </button>
                               )}
                               <Link
-                                href={`/hub/clients/${clientNumber}/blocks/${session.block_id}/sessions/${session.session_number}`}
+                                href={`/hub/clients/${clientNumber}/blocks/${session.block_id}/sessions/${session.session_number}${session.parent_session_id ? `?session=${session.id}` : ""}`}
                                 className="text-teal font-medium hover:underline"
                               >
                                 Open

@@ -576,7 +576,7 @@ export default async function DashboardPage() {
                     const clientName = (block as any).clients?.name;
                     const initials = (clientName ?? "").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
                     const href = nextSession
-                      ? `/hub/clients/${clientNumber}/blocks/${block.id}/sessions/${nextSession.session_number}`
+                      ? `/hub/clients/${clientNumber}/blocks/${block.id}/sessions/${nextSession.session_number}${(nextSession as any).parent_session_id ? `?session=${nextSession.id}` : ""}`
                       : `/hub/clients/${clientNumber}/blocks/${block.id}`;
                     return (
                       <Link

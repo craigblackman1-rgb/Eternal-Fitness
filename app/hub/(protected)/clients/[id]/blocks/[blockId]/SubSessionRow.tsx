@@ -48,7 +48,7 @@ export function SubSessionRow({ subSession, clientId, blockId }: SubSessionRowPr
     stateClass = "text-muted-foreground bg-[var(--hub-hover)] border-[var(--hub-border)]";
   }
 
-  const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${subSession.session_number}`;
+  const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${subSession.session_number}?session=${subSession.id}`;
   const name = subSession.data?.focus_label || "Supplementary work";
 
   return (

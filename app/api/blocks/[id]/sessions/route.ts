@@ -12,6 +12,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const countOnly = searchParams.get("count") === "true";
   const potOnly = searchParams.get("pot_only") === "true";
   const sessionNumber = searchParams.get("session_number");
+  // CR-EF-125 follow-up — sub-session links route by id, not number.
+  const sessionId = searchParams.get("id");
 
   if (countOnly) {
     // CR-EF-101 — when pot_only, count only sessions where parent_session_id IS NULL
@@ -32,6 +34,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
     .select("*")
     .eq("block_id", params.id)
     .order("session_number", { ascending: true });
+
+  if (sessionId) {
+    const { data, error } = await baseQuery
+      .eq("id", sessionId)
+      .single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
+  }
 
   if (sessionNumber) {
     const { data, error } = await baseQuery

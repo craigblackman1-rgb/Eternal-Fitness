@@ -76,9 +76,12 @@ export default function SessionViewPage({
   const [rescheduling, setRescheduling] = useState(false);
   // CR-EF-122 — "Add supplementary work" dialog state
   const [addSupplementaryOpen, setAddSupplementaryOpen] = useState(false);
-  // CR-EF-126 — sub-sessions (supplementary work) attached to this session
+  // CR-EF-125 — sub-sessions (supplementary work) attached to this session
   const [subSessions, setSubSessions] = useState<DBSession[]>([]);
   const [subSessionSetLogs, setSubSessionSetLogs] = useState<Record<string, SetLog[]>>({});
+  // CR-EF-125 follow-up — when ?session=<uuid> is present, the loaded session
+  // may be a sub-session; track its parent for the breadcrumb context.
+  const [parentSession, setParentSession] = useState<DBSession | null>(null);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
   const [scheduling, setScheduling] = useState(false);
@@ -117,11 +120,17 @@ export default function SessionViewPage({
   }, []);
 
   const sessionNum = parseInt(params.sessionNum);
+  // CR-EF-125 follow-up — sub-session links carry ?session=<uuid> to route by
+  // id rather than number (sub-sessions share their parent's session_number).
+  const sessionIdParam = searchParams.get("session");
 
   useEffect(() => {
     async function load() {
+      const sessionQuery = sessionIdParam
+        ? `?id=${sessionIdParam}`
+        : `?session_number=${sessionNum}`;
       const [sessionRes, allSessionsRes, bestWeightsRes, clientRes, lastSessionRes] = await Promise.all([
-        fetch(`/api/blocks/${params.blockId}/sessions?session_number=${sessionNum}`),
+        fetch(`/api/blocks/${params.blockId}/sessions${sessionQuery}`),
         fetch(`/api/blocks/${params.blockId}/sessions`),
         fetch(`/api/clients/${params.id}/best-weights`),
         fetch(`/api/clients/${params.id}`),
@@ -162,6 +171,16 @@ export default function SessionViewPage({
             (s) => s.parent_session_id === data.id,
           );
           setSubSessions(subs);
+          // CR-EF-125 follow-up — when the loaded session is itself a sub-session,
+          // find its parent so the breadcrumb can show "Part of session N".
+          if (data.parent_session_id) {
+            const parent = allSessionsRef.current.find(
+              (s) => s.id === data.parent_session_id,
+            );
+            setParentSession(parent ?? null);
+          } else {
+            setParentSession(null);
+          }
           // Fetch set logs for each sub-session to derive logged state
           const subLogsMap: Record<string, SetLog[]> = {};
           await Promise.all(
@@ -182,7 +201,7 @@ export default function SessionViewPage({
       setLoading(false);
     }
     load();
-  }, [params.id, params.blockId, sessionNum, refreshKey]);
+  }, [params.id, params.blockId, sessionNum, sessionIdParam, refreshKey]);
 
   // Legacy entry points land here with ?edit=1 (block overview's "Edit session") or
   // ?mode=edit (the retired /hub/log redirect) — both open straight into the editor.
@@ -434,6 +453,17 @@ export default function SessionViewPage({
           <IconChevronLeft className="h-5 w-5" />
           Back to Block
         </Link>
+        {parentSession && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Part of{" "}
+            <Link
+              href={`/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${parentSession.session_number}`}
+              className="underline hover:text-foreground"
+            >
+              Session {parentSession.session_number}
+            </Link>
+          </p>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-4">
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3">
@@ -678,7 +708,7 @@ export default function SessionViewPage({
                 stateLabel = "Not logged yet";
                 stateClass = "text-muted-foreground bg-[var(--hub-hover)] border-[var(--hub-border)]";
               }
-              const subUrl = `/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${sub.session_number}`;
+               const subUrl = `/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${sub.session_number}?session=${sub.id}`;
               return (
                 <div key={sub.id} className="relative flex items-center gap-3 pl-4 py-2.5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px]">
                   {/* Rose spine — "hangs off the session" cue */}

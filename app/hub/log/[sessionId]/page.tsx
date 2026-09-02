@@ -14,7 +14,7 @@ export default async function LiveSessionLogRedirect({ params }: { params: { ses
 
   const { data: session } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number")
+    .select("id, block_id, session_number, parent_session_id")
     .eq("id", params.sessionId)
     .single();
 
@@ -38,5 +38,5 @@ export default async function LiveSessionLogRedirect({ params }: { params: { ses
 
   if (!client || client.client_number == null) notFound();
 
-  redirect(`/hub/clients/${client.client_number}/blocks/${block.id}/sessions/${session.session_number}`);
+  redirect(`/hub/clients/${client.client_number}/blocks/${block.id}/sessions/${session.session_number}${session.parent_session_id ? `?session=${session.id}` : ""}`);
 }

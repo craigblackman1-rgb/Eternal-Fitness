@@ -145,7 +145,7 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
                     <TableCell className="text-sm py-2.5">{studioCount} exercises</TableCell>
                     <TableCell className="text-sm py-2.5">{homeCount} exercises</TableCell>
                     <TableCell className="text-right py-2.5">
-                      <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${session.session_number}`}>
+                      <Link href={`/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${session.session_number}${session.parent_session_id ? `?session=${session.id}` : ""}`}>
                         <Button variant="ghost" size="icon" className="rounded-lg hover:bg-rose/10 hover:text-rose">
                           <IconEye className="h-4 w-4" />
                         </Button>
