@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { normaliseClientEquipment } from "@/lib/client-equipment";
 
 export async function GET(request: Request) {
   const supabase = createClient();
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
     insertRow.delivery_mode = delivery_mode;
   }
   if (equipment !== undefined) {
-    insertRow.equipment = equipment;
+    insertRow.equipment = normaliseClientEquipment(equipment);
   }
   if (address !== undefined) {
     insertRow.address = address || null;

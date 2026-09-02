@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { normaliseClientEquipment } from "@/lib/client-equipment";
 
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -50,6 +51,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
+  if ("equipment" in body) body.equipment = normaliseClientEquipment(body.equipment);
   const numericId = parseInt(params.id);
   const col = Number.isFinite(numericId) && numericId > 0 ? "client_number" : "id";
   const val = Number.isFinite(numericId) && numericId > 0 ? numericId : params.id;

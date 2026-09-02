@@ -15,8 +15,9 @@ import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
 import { MedicationTable } from "@/components/hub/MedicationTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
-import { EquipmentMultiSelect } from "@/components/hub/EquipmentMultiSelect";
-import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender, Frequency, Package } from "@/types";
+import { ClientEquipmentCard } from "@/components/hub/ClientEquipmentCard";
+import { normaliseClientEquipment } from "@/lib/client-equipment";
+import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender, Frequency, Package, ClientEquipmentEntry } from "@/types";
 import { DEFAULT_FREQUENCY, formatFrequency } from "@/types";
 import { DEFAULT_SPLITS, parseSplits } from "@/lib/planAgentPrompt";
 import { RESOURCES } from "@/lib/resources";
@@ -114,7 +115,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
   const [groupType, setGroupType] = useState<DBClientGroupType>("individual_journey");
   const [paceMode, setPaceMode] = useState<DBClientPaceMode>("medium");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("studio_1to1");
-  const [equipment, setEquipment] = useState<string[] | null>(null);
+  const [equipment, setEquipment] = useState<ClientEquipmentEntry[] | null>(null);
   const [resourceVisibility, setResourceVisibility] = useState<Record<string, boolean>>({});
   const [splitOptions, setSplitOptions] = useState<string[]>(parseSplits(DEFAULT_SPLITS).map((s) => s.label));
   const [blocksCompleted, setBlocksCompleted] = useState<number>(0);
@@ -188,7 +189,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       setGroupType(data.group_type ?? "individual_journey");
       setPaceMode(data.pace_mode ?? "medium");
       setDeliveryMode(data.delivery_mode ?? "studio_1to1");
-      setEquipment(data.equipment ?? null);
+      setEquipment(normaliseClientEquipment(data.equipment));
       setResourceVisibility(data.resource_visibility ?? {});
       setBandSetId(data.band_set_id ?? null);
       setPackageType(data.package_type ?? null);
@@ -573,18 +574,13 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
           </div>
         </HubCard>
 
-        <HubCard>
-          <HubCardHeader icon={<IconDumbbell className="w-4 h-4" />} title="Equipment" subtitle="What this client has available — constrains plan generation" color="teal" noBottomPadding />
-          <div className="px-5 pb-5 pt-4 space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Tick every item this client can use. The Plan Agent will only select exercises that match. Leave as
-              &quot;Not configured&quot; to use the full studio catalogue (no constraint).
-            </p>
-            <EquipmentMultiSelect
-              selected={equipment}
-              onChange={(v) => { setDirty(true); setEquipment(v); }}
-            />
-          </div>
+        <HubCard padded={false}>
+          <ClientEquipmentCard
+            value={equipment}
+            onChange={(v) => { setDirty(true); setEquipment(v); }}
+            clientFirstName={name.split(" ")[0] || "this client"}
+            showCopyStudio={deliveryMode === "studio_1to1"}
+          />
         </HubCard>
 
         <HubCard>
@@ -969,6 +965,15 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
             />
             <p className="text-xs text-muted-foreground mb-3">Worked out from the record — not set by hand.</p>
             <div className="space-y-0">
+              <div className="flex items-start gap-2.5 py-2.5 text-xs text-[var(--color-body)]">
+                {equipment === null ? (
+                  <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4 shrink-0 mt-px text-amber"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><span>Equipment not set — plan agent unconstrained</span></>
+                ) : equipment.length === 0 ? (
+                  <><IconCheck className="w-4 h-4 shrink-0 mt-px text-teal" /><span>Bodyweight only — plan agent constrained</span></>
+                ) : (
+                  <><IconCheck className="w-4 h-4 shrink-0 mt-px text-teal" /><span>Equipment set — {equipment.length} item{equipment.length === 1 ? "" : "s"}</span></>
+                )}
+              </div>
               <div className="flex items-start gap-2.5 py-2.5 border-t border-[var(--hub-border)] text-xs text-[var(--color-body)]">
                 {gpHeld
                   ? <><IconCheck className="w-4 h-4 shrink-0 text-teal mt-px" /><span>GP clearance on file</span></>

@@ -1,0 +1,1 @@
+COMMENT ON COLUMN clients.equipment IS 'CR-EF-129/130 — NULL = not set (unconstrained); [] = bodyweight only; else [{name, detail}] where name matches studio_equipment.name or is free text and detail is the client''s increment/colour/range string.';

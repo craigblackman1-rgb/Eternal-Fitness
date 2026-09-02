@@ -27,10 +27,12 @@ import Link from "next/link";
 import { HubCard, HubCardHeader, HubPageHeader } from "@/components/hub";
 import { TagMultiSelect } from "@/components/hub/TagMultiSelect";
 import { InjuryHistoryTable } from "@/components/hub/InjuryHistoryTable";
-import { EquipmentMultiSelect } from "@/components/hub/EquipmentMultiSelect";
+import { ClientEquipmentCard } from "@/components/hub/ClientEquipmentCard";
+import { normaliseClientEquipment } from "@/lib/client-equipment";
 import { MedicationTable } from "@/components/hub/MedicationTable";
 import type {
   ClientProfile,
+  ClientEquipmentEntry,
   Gender,
   Frequency,
   Package,
@@ -173,7 +175,7 @@ const emptyProfile: ClientProfile = {
 
 /* ── Draft persistence ── */
 const DRAFT_KEY = "ef-new-client-draft";
-const DRAFT_VERSION = 1;
+const DRAFT_VERSION = 2;
 
 type DraftData = {
   v: number;
@@ -207,7 +209,7 @@ type DraftData = {
   baseline: string;
   successLooks: string;
   deliveryMode: "studio_1to1" | "home_training";
-  equipment: string[] | null;
+  equipment: ClientEquipmentEntry[] | null;
   bodyweightOnly: boolean;
   bandSet: "ef" | "own";
   bandNote: string;
@@ -227,7 +229,7 @@ function serializeDraft(s: {
   injuryHistory: ClientProfile["health"]["injury_history"];
   primaryGoal: PrimaryGoal; milestones: string[]; baseline: string; successLooks: string;
   deliveryMode: "studio_1to1" | "home_training";
-  equipment: string[] | null; bodyweightOnly: boolean;
+  equipment: ClientEquipmentEntry[] | null; bodyweightOnly: boolean;
   bandSet: "ef" | "own"; bandNote: string;
   firstWorkoutRoute: "qa" | "templates" | "paste";
 }): DraftData {
@@ -329,7 +331,7 @@ export default function NewClientPage() {
 
   /* ── Step 4 state ── */
   const [deliveryMode, setDeliveryMode] = useState<"studio_1to1" | "home_training">(() => initDraft("studio_1to1", (d) => d.deliveryMode));
-  const [equipment, setEquipment] = useState<string[] | null>(() => initDraft(null, (d) => d.equipment));
+  const [equipment, setEquipment] = useState<ClientEquipmentEntry[] | null>(() => initDraft(null, (d) => d.equipment));
   const [bodyweightOnly, setBodyweightOnly] = useState(() => initDraft(false, (d) => d.bodyweightOnly));
   const [bandSet, setBandSet] = useState<"ef" | "own">(() => initDraft("ef", (d) => d.bandSet));
   const [bandNote, setBandNote] = useState(() => initDraft("", (d) => d.bandNote));
@@ -428,23 +430,10 @@ export default function NewClientPage() {
     if (step > 1) goTo((step - 1) as StepKey);
   }, [step, goTo]);
 
-  /* ── Handle bodyweight only toggle ── */
-  const toggleBodyweight = useCallback(() => {
-    if (!bodyweightOnly) {
-      setEquipment([]); // explicit empty array = bodyweight only
-      setBodyweightOnly(true);
-    } else {
-      setEquipment(null); // not configured
-      setBodyweightOnly(false);
-    }
-  }, [bodyweightOnly]);
-
-  /* ── Handle equipment change from EquipmentMultiSelect ── */
-  const handleEquipmentChange = useCallback((val: string[] | null) => {
+  /* ── Handle equipment change from ClientEquipmentCard ── */
+  const handleEquipmentChange = useCallback((val: ClientEquipmentEntry[] | null) => {
     setEquipment(val);
-    if (val !== null && val.length > 0) {
-      setBodyweightOnly(false);
-    }
+    setBodyweightOnly(val !== null && val.length === 0);
   }, []);
 
   /* ── Save and finish later ── */
@@ -703,9 +692,9 @@ export default function NewClientPage() {
   /* ── Review preview ── */
   const reviewDeliveryLabel = deliveryMode === "home_training" ? "Home training" : "Studio 1:1";
   const reviewEqLabel = bodyweightOnly
-    ? "Bodyweight only — no equipment"
+    ? "Bodyweight only \u2014 no equipment"
     : equipment && equipment.length > 0
-    ? equipment.join(", ")
+    ? equipment.map((e) => e.name).join(", ")
     : "";
   const reviewRouteLabel =
     firstWorkoutRoute === "templates" ? "Picked from templates"
@@ -1301,29 +1290,13 @@ export default function NewClientPage() {
                 <SectionHeader title="Equipment" />
                 <p className="text-[11.5px] text-muted-foreground">Choose everything available, or confirm there&apos;s none. Leaving this unanswered isn&apos;t a valid state — an unconstrained profile is how a dumbbell exercise ends up assigned to someone with no dumbbells.</p>
 
-                {/* Bodyweight only checkbox */}
-                <label className="flex items-start gap-3 p-2.5 rounded-[10px] border border-[var(--color-muted-text)] bg-[var(--hub-hover)] cursor-pointer transition-colors">
-                  <span className="relative shrink-0 w-5 h-5 mt-px cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={bodyweightOnly}
-                      onChange={toggleBodyweight}
-                      className="sr-only"
-                    />
-                    <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${bodyweightOnly ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
-                      {bodyweightOnly && <IconCheck className="w-3.5 h-3.5 text-white" />}
-                    </span>
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-semibold text-foreground">Bodyweight only — no equipment</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Ticking this writes an explicit empty list, not a blank field. It&apos;s a deliberate answer, not what happens by default when nothing&apos;s picked.</p>
-                  </div>
-                </label>
-
-                {/* Equipment grid */}
-                <div className={bodyweightOnly ? "opacity-40 pointer-events-none" : ""}>
-                  <EquipmentMultiSelect selected={equipment} onChange={handleEquipmentChange} hideControls showHomeEquivalent={deliveryMode === "home_training"} />
-                </div>
+                <ClientEquipmentCard
+                  embedded
+                  value={equipment}
+                  onChange={handleEquipmentChange}
+                  clientFirstName={name.split(" ")[0] || "this client"}
+                  showCopyStudio={deliveryMode === "studio_1to1"}
+                />
 
                 {/* Equipment gate */}
                 {!step4Valid && (
