@@ -68,12 +68,14 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
   // BUG-EF-107 — fetch the latest client_notes entry for this session so the
   // workout view can display a session note the trainer already wrote.
   let sessionClientNote: string | null = null;
+  let sessionClientNoteId: string | null = null;
   if (block) {
     const noteRes = await pool.query(
-      `SELECT note FROM client_notes WHERE client_id = $1 AND session_id = $2 ORDER BY created_at DESC LIMIT 1`,
+      `SELECT id, note FROM client_notes WHERE client_id = $1 AND session_id = $2 ORDER BY created_at DESC LIMIT 1`,
       [block.client_id, params.sessionId],
     );
     sessionClientNote = noteRes.rows[0]?.note ?? null;
+    sessionClientNoteId = noteRes.rows[0]?.id ?? null;
   }
 
   const blockNumber = block?.block_number ?? null;
@@ -128,6 +130,7 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
       pbDates={lastSessionAndPb.pbDates}
       bands={bands}
       initialSessionNote={sessionClientNote}
+      initialSessionNoteId={sessionClientNoteId}
     />
   );
 }

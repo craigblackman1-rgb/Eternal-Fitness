@@ -152,6 +152,7 @@ export function TrainScreen({
   pbDates,
   bands,
   initialSessionNote,
+  initialSessionNoteId,
 }: {
   sessionId: string;
   sessionNumber: number;
@@ -179,6 +180,9 @@ export function TrainScreen({
   /** BUG-EF-107 — latest client_notes entry for this session, so the note
    *  sheet opens pre-populated when the trainer returns to the workout. */
   initialSessionNote?: string | null;
+  /** BUG-EF-107 — id of the latest client_notes row, so re-saving can update
+   *  instead of insert. */
+  initialSessionNoteId?: string | null;
 }) {
   const version = deliveryMode === "home_training" ? "home" : "studio";
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };
@@ -288,6 +292,8 @@ export function TrainScreen({
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState(initialSessionNote ?? "");
   const [noteSaving, setNoteSaving] = useState(false);
+  const [savedNoteId, setSavedNoteId] = useState<string | null>(initialSessionNoteId ?? null);
+  const [lastSavedNoteText, setLastSavedNoteText] = useState<string | null>(initialSessionNote ?? null);
 
   const [offline, setOffline] = useState<boolean>(false);
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
@@ -882,15 +888,30 @@ export function TrainScreen({
       toast.error("Cannot save note — client is not loaded.");
       return;
     }
+
+    // BUG-EF-107 — if the text hasn't changed since the last save (or initial
+    // load), just close the sheet without hitting the API.
+    if (lastSavedNoteText !== null && text === lastSavedNoteText) {
+      setNoteOpen(false);
+      toast("No changes");
+      return;
+    }
+
     setNoteSaving(true);
     try {
+      // PATCH /api/client-notes/[id] only accepts { pinned } — it does not
+      // support updating the note text. Fall back to POST which creates a new
+      // row. The "no changes" guard above prevents duplicates on re-save.
       const res = await fetch("/api/client-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_id: clientId, session_id: sessionId, note: text }),
       });
       if (!res.ok) throw new Error("Save failed");
+      const saved = await res.json().catch(() => null);
       setNoteOpen(false);
+      setLastSavedNoteText(text);
+      setSavedNoteId(saved?.id ?? null);
       toast.success("Note saved");
     } catch {
       toast.error("Could not save note — try again.");
