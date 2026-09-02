@@ -13,15 +13,15 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
   const [unassignedCount, setUnassignedCount] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/outlook-bookings?status=open&count=true")
+    fetch("/api/outlook-bookings?status=open&count=true", { signal: AbortSignal.timeout(15000) })
       .then((r) => (r.ok ? r.json() : null))
       .then((b) => setBookingsCount(b?.count ?? 0))
       .catch(() => setBookingsCount(0));
-    fetch("/api/outlook-duplicates?status=open&count=true")
+    fetch("/api/outlook-duplicates?status=open&count=true", { signal: AbortSignal.timeout(15000) })
       .then((r) => (r.ok ? r.json() : null))
       .then((b) => setDuplicatesCount(b?.count ?? 0))
       .catch(() => setDuplicatesCount(0));
-    fetch("/api/sessions/unassigned-outlook?count=true")
+    fetch("/api/sessions/unassigned-outlook?count=true", { signal: AbortSignal.timeout(15000) })
       .then((r) => (r.ok ? r.json() : null))
       .then((b) => setUnassignedCount(b?.count ?? 0))
       .catch(() => setUnassignedCount(0));

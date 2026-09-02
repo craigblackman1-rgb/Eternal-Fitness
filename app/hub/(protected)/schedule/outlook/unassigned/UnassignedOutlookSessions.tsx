@@ -56,11 +56,11 @@ export function UnassignedOutlookSessions() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/sessions/unassigned-outlook");
+      const res = await fetch("/api/sessions/unassigned-outlook", { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
       setSessions(await res.json());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
+      setError(e instanceof Error ? (e.name === "TimeoutError" ? "The server took too long to respond — try refreshing." : e.message) : "Failed to load");
     } finally {
       setLoading(false);
     }
@@ -156,7 +156,14 @@ export function UnassignedOutlookSessions() {
 
   if (loading) return <p className="p-8 text-center text-muted-foreground">Loading…</p>;
 
-  if (error) return <HubAlert severity="warning" title="Something went wrong">{error}</HubAlert>;
+  if (error) return (
+    <HubAlert severity="warning" title="Something went wrong">
+      <div className="flex items-center justify-between gap-3">
+        <span>{error}</span>
+        <Button variant="outline" size="sm" onClick={load}>Try again</Button>
+      </div>
+    </HubAlert>
+  );
 
   if (sessions.length === 0) {
     return (

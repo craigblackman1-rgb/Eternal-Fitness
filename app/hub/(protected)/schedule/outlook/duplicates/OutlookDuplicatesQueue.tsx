@@ -37,12 +37,12 @@ export function OutlookDuplicatesQueue() {
     setError(null);
     try {
       const status = showResolved ? "all" : "open";
-      const res = await fetch(`/api/outlook-duplicates?status=${status}`);
+      const res = await fetch(`/api/outlook-duplicates?status=${status}`, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
       const data: DuplicateRow[] = await res.json();
       setRows(showResolved ? data : data.filter((r) => r.status === "open"));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
+      setError(e instanceof Error ? (e.name === "TimeoutError" ? "The server took too long to respond — try refreshing." : e.message) : "Failed to load");
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,14 @@ export function OutlookDuplicatesQueue() {
         sync proceed. Sync stays paused on a row until you decide.
       </HubAlert>
 
-      {error && <HubAlert severity="warning" title="Something went wrong">{error}</HubAlert>}
+      {error && (
+        <HubAlert severity="warning" title="Something went wrong">
+          <div className="flex items-center justify-between gap-3">
+            <span>{error}</span>
+            <Button variant="outline" size="sm" onClick={load}>Try again</Button>
+          </div>
+        </HubAlert>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
