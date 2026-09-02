@@ -1,0 +1,2218 @@
+{
+  "generated_at": "2026-09-02T14:10:44.206Z",
+  "since": "2025-01-01",
+  "totals": {
+    "clients_resolved": 18,
+    "clients_ambiguous": 0,
+    "clients_unresolved": 0,
+    "new": 84,
+    "changed": 13,
+    "matched": 0,
+    "hub_only": 6,
+    "unpromotable": 0
+  },
+  "clients": [
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111001",
+      "hub_name": "Amanda Munday",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111001",
+      "tz_client_name": "Amanda Munday",
+      "trainerize_client_id": "22276427",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "29075185",
+          "tz_phase_name": "Weeks 1 - 8",
+          "tz_start": "2025-03-30T23:00:00.000Z",
+          "tz_end": "2025-05-24T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2",
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30467726",
+          "tz_phase_name": "Shoulder friendly strength",
+          "tz_start": "2025-06-01T23:00:00.000Z",
+          "tz_end": "2025-08-30T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2",
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "32559903",
+          "tz_phase_name": "Shoulder progressed (Trimmed)",
+          "tz_start": "2025-09-19T23:00:00.000Z",
+          "tz_end": "2026-01-03T00:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2",
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35024514",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-01-04T00:00:00.000Z",
+          "tz_end": "2026-02-14T00:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2",
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37078548",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-04T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2",
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38056627",
+          "tz_phase_name": "2026-Block 5",
+          "tz_start": "2026-07-19T23:00:00.000Z",
+          "tz_end": "2026-09-12T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2",
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "hub_block_id": "a02970b0-6543-4788-9f4f-3a4e0393a258",
+          "hub_block_number": 1,
+          "hub_session_count": "9",
+          "hub_session_names": [
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -4,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 6,
+        "new": 5,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111002",
+      "hub_name": "Anne Wareing",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111002",
+      "tz_client_name": "Anne Wareing",
+      "trainerize_client_id": "21590112",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28309672",
+          "tz_phase_name": "Weeks 1 - 4",
+          "tz_start": "2025-02-01T00:00:00.000Z",
+          "tz_end": "2025-03-28T00:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full Body - Deadlift & Pull",
+            "Full Body - Lunges, Abs, & Accessories"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "28309673",
+          "tz_phase_name": "Weeks 5 - 8",
+          "tz_start": "2025-03-29T00:00:00.000Z",
+          "tz_end": "2025-04-24T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full Body - Deadlift & Pull",
+            "Full Body - Lunges, Abs, & Accessories",
+            "Full Body - Squat & Push",
+            "Spring combo"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "32426268",
+          "tz_phase_name": "September-October25",
+          "tz_start": "2025-09-19T23:00:00.000Z",
+          "tz_end": "2025-10-31T00:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength & Cardio Copy",
+            "Strength focus",
+            "Strength focus Copy"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "34212335",
+          "tz_phase_name": "Dec25/Jan26",
+          "tz_start": "2025-11-29T00:00:00.000Z",
+          "tz_end": "2026-01-23T00:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength & Cardio Copy",
+            "Strength focus",
+            "Strength focus Copy"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35721769",
+          "tz_phase_name": "2026 - Block 2",
+          "tz_start": "2026-02-14T00:00:00.000Z",
+          "tz_end": "2026-04-02T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength & Cardio Copy",
+            "Strength focus",
+            "Strength focus Copy"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "36542020",
+          "tz_phase_name": "2026 Block 3 (Trimmed)",
+          "tz_start": "2026-04-10T23:00:00.000Z",
+          "tz_end": "2026-05-16T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength & Cardio Copy",
+            "Strength focus",
+            "Strength focus Copy"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37167179",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-04T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength & Cardio Copy",
+            "Strength focus",
+            "Strength focus Copy"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38005802",
+          "tz_phase_name": "2026 - Block 5",
+          "tz_start": "2026-07-12T23:00:00.000Z",
+          "tz_end": "2026-08-22T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength & Cardio Copy",
+            "Strength focus",
+            "Strength focus Copy"
+          ],
+          "hub_block_id": "54325405-98d6-466e-a86b-a57a8c321321",
+          "hub_block_number": 1,
+          "hub_session_count": "8",
+          "hub_session_names": [
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -3,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 8,
+        "new": 7,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111003",
+      "hub_name": "Becky Price",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111003",
+      "tz_client_name": "Becky Price",
+      "trainerize_client_id": "23269473",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "30349809",
+          "tz_phase_name": "Week 1 - 8",
+          "tz_start": "2025-05-20T23:00:00.000Z",
+          "tz_end": "2025-07-14T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Workout A - Foundation & Mobility",
+            "Workout B - Strength & Stability"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "32101988",
+          "tz_phase_name": "Week 1 - 8",
+          "tz_start": "2025-08-08T23:00:00.000Z",
+          "tz_end": "2025-11-06T00:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Workout A - Foundation & Mobility",
+            "Workout B - Strength & Stability"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "33656686",
+          "tz_phase_name": "Nov/Dec 2005",
+          "tz_start": "2025-11-07T00:00:00.000Z",
+          "tz_end": "2026-01-01T00:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Workout A - Foundation & Mobility",
+            "Workout B - Strength & Stability"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35086070",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-01-07T00:00:00.000Z",
+          "tz_end": "2026-02-13T00:00:00.000Z",
+          "tz_workout_count": "3",
+          "tz_workout_names": [
+            "WORKOUT 1: Engine Room",
+            "WORKOUT 2: Strength Under Fatigue",
+            "WORKOUT 3: The athletic builder"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35722480",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-02-15T00:00:00.000Z",
+          "tz_end": "2026-03-28T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "36593850",
+          "tz_phase_name": "Week 1 - 6 (Trimmed)",
+          "tz_start": "2026-04-09T23:00:00.000Z",
+          "tz_end": "2026-05-16T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37149800",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-04T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38088242",
+          "tz_phase_name": "2026 - Block 5",
+          "tz_start": "2026-07-19T23:00:00.000Z",
+          "tz_end": "2026-08-29T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "hub_block_id": "8bbce282-09a8-4a43-a04d-6fac63405da1",
+          "hub_block_number": 1,
+          "hub_session_count": "9",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -5,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 8,
+        "new": 7,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111004",
+      "hub_name": "Camilla Arnold",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111004",
+      "tz_client_name": "Camilla Arnold",
+      "trainerize_client_id": "29742056",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "37271198",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-24T23:00:00.000Z",
+          "tz_end": "2026-06-26T23:00:00.000Z",
+          "tz_workout_count": "3",
+          "tz_workout_names": [
+            "Gym - Workout A - Hinge",
+            "Mobility warm up / cooldown",
+            "Workout C GYM"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38000018",
+          "tz_phase_name": "Workout A",
+          "tz_start": "2026-07-03T23:00:00.000Z",
+          "tz_end": "2026-09-10T23:00:00.000Z",
+          "tz_workout_count": "3",
+          "tz_workout_names": [
+            "Gym - Workout A - Hinge",
+            "Mobility warm up / cooldown",
+            "Workout C GYM"
+          ],
+          "hub_block_id": "46eb9d06-3ed0-4ae8-8037-99fe206ec1f6",
+          "hub_block_number": 1,
+          "hub_session_count": "2",
+          "hub_session_names": [
+            "Session 1",
+            "Session 4"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": 1,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "48339c95-2293-413a-ae0a-967565e9c581",
+          "hub_block_number": 2,
+          "hub_session_count": "0",
+          "hub_session_names": [],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 2,
+        "new": 1,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "3f914637-0d09-4280-82b4-4fd44e092f21",
+      "hub_name": "Colin Farley",
+      "tz_client_id": "3f914637-0d09-4280-82b4-4fd44e092f21",
+      "tz_client_name": "Colin Farley",
+      "trainerize_client_id": "21317547",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28017830",
+          "tz_phase_name": "Full body - Stamina (Trimmed)",
+          "tz_start": "2025-01-13T00:00:00.000Z",
+          "tz_end": "2025-02-12T00:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "28594934",
+          "tz_phase_name": "Phase 2 (Trimmed)",
+          "tz_start": "2025-02-13T00:00:00.000Z",
+          "tz_end": "2025-03-23T00:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29303374",
+          "tz_phase_name": "Strength & Cardio - Spring 2025",
+          "tz_start": "2025-03-24T00:00:00.000Z",
+          "tz_end": "2025-05-31T23:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30467743",
+          "tz_phase_name": "Summer strength",
+          "tz_start": "2025-06-01T23:00:00.000Z",
+          "tz_end": "2025-08-23T23:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "34124929",
+          "tz_phase_name": "Winter 2025",
+          "tz_start": "2025-10-19T23:00:00.000Z",
+          "tz_end": "2026-01-19T00:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37069769",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-06-27T23:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37905787",
+          "tz_phase_name": "2026 - Block 5",
+          "tz_start": "2026-07-05T23:00:00.000Z",
+          "tz_end": "2026-09-26T23:00:00.000Z",
+          "tz_workout_count": "7",
+          "tz_workout_names": [
+            "Bis & Tris",
+            "Bis & Tris 2",
+            "Bodyweight Strength Endurance Workout",
+            "Core Circuit",
+            "HOME WORKOUT 1",
+            "Strength Endurance Workout 2",
+            "Workout D"
+          ],
+          "hub_block_id": "5325dc36-c646-4ec1-ab96-6ab6643653b0",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15",
+            "Session 16",
+            "Session 17"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -3,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 7,
+        "new": 6,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111006",
+      "hub_name": "Ellie Wallwork",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111006",
+      "tz_client_name": "Ellie Wallwork",
+      "trainerize_client_id": "29098848",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "36591630",
+          "tz_phase_name": "TRX & Movement pattern",
+          "tz_start": "2026-03-19T00:00:00.000Z",
+          "tz_end": "2026-04-28T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Introduction to weights",
+            "TRX Block 1"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37428916",
+          "tz_phase_name": "2026-Block 2",
+          "tz_start": "2026-06-07T23:00:00.000Z",
+          "tz_end": "2026-09-05T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Introduction to weights",
+            "TRX Block 1"
+          ],
+          "hub_block_id": "dc1b688e-4354-453a-8863-2a5f2e40fb00",
+          "hub_block_number": 1,
+          "hub_session_count": "9",
+          "hub_session_names": [
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -7,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 2,
+        "new": 1,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111007",
+      "hub_name": "Emma Atkinson",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111007",
+      "tz_client_name": "Emma Atkinson",
+      "trainerize_client_id": "21778885",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28509592",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2025-02-05T00:00:00.000Z",
+          "tz_end": "2025-03-21T00:00:00.000Z",
+          "tz_workout_count": "8",
+          "tz_workout_names": [
+            "Cool down & mobility A",
+            "Cool down & mobility B",
+            "Cool down & mobility C",
+            "Full body circuit - Monday",
+            "Full body Wednesday",
+            "Gym - Workout A - Hinge",
+            "HOME - Workout A ",
+            "Mobility warm up / cooldown"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29305099",
+          "tz_phase_name": "Strength & Cardio - Spring 2025",
+          "tz_start": "2025-03-24T00:00:00.000Z",
+          "tz_end": "2025-05-17T23:00:00.000Z",
+          "tz_workout_count": "8",
+          "tz_workout_names": [
+            "Cool down & mobility A",
+            "Cool down & mobility B",
+            "Cool down & mobility C",
+            "Full body circuit - Monday",
+            "Full body Wednesday",
+            "Gym - Workout A - Hinge",
+            "HOME - Workout A ",
+            "Mobility warm up / cooldown"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "33136969",
+          "tz_phase_name": "Oct/Nov 25",
+          "tz_start": "2025-09-14T23:00:00.000Z",
+          "tz_end": "2025-11-16T00:00:00.000Z",
+          "tz_workout_count": "8",
+          "tz_workout_names": [
+            "Cool down & mobility A",
+            "Cool down & mobility B",
+            "Cool down & mobility C",
+            "Full body circuit - Monday",
+            "Full body Wednesday",
+            "Gym - Workout A - Hinge",
+            "HOME - Workout A ",
+            "Mobility warm up / cooldown"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "34125443",
+          "tz_phase_name": "Winter 2025 - Upper body",
+          "tz_start": "2025-11-17T00:00:00.000Z",
+          "tz_end": "2025-12-28T00:00:00.000Z",
+          "tz_workout_count": "8",
+          "tz_workout_names": [
+            "Cool down & mobility A",
+            "Cool down & mobility B",
+            "Cool down & mobility C",
+            "Full body circuit - Monday",
+            "Full body Wednesday",
+            "Gym - Workout A - Hinge",
+            "HOME - Workout A ",
+            "Mobility warm up / cooldown"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37078830",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-28T23:00:00.000Z",
+          "tz_workout_count": "8",
+          "tz_workout_names": [
+            "Cool down & mobility A",
+            "Cool down & mobility B",
+            "Cool down & mobility C",
+            "Full body circuit - Monday",
+            "Full body Wednesday",
+            "Gym - Workout A - Hinge",
+            "HOME - Workout A ",
+            "Mobility warm up / cooldown"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        }
+      ],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "a2ece082-2b2b-4786-821b-fc28b9784210",
+          "hub_block_number": 1,
+          "hub_session_count": "3",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        },
+        {
+          "hub_block_id": "2c90a83a-7499-45bd-88c8-d89dd9f62713",
+          "hub_block_number": 2,
+          "hub_session_count": "6",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 5,
+        "new": 5,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 2,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111008",
+      "hub_name": "Ian Healey",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111008",
+      "tz_client_name": "Ian Healey",
+      "trainerize_client_id": "21375289",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28098286",
+          "tz_phase_name": "Week 1 - 4",
+          "tz_start": "2025-01-13T00:00:00.000Z",
+          "tz_end": "2025-02-28T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "28883883",
+          "tz_phase_name": "Full body - Spring",
+          "tz_start": "2025-03-04T00:00:00.000Z",
+          "tz_end": "2025-04-13T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29638051",
+          "tz_phase_name": "Strength & cardio Spring 2025",
+          "tz_start": "2025-04-14T23:00:00.000Z",
+          "tz_end": "2025-05-11T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30349836",
+          "tz_phase_name": "Training around shoulder surgery",
+          "tz_start": "2025-05-26T23:00:00.000Z",
+          "tz_end": "2025-07-06T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "31906106",
+          "tz_phase_name": "Shoulder progression",
+          "tz_start": "2025-08-17T23:00:00.000Z",
+          "tz_end": "2025-09-13T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "33140280",
+          "tz_phase_name": "Shoulder Progressed - October/Nov 25",
+          "tz_start": "2025-10-12T23:00:00.000Z",
+          "tz_end": "2025-11-23T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "34150773",
+          "tz_phase_name": "Winter 2025",
+          "tz_start": "2025-11-24T00:00:00.000Z",
+          "tz_end": "2026-02-08T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35722206",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-02-15T00:00:00.000Z",
+          "tz_end": "2026-03-28T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Full body workout 3",
+            "Unilateral Focus & Conditioning"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37101471",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-05-28T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Gym - Workout A - Hinge",
+            "Mobility warm up / cooldown",
+            "Post pause return workout 1",
+            "Workout B - Gym",
+            "Workout C GYM"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37935815",
+          "tz_phase_name": "Block 5",
+          "tz_start": "2026-06-22T23:00:00.000Z",
+          "tz_end": "2026-07-19T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Gym - Workout A - Hinge",
+            "Mobility warm up / cooldown",
+            "Post pause return workout 1",
+            "Workout B - Gym",
+            "Workout C GYM"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37999739",
+          "tz_phase_name": "Block 6",
+          "tz_start": "2026-07-20T23:00:00.000Z",
+          "tz_end": "2026-08-30T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Gym - Workout A - Hinge",
+            "Mobility warm up / cooldown",
+            "Post pause return workout 1",
+            "Workout B - Gym",
+            "Workout C GYM"
+          ],
+          "hub_block_id": "208b3c6d-9536-4a5a-9688-18575b19fb5d",
+          "hub_block_number": 1,
+          "hub_session_count": "18",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15",
+            "Session 16",
+            "Session 17",
+            "Session 18"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -13,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 11,
+        "new": 10,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "c9d02e92-b8c1-411a-a35d-df3645b33e39",
+      "hub_name": "Judy Holmes",
+      "tz_client_id": "c9d02e92-b8c1-411a-a35d-df3645b33e39",
+      "tz_client_name": "Judy Holmes",
+      "trainerize_client_id": "21296802",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28016967",
+          "tz_phase_name": "Week 1 - 4",
+          "tz_start": "2025-01-13T00:00:00.000Z",
+          "tz_end": "2025-05-01T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Lower body 1",
+            "Upper body 1"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30122052",
+          "tz_phase_name": "Strength & Cardio",
+          "tz_start": "2025-05-11T23:00:00.000Z",
+          "tz_end": "2025-06-21T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2",
+            "Lower body 1",
+            "Upper body 1"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 2,
+        "new": 2,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111009",
+      "hub_name": "Monique Weardon",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111009",
+      "tz_client_name": "Monique Weardon",
+      "trainerize_client_id": "21184671",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "27866734",
+          "tz_phase_name": "Block 1 2025",
+          "tz_start": "2025-01-03T00:00:00.000Z",
+          "tz_end": "2025-06-02T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Warm up & mobility A",
+            "Warm up & mobility B",
+            "Warm up & mobility C",
+            "Workout 1",
+            "Workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30920864",
+          "tz_phase_name": "Week 1 - 8",
+          "tz_start": "2025-06-23T23:00:00.000Z",
+          "tz_end": "2025-09-01T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Warm up & mobility A",
+            "Warm up & mobility B",
+            "Warm up & mobility C",
+            "Workout 1",
+            "Workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30921221",
+          "tz_phase_name": "Week 6-12",
+          "tz_start": "2025-09-02T23:00:00.000Z",
+          "tz_end": "2025-11-25T00:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Warm up & mobility A",
+            "Warm up & mobility B",
+            "Warm up & mobility C",
+            "Workout 1",
+            "Workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "34209785",
+          "tz_phase_name": "December25/Jan26 (Trimmed)",
+          "tz_start": "2025-11-26T00:00:00.000Z",
+          "tz_end": "2026-01-05T00:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Warm up & mobility A",
+            "Warm up & mobility B",
+            "Warm up & mobility C",
+            "Workout 1",
+            "Workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35086444",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-01-27T00:00:00.000Z",
+          "tz_end": "2026-06-01T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Warm up & mobility A",
+            "Warm up & mobility B",
+            "Warm up & mobility C",
+            "Workout 1",
+            "Workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38651080",
+          "tz_phase_name": "testing",
+          "tz_start": "2026-06-02T23:00:00.000Z",
+          "tz_end": "2026-06-29T23:00:00.000Z",
+          "tz_workout_count": "5",
+          "tz_workout_names": [
+            "Warm up & mobility A",
+            "Warm up & mobility B",
+            "Warm up & mobility C",
+            "Workout 1",
+            "Workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        }
+      ],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "ee61b4b0-a449-4fbc-ab3a-c7b26b10932f",
+          "hub_block_number": 1,
+          "hub_session_count": "8",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 6,
+        "new": 6,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111010",
+      "hub_name": "Odul Bozkurt",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111010",
+      "tz_client_name": "Odul Bozkurt",
+      "trainerize_client_id": "21540910",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28264237",
+          "tz_phase_name": "Week 1 - 4",
+          "tz_start": "2025-01-29T00:00:00.000Z",
+          "tz_end": "2025-03-08T00:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29062469",
+          "tz_phase_name": "Weeks 5 - 8",
+          "tz_start": "2025-03-09T00:00:00.000Z",
+          "tz_end": "2025-05-23T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Arms workout 1",
+            "Arms workout B",
+            "Strength & cardio 1",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "32511315",
+          "tz_phase_name": "Strength phase 1",
+          "tz_start": "2025-09-19T23:00:00.000Z",
+          "tz_end": "2025-10-23T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Arms workout 1",
+            "Arms workout B",
+            "Strength & cardio 1",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "32511354",
+          "tz_phase_name": "Strength phase 2",
+          "tz_start": "2025-10-24T23:00:00.000Z",
+          "tz_end": "2025-12-26T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Arms workout 1",
+            "Arms workout B",
+            "Strength & cardio 1",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "36499090",
+          "tz_phase_name": "Week 1 - 6 (Trimmed)",
+          "tz_start": "2026-04-09T23:00:00.000Z",
+          "tz_end": "2026-05-16T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "GYM - Workout 1 - Landmine & Pull",
+            "GYM - Workout 2 - Squat & Hinge",
+            "GYM - Workout 3 — Press & Carry",
+            "HOME - Workout 1 - Pull & Hinge",
+            "HOME - Workout 2 - Squat & Hinge ",
+            "HOME - Workout 3 — Press & Carry "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37102008",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-04T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "GYM - Workout 1 - Landmine & Pull",
+            "GYM - Workout 2 - Squat & Hinge",
+            "GYM - Workout 3 — Press & Carry",
+            "HOME - Workout 1 - Pull & Hinge",
+            "HOME - Workout 2 - Squat & Hinge ",
+            "HOME - Workout 3 — Press & Carry "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38033843",
+          "tz_phase_name": "2026 Block 5",
+          "tz_start": "2026-07-19T23:00:00.000Z",
+          "tz_end": "2026-08-29T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "GYM - Workout 1 - Landmine & Pull",
+            "GYM - Workout 2 - Squat & Hinge",
+            "GYM - Workout 3 — Press & Carry",
+            "HOME - Workout 1 - Pull & Hinge",
+            "HOME - Workout 2 - Squat & Hinge ",
+            "HOME - Workout 3 — Press & Carry "
+          ],
+          "hub_block_id": "4b64d751-9136-4d8d-b40b-d0328670143e",
+          "hub_block_number": 1,
+          "hub_session_count": "18",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15",
+            "Session 16",
+            "Session 17",
+            "Session 18"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -12,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 7,
+        "new": 6,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "97a4eee0-84df-4554-9643-6685ef8da5b9",
+      "hub_name": "Rick Frenken",
+      "tz_client_id": "97a4eee0-84df-4554-9643-6685ef8da5b9",
+      "tz_client_name": "Rick Frenken",
+      "trainerize_client_id": "30921201",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "38481883",
+          "tz_phase_name": "August 2026",
+          "tz_start": "2026-08-18T23:00:00.000Z",
+          "tz_end": "2026-09-07T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Back & Lower Body stretch ",
+            "Upper Body stretch"
+          ],
+          "hub_block_id": "9e5cd92f-7666-496f-b927-2c38a30a566d",
+          "hub_block_number": 1,
+          "hub_session_count": "2",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": 0,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 1,
+        "new": 0,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111011",
+      "hub_name": "Saffron Somerset",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111011",
+      "tz_client_name": "Saffron Somerset",
+      "trainerize_client_id": "21318097",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28019083",
+          "tz_phase_name": "Week 1 - 4",
+          "tz_start": "2025-01-14T00:00:00.000Z",
+          "tz_end": "2025-02-26T00:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "28878054",
+          "tz_phase_name": "Full body Spring (pregnancy)",
+          "tz_start": "2025-02-27T00:00:00.000Z",
+          "tz_end": "2025-04-03T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29592475",
+          "tz_phase_name": "Weeks 5 - 8",
+          "tz_start": "2025-04-07T23:00:00.000Z",
+          "tz_end": "2025-05-23T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 1",
+            "Full body workout 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35889720",
+          "tz_phase_name": "2026-Block 2",
+          "tz_start": "2026-02-20T00:00:00.000Z",
+          "tz_end": "2026-04-01T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "36594156",
+          "tz_phase_name": "2026 - Block 3 (Trimmed)",
+          "tz_start": "2026-04-08T23:00:00.000Z",
+          "tz_end": "2026-05-16T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37152628",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-11T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37994521",
+          "tz_phase_name": "2026 - Block 5",
+          "tz_start": "2026-07-12T23:00:00.000Z",
+          "tz_end": "2026-10-03T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "hub_block_id": "a25f6e1f-c060-4b1a-8739-d582a58c717c",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -6,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 7,
+        "new": 6,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111012",
+      "hub_name": "Sam Gibbons",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111012",
+      "tz_client_name": "Sam Gibbons",
+      "trainerize_client_id": "29201953",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "36809548",
+          "tz_phase_name": "2026 - Block 1 - Showdown specific",
+          "tz_start": "2026-04-29T23:00:00.000Z",
+          "tz_end": "2026-07-14T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Workout 1",
+            "Workout 1 full body"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37631011",
+          "tz_phase_name": "2026 - Block 2",
+          "tz_start": "2026-07-15T23:00:00.000Z",
+          "tz_end": "2026-08-11T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Workout 1",
+            "Workout 1 full body"
+          ],
+          "hub_block_id": "738bad1f-2bfc-4aa6-b284-044eb5abd443",
+          "hub_block_number": 1,
+          "hub_session_count": "8",
+          "hub_session_names": [
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -6,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 2,
+        "new": 1,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111013",
+      "hub_name": "Sarah Tyler",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111013",
+      "tz_client_name": "Sarah Tyler",
+      "trainerize_client_id": "22433706",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "29256418",
+          "tz_phase_name": "Weeks 1 - 8",
+          "tz_start": "2025-03-22T00:00:00.000Z",
+          "tz_end": "2025-06-19T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Strength & cardio 1",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "33817453",
+          "tz_phase_name": "Nov/Dec 2025",
+          "tz_start": "2025-11-08T00:00:00.000Z",
+          "tz_end": "2026-01-02T00:00:00.000Z",
+          "tz_workout_count": "3",
+          "tz_workout_names": [
+            "Hypertrophy focus",
+            "Strength & Cardio",
+            "Strength focus"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35889684",
+          "tz_phase_name": "2026-Block 2",
+          "tz_start": "2026-02-14T00:00:00.000Z",
+          "tz_end": "2026-03-27T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "36594237",
+          "tz_phase_name": "2026 - Block 3",
+          "tz_start": "2026-04-03T23:00:00.000Z",
+          "tz_end": "2026-05-14T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37167874",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-04T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "38000570",
+          "tz_phase_name": "2026 - Block 5",
+          "tz_start": "2026-07-10T23:00:00.000Z",
+          "tz_end": "2026-08-20T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "hub_block_id": "ad94f77a-54df-46af-8b08-fac5dc302199",
+          "hub_block_number": 1,
+          "hub_session_count": "0",
+          "hub_session_names": [],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": 4,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "541ad071-75f1-41d9-903f-d1a73bc47ada",
+          "hub_block_number": 2,
+          "hub_session_count": "2",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 6,
+        "new": 5,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111014",
+      "hub_name": "Steph White",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111014",
+      "tz_client_name": "Steph White",
+      "trainerize_client_id": "21424736",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28141257",
+          "tz_phase_name": "Week 1 - 8",
+          "tz_start": "2025-01-28T00:00:00.000Z",
+          "tz_end": "2025-03-24T00:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29075124",
+          "tz_phase_name": "Weeks 9-18",
+          "tz_start": "2025-03-25T00:00:00.000Z",
+          "tz_end": "2025-05-18T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "30206889",
+          "tz_phase_name": "Training around a broken finger!",
+          "tz_start": "2025-05-19T23:00:00.000Z",
+          "tz_end": "2025-06-29T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "33065312",
+          "tz_phase_name": "October 2025",
+          "tz_start": "2025-10-12T23:00:00.000Z",
+          "tz_end": "2025-12-07T00:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35086897",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-01-04T00:00:00.000Z",
+          "tz_end": "2026-02-14T00:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "35889648",
+          "tz_phase_name": "2026-Block 2",
+          "tz_start": "2026-02-16T00:00:00.000Z",
+          "tz_end": "2026-03-29T00:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "36666619",
+          "tz_phase_name": "Week 1 - 6",
+          "tz_start": "2026-04-05T23:00:00.000Z",
+          "tz_end": "2026-05-16T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37079004",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-11T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37907919",
+          "tz_phase_name": "2026 - Block 5",
+          "tz_start": "2026-07-12T23:00:00.000Z",
+          "tz_end": "2026-09-26T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Block 2 2026 Lower body Workout 1",
+            "Full body workout 1",
+            "Full body workout 2",
+            "SESSION A GYM – Horizontal Push Emphasis",
+            "SESSION B GYM – Vertical Push & Squat",
+            "SESSION C GYM – Hinge & horizontal push "
+          ],
+          "hub_block_id": "342d8a1f-665d-4cf2-b94e-3f9ebd8f0bd4",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 1",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15"
+          ],
+          "status": "CHANGED",
+          "block_match_rule": "phase_id",
+          "diff": {
+            "workout_count": -4,
+            "names_differ": true
+          }
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 9,
+        "new": 8,
+        "changed": 1,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111015",
+      "hub_name": "Tom Putnam",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111015",
+      "tz_client_name": "Tom Putnam",
+      "trainerize_client_id": "22066626",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "28858797",
+          "tz_phase_name": "Week 1 - 4",
+          "tz_start": "2025-02-26T00:00:00.000Z",
+          "tz_end": "2025-05-13T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 2",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29059297",
+          "tz_phase_name": "Weeks 5-8",
+          "tz_start": "2025-05-14T23:00:00.000Z",
+          "tz_end": "2025-06-10T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 2",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "34213682",
+          "tz_phase_name": "Dec25/Jan26",
+          "tz_start": "2025-12-04T00:00:00.000Z",
+          "tz_end": "2025-12-31T00:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Full body workout 2",
+            "Strength & cardio 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "37078431",
+          "tz_phase_name": "2026 - Block 4",
+          "tz_start": "2026-05-17T23:00:00.000Z",
+          "tz_end": "2026-07-04T23:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Gym - Workout A - Hinge",
+            "Mobility warm up / cooldown",
+            "Workout B - Gym",
+            "Workout C GYM"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        }
+      ],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "113888f0-d504-4694-a0c1-c2f6049a9c03",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 4,
+        "new": 4,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "8742cd26-ec4e-4f3f-b704-489e3e428e5e",
+      "hub_name": "Uma Assous",
+      "tz_client_id": "8742cd26-ec4e-4f3f-b704-489e3e428e5e",
+      "tz_client_name": "Uma Assous",
+      "trainerize_client_id": "21135636",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": "27981095",
+          "tz_phase_name": "Week 1 - 4",
+          "tz_start": "2025-01-07T00:00:00.000Z",
+          "tz_end": "2025-02-09T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Day 1",
+            "Day 2",
+            "Feb 25 - Workout 1",
+            "Home workout 2 Spring 2025 - Full body 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "27981096",
+          "tz_phase_name": "Weeks 5-8",
+          "tz_start": "2025-02-10T00:00:00.000Z",
+          "tz_end": "2025-03-21T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Day 1",
+            "Day 2",
+            "Feb 25 - Workout 1",
+            "Home workout 2 Spring 2025 - Full body 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29331144",
+          "tz_phase_name": "DELOAD Spring 2025 - Home workout 1",
+          "tz_start": "2025-03-24T00:00:00.000Z",
+          "tz_end": "2025-03-28T00:00:00.000Z",
+          "tz_workout_count": "4",
+          "tz_workout_names": [
+            "Day 1",
+            "Day 2",
+            "Feb 25 - Workout 1",
+            "Home workout 2 Spring 2025 - Full body 2"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        },
+        {
+          "tz_phase_id": "29391529",
+          "tz_phase_name": "Calisthenics",
+          "tz_start": "2025-03-29T00:00:00.000Z",
+          "tz_end": "2025-05-08T23:00:00.000Z",
+          "tz_workout_count": "6",
+          "tz_workout_names": [
+            "Calisthenics 1",
+            "Calisthenics 2",
+            "Calisthenics 3",
+            "Calisthenics 4",
+            "Calisthenics 5",
+            "Calisthenics warm up"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        }
+      ],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 4,
+        "new": 4,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    }
+  ],
+  "ambiguous": [],
+  "unresolved": [],
+  "unlinked": []
+}

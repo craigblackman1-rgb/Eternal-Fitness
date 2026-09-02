@@ -1,0 +1,702 @@
+{
+  "generated_at": "2026-09-02T14:03:23.588Z",
+  "since": "2026-08-02",
+  "totals": {
+    "clients_resolved": 18,
+    "clients_ambiguous": 0,
+    "clients_unresolved": 0,
+    "new": 1,
+    "changed": 0,
+    "matched": 0,
+    "hub_only": 19,
+    "unpromotable": 0
+  },
+  "clients": [
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111001",
+      "hub_name": "Amanda Munday",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111001",
+      "tz_client_name": "Amanda Munday",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "a02970b0-6543-4788-9f4f-3a4e0393a258",
+          "hub_block_number": 1,
+          "hub_session_count": "9",
+          "hub_session_names": [
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111002",
+      "hub_name": "Anne Wareing",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111002",
+      "tz_client_name": "Anne Wareing",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "54325405-98d6-466e-a86b-a57a8c321321",
+          "hub_block_number": 1,
+          "hub_session_count": "8",
+          "hub_session_names": [
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111003",
+      "hub_name": "Becky Price",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111003",
+      "tz_client_name": "Becky Price",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "8bbce282-09a8-4a43-a04d-6fac63405da1",
+          "hub_block_number": 1,
+          "hub_session_count": "9",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111004",
+      "hub_name": "Camilla Arnold",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111004",
+      "tz_client_name": "Camilla Arnold",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "46eb9d06-3ed0-4ae8-8037-99fe206ec1f6",
+          "hub_block_number": 1,
+          "hub_session_count": "2",
+          "hub_session_names": [
+            "Session 1",
+            "Session 4"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        },
+        {
+          "hub_block_id": "48339c95-2293-413a-ae0a-967565e9c581",
+          "hub_block_number": 2,
+          "hub_session_count": "0",
+          "hub_session_names": [],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 2,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "3f914637-0d09-4280-82b4-4fd44e092f21",
+      "hub_name": "Colin Farley",
+      "tz_client_id": "3f914637-0d09-4280-82b4-4fd44e092f21",
+      "tz_client_name": "Colin Farley",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "5325dc36-c646-4ec1-ab96-6ab6643653b0",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15",
+            "Session 16",
+            "Session 17"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111006",
+      "hub_name": "Ellie Wallwork",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111006",
+      "tz_client_name": "Ellie Wallwork",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "dc1b688e-4354-453a-8863-2a5f2e40fb00",
+          "hub_block_number": 1,
+          "hub_session_count": "9",
+          "hub_session_names": [
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111007",
+      "hub_name": "Emma Atkinson",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111007",
+      "tz_client_name": "Emma Atkinson",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "a2ece082-2b2b-4786-821b-fc28b9784210",
+          "hub_block_number": 1,
+          "hub_session_count": "3",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        },
+        {
+          "hub_block_id": "2c90a83a-7499-45bd-88c8-d89dd9f62713",
+          "hub_block_number": 2,
+          "hub_session_count": "6",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 2,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111008",
+      "hub_name": "Ian Healey",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111008",
+      "tz_client_name": "Ian Healey",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "208b3c6d-9536-4a5a-9688-18575b19fb5d",
+          "hub_block_number": 1,
+          "hub_session_count": "18",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15",
+            "Session 16",
+            "Session 17",
+            "Session 18"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "c9d02e92-b8c1-411a-a35d-df3645b33e39",
+      "hub_name": "Judy Holmes",
+      "tz_client_id": "c9d02e92-b8c1-411a-a35d-df3645b33e39",
+      "tz_client_name": "Judy Holmes",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111009",
+      "hub_name": "Monique Weardon",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111009",
+      "tz_client_name": "Monique Weardon",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "ee61b4b0-a449-4fbc-ab3a-c7b26b10932f",
+          "hub_block_number": 1,
+          "hub_session_count": "8",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111010",
+      "hub_name": "Odul Bozkurt",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111010",
+      "tz_client_name": "Odul Bozkurt",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "4b64d751-9136-4d8d-b40b-d0328670143e",
+          "hub_block_number": 1,
+          "hub_session_count": "18",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15",
+            "Session 16",
+            "Session 17",
+            "Session 18"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "97a4eee0-84df-4554-9643-6685ef8da5b9",
+      "hub_name": "Rick Frenken",
+      "tz_client_id": "97a4eee0-84df-4554-9643-6685ef8da5b9",
+      "tz_client_name": "Rick Frenken",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [
+        {
+          "tz_phase_id": 38481883,
+          "tz_phase_name": "August 2026",
+          "tz_start": "2026-08-18T23:00:00.000Z",
+          "tz_end": "2026-09-07T23:00:00.000Z",
+          "tz_workout_count": "2",
+          "tz_workout_names": [
+            "Back & Lower Body stretch ",
+            "Upper Body stretch"
+          ],
+          "status": "NEW",
+          "block_match_rule": null
+        }
+      ],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "9e5cd92f-7666-496f-b927-2c38a30a566d",
+          "hub_block_number": 1,
+          "hub_session_count": "2",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 1,
+        "new": 1,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111011",
+      "hub_name": "Saffron Somerset",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111011",
+      "tz_client_name": "Saffron Somerset",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "a25f6e1f-c060-4b1a-8739-d582a58c717c",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111012",
+      "hub_name": "Sam Gibbons",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111012",
+      "tz_client_name": "Sam Gibbons",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "738bad1f-2bfc-4aa6-b284-044eb5abd443",
+          "hub_block_number": 1,
+          "hub_session_count": "8",
+          "hub_session_names": [
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111013",
+      "hub_name": "Sarah Tyler",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111013",
+      "tz_client_name": "Sarah Tyler",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "ad94f77a-54df-46af-8b08-fac5dc302199",
+          "hub_block_number": 1,
+          "hub_session_count": "0",
+          "hub_session_names": [],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        },
+        {
+          "hub_block_id": "541ad071-75f1-41d9-903f-d1a73bc47ada",
+          "hub_block_number": 2,
+          "hub_session_count": "2",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 2,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111014",
+      "hub_name": "Steph White",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111014",
+      "tz_client_name": "Steph White",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "342d8a1f-665d-4cf2-b94e-3f9ebd8f0bd4",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 1",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10",
+            "Session 11",
+            "Session 12",
+            "Session 13",
+            "Session 14",
+            "Session 15"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "a1111111-1111-1111-1111-111111111015",
+      "hub_name": "Tom Putnam",
+      "tz_client_id": "a1111111-1111-1111-1111-111111111015",
+      "tz_client_name": "Tom Putnam",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [
+        {
+          "hub_block_id": "113888f0-d504-4694-a0c1-c2f6049a9c03",
+          "hub_block_number": 1,
+          "hub_session_count": "10",
+          "hub_session_names": [
+            "Session 1",
+            "Session 2",
+            "Session 3",
+            "Session 4",
+            "Session 5",
+            "Session 6",
+            "Session 7",
+            "Session 8",
+            "Session 9",
+            "Session 10"
+          ],
+          "hub_scheduled_start": null,
+          "status": "HUB_ONLY"
+        }
+      ],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 1,
+        "unpromotable": 0
+      }
+    },
+    {
+      "hub_client_id": "8742cd26-ec4e-4f3f-b704-489e3e428e5e",
+      "hub_name": "Uma Assous",
+      "tz_client_id": "8742cd26-ec4e-4f3f-b704-489e3e428e5e",
+      "tz_client_name": "Uma Assous",
+      "match_rule": "archive_fk",
+      "match_confidence": "exact_id",
+      "blocks": [],
+      "hub_only_blocks": [],
+      "unpromotable": [],
+      "summary": {
+        "tz_blocks": 0,
+        "new": 0,
+        "changed": 0,
+        "matched": 0,
+        "hub_only": 0,
+        "unpromotable": 0
+      }
+    }
+  ],
+  "ambiguous": [],
+  "unresolved": [],
+  "unlinked": []
+}

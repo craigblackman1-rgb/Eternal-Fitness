@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   // We fetch from sessions joined with clients and blocks for display context.
   const { data: sessions, error } = await supabase
     .from("sessions")
-    .select("id, session_number, data, scheduled_at, client_id, block_id, archetype, week, phase")
+    .select("id, session_number, data, scheduled_at, block_id, archetype, week, phase")
     .is("archetype", null)
     .is("week", null)
     .is("phase", null)
@@ -43,37 +43,45 @@ export async function GET(request: NextRequest) {
   }
 
   // Enrich with client names and block numbers.
-  const clientIds = [...new Set(outlookSessions.map((s) => s.client_id).filter(Boolean))];
   const blockIds = [...new Set(outlookSessions.map((s) => s.block_id).filter(Boolean))];
 
-  const [clientsRes, blocksRes] = await Promise.all([
-    clientIds.length > 0
-      ? supabase.from("clients").select("id, name").in("id", clientIds)
-      : { data: [], error: null },
-    blockIds.length > 0
-      ? supabase.from("blocks").select("id, block_number").in("id", blockIds)
-      : { data: [], error: null },
-  ]);
+  const blocksRes = blockIds.length > 0
+    ? await supabase.from("blocks").select("id, block_number, client_id").in("id", blockIds)
+    : { data: [], error: null };
+
+  const blockMap = new Map<string, { block_number: number; client_id: string | null }>();
+  for (const b of (blocksRes.data ?? []) as { id: string; block_number: number; client_id: string | null }[]) {
+    blockMap.set(b.id, { block_number: b.block_number, client_id: b.client_id });
+  }
+
+  const clientIds = [...new Set(outlookSessions.map((s) => {
+    const block = s.block_id ? blockMap.get(s.block_id) : undefined;
+    return block?.client_id;
+  }).filter(Boolean))] as string[];
+
+  const clientsRes = clientIds.length > 0
+    ? await supabase.from("clients").select("id, name").in("id", clientIds)
+    : { data: [], error: null };
 
   const clientMap = new Map<string, string>();
   for (const c of (clientsRes.data ?? []) as { id: string; name: string }[]) {
     clientMap.set(c.id, c.name);
   }
-  const blockMap = new Map<string, number>();
-  for (const b of (blocksRes.data ?? []) as { id: string; block_number: number }[]) {
-    blockMap.set(b.id, b.block_number);
-  }
 
-  const enriched = outlookSessions.map((s) => ({
-    id: s.id,
-    session_number: s.session_number,
-    focus_label: (s.data as Record<string, unknown>)?.focus_label ?? null,
-    scheduled_at: s.scheduled_at,
-    client_id: s.client_id,
-    client_name: clientMap.get(s.client_id) ?? "Unknown",
-    block_id: s.block_id,
-    block_number: blockMap.get(s.block_id) ?? null,
-  }));
+  const enriched = outlookSessions.map((s) => {
+    const block = s.block_id ? blockMap.get(s.block_id) : undefined;
+    const clientId = block?.client_id ?? null;
+    return {
+      id: s.id,
+      session_number: s.session_number,
+      focus_label: (s.data as Record<string, unknown>)?.focus_label ?? null,
+      scheduled_at: s.scheduled_at,
+      client_id: clientId,
+      client_name: clientId ? (clientMap.get(clientId) ?? "Unknown") : "Unknown",
+      block_id: s.block_id,
+      block_number: block?.block_number ?? null,
+    };
+  });
 
   return NextResponse.json(enriched);
 }
