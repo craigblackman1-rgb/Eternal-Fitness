@@ -11,7 +11,8 @@ import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName } from "@/lib/session-display";
 import type { Weekday } from "@/lib/scheduling";
-import type { Session, SessionStatus, DBSession } from "@/types";
+import { BlockGlanceProvider, GlanceToggle, GlanceSessionsView } from "./BlockAtAGlance";
+import type { Session, SessionStatus, DBSession, BlockStatus } from "@/types";
 
 const archetypeTint: Record<string, string> = {
   A: "bg-teal/10 text-teal",
@@ -223,30 +224,42 @@ export default async function BlockViewPage({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/hub/clients/${clientId}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
-          <IconChevronLeft className="h-5 w-5" />
-          Back to {client?.name || "Client"}
-        </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold tracking-tight">
-              Block {block.block_number}
-            </h1>
-            <StatusBadge status={derivedStatus} />
+    <BlockGlanceProvider
+      sessions={sessions as unknown as DBSession[]}
+      positions={Array.from(chronologicalPositions.entries())}
+      blockId={params.blockId}
+      clientId={String(clientId)}
+      clientName={client?.name || "Client"}
+      blockNumber={block.block_number}
+      blockStatus={derivedStatus as BlockStatus}
+      approvedAt={(block as { approved_at?: string | null }).approved_at ?? null}
+      dateSpanLabel={blockDateSpanLabel}
+    >
+      <div className="space-y-6 pb-24">
+        <div className="flex items-center gap-4">
+          <Link href={`/hub/clients/${clientId}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+            <IconChevronLeft className="h-5 w-5" />
+            Back to {client?.name || "Client"}
+          </Link>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold tracking-tight">
+                Block {block.block_number}
+              </h1>
+              <StatusBadge status={derivedStatus} />
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {blockDateSpanLabel} · {totalSessions}-session block
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {blockDateSpanLabel} · {totalSessions}-session block
-          </p>
+          <GlanceToggle />
+          <Link
+            href={`/hub/clients/${clientId}/add-workout`}
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-rose hover:bg-rose/90 text-white text-[13px] font-semibold transition-colors shrink-0"
+          >
+            <IconDumbbell className="w-4 h-4" /> Add workout
+          </Link>
         </div>
-        <Link
-          href={`/hub/clients/${clientId}/add-workout`}
-          className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-rose hover:bg-rose/90 text-white text-[13px] font-semibold transition-colors shrink-0"
-        >
-          <IconDumbbell className="w-4 h-4" /> Add workout
-        </Link>
-      </div>
 
       <BlockOverviewClient
         block={blockForClient}
@@ -278,81 +291,84 @@ export default async function BlockViewPage({
         </div>
       </BlockOverviewClient>
 
-      {/* CR-EF-099 — Session pot counter, sequence ribbon, booked slots vs planned workouts */}
-      <BlockPoolView
-        sessions={sessions as unknown as DBSession[]}
-        clientId={String(clientId)}
-        blockId={params.blockId}
-        clientName={client?.name || "Client"}
-        sessionsPurchased={client?.sessions_purchased ?? null}
-        blockExpiryDate={client?.block_expiry_date ?? null}
-        blockExpiryExtensions={client?.block_expiry_extensions ?? []}
-      />
+      <GlanceSessionsView>
+        {/* CR-EF-099 — Session pot counter, sequence ribbon, booked slots vs planned workouts */}
+        <BlockPoolView
+          sessions={sessions as unknown as DBSession[]}
+          clientId={String(clientId)}
+          blockId={params.blockId}
+          clientName={client?.name || "Client"}
+          sessionsPurchased={client?.sessions_purchased ?? null}
+          blockExpiryDate={client?.block_expiry_date ?? null}
+          blockExpiryExtensions={client?.block_expiry_extensions ?? []}
+        />
 
-      <div className="space-y-3.5">
-        {weekGroups.map((group) => {
-          const isScheduled = group.kind === "scheduled";
-          const weekOpen = group.key === targetKey;
-          // CR-EF-101 — exclude sub-sessions from week totals
-          const weekPotSessions = group.sessions.filter((s) => !s.parent_session_id);
-          const done = weekPotSessions.filter((s) => sessionStatus(s) === "completed").length;
-          const cancelled = weekPotSessions.filter((s) => sessionStatus(s) === "cancelled").length;
-          const total = weekPotSessions.length;
+        <div className="space-y-3.5">
+          {weekGroups.map((group) => {
+            const isScheduled = group.kind === "scheduled";
+            const weekOpen = group.key === targetKey;
+            // CR-EF-101 — exclude sub-sessions from week totals
+            const weekPotSessions = group.sessions.filter((s) => !s.parent_session_id);
+            const done = weekPotSessions.filter((s) => sessionStatus(s) === "completed").length;
+            const cancelled = weekPotSessions.filter((s) => sessionStatus(s) === "cancelled").length;
+            const total = weekPotSessions.length;
 
-          const numLabel = isScheduled ? String(Number(group.monday!.split("-")[2])) : String(group.planWeek);
-          const title = isScheduled ? `Week of ${formatShortDate(group.monday!)}` : `Plan week ${group.planWeek}`;
-          const sub = isScheduled
-            ? formatWeekRange(group.monday!)
-            : `${total} session${total === 1 ? "" : "s"} planned · no dates yet`;
-          const progress = isScheduled
-            ? `${done} of ${total} done${cancelled ? ` · ${cancelled} cancelled` : ""}`
-            : "Not scheduled";
+            const numLabel = isScheduled ? String(Number(group.monday!.split("-")[2])) : String(group.planWeek);
+            const title = isScheduled ? `Week of ${formatShortDate(group.monday!)}` : `Plan week ${group.planWeek}`;
+            const sub = isScheduled
+              ? formatWeekRange(group.monday!)
+              : `${total} session${total === 1 ? "" : "s"} planned · no dates yet`;
+            const progress = isScheduled
+              ? `${done} of ${total} done${cancelled ? ` · ${cancelled} cancelled` : ""}`
+              : "Not scheduled";
 
-          return (
-            <details
-              key={group.key}
-              open={weekOpen}
-              className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden group"
-            >
-              <summary className="list-none cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-[var(--hub-hover)] transition-colors">
-                <span
-                  className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[13px] font-extrabold shrink-0 ${
-                    isScheduled ? "bg-rose/10 text-rose" : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]"
-                  }`}
-                >
-                  {numLabel}
-                </span>
-                <span className="text-sm font-bold text-foreground">{title}</span>
-                {sub && <span className="text-xs text-muted-foreground ml-0.5">{sub}</span>}
-                <span className="ml-auto text-xs text-muted-foreground">{progress}</span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  className="text-muted-foreground transition-transform duration-200 group-open:rotate-90"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </summary>
-              <div className="border-t border-[var(--hub-border)]">
-                <SessionList
-                  sessions={group.sessions}
-                  totalSessions={totalSessions}
-                  clientId={String(clientId)}
-                  blockId={params.blockId}
-                  archetypeTint={archetypeTint}
-                  chronologicalPositions={chronologicalPositions}
-                  allSessions={sessions as unknown as DBSession[]}
-                />
-              </div>
-            </details>
-          );
-        })}
-      </div>
+            return (
+              <details
+                key={group.key}
+                open={weekOpen}
+                className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden group"
+              >
+                <summary className="list-none cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-[var(--hub-hover)] transition-colors">
+                  <span
+                    className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[13px] font-extrabold shrink-0 ${
+                      isScheduled ? "bg-rose/10 text-rose" : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]"
+                    }`}
+                  >
+                    {numLabel}
+                  </span>
+                  <span className="text-sm font-bold text-foreground">{title}</span>
+                  {sub && <span className="text-xs text-muted-foreground ml-0.5">{sub}</span>}
+                  <span className="ml-auto text-xs text-muted-foreground">{progress}</span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    className="text-muted-foreground transition-transform duration-200 group-open:rotate-90"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div className="border-t border-[var(--hub-border)]">
+                  <SessionList
+                    sessions={group.sessions}
+                    totalSessions={totalSessions}
+                    clientId={String(clientId)}
+                    blockId={params.blockId}
+                    archetypeTint={archetypeTint}
+                    chronologicalPositions={chronologicalPositions}
+                    allSessions={sessions as unknown as DBSession[]}
+                  />
+                </div>
+              </details>
+            );
+          })}
+        </div>
+      </GlanceSessionsView>
     </div>
+    </BlockGlanceProvider>
   );
 }
