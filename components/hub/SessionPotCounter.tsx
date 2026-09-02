@@ -36,10 +36,8 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
 
   const segments = [
     { label: "Completed", count: completed, color: "#087E8B" },
-    { label: "Completed", count: completed, color: "#087E8B" },
     { label: "Charged cancellation", count: chargedCancellations, color: "#8A4E63" },
-    { label: "Booked ahead", count: Math.max(0, used - completed - chargedCancellations), color: "#C1839F" },
-    { label: "Free to book", count: Math.max(0, remaining - Math.max(0, used - completed - chargedCancellations)), color: "#E4E7EC" },
+    { label: "Free to book", count: Math.max(0, remaining), color: "#E4E7EC" },
   ].filter((s) => s.count > 0);
 
   return (

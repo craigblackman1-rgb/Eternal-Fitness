@@ -33,16 +33,16 @@ interface SlotData {
 }
 
 /**
- * CR-EF-099 — Booked slots vs workout pool with strict rotation.
+ * CR-EF-099 — Booked slots vs planned workouts with strict sequence.
  *
  * Two separate models on one screen:
  *   - Booked slots = calendar reality (Outlook owns the dates)
- *   - Workout pool = planned work available to assign
+ *   - Planned workouts = work available to assign
  *
- * Strict rotation (Craig, 31 Aug 2026): the suggestion is always the earliest
- * pool workout not yet delivered in the current cycle. Skipping one leaves it
+ * Strict sequence (Craig, 31 Aug 2026): the suggestion is always the earliest
+ * undelivered workout not yet delivered in the current cycle. Skipping one leaves it
  * next in line rather than losing it. A charged cancellation costs a session
- * but does not advance the rotation.
+ * but does not advance the sequence.
  */
 export function BlockPoolView({
   sessions,
@@ -68,7 +68,7 @@ export function BlockPoolView({
   const extended = blockExpiryExtensions.length > 0;
   const originalExpiry = extended ? blockExpiryExtensions[0]?.from : null;
 
-  // Build slot data from sessions, sorted by session_number for rotation order
+  // Build slot data from sessions, sorted by session_number for sequence order
   const ordered = [...sessions].sort((a, b) => a.session_number - b.session_number);
 
   const slotData: SlotData[] = ordered.map((s) => {
@@ -106,16 +106,16 @@ export function BlockPoolView({
   // Unbooked = sessions without scheduled_at (sub-sessions inherit parent's slot)
   const unbookedSessions = slotData.filter((s) => !s.session.scheduled_at && !s.session.parent_session_id);
 
-  // Rotation: all non-cancelled, non-completed sessions in order (CR-EF-101: exclude sub-sessions)
-  const rotationPool = slotData.filter(
+  // Sequence: all non-cancelled, non-completed sessions in order (CR-EF-101: exclude sub-sessions)
+  const workoutQueue = slotData.filter(
     (s) => s.status !== "completed" && s.status !== "cancelled" && !s.session.parent_session_id,
   );
 
-  // Strict rotation: the earliest undelivered workout
+  // Strict sequence: the earliest undelivered workout
   const spokenWorkouts = new Set(
     bookedSlots.filter((s) => s.hasWorkout).map((s) => s.session.id),
   );
-  const nextInRotation = rotationPool.find((s) => !spokenWorkouts.has(s.session.id));
+  const nextInSequence = workoutQueue.find((s) => !spokenWorkouts.has(s.session.id));
 
   const startReschedule = (session: DBSession) => {
     if (session.scheduled_at) {
@@ -160,7 +160,7 @@ export function BlockPoolView({
         earlierSpoken.add(bookedSlots[i].session.id);
       }
     }
-    return rotationPool.find((s) => !earlierSpoken.has(s.session.id)) ?? null;
+    return workoutQueue.find((s) => !earlierSpoken.has(s.session.id)) ?? null;
   };
 
   // CR-EF-101 — create a new supplementary session linked to a parent slot
@@ -204,8 +204,8 @@ export function BlockPoolView({
         originalExpiry={originalExpiry}
       />
 
-      {/* Rotation Ribbon */}
-      {rotationPool.length > 0 && (
+      {/* Sequence Ribbon */}
+      {workoutQueue.length > 0 && (
         <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)]">
             <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
@@ -215,14 +215,14 @@ export function BlockPoolView({
               </svg>
             </div>
             <div>
-              <h3 className="text-[13px] font-semibold text-foreground leading-tight">Rotation order</h3>
+              <h3 className="text-[13px] font-semibold text-foreground leading-tight">Workout sequence</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Fixed sequence — workouts cycle in order, then restart</p>
             </div>
           </div>
           <div className="flex items-center gap-0 px-4 py-4 overflow-x-auto">
-            {rotationPool.map((s, i) => {
+            {workoutQueue.map((s, i) => {
               const isDone = s.status === "completed";
-              const isNext = nextInRotation?.session.id === s.session.id;
+              const isNext = nextInSequence?.session.id === s.session.id;
               const isAssigned = spokenWorkouts.has(s.session.id);
               const letter = String.fromCharCode(65 + i); // A, B, C, ...
 
@@ -266,7 +266,7 @@ export function BlockPoolView({
         </div>
       )}
 
-      {/* Two-panel split: Booked Slots | Workout Pool */}
+      {/* Two-panel split: Booked Slots | Planned Workouts */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-4 items-start">
         {/* Booked Slots */}
         <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
@@ -485,7 +485,7 @@ export function BlockPoolView({
           </div>
         </div>
 
-        {/* Workout Pool */}
+        {/* Planned Workouts */}
         <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)]">
             <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-slate/10 text-slate shrink-0">
@@ -495,18 +495,18 @@ export function BlockPoolView({
               </svg>
             </div>
             <div>
-              <h3 className="text-[13px] font-semibold text-foreground leading-tight">Workout pool</h3>
+              <h3 className="text-[13px] font-semibold text-foreground leading-tight">Planned workouts</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {rotationPool.length} planned · {rotationPool.filter((s) => s.status === "completed").length} delivered
+                {workoutQueue.length} planned · {workoutQueue.filter((s) => s.status === "completed").length} delivered
               </p>
             </div>
           </div>
 
           <div>
-            {rotationPool.map((slot, i) => {
+            {workoutQueue.map((slot, i) => {
               const isDone = slot.status === "completed";
               const isAssigned = spokenWorkouts.has(slot.session.id);
-              const isNext = nextInRotation?.session.id === slot.session.id;
+              const isNext = nextInSequence?.session.id === slot.session.id;
               const letter = String.fromCharCode(65 + i);
 
               let rowClass = "";
@@ -561,7 +561,7 @@ export function BlockPoolView({
 
           <div className="flex items-center gap-2.5 px-4 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs text-muted-foreground flex-wrap">
             <span>
-              Pool size is independent of block size — <b className="text-body">{rotationPool.length} workouts</b> across a <b className="text-body">{pot.totalInBlock}-session block</b>.
+              <b className="text-body">{workoutQueue.length} workouts</b> across a <b className="text-body">{pot.totalInBlock}-session block</b>.
             </span>
           </div>
         </div>
