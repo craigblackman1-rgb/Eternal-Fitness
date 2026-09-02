@@ -31,6 +31,7 @@ import {
   IconPencil,
   IconChevronDown,
 } from "@/components/icons";
+import { SupplementaryWorkoutsCard } from "@/components/hub/SupplementaryWorkoutsCard";
 
 type Segment = "blocks" | "sessions" | "progress" | "history";
 
@@ -114,6 +115,8 @@ function sessionStatus(session: SessionRow) {
 
 interface Props {
   clientNumber: number;
+  clientName: string;
+  sessionsRemaining: number | null;
   blocks: BlockRow[];
   sessions: SessionRow[];
   setLogs: SetLog[];
@@ -304,6 +307,8 @@ function SessionSetEvidenceTable({ evidence }: { evidence: SessionSetEvidence })
 
 export function TrainingTabContent({
   clientNumber,
+  clientName,
+  sessionsRemaining,
   blocks,
   sessions,
   setLogs,
@@ -434,6 +439,12 @@ export function TrainingTabContent({
 
   return (
     <div className="space-y-5">
+      <SupplementaryWorkoutsCard
+        clientNumber={clientNumber}
+        clientName={clientName}
+        sessionsRemaining={sessionsRemaining}
+      />
+
       <div className="inline-flex rounded-lg bg-[var(--hub-hover)] p-[3px]">
         {SEGMENTS.map((s) => (
           <button

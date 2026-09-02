@@ -46,7 +46,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
       return {
         ...row,
-        template_name: row.workout_templates?.name ?? "Unknown",
+        template_name: (row.workout_templates as Record<string, unknown>)?.name ?? "Unknown",
         attached_and_logged: logged,
         attached_not_logged: notLogged,
       };

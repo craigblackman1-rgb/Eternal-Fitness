@@ -385,6 +385,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const { data: taskRows } = await supabase.from("tasks").select("status").eq("client_id", client.id);
   const pendingTaskCount = (taskRows ?? []).filter((t: any) => t.status !== "done").length;
 
+  // CR-EF-125 — supplementary workouts for the rail mirror.
+  const { data: suppRows } = await supabase
+    .from("client_supplementary_workouts")
+    .select("id, workout_template_id, workout_templates(name)")
+    .eq("client_id", client.id)
+    .is("removed_at", null)
+    .order("sort_order", { ascending: true });
+
   const contextItems = [
     { label: "Format", value: formatDeliveryMode(client.delivery_mode) },
     { label: "Pace", value: formatPaceMode(client.pace_mode) },
@@ -431,6 +439,46 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`} className="text-rose font-medium hover:underline">Create Block</Link>
             </div>
           )}
+        </div>
+      </HubCard>
+
+      {/* CR-EF-125 — "In Every Session" rail mirror. Read-only; editing stays
+          on the Training tab so there is one editing surface. */}
+      <HubCard>
+        <HubCardHeader
+          icon={<IconDumbbell className="w-4 h-4" />}
+          title="In Every Session"
+          color="slate"
+        />
+        <div className="px-5 pb-4">
+          {(suppRows ?? []).length > 0 ? (
+            <div className="space-y-2.5">
+              {(suppRows ?? []).map((row: any) => (
+                <div key={row.id} className="flex gap-2.5 items-start">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose mt-1.5 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold text-foreground leading-snug">{row.workout_templates?.name ?? "Unknown"}</div>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-2.5 mt-1 border-t border-[var(--hub-border)] text-[11.5px] text-[var(--color-body)] leading-relaxed">
+                Runs alongside each session. Does not use one of {client.name.split(" ")[0]}&apos;s{client.sessions_remaining != null ? ` ${client.sessions_remaining} remaining sessions` : " remaining sessions"}.
+              </div>
+            </div>
+          ) : (
+            <p className="text-[12.5px] text-[var(--color-muted)] leading-relaxed">
+              None set up. Nothing extra is attached to {client.name.split(" ")[0]}&apos;s sessions.
+            </p>
+          )}
+          <Link
+            href={`/hub/clients/${client.client_number}?tab=training`}
+            className="inline-flex items-center gap-1.5 mt-3 text-[12px] font-semibold text-rose hover:underline"
+          >
+            Manage on Training
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </Link>
         </div>
       </HubCard>
 
@@ -1110,6 +1158,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
               </div>
               <TrainingTabContent
                 clientNumber={client.client_number}
+                clientName={client.name}
+                sessionsRemaining={client.sessions_remaining ?? null}
                 blocks={blocks ?? []}
                 sessions={sessions ?? []}
                 setLogs={(setLogs ?? []) as SetLog[]}

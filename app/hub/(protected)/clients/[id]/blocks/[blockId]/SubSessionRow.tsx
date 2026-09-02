@@ -25,6 +25,9 @@ export function SubSessionRow({ subSession, clientId, blockId }: SubSessionRowPr
   });
   const isSettled = status === "completed" || status === "cancelled";
 
+  // CR-EF-125 — derive tag from supplementary_source_id.
+  const isSupplementary = !!subSession.supplementary_source_id;
+
   // Derive logged state from session-level signals (set_logs not available here).
   const hasSessionLog = !!subSession.data?.session_log?.completed_at;
   const hasStarted = !!subSession.data?.session_log?.started_at;
@@ -68,7 +71,7 @@ export function SubSessionRow({ subSession, clientId, blockId }: SubSessionRowPr
           <div className="text-[12.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
             {name}
             <span className="text-[9.5px] font-extrabold uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-rose/10 text-rose border border-rose/20">
-              Every session
+              {isSupplementary ? "Every session" : "This session only"}
             </span>
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-muted-foreground flex-wrap">
