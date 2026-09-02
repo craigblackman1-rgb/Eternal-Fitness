@@ -171,10 +171,13 @@ export function TrainScreen({
   bestWeights?: Record<string, number>;
   /** CR-EF-010 — last session's best set per exercise (for prefill). */
   lastSessionData?: Record<string, LastSessionPrefill>;
-  /** CR-EF-010 — PB metadata per exercise (for header chip). */
+  /** CR-EF-014 — PB metadata per exercise (for header chip). */
   pbDates?: Record<string, PbMetadata>;
   /** CR-EF-014: active bands for the colour picker. */
   bands?: Band[];
+  /** BUG-EF-107 — latest client_notes entry for this session, so the note
+   *  sheet opens pre-populated when the trainer returns to the workout. */
+  initialSessionNote?: string | null;
 }) {
   const version = deliveryMode === "home_training" ? "home" : "studio";
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };
@@ -282,7 +285,7 @@ export function TrainScreen({
   const [picked, setPicked] = useState<Record<string, boolean>>({});
 
   const [noteOpen, setNoteOpen] = useState(false);
-  const [noteDraft, setNoteDraft] = useState("");
+  const [noteDraft, setNoteDraft] = useState(initialSessionNote ?? "");
   const [noteSaving, setNoteSaving] = useState(false);
 
   const [offline, setOffline] = useState<boolean>(false);
@@ -886,7 +889,6 @@ export function TrainScreen({
         body: JSON.stringify({ client_id: clientId, session_id: sessionId, note: text }),
       });
       if (!res.ok) throw new Error("Save failed");
-      setNoteDraft("");
       setNoteOpen(false);
       toast.success("Note saved");
     } catch {
@@ -1372,7 +1374,7 @@ export function TrainScreen({
           </Link>
           <button
             type="button"
-            className="btn btn-outline btn-icon"
+            className={`btn btn-outline btn-icon${noteDraft.trim() ? " has-note" : ""}`}
             onClick={() => setNoteOpen(true)}
             aria-label="Add a note about this session"
             title="Add a note"

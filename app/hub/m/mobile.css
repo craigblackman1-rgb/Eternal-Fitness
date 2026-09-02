@@ -242,7 +242,7 @@
 .ex-acts { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
 .icon-btn { width: 44px; height: 44px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); color: var(--muted); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
 .icon-btn:hover { background: var(--hover); color: var(--ink); }
-.icon-btn.has-note { color: var(--rose); border-color: var(--s-primary-bd); background: var(--s-primary-bg); }
+.icon-btn.has-note, .btn.has-note { color: var(--rose); border-color: var(--s-primary-bd); background: var(--s-primary-bg); }
 .icon-btn.video { color: var(--teal); border-color: var(--s-success-bd); background: var(--s-success-bg); }
 .icon-btn.video:hover { background: rgba(8,126,139,.18); color: color-mix(in oklab, var(--teal) 88%, var(--ink)); }
 .icon-btn:disabled { opacity: .4; cursor: not-allowed; }
