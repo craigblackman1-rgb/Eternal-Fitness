@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { Session, SessionVersion, Exercise, WorkoutTemplate, StudioEquipment } from "@/types";
+import { ensureUids } from "@/lib/exercise-ref";
 import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 /**
@@ -290,6 +291,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       client_intro: "",
     };
 
+    // BUG-EF-111 — regenerate exercise uids so this session never shares uids
+    // with other sessions derived from the same template.
+    const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+    for (const v of Object.keys(sessionData.versions)) {
+      const ver = sessionData.versions[v as keyof typeof sessionData.versions];
+      for (const sk of sectionKeys) {
+        (ver as unknown as Record<string, unknown>)[sk] = ensureUids((ver as unknown as Record<string, unknown>)[sk] as { uid?: string }[], { forceNew: true });
+      }
+    }
+
     await supabase
       .from("workout_templates")
       .update({ usage_count: (template.usage_count ?? 0) + 1, updated_at: new Date().toISOString() })
@@ -319,6 +330,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       coaching_notes: notes ?? (source === "qa" ? "Built from Q&A." : "Pasted workout."),
       client_intro: "",
     };
+
+    // BUG-EF-111 — regenerate exercise uids so this session never shares uids
+    // with the source session or any other derived session.
+    const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+    for (const v of Object.keys(sessionData.versions)) {
+      const ver = sessionData.versions[v as keyof typeof sessionData.versions];
+      for (const sk of sectionKeys) {
+        (ver as unknown as Record<string, unknown>)[sk] = ensureUids((ver as unknown as Record<string, unknown>)[sk] as { uid?: string }[], { forceNew: true });
+      }
+    }
   }
 
   /* Insert the session */

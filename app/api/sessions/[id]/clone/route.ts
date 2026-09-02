@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { Session } from "@/types";
+import { ensureUids } from "@/lib/exercise-ref";
 import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
@@ -37,6 +38,21 @@ export async function POST(_request: Request, { params }: { params: { id: string
     session_log: undefined,
   };
   delete clonedData.session_log;
+
+  // BUG-EF-111 — regenerate exercise uids so the clone never shares uids
+  // with the original (or any other session derived from the same source).
+  const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+  for (const v of Object.keys(clonedData.versions ?? {})) {
+    const ver = clonedData.versions?.[v as keyof typeof clonedData.versions];
+    if (ver && typeof ver === "object") {
+      for (const sk of sectionKeys) {
+        const arr = (ver as unknown as Record<string, unknown>)[sk];
+        if (Array.isArray(arr)) {
+          (ver as unknown as Record<string, unknown>)[sk] = ensureUids(arr as { uid?: string }[], { forceNew: true });
+        }
+      }
+    }
+  }
 
   const { data: created, error: insertError } = await supabase
     .from("sessions")
