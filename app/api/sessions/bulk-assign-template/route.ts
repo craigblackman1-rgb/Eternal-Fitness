@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { ensureUids } from "@/lib/exercise-ref";
 
 /**
  * CR-EF-111 — bulk-assign a workout template to multiple Outlook-placeholder
@@ -91,6 +92,20 @@ export async function POST(request: NextRequest) {
       focus_label: template.name,
       coaching_notes: `Assigned from template: ${template.name} (bulk assignment)`,
     };
+
+    // BUG-EF-111 — regenerate exercise uids per target session so every
+    // assigned session gets its own unique uids instead of sharing the
+    // template's originals.
+    const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+    for (const v of Object.keys(updatedData.versions)) {
+      const ver = updatedData.versions[v as keyof typeof updatedData.versions];
+      for (const sk of sectionKeys) {
+        (ver as unknown as Record<string, unknown>)[sk] = ensureUids(
+          (ver as unknown as Record<string, unknown>)[sk] as { uid?: string }[],
+          { forceNew: true },
+        );
+      }
+    }
 
     const { error: updateErr } = await supabase
       .from("sessions")
