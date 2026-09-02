@@ -20,7 +20,7 @@ Shared primitives in `components/ds/` (PageHero, CTABand, Callout, ProcessFlow, 
 
 **Database:** Self-hosted Postgres on a dedicated VPS. All app data goes through a hand-rolled PostgREST-compatible pg shim (`lib/pg-client.ts`), exported as `supabase` in `lib/supabase.ts` — a deliberate naming choice so the ~176 existing importers didn't need rewriting.
 
-**Migrations:** `supabase/migrations/` — legacy directory name, these are plain Postgres migrations run directly against prod. RLS is **disabled/irrelevant** on the plain-Postgres instance. Do not create `CREATE POLICY ... TO authenticated` — the `authenticated` role doesn't exist and those statements will fail. Access control is enforced at the app layer everywhere.
+**Migrations:** `db/migrations/` — plain Postgres migrations run directly against prod. RLS is **disabled/irrelevant** on the plain-Postgres instance. Do not create `CREATE POLICY ... TO authenticated` — the `authenticated` role doesn't exist and those statements will fail. Access control is enforced at the app layer everywhere.
 
 **Build:** `next.config.js` sets `output: "standalone"` for Docker, `images.unoptimized: true` (self-hosted, not Vercel), `typescript.ignoreBuildErrors: true`, `eslint.ignoreDuringBuilds: true`.
 
@@ -31,7 +31,7 @@ Shared primitives in `components/ds/` (PageHero, CTABand, Callout, ProcessFlow, 
 - `app/` — Next.js App Router pages. Public marketing routes at root; `app/hub/(protected)/` (staff/trainer hub); `app/portal/(protected)/` (client portal); `app/api/` (API routes); `app/documents/[id]/sign/` (public magic-link document signing — no auth required, gated by unguessable UUID)
 - `components/` — React components: `ds/` (shared design-system primitives), `hub/` (hub-specific), `documents/` (document engine), `icons/` (custom 90+ SVG icon system, not lucide-react), `ui/` (shadcn-ui primitives)
 - `lib/` — Shared utilities, DB clients, auth, email, document engine, AI plan generation
-- `supabase/migrations/` — All DB schema changes (plain Postgres, not Supabase)
+- `db/migrations/` — All DB schema changes (plain Postgres, not Supabase)
 - `public/images/` — Static image assets (client photos, studio, hero backgrounds)
 - `scripts/` — One-off migration/build/utility scripts
 - `.context/` — Work Orders, handoffs, briefs, state — the project's long-running memory (read this before making assumptions)
@@ -111,7 +111,7 @@ Every client-facing document (Personal Training Agreement, Risk Assessment, Annu
 `sessions` has `scheduled_at`/`cancelled_at`/`cancel_reason` and `set_logs` (per-set Esther-side logging). Portal home-training self-logging is gated to `clients.delivery_mode = 'home_training'`, server-verified on every read/write. A 7-day "gone quiet" alert detects inactive home-training clients but the auto-send vs. Esther-reviewed nudge decision is still open.
 
 ### Trainerize exercise library was ported
-The exercise library at `/hub/exercises` was seeded from Trainerize export data (`supabase/migrations/20260710_exercises_trainerize_seed.sql`). Video links resolve from `Exercise.media` first, falling back to the `exercises` table by name match.
+The exercise library at `/hub/exercises` was seeded from Trainerize export data (`db/migrations/20260710_exercises_trainerize_seed.sql`). Video links resolve from `Exercise.media` first, falling back to the `exercises` table by name match.
 
 ### Tailwind opacity modifiers need RGB triplets
 Tailwind's `bg-rose/10` produces no CSS unless `--color-rose-rgb` is defined as space-separated RGB values (`193 131 159`) and consumed in `tailwind.config.ts` via `rgb(var(--x-rgb) / <alpha-value>)`. Using opacity modifiers with bare hex CSS variables silently does nothing.

@@ -157,7 +157,7 @@ Approach: **persistent `uid` on each `Exercise` in the JSONB**, not normalisatio
 
 The uid **cannot** go in the ref string: `lib/progress.ts`'s `parseExerciseName` does `parts.slice(3).join(":")`, so a fifth segment becomes part of the exercise name and poisons every PB and trend. **`lib/progress.ts` was left untouched throughout L2** — its own tolerant fallback parsing is live in production PB/trend calculations, and nothing about this lane needed to touch it.
 
-**DB half — `supabase/migrations/20260811_exercise_uid.sql`.** Read the actual live schema/data
+**DB half — `db/migrations/20260811_exercise_uid.sql`.** Read the actual live schema/data
 before writing a single line (86 sessions, 92 `set_logs` rows, real `sessions.data` shape) rather
 than trusting this morning's earlier assumptions. Dry-ran the backfill-match logic read-only
 first: **92/92 `set_logs` rows matched unambiguously**, zero unmatched. Adds `set_logs.exercise_uid`
@@ -261,7 +261,7 @@ Schema — mostly JSONB, following the `log_type` precedent (added with no migra
 | Warm-up sets (logged) | `set_logs.is_warmup` | **Yes** |
 | Unit as typed | `set_logs.weight_unit` | **Yes** |
 
-`supabase/migrations/20260811_set_logs_warmup_units.sql`. **`weight_kg` stays the single canonical number** — `weight_unit` records only what she typed, converted on write. A parallel `weight_lb` column, or letting `weight_kg` hold pounds, would silently corrupt every PB in `personal_records` (all kg-denominated) with no error.
+`db/migrations/20260811_set_logs_warmup_units.sql`. **`weight_kg` stays the single canonical number** — `weight_unit` records only what she typed, converted on write. A parallel `weight_lb` column, or letting `weight_kg` hold pounds, would silently corrupt every PB in `personal_records` (all kg-denominated) with no error.
 
 `is_warmup` needs a real column rather than derivation, because the prescription mutates mid-session — a historical log's warm-up status would otherwise become revisionist. Then gate it: `if (log.is_warmup) return false;` at the top of `checkAndUpsertPB`, and filter it out of `buildExerciseHistory`. Fix the `GREATEST` PB bug (#2) in the same commit.
 
@@ -337,7 +337,7 @@ piece toward "an app Esther can view" in the literal sense Craig asked for.
 
 Hand-write `public/hub/sw.js` (~150 lines), registered with `{ scope: '/hub/' }` so it never intercepts the marketing site. **Not `next-pwa`** — this repo already carries `output: standalone`, `ignoreBuildErrors`, `ignoreDuringBuilds` and `patch-package`; another webpack-patching plugin buys little over code we control.
 
-`supabase/migrations/20260811_set_logs_idempotency.sql` — `client_op_id UUID` + partial unique index. Replay does `ON CONFLICT (client_op_id) DO NOTHING` then returns the existing row, so a replayed request produces byte-identical output. The natural key `(session_id, exercise_uid, set_number)` is the better long-term index but **ships in a follow-up**, after a duplicate audit returns zero rows — hub and portal may both have logged the same set with different `logged_by`.
+`db/migrations/20260811_set_logs_idempotency.sql` — `client_op_id UUID` + partial unique index. Replay does `ON CONFLICT (client_op_id) DO NOTHING` then returns the existing row, so a replayed request produces byte-identical output. The natural key `(session_id, exercise_uid, set_number)` is the better long-term index but **ships in a follow-up**, after a duplicate audit returns zero rows — hub and portal may both have logged the same set with different `logged_by`.
 
 Two traps that will otherwise bite:
 - **`logged_at`** is stamped `NOW()` server-side today. A set performed at 09:15 and replayed at 11:00 gets stamped 11:00, corrupting `lastPerformed` ordering and every trend. The queued payload must carry a client `logged_at`; routes accept it with guards (reject future, clamp to a sane window). Required API change.
@@ -352,7 +352,7 @@ PB badges become **advisory and deferred**: sets saved offline show no PB pill; 
 ### L6 — Microsoft Graph / Outlook `[GATE — blocked on Craig]`
 **One-way push first** (hub → Outlook). `sessions.scheduled_at` is derived from a block pattern and belongs to the training plan; Outlook is a *view* of it. Two-way means reconciling "she dragged the event" against "session 7 of block 3", and the failure mode is a sync loop rewriting `scheduled_at`. Add a delta-query pull for moves and cancellations only if she asks for it.
 
-`supabase/migrations/20260812_microsoft_graph_integration.sql` — `integration_tokens` (generic `provider`, unique index enforcing one connection) and `session_calendar_events` (`sync_hash` so the recurring job is a cheap no-op when nothing changed).
+`db/migrations/20260812_microsoft_graph_integration.sql` — `integration_tokens` (generic `provider`, unique index enforcing one connection) and `session_calendar_events` (`sync_hash` so the recurring job is a cheap no-op when nothing changed).
 
 Routes: `app/api/integrations/microsoft/{authorize,callback,disconnect}`, `app/api/cron/sync-calendar` (reusing the `CRON_SECRET` bearer pattern from `app/api/cron/check-updates-due/route.ts:20-30`, every 15 min over `scheduled_at` in −1d…+60d), plus an on-demand fire from the sessions PATCH so rescheduling updates the calendar immediately. Settings UI at `app/hub/(protected)/settings/integrations/`.
 

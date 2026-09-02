@@ -53,7 +53,7 @@ This lane runs **in parallel with L4** (day-agenda calendar, a separate worktree
 
 ## `client_notes` migration + Notes upgrade
 
-- New migration `supabase/migrations/20260821_client_notes_session_pin.sql`:
+- New migration `db/migrations/20260821_client_notes_session_pin.sql`:
   `ALTER TABLE client_notes ADD COLUMN session_id uuid REFERENCES sessions(id) ON DELETE SET NULL,
   ADD COLUMN pinned boolean NOT NULL DEFAULT false, ADD COLUMN author text;` — additive, nullable/defaulted,
   doesn't break existing rows or the current API route's callers.

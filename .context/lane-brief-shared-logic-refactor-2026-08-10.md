@@ -211,7 +211,7 @@ one test file.
    to work around.
 4. No new dependencies beyond what's already in `package.json`.
 5. No DB migration in this lane. This is a pure code refactor — if you find yourself wanting
-   to touch `supabase/migrations/`, stop, you've drifted into a later lane's scope.
+   to touch `db/migrations/`, stop, you've drifted into a later lane's scope.
 6. Reuse existing types (`Exercise`, `SessionVersion` from `types/index.ts`) — don't redefine
    them in the new lib files, import them.
 7. **Do not push to `main`, do not merge, do not push anywhere.** Commit to the current

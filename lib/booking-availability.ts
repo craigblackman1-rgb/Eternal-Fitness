@@ -17,7 +17,7 @@ import {
 
 // ─── Default working hours ────────────────────────────────────────────────
 // No working-hours config exists in the codebase (confirmed by grep of lib/
-// and supabase/migrations/). This is a hardcoded default that should become
+// and db/migrations/). This is a hardcoded default that should become
 // a real DB setting later — do not build a settings UI for this yet.
 
 interface WorkingHoursRule {

@@ -1,5 +1,5 @@
 // One-off runner for the client-assessment workout template seed:
-//   supabase/migrations/20260818_seed_client_assessment_workout_template.sql
+//   db/migrations/20260818_seed_client_assessment_workout_template.sql
 // Transaction-wrapped, confirms expected before/after state, COMMITs only if checks pass.
 //
 // Run from the repo root: node scripts/run-client-assessment-template-migration.mjs
@@ -15,7 +15,7 @@ if (!match) {
 }
 
 const sql = fs.readFileSync(
-  "supabase/migrations/20260818_seed_client_assessment_workout_template.sql",
+  "db/migrations/20260818_seed_client_assessment_workout_template.sql",
   "utf8",
 );
 

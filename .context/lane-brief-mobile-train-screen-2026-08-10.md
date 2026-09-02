@@ -58,7 +58,7 @@ real, currently-live bugs in it, all of which this new screen must fix rather th
 2. **`version` is hardcoded to `"studio"`** (~line 81: `const version = "studio";`). This means a
    home-training client's session can never be logged from this screen. Fix: read
    `clients.delivery_mode` (`'studio_1to1' | 'home_training'`, already on the `clients` table —
-   check `supabase/migrations/20260725_session_set_logs.sql` for the exact column) and use
+   check `db/migrations/20260725_session_set_logs.sql` for the exact column) and use
    `'home'` when `delivery_mode === 'home_training'`, else `'studio'`. You'll need to fetch the
    client's `delivery_mode` in the server component (`app/hub/m/train/[sessionId]/page.tsx`) the
    same way `app/hub/m/page.tsx` already fetches `clients` — reuse that query shape.

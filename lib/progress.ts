@@ -5,7 +5,7 @@
  * components (the chart panel imports the types). All DB access for
  * progress lives in lib/progress-db.ts.
  *
- * exercise_ref convention (see supabase/migrations/20260725_session_set_logs.sql):
+ * exercise_ref convention (see db/migrations/20260725_session_set_logs.sql):
  *   <version>:<section>:<index>:<exercise_name>
  * e.g. "studio:warm_up:0:Bodyweight Squat". Parsing is defensive — a ref that
  * doesn't match the convention falls back to the raw ref as the display name

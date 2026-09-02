@@ -5,7 +5,7 @@
  * components. All DB access lives in portal-data.ts (portal) or the hub
  * server-component page (staff).
  *
- * exercise_ref convention (see supabase/migrations/20260725_session_set_logs.sql):
+ * exercise_ref convention (see db/migrations/20260725_session_set_logs.sql):
  *   <version>:<section>:<index>:<exercise_name>
  * e.g. "studio:warm_up:0:Bodyweight Squat". Grouping is by the trailing
  * exercise_name segment (everything after the last colon), because section/index

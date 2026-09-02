@@ -1,6 +1,6 @@
 // One-off runner for CR-EF-022 + CR-EF-017 schema changes:
-//   supabase/migrations/20260817_client_start_date.sql
-//   supabase/migrations/20260817_client_notes.sql
+//   db/migrations/20260817_client_start_date.sql
+//   db/migrations/20260817_client_notes.sql
 // Transaction-wrapped, confirms expected before/after state, COMMITs only if checks pass.
 //
 // Run from the repo root: node scripts/run-client-startdate-notes-migration.mjs
@@ -15,8 +15,8 @@ if (!match) {
   process.exit(1);
 }
 
-const startDateSql = fs.readFileSync("supabase/migrations/20260817_client_start_date.sql", "utf8");
-const notesSql = fs.readFileSync("supabase/migrations/20260817_client_notes.sql", "utf8");
+const startDateSql = fs.readFileSync("db/migrations/20260817_client_start_date.sql", "utf8");
+const notesSql = fs.readFileSync("db/migrations/20260817_client_notes.sql", "utf8");
 
 const client = new pg.Client({ connectionString: match[1].trim() });
 

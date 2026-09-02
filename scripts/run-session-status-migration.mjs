@@ -1,5 +1,5 @@
 // One-off runner for CR-EF-037 Phase 1:
-//   supabase/migrations/20260818_session_status_model.sql
+//   db/migrations/20260818_session_status_model.sql
 //
 // Transaction-wrapped. Unlike the other run-*-migration.mjs scripts in this
 // folder, this one defaults to DRY RUN (always rolls back) because it touches
@@ -23,7 +23,7 @@ if (!match) {
   process.exit(1);
 }
 
-const migrationSql = fs.readFileSync("supabase/migrations/20260818_session_status_model.sql", "utf8");
+const migrationSql = fs.readFileSync("db/migrations/20260818_session_status_model.sql", "utf8");
 
 const client = new pg.Client({ connectionString: match[1].trim() });
 

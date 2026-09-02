@@ -1,4 +1,4 @@
-// One-off runner for supabase/migrations/20260811_exercise_uid.sql.
+// One-off runner for db/migrations/20260811_exercise_uid.sql.
 // Wraps the migration in a transaction, verifies row counts and uid coverage
 // match expectations, and only COMMITs if every check passes -- ROLLBACKs
 // otherwise. Already verified against production data (2026-08-10): 92/92
@@ -19,7 +19,7 @@ if (!match) {
 }
 
 const migrationSql = fs.readFileSync(
-  "supabase/migrations/20260811_exercise_uid.sql",
+  "db/migrations/20260811_exercise_uid.sql",
   "utf8"
 );
 

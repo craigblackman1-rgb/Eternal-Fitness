@@ -14,7 +14,7 @@ if (!isMain) {
   process.exit(0);
 }
 
-const sql = readFileSync(new URL("../supabase/migrations/20260817_client_notes.sql", import.meta.url), "utf8");
+const sql = readFileSync(new URL("../db/migrations/20260817_client_notes.sql", import.meta.url), "utf8");
 
 const client = new pg.Client({
   connectionString: "postgresql://ef_staging_app:uZ81HJRRFbBprNVMOzNiaBQr8teMrnpM@localhost:5433/eternal_fitness_staging",

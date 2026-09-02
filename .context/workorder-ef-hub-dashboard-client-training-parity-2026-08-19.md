@@ -56,7 +56,7 @@ MUST:
   the accordion component CR-EF-039 is standardising on) — do not fork new
   local component variants (CR-EF-039's whole point).
 FORBIDDEN:
-- app/(marketing)**, app/portal/(client-facing UI), supabase/migrations/**
+- app/(marketing)**, app/portal/(client-facing UI), db/migrations/**
   (no new migration without GATE), components/ds/**, app/design-system.css.
 DECIDE YOURSELF:
 - Component-internal structure, exact copy/microcopy, which shared primitive

@@ -92,9 +92,9 @@ Differences from the desktop version:
   screen — a later lane builds the real content, but wire the real link with the real session id
   now), not a read-only detail page. This is the single most important interaction on this screen
   per the mockup's own design note.
-- **Tasks due section** — real data from the `tasks` table (see `supabase/migrations/
+- **Tasks due section** — real data from the `tasks` table (see `db/migrations/
   20260725_hub_tasks.sql` for the schema: `title, description, status, assignee, due_date`, and
-  `supabase/migrations/20260801_hub_tasks_client_link.sql` for the client link). Fetch tasks with
+  `db/migrations/20260801_hub_tasks_client_link.sql` for the client link). Fetch tasks with
   `due_date <= <the viewed day>` and `status != 'done'` OR done-today (mirror however the existing
   `GET /api/tasks` route or `app/hub/(protected)/tasks/TasksManager.tsx` already scopes "due" —
   read that file for the real semantics rather than guessing from the mockup's toy `due: offset`

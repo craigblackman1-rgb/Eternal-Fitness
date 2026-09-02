@@ -60,7 +60,7 @@ MUST:
 FORBIDDEN:
 - `tailwind.config.ts`, `app/globals.css` — global scope, out of bounds.
 - `app/(marketing)**`, `app/portal/**`.
-- `supabase/migrations/**`.
+- `db/migrations/**`.
 DECIDE YOURSELF:
 - Whether a given box is "section-level" (16px) vs "nested" (12px) — use
   the padding heuristic above and match sibling elements on the same

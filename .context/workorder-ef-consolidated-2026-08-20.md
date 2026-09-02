@@ -27,7 +27,7 @@ MUST:
 FORBIDDEN:
 - app/(marketing)/** content changes beyond Lane B's schema/meta additions,
   app/portal/(client-facing UI)** beyond nothing in this WO, lib/planAgentPrompt.ts,
-  supabase/migrations/** without a GATE, components/ds/**, app/design-system.css.
+  db/migrations/** without a GATE, components/ds/**, app/design-system.css.
 
 DECIDE YOURSELF:
 - Component-internal structure; exact copy/microcopy (sentence case, British English);

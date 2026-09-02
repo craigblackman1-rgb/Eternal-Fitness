@@ -10,7 +10,7 @@ if (!match) {
   process.exit(1);
 }
 
-const migrationSql = fs.readFileSync("supabase/migrations/20260902_client_supplementary_workouts.sql", "utf8");
+const migrationSql = fs.readFileSync("db/migrations/20260902_client_supplementary_workouts.sql", "utf8");
 
 const client = new pg.Client({ connectionString: match[1].trim() });
 

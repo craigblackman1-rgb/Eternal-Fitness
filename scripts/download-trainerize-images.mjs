@@ -14,7 +14,7 @@ import { join, basename } from "path";
 import { mkdir } from "fs/promises";
 
 const ROOT = process.cwd();
-const SEED_FILE = join(ROOT, "supabase/migrations/20260710_exercises_trainerize_seed.sql");
+const SEED_FILE = join(ROOT, "db/migrations/20260710_exercises_trainerize_seed.sql");
 const OUT_DIR = join(ROOT, "public/images/exercises");
 const MAP_FILE = join(ROOT, "scripts/trainerize-image-map.json");
 const SQL_FILE = join(ROOT, "scripts/trainerize-image-migration.sql");

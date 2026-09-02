@@ -7,7 +7,7 @@
 
 This is Lane 2 (`L2`) of `wo-eternalfitness-hub-mobile-session-pwa-2026-08-10`
 (`.context/workorder-eternalfitness-hub-mobile-session-pwa-2026-08-10.md`). The DB half of
-L2 is already done and live: `supabase/migrations/20260811_exercise_uid.sql` ran successfully
+L2 is already done and live: `db/migrations/20260811_exercise_uid.sql` ran successfully
 against production today — every `Exercise` object inside every session's `data.versions.*.*`
 JSONB now carries a persistent `uid` field (verified: 3,094/3,094 exercises across all 86
 sessions), and `set_logs.exercise_uid`/`exercise_name` are backfilled (verified: 92/92 rows).
@@ -41,7 +41,7 @@ now. Leave it completely alone — the new module below is separate and does not
 it.
 
 **Do not run any migration.** The schema change is already done. If you find yourself wanting to
-add a column or touch `supabase/migrations/`, stop — that's out of scope, the work here is
+add a column or touch `db/migrations/`, stop — that's out of scope, the work here is
 TypeScript only.
 
 ## Scope — one new module, four call sites, one API route
@@ -197,7 +197,7 @@ script from a prior lane; use them, don't reconfigure.
 2. Never run a dev server, `next build`, Playwright, or any browser. Verification is
    `npx tsc --noEmit` and `npx vitest run` and reading your own diff.
 3. Never `npm install` / `pnpm install`. No new dependencies.
-4. **No DB migration, no `supabase/migrations/` changes of any kind** — the schema work for this
+4. **No DB migration, no `db/migrations/` changes of any kind** — the schema work for this
    lane is already done and live.
 5. Reuse existing types (`Exercise`, `SessionVersion` from `types/index.ts`) — extend the
    `Exercise` interface in place, don't redefine it elsewhere.

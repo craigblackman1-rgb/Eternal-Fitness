@@ -82,7 +82,7 @@ standing rule: commit before code build starts.
 **CR-EF-037 Phase 1 — shipped.** `sessions.status/started_at/completed_at`
 added to production and backfilled (72 planned / 19 cancelled / 12 scheduled /
 7 completed / 0 in_progress), independently re-verified post-commit. Migration:
-`supabase/migrations/20260818_session_status_model.sql`, runner:
+`db/migrations/20260818_session_status_model.sql`, runner:
 `scripts/run-session-status-migration.mjs` (dry-run by default, `--apply` to
 commit — stricter default than this repo's other migration runners given how
 central this column is).

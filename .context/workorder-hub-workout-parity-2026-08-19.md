@@ -63,7 +63,7 @@ MUST:
 - DO-SOP-010: own worktree per lane; staging → verify on development → main.
 FORBIDDEN:
 - app/(marketing)**, app/portal/(client-facing UI), public/site.webmanifest,
-  lib/planAgentPrompt.ts, supabase/migrations/** (no new migration without GATE),
+  lib/planAgentPrompt.ts, db/migrations/** (no new migration without GATE),
   components/ds/**, app/design-system.css.
 - The CR-EF-037 core files listed under MUST — do not "improve" them in this WO.
 DECIDE YOURSELF:

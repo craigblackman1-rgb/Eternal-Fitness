@@ -3,7 +3,7 @@
  *
  * This is intentionally NOT the same instance as the staff/trainer auth in
  * lib/auth.ts. It owns its own tables (portal_accounts / portal_sessions /
- * portal_reset_tokens, created in supabase/migrations/20260720_portal_auth.sql)
+ * portal_reset_tokens, created in db/migrations/20260720_portal_auth.sql)
  * and its own cookie (better_auth_portal_session). The staff auth path,
  * middleware, and (protected) layout are never imported or modified here.
  *

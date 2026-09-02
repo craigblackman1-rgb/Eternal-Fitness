@@ -61,10 +61,10 @@ export interface EnduranceBlockData {
   Add `enduranceBlock?: EnduranceBlockData` to `DocumentBody`. Everything
   optional/nullable-safe — other kinds must be unaffected.
 
-## 2. Migration — new file `supabase/migrations/<today's date YYYYMMDD>_endurance_block_document.sql`
+## 2. Migration — new file `db/migrations/<today's date YYYYMMDD>_endurance_block_document.sql`
 
 Follow the exact pattern of the existing seed at the bottom of
-`supabase/migrations/20260704_document_engine.sql` (the `INSERT INTO
+`db/migrations/20260704_document_engine.sql` (the `INSERT INTO
 document_templates ... WHERE NOT EXISTS (...)` guard for `kind = 'terms'`).
 Insert one `document_templates` row: `kind = 'endurance_block'`, sensible
 `name` (e.g. "Endurance Training Block"), `version = 1`,

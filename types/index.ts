@@ -126,7 +126,7 @@ export interface StudioEquipment {
   created_at: string;
 }
 
-/** Lane B — Process & Quality System tables (see supabase/migrations/20260720_process_quality_system.sql). */
+/** Lane B — Process & Quality System tables (see db/migrations/20260720_process_quality_system.sql). */
 export type ProcessStatus = "active" | "draft" | "review" | "archived";
 
 export interface ProcessEntry {
@@ -174,7 +174,7 @@ export interface ImprovementEntry {
   created_at: string;
 }
 
-/** Hub to-do task list (see supabase/migrations/20260725_hub_tasks.sql). */
+/** Hub to-do task list (see db/migrations/20260725_hub_tasks.sql). */
 export type TaskStatus = "todo" | "in_progress" | "done";
 
 export interface TaskBucket {
@@ -445,7 +445,7 @@ export interface SessionLog {
 }
 
 /** One performed set against a prescribed exercise — set_logs table
- *  (see supabase/migrations/20260725_session_set_logs.sql).
+ *  (see db/migrations/20260725_session_set_logs.sql).
  *  exercise_ref convention: `<version>:<section>:<index>:<exercise_name>`,
  *  e.g. "studio:warm_up:0:Bodyweight Squat". */
 export interface SetLog {

@@ -6,7 +6,7 @@ more items mid-session (band recording on Half Kneeling Band Pallof Press, exerc
 pooling, Weeks vs Plan-week confusion).
 
 **Root cause of the save failure — third missed-migration incident:**
-`supabase/migrations/20260821_client_notes_session_pin.sql` (client_notes.session_id/pinned/
+`db/migrations/20260821_client_notes_session_pin.sql` (client_notes.session_id/pinned/
 author) ran on staging but NEVER on prod. Prod pg log showed 13 failed note INSERTs + 111
 failed notes-list SELECTs. **Applied to prod (Craig-approved), verified: exact failing
 statement shapes now succeed, errors stopped in the log.** Drift sweep of all migrations vs
@@ -695,7 +695,7 @@ call was to leave it there rather than duplicate. See "Left for the other Work O
    covering both hosts + development + localhost. Verified against production before and after:
    `www` origin 403→200, hostile origin still 403 (CSRF intact).
 
-2. **`a1f0045`** — [supabase/migrations/20260810_set_log_revisions.sql](../supabase/migrations/20260810_set_log_revisions.sql):
+2. **`a1f0045`** — [db/migrations/20260810_set_log_revisions.sql](../db/migrations/20260810_set_log_revisions.sql):
    new `set_log_revisions` table + `trg_set_logs_audit` trigger. `set_logs` had no history —
    `PATCH /api/sessions/[id]/set-logs` overwrote reps/weight/completed in place. This surfaced for
    real the same session (see below). Trigger-based so it catches any write path, not just today's
@@ -1320,7 +1320,7 @@ these were in the Trainerize export.
 
 **Then linked prescribed exercises to the `exercises` library so videos resolve** (Craig's separate ask, for Emma's new block plus Tom Putnam's existing block-1 import). The library-by-name fallback in `lib/portal-data.ts` only fires for the client portal's home version at read time — it isn't persisted, and doesn't touch the hub's trainer-facing view at all. Wrote `ex.media = {image_url, video_url}` directly onto matched exercise objects in the stored session JSON instead (matches how `SessionEditor`'s manual swap dialog already persists media), across both `studio` and `home` versions. Applied high-confidence matches only (exact name or unambiguous naming variant e.g. "DB" vs "Dumbbell", "Dead Bugs" vs "Dead Bug"); left equipment-ambiguous ones (e.g. Single-Leg Hip Thrust — Barbell/Bench/Landmine all tied) and true gaps unlinked rather than guessing on live client data. Sent Craig a CSV (`Client, Exercise as prescribed, Status, Suggested/Linked match, Note`) instead of a chat table so it's shareable with Esther directly.
 
-**Craig then asked to re-run the Trainerize scrape to fill the flagged gaps.** Re-ran `scripts/scrape-trainerize-exercises.mjs` (creds already in `.env.local` from the original 9 Jul import) — found 36 new custom exercises Esther's added since then, 2 of which closed real gaps and had actual YouTube videos (not just Trainerize thumbnails): "Seated Dumbbell Hammer Curl" and "Half kneeling Pallof Press Hold". Also caught my own earlier matching miss on a second pass — "Booty Band Clamshells" does match "Mini Band Clamshell", I'd just missed it the first time over a singular/plural mismatch in a naive token-overlap scorer (no stemming). Imported the 36 new rows into `exercises` directly, then wrote `supabase/migrations/20260802_exercises_trainerize_refresh.sql` documenting it — guarded with a per-row `NOT EXISTS` check (no unique constraint on `trainerize_id`) so it's safe to replay; verified by actually running it against prod and confirming 0 rows inserted (already present). Confirmed the remaining flagged gaps (DB Skull Crusher, Sissy Squat, Ankle Rock/Squat Sit, DB Floor Fly, Weighted March on the Spot, two chained circuit rows) are genuinely absent from Trainerize's full catalog, stock and custom — not a scrape gap, Esther would need to add them in Trainerize herself.
+**Craig then asked to re-run the Trainerize scrape to fill the flagged gaps.** Re-ran `scripts/scrape-trainerize-exercises.mjs` (creds already in `.env.local` from the original 9 Jul import) — found 36 new custom exercises Esther's added since then, 2 of which closed real gaps and had actual YouTube videos (not just Trainerize thumbnails): "Seated Dumbbell Hammer Curl" and "Half kneeling Pallof Press Hold". Also caught my own earlier matching miss on a second pass — "Booty Band Clamshells" does match "Mini Band Clamshell", I'd just missed it the first time over a singular/plural mismatch in a naive token-overlap scorer (no stemming). Imported the 36 new rows into `exercises` directly, then wrote `db/migrations/20260802_exercises_trainerize_refresh.sql` documenting it — guarded with a per-row `NOT EXISTS` check (no unique constraint on `trainerize_id`) so it's safe to replay; verified by actually running it against prod and confirming 0 rows inserted (already present). Confirmed the remaining flagged gaps (DB Skull Crusher, Sissy Squat, Ankle Rock/Squat Sit, DB Floor Fly, Weighted March on the Spot, two chained circuit rows) are genuinely absent from Trainerize's full catalog, stock and custom — not a scrape gap, Esther would need to add them in Trainerize herself.
 
 **Process note, self-caught mid-session:** ran the scrape and initial DB writes from the shared `main` checkout (`D:\apps\eternal-fitness-website`) instead of this worktree — a DO-SOP-010 violation. Caught it before committing anything there, copied the two changed files (`  .context/trainerize-exercise-export.json`, the new migration) into this worktree, reverted the shared checkout back to clean, and committed/pushed from here instead. No data was lost or duplicated, but worth flagging since it's exactly the failure mode DO-SOP-010 exists to prevent.
 
@@ -1362,7 +1362,7 @@ Price, Ellie Wallwork, Ian Healey, Odul Bozkurt, Saffron Somerset, Sam Gibbons),
 generation). Flagged this to Craig before shipping — an unbackfilled deploy would have silently
 flipped all 7 to `clear` and unblocked planning for people who may genuinely need a GP letter. Craig
 confirmed the backfill; ran
-`supabase/migrations/20260801_gp_clearance_required_manual_backfill.sql` directly against prod
+`db/migrations/20260801_gp_clearance_required_manual_backfill.sql` directly against prod
 (`profile.health.gp_clearance_required = true` for those 8), confirmed via a follow-up query. Esther
 now owns the flag from here and can un-tick any of the 8 if she disagrees with the old rule's call.
 
@@ -2810,7 +2810,7 @@ the full treatment; Agreement is scoped but deliberately NOT touched this sessio
   `feedbackSections`/`feedbackConsents` schema built for the Feedback Questionnaire could carry PAR-Q's
   29 real clinical questions verbatim from `lib/parq-data.ts`, plus personal/GP/detail fields as `text`
   questions. `DocumentKind` gained `'parq'`.
-- **New PAR-Q document template** (`supabase/migrations/20260721_seed_parq_template.sql`) — real
+- **New PAR-Q document template** (`db/migrations/20260721_seed_parq_template.sql`) — real
   interactive radio-group/text fields, not the earlier Lane C plan's raw-HTML-table body. That plan is
   superseded; `scripts/migrate-parq-to-engine.mjs` was rewritten to target this new schema instead
   (its file header still documents the field mapping).
@@ -3086,9 +3086,9 @@ alt is flagged here as an alternative Craig could request instead).
   POST body when the document has `consentGroups`. Also did the SCOPED token cleanup (see below).
 - **`app/api/documents/[id]/sign/route.ts`** — accepts an optional `consent_choices` field from the
   request body and persists it on the `client_documents` row when present (client role only).
-- **`supabase/migrations/20260720_consent_choices_column.sql`** (NEW, **NOT run**) — purely
+- **`db/migrations/20260720_consent_choices_column.sql`** (NEW, **NOT run**) — purely
   additive `ALTER TABLE client_documents ADD COLUMN IF NOT EXISTS consent_choices jsonb;`
-- **`supabase/migrations/20260720_consent_template.sql`** (NEW, **NOT run**) — seeds a
+- **`db/migrations/20260720_consent_template.sql`** (NEW, **NOT run**) — seeds a
   `document_templates` row for `kind='consent'`, `requires_client_signature=true`,
   `requires_trainer_signature=false` (consent is client-only), `body.intro` + a single
   `What you need to know` section (verbatim note--plain wording) + the three `consentGroups`
@@ -3138,7 +3138,7 @@ sitewide token decision, not a document-engine one.
   client) are unchanged and still need separate explicit go-ahead, consistent with how Lane B/C's
   DB writes were staged-then-gated.
 - **Lane B migration run:** Craig gave explicit per-session authorisation to write to production
-  Postgres for Lane B specifically. Ran `supabase/migrations/20260720_process_quality_system.sql`
+  Postgres for Lane B specifically. Ran `db/migrations/20260720_process_quality_system.sql`
   against prod via the standing Coolify tunnel (`127.0.0.1:5433` → `10.10.10.2:5432`, role
   `ef_app`, `DATABASE_URL` sourced from `.env.local`, never printed/persisted elsewhere). Migration
   is purely additive (`CREATE TABLE IF NOT EXISTS` × 3 + indexes, no ALTER/DROP on anything
@@ -3151,7 +3151,7 @@ sitewide token decision, not a document-engine one.
 ## Work Order — Lane C, unit 1 — PAR-Q → document engine migration plan (planning only, no DB)
 
 - **File-based read only — NOT a live-DB confirmation.** Reconstructed `signed_parq` and
-  `document_templates`/`client_documents` schemas from `supabase/migrations/*.sql` only. No DB
+  `document_templates`/`client_documents` schemas from `db/migrations/*.sql` only. No DB
   tunnel open this session; no connection to production Postgres was attempted or made.
 - Verified current state: `document_templates` is seeded with `terms` (real copy), `risk_assessment`
   and `annual_review` (both dual-signed) — **no `parq` template exists yet**. `signed_parq` carries
@@ -3199,7 +3199,7 @@ sitewide token decision, not a document-engine one.
   (confirmed structure: `ProcessEntry[]` / `SOP[]` / `ImprovementEntry[]`, tabs Process
   Register · SOPs · Improvement Log — plus Overview and AI Systems tabs that are Decoded-Ops
   specific and were intentionally **not** ported). No edits made to the decoded-ops-hub repo.
-- **Migration** (`supabase/migrations/20260720_process_quality_system.sql`): creates
+- **Migration** (`db/migrations/20260720_process_quality_system.sql`): creates
   `process_entries`, `sops`, `improvement_log` matching the TSX shape, adapted to EF (single
   brand — dropped `service` line, replaced with a free `area` text field; dropped the AI
   `skills[]` array as not relevant to EF). `sops.steps` stored as `jsonb`. FK-by-reference via
@@ -3269,7 +3269,7 @@ sitewide token decision, not a document-engine one.
   snapshots every existing `signed_parq` row into `client_documents` (kind='parq'), per the
   mapping in `.context/lane-c-parq-migration-plan.md` §3.
 - **Deliverables (both written, neither executed)**:
-  - `supabase/migrations/20260720_seed_parq_template.sql` — inserts the `parq` template row
+  - `db/migrations/20260720_seed_parq_template.sql` — inserts the `parq` template row
     (structured `body` JSON with `intro` + 8 `sections` + a nested `data` block carrying
     `answers`/`details`/`personal`/`signature`). Mirrors the style of
     `20260704_risk_and_review_templates.sql`. `WHERE NOT EXISTS` guard so it is idempotent.
@@ -3287,7 +3287,7 @@ sitewide token decision, not a document-engine one.
   four values (`received`/`sent`/`needs_update`→`sent`, `expired`→`draft`).
 - **Explicit outstanding verification — NOT closable this session (do not fabricate a "verified" claim)**:
   there was **no database connection** this session (per the Work Order constraint and `[GATE]`).
-  The 1:1 mapping is file-based only — reconstructed from `supabase/migrations/` SQL, never
+  The 1:1 mapping is file-based only — reconstructed from `db/migrations/` SQL, never
   confirmed against live client records. The plan's own checklist (spot-check ≥3 real clients:
   e.g. Sarah Tyler, Colin Farley, one with a YES answer; confirm `body.data.answers` byte-equal;
   confirm clearance state unchanged) **was not performed**. Before running:
@@ -3319,7 +3319,7 @@ design in `.context/lane-d1-client-auth-design.md` (magic-link, separate better-
 bound 1:1 to `clients.id`, server-filtered to the client's own data, staff auth untouched).
 
 ### What was built
-- **Migration (NOT run):** `supabase/migrations/20260720_portal_auth.sql` — new isolated tables
+- **Migration (NOT run):** `db/migrations/20260720_portal_auth.sql` — new isolated tables
   `portal_accounts`, `portal_sessions`, `portal_magic_links` (own `portal_` prefix, own cookie,
   `client_id` 1:1 FK, `disabled_at` for staff revoke, hashed single-use tokens). NO RLS policies
   for client roles — all reads are service-role, filtered by authenticated `client_id`.

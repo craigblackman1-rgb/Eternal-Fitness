@@ -88,7 +88,7 @@ none of this has been started).
   narrowly: session-shaped actions come to the phone, true admin stays on desktop.
 - Notes quick-add already exists on mobile and **already shares the desktop's store** — both hit
   `/api/client-notes`. But the table is `client_id + note + created_at` and nothing else
-  (`supabase/migrations/20260817_client_notes.sql`): **no session link, no author, no pin.**
+  (`db/migrations/20260817_client_notes.sql`): **no session link, no author, no pin.**
 - Blocks have **no date anchor** — `blocks.scheduled_start` is NULL on all 18 in production, against
   Trainerize showing a real 6-week range.
 - Outlook: **push already works.** `hub → Outlook` fires automatically whenever `scheduled_at` or

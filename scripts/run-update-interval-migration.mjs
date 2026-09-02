@@ -1,4 +1,4 @@
-// One-off runner for supabase/migrations/20260817_update_interval_custom.sql.
+// One-off runner for db/migrations/20260817_update_interval_custom.sql.
 // Wraps the migration in a transaction, confirms the expected before/after
 // schema state, and only COMMITs if the checks pass.
 //
@@ -15,7 +15,7 @@ if (!match) {
 }
 
 const migrationSql = fs.readFileSync(
-  "supabase/migrations/20260817_update_interval_custom.sql",
+  "db/migrations/20260817_update_interval_custom.sql",
   "utf8"
 );
 

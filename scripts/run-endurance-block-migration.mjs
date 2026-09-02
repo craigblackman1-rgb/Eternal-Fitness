@@ -1,4 +1,4 @@
-// One-off runner for supabase/migrations/20260819_endurance_block_document.sql.
+// One-off runner for db/migrations/20260819_endurance_block_document.sql.
 // Wraps the migration in a transaction, confirms the expected before/after
 // state, and only COMMITs if the checks pass.
 //
@@ -15,7 +15,7 @@ if (!match) {
 }
 
 const migrationSql = fs.readFileSync(
-  "supabase/migrations/20260819_endurance_block_document.sql",
+  "db/migrations/20260819_endurance_block_document.sql",
   "utf8"
 );
 

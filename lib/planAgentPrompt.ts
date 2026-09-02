@@ -45,7 +45,7 @@ export interface EquipmentRow {
   home_equivalent: string | null;
 }
 
-/* ─── Defaults (mirrored in supabase/migrations/20260711_plan_agent_settings_v2.sql) ─── */
+/* ─── Defaults (mirrored in db/migrations/20260711_plan_agent_settings_v2.sql) ─── */
 
 export const DEFAULT_TRAINING_PRINCIPLES = [
   "Programme by strength-training principles, not a fixed template: compound movements first, then accessories and isolation work, with mobility woven into rest periods.",
