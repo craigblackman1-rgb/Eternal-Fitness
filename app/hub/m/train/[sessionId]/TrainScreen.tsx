@@ -151,6 +151,7 @@ export function TrainScreen({
   lastSessionData,
   pbDates,
   bands,
+  initialSessionNote,
 }: {
   sessionId: string;
   sessionNumber: number;
