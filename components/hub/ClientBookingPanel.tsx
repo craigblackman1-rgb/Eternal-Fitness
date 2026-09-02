@@ -102,9 +102,10 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
     setBlocksLoading(true);
     try {
       const res = await fetch(`/api/clients/${clientId}/blocks`);
-      const data: Block[] = res.ok ? await res.json() : [];
-      setBlocks(data);
-      if (data.length === 1) setSelectedBlockId(data[0].id);
+      const all: Block[] = res.ok ? await res.json() : [];
+      const active = all.filter((b) => b.status !== "complete" && b.status !== "completed");
+      setBlocks(active);
+      if (active.length === 1) setSelectedBlockId(active[0].id);
     } finally {
       setBlocksLoading(false);
     }
@@ -149,7 +150,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
                 {bookings.length} Outlook booking{bookings.length === 1 ? "" : "s"} waiting for {firstName}
               </p>
               <p className="text-[13px] text-foreground/75 mt-0.5">
-                Booked through Microsoft Bookings. Confirm the block to turn each into a real session, or dismiss if it is not a client booking.
+                Booked through Microsoft Bookings. Confirm to attach each to a session, or dismiss if it is not a client booking.
               </p>
 
               {/* Booking row list */}
@@ -178,7 +179,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
                 <IconCalendar className="w-[17px] h-[17px]" />
               </div>
               <div>
-                <DialogTitle>Create session</DialogTitle>
+                <DialogTitle>Attach to session</DialogTitle>
                 {confirmBooking && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {confirmBooking.subject} · {formatWhenShort(confirmBooking.start_at)} {formatTime(confirmBooking.start_at)}
@@ -188,7 +189,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
             </div>
           </DialogHeader>
           <p className="text-[12.5px] text-muted-foreground">
-            This client has more than one active block. Pick which one this Outlook booking belongs to.
+            Pick which active block this Outlook booking belongs to.
           </p>
           {blocksLoading ? (
             <p className="text-sm text-muted-foreground">Loading blocks…</p>
@@ -226,7 +227,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
               Cancel
             </Button>
             <Button onClick={doConfirm} disabled={!selectedBlockId || confirming || blocks.length === 0}>
-              {confirming ? "Confirming…" : "Confirm & create session"}
+              {confirming ? "Confirming…" : "Confirm & attach"}
             </Button>
           </DialogFooter>
         </DialogContent>
