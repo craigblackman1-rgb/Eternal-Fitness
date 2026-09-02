@@ -172,24 +172,70 @@ export async function materializeBookingSession(
 
   const sessions = (allSessions ?? []) as { id: string; session_number: number; scheduled_at: string | null; status: string; parent_session_id: string | null }[];
 
-  // CR-EF-095 — prefer the earliest unbooked planned session over appending
-  // a new content-empty one. A candidate is a session that has no date yet
-  // and hasn't been cancelled — i.e. a real prescribed slot waiting to be
-  // booked onto the calendar.
-  const candidate = sessions
-    .filter((s) => s.scheduled_at === null && s.status !== "cancelled")
-    .sort((a, b) => a.session_number - b.session_number)[0];
+  const bookingTime = new Date(booking.start_at).getTime();
 
-  if (candidate) {
-    const { error: updateErr } = await db
-      .from("sessions")
-      .update({ scheduled_at: booking.start_at, status: "scheduled" })
-      .eq("id", candidate.id);
-    if (updateErr) throw new Error(`session update failed: ${updateErr.message}`);
+  // BUG-EF-110 — rule 1: slot match. A session in this block whose
+  // scheduled_at matches the booking's start_at on the instant (timestamp
+  // comparison, not string equality — the two sources may format differently).
+  // Exclude cancelled sessions and sub-sessions (parent_session_id not null).
+  // Only accept if that session is not already linked to a *different* Outlook
+  // event.
+  const slotMatch = sessions.find((s) => {
+    if (s.status === "cancelled") return false;
+    if (s.parent_session_id) return false;
+    if (!s.scheduled_at) return false;
+    return new Date(s.scheduled_at).getTime() === bookingTime;
+  });
+
+  let matchedSession: { id: string; session_number: number; scheduled_at: string | null; status: string } | null = null;
+  let matchedSessionNeedsTimeUpdate = false;
+
+  if (slotMatch) {
+    // Check whether this session is already linked to a different event.
+    const { data: existingLink } = await db
+      .from("session_calendar_events")
+      .select("event_id")
+      .eq("session_id", slotMatch.id)
+      .maybeSingle();
+    const alreadyLinkedDifferent = existingLink && (existingLink as { event_id: string }).event_id !== booking.event_id;
+    if (!alreadyLinkedDifferent) {
+      matchedSession = slotMatch;
+      // Only promote planned → scheduled; do not demote completed.
+      matchedSessionNeedsTimeUpdate = slotMatch.status !== "completed" && slotMatch.scheduled_at === null;
+    }
+  }
+
+  // CR-EF-095 — rule 2: undated candidate. Earliest session with no date yet,
+  // not cancelled. This covers blocks planned without specific times.
+  if (!matchedSession) {
+    const undatedCandidate = sessions
+      .filter((s) => s.scheduled_at === null && s.status !== "cancelled" && !s.parent_session_id)
+      .sort((a, b) => a.session_number - b.session_number)[0];
+    if (undatedCandidate) {
+      matchedSession = undatedCandidate;
+      matchedSessionNeedsTimeUpdate = true;
+    }
+  }
+
+  if (matchedSession) {
+    const sessionUpdate: Record<string, unknown> = {};
+    if (matchedSessionNeedsTimeUpdate) {
+      sessionUpdate.scheduled_at = booking.start_at;
+    }
+    if (matchedSession.status !== "completed") {
+      sessionUpdate.status = "scheduled";
+    }
+    if (Object.keys(sessionUpdate).length > 0) {
+      const { error: updateErr } = await db
+        .from("sessions")
+        .update(sessionUpdate)
+        .eq("id", matchedSession.id);
+      if (updateErr) throw new Error(`session update failed: ${updateErr.message}`);
+    }
 
     const { error: mapErr } = await db.from("session_calendar_events").upsert(
       {
-        session_id: candidate.id,
+        session_id: matchedSession.id,
         event_id: booking.event_id,
         calendar_id: booking.calendar_id,
         sync_hash: "",
@@ -204,7 +250,7 @@ export async function materializeBookingSession(
       .update({
         client_id: clientId,
         status: "confirmed",
-        session_id: candidate.id,
+        session_id: matchedSession.id,
         resolved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -215,16 +261,16 @@ export async function materializeBookingSession(
     await attachSupplementaryWork({
       clientId,
       parentSession: {
-        id: candidate.id,
+        id: matchedSession.id,
         block_id: blockId,
-        session_number: candidate.session_number,
-        scheduled_at: booking.start_at,
+        session_number: matchedSession.session_number,
+        scheduled_at: matchedSessionNeedsTimeUpdate ? booking.start_at : (matchedSession.scheduled_at ?? booking.start_at),
         status: "scheduled",
       },
       db,
     });
 
-    return { sessionId: candidate.id };
+    return { sessionId: matchedSession.id };
   }
 
   // No unbooked planned slot — fall through to appending a new content-empty
@@ -248,7 +294,7 @@ export async function materializeBookingSession(
       studio: { warm_up: [], main_block: [], cooldown: [] },
       home: { warm_up: [], main_block: [], cooldown: [] },
     },
-    coaching_notes: `Created from a Microsoft Bookings appointment ("${booking.subject}"). Add exercises before the session.`,
+    coaching_notes: `No planned session matched this slot, so a new empty one was added. Created from a Microsoft Bookings appointment ("${booking.subject}"). Add exercises before the session.`,
     client_intro: "",
   };
 
