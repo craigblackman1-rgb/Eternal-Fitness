@@ -11,7 +11,7 @@ import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName, sessionBlockContext } from "@/lib/session-display";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import type { DBSession, SessionLog, SessionVersion, SetLog, Exercise } from "@/types";
@@ -64,6 +64,7 @@ export default function SessionViewPage({
   const [client, setClient] = useState<ClientHeader | null>(null);
   // Consolidated screen mode — "log" is the quick logger, "edit" is the prescription editor.
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [mode, setMode] = useState<"log" | "edit">("log");
   const [activeTab, setActiveTab] = useState<"studio" | "home">("studio");
   const [modeInitDone, setModeInitDone] = useState(false);
@@ -864,6 +865,9 @@ export default function SessionViewPage({
             pbDates={pbDates}
             onSessionLogChange={handleSessionLogChange}
             bands={bands}
+            clientId={params.id}
+            clientName={clientName}
+            onPbRecorded={() => router.refresh()}
           />
         )}
       </div>

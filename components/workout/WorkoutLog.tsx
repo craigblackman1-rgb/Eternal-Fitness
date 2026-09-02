@@ -1228,6 +1228,7 @@ export function WorkoutLog({
                               openPicker={openPicker}
                               setOpenPicker={setOpenPicker}
                               onAddSet={handleAddSet}
+                              onOpenHistory={clientId ? () => setHistoryFor(ex.exercise_name) : undefined}
                             />
                           );
                         })}
@@ -1363,6 +1364,18 @@ export function WorkoutLog({
           </div>
         </div>
       )}
+
+      {clientId && (
+        <ExerciseHistoryDrawer
+          open={!!historyFor}
+          onClose={() => setHistoryFor(null)}
+          clientId={clientId}
+          clientName={clientName ?? "Client"}
+          exerciseName={historyFor ?? ""}
+          bands={bands}
+          onSaved={() => { onPbRecorded?.(); setHistoryFor(null); }}
+        />
+      )}
     </div>
   );
 }
@@ -1443,7 +1456,7 @@ function RestControl({
         </button>
       </div>
     );
-  }
+}
 
   const remaining = timer.mode === "countdown" ? timer.seconds - timer.elapsed : timer.elapsed;
   const over = timer.mode === "countdown" && remaining < 0;
@@ -1500,6 +1513,7 @@ function ExerciseCard({
   openPicker,
   setOpenPicker,
   onAddSet,
+  onOpenHistory,
 }: {
   exercise: Exercise;
   state: ExState | undefined;
@@ -1628,6 +1642,7 @@ function ExerciseCard({
               >
                 {ICO.starFilled}PB {pbLabel}
                 {hasNewPb && <span className="ml-0.5 rounded bg-white/26 px-1 py-px text-[9px] font-extrabold uppercase tracking-wider">New</span>}
+                {!hasNewPb && pbInfo?.source === "manual" && <span className="ml-0.5 rounded bg-black/10 px-1 py-px text-[9px] font-semibold tracking-wide opacity-70">manual</span>}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground" title="No qualifying set logged yet">
@@ -1647,6 +1662,11 @@ function ExerciseCard({
               </span>
             )}
           </div>
+          {onOpenHistory && (
+            <button type="button" onClick={onOpenHistory} className="mt-1.5 text-[11px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors">
+              See all
+            </button>
+          )}
 
           {/* Tags */}
           {exercise.equipment && exercise.equipment.length > 0 && (
