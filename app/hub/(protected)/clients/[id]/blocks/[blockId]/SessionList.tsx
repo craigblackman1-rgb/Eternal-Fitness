@@ -24,6 +24,8 @@ interface SessionItem {
     };
   };
   scheduled_at: string | null;
+  /** CR-EF-145 — projected date for unbooked sessions (display-only). */
+  projected_at?: string | null;
   status: string | null;
   cancelled_at: string | null;
   completed_at: string | null;
@@ -111,6 +113,7 @@ export function SessionList({
               chronologicalPosition={chronologicalPositions.get(session.id) ?? null}
               sessionUrl={sessionUrl}
               scheduledAt={session.scheduled_at}
+              projectedAt={session.projected_at}
               cancelReason={session.cancel_reason}
               chargedFree={session.charged_free}
               isEmpty={sessionHasNoExercises(session.data)}

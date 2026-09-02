@@ -24,6 +24,8 @@ interface SessionRowProps {
   chronologicalPosition: { position: number; total: number } | null;
   sessionUrl: string;
   scheduledAt: string | null;
+  /** CR-EF-145 — projected date for unbooked sessions (display-only). */
+  projectedAt?: string | null;
   cancelReason: string | null;
   /** CR-EF-099 — structured flag: 'charged' = consumed a session, 'free' = did not. */
   chargedFree?: "charged" | "free" | null;
@@ -47,6 +49,7 @@ export function SessionRow({
   chronologicalPosition,
   sessionUrl,
   scheduledAt,
+  projectedAt,
   cancelReason,
   chargedFree,
   isEmpty,
@@ -96,7 +99,9 @@ export function SessionRow({
     <div className="border-t border-[var(--hub-border)] first:border-t-0">
       <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-2 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors ${status === "cancelled" ? "opacity-55" : ""}`}>
         <span className="min-w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          {dayLabel}
+          {projectedAt
+            ? `${new Date(projectedAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · projected`
+            : dayLabel}
         </span>
         <div className="flex-1 min-w-0 flex items-center gap-2.5 flex-wrap">
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold shrink-0 ${archetypeTint}`}>
