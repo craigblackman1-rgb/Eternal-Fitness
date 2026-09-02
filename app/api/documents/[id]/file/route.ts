@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
 
+const INLINE_TYPES = new Set([
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+]);
+
 function escapeFilename(name: string | null) {
   return (name || "document").replace(/"/g, '\\"');
 }
@@ -36,15 +44,19 @@ export async function GET(
 
   const data: Buffer = res.rows[0].data;
   const body = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+  const safeMime = INLINE_TYPES.has(doc.source_file_mime ?? "")
+    ? doc.source_file_mime
+    : "application/octet-stream";
   const headers = new Headers();
-  headers.set("Content-Type", doc.source_file_mime || "application/octet-stream");
+  headers.set("Content-Type", safeMime);
 
-  const inline = new URL(request.url).searchParams.get("inline") === "1";
+  const wantsInline = new URL(request.url).searchParams.get("inline") === "1" && INLINE_TYPES.has(safeMime);
   headers.set(
     "Content-Disposition",
-    `${inline ? "inline" : "attachment"}; filename="${escapeFilename(doc.source_file_name)}"`,
+    `${wantsInline ? "inline" : "attachment"}; filename="${escapeFilename(doc.source_file_name)}"`,
   );
   headers.set("Content-Length", String(data.length));
+  headers.set("X-Content-Type-Options", "nosniff");
 
   return new NextResponse(body, { status: 200, headers });
 }
@@ -77,15 +89,19 @@ export async function HEAD(
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
+  const safeMime = INLINE_TYPES.has(doc.source_file_mime ?? "")
+    ? doc.source_file_mime
+    : "application/octet-stream";
   const headers = new Headers();
-  headers.set("Content-Type", doc.source_file_mime || "application/octet-stream");
+  headers.set("Content-Type", safeMime);
 
-  const inline = new URL(request.url).searchParams.get("inline") === "1";
+  const wantsInline = new URL(request.url).searchParams.get("inline") === "1" && INLINE_TYPES.has(safeMime);
   headers.set(
     "Content-Disposition",
-    `${inline ? "inline" : "attachment"}; filename="${escapeFilename(doc.source_file_name)}"`,
+    `${wantsInline ? "inline" : "attachment"}; filename="${escapeFilename(doc.source_file_name)}"`,
   );
   headers.set("Content-Length", String(res.rows[0].len));
+  headers.set("X-Content-Type-Options", "nosniff");
 
   return new NextResponse(null, { status: 200, headers });
 }

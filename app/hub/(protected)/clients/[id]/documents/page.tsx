@@ -95,7 +95,10 @@ export default async function ClientDocumentsPage({ params }: { params: { id: st
                             <div>
                               <p className="font-medium text-foreground">{d.title}</p>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                                <span>{uploadKindLabel(kind)}</span>
+                                <TokenPill
+                                  token={kind === "pdf" ? "danger" : kind === "img" ? "success" : "neutral"}
+                                  label={uploadKindLabel(kind)}
+                                />
                                 {d.source_file_name && (
                                   <span className="font-mono">{d.source_file_name}</span>
                                 )}
