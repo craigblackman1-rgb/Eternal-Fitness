@@ -40,6 +40,8 @@ interface HistoryRow {
   value: number;
   reps: number | null;
   source: "logged" | "manual";
+  /** Original DB source for logged rows from personal_records — controls attribution text */
+  origin?: "live_log" | "trainerize_import" | "manual";
   achieved_at: string;
   /** Logged rows only */
   session_number?: number;
@@ -174,7 +176,8 @@ function normalise(records: ApiRecord[], logged: ApiLogged[]): HistoryRow[] {
       unit,
       value,
       reps,
-      source: "manual",
+      source: r.source === "manual" ? "manual" : "logged",
+      origin: r.source,
       achieved_at: r.achieved_at,
       recorded_by: r.recorded_by ?? undefined,
       note: r.note,
@@ -530,7 +533,13 @@ export function ExerciseHistoryDrawer({
                       </>
                     ) : (
                       <>
-                        Logged · <b className="text-foreground">Session {pb.session_number}</b> · Block {pb.block_number} · {fmtShort(pb.achieved_at)}
+                        {pb.session_number != null ? (
+                          <>Logged · <b className="text-foreground">Session {pb.session_number}</b> · Block {pb.block_number} · {fmtShort(pb.achieved_at)}</>
+                        ) : pb.origin === "trainerize_import" ? (
+                          <>Imported from Trainerize · {fmtShort(pb.achieved_at)}</>
+                        ) : (
+                          <>Logged · {fmtShort(pb.achieved_at)}</>
+                        )}
                       </>
                     )}
                   </div>
@@ -792,18 +801,32 @@ export function ExerciseHistoryDrawer({
                           </div>
                           <div className="mt-0.5 text-[11.5px] text-muted-foreground flex items-center gap-1 flex-wrap">
                             {r.source === "logged" ? (
-                              <>
-                                <a
-                                  href={`/hub/clients/${clientId}/blocks/${r.block_number}/sessions/${r.session_number}`}
-                                  className="font-semibold text-teal hover:underline"
-                                >
-                                  Logged · Session {r.session_number}
-                                </a>
-                                <span className="text-[var(--hub-field-border)]">·</span>
-                                <span>Block {r.block_number}</span>
-                                <span className="text-[var(--hub-field-border)]">·</span>
-                                <span>{fmtShort(r.achieved_at)}</span>
-                              </>
+                              r.session_number != null ? (
+                                <>
+                                  <a
+                                    href={`/hub/clients/${clientId}/blocks/${r.block_number}/sessions/${r.session_number}`}
+                                    className="font-semibold text-teal hover:underline"
+                                  >
+                                    Logged · Session {r.session_number}
+                                  </a>
+                                  <span className="text-[var(--hub-field-border)]">·</span>
+                                  <span>Block {r.block_number}</span>
+                                  <span className="text-[var(--hub-field-border)]">·</span>
+                                  <span>{fmtShort(r.achieved_at)}</span>
+                                </>
+                              ) : r.origin === "trainerize_import" ? (
+                                <>
+                                  <span>Imported from Trainerize</span>
+                                  <span className="text-[var(--hub-field-border)]">·</span>
+                                  <span>{fmtShort(r.achieved_at)}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>Logged</span>
+                                  <span className="text-[var(--hub-field-border)]">·</span>
+                                  <span>{fmtShort(r.achieved_at)}</span>
+                                </>
+                              )
                             ) : (
                               <>
                                 <span>Recorded manually</span>
@@ -814,7 +837,7 @@ export function ExerciseHistoryDrawer({
                               </>
                             )}
                           </div>
-                          {r.note && (
+                          {r.source === "manual" && r.note && (
                             <div className="mt-1 text-[12px] text-[var(--body)] italic">{r.note}</div>
                           )}
                         </div>
