@@ -19,6 +19,7 @@ type Fields = Pick<
   | "sessions_used"
   | "sessions_remaining"
   | "session_duration"
+  | "client_rate"
   | "payment_method"
   | "payment_status"
   | "block_expiry_date"
@@ -117,6 +118,9 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
               <Field label="Session duration (min)">
                 <Input type="number" value={form.session_duration ?? ""} onChange={(e) => set("session_duration", e.target.value ? parseInt(e.target.value) : null)} className="h-9" />
               </Field>
+              <Field label="Client rate (£)">
+                <Input type="number" step="0.01" value={form.client_rate ?? ""} onChange={(e) => set("client_rate", e.target.value ? parseFloat(e.target.value) : null)} placeholder="Standard" className="h-9" />
+              </Field>
               <Field label="Block expiry">
                 <Input type="date" value={form.block_expiry_date ?? ""} onChange={(e) => set("block_expiry_date", e.target.value || null)} className="h-9" />
               </Field>
@@ -178,6 +182,7 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
               </span>
             )}
             <ReadField label="Session length" value={initial.session_duration ? `${initial.session_duration} min` : "—"} />
+            <ReadField label="Client rate" value={initial.client_rate != null ? `£${initial.client_rate.toFixed(2)}` : "Standard"} />
             <ReadField label="Block expiry" value={formatDate(initial.block_expiry_date)} />
             <ReadField label="Payment method" value={initial.payment_method ?? "—"} />
             <div>

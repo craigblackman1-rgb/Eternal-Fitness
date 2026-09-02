@@ -334,6 +334,11 @@ export interface ClientProfile {
     motivation_notes: string;
     watch_for: string;
   };
+  emergency_contact?: {
+    name: string | null;
+    relationship: string | null;
+    phone: string | null;
+  };
 }
 
 export interface ExerciseMedia {
@@ -538,6 +543,7 @@ export interface DBClient {
   sessions_used: number | null;
   sessions_remaining: number | null;
   session_duration: number | null;
+  client_rate: number | null;
   payment_method: string | null;
   payment_status: PaymentStatus;
   block_expiry_date: string | null;
