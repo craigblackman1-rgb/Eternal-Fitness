@@ -67,12 +67,12 @@ async function main() {
     SELECT
       cd.id AS doc_id,
       cd.client_id,
-      cd.feedback_responses -> 'answers' -> 'medications' AS medications_text
+      cd.feedback_responses -> 'answers' ->> 'medications' AS medications_text
     FROM client_documents cd
     WHERE cd.kind = 'parq'
       AND cd.status = 'signed'
-      AND cd.feedback_responses -> 'answers' -> 'medications' IS NOT NULL
-      AND trim(cd.feedback_responses -> 'answers' -> 'medications') <> ''
+      AND cd.feedback_responses -> 'answers' ->> 'medications' IS NOT NULL
+      AND trim(cd.feedback_responses -> 'answers' ->> 'medications') <> ''
   `);
 
   console.log(`Found ${parqs.length} signed PAR-Q(s) with non-empty medications text.\n`);
