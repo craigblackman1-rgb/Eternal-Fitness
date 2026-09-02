@@ -6,6 +6,7 @@ import {
   graphConfigured,
   type CalendarEventInput,
 } from "@/lib/graph-client";
+import { deriveAvailableSlots } from "@/lib/availability";
 
 /**
  * Booking availability engine — CR-EF-097 unit u3.
@@ -14,29 +15,6 @@ import {
  * working hours with the live Outlook calendar (which already contains both
  * app-synced client sessions and Esther's own hand-added entries).
  */
-
-// ─── Default working hours ────────────────────────────────────────────────
-// No working-hours config exists in the codebase (confirmed by grep of lib/
-// and db/migrations/). This is a hardcoded default that should become
-// a real DB setting later — do not build a settings UI for this yet.
-
-interface WorkingHoursRule {
-  /** 0 = Sunday … 6 = Saturday (Date.getDay()) */
-  dayOfWeek: number;
-  /** Local time "HH:MM" in Europe/London */
-  startLocal: string;
-  endLocal: string;
-}
-
-const SLOT_DURATION_MINUTES = 60;
-
-const DEFAULT_WORKING_HOURS: WorkingHoursRule[] = [
-  { dayOfWeek: 1, startLocal: "09:00", endLocal: "17:00" }, // Mon
-  { dayOfWeek: 2, startLocal: "09:00", endLocal: "17:00" }, // Tue
-  { dayOfWeek: 3, startLocal: "09:00", endLocal: "17:00" }, // Wed
-  { dayOfWeek: 4, startLocal: "09:00", endLocal: "17:00" }, // Thu
-  { dayOfWeek: 5, startLocal: "09:00", endLocal: "17:00" }, // Fri
-];
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -59,85 +37,11 @@ export class AvailabilityError extends Error {
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 /**
- * Parse a "HH:MM" local time string into hours and minutes (numbers).
+ * Convert a UTC ISO string to a "YYYY-MM-DD" date string.
+ * Using toLocaleDateString with en-CA guarantees the ISO format.
  */
-function parseLocalTime(time: string): { hours: number; minutes: number } {
-  const [h, m] = time.split(":").map(Number);
-  return { hours: h, minutes: m };
-}
-
-/**
- * For a given date (in Europe/London), produce candidate slot start/end
- * pairs in UTC. Each slot is a 60-minute block within working hours.
- *
- * We convert from local London time to UTC by constructing Date objects
- * with the local components, which the JS engine interprets as local time,
- * then reading .toISOString() for the UTC representation.
- */
-function candidateSlotsForDate(
-  date: Date,
-  rules: WorkingHoursRule[]
-): { startUtc: string; endUtc: string }[] {
-  const slots: { startUtc: string; endUtc: string }[] = [];
-  const dayOfWeek = date.getDay();
-
-  const rule = rules.find((r) => r.dayOfWeek === dayOfWeek);
-  if (!rule) return slots;
-
-  const { hours: startH, minutes: startM } = parseLocalTime(rule.startLocal);
-  const { hours: endH, minutes: endM } = parseLocalTime(rule.endLocal);
-
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-
-  // Walk from startLocal forward in SLOT_DURATION_MINUTES steps.
-  let cursor = new Date(year, month, day, startH, startM, 0, 0);
-  const endBoundary = new Date(year, month, day, endH, endM, 0, 0);
-
-  while (true) {
-    const slotEnd = new Date(cursor.getTime() + SLOT_DURATION_MINUTES * 60 * 1000);
-    if (slotEnd > endBoundary) break;
-    slots.push({
-      startUtc: cursor.toISOString(),
-      endUtc: slotEnd.toISOString(),
-    });
-    cursor = slotEnd;
-  }
-
-  return slots;
-}
-
-/**
- * Generate all candidate slots across a UTC date range.
- * The range is expanded to cover full days in Europe/London.
- */
-function generateCandidateSlots(
-  rangeStartUtc: string,
-  rangeEndUtc: string,
-  rules: WorkingHoursRule[]
-): { startUtc: string; endUtc: string }[] {
-  const start = new Date(rangeStartUtc);
-  const end = new Date(rangeEndUtc);
-
-  const slots: { startUtc: string; endUtc: string }[] = [];
-
-  // Walk day-by-day. We start from the day containing rangeStart and go
-  // through the day containing rangeEnd (inclusive).
-  const cursor = new Date(start);
-  // Reset to start of that day (local London) to catch slots that fall
-  // before rangeStart but on the same day — they'll be filtered later.
-  cursor.setHours(0, 0, 0, 0);
-
-  const endDay = new Date(end);
-  endDay.setHours(23, 59, 59, 999);
-
-  while (cursor <= endDay) {
-    slots.push(...candidateSlotsForDate(cursor, rules));
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  return slots;
+function utcToDateString(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA");
 }
 
 /**
@@ -163,9 +67,11 @@ function rangesOverlap(
 /**
  * Return genuinely-free slots within the requested UTC range.
  *
- * Generates candidate slots from Esther's working hours, then removes any
- * slot that overlaps an existing event on her connected Outlook calendar.
- * Both app-synced sessions and Esther's own hand-added entries block a slot.
+ * Derives candidate slots from Esther's confirmed availability pattern
+ * (availability_pattern + availability_overrides + booking_settings),
+ * then removes any slot that overlaps an existing event on her connected
+ * Outlook calendar. Both app-synced sessions and Esther's own hand-added
+ * entries block a slot.
  *
  * @throws AvailabilityError if the calendar is not connected or Graph rejects
  *   the request. Never returns an empty list on error — the caller must
@@ -221,11 +127,16 @@ export async function getAvailableSlots(
     });
   }
 
-  // Generate candidate slots from working hours.
-  const candidates = generateCandidateSlots(
-    rangeStartUtc,
-    rangeEndUtc,
-    DEFAULT_WORKING_HOURS
+  // Derive candidate slots from the confirmed availability pattern
+  // (availability_pattern + availability_overrides + booking_settings).
+  const rangeStartDate = utcToDateString(rangeStartUtc);
+  const rangeEndDate = utcToDateString(rangeEndUtc);
+  const derivedDays = await deriveAvailableSlots(rangeStartDate, rangeEndDate);
+
+  // Flatten DerivedDay[] → AvailableSlot[], keeping only slots that
+  // were not filtered out by the availability engine (past, full, off).
+  const candidates: AvailableSlot[] = derivedDays.flatMap((day) =>
+    day.slots.map((s) => ({ startUtc: s.startUtc, endUtc: s.endUtc }))
   );
 
   // Filter: a slot is free only if it overlaps NONE of the busy ranges.
