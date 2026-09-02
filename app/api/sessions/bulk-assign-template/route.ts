@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUids } from "@/lib/exercise-ref";
+import { isPlaceholderLabel } from "@/lib/session-naming";
 
 /**
  * CR-EF-111 — bulk-assign a workout template to multiple Outlook-placeholder
@@ -63,10 +64,9 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const label = (session.data as Record<string, unknown>)?.focus_label;
+    const label = (session.data as Record<string, unknown>)?.focus_label as string | null | undefined;
     if (
-      typeof label !== "string" ||
-      !label.startsWith("Outlook booking — ") ||
+      !isPlaceholderLabel(label) ||
       session.archetype != null ||
       session.week != null ||
       session.phase != null

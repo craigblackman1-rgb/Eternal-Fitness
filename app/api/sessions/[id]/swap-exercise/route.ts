@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { applyCopiedWorkoutIdentity } from "@/lib/session-naming";
 
 // CR-EF-083 — bulk "swap this exercise across all remaining sessions".
 // The single-session swap stays local in SessionEditor (saved via the normal
@@ -98,7 +99,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   // Locate the source session so we know its block and its position in it.
   const { data: source, error: sourceError } = await supabase
     .from("sessions")
-    .select("block_id, session_number")
+    .select("block_id, session_number, data, archetype")
     .eq("id", params.id)
     .single();
   if (sourceError || !source) {
@@ -131,9 +132,25 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (!result) continue;
 
     const updatedData = { ...(row.data ?? {}), versions: result.versions };
+
+    // BUG-EF-114 — when exercises are swapped into an Outlook-placeholder
+    // session, replace its placeholder name and archetype with the source
+    // workout's identity.
+    const sourceLabel = (source.data as Record<string, unknown> | undefined)?.focus_label as string | null | undefined;
+    const sourceArchetype = source.archetype as string | null | undefined;
+    const archetype = applyCopiedWorkoutIdentity(updatedData, {
+      focus_label: sourceLabel,
+      archetype: sourceArchetype,
+    });
+
+    const updatePayload: Record<string, unknown> = { data: updatedData };
+    if (archetype !== null) {
+      updatePayload.archetype = archetype;
+    }
+
     const { error: updateError } = await supabase
       .from("sessions")
-      .update({ data: updatedData })
+      .update(updatePayload)
       .eq("id", row.id);
     if (updateError) {
       console.error(`[swap-exercise] failed to update session ${row.id}:`, updateError);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUids } from "@/lib/exercise-ref";
+import { applyCopiedWorkoutIdentity } from "@/lib/session-naming";
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
 import { getSessionStatus } from "@/lib/session-transitions";
@@ -173,6 +174,28 @@ export async function PATCH(request: Request, { params }: { params: { id: string
             }
           }
         }
+      }
+    }
+
+    // BUG-EF-114 — when exercise content (versions) is written into an
+    // Outlook-placeholder session, replace its placeholder name and archetype
+    // with the source workout's identity. The client sends source_focus_label
+    // and source_archetype alongside the versions payload; the archetype is
+    // written as a top-level column on the sessions row.
+    if (data.versions) {
+      const { data: currentSession } = await supabase
+        .from("sessions")
+        .select("data")
+        .eq("id", params.id)
+        .maybeSingle();
+      const currentData = (currentSession?.data ?? {}) as Record<string, unknown>;
+      const archetype = applyCopiedWorkoutIdentity(currentData, {
+        focus_label: body.source_focus_label as string | null | undefined,
+        archetype: body.source_archetype as string | null | undefined,
+      });
+      if (archetype !== null) {
+        update.data = { ...(update.data as Record<string, unknown>), focus_label: currentData.focus_label };
+        update.archetype = archetype;
       }
     }
   }
