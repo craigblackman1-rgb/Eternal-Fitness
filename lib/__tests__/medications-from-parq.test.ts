@@ -81,6 +81,62 @@ describe("parseMedicationsText", () => {
     expect(result[0].name).toBe("Metformin");
   });
 
+  it("drops 'None' as a negative answer", () => {
+    const result = parseMedicationsText("None");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'none atm' as a negative answer", () => {
+    const result = parseMedicationsText("none atm");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'N/A' as a negative answer", () => {
+    const result = parseMedicationsText("N/A");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'Nothing' as a negative answer", () => {
+    const result = parseMedicationsText("Nothing");
+    expect(result).toEqual([]);
+  });
+
+  it("drops negative answers mixed with real medications", () => {
+    const result = parseMedicationsText("None, Metformin 500mg");
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe("Metformin 500mg");
+  });
+
+  it("drops 'nil' as a negative answer", () => {
+    const result = parseMedicationsText("nil");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'not applicable' as a negative answer", () => {
+    const result = parseMedicationsText("not applicable");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'no medications' as a negative answer", () => {
+    const result = parseMedicationsText("no medications");
+    expect(result).toEqual([]);
+  });
+
+  it("drops a bare dash as a negative answer", () => {
+    const result = parseMedicationsText("-");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'none at the moment' as a negative answer", () => {
+    const result = parseMedicationsText("none at the moment");
+    expect(result).toEqual([]);
+  });
+
+  it("drops 'none currently' as a negative answer", () => {
+    const result = parseMedicationsText("none currently");
+    expect(result).toEqual([]);
+  });
+
   it("populates only name, leaves other fields blank", () => {
     const result = parseMedicationsText("Metformin");
     expect(result[0]).toEqual({

@@ -26,6 +26,27 @@ if (!process.env.DATABASE_URL) {
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 
+const NEGATIVE_ANSWERS = new Set([
+  "none",
+  "none atm",
+  "none at the moment",
+  "none currently",
+  "no",
+  "nil",
+  "n/a",
+  "na",
+  "nothing",
+  "not applicable",
+  "no medications",
+  "no medication",
+  "-",
+]);
+
+function isNegativeAnswer(token) {
+  const normalised = token.toLowerCase().replace(/[.!?]+$/, "").trim();
+  return NEGATIVE_ANSWERS.has(normalised);
+}
+
 /**
  * Parse a free-text medications string into individual name tokens.
  * Mirrors lib/medications-from-parq.ts parseMedicationsText.
@@ -35,7 +56,7 @@ function parseMedicationsText(text) {
   return text
     .split(/[,;\n]|\s+and\s+/i)
     .map((t) => t.trim())
-    .filter(Boolean);
+    .filter((t) => t !== "" && !isNegativeAnswer(t));
 }
 
 /**

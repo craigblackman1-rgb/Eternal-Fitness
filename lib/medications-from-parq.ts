@@ -1,10 +1,32 @@
 import type { MedicationEntry } from "@/types";
 
+const NEGATIVE_ANSWERS = new Set([
+  "none",
+  "none atm",
+  "none at the moment",
+  "none currently",
+  "no",
+  "nil",
+  "n/a",
+  "na",
+  "nothing",
+  "not applicable",
+  "no medications",
+  "no medication",
+  "-",
+]);
+
+function isNegativeAnswer(token: string): boolean {
+  const normalised = token.toLowerCase().replace(/[.!?]+$/, "").trim();
+  return NEGATIVE_ANSWERS.has(normalised);
+}
+
 /**
  * Split a free-text medications string (from PAR-Q Section 5) into individual
  * MedicationEntry objects with `name` populated and all other fields blank.
  *
  * Separators: commas, semicolons, newlines, and the word " and " (case-insensitive).
+ * Negative answers ("None", "N/A", etc.) are dropped.
  */
 export function parseMedicationsText(text: string): MedicationEntry[] {
   if (!text?.trim()) return [];
@@ -12,7 +34,7 @@ export function parseMedicationsText(text: string): MedicationEntry[] {
   const tokens = text
     .split(/[,;\n]|\s+and\s+/i)
     .map((t) => t.trim())
-    .filter(Boolean);
+    .filter((t) => t !== "" && !isNegativeAnswer(t));
 
   return tokens.map((name) => ({
     id: crypto.randomUUID(),
