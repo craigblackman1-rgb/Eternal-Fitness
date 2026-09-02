@@ -84,7 +84,7 @@ export default async function BlockViewPage({
   // Chronological positions derived from scheduled_at (NULLs last) — used for
   // "Session N of M" labels everywhere. Does NOT replace session_number.
   const chronologicalPositions = deriveChronologicalPositions(
-    sessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at })),
+    sessions.map((s) => ({ id: s.id, scheduled_at: s.scheduled_at, parent_session_id: s.parent_session_id })),
   );
 
   // CR-EF-101 — sub-sessions (parent_session_id) are excluded from pot count
@@ -92,6 +92,15 @@ export default async function BlockViewPage({
   const potSessions = sessions.filter((s) => !s.parent_session_id);
   const totalSessions = potSessions.length;
   const completedSessions = potSessions.filter((s) => sessionStatus(s) === "completed").length;
+
+  // BUG-EF-109 — derive displayed status from sessions: all settled → complete
+  const derivedStatus: "draft" | "approved" | "active" | "complete" =
+    potSessions.length > 0 && potSessions.every((s) => {
+      const st = sessionStatus(s);
+      return st === "completed" || st === "cancelled";
+    })
+      ? "complete"
+      : (block.status as "draft" | "approved" | "active" | "complete");
 
   // Client context descriptor for the header line — the primary declared
   // condition, reused from the profile rather than a new field (matches the
@@ -112,6 +121,7 @@ export default async function BlockViewPage({
   const weekGroups = groupSessionsByWeek(displaySessions);
   const planWeeks = Array.from(new Set(displaySessions.map((s) => s.week))).sort((a, b) => a - b);
 
+  // BUG-EF-109 — first incomplete session regardless of date (for week expansion)
   const firstIncomplete = displaySessions.find((s) => {
     const st = sessionStatus(s);
     return st !== "completed" && st !== "cancelled";
@@ -149,17 +159,39 @@ export default async function BlockViewPage({
     return start === end ? start : `${start} – ${end}`;
   };
 
-  const nextSessionLabel = firstIncomplete
+  // BUG-EF-109 — first upcoming incomplete session for the "next session" label.
+  // Never advertise a session whose scheduled_at has already passed.
+  const todayISO = new Date().toISOString().split("T")[0];
+  const sortedIncomplete = displaySessions
+    .filter((s) => {
+      const st = sessionStatus(s);
+      return st !== "completed" && st !== "cancelled";
+    })
+    .sort((a, b) => {
+      if (!a.scheduled_at && !b.scheduled_at) return 0;
+      if (!a.scheduled_at) return 1;
+      if (!b.scheduled_at) return -1;
+      return new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime();
+    });
+
+  const firstUpcoming = sortedIncomplete.find((s) => {
+    if (!s.scheduled_at) return true;
+    return s.scheduled_at >= todayISO;
+  });
+
+  const nextSessionLabel = firstUpcoming
     ? (() => {
-        const pos = chronologicalPositions.get(firstIncomplete.id);
-        const workoutName = sessionWorkoutName(firstIncomplete, pos ? `Session ${pos.position}` : "Session");
+        const pos = chronologicalPositions.get(firstUpcoming.id);
+        const workoutName = sessionWorkoutName(firstUpcoming, pos ? `Session ${pos.position}` : "Session");
         if (!pos) return workoutName;
-        if (firstIncomplete.scheduled_at) {
-          return `${workoutName} · ${new Date(firstIncomplete.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`;
+        if (firstUpcoming.scheduled_at) {
+          return `${workoutName} · ${new Date(firstUpcoming.scheduled_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`;
         }
         return `${workoutName} · not yet booked`;
       })()
-    : "All sessions done";
+    : sortedIncomplete.length > 0
+      ? "No upcoming sessions"
+      : "All sessions done";
 
   // CR-EF-073 — the block's own header names its dated period ("6 Aug – 12
   // Sep"), never a fabricated range: unscheduled blocks fall back to plain text.
@@ -200,7 +232,7 @@ export default async function BlockViewPage({
             <h1 className="text-xl font-semibold tracking-tight">
               Block {block.block_number}
             </h1>
-            <StatusBadge status={block.status} />
+            <StatusBadge status={derivedStatus} />
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
             {client?.name || "Client"}{clientCondition ? ` · ${clientCondition}` : ""} · {blockDateSpanLabel} · {totalSessions}-session block
@@ -235,7 +267,7 @@ export default async function BlockViewPage({
           </div>
           <div className="px-4 py-3 border-r border-[var(--hub-border)] last:border-r-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
-            <div className="mt-0.5"><StatusBadge status={block.status} /></div>
+            <div className="mt-0.5"><StatusBadge status={derivedStatus} /></div>
           </div>
           <div className="px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next session</p>
@@ -244,7 +276,7 @@ export default async function BlockViewPage({
         </div>
       </BlockOverviewClient>
 
-      {/* CR-EF-099 — Session pot counter, rotation ribbon, booked slots vs workout pool */}
+      {/* CR-EF-099 — Session pot counter, sequence ribbon, booked slots vs planned workouts */}
       <BlockPoolView
         sessions={sessions as unknown as DBSession[]}
         clientId={String(clientId)}
