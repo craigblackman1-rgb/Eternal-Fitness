@@ -66,6 +66,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
   // Block picker dialog state.
   const [confirmBooking, setConfirmBooking] = useState<BookingRow | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
+  const [allBlocks, setAllBlocks] = useState<Block[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [blocksLoading, setBlocksLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -103,9 +104,14 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
     try {
       const res = await fetch(`/api/clients/${clientId}/blocks`);
       const all: Block[] = res.ok ? await res.json() : [];
-      const active = all.filter((b) => b.status !== "complete" && b.status !== "completed");
-      setBlocks(active);
-      if (active.length === 1) setSelectedBlockId(active[0].id);
+      setAllBlocks(all);
+      const nonComplete = all.filter((b) => b.status !== "complete" && b.status !== "completed");
+      const activeBlocks = nonComplete.filter((b) => b.status === "active");
+      const ordered = activeBlocks.length > 0
+        ? activeBlocks
+        : nonComplete;
+      setBlocks(ordered);
+      if (ordered.length === 1) setSelectedBlockId(ordered[0].id);
     } finally {
       setBlocksLoading(false);
     }
@@ -189,13 +195,19 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
             </div>
           </DialogHeader>
           <p className="text-[12.5px] text-muted-foreground">
-            Pick which active block this Outlook booking belongs to.
+            {blocks.length > 0 && blocks.every((b) => b.status === "active")
+              ? "Pick which active block this Outlook booking belongs to."
+              : blocks.length > 0
+                ? "Pick which block this Outlook booking belongs to."
+                : ""}
           </p>
           {blocksLoading ? (
             <p className="text-sm text-muted-foreground">Loading blocks…</p>
           ) : blocks.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {clientName} has no blocks yet — create one first.
+              {allBlocks.length > 0
+                ? `${clientName} has no open block — all ${allBlocks.length} block${allBlocks.length === 1 ? "" : "s"} ${allBlocks.length === 1 ? "is" : "are"} complete. Create a new block first.`
+                : `${clientName} has no blocks yet — create one first.`}
             </p>
           ) : (
             <ul className="space-y-2 mt-1">
@@ -213,6 +225,9 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
                   >
                     <span className="font-bold text-sm text-foreground">
                       Block {b.block_number}
+                      {b.status !== "active" && (
+                        <span className="font-normal text-muted-foreground"> · {b.status}</span>
+                      )}
                     </span>
                     {b.block_note && (
                       <span className="block text-xs text-muted-foreground mt-0.5">{b.block_note}</span>
