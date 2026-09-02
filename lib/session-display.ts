@@ -70,6 +70,25 @@ export function sessionWorkoutName(
 }
 
 /**
+ * Check whether a session has no exercises in any section of any version.
+ * Used to decide whether to show "Assign workout" vs "Edit" on the block
+ * overview. A cancelled or completed session is never treated as "empty"
+ * for this purpose — the caller gates on status before using this.
+ */
+export function sessionHasNoExercises(data: {
+  versions?: {
+    studio?: { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
+    home?: { warm_up?: unknown[]; main_block?: unknown[]; cooldown?: unknown[] };
+  };
+}): boolean {
+  const v = data.versions;
+  const isEmpty = (arr?: unknown[]) => !arr || arr.length === 0;
+  const studioEmpty = isEmpty(v?.studio?.warm_up) && isEmpty(v?.studio?.main_block) && isEmpty(v?.studio?.cooldown);
+  const homeEmpty = isEmpty(v?.home?.warm_up) && isEmpty(v?.home?.main_block) && isEmpty(v?.home?.cooldown);
+  return studioEmpty && homeEmpty;
+}
+
+/**
  * Format the secondary block context line: "Block 1 · Session 3 of 6".
  * Returns an empty string when there is no block context to show.
  */
