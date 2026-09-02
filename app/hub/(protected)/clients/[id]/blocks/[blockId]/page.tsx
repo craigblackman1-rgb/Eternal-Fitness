@@ -31,6 +31,7 @@ interface SessionRow {
   status: string | null;
   cancelled_at: string | null;
   cancel_reason: string | null;
+  completed_at: string | null;
   parent_session_id: string | null;
 }
 
@@ -47,6 +48,7 @@ function sessionStatus(s: SessionRow): SessionStatus {
     status: s.status,
     cancelled_at: s.cancelled_at,
     scheduled_at: s.scheduled_at,
+    completed_at: s.completed_at,
     session_log: s.data?.session_log,
   });
 }

@@ -104,7 +104,9 @@ export function BlockPoolView({
     .filter((s) => s.session.scheduled_at && !s.session.parent_session_id)
     .sort((a, b) => new Date(a.session.scheduled_at!).getTime() - new Date(b.session.scheduled_at!).getTime());
   // Unbooked = sessions without scheduled_at (sub-sessions inherit parent's slot)
-  const unbookedSessions = slotData.filter((s) => !s.session.scheduled_at && !s.session.parent_session_id);
+  const unbookedSessions = slotData.filter(
+    (s) => !s.session.scheduled_at && !s.session.parent_session_id && s.status !== "completed" && s.status !== "cancelled",
+  );
 
   // Sequence: all non-cancelled, non-completed sessions in order (CR-EF-101: exclude sub-sessions)
   const workoutQueue = slotData.filter(

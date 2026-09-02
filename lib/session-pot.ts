@@ -1,4 +1,5 @@
 import type { DBSession, ChargedFree } from "@/types";
+import { deriveSessionStatus } from "./session-status";
 
 /**
  * CR-EF-099 — Session pot counter logic.
@@ -53,7 +54,7 @@ export interface SessionPotBreakdown {
  * cancellations.
  */
 export function deriveSessionPot(
-  sessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id">[],
+  sessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id" | "completed_at">[],
   sessionsPurchased: number | null,
 ): SessionPotBreakdown {
   // CR-EF-101 — only count sessions where parent_session_id IS NULL
@@ -65,7 +66,7 @@ export function deriveSessionPot(
   let unreviewedCancellations = 0;
 
   for (const s of potSessions) {
-    const status = s.status ?? deriveStatusFromColumns(s);
+    const status = deriveSessionStatus(s);
     if (status === "completed") {
       completed++;
     } else if (status === "cancelled") {
@@ -102,14 +103,6 @@ export function deriveSessionPot(
     totalInBlock: potSessions.length,
     unreviewed: unreviewedCancellations,
   };
-}
-
-/** Fallback status derivation for sessions without a first-class status column. */
-function deriveStatusFromColumns(
-  s: Pick<DBSession, "status" | "charged_free" | "cancelled_at">,
-): string {
-  if (s.cancelled_at) return "cancelled";
-  return s.status ?? "planned";
 }
 
 /**
