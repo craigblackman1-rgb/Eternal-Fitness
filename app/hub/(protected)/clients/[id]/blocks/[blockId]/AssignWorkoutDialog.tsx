@@ -22,11 +22,12 @@ interface TemplateOption {
   archetypes: string[];
 }
 
-/** Shape of a session from the block overview list. */
-interface SiblingSession {
+/** Shape of a session returned by GET /api/blocks/:blockId/sessions. */
+interface BlockSession {
   id: string;
   session_number: number;
   archetype: string | null;
+  parent_session_id: string | null;
   data: {
     focus_label?: string;
     versions?: {
@@ -42,7 +43,6 @@ interface AssignWorkoutDialogProps {
   onOpenChange: (open: boolean) => void;
   sessionId: string;
   blockId: string;
-  siblingSessions: SiblingSession[];
 }
 
 function formatDate(iso: string | null): string {
@@ -57,11 +57,12 @@ export function AssignWorkoutDialog({
   onOpenChange,
   sessionId,
   blockId,
-  siblingSessions,
 }: AssignWorkoutDialogProps) {
   const router = useRouter();
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [blockSessions, setBlockSessions] = useState<BlockSession[]>([]);
+  const [loadingBlock, setLoadingBlock] = useState(false);
   const [search, setSearch] = useState("");
   const [assigning, setAssigning] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("templates");
@@ -71,11 +72,13 @@ export function AssignWorkoutDialog({
     setSearch("");
     setAssigning(null);
 
-    // Default to "From this block" when there are cloneable workouts
-    const cloneableCount = siblingSessions.filter(
-      (s) => s.id !== sessionId && !sessionHasNoExercises(s.data),
-    ).length;
-    setActiveTab(cloneableCount > 0 ? "block" : "templates");
+    // Fetch the whole block's sessions
+    setLoadingBlock(true);
+    fetch(`/api/blocks/${blockId}/sessions`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list: BlockSession[]) => setBlockSessions(list))
+      .catch(() => setBlockSessions([]))
+      .finally(() => setLoadingBlock(false));
 
     setLoadingTemplates(true);
     fetch("/api/workout-templates")
@@ -83,15 +86,41 @@ export function AssignWorkoutDialog({
       .then((list: TemplateOption[]) => setTemplates(list))
       .catch(() => setTemplates([]))
       .finally(() => setLoadingTemplates(false));
-  }, [open, sessionId, siblingSessions]);
+  }, [open, sessionId, blockId]);
+
+  // Build candidate list from the whole block: exclude this session,
+  // exclude sub-sessions, exclude empty sessions, order by scheduled_at
+  // (booked first, newest first) then session_number.
+  const cloneableSessions = blockSessions
+    .filter(
+      (s) =>
+        s.id !== sessionId &&
+        s.parent_session_id == null &&
+        !sessionHasNoExercises(s.data),
+    )
+    .sort((a, b) => {
+      // Booked sessions first, then by scheduled_at descending, then session_number ascending
+      const aBooked = a.scheduled_at ? 1 : 0;
+      const bBooked = b.scheduled_at ? 1 : 0;
+      if (aBooked !== bBooked) return bBooked - aBooked;
+      if (a.scheduled_at && b.scheduled_at) {
+        const diff = new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime();
+        if (diff !== 0) return diff;
+      }
+      return a.session_number - b.session_number;
+    });
+
+  // Default to "From this block" when there are cloneable workouts
+  useEffect(() => {
+    if (open) {
+      setActiveTab(cloneableSessions.length > 0 ? "block" : "templates");
+    }
+  }, [open, cloneableSessions.length]);
 
   const filtered = search
     ? templates.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
     : templates;
 
-  const cloneableSessions = siblingSessions.filter(
-    (s) => s.id !== sessionId && !sessionHasNoExercises(s.data),
-  );
   const filteredCloneable = search
     ? cloneableSessions.filter((s) => {
         const label = s.data?.focus_label || `Session ${s.session_number}`;
@@ -121,6 +150,7 @@ export function AssignWorkoutDialog({
             archetype: current.archetype || template.archetypes?.[0] || null,
             coaching_notes: `Assigned from template: ${template.name}`,
           },
+          archetype: current.archetype || template.archetypes?.[0] || null,
         }),
       });
       if (!res.ok) {
@@ -136,7 +166,7 @@ export function AssignWorkoutDialog({
     setAssigning(null);
   };
 
-  const cloneFromSession = async (source: SiblingSession) => {
+  const cloneFromSession = async (source: BlockSession) => {
     setAssigning(source.id);
     try {
       // Fetch the full source session to get complete version data
@@ -182,6 +212,7 @@ export function AssignWorkoutDialog({
             archetype: source.archetype || current.archetype || null,
             coaching_notes: `Copied from ${sourceName} (${sourceDate})`,
           },
+          archetype: source.archetype || current.archetype || null,
         }),
       });
       if (!res.ok) {
@@ -250,12 +281,12 @@ export function AssignWorkoutDialog({
 
         <div className="max-h-64 overflow-y-auto space-y-1">
           {activeTab === "block" ? (
-            loadingTemplates ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
+            loadingBlock ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Loading block sessions...</p>
             ) : filteredCloneable.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 {cloneableSessions.length === 0
-                  ? "No previous workouts in this block to copy from."
+                  ? "No workouts in this block yet."
                   : "No workouts match your search."}
               </p>
             ) : (

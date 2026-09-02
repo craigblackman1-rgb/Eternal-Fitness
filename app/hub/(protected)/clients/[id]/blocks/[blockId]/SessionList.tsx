@@ -69,14 +69,6 @@ function formatDayLabel(
   return `Session ${posLabel} · not yet booked`;
 }
 
-function isSessionEmpty(session: SessionItem): boolean {
-  const v = session.data?.versions;
-  const isEmptySection = (arr?: unknown[]) => !arr || arr.length === 0;
-  const studioEmpty = isEmptySection(v?.studio?.warm_up) && isEmptySection(v?.studio?.main_block) && isEmptySection(v?.studio?.cooldown);
-  const homeEmpty = isEmptySection(v?.home?.warm_up) && isEmptySection(v?.home?.main_block) && isEmptySection(v?.home?.cooldown);
-  return studioEmpty && homeEmpty;
-}
-
 export function SessionList({
   sessions,
   totalSessions,
@@ -121,7 +113,7 @@ export function SessionList({
               scheduledAt={session.scheduled_at}
               cancelReason={session.cancel_reason}
               chargedFree={session.charged_free}
-              isEmpty={isSessionEmpty(session)}
+              isEmpty={sessionHasNoExercises(session.data)}
               onAssignWorkout={setAssignSessionId}
             />
             {/* CR-EF-126 — sub-sessions nested under parent */}
@@ -142,7 +134,6 @@ export function SessionList({
         onOpenChange={(open) => { if (!open) setAssignSessionId(null); }}
         sessionId={assignSessionId || ""}
         blockId={blockId}
-        siblingSessions={sessions}
       />
     </>
   );
