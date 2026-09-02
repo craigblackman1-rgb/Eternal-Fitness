@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { MAX_BLOCK_WEEKS, type Session, type Archetype, type Phase, type Exercise } from "@/types";
+import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -78,7 +79,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   // New slots number from the highest slot number, not from sub-sessions which
   // may share a parent's session_number (CR-EF-125).
   const slotRows = rows.filter((s) => !s.parent_session_id);
-  const sessionNumber = slotRows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
+  let sessionNumber = slotRows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) {
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
   }
@@ -195,7 +196,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     const { data: parentSession, error: parentError } = await supabase
       .from("sessions")
-      .select("scheduled_at, block_id")
+      .select("scheduled_at, block_id, session_number")
       .eq("id", parent_session_id)
       .single();
 
@@ -207,6 +208,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     insertPayload.scheduled_at = parentSession.scheduled_at;
+    // CR-EF-125 — sub-sessions take the parent's session_number.
+    sessionNumber = parentSession.session_number;
+    insertPayload.session_number = sessionNumber;
+    sessionData.session_number = sessionNumber;
   } else if (scheduled_at) {
     insertPayload.scheduled_at = scheduled_at;
   }
@@ -218,6 +223,21 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .single();
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+
+  // CR-EF-125 — attach supplementary workouts when a top-level session is created.
+  if (!parent_session_id) {
+    await attachSupplementaryWork({
+      clientId: block.client_id,
+      parentSession: {
+        id: created.id,
+        block_id: params.id,
+        session_number: sessionNumber,
+        scheduled_at: created.scheduled_at ?? null,
+        status: created.status ?? null,
+      },
+      db: supabase,
+    });
+  }
 
   return NextResponse.json(created, { status: 201 });
 }

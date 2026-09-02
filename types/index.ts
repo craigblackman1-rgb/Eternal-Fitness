@@ -429,6 +429,8 @@ export interface Session {
   /** Optional override for the session duration display;
    *  absent → derived from time_tier via sessionDurationMinutes(). */
   estimated_minutes?: number;
+  /** CR-EF-125 — links a sub-session to the supplementary workouts row. */
+  supplementary_source_id?: string | null;
 }
 
 export interface SessionLog {
@@ -629,6 +631,11 @@ export interface DBSession {
    *  session (drill, progression, assessment) that does NOT consume a session.
    *  Cascade delete: a sub-session has no meaning without its parent. */
   parent_session_id?: string | null;
+  /** CR-EF-125 — links a sub-session to the client supplementary workouts row
+   *  that created it. Non-null = "Every session" tag; null = manual sub-session
+   *  ("This session only"). ON DELETE SET NULL: the sub-session keeps its
+   *  history but loses the provenance tag if the supplementary row is removed. */
+  supplementary_source_id?: string | null;
 }
 
 export type DocumentStatus = "draft" | "sent" | "received" | "signed" | "expired" | "needs_update" | "superseded";

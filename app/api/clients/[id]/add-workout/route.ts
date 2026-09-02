@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { Session, SessionVersion, Exercise, WorkoutTemplate, StudioEquipment } from "@/types";
+import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 /**
  * CR-EF-120 — Add-workout context + session creation.
@@ -335,6 +336,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .single();
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+
+  // CR-EF-125 — attach supplementary workouts to the newly created session.
+  await attachSupplementaryWork({
+    clientId: client.id,
+    parentSession: {
+      id: created.id,
+      block_id: activeBlock.id,
+      session_number: sessionNumber,
+      scheduled_at: null,
+      status: null,
+    },
+    db: supabase,
+  });
 
   /* Determine where it lands in the schedule (plain language) */
   const { data: allBlockSessions } = await supabase

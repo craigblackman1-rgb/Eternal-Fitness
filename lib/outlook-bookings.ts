@@ -1,5 +1,6 @@
 import { createPgClient } from "@/lib/pg-client";
 import { getIntegrationStatus, graphConfigured, listCalendarView, GraphReconnectError } from "@/lib/graph-client";
+import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 /**
  * CR-EF-050/090/091 — read-back reconciliation for Esther's Outlook calendar.
@@ -210,6 +211,19 @@ export async function materializeBookingSession(
       .eq("id", booking.id);
     if (resolveErr) throw new Error(`outlook_booking_events update failed: ${resolveErr.message}`);
 
+    // CR-EF-125 — attach supplementary workouts to the scheduled session.
+    await attachSupplementaryWork({
+      clientId,
+      parentSession: {
+        id: candidate.id,
+        block_id: blockId,
+        session_number: candidate.session_number,
+        scheduled_at: booking.start_at,
+        status: "scheduled",
+      },
+      db,
+    });
+
     return { sessionId: candidate.id };
   }
 
@@ -277,6 +291,19 @@ export async function materializeBookingSession(
     })
     .eq("id", booking.id);
   if (resolveErr) throw new Error(`outlook_booking_events update failed: ${resolveErr.message}`);
+
+  // CR-EF-125 — attach supplementary workouts to the newly created session.
+  await attachSupplementaryWork({
+    clientId,
+    parentSession: {
+      id: session.id,
+      block_id: blockId,
+      session_number: sessionNumber,
+      scheduled_at: booking.start_at,
+      status: "scheduled",
+    },
+    db,
+  });
 
   return { sessionId: session.id };
 }

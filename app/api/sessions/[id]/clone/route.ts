@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { Session } from "@/types";
+import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -51,6 +52,30 @@ export async function POST(_request: Request, { params }: { params: { id: string
     .single();
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+
+  // CR-EF-125 — attach supplementary workouts when a top-level session is cloned.
+  // Cloned sub-sessions (parent_session_id set) are not re-supplemented.
+  if (!original.parent_session_id) {
+    // Look up the client_id via the block.
+    const { data: blockRow } = await supabase
+      .from("blocks")
+      .select("client_id")
+      .eq("id", original.block_id)
+      .single();
+    if (blockRow) {
+      await attachSupplementaryWork({
+        clientId: blockRow.client_id,
+        parentSession: {
+          id: created.id,
+          block_id: original.block_id,
+          session_number: sessionNumber,
+          scheduled_at: created.scheduled_at ?? null,
+          status: created.status ?? null,
+        },
+        db: supabase,
+      });
+    }
+  }
 
   return NextResponse.json(created, { status: 201 });
 }
