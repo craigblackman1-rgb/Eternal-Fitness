@@ -4,6 +4,7 @@ import { getAiConfig } from "@/lib/ai-client";
 import { loadPlanAgentBundle } from "@/lib/planAgentData";
 import { generateViaAi, resolvePlanModel, weekPhases, getWeeklyArchetypes, type TemplateFramework } from "@/lib/planGeneration";
 import { tryAcquireGenerationLock, releaseGenerationLock } from "@/lib/generationLock";
+import { ensureUids } from "@/lib/exercise-ref";
 import type { ClientProfile, Session, Archetype, Phase, Exercise, SessionVersion, Frequency } from "@/types";
 import { frequencyToSessionsPerWeek } from "@/types";
 
@@ -147,6 +148,27 @@ async function generateBlockForClient(
       { error: "Generation produced an invalid or empty session plan — no block was created. Try again; if this persists the AI provider is misconfigured or underpowered." },
       { status: 502 },
     );
+  }
+
+  // BUG-EF-111 — regenerate exercise uids for every session in the block so
+  // that identical workouts (template-reused, or same archetype across weeks)
+  // never share uids. This must happen AFTER generation completes and BEFORE
+  // the bulk insert.
+  const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+  for (const session of sessions) {
+    if (session.versions && typeof session.versions === "object") {
+      for (const v of Object.keys(session.versions)) {
+        const ver = session.versions[v as keyof typeof session.versions];
+        if (ver && typeof ver === "object") {
+          for (const sk of sectionKeys) {
+            const arr = (ver as unknown as Record<string, unknown>)[sk];
+            if (Array.isArray(arr)) {
+              (ver as unknown as Record<string, unknown>)[sk] = ensureUids(arr as { uid?: string }[], { forceNew: true });
+            }
+          }
+        }
+      }
+    }
   }
 
   const { data: block, error: blockError } = await supabase

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { MAX_BLOCK_WEEKS, type Session, type Archetype, type Phase, type Exercise } from "@/types";
+import { ensureUids } from "@/lib/exercise-ref";
 import { attachSupplementaryWork } from "@/lib/supplementary-attach";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -159,6 +160,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
       coaching_notes: `Added from template "${template.name}".`,
       client_intro: "",
     };
+
+    // BUG-EF-111 — regenerate exercise uids so this session never shares uids
+    // with other sessions derived from the same template.
+    const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+    for (const v of Object.keys(sessionData.versions)) {
+      const ver = sessionData.versions[v as keyof typeof sessionData.versions];
+      for (const sk of sectionKeys) {
+        (ver as unknown as Record<string, unknown>)[sk] = ensureUids((ver as unknown as Record<string, unknown>)[sk] as { uid?: string }[], { forceNew: true });
+      }
+    }
 
     await supabase
       .from("workout_templates")

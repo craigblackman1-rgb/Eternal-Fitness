@@ -1,5 +1,6 @@
 import type { createPgClient } from "@/lib/pg-client";
 import type { Exercise, SessionVersion } from "@/types";
+import { ensureUids } from "@/lib/exercise-ref";
 
 /**
  * CR-EF-125 — attach supplementary workouts to a parent session.
@@ -96,6 +97,16 @@ export async function attachSupplementaryWork({
       coaching_notes: `Supplementary: ${template.name}.`,
       client_intro: "",
     };
+
+    // BUG-EF-111 — regenerate exercise uids so this sub-session never shares
+    // uids with other sessions derived from the same template.
+    const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+    for (const v of Object.keys(sessionData.versions)) {
+      const ver = sessionData.versions[v as keyof typeof sessionData.versions];
+      for (const sk of sectionKeys) {
+        (ver as Record<string, unknown>)[sk] = ensureUids((ver as Record<string, unknown>)[sk] as { uid?: string }[], { forceNew: true });
+      }
+    }
 
     const status = parentSession.scheduled_at ? "scheduled" : "planned";
 
