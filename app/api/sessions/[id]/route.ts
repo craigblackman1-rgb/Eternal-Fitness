@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUids } from "@/lib/exercise-ref";
-import { applyCopiedWorkoutIdentity } from "@/lib/session-naming";
+import { applyCopiedWorkoutIdentity, isPlaceholderLabel } from "@/lib/session-naming";
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
 import { getSessionStatus } from "@/lib/session-transitions";
@@ -189,12 +189,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         .eq("id", params.id)
         .maybeSingle();
       const currentData = (currentSession?.data ?? {}) as Record<string, unknown>;
+      const wasPlaceholder = isPlaceholderLabel(currentData.focus_label as string | null | undefined);
       const archetype = applyCopiedWorkoutIdentity(currentData, {
-        focus_label: body.source_focus_label as string | null | undefined,
-        archetype: body.source_archetype as string | null | undefined,
+        focus_label: (body.source_focus_label ?? body.data?.focus_label) as string | null | undefined,
+        archetype: (body.source_archetype ?? body.archetype ?? body.data?.archetype) as string | null | undefined,
       });
-      if (archetype !== null) {
+      if (wasPlaceholder) {
         update.data = { ...(update.data as Record<string, unknown>), focus_label: currentData.focus_label };
+      }
+      if (archetype !== null) {
         update.archetype = archetype;
       }
     }
