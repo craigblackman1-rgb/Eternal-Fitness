@@ -5,6 +5,7 @@ import { loadPlanAgentBundle } from "@/lib/planAgentData";
 import { generateViaAi, resolvePlanModel, weekPhases, getWeeklyArchetypes, type TemplateFramework } from "@/lib/planGeneration";
 import { tryAcquireGenerationLock, releaseGenerationLock } from "@/lib/generationLock";
 import { ensureUids } from "@/lib/exercise-ref";
+import { normaliseClientEquipment } from "@/lib/client-equipment";
 import type { ClientProfile, Session, Archetype, Phase, Exercise, SessionVersion, Frequency } from "@/types";
 import { frequencyToSessionsPerWeek } from "@/types";
 
@@ -90,15 +91,20 @@ async function generateBlockForClient(
 
   const bundle = await loadPlanAgentBundle(supabase, client.id);
 
-  // CR-EF-108 — when the client has a recorded equipment list, restrict both
+  // CR-EF-129/130 — when the client has a recorded equipment list, restrict both
   // the AI menu and the validation universe to exercises they can actually do.
   // NULL equipment → no filtering (unconstrained, legacy behaviour).
-  if (client.equipment != null) {
-    const available = new Set(client.equipment.map((n: string) => normaliseEquipment(n)));
+  const clientEq = normaliseClientEquipment(client.equipment);
+  const clientEquipmentNames = clientEq ? clientEq.map((e) => e.name) : null;
+  if (clientEquipmentNames != null) {
+    const available = new Set(clientEquipmentNames.map((n: string) => normaliseEquipment(n)));
     const matchesClient = (e: { equipment?: string[] }) =>
       !e.equipment || e.equipment.length === 0 || e.equipment.every((req) => available.has(normaliseEquipment(req)));
     bundle.menuExercises = bundle.menuExercises.filter(matchesClient);
     bundle.allExercises = bundle.allExercises.filter(matchesClient);
+    // Override the bundle's studio equipment rows with the client's own list
+    // so the prompt section and validator read the client's entries with increments.
+    bundle.equipmentRows = clientEq.map((e) => ({ name: e.name, detail: e.detail || null, home_equivalent: null }));
   }
 
   const aiConfig = getAiConfig();
@@ -125,9 +131,9 @@ async function generateBlockForClient(
       .from("exercises")
       .select("id, name, archetypes, movement_type, equipment, coaching_cue, default_mod")
       .eq("active", true);
-    // CR-EF-108 — constrain the pool to exercises matching the client's equipment.
+    // CR-EF-129/130 — constrain the pool to exercises matching the client's equipment.
     // client.equipment is NULL when not yet configured → unconstrained (legacy behaviour).
-    const pool = filterByEquipment((exercisePool ?? []) as ExerciseDbEntry[], client.equipment);
+    const pool = filterByEquipment((exercisePool ?? []) as ExerciseDbEntry[], clientEquipmentNames);
     sessions = generateFallback(profile, blockNumber, pool, template);
   }
 

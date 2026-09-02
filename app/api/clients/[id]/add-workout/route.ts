@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { normaliseClientEquipment, clientEquipmentNames } from "@/lib/client-equipment";
 import type { Session, SessionVersion, Exercise, WorkoutTemplate, StudioEquipment } from "@/types";
 import { ensureUids } from "@/lib/exercise-ref";
 import { attachSupplementaryWork } from "@/lib/supplementary-attach";
@@ -103,15 +104,17 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const matchedTemplates: { template: WorkoutTemplate; matchInfo: { match: boolean; missing: string[] } }[] = [];
   const excludedTemplates: { template: WorkoutTemplate; reason: string }[] = [];
 
+  const clientEqNames = clientEquipmentNames(client.equipment);
+
   for (const t of templates) {
-    const equipMatch = templateMatchesEquipment(t, client.equipment ?? null);
+    const equipMatch = templateMatchesEquipment(t, clientEqNames);
     const deliveryMatch = templateMatchesDeliveryMode(t, client.delivery_mode);
     if (equipMatch.match && deliveryMatch) {
       matchedTemplates.push({ template: t, matchInfo: equipMatch });
     } else {
       const reasons: string[] = [];
       if (!equipMatch.match) {
-        reasons.push(`needs ${equipMatch.missing.join(", ")} — ${client.name} ${client.equipment && client.equipment.length === 0 ? "has no equipment" : "doesn't have these"}`);
+        reasons.push(`needs ${equipMatch.missing.join(", ")} — ${client.name} ${clientEqNames && clientEqNames.length === 0 ? "has no equipment" : "doesn't have these"}`);
       }
       if (!deliveryMatch) {
         reasons.push(`designed for ${t.position?.join(" or ") ?? "a different training format"}`);
@@ -127,15 +130,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     .eq("active", true)
     .order("sort_order", { ascending: true });
 
-  const equipmentNames = client.equipment ?? [];
-
   return NextResponse.json({
     client: {
       id: client.id,
       name: client.name,
       clientNumber: client.client_number,
       deliveryMode: client.delivery_mode,
-      equipment: client.equipment,
+      equipment: clientEqNames,
       packageType: client.package_type,
       profile: client.profile,
     },
@@ -163,7 +164,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       name: e.template.name,
       reason: e.reason,
     })),
-    equipmentNames,
+    equipmentNames: clientEqNames,
     equipmentCatalog: (equipCatalog ?? []) as StudioEquipment[],
   });
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getAiConfig, aiChat, QUALITY_MODEL } from "@/lib/ai-client";
+import { normaliseClientEquipment, formatClientEquipment } from "@/lib/client-equipment";
 import type { ClientProfile, SessionVersion, Exercise } from "@/types";
 
 /**
@@ -126,12 +127,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const programmingAdaptations = ((profile.programming_adaptations as { severity: string; detail: string }[]) ?? []);
   const hardRules = programmingAdaptations.filter((r) => r.severity === "hard").map((r) => r.detail);
 
-  const equipmentList = client.equipment ?? [];
+  const clientEq = normaliseClientEquipment(client.equipment);
   const deliveryMode = client.delivery_mode ?? "studio_1to1";
 
   const userPrompt = `Client: ${client.name}
 Training format: ${deliveryMode === "studio_1to1" ? "Studio 1:1" : "Home training"}
-Available equipment: ${equipmentList.length > 0 ? equipmentList.join(", ") : "Not specified — use bodyweight only"}
+Available equipment: ${formatClientEquipment(clientEq)}
 
 Health conditions: ${conditions.length > 0 ? conditions.join(", ") : "None recorded"}
 Contraindications: ${contraindications.length > 0 ? contraindications.join(", ") : "None recorded"}

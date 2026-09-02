@@ -115,6 +115,12 @@ export interface TrainingRuleType {
   created_at: string;
 }
 
+/** CR-EF-129/130 — a single equipment entry on a client record. */
+export interface ClientEquipmentEntry {
+  name: string;
+  detail: string;
+}
+
 /** Governance catalog row — see studio_equipment table / /hub/settings/studio-equipment. */
 export interface StudioEquipment {
   id: string;
@@ -552,8 +558,8 @@ export interface DBClient {
   start_date: string | null;
   client_status: ClientStatus;
   referral_source: string | null;
-  /** CR-EF-108 — equipment names the client has available (matching studio_equipment.name). NULL = not configured. */
-  equipment?: string[] | null;
+  /** CR-EF-129/130 — equipment entries with optional detail. NULL = not configured; [] = bodyweight only. Legacy rows may be string[]. */
+  equipment?: ClientEquipmentEntry[] | string[] | null;
 }
 
 /** Lifecycle of an update record. 'sending' is transient — set just before dispatch, resolved to sent/failed immediately after. */
