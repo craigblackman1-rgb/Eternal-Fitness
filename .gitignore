@@ -32,5 +32,4 @@ dist-ssr
 .context/tools/verify_hub_results.json
 .context/tools/mockup-structure-manifest.json
 
-# Supabase CLI temp files (dead project ref, not needed)
-supabase/.temp/
+# db/.tmp/ scratch space (if needed)
