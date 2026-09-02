@@ -62,12 +62,12 @@ export function OutlookBookingsQueue() {
     setError(null);
     try {
       const status = showDismissed ? "all" : "open";
-      const res = await fetch(`/api/outlook-bookings?status=${status}`);
+      const res = await fetch(`/api/outlook-bookings?status=${status}`, { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
       const data: BookingRow[] = await res.json();
       setRows(showDismissed ? data : data.filter((r) => r.status === "open"));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
+      setError(e instanceof Error ? (e.name === "TimeoutError" ? "The server took too long to respond — try refreshing." : e.message) : "Failed to load");
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,14 @@ export function OutlookBookingsQueue() {
         saves silently — every row resolves to a confirm, a link, or a dismiss.
       </HubAlert>
 
-      {error && <HubAlert severity="warning" title="Something went wrong">{error}</HubAlert>}
+      {error && (
+        <HubAlert severity="warning" title="Something went wrong">
+          <div className="flex items-center justify-between gap-3">
+            <span>{error}</span>
+            <Button variant="outline" size="sm" onClick={load}>Try again</Button>
+          </div>
+        </HubAlert>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
