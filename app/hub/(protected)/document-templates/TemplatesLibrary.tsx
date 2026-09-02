@@ -246,7 +246,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                     key={t.id}
                     className="flex flex-col rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 hover:border-[var(--hub-field-border-hover)] transition-colors"
                   >
-                    <Link href={`/hub/templates/${t.id}`} className="contents">
+                    <Link href={`/hub/document-templates/${t.id}`} className="contents">
                       <div className="flex items-center gap-2.5 mb-2.5">
                         <span className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${c.bg} ${c.text}`}>
                           <Icon className="w-4 h-4" />
@@ -280,7 +280,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                         Assign
                       </button>
                       <Link
-                        href={`/hub/templates/${t.id}/preview`}
+                        href={`/hub/document-templates/${t.id}/preview`}
                         target="_blank"
                         onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
@@ -315,7 +315,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                     return (
                       <tr key={t.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
                         <td className="px-4 py-3">
-                          <Link href={`/hub/templates/${t.id}`} className="flex items-center gap-3 min-w-0 group">
+                          <Link href={`/hub/document-templates/${t.id}`} className="flex items-center gap-3 min-w-0 group">
                             <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.bg} ${c.text}`}>
                               <Icon className="w-4 h-4" />
                             </span>
@@ -342,7 +342,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                               Assign
                             </button>
                             <Link
-                              href={`/hub/templates/${t.id}/preview`}
+                              href={`/hub/document-templates/${t.id}/preview`}
                               target="_blank"
                               className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-body)] hover:text-rose transition-colors"
                             >

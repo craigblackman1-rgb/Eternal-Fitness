@@ -3,10 +3,16 @@
 import { usePathname } from "next/navigation";
 
 const crumbLabels: Record<string, string> = {
-  "/hub": "Dashboard",
+  "/hub": "Today",
+  "/hub/schedule": "Schedule",
   "/hub/clients": "Clients",
-  "/hub/exercises": "Exercise Library",
-  "/hub/tracker": "Medical Tracker",
+  "/hub/tasks": "Tasks",
+  "/hub/workouts": "Workouts",
+  "/hub/exercises": "Exercise library",
+  "/hub/document-templates": "Document templates",
+  "/hub/compliance": "Compliance",
+  "/hub/cashflow": "Finance",
+  "/hub/settings": "Settings",
   "/hub/agreements": "Agreements",
   "/hub/reports/updates": "Email Updates",
   "/hub/sessions/review": "Cancellation review",

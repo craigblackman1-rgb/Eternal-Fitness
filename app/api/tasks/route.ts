@@ -11,6 +11,18 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const clientId = searchParams.get("client_id");
+  const countOnly = searchParams.get("count") === "true";
+
+  if (countOnly) {
+    const { count, error } = await supabase
+      .from("tasks")
+      .select("id", { count: "exact", head: true })
+      .neq("status", "done");
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ count: count ?? 0 });
+  }
 
   let query = supabase
     .from("tasks")

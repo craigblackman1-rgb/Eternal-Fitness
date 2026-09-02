@@ -151,6 +151,13 @@ const nextConfig = {
       // --- Renamed hub route (2026-08-04) ---
       { source: "/hub/plan-schedule", destination: "/hub/training-blocks", permanent: false },
 
+      // --- Route consolidation R1 (CR-EF-136, 2026-09-02): renames, old paths kept alive ---
+      { source: "/hub/workout-templates", destination: "/hub/workouts", permanent: false },
+      { source: "/hub/workout-templates/:path*", destination: "/hub/workouts/:path*", permanent: false },
+      { source: "/hub/templates", destination: "/hub/document-templates", permanent: false },
+      { source: "/hub/templates/:path*", destination: "/hub/document-templates/:path*", permanent: false },
+      { source: "/hub/tracker", destination: "/hub/compliance", permanent: false },
+
       // --- Content re-gated 2026-08-17: only Blind & Partially Sighted was
       // ever cleared for launch under the 2026-08-10 specialisms restructure;
       // Cancer Rehabilitation, Strength/Balance & Falls and the Blog were live

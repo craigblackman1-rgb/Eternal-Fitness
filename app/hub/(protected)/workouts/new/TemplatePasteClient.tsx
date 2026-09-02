@@ -199,7 +199,7 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/hub/workout-templates" className="text-muted-foreground hover:text-foreground">
+        <Link href="/hub/workouts" className="text-muted-foreground hover:text-foreground">
           <IconChevronLeft className="h-5 w-5" />
         </Link>
         <div>
@@ -306,10 +306,10 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
             <h3 className="text-lg font-extrabold text-[var(--color-ink)]">{success.title}</h3>
             <p className="text-sm text-muted-foreground mt-1.5 mb-5 max-w-md">{success.body}</p>
             <Link
-              href="/hub/workout-templates"
+              href="/hub/workouts"
               className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-rose hover:bg-rose/90 text-white text-[13px] font-semibold transition-colors"
             >
-              Go to workout templates
+              Go to workouts
             </Link>
           </div>
         </HubCard>

@@ -400,7 +400,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
     <div className="space-y-[18px]">
       {/* ── Page header ─────────────────────────────── */}
       <HubPageHeader
-        title="Medical &amp; Compliance Tracker"
+        title="Compliance"
         subtitle="Every mandatory record across the roster, with what has lapsed and what falls due next"
         actions={
           <>

@@ -5,12 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { IconCalendar } from "@/components/icons";
 
-/** CR-EF-050/CR-EF-028 — route-in badge for the two Outlook reconciliation
- *  queues (Bookings, Possible duplicates), shown on both the day and month
- *  schedule views. Combines both counts, matching the mockup's single badge.
- *  Renders nothing until both counts are known, and nothing at all when
- *  there's nothing to reconcile. */
-export function OutlookBookingsBadge() {
+/** Returns the combined count of open Outlook bookings + possible duplicates,
+ *  or null until both fetches have resolved. */
+export function useOutlookTriageCount(): number | null {
   const [bookingsCount, setBookingsCount] = useState<number | null>(null);
   const [duplicatesCount, setDuplicatesCount] = useState<number | null>(null);
 
@@ -38,8 +35,18 @@ export function OutlookBookingsBadge() {
   }, []);
 
   if (bookingsCount === null || duplicatesCount === null) return null;
-  const total = bookingsCount + duplicatesCount;
-  if (!total) return null;
+  return bookingsCount + duplicatesCount;
+}
+
+/** CR-EF-050/CR-EF-028 — route-in badge for the two Outlook reconciliation
+ *  queues (Bookings, Possible duplicates), shown on both the day and month
+ *  schedule views. Combines both counts, matching the mockup's single badge.
+ *  Renders nothing until both counts are known, and nothing at all when
+ *  there's nothing to reconcile. */
+export function OutlookBookingsBadge() {
+  const total = useOutlookTriageCount();
+
+  if (total === null || total === 0) return null;
 
   return (
     <Button variant="outline" asChild className="relative rounded-lg pr-7">
