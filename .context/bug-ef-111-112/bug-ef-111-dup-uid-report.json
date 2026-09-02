@@ -1,0 +1,2177 @@
+{
+  "generated_at": "2026-09-02T16:58:21.604Z",
+  "db": "eternal_fitness (prod)",
+  "read_only": true,
+  "note": "No archived flag exists on sessions or blocks; every session was scanned. Session status (cancelled) and client_status (archived) are carried per row for filtering.",
+  "totals": {
+    "sessions_total": 176,
+    "sessions_with_versions_json": 176,
+    "sessions_cancelled": 2,
+    "exercises_with_null_uid": 790,
+    "distinct_duplicated_uids": 132,
+    "sessions_affected": 8,
+    "sessions_affected_zero_set_logs_A": 3,
+    "sessions_affected_with_set_logs_B": 5,
+    "duplicated_uid_scope": {
+      "same_block": 132
+    }
+  },
+  "grouped_by_client_block": [
+    {
+      "client": "Emma Atkinson",
+      "client_status": "active",
+      "block_number": 2,
+      "block_status": "complete",
+      "sessions": 4,
+      "with_set_logs": 4,
+      "without_set_logs": 0
+    },
+    {
+      "client": "Monique Wearden",
+      "client_status": "active",
+      "block_number": 1,
+      "block_status": "active",
+      "sessions": 4,
+      "with_set_logs": 1,
+      "without_set_logs": 3
+    }
+  ],
+  "A_safe_zero_set_logs": [
+    {
+      "id": "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+      "client_name": "Monique Wearden",
+      "client_status": "active",
+      "block_number": 1,
+      "block_status": "active",
+      "session_number": 3,
+      "week": 1,
+      "status": "scheduled",
+      "scheduled_at": "2026-09-15T10:00:00.000Z",
+      "completed_at": null,
+      "parent_session_id": null,
+      "archetype": "A",
+      "set_log_count": 0,
+      "set_logs_on_dup_uids": 0,
+      "duplicated_uids": [
+        "0b5f959e-8d58-400b-8afa-f0d3b78f74af",
+        "16a26214-5f6a-4a22-b179-958d6d3c2612",
+        "19624dcf-26d0-49ba-a6e2-8f521c468759",
+        "229409a9-71a6-44e7-b7cd-21626853810c",
+        "2630fd82-4ccf-47e4-b256-8e08b49870e2",
+        "393f22f5-3f79-4ee8-8916-80f9a7522070",
+        "3f706ffc-d952-49e2-bf7e-23e5f3779249",
+        "4024e2c8-1396-470d-b30d-1cd802aef440",
+        "429c1545-791e-4e7d-be4d-da3004912126",
+        "4480a170-e222-4d8e-97de-73a5cf7c695d",
+        "47e7ceba-85ad-4e35-98fe-1c776d383901",
+        "53d99603-bede-4e9b-8499-200a34ca7d97",
+        "6675e17e-7fae-476b-8930-77ed47be8b70",
+        "697510ac-08ae-4b33-ad05-f90218efe28b",
+        "6ad4d5a7-b1d3-4d5f-90f7-8c64098d1a02",
+        "6f98269a-091a-4c96-91d1-50796100e1fe",
+        "72a27175-70de-42f0-823c-a6db7566ee31",
+        "7bb7c874-f0f0-4ffd-ad09-5a58a09ecb1e",
+        "83f70853-6748-4e5f-92d3-eea3d6754d8c",
+        "89f0018c-bdee-4286-97a6-fabe80b30462",
+        "8b3f77ef-5744-427c-a655-0905ff61c710",
+        "8bdfb737-8502-45fd-924a-732eba6c7abb",
+        "8ecaa26f-3879-4065-89e7-f31e03c01391",
+        "8ee1dbd7-cdc7-46ac-8abe-4c744c2c657a",
+        "92685c5f-661c-4c07-8613-9d376b3a67b8",
+        "96d0b9f5-2cd6-4f58-b05d-48906429c725",
+        "9f6262d3-6abe-4d28-8450-f35d1c48778b",
+        "a1990d68-3183-4562-b70b-6f0711ca112b",
+        "a4d5d0c7-3939-412b-8ec9-adffad6d4aec",
+        "a740da3e-4b87-4957-a5dc-340e4c83f7e9",
+        "b1e42111-7582-4b64-bde5-76635e36203f",
+        "b8552a39-f11d-4574-9f4b-2087ddeb0444",
+        "c0dc3720-54d9-4ac0-a5ff-f576bf3fbb58",
+        "c2f21eb8-8b1f-408b-9143-d67f8ead60a4",
+        "ca2c2cce-6f86-46b9-830e-ee93ab0186ec",
+        "d06fb360-cdea-48dd-8bf6-d9047849d663",
+        "d1d5b233-2b33-413f-8923-7dd44fd91733",
+        "dcd9fbd1-92aa-45e3-bc6e-ec233c9b7147",
+        "e28ffa5e-860a-4a97-be3b-db91383cecb1",
+        "e565b07e-ed4a-4e01-8fc2-ab67aac632ec",
+        "e773b838-b769-4ff9-bdee-7ef2399623d3",
+        "f3419e2b-6f40-4b2d-aeca-d9281833c743"
+      ],
+      "duplicated_uid_count": 42
+    },
+    {
+      "id": "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a",
+      "client_name": "Monique Wearden",
+      "client_status": "active",
+      "block_number": 1,
+      "block_status": "active",
+      "session_number": 5,
+      "week": 1,
+      "status": "scheduled",
+      "scheduled_at": "2026-10-20T10:00:00.000Z",
+      "completed_at": null,
+      "parent_session_id": null,
+      "archetype": "A",
+      "set_log_count": 0,
+      "set_logs_on_dup_uids": 0,
+      "duplicated_uids": [
+        "0b5f959e-8d58-400b-8afa-f0d3b78f74af",
+        "16a26214-5f6a-4a22-b179-958d6d3c2612",
+        "19624dcf-26d0-49ba-a6e2-8f521c468759",
+        "229409a9-71a6-44e7-b7cd-21626853810c",
+        "2630fd82-4ccf-47e4-b256-8e08b49870e2",
+        "393f22f5-3f79-4ee8-8916-80f9a7522070",
+        "3f706ffc-d952-49e2-bf7e-23e5f3779249",
+        "4024e2c8-1396-470d-b30d-1cd802aef440",
+        "429c1545-791e-4e7d-be4d-da3004912126",
+        "4480a170-e222-4d8e-97de-73a5cf7c695d",
+        "47e7ceba-85ad-4e35-98fe-1c776d383901",
+        "53d99603-bede-4e9b-8499-200a34ca7d97",
+        "6675e17e-7fae-476b-8930-77ed47be8b70",
+        "697510ac-08ae-4b33-ad05-f90218efe28b",
+        "6ad4d5a7-b1d3-4d5f-90f7-8c64098d1a02",
+        "6f98269a-091a-4c96-91d1-50796100e1fe",
+        "72a27175-70de-42f0-823c-a6db7566ee31",
+        "7bb7c874-f0f0-4ffd-ad09-5a58a09ecb1e",
+        "83f70853-6748-4e5f-92d3-eea3d6754d8c",
+        "89f0018c-bdee-4286-97a6-fabe80b30462",
+        "8b3f77ef-5744-427c-a655-0905ff61c710",
+        "8bdfb737-8502-45fd-924a-732eba6c7abb",
+        "8ecaa26f-3879-4065-89e7-f31e03c01391",
+        "8ee1dbd7-cdc7-46ac-8abe-4c744c2c657a",
+        "92685c5f-661c-4c07-8613-9d376b3a67b8",
+        "96d0b9f5-2cd6-4f58-b05d-48906429c725",
+        "9f6262d3-6abe-4d28-8450-f35d1c48778b",
+        "a1990d68-3183-4562-b70b-6f0711ca112b",
+        "a4d5d0c7-3939-412b-8ec9-adffad6d4aec",
+        "a740da3e-4b87-4957-a5dc-340e4c83f7e9",
+        "b1e42111-7582-4b64-bde5-76635e36203f",
+        "b8552a39-f11d-4574-9f4b-2087ddeb0444",
+        "c0dc3720-54d9-4ac0-a5ff-f576bf3fbb58",
+        "c2f21eb8-8b1f-408b-9143-d67f8ead60a4",
+        "ca2c2cce-6f86-46b9-830e-ee93ab0186ec",
+        "d06fb360-cdea-48dd-8bf6-d9047849d663",
+        "d1d5b233-2b33-413f-8923-7dd44fd91733",
+        "dcd9fbd1-92aa-45e3-bc6e-ec233c9b7147",
+        "e28ffa5e-860a-4a97-be3b-db91383cecb1",
+        "e565b07e-ed4a-4e01-8fc2-ab67aac632ec",
+        "e773b838-b769-4ff9-bdee-7ef2399623d3",
+        "f3419e2b-6f40-4b2d-aeca-d9281833c743"
+      ],
+      "duplicated_uid_count": 42
+    },
+    {
+      "id": "ecbb3fc9-0428-42c4-b30e-cefa78423f88",
+      "client_name": "Monique Wearden",
+      "client_status": "active",
+      "block_number": 1,
+      "block_status": "active",
+      "session_number": 8,
+      "week": null,
+      "status": "scheduled",
+      "scheduled_at": "2026-09-01T10:00:00.000Z",
+      "completed_at": null,
+      "parent_session_id": "fc9fd9ff-6751-4234-9840-3924c6d9c2e8",
+      "archetype": null,
+      "set_log_count": 0,
+      "set_logs_on_dup_uids": 0,
+      "duplicated_uids": [
+        "06f46a90-823c-4534-83df-14a01f0bab98",
+        "13ba8784-ac53-4b62-b683-7b1dd4e19dea",
+        "17172495-e07c-4a1f-9856-2e62cbfb6089",
+        "1c35e842-8030-426f-ae36-d52e4a93bd89",
+        "24235c7e-fe59-47e9-91cb-7742246fbdb4",
+        "259e1a70-2011-4b62-9da0-6c3a4ae5bc55",
+        "270de5eb-5c94-4227-80e5-174612d04570",
+        "271806aa-b518-4fac-969b-67dc58d40bd5",
+        "2a7b2a54-a19b-4aec-b5a0-8f9296c5c110",
+        "2d2aa3c1-c49b-46aa-9cd9-cb5442a5676d",
+        "2e25bdbd-361e-4287-9e5f-ce6c725fb1f2",
+        "32cb7df7-ae9c-4f78-85ae-9961ff4818d5",
+        "347fc527-947e-4160-ab2e-ac646f90b454",
+        "3498f0bb-89a0-479d-a34f-e075b7f9b85b",
+        "34be83e1-90d3-4edc-98df-8bb2dde51197",
+        "369156be-3698-48ef-a5c5-a67ac53d4efa",
+        "3ace8fa8-015e-4ee2-abbf-3241c290a99a",
+        "4f572c3b-6b36-4a08-8101-174e8f54e62b",
+        "51238843-358d-43b1-a9b6-aaefb5c7adec",
+        "56d8c7d2-1b19-4492-9769-e22df7167ebf",
+        "5c31f975-5dfd-46ec-b73b-508dae94f89b",
+        "5d672857-f5b2-46e0-8ad2-a80736ec1327",
+        "62e017c4-9048-42f8-b31c-78073a1a9fc1",
+        "670ab436-85c7-4887-bd88-24a5975ae5a8",
+        "6c8cd46f-2688-4498-a39b-acf63cb4ef0d",
+        "6cd153e4-2233-4aea-a497-7f3fba88cbbc",
+        "728316bc-9144-4286-8f2d-17ac67863ff0",
+        "73a4b4d4-5414-4c24-84e9-5b57703001b2",
+        "74715781-abf5-48b9-a752-f4ea945d94af",
+        "76645c4f-0b08-4050-9c90-c97f91a6cce1",
+        "77a87f90-7fba-489c-894e-53e9a3041617",
+        "79ceba2f-ef83-49a6-b956-cbad08de9786",
+        "7a042428-fcd5-47c4-a83f-52b22d577401",
+        "7ba4b234-0831-4326-97fb-7e0f7e967ff6",
+        "7bc374fd-2402-458a-bcf5-0f89635133a2",
+        "7df540f7-f588-489f-994a-8dc63b3fbddc",
+        "895f14ff-9b48-42a1-9a43-b820da80aceb",
+        "8a429e2c-bc04-4677-9446-de733f334ff6",
+        "8d7a8f29-8838-4af5-9c89-136388c32074",
+        "90f7ed91-62e5-4c2b-a1e0-eef0d4794fa1",
+        "99fccc05-0c46-4439-b857-ae1bfcda309e",
+        "9abf02e4-82de-4ca0-920b-6ec79ff2813d",
+        "9d222464-7b0a-412f-91e7-9c56b2404ff2",
+        "9db3b979-5927-4593-a380-fda6322a7d38",
+        "a0062716-ef9d-4b28-8d06-94f04e032f35",
+        "adb881f6-f28b-4ff7-9ad3-d4ffb9424d88",
+        "b0d0ae4c-5efa-42d8-ab38-736812e0cc31",
+        "b5f20206-9ef4-4af1-a7e6-63b1e8c51267",
+        "b6fe6366-ba0a-429d-9bbe-dccdf1969214",
+        "ba093620-84cc-4089-bfcc-2c8f19b1fc1d",
+        "bac855ec-9721-47da-9d45-6d2e85b25e47",
+        "bef47dc2-2642-46d9-afcb-ab6e02a9dd71",
+        "c30fe0eb-ea48-4ed3-9b0b-ee06939db60a",
+        "c6d2f1cb-26ca-4007-8777-43e757ff4418",
+        "c7b69ef3-ab53-4d13-865b-38899166999b",
+        "d1bb0507-f4a9-4365-bd94-00078cd17e64",
+        "d63dd232-9c29-4db8-9588-2a07923ef272",
+        "d6e82213-8c50-45c7-baab-41e06fc4bebf",
+        "db80a728-c5e5-4af8-b11e-028c6ac7be17",
+        "dc3e8776-dc19-440a-9621-edf4174ae368",
+        "e4d24e40-ac3d-4ba9-af7a-249ffc10cac9",
+        "ea2f3ef1-3970-4515-a64b-ac9fbca28c84",
+        "f06dafb2-1966-405a-ae68-891d6edbf34a",
+        "f291839b-3bda-431e-850e-7cb5bdd7ad93",
+        "f5d14672-5a9b-4e88-bcc9-4d1d80bfc5f1",
+        "f7137676-145c-4670-81f4-8c80ea1a89da",
+        "f81c5ba4-07d0-4090-a713-445397057eaf",
+        "f9db07e6-4fd0-46a6-9870-b96c90308b50"
+      ],
+      "duplicated_uid_count": 68
+    }
+  ],
+  "B_misattribution_risk_with_set_logs": [
+    {
+      "id": "dbd376d2-147d-44f8-8704-dd8bc534ed3b",
+      "client_name": "Emma Atkinson",
+      "client_status": "active",
+      "block_number": 2,
+      "block_status": "complete",
+      "session_number": 1,
+      "week": 1,
+      "status": "completed",
+      "scheduled_at": "2026-08-14T11:30:00.000Z",
+      "completed_at": "2026-08-17T17:03:17.687Z",
+      "parent_session_id": null,
+      "archetype": "B",
+      "set_log_count": 31,
+      "set_logs_on_dup_uids": 31,
+      "duplicated_uids": [
+        "08b29e8a-7b55-4211-9b16-75be92ddaa5e",
+        "0e6e32e5-560b-4a53-a57e-dd28cdddfbc7",
+        "40357a82-54ad-4c8d-8da3-5b4b78c356e2",
+        "4b2384d7-3c3c-49e1-b881-a528510b248a",
+        "53121363-e7fa-4d91-98c3-bdb937e380e9",
+        "920839b7-13a3-4d9d-8760-3d7e51d73839",
+        "92e0f779-cd95-48e2-95a2-7c8603c47ba6",
+        "d5851621-9f94-410f-ac11-1c98681789ae",
+        "f7fa8eb9-969d-4f34-a9e2-de05f0111188"
+      ],
+      "duplicated_uid_count": 9
+    },
+    {
+      "id": "f4635373-e5bd-43d4-b845-4bcfecb3bfe5",
+      "client_name": "Emma Atkinson",
+      "client_status": "active",
+      "block_number": 2,
+      "block_status": "complete",
+      "session_number": 2,
+      "week": 1,
+      "status": "completed",
+      "scheduled_at": "2026-08-17T11:00:00.000Z",
+      "completed_at": "2026-08-17T12:25:25.647Z",
+      "parent_session_id": null,
+      "archetype": "A",
+      "set_log_count": 20,
+      "set_logs_on_dup_uids": 20,
+      "duplicated_uids": [
+        "00801742-ccc5-42ff-9cd6-aed58fb850ef",
+        "171b3d92-05c8-43b7-9335-17b844ccbb52",
+        "17a0bb9f-2b10-414b-b853-3fdbf82c56d4",
+        "195840e1-7251-41b3-a469-0f4324ac5cae",
+        "396f1747-2026-4b2b-8545-ef3677a85037",
+        "79ce3ee3-2de3-433a-a30f-f4747e28aec5",
+        "8e0e1354-52fd-4d08-8ba3-70565d96f68d",
+        "95860a5f-48c2-48b1-98b5-0e8500ae79ef",
+        "b2d31f2f-da84-4569-8d5e-0cefae37a463",
+        "c7162de2-19ea-41da-94ef-aed9d31c6d48",
+        "d2f9c3a6-a360-4cf9-87bf-4204ffe5147a",
+        "e19203d9-ba27-4553-8800-c9ea1a9d1a89",
+        "fcc2c16b-6ea6-4964-a67a-2886fc11b8b4"
+      ],
+      "duplicated_uid_count": 13
+    },
+    {
+      "id": "9ac77530-601a-43d0-8b10-491123953845",
+      "client_name": "Emma Atkinson",
+      "client_status": "active",
+      "block_number": 2,
+      "block_status": "complete",
+      "session_number": 3,
+      "week": 1,
+      "status": "completed",
+      "scheduled_at": "2026-08-19T11:30:00.000Z",
+      "completed_at": "2026-08-19T12:43:45.843Z",
+      "parent_session_id": null,
+      "archetype": "B",
+      "set_log_count": 31,
+      "set_logs_on_dup_uids": 0,
+      "duplicated_uids": [
+        "08b29e8a-7b55-4211-9b16-75be92ddaa5e",
+        "0e6e32e5-560b-4a53-a57e-dd28cdddfbc7",
+        "40357a82-54ad-4c8d-8da3-5b4b78c356e2",
+        "4b2384d7-3c3c-49e1-b881-a528510b248a",
+        "53121363-e7fa-4d91-98c3-bdb937e380e9",
+        "920839b7-13a3-4d9d-8760-3d7e51d73839",
+        "92e0f779-cd95-48e2-95a2-7c8603c47ba6",
+        "d5851621-9f94-410f-ac11-1c98681789ae",
+        "f7fa8eb9-969d-4f34-a9e2-de05f0111188"
+      ],
+      "duplicated_uid_count": 9
+    },
+    {
+      "id": "2312da96-288e-42fd-b936-056c2b823538",
+      "client_name": "Emma Atkinson",
+      "client_status": "active",
+      "block_number": 2,
+      "block_status": "complete",
+      "session_number": 4,
+      "week": 1,
+      "status": "completed",
+      "scheduled_at": "2026-08-21T11:30:00.000Z",
+      "completed_at": "2026-08-21T12:51:40.797Z",
+      "parent_session_id": null,
+      "archetype": "A",
+      "set_log_count": 35,
+      "set_logs_on_dup_uids": 0,
+      "duplicated_uids": [
+        "00801742-ccc5-42ff-9cd6-aed58fb850ef",
+        "171b3d92-05c8-43b7-9335-17b844ccbb52",
+        "17a0bb9f-2b10-414b-b853-3fdbf82c56d4",
+        "195840e1-7251-41b3-a469-0f4324ac5cae",
+        "396f1747-2026-4b2b-8545-ef3677a85037",
+        "79ce3ee3-2de3-433a-a30f-f4747e28aec5",
+        "8e0e1354-52fd-4d08-8ba3-70565d96f68d",
+        "95860a5f-48c2-48b1-98b5-0e8500ae79ef",
+        "b2d31f2f-da84-4569-8d5e-0cefae37a463",
+        "c7162de2-19ea-41da-94ef-aed9d31c6d48",
+        "d2f9c3a6-a360-4cf9-87bf-4204ffe5147a",
+        "e19203d9-ba27-4553-8800-c9ea1a9d1a89",
+        "fcc2c16b-6ea6-4964-a67a-2886fc11b8b4"
+      ],
+      "duplicated_uid_count": 13
+    },
+    {
+      "id": "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+      "client_name": "Monique Wearden",
+      "client_status": "active",
+      "block_number": 1,
+      "block_status": "active",
+      "session_number": 7,
+      "week": 1,
+      "status": "completed",
+      "scheduled_at": "2026-08-19T10:00:00.000Z",
+      "completed_at": "2026-08-31T16:35:08.752Z",
+      "parent_session_id": "8daba451-3bf3-4558-8082-b6bdbdf73648",
+      "archetype": null,
+      "set_log_count": 98,
+      "set_logs_on_dup_uids": 0,
+      "duplicated_uids": [
+        "06f46a90-823c-4534-83df-14a01f0bab98",
+        "13ba8784-ac53-4b62-b683-7b1dd4e19dea",
+        "17172495-e07c-4a1f-9856-2e62cbfb6089",
+        "1c35e842-8030-426f-ae36-d52e4a93bd89",
+        "24235c7e-fe59-47e9-91cb-7742246fbdb4",
+        "259e1a70-2011-4b62-9da0-6c3a4ae5bc55",
+        "270de5eb-5c94-4227-80e5-174612d04570",
+        "271806aa-b518-4fac-969b-67dc58d40bd5",
+        "2a7b2a54-a19b-4aec-b5a0-8f9296c5c110",
+        "2d2aa3c1-c49b-46aa-9cd9-cb5442a5676d",
+        "2e25bdbd-361e-4287-9e5f-ce6c725fb1f2",
+        "32cb7df7-ae9c-4f78-85ae-9961ff4818d5",
+        "347fc527-947e-4160-ab2e-ac646f90b454",
+        "3498f0bb-89a0-479d-a34f-e075b7f9b85b",
+        "34be83e1-90d3-4edc-98df-8bb2dde51197",
+        "369156be-3698-48ef-a5c5-a67ac53d4efa",
+        "3ace8fa8-015e-4ee2-abbf-3241c290a99a",
+        "4f572c3b-6b36-4a08-8101-174e8f54e62b",
+        "51238843-358d-43b1-a9b6-aaefb5c7adec",
+        "56d8c7d2-1b19-4492-9769-e22df7167ebf",
+        "5c31f975-5dfd-46ec-b73b-508dae94f89b",
+        "5d672857-f5b2-46e0-8ad2-a80736ec1327",
+        "62e017c4-9048-42f8-b31c-78073a1a9fc1",
+        "670ab436-85c7-4887-bd88-24a5975ae5a8",
+        "6c8cd46f-2688-4498-a39b-acf63cb4ef0d",
+        "6cd153e4-2233-4aea-a497-7f3fba88cbbc",
+        "728316bc-9144-4286-8f2d-17ac67863ff0",
+        "73a4b4d4-5414-4c24-84e9-5b57703001b2",
+        "74715781-abf5-48b9-a752-f4ea945d94af",
+        "76645c4f-0b08-4050-9c90-c97f91a6cce1",
+        "77a87f90-7fba-489c-894e-53e9a3041617",
+        "79ceba2f-ef83-49a6-b956-cbad08de9786",
+        "7a042428-fcd5-47c4-a83f-52b22d577401",
+        "7ba4b234-0831-4326-97fb-7e0f7e967ff6",
+        "7bc374fd-2402-458a-bcf5-0f89635133a2",
+        "7df540f7-f588-489f-994a-8dc63b3fbddc",
+        "895f14ff-9b48-42a1-9a43-b820da80aceb",
+        "8a429e2c-bc04-4677-9446-de733f334ff6",
+        "8d7a8f29-8838-4af5-9c89-136388c32074",
+        "90f7ed91-62e5-4c2b-a1e0-eef0d4794fa1",
+        "99fccc05-0c46-4439-b857-ae1bfcda309e",
+        "9abf02e4-82de-4ca0-920b-6ec79ff2813d",
+        "9d222464-7b0a-412f-91e7-9c56b2404ff2",
+        "9db3b979-5927-4593-a380-fda6322a7d38",
+        "a0062716-ef9d-4b28-8d06-94f04e032f35",
+        "adb881f6-f28b-4ff7-9ad3-d4ffb9424d88",
+        "b0d0ae4c-5efa-42d8-ab38-736812e0cc31",
+        "b5f20206-9ef4-4af1-a7e6-63b1e8c51267",
+        "b6fe6366-ba0a-429d-9bbe-dccdf1969214",
+        "ba093620-84cc-4089-bfcc-2c8f19b1fc1d",
+        "bac855ec-9721-47da-9d45-6d2e85b25e47",
+        "bef47dc2-2642-46d9-afcb-ab6e02a9dd71",
+        "c30fe0eb-ea48-4ed3-9b0b-ee06939db60a",
+        "c6d2f1cb-26ca-4007-8777-43e757ff4418",
+        "c7b69ef3-ab53-4d13-865b-38899166999b",
+        "d1bb0507-f4a9-4365-bd94-00078cd17e64",
+        "d63dd232-9c29-4db8-9588-2a07923ef272",
+        "d6e82213-8c50-45c7-baab-41e06fc4bebf",
+        "db80a728-c5e5-4af8-b11e-028c6ac7be17",
+        "dc3e8776-dc19-440a-9621-edf4174ae368",
+        "e4d24e40-ac3d-4ba9-af7a-249ffc10cac9",
+        "ea2f3ef1-3970-4515-a64b-ac9fbca28c84",
+        "f06dafb2-1966-405a-ae68-891d6edbf34a",
+        "f291839b-3bda-431e-850e-7cb5bdd7ad93",
+        "f5d14672-5a9b-4e88-bcc9-4d1d80bfc5f1",
+        "f7137676-145c-4670-81f4-8c80ea1a89da",
+        "f81c5ba4-07d0-4090-a713-445397057eaf",
+        "f9db07e6-4fd0-46a6-9870-b96c90308b50"
+      ],
+      "duplicated_uid_count": 68
+    }
+  ],
+  "duplicated_uids": [
+    {
+      "uid": "00801742-ccc5-42ff-9cd6-aed58fb850ef",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "DB Overhead Tricep Ext (seated)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "06f46a90-823c-4534-83df-14a01f0bab98",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up, both hands supporting (bench or floor)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "08b29e8a-7b55-4211-9b16-75be92ddaa5e",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "Cable Woodchop"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "0b5f959e-8d58-400b-8afa-f0d3b78f74af",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Supported Reverse Lunge"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "0e6e32e5-560b-4a53-a57e-dd28cdddfbc7",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "Side Plank"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "13ba8784-ac53-4b62-b683-7b1dd4e19dea",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up from progressively lower surfaces (thick mat to thin mat to bare floor)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "16a26214-5f6a-4a22-b179-958d6d3c2612",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Scapular Squeeze"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "17172495-e07c-4a1f-9856-2e62cbfb6089",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Glute bridge / hip thrust"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "171b3d92-05c8-43b7-9335-17b844ccbb52",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Landmine Single Arm Row (left)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "17a0bb9f-2b10-414b-b853-3fdbf82c56d4",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Barbell Bench Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "195840e1-7251-41b3-a469-0f4324ac5cae",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "DB Hammer Curl"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "19624dcf-26d0-49ba-a6e2-8f521c468759",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Scapular Squeeze"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "1c35e842-8030-426f-ae36-d52e4a93bd89",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Floor seated to stand"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "229409a9-71a6-44e7-b7cd-21626853810c",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Chest Opener"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "24235c7e-fe59-47e9-91cb-7742246fbdb4",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Timed / reactive get-up on an unplanned cue"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "259e1a70-2011-4b62-9da0-6c3a4ae5bc55",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up, both hands supporting (bench or floor)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "2630fd82-4ccf-47e4-b256-8e08b49870e2",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Spinal Decompression"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "270de5eb-5c94-4227-80e5-174612d04570",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up after light fatigue (following 2-3 other exercises)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "271806aa-b518-4fac-969b-67dc58d40bd5",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "90/90 hip switches"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "2a7b2a54-a19b-4aec-b5a0-8f9296c5c110",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Add load at the side — 3-6kg DB, suitcase-style"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "2d2aa3c1-c49b-46aa-9cd9-cb5442a5676d",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch, posterior pelvic tuck — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "2e25bdbd-361e-4287-9e5f-ce6c725fb1f2",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch, posterior pelvic tuck — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "32cb7df7-ae9c-4f78-85ae-9961ff4818d5",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "One-hand support (floor or low bench)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "347fc527-947e-4160-ab2e-ac646f90b454",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Kneeling hip CARs, both directions — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "3498f0bb-89a0-479d-a34f-e075b7f9b85b",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch, posterior pelvic tuck — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "34be83e1-90d3-4edc-98df-8bb2dde51197",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip shift — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "369156be-3698-48ef-a5c5-a67ac53d4efa",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Side-sit to all-fours transition — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "393f22f5-3f79-4ee8-8916-80f9a7522070",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Chest Opener"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "396f1747-2026-4b2b-8545-ef3677a85037",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Bicycle Crunch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "3ace8fa8-015e-4ee2-abbf-3241c290a99a",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch with overhead reach — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "3f706ffc-d952-49e2-bf7e-23e5f3779249",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Standing Hip Circle"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "4024e2c8-1396-470d-b30d-1cd802aef440",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Hamstring Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "40357a82-54ad-4c8d-8da3-5b4b78c356e2",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "Close Grip Lat Pulldown"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "429c1545-791e-4e7d-be4d-da3004912126",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Chest Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "4480a170-e222-4d8e-97de-73a5cf7c695d",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Bicep Curl"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "47e7ceba-85ad-4e35-98fe-1c776d383901",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Chest Opener"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "4b2384d7-3c3c-49e1-b881-a528510b248a",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "DB Close Grip Floor Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "4f572c3b-6b36-4a08-8101-174e8f54e62b",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Kneeling hip CARs, both directions — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "51238843-358d-43b1-a9b6-aaefb5c7adec",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "No hands, verbal cue only"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "53121363-e7fa-4d91-98c3-bdb937e380e9",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "DB RDL"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "53d99603-bede-4e9b-8499-200a34ca7d97",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Pull-Apart"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "56d8c7d2-1b19-4492-9769-e22df7167ebf",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch, posterior pelvic tuck — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "5c31f975-5dfd-46ec-b73b-508dae94f89b",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Kneeling rock-backs"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "5d672857-f5b2-46e0-8ad2-a80736ec1327",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Kneeling rock-backs"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "62e017c4-9048-42f8-b31c-78073a1a9fc1",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Full get-up, no hands"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "6675e17e-7fae-476b-8930-77ed47be8b70",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Hamstring Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "670ab436-85c7-4887-bd88-24a5975ae5a8",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Supported lowering to floor (bench/chair/wall)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "697510ac-08ae-4b33-ad05-f90218efe28b",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Spinal Decompression"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "6ad4d5a7-b1d3-4d5f-90f7-8c64098d1a02",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Seated Row"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "6c8cd46f-2688-4498-a39b-acf63cb4ef0d",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "One-hand support (floor or low bench)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "6cd153e4-2233-4aea-a497-7f3fba88cbbc",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Standing hip circles (\"open the gates\")"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "6f98269a-091a-4c96-91d1-50796100e1fe",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Marching on the spot"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "728316bc-9144-4286-8f2d-17ac67863ff0",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up from progressively lower surfaces (thick mat to thin mat to bare floor)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "72a27175-70de-42f0-823c-a6db7566ee31",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Single Arm Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "73a4b4d4-5414-4c24-84e9-5b57703001b2",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up with fingertip touch only"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "74715781-abf5-48b9-a752-f4ea945d94af",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Wall sit / supported squat hold"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "76645c4f-0b08-4050-9c90-c97f91a6cce1",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Bird dog / dead bug — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "77a87f90-7fba-489c-894e-53e9a3041617",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up on an uneven/soft surface (cushion, grass, wobble cushion)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "79ce3ee3-2de3-433a-a30f-f4747e28aec5",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Barbell Hip Thrust"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "79ceba2f-ef83-49a6-b956-cbad08de9786",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "GRADUATION CHECK — Kneeling hip mobility"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "7a042428-fcd5-47c4-a83f-52b22d577401",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Timed / reactive get-up on an unplanned cue"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "7ba4b234-0831-4326-97fb-7e0f7e967ff6",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch with overhead reach — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "7bb7c874-f0f0-4ffd-ad09-5a58a09ecb1e",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Lateral Lunge"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "7bc374fd-2402-458a-bcf5-0f89635133a2",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up with fingertip touch only"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "7df540f7-f588-489f-994a-8dc63b3fbddc",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip shift — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "83f70853-6748-4e5f-92d3-eea3d6754d8c",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Pull-Apart"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "895f14ff-9b48-42a1-9a43-b820da80aceb",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "90/90 hip switches"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "89f0018c-bdee-4286-97a6-fabe80b30462",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Shoulder Rolls + Chest Opener"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8a429e2c-bc04-4677-9446-de733f334ff6",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Side-sit to all-fours transition — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8b3f77ef-5744-427c-a655-0905ff61c710",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Seated Chest Opener"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8bdfb737-8502-45fd-924a-732eba6c7abb",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Arnold Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8d7a8f29-8838-4af5-9c89-136388c32074",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Tall kneeling hold on a padded surface (both knees down)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8e0e1354-52fd-4d08-8ba3-70565d96f68d",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Landmine Single Arm Row (right)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8ecaa26f-3879-4065-89e7-f31e03c01391",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Half Kneeling Hip Flexor Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "8ee1dbd7-cdc7-46ac-8abe-4c744c2c657a",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Half Kneeling Hip Flexor Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "90f7ed91-62e5-4c2b-a1e0-eef0d4794fa1",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip shift — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "920839b7-13a3-4d9d-8760-3d7e51d73839",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "Incline DB Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "92685c5f-661c-4c07-8613-9d376b3a67b8",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Lateral Lunge"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "92e0f779-cd95-48e2-95a2-7c8603c47ba6",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "DB Sumo Squat"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "95860a5f-48c2-48b1-98b5-0e8500ae79ef",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Dead Bugs"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "96d0b9f5-2cd6-4f58-b05d-48906429c725",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Marching on the spot"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "99fccc05-0c46-4439-b857-ae1bfcda309e",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up after light fatigue (following 2-3 other exercises)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "9abf02e4-82de-4ca0-920b-6ec79ff2813d",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "No hands, verbal cue only"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "9d222464-7b0a-412f-91e7-9c56b2404ff2",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Kneeling hip CARs, both directions — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "9db3b979-5927-4593-a380-fda6322a7d38",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Full get-up, no hands"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "9f6262d3-6abe-4d28-8450-f35d1c48778b",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Supported Reverse Lunge"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "a0062716-ef9d-4b28-8d06-94f04e032f35",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Slow eccentric — 4 sec lower back down under control"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "a1990d68-3183-4562-b70b-6f0711ca112b",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Shoulder Rolls + Chest Opener"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "a4d5d0c7-3939-412b-8ec9-adffad6d4aec",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Half Kneeling Hip Flexor Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "a740da3e-4b87-4957-a5dc-340e4c83f7e9",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Single Arm Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "adb881f6-f28b-4ff7-9ad3-d4ffb9424d88",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Slow eccentric — 4 sec lower back down under control"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "b0d0ae4c-5efa-42d8-ab38-736812e0cc31",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Kneeling hip CARs, both directions — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "b1e42111-7582-4b64-bde5-76635e36203f",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Lateral Raise"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "b2d31f2f-da84-4569-8d5e-0cefae37a463",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "Lat Pulldown"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "b5f20206-9ef4-4af1-a7e6-63b1e8c51267",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Bird dog / dead bug — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "b6fe6366-ba0a-429d-9bbe-dccdf1969214",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Sit-to-stand from a raised, stable surface, hands allowed"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "b8552a39-f11d-4574-9f4b-2087ddeb0444",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Kneeling Hip CAR"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "ba093620-84cc-4089-bfcc-2c8f19b1fc1d",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Bird dog / dead bug — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "bac855ec-9721-47da-9d45-6d2e85b25e47",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Tall kneeling hold on a padded surface (both knees down)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "bef47dc2-2642-46d9-afcb-ab6e02a9dd71",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip shift — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "c0dc3720-54d9-4ac0-a5ff-f576bf3fbb58",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Lateral Raise"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "c2f21eb8-8b1f-408b-9143-d67f8ead60a4",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Bicep Curl"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "c30fe0eb-ea48-4ed3-9b0b-ee06939db60a",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Arms overhead — DB or KB extended overhead throughout"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "c6d2f1cb-26ca-4007-8777-43e757ff4418",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Arms overhead — DB or KB extended overhead throughout"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "c7162de2-19ea-41da-94ef-aed9d31c6d48",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "DB Arnold Press (right, seated)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "c7b69ef3-ab53-4d13-865b-38899166999b",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Get-up on an uneven/soft surface (cushion, grass, wobble cushion)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "ca2c2cce-6f86-46b9-830e-ee93ab0186ec",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Kneeling Hip CAR"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d06fb360-cdea-48dd-8bf6-d9047849d663",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Half Kneeling Hip Flexor Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d1bb0507-f4a9-4365-bd94-00078cd17e64",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Standing hip circles (\"open the gates\")"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d1d5b233-2b33-413f-8923-7dd44fd91733",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Dumbbell Arnold Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d2f9c3a6-a360-4cf9-87bf-4204ffe5147a",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "DB Chest Fly"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d5851621-9f94-410f-ac11-1c98681789ae",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "Bicycle Crunch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d63dd232-9c29-4db8-9588-2a07923ef272",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Floor seated to stand"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "d6e82213-8c50-45c7-baab-41e06fc4bebf",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Side-sit to all-fours transition — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "db80a728-c5e5-4af8-b11e-028c6ac7be17",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Side-sit to all-fours transition — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "dc3e8776-dc19-440a-9621-edf4174ae368",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Supported lowering to floor (bench/chair/wall)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "dcd9fbd1-92aa-45e3-bc6e-ec233c9b7147",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Standing Hip Circle"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "e19203d9-ba27-4553-8800-c9ea1a9d1a89",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "DB Arnold Press (left, seated)"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "e28ffa5e-860a-4a97-be3b-db91383cecb1",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Seated Row"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "e4d24e40-ac3d-4ba9-af7a-249ffc10cac9",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch with overhead reach — right"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "e565b07e-ed4a-4e01-8fc2-ab67aac632ec",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Standing Calf Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "e773b838-b769-4ff9-bdee-7ef2399623d3",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Standing Calf Stretch"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "ea2f3ef1-3970-4515-a64b-ac9fbca28c84",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "GRADUATION CHECK — Kneeling hip mobility"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f06dafb2-1966-405a-ae68-891d6edbf34a",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Sit-to-stand from a raised, stable surface, hands allowed"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f291839b-3bda-431e-850e-7cb5bdd7ad93",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Bird dog / dead bug — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f3419e2b-6f40-4b2d-aeca-d9281833c743",
+      "n_sessions": 2,
+      "session_ids": [
+        "a3ee0ac1-d5be-42c6-87b4-8606bded2a02",
+        "fc5427f7-8b8e-4a9f-b639-e464b8b4f71a"
+      ],
+      "names": [
+        "Band Chest Press"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f5d14672-5a9b-4e88-bcc9-4d1d80bfc5f1",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Add load at the side — 3-6kg DB, suitcase-style"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f7137676-145c-4670-81f4-8c80ea1a89da",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Half-kneeling hip flexor stretch with overhead reach — left"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f7fa8eb9-969d-4f34-a9e2-de05f0111188",
+      "n_sessions": 2,
+      "session_ids": [
+        "9ac77530-601a-43d0-8b10-491123953845",
+        "dbd376d2-147d-44f8-8704-dd8bc534ed3b"
+      ],
+      "names": [
+        "Incline DB Prone Row"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f81c5ba4-07d0-4090-a713-445397057eaf",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Wall sit / supported squat hold"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "f9db07e6-4fd0-46a6-9870-b96c90308b50",
+      "n_sessions": 2,
+      "session_ids": [
+        "95d64eb6-8bfe-4355-a7c7-c1ccff4840ee",
+        "ecbb3fc9-0428-42c4-b30e-cefa78423f88"
+      ],
+      "names": [
+        "Glute bridge / hip thrust"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    },
+    {
+      "uid": "fcc2c16b-6ea6-4964-a67a-2886fc11b8b4",
+      "n_sessions": 2,
+      "session_ids": [
+        "2312da96-288e-42fd-b936-056c2b823538",
+        "f4635373-e5bd-43d4-b845-4bcfecb3bfe5"
+      ],
+      "names": [
+        "DB Goblet Squat"
+      ],
+      "n_clients": 1,
+      "n_blocks": 1
+    }
+  ]
+}
