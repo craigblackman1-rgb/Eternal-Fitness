@@ -4,6 +4,7 @@ import { DocumentRowActions } from "@/components/hub/DocumentRowActions";
 import { DocumentHeaderActions } from "@/components/hub/DocumentHeaderActions";
 import { IconFileSignature, IconDownload } from "@/components/icons";
 import { DOCUMENT_KIND_LABEL, type DocumentKind } from "@/lib/documents/types";
+import { OpenUploadButton } from "./OpenUploadButton";
 
 interface RegisterDocument {
   id: string;
@@ -17,6 +18,9 @@ interface RegisterDocument {
   trainer_name?: string | null;
   emailed?: boolean | null;
   source_type?: "generated" | "scan";
+  source_file_name?: string | null;
+  source_file_mime?: string | null;
+  source_file_size?: number | null;
   consent_choices?: Record<string, boolean> | null;
   /** A pre-document-engine record (legacy signed_parq/signed_agreements)
    *  that satisfies compliance but has no client_documents row of its own —
@@ -66,6 +70,10 @@ type Row = {
   href?: string;
   editHref?: string;
   icon: React.ReactNode;
+  sourceFileName?: string | null;
+  sourceFileMime?: string | null;
+  sourceFileSize?: number | null;
+  title: string;
 };
 
 export function DocumentRegister({ clientNumber, documents = [], clientEmail, clientName }: DocumentRegisterProps) {
@@ -84,9 +92,13 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
       version: d.version ?? 1,
       updatedAt: d.updated_at || d.created_at,
       updatedBy: d.client_name || d.trainer_name || "—",
-      href: d.legacy ? undefined : `/hub/clients/${clientNumber}/documents/${d.id}`,
+      href: d.legacy ? undefined : d.source_type === "scan" ? undefined : `/hub/clients/${clientNumber}/documents/${d.id}`,
       editHref: d.legacy || d.source_type === "scan" ? undefined : `/hub/clients/${clientNumber}/documents/${d.id}`,
       icon: <IconFileSignature className="h-4 w-4 text-muted-foreground" />,
+      sourceFileName: d.source_file_name,
+      sourceFileMime: d.source_file_mime,
+      sourceFileSize: d.source_file_size,
+      title: d.title,
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -147,13 +159,27 @@ export function DocumentRegister({ clientNumber, documents = [], clientEmail, cl
                         <span className="text-xs text-muted-foreground">No detail page — pre-dates the document engine</span>
                       )}
                       {!r.legacy && r.sourceType === "scan" && (
-                        <Link
-                          href={`/api/documents/${r.id}/file`}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-teal hover:underline"
-                        >
-                          <IconDownload className="h-3 w-3" />
-                          Download original
-                        </Link>
+                        <>
+                          <OpenUploadButton
+                            variant="link"
+                            clientName={clientName || ""}
+                            doc={{
+                              id: r.id,
+                              title: r.title,
+                              source_file_name: r.sourceFileName,
+                              source_file_mime: r.sourceFileMime,
+                              source_file_size: r.sourceFileSize,
+                              created_at: r.date,
+                            }}
+                          />
+                          <Link
+                            href={`/api/documents/${r.id}/file`}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-teal hover:underline"
+                          >
+                            <IconDownload className="h-3 w-3" />
+                            Download original
+                          </Link>
+                        </>
                       )}
                       {/* Delete works for scan docs too (they're always status
                           "signed" so locked, meaning Send/Resend/Copy-link
