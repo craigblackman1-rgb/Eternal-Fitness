@@ -98,11 +98,14 @@ export function exerciseSignature(session: DBSession): string | null {
   return sections
     .map((section) => {
       const lines = section.exercises.map((ex) => {
-        const load = (ex.load ?? ex.band_colour ?? "").trim().toLowerCase();
+        const name = String(ex.exercise_name ?? "").trim().toLowerCase();
+        const sets = String(ex.sets ?? "");
+        const reps = String(ex.reps ?? "").trim().toLowerCase();
+        const load = String(ex.load ?? ex.band_colour ?? "").trim().toLowerCase();
         return [
-          ex.exercise_name.trim().toLowerCase(),
-          ex.sets,
-          ex.reps.trim().toLowerCase(),
+          name,
+          sets,
+          reps,
           load,
         ].join("|");
       });
@@ -120,18 +123,20 @@ export function exerciseSignature(session: DBSession): string | null {
  */
 export function glanceRepeats(
   ordered: DBSession[],
+  positions: Map<string, { position: number; total: number }>,
 ): Map<string, number> {
-  const seen = new Map<string, number>();
+  const seen = new Map<string, string>();
   const result = new Map<string, number>();
 
   for (const s of ordered) {
     const sig = exerciseSignature(s);
     if (sig === null) continue;
-    const first = seen.get(sig);
-    if (first === undefined) {
-      seen.set(sig, s.session_number);
+    const firstId = seen.get(sig);
+    if (firstId === undefined) {
+      seen.set(sig, s.id);
     } else {
-      result.set(s.id, first);
+      const firstPos = positions.get(firstId)?.position;
+      result.set(s.id, firstPos ?? ordered.find(o => o.id === firstId)?.session_number ?? 0);
     }
   }
 
