@@ -899,19 +899,25 @@ export function TrainScreen({
 
     setNoteSaving(true);
     try {
-      // PATCH /api/client-notes/[id] only accepts { pinned } — it does not
-      // support updating the note text. Fall back to POST which creates a new
-      // row. The "no changes" guard above prevents duplicates on re-save.
-      const res = await fetch("/api/client-notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: clientId, session_id: sessionId, note: text }),
-      });
+      let res: Response;
+      if (savedNoteId) {
+        res = await fetch(`/api/client-notes/${savedNoteId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ note: text }),
+        });
+      } else {
+        res = await fetch("/api/client-notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ client_id: clientId, session_id: sessionId, note: text }),
+        });
+      }
       if (!res.ok) throw new Error("Save failed");
       const saved = await res.json().catch(() => null);
       setNoteOpen(false);
       setLastSavedNoteText(text);
-      setSavedNoteId(saved?.id ?? null);
+      setSavedNoteId(saved?.id ?? savedNoteId ?? null);
       toast.success("Note saved");
     } catch {
       toast.error("Could not save note — try again.");

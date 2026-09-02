@@ -8,14 +8,29 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as { pinned?: boolean };
-  if (typeof body.pinned !== "boolean") {
-    return NextResponse.json({ error: "pinned boolean is required" }, { status: 400 });
+  const body = (await request.json()) as { pinned?: boolean; note?: string };
+
+  const update: Record<string, unknown> = {};
+
+  if (typeof body.pinned === "boolean") {
+    update.pinned = body.pinned;
+  }
+
+  if (typeof body.note === "string") {
+    const trimmed = body.note.trim();
+    if (!trimmed) {
+      return NextResponse.json({ error: "note cannot be empty" }, { status: 400 });
+    }
+    update.note = trimmed;
+  }
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: "pinned or note is required" }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from("client_notes")
-    .update({ pinned: body.pinned })
+    .update(update)
     .eq("id", params.id)
     .select()
     .single();
