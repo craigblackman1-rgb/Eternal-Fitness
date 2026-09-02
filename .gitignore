@@ -33,3 +33,6 @@ dist-ssr
 .context/tools/mockup-structure-manifest.json
 
 # db/.tmp/ scratch space (if needed)
+
+# Per-client Trainerize captures — client health data, lives in the DB, never in git
+.context/trainerize-import-*.json
