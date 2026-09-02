@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
+import { clientEquipmentNames } from "@/lib/client-equipment";
 import { AddWorkoutClient } from "./AddWorkoutClient";
 
 export default async function AddWorkoutPage({ params }: { params: { id: string } }) {
@@ -20,7 +21,7 @@ export default async function AddWorkoutPage({ params }: { params: { id: string 
       clientNumber={client.client_number}
       clientName={client.name}
       deliveryMode={client.delivery_mode}
-      equipment={client.equipment}
+      equipment={clientEquipmentNames(client.equipment)}
     />
   );
 }

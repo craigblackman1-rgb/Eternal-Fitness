@@ -574,14 +574,12 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
           </div>
         </HubCard>
 
-        <HubCard padded={false}>
-          <ClientEquipmentCard
-            value={equipment}
-            onChange={(v) => { setDirty(true); setEquipment(v); }}
-            clientFirstName={name.split(" ")[0] || "this client"}
-            showCopyStudio={deliveryMode === "studio_1to1"}
-          />
-        </HubCard>
+        <ClientEquipmentCard
+          value={equipment}
+          onChange={(v) => { setDirty(true); setEquipment(v); }}
+          clientFirstName={name.split(" ")[0] || "this client"}
+          showCopyStudio={deliveryMode === "studio_1to1"}
+        />
 
         <HubCard>
           <HubCardHeader icon={<IconHeart className="w-4 h-4" />} title="Health and clearance" subtitle="What has to be adapted around, and what unblocks planning" color="rose" noBottomPadding />
