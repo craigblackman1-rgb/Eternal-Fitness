@@ -33,6 +33,16 @@ export interface PbMetadata {
   duration_seconds: number | null;
   /** ISO date when the PB was achieved. */
   achieved_at: string;
+  /** Source of the PB: 'live_log', 'trainerize_import', or 'manual'. */
+  source: "live_log" | "trainerize_import" | "manual";
+  /** Note recorded with a manual PB. */
+  note?: string | null;
+  /** Name of the person who recorded a manual PB. */
+  recorded_by?: string | null;
+  /** Band colour for band-type PBs. */
+  band_colour?: string | null;
+  /** Band sort_order for ranking band PBs — never stored in weight_kg. */
+  band_rank?: number | null;
 }
 
 export interface LastSessionAndPbData {
@@ -68,7 +78,7 @@ export async function getLastSessionAndPbData(
       [clientId],
     ),
     pool.query(
-      `SELECT exercise, metric, value, rep_count, achieved_at
+      `SELECT exercise, metric, value, rep_count, achieved_at, source, note, recorded_by, band_colour
          FROM personal_records
         WHERE client_id = $1`,
       [clientId],
@@ -132,27 +142,60 @@ export async function getLastSessionAndPbData(
     const reps = row.rep_count != null ? Number(row.rep_count) : null;
     const achievedAt = row.achieved_at as string;
 
+    const rowSource = (row.source as "live_log" | "trainerize_import" | "manual") ?? "live_log";
+    const rowNote = row.note as string | null ?? null;
+    const rowRecordedBy = row.recorded_by as string | null ?? null;
+    const rowBandColour = row.band_colour as string | null ?? null;
+
     if (!pbDates[exercise]) {
       pbDates[exercise] = {
         weight_kg: null,
         reps: null,
         duration_seconds: null,
         achieved_at: achievedAt,
+        source: rowSource,
+        note: rowNote,
+        recorded_by: rowRecordedBy,
+        band_colour: rowBandColour,
+        band_rank: null,
       };
     }
 
     const pb = pbDates[exercise];
+    let beats = false;
     if (metric === "weight") {
-      if (pb.weight_kg == null || value > pb.weight_kg) {
+      beats = pb.weight_kg == null || value > pb.weight_kg;
+    } else if (metric === "duration") {
+      beats = pb.duration_seconds == null || value > pb.duration_seconds;
+    } else if (metric === "band") {
+      // Higher sort_order wins; tie → reps
+      beats = pb.band_rank == null || value > pb.band_rank;
+    } else if (metric === "reps") {
+      // Reps-only PB: only relevant when no kg/band PB exists for this exercise
+      beats = pb.weight_kg == null && pb.band_rank == null && (pb.reps == null || value > pb.reps);
+    }
+
+    if (beats) {
+      if (metric === "weight") {
         pb.weight_kg = value;
         pb.reps = reps;
-        pb.achieved_at = achievedAt;
-      }
-    } else if (metric === "duration") {
-      if (pb.duration_seconds == null || value > pb.duration_seconds) {
+        pb.band_colour = null; // weight PB — clear any stale band colour
+        pb.band_rank = null;
+      } else if (metric === "duration") {
         pb.duration_seconds = value;
-        pb.achieved_at = achievedAt;
+      } else if (metric === "band") {
+        pb.band_rank = value;
+        pb.reps = reps;
+        pb.band_colour = rowBandColour;
+        pb.weight_kg = null; // band PB — clear any stale weight
+      } else if (metric === "reps") {
+        pb.reps = value;
+        // Keep weight_kg/band_colour null (they were already null to reach here)
       }
+      pb.achieved_at = achievedAt;
+      pb.source = rowSource;
+      pb.note = rowNote;
+      pb.recorded_by = rowRecordedBy;
     }
   }
 

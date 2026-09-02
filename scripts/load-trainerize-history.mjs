@@ -131,7 +131,7 @@ async function main() {
     await pool.query(
       `INSERT INTO personal_records (client_id, exercise, metric, value, rep_count, achieved_at, source)
        VALUES ($1, $2, $3, $4, $5, $6, 'trainerize_import')
-       ON CONFLICT (client_id, exercise, metric, rep_count)
+       ON CONFLICT (client_id, exercise, metric, rep_count) WHERE source <> 'manual'
        DO UPDATE SET value = EXCLUDED.value, achieved_at = EXCLUDED.achieved_at`,
       [client.id, d.exerciseName, metric, d.data, repCount, achievedAt],
     );

@@ -864,6 +864,9 @@ export default function SessionViewPage({
             pbDates={pbDates}
             onSessionLogChange={handleSessionLogChange}
             bands={bands}
+            clientId={params.id}
+            clientName={clientName}
+            onPbRecorded={() => setRefreshKey((k) => k + 1)}
           />
         )}
       </div>

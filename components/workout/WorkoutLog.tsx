@@ -23,6 +23,7 @@ import {
   remove,
   type PendingSetLogEntry,
 } from "@/lib/hub/offline-set-log-queue";
+import { ExerciseHistoryDrawer } from "./ExerciseHistoryDrawer";
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -79,6 +80,7 @@ interface PbInfo {
   reps: number | null;
   duration_seconds: number | null;
   achieved_at: string;
+  source?: "live_log" | "trainerize_import" | "manual";
 }
 
 interface LastSessionInfo {
@@ -337,6 +339,9 @@ export function WorkoutLog({
   pbDates,
   onSessionLogChange,
   bands,
+  clientId,
+  clientName,
+  onPbRecorded,
 }: {
   sessionId: string;
   sessionNumber: number;
@@ -351,6 +356,12 @@ export function WorkoutLog({
   pbDates?: Record<string, PbMetadata>;
   onSessionLogChange: (log: SessionLog) => void;
   bands: Band[];
+  /** CR-EF-131 — client display number for the history drawer route. */
+  clientId?: string;
+  /** CR-EF-131 — client name for the history drawer header. */
+  clientName?: string;
+  /** CR-EF-131 — called after a manual PB is saved (triggers refresh). */
+  onPbRecorded?: () => void;
 }) {
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };
 
@@ -461,6 +472,8 @@ export function WorkoutLog({
   const [restTimers, setRestTimers] = useState<Record<string, RestTimer>>({});
   const [sessionTimer, setSessionTimer] = useState<{ running: boolean; elapsed: number }>({ running: false, elapsed: 0 });
   const [openPicker, setOpenPicker] = useState<string | null>(null);
+  // CR-EF-131 — exercise history drawer
+  const [historyFor, setHistoryFor] = useState<string | null>(null);
 
   // CR-EF-010 — session PB tally and toast
   const pbTallyRef = useRef<Record<string, boolean>>({});
@@ -1215,6 +1228,7 @@ export function WorkoutLog({
                               openPicker={openPicker}
                               setOpenPicker={setOpenPicker}
                               onAddSet={handleAddSet}
+                              onOpenHistory={clientId ? () => setHistoryFor(ex.exercise_name) : undefined}
                             />
                           );
                         })}
@@ -1350,6 +1364,18 @@ export function WorkoutLog({
           </div>
         </div>
       )}
+
+      {clientId && (
+        <ExerciseHistoryDrawer
+          open={!!historyFor}
+          onClose={() => setHistoryFor(null)}
+          clientId={clientId}
+          clientName={clientName ?? "Client"}
+          exerciseName={historyFor ?? ""}
+          bands={bands}
+          onSaved={() => { onPbRecorded?.(); setHistoryFor(null); }}
+        />
+      )}
     </div>
   );
 }
@@ -1430,7 +1456,7 @@ function RestControl({
         </button>
       </div>
     );
-  }
+}
 
   const remaining = timer.mode === "countdown" ? timer.seconds - timer.elapsed : timer.elapsed;
   const over = timer.mode === "countdown" && remaining < 0;
@@ -1487,6 +1513,7 @@ function ExerciseCard({
   openPicker,
   setOpenPicker,
   onAddSet,
+  onOpenHistory,
 }: {
   exercise: Exercise;
   state: ExState | undefined;
@@ -1513,6 +1540,7 @@ function ExerciseCard({
   openPicker: string | null;
   setOpenPicker: (v: string | null) => void;
   onAddSet: (refKey: string) => void;
+  onOpenHistory?: () => void;
 }) {
   const timeBased = isTimeBased(exercise.reps, exercise.log_type);
   const isBand = isBandEquipment(exercise.equipment ?? []);
@@ -1614,6 +1642,7 @@ function ExerciseCard({
               >
                 {ICO.starFilled}PB {pbLabel}
                 {hasNewPb && <span className="ml-0.5 rounded bg-white/26 px-1 py-px text-[9px] font-extrabold uppercase tracking-wider">New</span>}
+                {!hasNewPb && pbInfo?.source === "manual" && <span className="ml-0.5 rounded bg-black/10 px-1 py-px text-[9px] font-semibold tracking-wide opacity-70">manual</span>}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground" title="No qualifying set logged yet">
@@ -1633,6 +1662,11 @@ function ExerciseCard({
               </span>
             )}
           </div>
+          {onOpenHistory && (
+            <button type="button" onClick={onOpenHistory} className="mt-1.5 text-[11px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors">
+              See all
+            </button>
+          )}
 
           {/* Tags */}
           {exercise.equipment && exercise.equipment.length > 0 && (
