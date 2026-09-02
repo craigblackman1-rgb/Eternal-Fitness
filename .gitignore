@@ -31,3 +31,6 @@ dist-ssr
 .next2/
 .context/tools/verify_hub_results.json
 .context/tools/mockup-structure-manifest.json
+
+# Supabase CLI temp files (dead project ref, not needed)
+supabase/.temp/

@@ -18,7 +18,7 @@ Shared primitives in `components/ds/` (PageHero, CTABand, Callout, ProcessFlow, 
 
 **Package manager:** pnpm (pnpm-lock.yaml). `package.json`'s `"name": "vite_react_shadcn_ts"` is a stale scaffold name — ignore it.
 
-**Database:** Self-hosted Postgres on a dedicated VPS. Migrated off Supabase. All app data goes through a hand-rolled PostgREST-compatible pg shim (`lib/pg-client.ts`), exported as `supabase` in `lib/supabase.ts` — a deliberate naming choice so the ~40 existing importers didn't need rewriting. **Supabase Auth is not used at all for this app.** There is no Supabase project backing this repo.
+**Database:** Self-hosted Postgres on a dedicated VPS. All app data goes through a hand-rolled PostgREST-compatible pg shim (`lib/pg-client.ts`), exported as `supabase` in `lib/supabase.ts` — a deliberate naming choice so the ~176 existing importers didn't need rewriting.
 
 **Migrations:** `supabase/migrations/` — legacy directory name, these are plain Postgres migrations run directly against prod. RLS is **disabled/irrelevant** on the plain-Postgres instance. Do not create `CREATE POLICY ... TO authenticated` — the `authenticated` role doesn't exist and those statements will fail. Access control is enforced at the app layer everywhere.
 
@@ -44,7 +44,7 @@ Shared primitives in `components/ds/` (PageHero, CTABand, Callout, ProcessFlow, 
 
 **`lib/supabase-admin.ts`** — Service-role pg client (same shim, different export name). Use only in server routes for narrowly-scoped unauthenticated flows (e.g. public document signing by UUID).
 
-**`lib/supabase-client.ts`** / **`lib/supabase-server.ts`** — These still exist but are legacy from the Supabase era and may reference the Supabase JS SDK. App data reads should go through `lib/supabase.ts` (the pg shim) or direct `getPool()` calls.
+**`lib/supabase-client.ts`** / **`lib/supabase-server.ts`** — Browser-side and server-side client wrappers. `supabase-client.ts` wraps Better Auth's browser client (data queries throw — use API routes with the pg shim instead). `supabase-server.ts` composes the pg shim with Better Auth's server-side session lookup. App data reads should go through `lib/supabase.ts` (the pg shim) or direct `getPool()` calls.
 
 ## Auth — Two Isolated Systems
 

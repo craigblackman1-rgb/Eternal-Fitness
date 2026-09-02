@@ -1,6 +1,5 @@
 // PostgREST-compatible shim over plain Postgres (pg).
-// Replaces the Supabase JS data client so the app runs on a dedicated
-// Postgres VPS with no PostgREST. Implements the chainable subset the app uses:
+// Implements the chainable subset the app uses:
 //   from().select()/insert()/update()/upsert()/delete()
 //   .eq/.neq/.gt/.gte/.lt/.lte/.like/.ilike/.is/.in/.contains/.match/.or
 //   .order/.limit/.range/.single/.maybeSingle
@@ -8,7 +7,7 @@
 //   to-one embeds "*, rel(cols)" / "*, rel!inner(cols)"
 import { Pool, types } from "pg";
 
-// Match Supabase/PostgREST JSON behaviour: return timestamps/dates as strings
+// Match PostgREST JSON behaviour: return timestamps/dates as strings
 // (not JS Date objects, which crash React rendering) and numerics as numbers.
 types.setTypeParser(1114, (v) => v); // timestamp
 types.setTypeParser(1184, (v) => v); // timestamptz
@@ -230,7 +229,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
         }
         if (this._returning) sql += ` RETURNING ${this.selectList(this._returningCols)}`;
       } else if (this.action === "update") {
-        // supabase-js drops undefined values (JSON serialisation); mirror that here,
+        // PostgREST drops undefined values (JSON serialisation); mirror that here,
         // otherwise partial updates null out every unspecified column.
         const cols = Object.keys(this.payload ?? {}).filter((c) => this.payload[c] !== undefined);
         if (cols.length === 0) throw new Error("[pg-client] update with no defined columns");

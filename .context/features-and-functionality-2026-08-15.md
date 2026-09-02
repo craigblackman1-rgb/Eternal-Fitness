@@ -31,9 +31,9 @@ replaces a paper/PDF process for agreements, PAR-Qs and consent.
 - **Hosting** — Coolify (self-hosted Docker) on a dedicated VPS. `output: "standalone"`.
 - **Deploy** — GitHub webhook auto-deploys on push. `main` → production, `staging` →
   `development.eternal-fitness.co.uk`. Both currently on `caff0d7`.
-- **Database** — self-hosted Postgres on a dedicated VPS. **No Supabase.** All data access goes
-  through a hand-rolled PostgREST-compatible shim (`lib/pg-client.ts`) exported under the name
-  `supabase` so the ~40 existing importers never had to be rewritten.
+- **Database** — self-hosted Postgres on a dedicated VPS. All data access goes through a
+  hand-rolled PostgREST-compatible shim (`lib/pg-client.ts`) exported under the name
+  `supabase` so the ~176 existing importers never had to be rewritten.
 - **Package manager** — pnpm.
 - **Images** — served unoptimised (self-hosted, no Vercel image infrastructure), with a
   one-year immutable cache header on `/images/*`.

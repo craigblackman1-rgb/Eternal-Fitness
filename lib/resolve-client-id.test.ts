@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { resolveClientId } from "@/lib/resolve-client-id";
 import type { PgClient } from "@/lib/pg-client";
 
-/** Minimal supabase stub whose query chain resolves to the provided result. */
+/** Minimal pg shim stub whose query chain resolves to the provided result. */
 function makeSupabase(result: { data: { id: string } | null }) {
   const maybeSingle = vi.fn().mockResolvedValue(result);
   const eq = vi.fn().mockReturnValue({ maybeSingle });
