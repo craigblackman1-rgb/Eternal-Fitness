@@ -51,8 +51,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
 
   const emit = useCallback((nextList: ClientEquipmentEntry[] | null, nextBw: boolean) => {
     if (nextBw) { onChange([]); return; }
-    if (nextList === null || nextList.length === 0) { onChange(null); return; }
-    onChange(nextList);
+    onChange(nextList === null ? null : nextList.length === 0 ? null : nextList);
   }, [onChange]);
 
   const has = useCallback((name: string) => {
@@ -73,9 +72,9 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
     } else {
       const restored = stash === null ? [] : stash;
       setBw(false);
-      setList(restored.length === 0 ? null : restored);
+      setList(restored);
       setStash(null);
-      emit(restored.length === 0 ? null : restored, false);
+      emit(restored, false);
     }
   }, [bw, list, stash, emit]);
 
@@ -217,23 +216,14 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
     return () => document.removeEventListener("click", handler);
   }, [open]);
 
-  // ── Computed status text ──
-  const computedText = bw ? "Bodyweight only \u2014 plan agent constrained"
-    : list === null ? "Equipment not set \u2014 plan agent unconstrained"
-    : list.length === 0 ? "Equipment list empty \u2014 not yet decided"
-    : `Equipment set \u2014 ${list.length} item${list.length === 1 ? "" : "s"}`;
-
   // ── Foot text ──
   const footText = bw
     ? <><b>Saved as an empty list.</b> Every workout the plan agent builds for {clientFirstName} will use bodyweight only.</>
     : list === null
-    ? <><b>Nothing saved yet.</b> Until this is set, the plan agent may pick any exercise in the library \u2014 including ones {clientFirstName} cannot do at home.</>
+    ? <><b>Nothing saved yet.</b> Until this is set, the plan agent may pick any exercise in the library — including ones {clientFirstName} cannot do at home.</>
     : list.length === 0
     ? <><b>An empty list that is not marked bodyweight only</b> is saved as nothing decided. Tick Bodyweight only if that is what you mean.</>
     : <>The plan agent reads these <b>{list.length} items</b> and their detail when it builds {clientFirstName}&apos;s next block. Detail tells it how far a load can go.</>;
-
-  // ── Computed status color ──
-  const computedColor = bw || (list && list.length > 0) ? "text-teal" : "text-amber";
 
   const bodyContent = (
     <div className="flex flex-col min-w-0">
@@ -251,22 +241,14 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
         </div>
       </div>
 
-      {/* Copy studio list + Bulk bar */}
-      <div className="flex items-center gap-2 mb-3">
-        {showCopyStudio && (
-          <button type="button" disabled={bw} onClick={copyStudio} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-[var(--color-muted-text)] text-foreground hover:bg-[var(--hub-hover)] disabled:opacity-45 disabled:cursor-not-allowed transition-colors">
-            <IconCopy className="w-3.5 h-3.5" />
-            Copy studio list
-          </button>
-        )}
-        {selected.size > 0 && (
-          <div className="flex items-center gap-2.5 ml-auto px-3 py-2 rounded-[10px] bg-rose/10 border border-rose/20 text-[12.5px] text-foreground">
-            <span><b>{selected.size}</b> selected</span>
-            <button type="button" onClick={clearSelection} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-1">Clear</button>
-            <button type="button" onClick={removeSelected} className="text-xs font-medium border border-[var(--color-muted-text)] rounded-lg px-2.5 py-1 hover:bg-[var(--hub-hover)] transition-colors">Remove selected</button>
-          </div>
-        )}
-      </div>
+      {/* Bulk bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-2.5 mb-3 px-3 py-2 rounded-[10px] bg-rose/10 border border-rose/20 text-[12.5px] text-foreground">
+          <span><b>{selected.size}</b> selected</span>
+          <button type="button" onClick={clearSelection} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-1">Clear</button>
+          <button type="button" onClick={removeSelected} className="text-xs font-medium border border-[var(--color-muted-text)] rounded-lg px-2.5 py-1 hover:bg-[var(--hub-hover)] transition-colors">Remove selected</button>
+        </div>
+      )}
 
       {/* Equipment list */}
       <div ref={listRef} className="flex flex-col gap-2">
@@ -285,7 +267,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
                 <span className="text-[13.5px] font-semibold text-foreground block truncate">{entry.name}</span>
                 <span className={`text-[10.5px] font-bold uppercase tracking-wider ${fromCat ? "text-muted-foreground" : "text-rose"}`}>{fromCat ? "Studio list" : "Added by hand"}</span>
               </div>
-              <input data-detail={idx} type="text" value={entry.detail} placeholder="e.g. 2.5 kg steps, red \u2192 black, up to 20 kg" onChange={(e) => updateDetail(idx, e.target.value)} aria-label={`Detail for ${entry.name}`} className="min-h-[34px] px-2.5 py-1.5 text-[13px] bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-lg placeholder:italic focus:outline-none focus:border-rose focus:ring-[0_0_0_3px_rgba(193,131,159,.3)]" />
+              <input data-detail={idx} type="text" value={entry.detail} placeholder="e.g. 2.5 kg steps, red → black, up to 20 kg" onChange={(e) => updateDetail(idx, e.target.value)} aria-label={`Detail for ${entry.name}`} className="min-h-[34px] px-2.5 py-1.5 text-[13px] bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-lg placeholder:italic focus:outline-none focus:border-rose focus:ring-[0_0_0_3px_rgba(193,131,159,.3)]" />
               <button type="button" onClick={() => removeRow(idx)} aria-label={`Remove ${entry.name}`} title="Remove" className="w-[34px] h-[34px] flex items-center justify-center rounded-lg text-muted-foreground hover:bg-[var(--s-danger-bg)] hover:text-[var(--s-danger)] transition-colors">
                 <IconTrash2 className="w-4 h-4" />
               </button>
@@ -296,10 +278,13 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
 
       {/* Empty state lines */}
       {!bw && list === null && (
-        <p className="text-[13px] text-muted-foreground py-1.5 px-0.5">Equipment not set yet \u2014 the plan agent is not being constrained.</p>
+        <p className="text-[13px] text-muted-foreground py-1.5 px-0.5">Equipment not set yet — the plan agent is not being constrained.</p>
       )}
       {!bw && list && list.length === 0 && (
         <p className="text-[13px] text-muted-foreground py-1.5 px-0.5">Nothing listed yet. Add what {clientFirstName} has, or tick Bodyweight only.</p>
+      )}
+      {bw && (
+        <p className="text-[13px] text-muted-foreground py-1.5 px-0.5">No equipment — bodyweight only. The plan agent will only pick bodyweight exercises.</p>
       )}
 
       {/* Add equipment */}
@@ -314,20 +299,21 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
               ref={inputRef}
               type="text"
               value={query}
-              placeholder="Type to search the studio list, or add anything\u2026"
+              placeholder="Type to search the studio list, or add anything…"
               role="combobox"
               aria-expanded={open}
               aria-autocomplete="list"
+              aria-controls="eq-listbox"
               onFocus={() => { setHi(-1); setOpen(true); }}
               onInput={(e) => { setHi(-1); setQuery((e.target as HTMLInputElement).value); setOpen(true); }}
               onKeyDown={handleKeyDown}
               className="w-full min-h-[38px] pl-9 pr-3 py-2 text-[13.5px] bg-[var(--hub-card)] border border-[var(--color-muted-text)] rounded-lg placeholder:text-muted-foreground focus:outline-none focus:border-rose focus:ring-[0_0_0_3px_rgba(193,131,159,.3)]"
             />
           </div>
-          <p className="text-[11.5px] text-muted-foreground mt-1.5">Arrow keys to move, Enter to add. Anything not in the studio list is added as your own words.</p>
+          <p className="text-[11.5px] text-muted-foreground mt-1.5">↑ ↓ to move, Enter to add. Anything not in the studio list is added as your own words.</p>
           {open && (
             <div className="absolute z-30 left-0 right-0 top-[calc(100%+6px)] bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px] shadow-[var(--shadow-pop)] overflow-hidden">
-              <ul className="list-none m-0 p-[5px] max-h-[232px] overflow-y-auto" role="listbox">
+              <ul id="eq-listbox" className="list-none m-0 p-[5px] max-h-[232px] overflow-y-auto" role="listbox">
                 {options().length === 0 ? (
                   <li className="py-2.5 px-3 text-[12.5px] text-muted-foreground">Type the name of anything {clientFirstName} has.</li>
                 ) : (
@@ -362,17 +348,6 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
     </div>
   );
 
-  // ── Computed status for rail ──
-  const computedStatus = (
-    <div className={`flex items-start gap-2.5 py-2.5 text-xs text-[var(--color-body)]`}>
-      {bw || (list && list.length > 0) ? (
-        <><IconCheck className={`w-4 h-4 shrink-0 mt-px ${computedColor}`} /><span>{computedText}</span></>
-      ) : (
-        <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={`w-4 h-4 shrink-0 mt-px ${computedColor}`}><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg><span>{computedText}</span></>
-      )}
-    </div>
-  );
-
   if (embedded) {
     return (
       <div>
@@ -396,7 +371,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
         <HubCardHeader
           icon={<IconDumbbell className="w-4 h-4" />}
           title="Equipment"
-          subtitle={<><span className="text-foreground">{clientFirstName}</span> actually has to train with \u2014 the plan agent only picks exercises that use it</>}
+          subtitle={<><span className="text-foreground">What {clientFirstName}</span> actually has to train with — the plan agent only picks exercises that use it</>}
           color="rose"
           action={
             <div className="flex items-center gap-2">
