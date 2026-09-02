@@ -130,7 +130,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   const { data: parqs } = await supabase.from("signed_parq").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
   const { data: agreements } = await supabase.from("signed_agreements").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
-  const { data: clientDocuments } = await supabase.from("client_documents").select("id, kind, title, status, version, created_at, updated_at, client_name, trainer_name, client_signature, trainer_signature, requires_trainer_signature, emailed, source_type, consent_choices").eq("client_id", client.id).order("created_at", { ascending: false });
+  const { data: clientDocuments } = await supabase.from("client_documents").select("id, kind, title, status, version, created_at, updated_at, client_name, trainer_name, client_signature, trainer_signature, requires_trainer_signature, emailed, source_type, source_file_name, source_file_mime, source_file_size, consent_choices").eq("client_id", client.id).order("created_at", { ascending: false });
 
   const latestParq = parqs?.[0] ?? null;
   const latestAgreement = agreements?.[0] ?? null;
