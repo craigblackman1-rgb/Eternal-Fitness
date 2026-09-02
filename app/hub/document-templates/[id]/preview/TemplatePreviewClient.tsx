@@ -56,7 +56,7 @@ export function TemplatePreviewClient({ template }: { template: DocumentTemplate
           Preview only — sample data, nothing here is saved or sent. Signature areas are not shown.
         </p>
         <Link
-          href={`/hub/templates/${template.id}`}
+          href={`/hub/document-templates/${template.id}`}
           className="inline-flex items-center gap-1 text-xs font-bold shrink-0 hover:underline"
         >
           <IconChevronLeft className="h-3.5 w-3.5" />

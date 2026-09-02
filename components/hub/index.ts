@@ -15,7 +15,7 @@ export { EmptyState } from "./EmptyState";
 export { HubSkeleton, HubSkeletonAvatar, HubSkeletonChip, HubCardSkeleton, HubSkeletonRow } from "./HubSkeleton";
 export { HubTabsList, HubTabsTrigger } from "./HubTabs";
 export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
-export { OutlookBookingsBadge } from "./OutlookBookingsBadge";
+export { OutlookBookingsBadge, useOutlookTriageCount } from "./OutlookBookingsBadge";
 export { OutlookReconciliationTabs } from "./OutlookReconciliationTabs";
 export { ClientBookingPanel } from "./ClientBookingPanel";
 export type { TrainerizeHistoryData, TrainerizeBlock, TrainerizeWorkout, TrainerizeExercise, TrainerizeNote } from "./types";

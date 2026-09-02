@@ -201,7 +201,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
       const res = await fetch(`/api/workout-templates/${template.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error((await res.json()).error || "Failed to delete");
       toast.success("Template deleted");
-      router.push("/hub/workout-templates");
+      router.push("/hub/workouts");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong");
       setDeleting(false);
@@ -216,7 +216,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
     <div className="space-y-6">
       <div className="flex items-start gap-4 justify-between">
         <div className="flex items-start gap-4 min-w-0 flex-1">
-          <Link href="/hub/workout-templates" className="text-muted-foreground hover:text-foreground shrink-0 mt-1">
+          <Link href="/hub/workouts" className="text-muted-foreground hover:text-foreground shrink-0 mt-1">
             <IconChevronLeft className="h-5 w-5" />
           </Link>
           <div className="min-w-0 flex-1">

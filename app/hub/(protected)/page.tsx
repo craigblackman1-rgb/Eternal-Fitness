@@ -6,7 +6,7 @@ import { TokenPill } from "@/components/hub/StatusBadge";
 import { KpiTile } from "@/components/hub/KpiTile";
 import { HubAlert } from "@/components/hub/HubAlert";
 import {
-  IconAlertCircle, IconArrowUpRight, IconCalendar, IconCheck, IconCheckCircle, IconFileText,
+  IconAlertCircle, IconArrowUpRight, IconCalendar, IconCheck, IconCheckCircle, IconCheckSquare, IconFileText,
   IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
 import type { DBClientComplianceStatus } from "@/types";
@@ -136,6 +136,11 @@ export default async function DashboardPage() {
     .select("id", { count: "exact", head: true })
     .not("lapse_flagged_at", "is", null)
     .eq("status", "scheduled");
+
+  const { count: openTaskCount } = await supabase
+    .from("tasks")
+    .select("id", { count: "exact", head: true })
+    .neq("status", "done");
 
   // Alerts accordion — hub-dashboard.html collapses every flat status banner
   // into one collapsible section ("3 alerts" + a breakdown) so they cost a
@@ -275,6 +280,7 @@ export default async function DashboardPage() {
           { href: "/hub/schedule", label: "Log check-in", icon: <IconCheck className="w-4 h-4" /> },
           { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
           { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
+          { href: "/hub/tasks", label: openTaskCount ? `Tasks (${openTaskCount})` : "Tasks", icon: <IconCheckSquare className="w-4 h-4" /> },
         ]}
       />
 
@@ -404,7 +410,7 @@ export default async function DashboardPage() {
             subtitle={`${needsAttention.length} client${needsAttention.length === 1 ? "" : "s"} need${needsAttention.length === 1 ? "s" : ""} clearance or action — the first thing to check`}
             color="amber"
             defaultOpen
-            viewAllHref={needsAttention.length > 8 ? "/hub/tracker" : undefined}
+            viewAllHref={needsAttention.length > 8 ? "/hub/compliance" : undefined}
             viewAllLabel={`View all ${needsAttention.length}`}
           >
             <div className="px-5 pt-4 pb-4">

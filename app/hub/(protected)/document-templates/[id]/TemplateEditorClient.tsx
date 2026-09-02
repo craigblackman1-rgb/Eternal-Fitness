@@ -61,7 +61,7 @@ export function TemplateEditorClient({ template, clients }: { template: Document
     <div className="space-y-6">
       <div className="flex items-start gap-4 justify-between">
         <div className="flex items-start gap-4 min-w-0 flex-1">
-          <Link href="/hub/templates" className="text-muted-foreground hover:text-foreground shrink-0 mt-1">
+          <Link href="/hub/document-templates" className="text-muted-foreground hover:text-foreground shrink-0 mt-1">
             <IconChevronLeft className="h-5 w-5" />
           </Link>
           <div className="min-w-0">
@@ -71,7 +71,7 @@ export function TemplateEditorClient({ template, clients }: { template: Document
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href={`/hub/templates/${template.id}/preview`}
+            href={`/hub/document-templates/${template.id}/preview`}
             target="_blank"
             title="Opens the last saved version — save first to preview unsaved changes"
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3.5 py-1.5 text-sm font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"

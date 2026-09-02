@@ -176,16 +176,18 @@ export function WorkoutTemplateBrowser({
   return (
     <div className="space-y-5">
       <HubPageHeader
-        title="Workout templates"
+        title="Workouts"
         subtitle="Reusable sessions — assigned into a client's next block or saved back from a logged session."
         actions={
-          <div ref={splitRef} className="relative inline-flex">
+          <>
+            <Link href="/hub/exercises" className="text-sm font-medium text-teal hover:underline mr-2">Exercise library</Link>
+            <div ref={splitRef} className="relative inline-flex">
             <Link
-              href="/hub/workout-templates/new"
+              href="/hub/workouts/new"
               className="inline-flex items-center gap-1.5 h-9 pl-4 pr-3 rounded-l-lg bg-rose hover:bg-rose/90 text-white text-sm font-semibold transition-colors"
             >
               <IconPlus className="h-4 w-4" />
-              New template
+              New workout
             </Link>
             <button
               type="button"
@@ -204,7 +206,7 @@ export function WorkoutTemplateBrowser({
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setMenuOpen(false); router.push("/hub/workout-templates/new"); }}
+                  onClick={() => { setMenuOpen(false); router.push("/hub/workouts/new"); }}
                   className="flex items-start gap-2.5 w-full text-left rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)]"
                 >
                   <IconFileText className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -217,7 +219,7 @@ export function WorkoutTemplateBrowser({
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setMenuOpen(false); router.push("/hub/workout-templates/new?blank=1"); }}
+                  onClick={() => { setMenuOpen(false); router.push("/hub/workouts/new?blank=1"); }}
                   className="flex items-start gap-2.5 w-full text-left rounded-lg px-2.5 py-2 hover:bg-[var(--hub-hover)]"
                 >
                   <IconPlus className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -231,6 +233,7 @@ export function WorkoutTemplateBrowser({
               </div>
             )}
           </div>
+          </>
         }
       />
 
@@ -560,7 +563,7 @@ export function WorkoutTemplateBrowser({
             <div className="flex gap-2.5 px-6 py-4 border-t border-[var(--hub-border)] bg-[var(--hub-card)]">
               <button
                 type="button"
-                onClick={() => router.push(`/hub/workout-templates/${selected.id}`)}
+                onClick={() => router.push(`/hub/workouts/${selected.id}`)}
                 className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-[var(--color-ink)] text-[13px] font-semibold hover:border-[var(--hub-field-border-hover)] transition-colors"
               >
                 <IconPencil className="h-4 w-4" />
