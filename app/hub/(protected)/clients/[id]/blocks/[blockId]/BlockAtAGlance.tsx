@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, Fragment } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -98,13 +98,22 @@ export function BlockGlanceProvider({
     });
   }, []);
 
-  const positionsMap = new Map(positions);
-  const sortedPotSessions = sessions
-    .filter((s) => !s.parent_session_id)
-    .sort((a, b) => (positionsMap.get(a.id)?.position ?? 0) - (positionsMap.get(b.id)?.position ?? 0));
+  const positionsMap = useMemo(() => new Map(positions), [positions]);
+  const sortedPotSessions = useMemo(
+    () =>
+      sessions
+        .filter((s) => !s.parent_session_id)
+        .sort((a, b) => (positionsMap.get(a.id)?.position ?? 0) - (positionsMap.get(b.id)?.position ?? 0)),
+    [sessions, positionsMap],
+  );
   const totalSessions = sortedPotSessions.length;
-  const repeats = glanceRepeats(sortedPotSessions);
-  const workoutCount = glanceWorkoutCount(sortedPotSessions);
+  const { repeats, workoutCount } = useMemo(
+    () =>
+      on
+        ? { repeats: glanceRepeats(sortedPotSessions, positionsMap), workoutCount: glanceWorkoutCount(sortedPotSessions) }
+        : { repeats: new Map<string, number>(), workoutCount: 0 },
+    [on, sortedPotSessions, positionsMap],
+  );
 
   const subSessionsByParent = new Map<string, DBSession[]>();
   for (const s of sessions) {
@@ -118,27 +127,31 @@ export function BlockGlanceProvider({
   const firstBookedDate = sortedPotSessions.find((s) => s.scheduled_at)?.scheduled_at ?? null;
 
   const doApprove = useCallback(async () => {
-    const res = await fetch(`/api/blocks/${blockId}/approve`, { method: "POST" });
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      toast.error(json.error ?? "Failed to approve");
-      return;
+    try {
+      const res = await fetch(`/api/blocks/${blockId}/approve`, { method: "POST" });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        toast.error(json.error ?? "Failed to approve");
+        return;
+      }
+      const now = new Date().toISOString();
+      setStatus("approved");
+      setApprovedAtState(now);
+      setApproveOpen(false);
+      const firstName = clientName.split(" ")[0];
+      const firstSession = sortedPotSessions.find((s) => s.scheduled_at);
+      if (firstSession?.scheduled_at) {
+        const d = new Date(firstSession.scheduled_at);
+        const dateLabel = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+        const timeLabel = isoToLocalTime(firstSession.scheduled_at);
+        toast.success(`Block ${blockNumber} approved. ${firstName}'s first session is ${dateLabel} at ${timeLabel}.`);
+      } else {
+        toast.success(`Block ${blockNumber} approved.`);
+      }
+      router.refresh();
+    } catch {
+      toast.error("Could not approve the block — check your connection and try again.");
     }
-    const now = new Date().toISOString();
-    setStatus("approved");
-    setApprovedAtState(now);
-    setApproveOpen(false);
-    const firstName = clientName.split(" ")[0];
-    const firstSession = sortedPotSessions.find((s) => s.scheduled_at);
-    if (firstSession?.scheduled_at) {
-      const d = new Date(firstSession.scheduled_at);
-      const dateLabel = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-      const timeLabel = isoToLocalTime(firstSession.scheduled_at);
-      toast.success(`Block ${blockNumber} approved. ${firstName}'s first session is ${dateLabel} at ${timeLabel}.`);
-    } else {
-      toast.success(`Block ${blockNumber} approved.`);
-    }
-    router.refresh();
   }, [blockId, clientName, blockNumber, router, sortedPotSessions]);
 
   const ctx: GlanceCtx = {
@@ -184,6 +197,7 @@ export function BlockGlanceProvider({
             workoutCount={workoutCount}
             firstBookedDate={firstBookedDate}
           />
+          <style>{`@media print { .no-print { display: none !important } .glance-list { column-count: 2; column-gap: 24px } .glance-card { break-inside: avoid } [data-collapsed-body] { display: block !important } }`}</style>
         </>
       )}
     </Ctx.Provider>
@@ -282,6 +296,14 @@ function GlanceView({
     else cardsRef.current.delete(id);
   }, []);
 
+  if (sessions.length === 0) {
+    return (
+      <div className="py-12 text-center text-sm text-muted-foreground">
+        No sessions in this block yet.
+      </div>
+    );
+  }
+
   return (
     <>
       <StickyBar activeSession={activeSession} activeDate={activeDate} />
@@ -302,7 +324,6 @@ function GlanceView({
           />
         ))}
       </div>
-      <ApproveBar />
     </>
   );
 }
@@ -505,7 +526,7 @@ function SessionCard({
               aria-expanded={!isCollapsed}
               className="border-0 bg-transparent px-2 py-1 rounded-[6px] font-inherit text-[12.5px] font-semibold text-teal cursor-pointer hover:bg-[var(--hub-hover)] hover:text-[#066A75] transition-colors"
             >
-              {isCollapsed ? `Same as session ${repeat} \u2014 show` : `\u2014 hide`}
+              {isCollapsed ? `Same as session ${repeat} \u2014 show` : `Same as session ${repeat} \u2014 hide`}
             </button>
           )}
           {sections.length > 0 ? (

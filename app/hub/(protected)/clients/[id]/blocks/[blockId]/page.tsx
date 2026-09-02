@@ -235,7 +235,7 @@ export default async function BlockViewPage({
       approvedAt={(block as { approved_at?: string | null }).approved_at ?? null}
       dateSpanLabel={blockDateSpanLabel}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
         <div className="flex items-center gap-4">
           <Link href={`/hub/clients/${clientId}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
             <IconChevronLeft className="h-5 w-5" />
