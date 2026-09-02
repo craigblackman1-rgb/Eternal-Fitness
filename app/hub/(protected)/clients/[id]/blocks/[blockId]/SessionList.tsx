@@ -6,7 +6,7 @@ import { SubSessionRow } from "./SubSessionRow";
 import { AssignWorkoutDialog } from "./AssignWorkoutDialog";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { isoToLocalTime } from "@/lib/schedule-dates";
-import { sessionWorkoutName } from "@/lib/session-display";
+import { sessionWorkoutName, sessionHasNoExercises } from "@/lib/session-display";
 import type { SessionStatus, DBSession } from "@/types";
 
 interface SessionItem {
@@ -141,6 +141,8 @@ export function SessionList({
         open={assignSessionId !== null}
         onOpenChange={(open) => { if (!open) setAssignSessionId(null); }}
         sessionId={assignSessionId || ""}
+        blockId={blockId}
+        siblingSessions={sessions}
       />
     </>
   );
