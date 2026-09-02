@@ -116,7 +116,7 @@ export async function POST(
   if (unit === "kg") {
     metric = "weight";
     value = rawValue != null ? Number(rawValue) : null;
-    if (value == null || value <= 0) {
+    if (value == null || value <= 0 || Number.isNaN(value)) {
       return NextResponse.json({ error: "Enter a value." }, { status: 400 });
     }
   } else if (unit === "band") {
@@ -137,7 +137,7 @@ export async function POST(
   } else if (unit === "reps") {
     metric = "reps";
     value = rawValue != null ? Number(rawValue) : null;
-    if (value == null || value <= 0) {
+    if (value == null || value <= 0 || Number.isNaN(value)) {
       return NextResponse.json({ error: "Enter a value." }, { status: 400 });
     }
     repCount = null; // reps metric doesn't use rep_count
@@ -156,7 +156,10 @@ export async function POST(
     }
   }
 
-  const trimmedNote = typeof note === "string" ? note.trim() || null : null;
+  let trimmedNote = typeof note === "string" ? note.trim() || null : null;
+  if (trimmedNote && trimmedNote.length > 500) {
+    return NextResponse.json({ error: "Note is too long" }, { status: 400 });
+  }
 
   const achievedAtISO = `${achieved_at}T12:00:00Z`;
 

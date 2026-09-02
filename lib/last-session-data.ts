@@ -41,6 +41,8 @@ export interface PbMetadata {
   recorded_by?: string | null;
   /** Band colour for band-type PBs. */
   band_colour?: string | null;
+  /** Band sort_order for ranking band PBs — never stored in weight_kg. */
+  band_rank?: number | null;
 }
 
 export interface LastSessionAndPbData {
@@ -155,6 +157,7 @@ export async function getLastSessionAndPbData(
         note: rowNote,
         recorded_by: rowRecordedBy,
         band_colour: rowBandColour,
+        band_rank: null,
       };
     }
 
@@ -166,21 +169,28 @@ export async function getLastSessionAndPbData(
       beats = pb.duration_seconds == null || value > pb.duration_seconds;
     } else if (metric === "band") {
       // Higher sort_order wins; tie → reps
-      const existingVal = pb.band_colour ? pb.weight_kg : null; // weight_kg stores band sort_order in this context
-      beats = existingVal == null || value > existingVal;
+      beats = pb.band_rank == null || value > pb.band_rank;
+    } else if (metric === "reps") {
+      // Reps-only PB: only relevant when no kg/band PB exists for this exercise
+      beats = pb.weight_kg == null && pb.band_rank == null && (pb.reps == null || value > pb.reps);
     }
-    // For 'reps' metric: not tracked in PbMetadata (no reps-only PBs in existing code)
 
     if (beats) {
       if (metric === "weight") {
         pb.weight_kg = value;
         pb.reps = reps;
+        pb.band_colour = null; // weight PB — clear any stale band colour
+        pb.band_rank = null;
       } else if (metric === "duration") {
         pb.duration_seconds = value;
       } else if (metric === "band") {
-        pb.weight_kg = value; // reuse weight_kg for band sort_order for comparison
+        pb.band_rank = value;
         pb.reps = reps;
         pb.band_colour = rowBandColour;
+        pb.weight_kg = null; // band PB — clear any stale weight
+      } else if (metric === "reps") {
+        pb.reps = value;
+        // Keep weight_kg/band_colour null (they were already null to reach here)
       }
       pb.achieved_at = achievedAt;
       pb.source = rowSource;
