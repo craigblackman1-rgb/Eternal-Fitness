@@ -89,7 +89,7 @@ export async function checkAndUpsertPB(
     `INSERT INTO personal_records
        (client_id, exercise, metric, value, rep_count, achieved_at, source)
      VALUES ($1, $2, $3, $4, $5, $6, 'live_log')
-     ON CONFLICT (client_id, exercise, metric, rep_count)
+     ON CONFLICT (client_id, exercise, metric, rep_count) WHERE source <> 'manual'
      DO UPDATE SET
        value = GREATEST(personal_records.value, EXCLUDED.value),
        achieved_at = CASE

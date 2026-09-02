@@ -23,6 +23,7 @@ import {
   remove,
   type PendingSetLogEntry,
 } from "@/lib/hub/offline-set-log-queue";
+import { ExerciseHistoryDrawer } from "./ExerciseHistoryDrawer";
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -79,6 +80,7 @@ interface PbInfo {
   reps: number | null;
   duration_seconds: number | null;
   achieved_at: string;
+  source?: "live_log" | "trainerize_import" | "manual";
 }
 
 interface LastSessionInfo {
@@ -337,6 +339,9 @@ export function WorkoutLog({
   pbDates,
   onSessionLogChange,
   bands,
+  clientId,
+  clientName,
+  onPbRecorded,
 }: {
   sessionId: string;
   sessionNumber: number;
@@ -351,6 +356,12 @@ export function WorkoutLog({
   pbDates?: Record<string, PbMetadata>;
   onSessionLogChange: (log: SessionLog) => void;
   bands: Band[];
+  /** CR-EF-131 — client display number for the history drawer route. */
+  clientId?: string;
+  /** CR-EF-131 — client name for the history drawer header. */
+  clientName?: string;
+  /** CR-EF-131 — called after a manual PB is saved (triggers refresh). */
+  onPbRecorded?: () => void;
 }) {
   const sections = data?.versions?.[version] ?? { warm_up: [], main_block: [], cooldown: [] };
 
@@ -461,6 +472,8 @@ export function WorkoutLog({
   const [restTimers, setRestTimers] = useState<Record<string, RestTimer>>({});
   const [sessionTimer, setSessionTimer] = useState<{ running: boolean; elapsed: number }>({ running: false, elapsed: 0 });
   const [openPicker, setOpenPicker] = useState<string | null>(null);
+  // CR-EF-131 — exercise history drawer
+  const [historyFor, setHistoryFor] = useState<string | null>(null);
 
   // CR-EF-010 — session PB tally and toast
   const pbTallyRef = useRef<Record<string, boolean>>({});
@@ -1513,6 +1526,7 @@ function ExerciseCard({
   openPicker: string | null;
   setOpenPicker: (v: string | null) => void;
   onAddSet: (refKey: string) => void;
+  onOpenHistory?: () => void;
 }) {
   const timeBased = isTimeBased(exercise.reps, exercise.log_type);
   const isBand = isBandEquipment(exercise.equipment ?? []);

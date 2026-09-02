@@ -33,6 +33,14 @@ export interface PbMetadata {
   duration_seconds: number | null;
   /** ISO date when the PB was achieved. */
   achieved_at: string;
+  /** Source of the PB: 'live_log', 'trainerize_import', or 'manual'. */
+  source: "live_log" | "trainerize_import" | "manual";
+  /** Note recorded with a manual PB. */
+  note?: string | null;
+  /** Name of the person who recorded a manual PB. */
+  recorded_by?: string | null;
+  /** Band colour for band-type PBs. */
+  band_colour?: string | null;
 }
 
 export interface LastSessionAndPbData {
@@ -68,7 +76,7 @@ export async function getLastSessionAndPbData(
       [clientId],
     ),
     pool.query(
-      `SELECT exercise, metric, value, rep_count, achieved_at
+      `SELECT exercise, metric, value, rep_count, achieved_at, source, note, recorded_by, band_colour
          FROM personal_records
         WHERE client_id = $1`,
       [clientId],
@@ -132,27 +140,52 @@ export async function getLastSessionAndPbData(
     const reps = row.rep_count != null ? Number(row.rep_count) : null;
     const achievedAt = row.achieved_at as string;
 
+    const rowSource = (row.source as "live_log" | "trainerize_import" | "manual") ?? "live_log";
+    const rowNote = row.note as string | null ?? null;
+    const rowRecordedBy = row.recorded_by as string | null ?? null;
+    const rowBandColour = row.band_colour as string | null ?? null;
+
     if (!pbDates[exercise]) {
       pbDates[exercise] = {
         weight_kg: null,
         reps: null,
         duration_seconds: null,
         achieved_at: achievedAt,
+        source: rowSource,
+        note: rowNote,
+        recorded_by: rowRecordedBy,
+        band_colour: rowBandColour,
       };
     }
 
     const pb = pbDates[exercise];
+    let beats = false;
     if (metric === "weight") {
-      if (pb.weight_kg == null || value > pb.weight_kg) {
+      beats = pb.weight_kg == null || value > pb.weight_kg;
+    } else if (metric === "duration") {
+      beats = pb.duration_seconds == null || value > pb.duration_seconds;
+    } else if (metric === "band") {
+      // Higher sort_order wins; tie → reps
+      const existingVal = pb.band_colour ? pb.weight_kg : null; // weight_kg stores band sort_order in this context
+      beats = existingVal == null || value > existingVal;
+    }
+    // For 'reps' metric: not tracked in PbMetadata (no reps-only PBs in existing code)
+
+    if (beats) {
+      if (metric === "weight") {
         pb.weight_kg = value;
         pb.reps = reps;
-        pb.achieved_at = achievedAt;
-      }
-    } else if (metric === "duration") {
-      if (pb.duration_seconds == null || value > pb.duration_seconds) {
+      } else if (metric === "duration") {
         pb.duration_seconds = value;
-        pb.achieved_at = achievedAt;
+      } else if (metric === "band") {
+        pb.weight_kg = value; // reuse weight_kg for band sort_order for comparison
+        pb.reps = reps;
+        pb.band_colour = rowBandColour;
       }
+      pb.achieved_at = achievedAt;
+      pb.source = rowSource;
+      pb.note = rowNote;
+      pb.recorded_by = rowRecordedBy;
     }
   }
 
