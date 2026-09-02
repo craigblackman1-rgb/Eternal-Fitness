@@ -116,15 +116,18 @@ export interface CalendarWeekGroup<T> {
  * `scheduled_at` (then stable by original order); within a plan week they keep
  * the input order (the caller passes them in `session_number` order).
  */
-export function groupSessionsByWeek<T extends { scheduled_at: string | null; week: number }>(
+export function groupSessionsByWeek<T extends { scheduled_at: string | null; week: number; completed_at?: string | null }>(
   sessions: T[],
 ): CalendarWeekGroup<T>[] {
   const scheduledWeeks = new Map<string, { planWeek: number; sessions: T[] }>();
   const planWeeks = new Map<number, T[]>();
 
   for (const s of sessions) {
-    if (s.scheduled_at) {
-      const monday = isoToMonday(s.scheduled_at);
+    // Use scheduled_at first; fall back to completed_at for sessions that were
+    // performed without a booking (completed_at set, scheduled_at NULL).
+    const weekDate = s.scheduled_at ?? s.completed_at;
+    if (weekDate) {
+      const monday = isoToMonday(weekDate);
       const g = scheduledWeeks.get(monday) ?? { planWeek: s.week, sessions: [] as T[] };
       g.sessions.push(s);
       scheduledWeeks.set(monday, g);
@@ -141,7 +144,7 @@ export function groupSessionsByWeek<T extends { scheduled_at: string | null; wee
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .forEach(([monday, g]) => {
       const ordered = [...g.sessions].sort(
-        (a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime(),
+        (a, b) => new Date(a.scheduled_at ?? a.completed_at!).getTime() - new Date(b.scheduled_at ?? b.completed_at!).getTime(),
       );
       groups.push({ key: monday, kind: "scheduled", planWeek: g.planWeek, monday, sessions: ordered });
     });

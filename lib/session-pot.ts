@@ -53,7 +53,7 @@ export interface SessionPotBreakdown {
  * cancellations.
  */
 export function deriveSessionPot(
-  sessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id">[],
+  sessions: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "parent_session_id" | "completed_at">[],
   sessionsPurchased: number | null,
 ): SessionPotBreakdown {
   // CR-EF-101 — only count sessions where parent_session_id IS NULL
@@ -106,9 +106,10 @@ export function deriveSessionPot(
 
 /** Fallback status derivation for sessions without a first-class status column. */
 function deriveStatusFromColumns(
-  s: Pick<DBSession, "status" | "charged_free" | "cancelled_at">,
+  s: Pick<DBSession, "status" | "charged_free" | "cancelled_at" | "completed_at">,
 ): string {
   if (s.cancelled_at) return "cancelled";
+  if (s.completed_at) return "completed";
   return s.status ?? "planned";
 }
 
