@@ -5,8 +5,8 @@ import { applyCopiedWorkoutIdentity, isPlaceholderLabel } from "@/lib/session-na
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
 import { getSessionStatus } from "@/lib/session-transitions";
-import { deriveSessionStatus } from "@/lib/session-status";
 import { londonDayKey } from "@/lib/schedule-dates";
+import { computeRollForwardPlan } from "@/lib/workout-roll-forward";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
 // prescription + session_log (existing behaviour, from an earlier lane). The
@@ -367,43 +367,24 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       if (data.block_id) {
         const { data: blockSessions } = await supabase
           .from("sessions")
-          .select("id, session_number, data, status, cancelled_at, completed_at, scheduled_at, parent_session_id")
+          .select("id, session_number, data, archetype, status, cancelled_at, completed_at, scheduled_at, parent_session_id")
           .eq("block_id", data.block_id);
 
         if (blockSessions && blockSessions.length > 0) {
-          // Find the vacated session's position by session_number
           const vacatedNumber = data.session_number as number;
-          const laterSessions = blockSessions
-            .filter((s) => {
-              if (s.id === params.id) return false;
-              if (s.parent_session_id) return false;
-              const st = deriveSessionStatus({
-                status: s.status,
-                cancelled_at: s.cancelled_at,
-                completed_at: s.completed_at,
-                scheduled_at: s.scheduled_at,
-              });
-              return st !== "completed" && st !== "cancelled" && s.session_number > vacatedNumber;
-            })
-            .sort((a, b) => a.session_number - b.session_number);
+          const rollPlan = computeRollForwardPlan(blockSessions, vacatedNumber);
 
-          // Roll workout assignments forward: vacated session's content moves
-          // to the next planned session, that session's content to the one after, etc.
-          // Dates/times are not touched.
-          for (let i = 0; i < laterSessions.length; i++) {
-            const source = i === 0 ? data : laterSessions[i - 1];
-            const target = laterSessions[i];
+          for (const pair of rollPlan) {
             await supabase
               .from("sessions")
               .update({
-                data: source.data,
-                archetype: source.archetype,
+                data: pair.sourceData,
+                archetype: pair.sourceArchetype,
               })
-              .eq("id", target.id);
+              .eq("id", pair.targetId);
           }
 
-          // Clear the vacated session's workout content (it rolled forward)
-          if (laterSessions.length > 0) {
+          if (rollPlan.length > 0) {
             const clearedData = { ...(data.data as Record<string, unknown>) };
             delete clearedData.versions;
             delete clearedData.focus_label;
