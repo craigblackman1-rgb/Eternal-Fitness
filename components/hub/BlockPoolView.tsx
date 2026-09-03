@@ -163,7 +163,8 @@ export function BlockPoolView({
         body: JSON.stringify({ scheduled_at: localPartsToISO(reschedDate, reschedTime), push_along: reschedulePushAlong }),
       });
       if (!res.ok) {
-        toast.error("Failed to reschedule");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Failed to reschedule");
         return;
       }
       toast.success("Session rescheduled");

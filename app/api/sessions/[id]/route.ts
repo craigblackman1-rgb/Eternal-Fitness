@@ -231,11 +231,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   // target slot doesn't already hold a different session for the same client.
   // Server-side is authoritative — two sessions silently sharing one timestamp
   // is the exact bug this catches.
+  // BUG-EF-118 exemption: when the PATCH sets parent_session_id (supplementary
+  // linking), the parent's own time is allowed — same time as parent BY DESIGN.
   if ("scheduled_at" in update && update.scheduled_at && !cancellingNow) {
     // Get the client_id via the session's block
     const { data: sessForClient } = await supabase
       .from("sessions")
-      .select("block_id")
+      .select("block_id, parent_session_id")
       .eq("id", params.id)
       .maybeSingle();
 
@@ -271,18 +273,30 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           const clashes = siblings.filter((s) => sameClientBlockIds.has(s.block_id));
 
           if (clashes.length > 0) {
-            const clash = clashes[0];
-            const clashBlock = sameClientSiblings.find((b) => b.id === clash.block_id);
-            return NextResponse.json(
-              {
-                error: `This client already has Session ${clash.session_number} (Block ${clashBlock?.block_number ?? "?"}) at that time.`,
-                code: "scheduling_collision",
-                clashSessionId: clash.id,
-                clashSessionNumber: clash.session_number,
-                clashBlockNumber: clashBlock?.block_number ?? null,
-              },
-              { status: 409 },
-            );
+            // BUG-EF-118 exemption: if the PATCH is setting parent_session_id
+            // (supplementary linking), allow the parent's own time slot.
+            const incomingParentId = update.parent_session_id as string | undefined;
+            const currentParentId = sessForClient.parent_session_id as string | undefined;
+            const realClashes = clashes.filter((c) => {
+              if (incomingParentId && c.id === incomingParentId) return false;
+              if (currentParentId && c.id === currentParentId) return false;
+              return true;
+            });
+
+            if (realClashes.length > 0) {
+              const clash = realClashes[0];
+              const clashBlock = sameClientSiblings.find((b) => b.id === clash.block_id);
+              return NextResponse.json(
+                {
+                  error: `This client already has Session ${clash.session_number} (Block ${clashBlock?.block_number ?? "?"}) at that time.`,
+                  code: "scheduling_collision",
+                  clashSessionId: clash.id,
+                  clashSessionNumber: clash.session_number,
+                  clashBlockNumber: clashBlock?.block_number ?? null,
+                },
+                { status: 409 },
+              );
+            }
           }
         }
       }
