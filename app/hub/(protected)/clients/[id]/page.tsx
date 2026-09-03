@@ -35,6 +35,7 @@ import { getLastClientLogAt } from "@/lib/progress-db";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { RESOURCES } from "@/lib/resources";
+import { formatClientEquipment } from "@/lib/client-equipment";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
 import { CommsTabContent } from "./CommsTabContent";
@@ -979,6 +980,36 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                     </div>
                   </HubAccordionSection>
                 )}
+
+                <HubAccordionSection icon={<IconDumbbell className="w-4 h-4" />} title="Equipment" color="neutral">
+                  <div className="px-5 pt-4 pb-4">
+                    {(() => {
+                      const eq = (client as any).equipment;
+                      const formatted = formatClientEquipment(eq);
+                      if (formatted === "Not specified" || formatted === "Bodyweight only") {
+                        return <p className="text-sm text-muted-foreground">{formatted}</p>;
+                      }
+                      const entries = Array.isArray(eq) ? eq : [];
+                      return (
+                        <div className="space-y-2.5">
+                          {entries.map((item: any, i: number) => {
+                            const name = typeof item === "string" ? item : item.name;
+                            const detail = typeof item === "string" ? "" : (item.detail ?? "");
+                            return (
+                              <div key={i} className="flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose shrink-0" />
+                                <div className="min-w-0">
+                                  <span className="text-[13px] font-semibold text-foreground">{name}</span>
+                                  {detail && <span className="text-[12px] text-muted-foreground ml-2">{detail}</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </HubAccordionSection>
 
                 <HubAccordionSection icon={<IconMail className="w-4 h-4" />} title="Client Portal" color="neutral">
                   <div className="px-5 pt-4 pb-4">
