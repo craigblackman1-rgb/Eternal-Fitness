@@ -86,13 +86,29 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .eq("block_id", params.id);
   if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
 
-  const rows = (existingSessions ?? []) as { session_number: number; week: number | null; phase: string | null; parent_session_id: string | null }[];
+  const rows = (existingSessions ?? []) as { id: string; session_number: number; week: number | null; phase: string | null; parent_session_id: string | null }[];
   // New slots number from the highest slot number, not from sub-sessions which
   // may share a parent's session_number (CR-EF-125).
   const slotRows = rows.filter((s) => !s.parent_session_id);
   let sessionNumber = slotRows.reduce((max, s) => Math.max(max, s.session_number), 0) + 1;
   if (sessionNumber > 18) {
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
+  }
+
+  // BUG-EF-124 — guard against duplicate sessions: refuse to create a new row
+  // when one already exists at this block_id + session_number. Return the
+  // existing row so the caller can use it instead of inserting a duplicate.
+  const duplicateSlot = slotRows.find((s) => s.session_number === sessionNumber);
+  if (duplicateSlot) {
+    const { data: existingRow } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("id", duplicateSlot.id)
+      .single();
+    return NextResponse.json(
+      { error: `Session ${sessionNumber} already exists in this block`, existing: existingRow },
+      { status: 409 },
+    );
   }
 
   // week: required+validated when adding real content from a template
