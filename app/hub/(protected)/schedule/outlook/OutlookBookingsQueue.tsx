@@ -227,7 +227,7 @@ export function OutlookBookingsQueue() {
                         {row.clients.name}
                       </span>
                       <Button size="sm" onClick={() => openConfirm(row)}>
-                        Confirm & create session
+                        Confirm
                       </Button>
                       <button
                         type="button"

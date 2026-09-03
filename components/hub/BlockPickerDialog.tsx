@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { IconCalendar } from "@/components/icons";
@@ -27,7 +27,7 @@ interface BlockPickerDialogProps {
   allBlocks?: BlockPickerBlock[];
   blocksLoading: boolean;
   clientName: string;
-  onConfirm: (blockId: string) => void;
+  onConfirm: (blockId: string) => void | Promise<void>;
 }
 
 function formatWhenShort(iso: string) {
@@ -58,10 +58,21 @@ export function BlockPickerDialog({
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  function handleConfirm() {
+  useEffect(() => {
+    if (!open) {
+      setSelectedBlockId(null);
+      setConfirming(false);
+    }
+  }, [open]);
+
+  async function handleConfirm() {
     if (!selectedBlockId) return;
     setConfirming(true);
-    onConfirm(selectedBlockId);
+    try {
+      await onConfirm(selectedBlockId);
+    } finally {
+      setConfirming(false);
+    }
   }
 
   const allActive = blocks.length > 0 && blocks.every((b) => b.status === "active");
