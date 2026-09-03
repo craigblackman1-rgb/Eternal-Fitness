@@ -43,7 +43,10 @@ export function ExerciseHistoryPanel({
   const [selectedName, setSelectedName] = useState<string>(history[0]?.exerciseName ?? "");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const canAddPb = !!clientId && !!clientName && !!bands;
+  // CR-EF-147 — canAddPb requires bands to be loaded (not just truthy).
+  // An empty array means bands are loaded but none exist for this client;
+  // the drawer still supports kg/reps/time entries without band options.
+  const canAddPb = !!clientId && !!clientName && !!bands && bands.length > 0;
 
   if (history.length === 0) {
     return (

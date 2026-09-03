@@ -120,8 +120,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   // --- Enforce 18-session cap ---
   const currentCount = targetPotSessions.length;
-  const capacity = MAX_BLOCK_WEEKS * 3; // 18 = 6 weeks * 3 sessions/week is the UI cap,
-  // but the real constraint is 18 per block. Use the same hard limit as the sessions route.
   const HARD_CAP = 18;
   const availableSlots = HARD_CAP - currentCount;
   const toCreate = Math.min(remaining, availableSlots);
@@ -134,6 +132,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
     );
   }
 
+  // Mirror sessions-POST phase resolution: inherit the phase from an existing
+  // session in the same week, or null if the week has no sessions yet.
+  const resolvedPhase = targetPotSessions.find((s) => s.week === resolvedWeek)?.phase ?? null;
+
   // --- Build placeholder session rows (atomic batch insert) ---
   const insertRows: Record<string, unknown>[] = [];
   for (let i = 1; i <= toCreate; i++) {
@@ -145,7 +147,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       session_number: sessionNumber,
       archetype: null as unknown as Archetype,
       week: resolvedWeek,
-      phase: null as unknown as Phase,
+      phase: resolvedPhase as unknown as Phase,
       focus_label: null,
       time_tier: "standard",
       versions: {
@@ -161,7 +163,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       session_number: sessionNumber,
       archetype: null,
       week: resolvedWeek,
-      phase: null,
+      phase: resolvedPhase,
       data: sessionData,
     });
   }
