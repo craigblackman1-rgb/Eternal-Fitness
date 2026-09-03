@@ -215,16 +215,35 @@ export async function syncCalendar(): Promise<SyncResult> {
     );
 
     for (const m of mappings) {
-      // Different calendar — clean up the stale mapping. The event will be
-      // recreated on the current calendar by the create path in step 2.
+      // Different calendar — queue a pending delete instead of deleting
+      // directly. The event will be removed from the old calendar by the
+      // approval route, then recreated on the current calendar by the create
+      // path in step 2.
       if (m.calendar_id !== calendarId) {
         try {
-          await deleteEvent(m.event_id);
-          const { error } = await db.from("session_calendar_events").delete().eq("session_id", m.session_id);
-          if (error) throw new Error(error.message);
+          // Deduplicate: skip if a pending action already exists for this session.
+          const { data: existing } = await db
+            .from("calendar_sync_pending_actions")
+            .select("id")
+            .eq("session_id", m.session_id)
+            .eq("action", "delete")
+            .maybeSingle();
+          if (existing) continue;
+
+          const reason = `Event on calendar ${m.calendar_id}, configured calendar is ${calendarId}`;
+
+          const { error: insErr } = await db.from("calendar_sync_pending_actions").insert({
+            action: "delete",
+            session_id: m.session_id,
+            event_id: m.event_id,
+            calendar_id: m.calendar_id,
+            reason,
+          });
+          if (insErr) throw new Error(insErr.message);
+          result.pendingDelete++;
         } catch (err) {
           if (err instanceof GraphReconnectError) throw err;
-          result.errors.push(`delete-cal ${m.session_id}: ${(err as Error).message}`);
+          result.errors.push(`queue-delete-cal ${m.session_id}: ${(err as Error).message}`);
         }
         continue;
       }
