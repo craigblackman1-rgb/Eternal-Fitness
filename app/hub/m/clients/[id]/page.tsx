@@ -5,6 +5,7 @@ import type { ClientProfile, DBClient, DBSession, SignedAgreement, SignedPARQ, S
 import { computeComplianceFlags } from "@/lib/compliance";
 import { buildMedicalFlags, type ClientFlag } from "@/lib/mobile-client-flags";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveBlockStatus } from "@/lib/block-status";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { deriveSessionPot } from "@/lib/session-pot";
@@ -209,7 +210,14 @@ export default async function MobileClientModePage({ params }: { params: { id: s
     ? { id: pinnedNotes[0].id, text: pinnedNotes[0].note, createdAt: pinnedNotes[0].created_at, author: pinnedNotes[0].author ?? null }
     : null;
 
-  const currentBlock = blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0] ?? null;
+  // BUG-EF-109 — derive block status from sessions instead of trusting the stored column.
+  const derivedStatusByBlock = new Map<string, string>();
+  for (const block of blocks) {
+    const blockSessions = sessions.filter((s) => s.block_id === block.id);
+    derivedStatusByBlock.set(block.id, deriveBlockStatus(block.status, blockSessions));
+  }
+
+  const currentBlock = blocks.find((b) => derivedStatusByBlock.get(b.id) === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0] ?? null;
   const currentBlockSessions = currentBlock ? sessions.filter((s) => s.block_id === currentBlock.id) : [];
 
   const blockDone = currentBlockSessions.filter((s) => s.data?.session_log?.completed_at && !s.parent_session_id).length;

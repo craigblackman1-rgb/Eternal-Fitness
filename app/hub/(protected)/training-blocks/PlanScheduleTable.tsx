@@ -36,7 +36,7 @@ const blockApprovalMap: Record<string, { token: StatusToken; label: string }> = 
 
 function actionLabel(row: BlockWithClient): string {
   if (row.compliance_status === "do_not_train") return "Open";
-  switch (row.status) {
+  switch (row.derived_status) {
     case "active":
       return "Open";
     case "complete":
@@ -128,13 +128,13 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
 
   const filtered = useMemo(() => {
     if (statusFilter === "all") return data;
-    return data.filter((row) => row.status === statusFilter);
+    return data.filter((row) => row.derived_status === statusFilter);
   }, [data, statusFilter]);
 
   const sortedData = [...filtered].sort((a, b) => {
     const statusOrder: Record<string, number> = { active: 0, approved: 1, draft: 2, complete: 3 };
-    const aOrder = statusOrder[a.status] ?? 4;
-    const bOrder = statusOrder[b.status] ?? 4;
+    const aOrder = statusOrder[a.derived_status] ?? 4;
+    const bOrder = statusOrder[b.derived_status] ?? 4;
     if (aOrder !== bOrder) return aOrder - bOrder;
     if (a.scheduled_start && b.scheduled_start) {
       return new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime();
@@ -232,13 +232,13 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
       key: "status",
       header: "Approval",
       sortable: true,
-      sortValue: (row: BlockWithClient) => row.status,
+      sortValue: (row: BlockWithClient) => row.derived_status,
       className: "w-[120px]",
       render: (row: BlockWithClient) => {
         if (row.compliance_status === "do_not_train") {
           return <TokenPill token="danger" label="Do Not Train" />;
         }
-        const lookup = blockApprovalMap[row.status];
+        const lookup = blockApprovalMap[row.derived_status];
         return lookup ? <TokenPill token={lookup.token} label={lookup.label} /> : null;
       },
     },

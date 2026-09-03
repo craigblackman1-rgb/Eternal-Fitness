@@ -9,13 +9,14 @@ import {
   IconAlertCircle, IconArrowUpRight, IconCalendar, IconCheck, IconCheckCircle, IconCheckSquare, IconFileText,
   IconTriangleAlert, IconUserPlus, IconUsers, IconClock, IconBot, IconMail,
 } from "@/components/icons";
-import type { DBClientComplianceStatus } from "@/types";
+import type { DBClientComplianceStatus, BlockStatus } from "@/types";
 import { formatFrequency } from "@/types";
 import { getQuietHomeTrainingClients } from "@/lib/progress-db";
 import { HOME_TRAINING_QUIET_DAYS } from "@/lib/progress";
 import { getClientsWithUpdateDue, getClientsUpdateDueSoon } from "@/lib/updates-due-db";
 import { UPDATE_INTERVAL_LABELS, type UpdateDueStatus } from "@/lib/updates-due";
 import type { StatusToken } from "@/lib/hubStatus";
+import { deriveBlockStatus } from "@/lib/block-status";
 
 interface RecentCheckIn {
   clientName: string;
@@ -89,26 +90,43 @@ export default async function DashboardPage() {
     .select("id, client_id, block_number, status, created_at, block_note, clients!inner(client_number, name)")
     .order("created_at", { ascending: false });
 
-  const activeBlocks = (blocks ?? []).filter((b) => b.status === "active");
-  const activeBlockIds = activeBlocks.map((b) => b.id);
+  const allBlockIds = (blocks ?? []).map((b) => b.id);
 
-  const { data: activeSessions } = activeBlockIds.length > 0
+  const { data: allBlockSessions } = allBlockIds.length > 0
     ? await supabase
         .from("sessions")
-        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, parent_session_id, blocks!inner(block_number, client_id)")
-        .in("block_id", activeBlockIds)
+        .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, status, completed_at, parent_session_id, blocks!inner(block_number, client_id)")
+        .in("block_id", allBlockIds)
         .order("session_number", { ascending: false })
     : { data: [] as any[] };
 
-  const nextUpByBlock = activeBlocks.map((block) => {
-    const blockSessions = (activeSessions ?? []).filter((s) => s.block_id === block.id);
-    const nextSession = blockSessions.find((s) => !s.data?.session_log?.completed_at);
+  // BUG-EF-109 — derive block status from sessions instead of trusting the stored column.
+  const derivedStatusByBlock = new Map<string, BlockStatus>();
+  const sessionsByBlock = new Map<string, any[]>();
+  for (const s of (allBlockSessions ?? []) as any[]) {
+    const list = sessionsByBlock.get(s.block_id) ?? [];
+    list.push(s);
+    sessionsByBlock.set(s.block_id, list);
+  }
+  for (const block of (blocks ?? [])) {
+    const blockSessions = sessionsByBlock.get(block.id) ?? [];
+    derivedStatusByBlock.set(block.id, deriveBlockStatus(block.status, blockSessions));
+  }
+
+  const derivedActiveBlocks = (blocks ?? []).filter((b) => derivedStatusByBlock.get(b.id) === "active");
+  const activeBlockIds = derivedActiveBlocks.map((b) => b.id);
+
+  const activeSessions = (allBlockSessions ?? []).filter((s: any) => activeBlockIds.includes(s.block_id));
+
+  const nextUpByBlock = derivedActiveBlocks.map((block) => {
+    const blockSessions = (activeSessions ?? []).filter((s: any) => s.block_id === block.id);
+    const nextSession = blockSessions.find((s: any) => !s.data?.session_log?.completed_at);
     const potSessions = blockSessions.filter((s: any) => !s.parent_session_id);
     const completedCount = potSessions.filter((s: any) => s.data?.session_log?.completed_at).length;
     return { block, nextSession, completedCount, totalCount: potSessions.length };
   });
 
-  const activeClientCount = new Set(activeBlocks.map((b) => b.client_id)).size;
+  const activeClientCount = new Set(derivedActiveBlocks.map((b) => b.client_id)).size;
 
   const needsAttention = (clients ?? []).filter(
     (c) => c.compliance_status && (c.compliance_status as DBClientComplianceStatus) !== "clear",
@@ -688,7 +706,7 @@ export default async function DashboardPage() {
                           </span>
                           {blockNote && <span className="block text-xs text-muted-foreground truncate">{blockNote}</span>}
                         </span>
-                        <StatusBadge status={block.status} />
+                        <StatusBadge status={derivedStatusByBlock.get(block.id) ?? block.status} />
                         <IconArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                       </Link>
                     );

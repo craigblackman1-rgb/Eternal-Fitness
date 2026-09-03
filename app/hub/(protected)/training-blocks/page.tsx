@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase-server";
 import { HubPageHeader } from "@/components/hub";
 import { PlanScheduleTable } from "./PlanScheduleTable";
+import { deriveBlockStatus } from "@/lib/block-status";
 import Link from "next/link";
-import type { DBBlock, ClientProfile } from "@/types";
+import type { DBBlock, ClientProfile, BlockStatus } from "@/types";
 
 const GOAL_LABELS: Record<string, string> = {
   strength: "Strength",
@@ -21,6 +22,7 @@ export type BlockWithClient = DBBlock & {
   programme: string | null;
   sessions_completed: number;
   sessions_total: number;
+  derived_status: BlockStatus;
 };
 
 interface ClientRow {
@@ -38,6 +40,9 @@ interface SessionRow {
   block_id: string;
   status: string | null;
   completed_at: string | null;
+  cancelled_at: string | null;
+  scheduled_at: string | null;
+  parent_session_id: string | null;
 }
 
 function programmeFor(client: ClientRow): string | null {
@@ -71,23 +76,28 @@ export default async function TrainingBlocksPage() {
   const { data: sessionRows } = blockIds.length
     ? await supabase
         .from("sessions")
-        .select("id, block_id, status, completed_at")
+        .select("id, block_id, status, completed_at, cancelled_at, scheduled_at, parent_session_id")
         .in("block_id", blockIds)
     : { data: [] as SessionRow[] };
 
   const clientById = new Map((clientRows ?? []).map((c) => [c.id, c]));
 
   const countsByBlock = new Map<string, { completed: number; total: number }>();
+  const sessionsByBlock = new Map<string, SessionRow[]>();
   for (const s of (sessionRows ?? []) as SessionRow[]) {
     const cur = countsByBlock.get(s.block_id) ?? { completed: 0, total: 0 };
     cur.total += 1;
     if (s.completed_at || s.status === "completed") cur.completed += 1;
     countsByBlock.set(s.block_id, cur);
+    const list = sessionsByBlock.get(s.block_id) ?? [];
+    list.push(s);
+    sessionsByBlock.set(s.block_id, list);
   }
 
   const rows: BlockWithClient[] = blocks.map((b) => {
     const client = clientById.get(b.client_id);
     const counts = countsByBlock.get(b.id) ?? { completed: 0, total: 0 };
+    const blockSessions = sessionsByBlock.get(b.id) ?? [];
     return {
       ...b,
       client_name: client?.name ?? null,
@@ -97,6 +107,7 @@ export default async function TrainingBlocksPage() {
       programme: client ? programmeFor(client) : null,
       sessions_completed: counts.completed,
       sessions_total: counts.total,
+      derived_status: deriveBlockStatus(b.status, blockSessions),
     };
   });
 

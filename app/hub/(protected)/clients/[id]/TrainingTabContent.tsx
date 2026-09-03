@@ -16,9 +16,10 @@ import type { TrainerizeHistoryData } from "@/components/hub";
 
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
-import type { SetLog } from "@/types";
+import type { SetLog, BlockStatus } from "@/types";
 import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName, sessionBlockContext } from "@/lib/session-display";
 import { isoToLocalTime, localPartsToISO, todayLocalISODate } from "@/lib/schedule-dates";
@@ -330,6 +331,17 @@ export function TrainingTabContent({
     }
     return map;
   }, [blocks, sessions]);
+
+  // BUG-EF-109 — derive block status from sessions instead of trusting the stored column.
+  const derivedStatusByBlock = useMemo(() => {
+    const map = new Map<string, BlockStatus>();
+    for (const block of blocks) {
+      const blockSessions = sessions.filter((s) => s.block_id === block.id);
+      map.set(block.id, deriveBlockStatus(block.status, blockSessions));
+    }
+    return map;
+  }, [blocks, sessions]);
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -510,7 +522,7 @@ export function TrainingTabContent({
                         {blockDateRangeLabel(block.id, sessions)}
                       </td>
                       <td className="py-2.5 px-5 text-foreground">{blockSessionCounts[block.block_number] ?? 0} sessions</td>
-                      <td className="py-2.5 px-5"><StatusBadge status={block.status} /></td>
+                      <td className="py-2.5 px-5"><StatusBadge status={derivedStatusByBlock.get(block.id) ?? block.status} /></td>
                       <td className="py-2.5 px-5 text-right whitespace-nowrap">
                         <Link href={`/hub/clients/${clientNumber}/blocks/${block.id}`} className="text-teal font-medium hover:underline">Open</Link>
                       </td>

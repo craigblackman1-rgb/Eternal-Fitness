@@ -38,6 +38,7 @@ import { RESOURCES } from "@/lib/resources";
 import { ContextStrip } from "./ContextStrip";
 import { TrainingTabContent } from "./TrainingTabContent";
 import { CommsTabContent } from "./CommsTabContent";
+import { deriveBlockStatus } from "@/lib/block-status";
 import { ClientBookingPanel } from "@/components/hub/ClientBookingPanel";
 
 function YesNoPill({ yes }: { yes: boolean }) {
@@ -261,8 +262,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   const p = client.profile;
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  // BUG-EF-109 — derive block status from sessions instead of trusting the stored column.
+  const derivedStatusByBlock = new Map<string, import("@/types").BlockStatus>();
+  for (const block of (blocks ?? [])) {
+    const blockSessions = (sessions ?? []).filter((s: any) => s.block_id === block.id);
+    derivedStatusByBlock.set(block.id, deriveBlockStatus(block.status, blockSessions));
+  }
+
   const latestBlock = blocks && blocks.length > 0
-    ? blocks.find((b) => b.status === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0]
+    ? blocks.find((b) => derivedStatusByBlock.get(b.id) === "active") ?? blocks.find((b) => b.status === "approved") ?? blocks[0]
     : null;
   // Most-recently-*completed* session, found by completed_at rather than by
   // taking sessions[0] — array order now follows scheduled_at (see the query

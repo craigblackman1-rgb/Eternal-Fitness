@@ -8,6 +8,7 @@ import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
 import { groupSessionsByWeek, isoToMonday, shiftDay, projectUnbookedDates } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName } from "@/lib/session-display";
 import type { Weekday } from "@/lib/scheduling";
@@ -97,13 +98,7 @@ export default async function BlockViewPage({
   const completedSessions = potSessions.filter((s) => sessionStatus(s) === "completed").length;
 
   // BUG-EF-109 — derive displayed status from sessions: all settled → complete
-  const derivedStatus: "draft" | "approved" | "active" | "complete" =
-    potSessions.length > 0 && potSessions.every((s) => {
-      const st = sessionStatus(s);
-      return st === "completed" || st === "cancelled";
-    })
-      ? "complete"
-      : (block.status as "draft" | "approved" | "active" | "complete");
+  const derivedStatus = deriveBlockStatus(block.status, sessions);
 
   // Client context descriptor for the header line — the primary declared
   // condition, reused from the profile rather than a new field (matches the
