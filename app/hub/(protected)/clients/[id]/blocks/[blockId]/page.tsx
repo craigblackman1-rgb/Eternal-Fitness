@@ -330,12 +330,17 @@ export default async function BlockViewPage({
               ? isProjected
                 ? `${total} projected · not yet booked`
                 : formatWeekRange(group.monday!)
+              // BUG-EF-115 — plan-week groups may contain completed sessions
+              // without dates. Count them separately so the label is truthful.
               : `${total} session${total === 1 ? "" : "s"} planned · no dates yet`;
             const progress = (isScheduled || isProjected)
               ? isProjected
                 ? `${done} of ${total} booked${cancelled ? ` · ${cancelled} cancelled` : ""}`
                 : `${done} of ${total} done${cancelled ? ` · ${cancelled} cancelled` : ""}`
-              : "Not scheduled";
+              // BUG-EF-115 — show completed count for plan-week groups
+              : done > 0
+                ? `${done} completed${total - done > 0 ? ` · ${total - done} not yet booked` : ""}`
+                : "Not scheduled";
 
             return (
               <details

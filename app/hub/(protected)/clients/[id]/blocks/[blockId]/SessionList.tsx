@@ -66,6 +66,21 @@ function formatDayLabel(
     const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
     return `${date} · ${isoToLocalTime(session.scheduled_at)}`;
   }
+  // BUG-EF-115 — a completed session with no booked date is not "not yet
+  // booked"; it was performed without an Outlook-imported slot. Show the
+  // truth of the data, never fabricate a date.
+  const status = deriveSessionStatus({
+    status: session.status,
+    cancelled_at: session.cancelled_at,
+    scheduled_at: session.scheduled_at,
+    completed_at: session.completed_at,
+    session_log: session.data?.session_log,
+  });
+  if (status === "completed") {
+    return session.completed_at
+      ? `Completed ${new Date(session.completed_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`
+      : "Completed — date unknown";
+  }
   const pos = chronologicalPositions.get(session.id);
   const posLabel = pos ? `${pos.position} of ${pos.total}` : `${session.session_number} of ${totalSessions}`;
   return `Session ${posLabel} · not yet booked`;
