@@ -258,7 +258,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                       <span className="inline-flex items-center rounded-full border border-rose/34 bg-rose/12 px-2.5 py-0.5 text-[11.5px] font-semibold text-rose">
                         In every session
                       </span>
-                      <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-2.5 py-0.5 text-[11.5px] font-semibold text-[var(--status-success)]">
+                      <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-2.5 py-0.5 text-[11.5px] font-semibold text-[var(--status-success-text)]">
                         <IconCheck className="w-3 h-3 mr-1" /> Doesn&apos;t use a session
                       </span>
                     </div>
@@ -292,7 +292,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
             {/* Partial-apply error */}
             {addResult && addResult.failed.length > 0 && (
               <div className="mt-3 border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] rounded-[var(--r-nested)] p-3 flex gap-2.5 items-start" role="alert">
-                <IconAlertTriangle className="w-4 h-4 text-[var(--status-warning)] shrink-0 mt-0.5" />
+                <IconAlertTriangle className="w-4 h-4 text-[var(--status-warning-text)] shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-bold text-foreground">{addResult.failed.length} scheduled session{addResult.failed.length === 1 ? "" : "s"} were not updated</div>
                   <div className="text-[12.5px] text-[var(--color-body)] mt-0.5">
@@ -312,7 +312,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
             {/* Remove result */}
             {removeResult && (removeResult.detached > 0 || removeResult.kept_logged > 0 || removeResult.kept_delivered > 0) && (
               <div className="mt-3 border border-[var(--status-success-border)] bg-[var(--status-success-bg)] rounded-[var(--r-nested)] p-3 flex gap-2.5 items-start">
-                <IconCheckCircle className="w-4 h-4 text-[var(--status-success)] shrink-0 mt-0.5" />
+                <IconCheckCircle className="w-4 h-4 text-[var(--status-success-text)] shrink-0 mt-0.5" />
                 <div className="text-[12.5px] text-[var(--color-body)]">
                   {removeResult.detached > 0 && <span>Removed from <b className="text-foreground">{removeResult.detached}</b> session{removeResult.detached === 1 ? "" : "s"}.</span>}
                   {removeResult.kept_logged > 0 && <span> Kept in <b className="text-foreground">{removeResult.kept_logged}</b> session{removeResult.kept_logged === 1 ? "" : "s"} with logged work.</span>}
@@ -324,7 +324,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
             {/* Pot rule */}
             {sessionsRemaining != null && (
               <div className="mt-3 flex gap-2.5 items-start border border-[var(--status-success-border)] bg-[var(--status-success-bg)] rounded-[var(--r-nested)] p-3 text-[12.5px] text-[var(--color-body)]">
-                <IconCheckCircle className="w-[15px] h-[15px] shrink-0 mt-0.5 text-[var(--status-success)]" />
+                <IconCheckCircle className="w-[15px] h-[15px] shrink-0 mt-0.5 text-[var(--status-success-text)]" />
                 <div>
                   Supplementary work runs alongside the session it is attached to. It is not counted, not numbered and not charged — {clientName} still has <b className="text-foreground">{sessionsRemaining} session{sessionsRemaining === 1 ? "" : "s"} remaining</b> on her package, exactly as she would without it.
                 </div>
@@ -453,15 +453,15 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                       <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--color-muted)] mb-2.5">What this changes</p>
                       <ul className="space-y-2.5">
                         <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">
-                          <IconCheck className="w-4 h-4 text-[var(--status-success)] shrink-0 mt-0.5" />
+                          <IconCheck className="w-4 h-4 text-[var(--status-success-text)] shrink-0 mt-0.5" />
                           <span>It is attached to <b className="text-foreground">every session</b> for {clientName} from now on. You will not add it session by session.</span>
                         </li>
                         <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">
-                          <IconCheck className="w-4 h-4 text-[var(--status-success)] shrink-0 mt-0.5" />
+                          <IconCheck className="w-4 h-4 text-[var(--status-success-text)] shrink-0 mt-0.5" />
                           <span>It <b className="text-foreground">does not use one of her sessions.</b> She still has <b className="text-foreground">{sessionsRemaining ?? "—"}</b> remaining — supplementary work is never counted or charged.</span>
                         </li>
                         <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">
-                          <IconCheck className="w-4 h-4 text-[var(--status-success)] shrink-0 mt-0.5" />
+                          <IconCheck className="w-4 h-4 text-[var(--status-success-text)] shrink-0 mt-0.5" />
                           <span>It is added to sessions already booked that have not happened yet.</span>
                         </li>
                         <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">
@@ -525,11 +525,11 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                 <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--color-muted)] mb-2.5">What happens to the sessions it is on</p>
                 <ul className="space-y-2.5">
                   <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">
-                    <IconCheck className="w-4 h-4 text-[var(--status-success)] shrink-0 mt-0.5" />
+                    <IconCheck className="w-4 h-4 text-[var(--status-success-text)] shrink-0 mt-0.5" />
                     <span>Sessions with <b className="text-foreground">no logged work</b> lose it — <b className="text-foreground">{removeRow.attached_not_logged}</b> session{removeRow.attached_not_logged === 1 ? "" : "s"}.</span>
                   </li>
                   <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">
-                    <IconCheck className="w-4 h-4 text-[var(--status-success)] shrink-0 mt-0.5" />
+                    <IconCheck className="w-4 h-4 text-[var(--status-success-text)] shrink-0 mt-0.5" />
                     <span>Sessions with <b className="text-foreground">logged work keep it</b> — their record stays exactly as it is ({removeRow.attached_and_logged} session{removeRow.attached_and_logged === 1 ? "" : "s"}).</span>
                   </li>
                   <li className="flex gap-2.5 items-start text-[13px] text-[var(--color-body)] leading-relaxed">

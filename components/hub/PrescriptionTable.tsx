@@ -67,7 +67,7 @@ function ExerciseRows({ ex, superset }: { ex: Exercise; superset: boolean }) {
             {ex.coaching_cue && <span className="italic text-muted-foreground">Cue: {ex.coaching_cue}</span>}
             {ex.coaching_cue && ex.modification && " · "}
             {ex.modification && (
-              <span className="text-[var(--status-warning)]">Mod: {ex.modification}</span>
+              <span className="text-[var(--status-warning-text)]">Mod: {ex.modification}</span>
             )}
           </td>
         </tr>

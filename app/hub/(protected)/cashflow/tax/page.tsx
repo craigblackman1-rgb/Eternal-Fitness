@@ -96,7 +96,7 @@ export default async function TaxPage() {
         data-od-id="tax-disclaimer"
         className="flex gap-3 rounded-[14px] border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4 text-[13px] leading-relaxed"
       >
-        <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning)] mt-px" />
+        <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning-text)] mt-px" />
         <div>
           <b className="text-[var(--color-ink)]">Estimate only — not a substitute for an accountant.</b>{" "}
           This figure is only as accurate as your categorised bank transactions and invoices. No real HSBC import has landed yet for every month, so treat this as directional until a full tax year of real data is in.
@@ -133,7 +133,7 @@ export default async function TaxPage() {
                 {dateRangeLabel} · based on {formatCurrency(calculation.taxable_profit)} taxable profit to date
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[.05em] text-[var(--status-warning)] bg-white border border-[var(--status-warning-border)] rounded-full px-3 py-1.5 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[.05em] text-[var(--status-warning-text)] bg-white border border-[var(--status-warning-border)] rounded-full px-3 py-1.5 shrink-0">
               <IconTriangleAlert className="w-3 h-3" />
               Estimate
             </span>

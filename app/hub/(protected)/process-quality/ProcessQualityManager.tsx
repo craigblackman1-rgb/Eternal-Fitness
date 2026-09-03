@@ -72,7 +72,7 @@ function registerStatusBadge(status: ProcessStatus) {
       return <StatusBadge status="active" />;
     case "review":
       return (
-        <span className="inline-flex items-center rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-warning)]">
+        <span className="inline-flex items-center rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-warning-text)]">
           Review
         </span>
       );
@@ -160,7 +160,7 @@ export function ProcessQualityManager({
               <span
                 className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-[5px] text-[11px] font-bold leading-none tabular-nums ${
                   isActive
-                    ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
+                    ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)]"
                     : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
                 }`}
               >
@@ -799,7 +799,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   return (
     <div className="px-5 py-4">
       <div className="mb-2.5 flex items-center gap-2.5">
-        <span className="grid h-[26px] w-[26px] place-items-center rounded-lg bg-[var(--status-primary-bg)] text-xs font-bold text-[var(--status-primary)]">
+        <span className="grid h-[26px] w-[26px] place-items-center rounded-lg bg-[var(--status-primary-bg)] text-xs font-bold text-[var(--status-primary-text)]">
           {n}
         </span>
         <h3 className="m-0 text-[15px] font-semibold text-foreground">{title}</h3>
@@ -1118,7 +1118,7 @@ function OverviewSection({ data }: { data: OverviewData }) {
 function ProcessStep({ n, title, desc, meta, isLast }: { n: number; title: string; desc: string; meta: string; isLast?: boolean }) {
   return (
     <div className="flex gap-3.5 px-5 py-3.5 relative">
-      <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold bg-[var(--status-primary-bg)] text-[var(--status-primary)] z-[1]">
+      <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] z-[1]">
         {n}
       </div>
       <div className="min-w-0">

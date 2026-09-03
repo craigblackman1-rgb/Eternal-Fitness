@@ -592,7 +592,7 @@ export function AvailabilityManager({
           {/* ── Time Off ── */}
           <HubCard padded={false}>
             <div className="flex items-start gap-3 p-5 pb-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning)]">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
                 <IconCalendar className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
@@ -627,7 +627,7 @@ export function AvailabilityManager({
                           className={cn(
                             "w-9 h-9 rounded-[10px] grid place-items-center shrink-0 border border-[var(--hub-border)]",
                             o.override_type === "time_off"
-                              ? "bg-[var(--status-warning-bg)] text-[var(--status-warning)]"
+                              ? "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]"
                               : "bg-[var(--status-success-bg)] text-[var(--color-teal)]"
                           )}
                         >

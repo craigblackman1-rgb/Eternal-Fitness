@@ -182,7 +182,7 @@ export function CancelSessionDialog({
             <span className="min-w-0">
               <span className="text-[13.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
                 Free — enough notice
-                <span className="inline-flex items-center rounded-full px-2 py-0 text-[10.5px] font-extrabold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success-border)]">
+                <span className="inline-flex items-center rounded-full px-2 py-0 text-[10.5px] font-extrabold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)]">
                   No session used
                 </span>
               </span>
@@ -202,7 +202,7 @@ export function CancelSessionDialog({
               }`}
             >
               <div className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 bg-white/72 ${
-                chargedFree === "charged" ? "text-[var(--status-danger)]" : "text-[var(--status-success)]"
+                chargedFree === "charged" ? "text-[var(--status-danger)]" : "text-[var(--status-success-text)]"
               }`}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={16} height={16}>
                   <circle cx="12" cy="12" r="9" />
@@ -217,7 +217,7 @@ export function CancelSessionDialog({
                     </>
                   ) : (
                     <>
-                      This <em className="font-extrabold not-italic text-[var(--status-success)]">will not consume a session</em>.
+                      This <em className="font-extrabold not-italic text-[var(--status-success-text)]">will not consume a session</em>.
                     </>
                   )}
                 </p>

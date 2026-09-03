@@ -90,7 +90,7 @@ export default async function ForecastPage() {
 
       {/* Disclaimer */}
       <div className="flex gap-3 rounded-[14px] p-[15px_18px] text-[12.5px] leading-relaxed bg-[var(--status-warning-bg)] border border-[var(--status-warning-border)]">
-        <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning)] mt-px" />
+        <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning-text)] mt-px" />
         <div>
           <b className="text-[var(--color-ink)]">Estimate only — not a substitute for an accountant.</b>{" "}
           There&rsquo;s no live bank connection, so this forecast is only as good as the balance above, which you&rsquo;ll need to keep updating by hand. Income and expenses are drawn from unpaid invoices and pending bills already in the Hub — not a sales pipeline.

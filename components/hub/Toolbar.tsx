@@ -93,7 +93,7 @@ export function Toolbar({
               className={cn(
                 "border-0 bg-transparent font-[inherit] text-[12.5px] font-semibold px-3 py-1.5 rounded-md cursor-pointer transition-colors",
                 activeSegment === seg.value
-                  ? "bg-white text-[var(--status-primary)] shadow-sm"
+                  ? "bg-white text-[var(--status-primary-text)] shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >

@@ -33,9 +33,9 @@ interface PackagePaymentsCardProps {
 }
 
 const paymentTone: Record<PaymentStatus, string> = {
-  paid: "text-[var(--status-success)]",
-  deposit: "text-[var(--status-primary)]",
-  pending: "text-[var(--status-warning)]",
+  paid: "text-[var(--status-success-text)]",
+  deposit: "text-[var(--status-primary-text)]",
+  pending: "text-[var(--status-warning-text)]",
   overdue: "text-[var(--status-danger)]",
   suspended: "text-[var(--status-danger)]",
 };

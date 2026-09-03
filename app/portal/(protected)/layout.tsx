@@ -22,7 +22,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
     <div className="min-h-screen bg-[var(--hub-canvas)] text-foreground">
       <a
         href="#portal-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary)] focus:shadow-md"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary-text)] focus:shadow-md"
       >
         Skip to content
       </a>

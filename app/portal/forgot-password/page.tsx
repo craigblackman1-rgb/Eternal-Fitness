@@ -63,8 +63,8 @@ export default function ForgotPasswordPage() {
           {status.kind === "sent" ? (
             <>
               <Alert className="border-[var(--status-success-border)] bg-[var(--status-success-bg)]">
-                <IconCheckCircle className="h-5 w-5 text-[var(--status-success)]" aria-hidden="true" />
-                <AlertTitle className="text-[var(--status-success)]">Check your email</AlertTitle>
+                <IconCheckCircle className="h-5 w-5 text-[var(--status-success-text)]" aria-hidden="true" />
+                <AlertTitle className="text-[var(--status-success-text)]">Check your email</AlertTitle>
                 <AlertDescription className="text-foreground">
                   If an account exists for that address, we&rsquo;ve sent a password reset link. The
                   link expires in 15 minutes.

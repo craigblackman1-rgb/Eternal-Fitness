@@ -30,15 +30,15 @@ const clearanceLabel: Record<MedicalClearanceStatus, string> = {
 };
 
 const clearanceTone: Record<MedicalClearanceStatus, string> = {
-  cleared: "text-[var(--status-success)]",
-  pending: "text-[var(--status-warning)]",
+  cleared: "text-[var(--status-success-text)]",
+  pending: "text-[var(--status-warning-text)]",
   not_required: "text-muted-foreground",
-  not_yet_requested: "text-[var(--status-warning)]",
+  not_yet_requested: "text-[var(--status-warning-text)]",
 };
 
 const riskTone: Record<RiskLevel, string> = {
-  low: "text-[var(--status-success)]",
-  medium: "text-[var(--status-warning)]",
+  low: "text-[var(--status-success-text)]",
+  medium: "text-[var(--status-warning-text)]",
   high: "text-[var(--status-danger)]",
 };
 
