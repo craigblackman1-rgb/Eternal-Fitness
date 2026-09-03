@@ -108,7 +108,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   // --- Find highest session_number and maxWeek in the target block ---
   const { data: targetSessions } = await supabase
     .from("sessions")
-    .select("session_number, week, parent_session_id")
+    .select("session_number, week, phase, parent_session_id")
     .eq("block_id", targetBlock.id);
   const targetPotSessions = (targetSessions ?? []).filter((s) => !s.parent_session_id);
   const maxTargetNumber = targetPotSessions.reduce((max, s) => Math.max(max, s.session_number), 0);
