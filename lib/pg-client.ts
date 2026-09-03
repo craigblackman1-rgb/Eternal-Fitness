@@ -6,12 +6,22 @@
 //   .select(cols, { count, head }) for count queries
 //   to-one embeds "*, rel(cols)" / "*, rel!inner(cols)"
 import { Pool, types } from "pg";
+import { toIsoTimestamp } from "./pg-timestamp";
 
-// Match PostgREST JSON behaviour: return timestamps/dates as strings
-// (not JS Date objects, which crash React rendering) and numerics as numbers.
-types.setTypeParser(1114, (v) => v); // timestamp
-types.setTypeParser(1184, (v) => v); // timestamptz
-types.setTypeParser(1082, (v) => v); // date
+// Match PostgREST JSON behaviour: return timestamps/dates as STRINGS (not JS Date
+// objects, which crash React rendering) and numerics as numbers.
+//
+// The string must be ISO-8601, which is what PostgREST actually emits. Postgres's
+// own text output is not: `2026-09-03 18:00:00+01` has a space instead of a `T` and
+// a bare two-digit offset. V8 parses that leniently; WebKit returns Invalid Date,
+// and so does V8 once you add the `T` without fixing the offset. Every browser on
+// iOS is WebKit and the trainer PWA runs on a phone, so passing the raw form through
+// rendered "Invalid Date" on the one device that mattered and made sort comparators
+// return NaN. toIsoTimestamp preserves the offset rather than converting to UTC, so
+// the instant AND the date prefix are unchanged — see lib/pg-timestamp.ts.
+types.setTypeParser(1114, toIsoTimestamp); // timestamp
+types.setTypeParser(1184, toIsoTimestamp); // timestamptz
+types.setTypeParser(1082, toIsoTimestamp); // date (already ISO; passes through)
 types.setTypeParser(1700, (v) => (v === null ? null : parseFloat(v))); // numeric
 
 let _pool: Pool | null = null;
