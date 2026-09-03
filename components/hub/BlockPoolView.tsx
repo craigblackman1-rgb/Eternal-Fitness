@@ -352,7 +352,7 @@ export function BlockPoolView({
                             {slot.session.charged_free === "free" ? "no session used" : slot.session.charged_free === "charged" ? "&minus;1 session" : "charged"}
                           </span>
                         )}
-                        {slot.status !== "completed" && slot.status !== "cancelled" && (
+                        {slot.status !== "completed" && slot.status !== "cancelled" && slot.session.parent_session_id && (
                           <span className="text-[11px] font-bold text-muted-foreground">no session used</span>
                         )}
                       </div>
