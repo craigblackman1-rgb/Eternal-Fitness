@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { deriveSessionPot } from "@/lib/session-pot";
-import { MAX_BLOCK_WEEKS, type Session, type Archetype, type Phase } from "@/types";
+import { resolveMaxWeek } from "@/lib/workout-roll-forward";
+import { type Session, type Archetype, type Phase } from "@/types";
 
 /**
  * CR-EF-146 — carry remaining sessions from one block into another.
@@ -112,11 +113,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .eq("block_id", targetBlock.id);
   const targetPotSessions = (targetSessions ?? []).filter((s) => !s.parent_session_id);
   const maxTargetNumber = targetPotSessions.reduce((max, s) => Math.max(max, s.session_number), 0);
-  const maxWeek = targetPotSessions.reduce(
-    (max, s) => (s.week != null && s.week > max ? s.week : max),
-    0,
-  );
-  const resolvedWeek = maxWeek > 0 ? maxWeek : 1;
+  const resolvedWeek = resolveMaxWeek(targetSessions ?? []);
 
   // --- Enforce 18-session cap ---
   const currentCount = targetPotSessions.length;
