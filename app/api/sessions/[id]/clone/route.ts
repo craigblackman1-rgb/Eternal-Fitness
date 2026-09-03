@@ -30,22 +30,6 @@ export async function POST(_request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
   }
 
-  // BUG-EF-124 — guard against duplicate sessions: refuse to create a new row
-  // when one already exists at this block_id + session_number. Return the
-  // existing row so the caller can use it instead of inserting a duplicate.
-  const duplicateSlot = slotRows.find((s) => s.session_number === sessionNumber);
-  if (duplicateSlot) {
-    const { data: existingRow } = await supabase
-      .from("sessions")
-      .select("*")
-      .eq("id", duplicateSlot.id)
-      .single();
-    return NextResponse.json(
-      { error: `Session ${sessionNumber} already exists in this block`, existing: existingRow },
-      { status: 409 },
-    );
-  }
-
   const originalData = (original.data ?? {}) as Session;
   const clonedData: Session = {
     ...originalData,
@@ -68,6 +52,24 @@ export async function POST(_request: Request, { params }: { params: { id: string
         }
       }
     }
+  }
+
+  // BUG-EF-124 — pre-insert existence check for a duplicate non-sub-session at
+  // this (block_id, session_number). Clone always creates a top-level session, so
+  // no parent_session_id guard is needed. Callers do not currently consume the
+  // `existing` field but it is returned for forward compat.
+  const { data: conflictRow } = await supabase
+    .from("sessions")
+    .select("*")
+    .eq("block_id", original.block_id)
+    .eq("session_number", sessionNumber)
+    .is("parent_session_id", null)
+    .maybeSingle();
+  if (conflictRow) {
+    return NextResponse.json(
+      { error: `Session ${sessionNumber} already exists in this block`, existing: conflictRow },
+      { status: 409 },
+    );
   }
 
   const { data: created, error: insertError } = await supabase

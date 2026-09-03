@@ -95,22 +95,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: "This block already has the maximum of 18 sessions" }, { status: 400 });
   }
 
-  // BUG-EF-124 — guard against duplicate sessions: refuse to create a new row
-  // when one already exists at this block_id + session_number. Return the
-  // existing row so the caller can use it instead of inserting a duplicate.
-  const duplicateSlot = slotRows.find((s) => s.session_number === sessionNumber);
-  if (duplicateSlot) {
-    const { data: existingRow } = await supabase
-      .from("sessions")
-      .select("*")
-      .eq("id", duplicateSlot.id)
-      .single();
-    return NextResponse.json(
-      { error: `Session ${sessionNumber} already exists in this block`, existing: existingRow },
-      { status: 409 },
-    );
-  }
-
   // week: required+validated when adding real content from a template
   // (matches the desktop AddWorkoutDialog contract, unchanged). For a
   // content-free session (booking, or build-from-scratch before the trainer
@@ -251,6 +235,26 @@ export async function POST(request: Request, { params }: { params: { id: string 
     sessionData.session_number = sessionNumber;
   } else if (scheduled_at) {
     insertPayload.scheduled_at = scheduled_at;
+  }
+
+  // BUG-EF-124 — pre-insert existence check for a duplicate non-sub-session at
+  // this (block_id, session_number). Sub-sessions legitimately share the parent's
+  // number so the check is skipped when parent_session_id is set. Callers do not
+  // currently consume the `existing` field but it is returned for forward compat.
+  if (!parent_session_id) {
+    const { data: conflictRow } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("block_id", params.id)
+      .eq("session_number", sessionNumber)
+      .is("parent_session_id", null)
+      .maybeSingle();
+    if (conflictRow) {
+      return NextResponse.json(
+        { error: `Session ${sessionNumber} already exists in this block`, existing: conflictRow },
+        { status: 409 },
+      );
+    }
   }
 
   const { data: created, error: insertError } = await supabase
