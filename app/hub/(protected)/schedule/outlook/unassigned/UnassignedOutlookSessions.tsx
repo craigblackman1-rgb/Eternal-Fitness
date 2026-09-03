@@ -72,10 +72,10 @@ export function UnassignedOutlookSessions() {
 
   useEffect(() => {
     setLoadingTemplates(true);
-    fetch("/api/workout-templates")
+    fetch("/api/workout-templates", { signal: AbortSignal.timeout(15000) })
       .then((res) => (res.ok ? res.json() : []))
       .then((list: TemplateOption[]) => setTemplates(list))
-      .catch(() => setTemplates([]))
+      .catch((e) => { setError(e instanceof Error ? (e.name === "TimeoutError" ? "The server took too long to respond — try refreshing." : e.message) : "Failed to load templates"); setTemplates([]); })
       .finally(() => setLoadingTemplates(false));
   }, []);
 
