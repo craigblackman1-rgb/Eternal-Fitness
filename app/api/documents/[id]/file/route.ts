@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
-import { ALLOWED_MIMES as INLINE_TYPES } from "@/lib/documents/allowed-mimes";
+import { INLINE_TYPES } from "@/lib/documents/allowed-mimes";
 
 function escapeFilename(name: string | null) {
   return (name || "document").replace(/"/g, '\\"');
