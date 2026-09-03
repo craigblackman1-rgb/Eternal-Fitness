@@ -381,7 +381,7 @@ export function TrainingTabContent({
     const res = await fetch(`/api/sessions/${session.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scheduled_at: localPartsToISO(scheduleDate, scheduleTime) }),
+      body: JSON.stringify({ scheduled_at: localPartsToISO(scheduleDate, scheduleTime), push_along: true }),
     });
     setSavingSchedule(false);
     if (!res.ok) {

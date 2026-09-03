@@ -262,6 +262,76 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
   }
 
+  // CR-EF-144 — push-along: when a session is cancelled or moved, shift every
+  // later planned session in the block forward by one session duration so the
+  // cancelled/moved slot is effectively closed. Only shifts non-settled sessions
+  // (completed and cancelled sessions stay put). Sub-sessions follow their parent.
+  const pushAlong = body.push_along === true;
+  if (pushAlong && (cancellingNow || "scheduled_at" in update)) {
+    try {
+      // The reference time is the slot being vacated: old scheduled_at for
+      // cancellations, new scheduled_at for moves.
+      const refTime = cancellingNow
+        ? (data.scheduled_at as string | null)
+        : (update.scheduled_at as string | null);
+
+      if (refTime && data.block_id) {
+        // Fetch client session duration (default 60 min)
+        const { data: sessRow } = await supabase
+          .from("sessions")
+          .select("client_id")
+          .eq("id", params.id)
+          .maybeSingle();
+        const { data: client } = sessRow
+          ? await supabase.from("clients").select("session_duration").eq("id", sessRow.client_id).maybeSingle()
+          : { data: null };
+        const durationMs = ((client?.session_duration as number) ?? 60) * 60 * 1000;
+        const refMs = new Date(refTime).getTime();
+
+        // Fetch all sessions in the same block
+        const { data: blockSessions } = await supabase
+          .from("sessions")
+          .select("id, scheduled_at, status, cancelled_at, completed_at, parent_session_id")
+          .eq("block_id", data.block_id);
+
+        if (blockSessions && blockSessions.length > 0) {
+          // Identify later planned sessions (not sub-sessions — they follow parent)
+          const laterSessions = blockSessions.filter((s) => {
+            if (s.id === params.id) return false;
+            if (s.parent_session_id) return false; // sub-sessions follow parent
+            if (!s.scheduled_at) return false;
+            const sMs = new Date(s.scheduled_at).getTime();
+            if (sMs <= refMs) return false;
+            // Use deriveSessionStatus-style precedence inline
+            const isSettled =
+              s.status === "completed" ||
+              s.status === "cancelled" ||
+              !!s.completed_at ||
+              !!s.cancelled_at;
+            return !isSettled;
+          });
+
+          // Shift each later session forward by durationMs
+          for (const s of laterSessions) {
+            const newTime = new Date(new Date(s.scheduled_at!).getTime() + durationMs).toISOString();
+            await supabase
+              .from("sessions")
+              .update({ scheduled_at: newTime })
+              .eq("id", s.id);
+            // Cascade to sub-sessions
+            await supabase
+              .from("sessions")
+              .update({ scheduled_at: newTime })
+              .eq("parent_session_id", s.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Push-along failed (sessions may be inconsistently spaced):", err);
+      // Non-fatal: the main update already succeeded
+    }
+  }
+
   // Push the change to the Outlook calendar immediately; the 15-minute cron
   // repairs any miss, so a sync failure must never fail the PATCH itself.
   if ("scheduled_at" in update || "cancelled_at" in update) {

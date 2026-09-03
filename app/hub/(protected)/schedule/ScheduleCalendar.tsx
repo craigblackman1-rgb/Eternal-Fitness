@@ -95,8 +95,10 @@ export function ScheduleCalendar({
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("10:00");
+  const [reschedulePushAlong, setReschedulePushAlong] = useState(true);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [cancelPushAlong, setCancelPushAlong] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showCancelled, setShowCancelled] = useState(false);
 
@@ -127,6 +129,7 @@ export function ScheduleCalendar({
     setBusyId(entry.id);
     const ok = await patchSession(entry.id, {
       scheduled_at: localPartsToISO(rescheduleDate, rescheduleTime),
+      push_along: reschedulePushAlong,
     });
     setBusyId(null);
     if (!ok) {
@@ -149,6 +152,7 @@ export function ScheduleCalendar({
     const ok = await patchSession(entry.id, {
       cancelled_at: new Date().toISOString(),
       cancel_reason: cancelReason.trim() === "" ? null : cancelReason.trim(),
+      push_along: cancelPushAlong,
     });
     setBusyId(null);
     if (!ok) {
@@ -387,6 +391,15 @@ export function ScheduleCalendar({
                         onChange={(e) => setRescheduleTime(e.target.value)}
                         className="w-28 rounded-lg"
                       />
+                      <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={reschedulePushAlong}
+                          onChange={(e) => setReschedulePushAlong(e.target.checked)}
+                          className="h-3.5 w-3.5 accent-rose"
+                        />
+                        Push later sessions along
+                      </label>
                       <Button
                         size="sm"
                         disabled={busy}
@@ -411,6 +424,15 @@ export function ScheduleCalendar({
                         onChange={(e) => setCancelReason(e.target.value)}
                         className="w-56 rounded-lg"
                       />
+                      <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={cancelPushAlong}
+                          onChange={(e) => setCancelPushAlong(e.target.checked)}
+                          className="h-3.5 w-3.5 accent-rose"
+                        />
+                        Push later sessions along
+                      </label>
                       <Button
                         size="sm"
                         disabled={busy}

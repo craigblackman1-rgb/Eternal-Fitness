@@ -59,6 +59,7 @@ export function SessionRow({
   const [rescheduling, setRescheduling] = useState(false);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
+  const [pushAlong, setPushAlong] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const settled = status === "completed" || status === "cancelled";
@@ -83,7 +84,7 @@ export function SessionRow({
     const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scheduled_at: localPartsToISO(reschedDate, reschedTime) }),
+      body: JSON.stringify({ scheduled_at: localPartsToISO(reschedDate, reschedTime), push_along: pushAlong }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -228,6 +229,15 @@ export function SessionRow({
             onChange={(e) => setReschedTime(e.target.value)}
             className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
           />
+          <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={pushAlong}
+              onChange={(e) => setPushAlong(e.target.checked)}
+              className="h-3.5 w-3.5 accent-rose"
+            />
+            Push later sessions along
+          </label>
           <button
             type="button"
             onClick={saveReschedule}
