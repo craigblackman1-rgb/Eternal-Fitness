@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { IconUpload, IconX } from "@/components/icons";
 import { DOCUMENT_KIND_LABEL, type DocumentKind } from "@/lib/documents/types";
+import { ACCEPT_ATTRIBUTE } from "@/lib/documents/allowed-mimes";
 import { toast } from "sonner";
 
 interface DocumentUploadFormProps {
@@ -83,10 +84,11 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
         />
       </div>
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">File (any type, max 10 MB)</label>
+        <label className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">File (max 10 MB)</label>
         <input
           ref={inputRef}
           type="file"
+          accept={ACCEPT_ATTRIBUTE}
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="h-8 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs file:mr-2 file:border-0 file:bg-transparent file:text-xs file:font-medium"
         />

@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
-
-const INLINE_TYPES = new Set([
-  "application/pdf",
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-]);
+import { ALLOWED_MIMES as INLINE_TYPES } from "@/lib/documents/allowed-mimes";
 
 function escapeFilename(name: string | null) {
   return (name || "document").replace(/"/g, '\\"');
