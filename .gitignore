@@ -36,3 +36,7 @@ dist-ssr
 
 # Per-client Trainerize captures — client health data, lives in the DB, never in git
 .context/trainerize-import-*.json
+
+# Generated TypeScript build artefact. Tracked until 2026-09-03, when it had
+# caused a merge conflict or a dirty-tree block on most merges of the day.
+tsconfig.tsbuildinfo
