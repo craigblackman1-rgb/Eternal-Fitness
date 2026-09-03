@@ -60,6 +60,7 @@ export function BlockPoolView({
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
+  const [reschedulePushAlong, setReschedulePushAlong] = useState(true);
   const [saving, setSaving] = useState(false);
   // CR-EF-101 — supplementary work dialog state
   const [supplementaryParentId, setSupplementaryParentId] = useState<string | null>(null);
@@ -159,7 +160,7 @@ export function BlockPoolView({
       const res = await fetch(`/api/sessions/${session.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scheduled_at: localPartsToISO(reschedDate, reschedTime) }),
+        body: JSON.stringify({ scheduled_at: localPartsToISO(reschedDate, reschedTime), push_along: reschedulePushAlong }),
       });
       if (!res.ok) {
         toast.error("Failed to reschedule");
@@ -394,6 +395,50 @@ export function BlockPoolView({
                     </div>
                     </div>
 
+                    {/* Inline reschedule editor — anchored to this session row */}
+                    {rescheduleId === slot.session.id && (
+                      <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-[var(--hub-hover)] border-b border-[var(--hub-border)]">
+                        <span className="text-xs text-muted-foreground">Move to</span>
+                        <input
+                          type="date"
+                          value={reschedDate}
+                          onChange={(e) => setReschedDate(e.target.value)}
+                          className="h-7 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                        />
+                        <input
+                          type="time"
+                          value={reschedTime}
+                          onChange={(e) => setReschedTime(e.target.value)}
+                          className="h-7 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                        />
+                        <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={reschedulePushAlong}
+                            onChange={(e) => setReschedulePushAlong(e.target.checked)}
+                            className="h-3.5 w-3.5 accent-rose"
+                          />
+                          Push later sessions along
+                        </label>
+                        <Button
+                          size="sm"
+                          disabled={saving}
+                          onClick={() => saveReschedule(slot.session)}
+                          className="h-7 rounded-lg bg-rose text-white hover:bg-rose/90"
+                        >
+                          {saving ? "Saving…" : "Save"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setRescheduleId(null)}
+                          className="h-7 rounded-lg"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+
                     {/* CR-EF-101 — sub-sessions nested under parent */}
                     {children.length > 0 && (
                       <div className="border-b border-[var(--hub-border)] last:border-b-0">
@@ -500,6 +545,50 @@ export function BlockPoolView({
                       </Button>
                     </div>
                   </div>
+
+                  {/* Inline reschedule editor for unbooked sessions */}
+                  {rescheduleId === slot.session.id && (
+                    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-[var(--hub-hover)] border-b border-[var(--hub-border)]">
+                      <span className="text-xs text-muted-foreground">Book for</span>
+                      <input
+                        type="date"
+                        value={reschedDate}
+                        onChange={(e) => setReschedDate(e.target.value)}
+                        className="h-7 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                      />
+                      <input
+                        type="time"
+                        value={reschedTime}
+                        onChange={(e) => setReschedTime(e.target.value)}
+                        className="h-7 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                      />
+                      <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={reschedulePushAlong}
+                          onChange={(e) => setReschedulePushAlong(e.target.checked)}
+                          className="h-3.5 w-3.5 accent-rose"
+                        />
+                        Push later sessions along
+                      </label>
+                      <Button
+                        size="sm"
+                        disabled={saving}
+                        onClick={() => saveReschedule(slot.session)}
+                        className="h-7 rounded-lg bg-rose text-white hover:bg-rose/90"
+                      >
+                        {saving ? "Saving…" : "Save"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setRescheduleId(null)}
+                        className="h-7 rounded-lg"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
                 ))}
               </div>
             )}
@@ -587,41 +676,6 @@ export function BlockPoolView({
           </div>
         </div>
       </div>
-
-      {/* Reschedule inline */}
-      {rescheduleId && (
-        <div className="fixed bottom-4 right-4 z-[600] bg-[var(--ink)] text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
-          <span>Move to</span>
-          <input
-            type="date"
-            value={reschedDate}
-            onChange={(e) => setReschedDate(e.target.value)}
-            className="h-7 rounded-lg border border-white/20 bg-white/10 px-2 text-xs text-white focus:outline-none focus:border-rose"
-          />
-          <input
-            type="time"
-            value={reschedTime}
-            onChange={(e) => setReschedTime(e.target.value)}
-            className="h-7 rounded-lg border border-white/20 bg-white/10 px-2 text-xs text-white focus:outline-none focus:border-rose"
-          />
-          <button
-            onClick={() => {
-              const session = sessions.find((s) => s.id === rescheduleId);
-              if (session) saveReschedule(session);
-            }}
-            disabled={saving}
-            className="h-7 rounded-lg bg-rose px-3 text-xs font-semibold text-white hover:bg-rose/90 disabled:opacity-50"
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-          <button
-            onClick={() => setRescheduleId(null)}
-            className="h-7 rounded-lg px-2.5 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
 
       {/* Cancel Dialog */}
       {cancelSession && (
