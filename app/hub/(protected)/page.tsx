@@ -280,7 +280,7 @@ export default async function DashboardPage() {
           { href: "/hub/schedule", label: "Log check-in", icon: <IconCheck className="w-4 h-4" /> },
           { href: "/hub/exercises", label: "Browse exercise library", icon: <IconFileText className="w-4 h-4" /> },
           { href: "/hub/clients", label: "View all clients", icon: <IconUsers className="w-4 h-4" /> },
-          { href: "/hub/tasks", label: openTaskCount ? `Tasks (${openTaskCount})` : "Tasks", icon: <IconCheckSquare className="w-4 h-4" /> },
+          { href: "/hub/tasks", label: "Tasks", icon: <IconCheckSquare className="w-4 h-4" />, badgeCount: openTaskCount },
         ]}
       />
 

@@ -859,7 +859,7 @@ export function EditSheet({
       <div className="note">
         <span className="note-b">i</span>
         <div>
-          <b>Workout templates.</b> The same library and the same archetype
+          <b>Workouts.</b> The same library and the same archetype
           filters as the desktop template browser — no separate mobile-only set.
         </div>
       </div>
@@ -869,7 +869,7 @@ export function EditSheet({
           value={tmplQuery}
           onChange={(e) => setTmplQuery(e.target.value)}
           placeholder="Search templates…"
-          aria-label="Search workout templates"
+          aria-label="Search workouts"
         />
       </div>
       <div className="chips">

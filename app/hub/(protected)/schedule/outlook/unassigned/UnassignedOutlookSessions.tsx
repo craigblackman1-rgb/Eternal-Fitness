@@ -72,10 +72,10 @@ export function UnassignedOutlookSessions() {
 
   useEffect(() => {
     setLoadingTemplates(true);
-    fetch("/api/workout-templates")
+    fetch("/api/workout-templates", { signal: AbortSignal.timeout(15000) })
       .then((res) => (res.ok ? res.json() : []))
       .then((list: TemplateOption[]) => setTemplates(list))
-      .catch(() => setTemplates([]))
+      .catch((e) => { setError(e instanceof Error ? (e.name === "TimeoutError" ? "The server took too long to respond — try refreshing." : e.message) : "Failed to load templates"); setTemplates([]); })
       .finally(() => setLoadingTemplates(false));
   }, []);
 
@@ -178,7 +178,7 @@ export function UnassignedOutlookSessions() {
   return (
     <div className="space-y-6">
       <HubAlert severity="info" title="How bulk assign works">
-        Select one or more Outlook-placeholder sessions, then pick a workout template. The template&rsquo;s
+        Select one or more Outlook-placeholder sessions, then pick a workout. The template&rsquo;s
         exercises will be applied to every selected session, replacing the &ldquo;No workout assigned yet&rdquo; placeholder.
       </HubAlert>
 
