@@ -226,6 +226,68 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
   }
 
+  // BUG-EF-118 — same-client collision check: when rescheduling, verify the
+  // target slot doesn't already hold a different session for the same client.
+  // Server-side is authoritative — two sessions silently sharing one timestamp
+  // is the exact bug this catches.
+  if ("scheduled_at" in update && update.scheduled_at && !cancellingNow) {
+    // Get the client_id via the session's block
+    const { data: sessForClient } = await supabase
+      .from("sessions")
+      .select("block_id")
+      .eq("id", params.id)
+      .maybeSingle();
+
+    if (sessForClient?.block_id) {
+      const { data: blockForClient } = await supabase
+        .from("blocks")
+        .select("client_id")
+        .eq("id", sessForClient.block_id)
+        .maybeSingle();
+
+      if (blockForClient?.client_id) {
+        // Find any other session for the same client at the same timestamp
+        // (exclude cancelled sessions and this session itself)
+        const targetTime = update.scheduled_at as string;
+        const { data: siblings } = await supabase
+          .from("sessions")
+          .select("id, session_number, block_id, scheduled_at")
+          .eq("scheduled_at", targetTime)
+          .neq("id", params.id)
+          .is("cancelled_at", null);
+
+        if (siblings && siblings.length > 0) {
+          // Filter to same client via block join
+          const { data: siblingBlocks } = await supabase
+            .from("blocks")
+            .select("id, client_id, block_number")
+            .in("id", siblings.map((s) => s.block_id));
+
+          const sameClientSiblings = (siblingBlocks ?? []).filter(
+            (b) => b.client_id === blockForClient.client_id,
+          );
+          const sameClientBlockIds = new Set(sameClientSiblings.map((b) => b.id));
+          const clashes = siblings.filter((s) => sameClientBlockIds.has(s.block_id));
+
+          if (clashes.length > 0) {
+            const clash = clashes[0];
+            const clashBlock = sameClientSiblings.find((b) => b.id === clash.block_id);
+            return NextResponse.json(
+              {
+                error: `This client already has Session ${clash.session_number} (Block ${clashBlock?.block_number ?? "?"}) at that time.`,
+                code: "scheduling_collision",
+                clashSessionId: clash.id,
+                clashSessionNumber: clash.session_number,
+                clashBlockNumber: clashBlock?.block_number ?? null,
+              },
+              { status: 409 },
+            );
+          }
+        }
+      }
+    }
+  }
+
   const { data, error } = await supabase.from("sessions").update(update).eq("id", params.id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

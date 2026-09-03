@@ -385,7 +385,8 @@ export function TrainingTabContent({
     });
     setSavingSchedule(false);
     if (!res.ok) {
-      toast.error("Failed to save session date");
+      const err = await res.json().catch(() => ({}));
+      toast.error(err.error || "Failed to save session date");
       return;
     }
     toast.success(session.scheduled_at ? "Session rescheduled" : "Session scheduled");

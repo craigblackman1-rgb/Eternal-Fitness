@@ -69,13 +69,17 @@ export interface UnconfirmedBooking {
   client_id: string | null;
 }
 
-async function patchSession(id: string, body: Record<string, unknown>): Promise<boolean> {
+async function patchSession(id: string, body: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(`/api/sessions/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return res.ok;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.error || "Request failed" };
+  }
+  return { ok: true };
 }
 
 export function ScheduleCalendar({
@@ -127,13 +131,13 @@ export function ScheduleCalendar({
       return;
     }
     setBusyId(entry.id);
-    const ok = await patchSession(entry.id, {
+    const result = await patchSession(entry.id, {
       scheduled_at: localPartsToISO(rescheduleDate, rescheduleTime),
       push_along: reschedulePushAlong,
     });
     setBusyId(null);
-    if (!ok) {
-      toast.error("Failed to reschedule");
+    if (!result.ok) {
+      toast.error(result.error || "Failed to reschedule");
       return;
     }
     toast.success("Session rescheduled");
@@ -149,14 +153,14 @@ export function ScheduleCalendar({
 
   const saveCancel = async (entry: ScheduledEntry) => {
     setBusyId(entry.id);
-    const ok = await patchSession(entry.id, {
+    const result = await patchSession(entry.id, {
       cancelled_at: new Date().toISOString(),
       cancel_reason: cancelReason.trim() === "" ? null : cancelReason.trim(),
       push_along: cancelPushAlong,
     });
     setBusyId(null);
-    if (!ok) {
-      toast.error("Failed to cancel");
+    if (!result.ok) {
+      toast.error(result.error || "Failed to cancel");
       return;
     }
     toast.success("Session cancelled");
