@@ -306,7 +306,7 @@ export function ReviewFlowClient({
                 )}
               >
                 <div className="shrink-0">
-                  {decision === "continue" && <IconCheckCircle className="w-4 h-4 text-[var(--status-success)]" />}
+                  {decision === "continue" && <IconCheckCircle className="w-4 h-4 text-[var(--status-success-text)]" />}
                   {decision === "adjust" && <IconClipboardList className="w-4 h-4 text-rose" />}
                   {decision === "restart" && <IconRefreshCw className="w-4 h-4 text-amber" />}
                   {!decision && <IconClock className="w-4 h-4 text-muted-foreground" />}
@@ -399,7 +399,7 @@ function Stepper({ steps, current, onStepClick }: { steps: readonly string[]; cu
                   isOn
                     ? "bg-rose border-rose text-white"
                     : isDone
-                      ? "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--status-success)]"
+                      ? "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--status-success-text)]"
                       : "bg-[var(--hub-card)] border-[var(--hub-field-border)] text-muted-foreground",
                 )}
               >
@@ -887,7 +887,7 @@ function ConfirmationPanel({
 
       <HubCard>
         <div className="text-center py-10 px-8">
-          <div className="w-14 h-14 rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] grid place-items-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center mx-auto mb-4">
             <IconCheckCircle className="w-7 h-7" />
           </div>
           <h2 className="text-[19px] font-extrabold text-foreground mb-1.5">Decision recorded</h2>
@@ -941,7 +941,7 @@ function ConfirmationPanel({
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold text-foreground">
                 {DECISIONS[review.decision]?.label ?? review.decision}
-                <span className="ml-1.5 inline-flex items-center h-[22px] px-2.5 rounded-full bg-[var(--status-success-bg)] border border-[var(--status-success-border)] text-[11.5px] font-semibold text-[var(--status-success)]">
+                <span className="ml-1.5 inline-flex items-center h-[22px] px-2.5 rounded-full bg-[var(--status-success-bg)] border border-[var(--status-success-border)] text-[11.5px] font-semibold text-[var(--status-success-text)]">
                   Just recorded
                 </span>
               </p>
@@ -987,7 +987,7 @@ function InfoLine({ children, variant = "success" }: { children: React.ReactNode
     <div className={cn("flex items-start gap-2 text-[12.5px] text-foreground/75 p-3 bg-[var(--hub-hover)] border rounded-[10px]",
       variant === "danger" ? "bg-[var(--status-danger-bg)] border-[var(--status-danger-border)]" : "border-[var(--hub-border)]",
     )}>
-      {variant === "success" && <IconCheckCircle className="w-[15px] h-[15px] shrink-0 mt-0.5 text-[var(--status-success)]" />}
+      {variant === "success" && <IconCheckCircle className="w-[15px] h-[15px] shrink-0 mt-0.5 text-[var(--status-success-text)]" />}
       {variant === "danger" && <IconTriangleAlert className="w-[15px] h-[15px] shrink-0 mt-0.5 text-[var(--status-danger)]" />}
       {variant === "muted" && <IconClock className="w-[15px] h-[15px] shrink-0 mt-0.5 text-muted-foreground" />}
       <span>{children}</span>

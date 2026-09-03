@@ -42,7 +42,7 @@ export function SubSessionRow({ subSession, clientId, blockId }: SubSessionRowPr
     stateClass = "text-[var(--status-danger)] bg-[var(--status-danger-bg)] border-[var(--status-danger-border)]";
   } else if (hasStarted) {
     stateLabel = "In progress";
-    stateClass = "text-[var(--status-warning)] bg-[var(--status-warning-bg)] border-[var(--status-warning-border)]";
+    stateClass = "text-[var(--status-warning-text)] bg-[var(--status-warning-bg)] border-[var(--status-warning-border)]";
   } else {
     stateLabel = "Not logged yet";
     stateClass = "text-muted-foreground bg-[var(--hub-hover)] border-[var(--hub-border)]";

@@ -321,7 +321,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Archetypes</div>
             <div className="flex flex-wrap gap-1">
               {archetypes.map((a) => (
-                <span key={a} className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">
+                <span key={a} className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">
                   {a}
                 </span>
               ))}

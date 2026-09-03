@@ -611,7 +611,7 @@ export default function ParqEditClient({
               <HubCardHeader icon={<IconFileSignature className="w-4 h-4" />} title="Section 9 — Declaration &amp; signature" color="amber" />
               <div className="px-5 pb-5">
                 <div className="flex gap-3.5 py-1.5">
-                  <div className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-warning-bg)] text-[var(--status-warning)] flex items-center justify-center shrink-0">
+                  <div className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] flex items-center justify-center shrink-0">
                     <IconFileSignature className="w-[18px] h-[18px]" />
                   </div>
                   <div>

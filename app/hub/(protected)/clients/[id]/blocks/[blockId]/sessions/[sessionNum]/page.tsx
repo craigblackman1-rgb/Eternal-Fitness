@@ -697,7 +697,7 @@ export default function SessionViewPage({
               let stateClass: string;
               if (hasLogged && loggedExercises < totalExercises) {
                 stateLabel = `Logged ${loggedExercises} of ${totalExercises}`;
-                stateClass = "text-[var(--status-warning)] bg-[var(--status-warning-bg)] border-[var(--status-warning-border)]";
+                stateClass = "text-[var(--status-warning-text)] bg-[var(--status-warning-bg)] border-[var(--status-warning-border)]";
               } else if (hasLogged) {
                 stateLabel = "Logged";
                 stateClass = "text-[var(--teal)] bg-[var(--status-success-bg)] border-[var(--status-success-border)]";

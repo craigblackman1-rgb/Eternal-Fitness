@@ -546,7 +546,7 @@ export function AddWorkoutClient({
       {/* ── Equipment context banner (persistent across all non-guard views) ── */}
       {view !== "guard" && view !== "done" && (
         <div className="flex items-start gap-3 p-3.5 rounded-[16px] bg-[var(--hub-card)] border border-[var(--hub-border)]">
-          <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success)] grid place-items-center shrink-0">
+          <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center shrink-0">
             {IC.check}
           </span>
           <div className="flex-1 min-w-0">
@@ -840,7 +840,7 @@ export function AddWorkoutClient({
           <Stepper steps={[{ n: 1, label: "Paste" }, { n: 2, label: "Review & edit" }, { n: 3, label: "Preview" }]} current={2} />
           <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--hub-border)]">
-              <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success)] grid place-items-center shrink-0">{IC.check}</span>
+              <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center shrink-0">{IC.check}</span>
               <div>
                 <p className="text-[13.5px] font-bold text-[var(--color-ink)]">Structured from your paste</p>
                 <p className="text-xs text-muted-foreground">Review and correct before it&rsquo;s added — nothing is saved yet.</p>
@@ -916,7 +916,7 @@ export function AddWorkoutClient({
         <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--hub-border)]">
-            <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success)] grid place-items-center shrink-0">{IC.check}</span>
+            <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center shrink-0">{IC.check}</span>
             <div>
               <p className="text-base font-extrabold text-[var(--color-ink)] tracking-tight">{preview.name}</p>
               <p className="text-[12.5px] text-muted-foreground mt-0.5">
@@ -969,7 +969,7 @@ export function AddWorkoutClient({
       {view === "done" && (
         <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
           <div className="text-center py-12 px-8">
-            <div className="w-[60px] h-[60px] rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] grid place-items-center mx-auto mb-4">
+            <div className="w-[60px] h-[60px] rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center mx-auto mb-4">
               {IC.checkCircle}
             </div>
             <h2 className="text-lg font-extrabold text-[var(--color-ink)] mb-1.5">Added to {clientName}&rsquo;s programme</h2>
