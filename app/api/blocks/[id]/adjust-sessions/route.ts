@@ -37,9 +37,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
   if (blockError || !block) return NextResponse.json({ error: "Block not found" }, { status: 404 });
 
   // Fetch all sessions — select the extra columns needed by deriveSessionStatus
+  // and the week column for correct week resolution when adding sessions.
+  // CR-EF-143: the pg shim returns untyped rows, so a missing column here
+  // silently returns undefined rather than erroring — always list what you need.
   const { data: sessions, error: sessionsError } = await supabase
     .from("sessions")
-    .select("id, session_number, status, charged_free, parent_session_id, cancelled_at, completed_at, scheduled_at, data")
+    .select("id, session_number, status, charged_free, parent_session_id, cancelled_at, completed_at, scheduled_at, week, data")
     .eq("block_id", params.id)
     .order("session_number", { ascending: true });
   if (sessionsError) return NextResponse.json({ error: sessionsError.message }, { status: 500 });
