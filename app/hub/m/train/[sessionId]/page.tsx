@@ -80,6 +80,12 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
 
   const blockNumber = block?.block_number ?? null;
   const sessionRow = session as DBSession;
+  // Normalise scheduled_at to strict ISO-8601 so WebKit (iOS Safari) doesn't
+  // render "Invalid Date". Node/V8 parses Postgres's raw format correctly;
+  // the client then only ever receives a string every engine agrees on.
+  const scheduledAtISO = sessionRow.scheduled_at
+    ? new Date(sessionRow.scheduled_at).toISOString()
+    : null;
   let sessionData = sessionRow.data ?? null;
   const sessionLog = sessionData?.session_log ?? null;
   const deliveryMode: DeliveryMode = client?.delivery_mode ?? "studio_1to1";
@@ -118,7 +124,7 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
       week={sessionRow.week}
       data={sessionData}
       sessionLog={sessionLog}
-      scheduledAt={sessionRow.scheduled_at ?? null}
+      scheduledAt={scheduledAtISO}
       blockNumber={blockNumber}
       clientId={block?.client_id ?? null}
       clientName={client?.name ?? "Unknown client"}

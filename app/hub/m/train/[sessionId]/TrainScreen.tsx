@@ -1127,10 +1127,6 @@ export function TrainScreen({
   );
 
   // ── Render helpers ─────────────────────────────────────────────
-  const sessionDate = scheduledAt
-    ? new Date(scheduledAt).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-    : "";
-
   const topStatusLabel = progress.doneExCount === allSets.length
     ? "All logged"
     : progress.started
