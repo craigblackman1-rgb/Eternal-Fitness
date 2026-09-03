@@ -70,7 +70,17 @@ async function handle(request: Request) {
   }
 
   try {
-    const result = await syncCalendar();
+    const outboundEnabled = process.env.CALENDAR_OUTBOUND_SYNC === "enabled";
+
+    let result: Record<string, unknown> | Awaited<ReturnType<typeof syncCalendar>>;
+    if (outboundEnabled) {
+      result = await syncCalendar();
+    } else {
+      console.log(
+        "[sync-calendar] Outbound sync disabled (CALENDAR_OUTBOUND_SYNC is not \"enabled\"). Skipping app→Outlook push.",
+      );
+      result = { outboundSync: "skipped" };
+    }
 
     // CR-EF-050 — read-back for Microsoft Bookings appointments, same 15-min
     // cadence, separate try/catch so a failure here never blocks the (older,
