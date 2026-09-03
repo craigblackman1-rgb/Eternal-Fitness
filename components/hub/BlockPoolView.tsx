@@ -354,9 +354,10 @@ export function BlockPoolView({
                             {slot.session.charged_free === "free" ? "no session used" : slot.session.charged_free === "charged" ? "&minus;1 session" : "charged"}
                           </span>
                         )}
-                        {slot.status !== "completed" && slot.status !== "cancelled" && slot.session.parent_session_id && (
-                          <span className="text-[11px] font-bold text-muted-foreground">no session used</span>
-                        )}
+                        {/* BUG-EF-117 — scheduled-not-delivered rows carry no
+                            allocation-implying label; the parent_session_id
+                            condition was always false because bookedSlots
+                            filters to !parent_session_id. */}
                       </div>
                     </div>
 
