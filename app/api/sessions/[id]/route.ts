@@ -159,6 +159,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     update.status = "completed";
   }
 
+  // Pre-read scheduled_at BEFORE the update so we can detect whether this session
+  // already had a slot (reschedule) vs. is being booked for the first time.
+  // Reading from the POST-update row would incorrectly flag first-time bookings
+  // as reschedules, stripping workout content via roll-forward.
+  const { data: preUpdateSession } = await supabase
+    .from("sessions")
+    .select("scheduled_at")
+    .eq("id", params.id)
+    .maybeSingle();
+  const previouslyScheduledAt = preUpdateSession?.scheduled_at as string | null;
+
   const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
 
   if (update.data && typeof update.data === "object" && !Array.isArray(update.data)) {
@@ -347,8 +358,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   // session_number order. Never touches completed or settled sessions.
   // Requires deriveSessionStatus (no hand-rolled inline precedence).
   const pushAlong = body.push_along === true;
-  // Only roll when vacating a previously scheduled slot — not first-time bookings
-  const wasPreviouslyScheduled = data.scheduled_at != null;
+  // Only roll when vacating a previously scheduled slot — not first-time bookings.
+  // Uses the pre-update read (previouslyScheduledAt) so first-time bookings
+  // don't incorrectly look like reschedules.
+  const wasPreviouslyScheduled = previouslyScheduledAt != null;
   if (pushAlong && (cancellingNow || (wasPreviouslyScheduled && "scheduled_at" in update))) {
     try {
       if (data.block_id) {
