@@ -361,6 +361,7 @@ export function TrainingTabContent({
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("10:00");
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [pushAlong, setPushAlong] = useState(false);
 
   // CR-EF-147 — bands for the "Add PB" drawer
   const [bands, setBands] = useState<Band[]>([]);
@@ -391,7 +392,7 @@ export function TrainingTabContent({
     const res = await fetch(`/api/sessions/${session.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scheduled_at: localPartsToISO(scheduleDate, scheduleTime), push_along: true }),
+      body: JSON.stringify({ scheduled_at: localPartsToISO(scheduleDate, scheduleTime), push_along: pushAlong }),
     });
     setSavingSchedule(false);
     if (!res.ok) {
@@ -704,6 +705,15 @@ export function TrainingTabContent({
                                   onChange={(e) => setScheduleTime(e.target.value)}
                                   className="h-8 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2 text-xs text-foreground focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
                                 />
+                                <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={pushAlong}
+                                    onChange={(e) => setPushAlong(e.target.checked)}
+                                    className="h-3.5 w-3.5 accent-rose"
+                                  />
+                                  Roll workouts forward to later sessions
+                                </label>
                                 <button
                                   type="button"
                                   onClick={() => saveSchedule(session)}

@@ -5,6 +5,7 @@ import { applyCopiedWorkoutIdentity, isPlaceholderLabel } from "@/lib/session-na
 import { syncSessionCalendarEvent } from "@/lib/calendar-sync";
 import { deleteEvent } from "@/lib/graph-client";
 import { getSessionStatus } from "@/lib/session-transitions";
+import { deriveSessionStatus } from "@/lib/session-status";
 import { londonDayKey } from "@/lib/schedule-dates";
 
 // Fields a staff PATCH is allowed to update on a session. `data` carries the
@@ -324,72 +325,73 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
   }
 
-  // CR-EF-144 — push-along: when a session is cancelled or moved, shift every
-  // later planned session in the block forward by one session duration so the
-  // cancelled/moved slot is effectively closed. Only shifts non-settled sessions
-  // (completed and cancelled sessions stay put). Sub-sessions follow their parent.
+  // CR-EF-144 — workout assignment rolling: when a session is cancelled or moved
+  // out, the workout CONTENT rolls forward — the vacated session's workout moves
+  // onto the next planned session, that session's workout onto the one after, etc.
+  // Booked dates/times of later sessions DO NOT CHANGE. Only rolls across
+  // genuinely planned/scheduled-not-delivered sessions in the same block, in
+  // session_number order. Never touches completed or settled sessions.
+  // Requires deriveSessionStatus (no hand-rolled inline precedence).
   const pushAlong = body.push_along === true;
-  if (pushAlong && (cancellingNow || "scheduled_at" in update)) {
+  // Only roll when vacating a previously scheduled slot — not first-time bookings
+  const wasPreviouslyScheduled = data.scheduled_at != null;
+  if (pushAlong && (cancellingNow || (wasPreviouslyScheduled && "scheduled_at" in update))) {
     try {
-      // The reference time is the slot being vacated: old scheduled_at for
-      // cancellations, new scheduled_at for moves.
-      const refTime = cancellingNow
-        ? (data.scheduled_at as string | null)
-        : (update.scheduled_at as string | null);
-
-      if (refTime && data.block_id) {
-        // Fetch client session duration (default 60 min)
-        const { data: sessRow } = await supabase
-          .from("sessions")
-          .select("client_id")
-          .eq("id", params.id)
-          .maybeSingle();
-        const { data: client } = sessRow
-          ? await supabase.from("clients").select("session_duration").eq("id", sessRow.client_id).maybeSingle()
-          : { data: null };
-        const durationMs = ((client?.session_duration as number) ?? 60) * 60 * 1000;
-        const refMs = new Date(refTime).getTime();
-
-        // Fetch all sessions in the same block
+      if (data.block_id) {
         const { data: blockSessions } = await supabase
           .from("sessions")
-          .select("id, scheduled_at, status, cancelled_at, completed_at, parent_session_id")
+          .select("id, session_number, data, status, cancelled_at, completed_at, scheduled_at, parent_session_id")
           .eq("block_id", data.block_id);
 
         if (blockSessions && blockSessions.length > 0) {
-          // Identify later planned sessions (not sub-sessions — they follow parent)
-          const laterSessions = blockSessions.filter((s) => {
-            if (s.id === params.id) return false;
-            if (s.parent_session_id) return false; // sub-sessions follow parent
-            if (!s.scheduled_at) return false;
-            const sMs = new Date(s.scheduled_at).getTime();
-            if (sMs <= refMs) return false;
-            // Use deriveSessionStatus-style precedence inline
-            const isSettled =
-              s.status === "completed" ||
-              s.status === "cancelled" ||
-              !!s.completed_at ||
-              !!s.cancelled_at;
-            return !isSettled;
-          });
+          // Find the vacated session's position by session_number
+          const vacatedNumber = data.session_number as number;
+          const laterSessions = blockSessions
+            .filter((s) => {
+              if (s.id === params.id) return false;
+              if (s.parent_session_id) return false;
+              const st = deriveSessionStatus({
+                status: s.status,
+                cancelled_at: s.cancelled_at,
+                completed_at: s.completed_at,
+                scheduled_at: s.scheduled_at,
+              });
+              return st !== "completed" && st !== "cancelled" && s.session_number > vacatedNumber;
+            })
+            .sort((a, b) => a.session_number - b.session_number);
 
-          // Shift each later session forward by durationMs
-          for (const s of laterSessions) {
-            const newTime = new Date(new Date(s.scheduled_at!).getTime() + durationMs).toISOString();
+          // Roll workout assignments forward: vacated session's content moves
+          // to the next planned session, that session's content to the one after, etc.
+          // Dates/times are not touched.
+          for (let i = 0; i < laterSessions.length; i++) {
+            const source = i === 0 ? data : laterSessions[i - 1];
+            const target = laterSessions[i];
             await supabase
               .from("sessions")
-              .update({ scheduled_at: newTime })
-              .eq("id", s.id);
-            // Cascade to sub-sessions
+              .update({
+                data: source.data,
+                archetype: source.archetype,
+              })
+              .eq("id", target.id);
+          }
+
+          // Clear the vacated session's workout content (it rolled forward)
+          if (laterSessions.length > 0) {
+            const clearedData = { ...(data.data as Record<string, unknown>) };
+            delete clearedData.versions;
+            delete clearedData.focus_label;
             await supabase
               .from("sessions")
-              .update({ scheduled_at: newTime })
-              .eq("parent_session_id", s.id);
+              .update({
+                data: clearedData,
+                archetype: null,
+              })
+              .eq("id", params.id);
           }
         }
       }
     } catch (err) {
-      console.error("Push-along failed (sessions may be inconsistently spaced):", err);
+      console.error("Workout roll-forward failed:", err);
       // Non-fatal: the main update already succeeded
     }
   }

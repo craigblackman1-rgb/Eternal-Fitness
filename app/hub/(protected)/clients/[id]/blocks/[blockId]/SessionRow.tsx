@@ -59,7 +59,7 @@ export function SessionRow({
   const [rescheduling, setRescheduling] = useState(false);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
-  const [pushAlong, setPushAlong] = useState(true);
+  const [pushAlong, setPushAlong] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const settled = status === "completed" || status === "cancelled";
@@ -237,7 +237,7 @@ export function SessionRow({
               onChange={(e) => setPushAlong(e.target.checked)}
               className="h-3.5 w-3.5 accent-rose"
             />
-            Push later sessions along
+            Roll workouts forward to later sessions
           </label>
           <button
             type="button"

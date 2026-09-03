@@ -99,10 +99,10 @@ export function ScheduleCalendar({
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("10:00");
-  const [reschedulePushAlong, setReschedulePushAlong] = useState(true);
+  const [reschedulePushAlong, setReschedulePushAlong] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
-  const [cancelPushAlong, setCancelPushAlong] = useState(true);
+  const [cancelPushAlong, setCancelPushAlong] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showCancelled, setShowCancelled] = useState(false);
 
@@ -402,7 +402,7 @@ export function ScheduleCalendar({
                           onChange={(e) => setReschedulePushAlong(e.target.checked)}
                           className="h-3.5 w-3.5 accent-rose"
                         />
-                        Push later sessions along
+                        Roll workouts forward to later sessions
                       </label>
                       <Button
                         size="sm"
@@ -435,7 +435,7 @@ export function ScheduleCalendar({
                           onChange={(e) => setCancelPushAlong(e.target.checked)}
                           className="h-3.5 w-3.5 accent-rose"
                         />
-                        Push later sessions along
+                        Roll workouts forward to later sessions
                       </label>
                       <Button
                         size="sm"

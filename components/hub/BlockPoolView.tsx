@@ -60,7 +60,7 @@ export function BlockPoolView({
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [reschedDate, setReschedDate] = useState("");
   const [reschedTime, setReschedTime] = useState("10:00");
-  const [reschedulePushAlong, setReschedulePushAlong] = useState(true);
+  const [reschedulePushAlong, setReschedulePushAlong] = useState(false);
   const [saving, setSaving] = useState(false);
   // CR-EF-101 — supplementary work dialog state
   const [supplementaryParentId, setSupplementaryParentId] = useState<string | null>(null);
@@ -418,7 +418,7 @@ export function BlockPoolView({
                             onChange={(e) => setReschedulePushAlong(e.target.checked)}
                             className="h-3.5 w-3.5 accent-rose"
                           />
-                          Push later sessions along
+                          Roll workouts forward to later sessions
                         </label>
                         <Button
                           size="sm"
@@ -569,7 +569,7 @@ export function BlockPoolView({
                           onChange={(e) => setReschedulePushAlong(e.target.checked)}
                           className="h-3.5 w-3.5 accent-rose"
                         />
-                        Push later sessions along
+                        Roll workouts forward to later sessions
                       </label>
                       <Button
                         size="sm"
