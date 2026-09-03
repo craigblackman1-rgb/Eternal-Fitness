@@ -8,6 +8,7 @@ import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
 import { groupSessionsByWeek, isoToMonday, shiftDay, projectUnbookedDates } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { deriveSessionPot } from "@/lib/session-pot";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName } from "@/lib/session-display";
@@ -103,6 +104,15 @@ export default async function BlockViewPage({
     const st = sessionStatus(s);
     return st === "completed" || (st === "cancelled" && s.charged_free === "charged");
   }).length;
+
+  // CR-EF-146 — remaining sessions for the carry-over dialog. Use the pot
+  // derivation which is the canonical source of the remaining count shown
+  // in the SessionPotCounter header.
+  const sessionPot = deriveSessionPot(
+    sessions as unknown as Parameters<typeof deriveSessionPot>[0],
+    client?.sessions_purchased ?? null,
+  );
+  const remainingCount = sessionPot.remaining ?? sessionPot.estimatedRemaining;
 
   // BUG-EF-109 — derive displayed status from sessions: all settled → complete
   const derivedStatus = deriveBlockStatus(block.status, sessions);
@@ -285,6 +295,7 @@ export default async function BlockViewPage({
         weeks={planWeeks}
         sessionCount={totalSessions}
         completedSessions={consumedSlots}
+        remainingCount={remainingCount}
         scheduledStartIso={scheduledStartIso}
         weekdays={weekdays}
       >

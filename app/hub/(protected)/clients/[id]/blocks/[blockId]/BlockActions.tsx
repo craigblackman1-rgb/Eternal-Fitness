@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { HubQuickActions } from "@/components/hub";
-import { IconPencil, IconCalendar, IconPrinter, IconEllipsis, IconPlus } from "@/components/icons";
+import { IconPencil, IconCalendar, IconPrinter, IconEllipsis, IconPlus, IconArrowRight } from "@/components/icons";
 import { ExportSpreadsheetButton } from "./export-spreadsheet";
 import { DeleteBlockButton } from "./delete-block-button";
 
@@ -18,10 +18,12 @@ interface BlockActionsProps {
   onEditBlock: () => void;
   onAddWorkout: () => void;
   onSchedule: () => void;
+  onCarryOver: () => void;
   clientId: string;
   blockId: string;
   blockNumber: number;
   clientName: string;
+  hasRemaining: boolean;
 }
 
 /**
@@ -32,7 +34,7 @@ interface BlockActionsProps {
  * carries them. Print/Export/Delete stay in the "..." overflow menu — they're
  * secondary/destructive actions, not the page's quick actions.
  */
-export function BlockActions({ onEditBlock, onAddWorkout, onSchedule, clientId, blockId, blockNumber, clientName }: BlockActionsProps) {
+export function BlockActions({ onEditBlock, onAddWorkout, onSchedule, onCarryOver, clientId, blockId, blockNumber, clientName, hasRemaining }: BlockActionsProps) {
   return (
     <div className="flex items-center justify-between gap-2">
       <HubQuickActions
@@ -66,6 +68,15 @@ export function BlockActions({ onEditBlock, onAddWorkout, onSchedule, clientId, 
               clientName={clientName}
             />
           </DropdownMenuItem>
+          {hasRemaining && (
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onClick={onCarryOver}
+            >
+              <IconArrowRight className="h-4 w-4" />
+              Carry over remaining
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="gap-2 text-destructive cursor-pointer"

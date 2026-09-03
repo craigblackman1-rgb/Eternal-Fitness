@@ -9,6 +9,7 @@ import { BlockActions } from "./BlockActions";
 import { BlockSchedulePanel } from "./BlockSchedulePanel";
 import { EditBlockDrawer } from "./EditBlockDrawer";
 import { AddWorkoutDialog } from "./AddWorkoutDialog";
+import { CarryOverDialog } from "./CarryOverDialog";
 import type { BlockStatus } from "@/types";
 
 interface BlockOverviewClientProps {
@@ -27,6 +28,8 @@ interface BlockOverviewClientProps {
   sessionCount: number;
   /** CR-EF-143 — number of completed/charged sessions for the edit drawer's min-floor. */
   completedSessions: number;
+  /** CR-EF-146 — remaining sessions (purchased minus used) for the carry-over dialog. */
+  remainingCount: number;
   scheduledStartIso: string | null;
   weekdays: Weekday[];
 }
@@ -40,12 +43,14 @@ export function BlockOverviewClient({
   weeks,
   sessionCount,
   completedSessions,
+  remainingCount,
   scheduledStartIso,
   weekdays,
 }: BlockOverviewClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [addWorkoutOpen, setAddWorkoutOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [carryOverOpen, setCarryOverOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -53,10 +58,12 @@ export function BlockOverviewClient({
         onEditBlock={() => setDrawerOpen(true)}
         onAddWorkout={() => setAddWorkoutOpen(true)}
         onSchedule={() => setScheduleOpen(true)}
+        onCarryOver={() => setCarryOverOpen(true)}
         clientId={clientId}
         blockId={blockId}
         blockNumber={block.block_number}
         clientName={clientName}
+        hasRemaining={remainingCount > 0}
       />
 
       {children}
@@ -107,6 +114,14 @@ export function BlockOverviewClient({
         scheduledStartIso={scheduledStartIso}
       />
       <AddWorkoutDialog open={addWorkoutOpen} onOpenChange={setAddWorkoutOpen} blockId={blockId} weeks={weeks} />
+      <CarryOverDialog
+        open={carryOverOpen}
+        onOpenChange={setCarryOverOpen}
+        blockId={blockId}
+        blockNumber={block.block_number}
+        clientId={clientId}
+        remainingCount={remainingCount}
+      />
     </div>
   );
 }
