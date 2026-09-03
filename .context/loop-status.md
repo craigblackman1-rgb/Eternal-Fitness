@@ -772,3 +772,58 @@ SECURITY, logged to CR-INF-008: a read-only subagent went and found D:\apps\infr
 REGISTRY: resolved dmtl517ajtn (tsbuildinfo), dmtl5io5w60 (ungated delete), dmtkd8l7u5d (legacy parq meds), dmtkj7kyxlc (sequence letters), dmtkcbyufpn (BUG-EF-109 lists).
 
 WHAT REMAINS IS DESIGN ONLY, plus two things needing Craig: the template-vs-workout vocabulary ruling (qmtl462i6db, blocks every copy change) and 16 outstanding testing-tab acceptance items.
+
+## 2026-09-03 — SESSION CLOSE (claude-ops-2026-09-03)
+
+**PROD = 308e2ba**, verified by deployment record `qhhcdy5jjfwarzqrj6idaau6`, status finished,
+commit `308e2ba40a7a5bd7627d885d00b4cd0dd2e6f97c`, 09:51:22Z. origin/main == deployed hash.
+staging == main, 0 ahead. Four promotions today: f118f1a, d34ef0a, a2ea5c0, 297171e, 308e2ba.
+
+**THE FIND OF THE DAY — iOS date bug, fixed at source.** `lib/pg-client.ts` disabled date coercion
+and returned Postgres TIMESTAMPTZ as raw text (`2026-11-03 11:00:00+00`) under a comment claiming
+PostgREST parity — but PostgREST emits ISO-8601. V8 parses the raw form; **WebKit returns
+Invalid Date**, and so does V8 once you add the `T` without normalising the bare offset (pinned as a
+test). Every browser on iOS is WebKit and the trainer PWA runs on Esther's phone, so ~20 call sites
+rendered `Invalid Date` on the one device that mattered while desktop Chrome showed nothing wrong.
+Worse, several were SORT comparators: `NaN` comparisons silently no-op, so lists were in arbitrary
+order with plausible-looking dates. Fixed once in the shim via offset-preserving conversion (NOT
+`toISOString()`, which shifts the date across midnight and would break the `.slice(0,10)` callers).
+Tested against real production values; suite 139 → 152. Live-verified on staging across five
+surfaces, then on prod.
+
+**Also shipped and verified:** BUG-EF-113 (verified live — Sam Gibbons' block shows 8 Assign-workout
+buttons where there were 8 dead "View" links; 98 such sessions across 12 clients) · BUG-EF-114 ·
+CR-EF-137 · CR-EF-128 · CR-EF-145 · calendar cron inbound-only guard, **sync re-enabled and proven
+by execution output** (`outboundSync: skipped`, 225 events scanned, 9 sessions created, 44 updated —
+3-day gap closed) · the last ungated Outlook delete now queues for approval · upload MIME allow-list ·
+110 call sites onto `--status-*-text` · credentials out of three committed scripts · tsbuildinfo
+untracked.
+
+**DATA (attested):** `20260525_trainer_fields.sql` had NEVER been applied to either database —
+19 columns absent. Applied to prod and staging, 32→51 cols, 6 rows unchanged. Then found it made the
+page ASSERT defaults nobody set ("Risk level: Low" on clients with no assessment) — nulled those and
+dropped the defaults. Verified live: reads "Not provided" throughout.
+
+**CORRECTIONS I MADE TO MYSELF** — worth reading, they are the pattern: told Craig 183 contrast sites
+(real number 108 — danger PASSES AA; I had inferred from grep counts instead of measuring) · committed
+a merge with conflict markers, caught by tsc, reset before it reached origin · said the migration
+would change nothing visible when it visibly asserted defaults · told a peer four OD runs were "in
+flight" when they had been **dead for two hours**.
+
+**FIVE LANE FAILURES + 4 DEAD OD RUNS, all reporting success.** One lane spent its whole budget
+reading and wrote nothing; one wrote a correct change and never committed; one shipped a regression
+tsc was happy with; one silently skipped every file under a `[dynamic]` route dir because its glob
+read the brackets as a character class. Four OD runs were SIGTERM'd within a second of starting and
+returned a healthy-looking runId. **The single useful finding:** the identical contrast task failed
+then succeeded purely because the redispatch said "make the edit and commit FIRST, investigate
+after". Same task, same model, same worktree. Now rule 3 in launch-opencode-lane.ps1 (infra c909570,
+done by the concurrent session). Raised as **CR-INF-008**.
+
+**OPEN, none of it code:** rotate `ef_staging_app` (password is in git history — Craig deliberately
+deferred) · 16 testing-tab items + 2 new ones for BUG-EF-113/114 · vocabulary ruling `qmtl462i6db`
+(blocks every copy change) · design consolidation into **ef-control-hub** (Craig confirmed via the
+concurrent session; handed over) · `dmtlcab2zyu` mobile TrainScreen renders a literal "null".
+
+**DESIGN:** brief captured (`wo-ef-client-record-flow-2026-09-03`) — Esther has ADHD, cognitive load
+is the spec. 11-surface roadmap, 4 built, all committed to design-systems c67ab00. OD handed to the
+concurrent session.
