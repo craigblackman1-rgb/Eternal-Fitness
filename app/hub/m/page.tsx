@@ -71,7 +71,7 @@ export default async function TodayPage() {
         sessionNumber: s.session_number,
         archetype: s.archetype,
         blockNumber: block?.block_number ?? null,
-        scheduledAt: s.scheduled_at as string,
+        scheduledAt: s.scheduled_at ? new Date(s.scheduled_at).toISOString() : (s.scheduled_at as string),
         durationMinutes: sessionDurationMinutes(timeTier),
         sessionLogCompletedAt: sessionLog?.completed_at ?? null,
         sessionLogStartedAt: sessionLog?.started_at ?? null,

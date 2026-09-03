@@ -155,6 +155,16 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         .limit(50)
     : { data: [] as any[] };
 
+  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
+  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
+  // the client then only ever receives a string every engine agrees on.
+  for (const s of sessions ?? []) {
+    if (s.scheduled_at) s.scheduled_at = new Date(s.scheduled_at).toISOString();
+    if (s.completed_at) s.completed_at = new Date(s.completed_at).toISOString();
+    const log = s.data?.session_log;
+    if (log?.completed_at) log.completed_at = new Date(log.completed_at).toISOString();
+  }
+
   const { data: trainerizeBlocks } = await supabase.from("trainerize_training_blocks").select("*").eq("client_id", client.id).order("start_date", { ascending: false });
   const tBlockIds = (trainerizeBlocks ?? []).map((b: any) => b.id);
   const { data: trainerizeWorkouts } = tBlockIds.length > 0

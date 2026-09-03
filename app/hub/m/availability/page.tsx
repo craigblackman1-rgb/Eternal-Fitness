@@ -90,7 +90,7 @@ export default async function MobileAvailabilityPage() {
           clashes.push({
             sessionId: s.id,
             sessionNumber: s.session_number,
-            scheduledAt: s.scheduled_at,
+            scheduledAt: new Date(s.scheduled_at).toISOString(),
             clientName: nameMap.get(blockInfo.client_id) ?? "Unknown client",
             blockNumber: blockInfo.block_number,
           });

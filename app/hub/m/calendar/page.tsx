@@ -95,7 +95,7 @@ export default async function MobileCalendarPage({
     const client = block ? clientById.get(block.client_id) : undefined;
     return {
       id: s.id,
-      scheduledAt: s.scheduled_at as string,
+      scheduledAt: s.scheduled_at ? new Date(s.scheduled_at).toISOString() : (s.scheduled_at as string),
       name: sessionName(s),
       status: deriveSessionStatus({
         status: s.status,
@@ -120,6 +120,13 @@ export default async function MobileCalendarPage({
   }
 
   const openBookings = (bookingRows ?? []) as OutlookBookingRow[];
+
+  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
+  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly.
+  for (const b of openBookings) {
+    if (b.start_at) b.start_at = new Date(b.start_at).toISOString();
+    if (b.end_at) b.end_at = new Date(b.end_at).toISOString();
+  }
   const openBookingCount = openBookings.length;
 
   return (

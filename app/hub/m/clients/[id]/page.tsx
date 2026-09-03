@@ -168,6 +168,17 @@ export default async function MobileClientModePage({ params }: { params: { id: s
         .in("block_id", blockIds)
     : { data: [] as SessionRow[] };
   const sessions = (sessionsData ?? []) as SessionRow[];
+
+  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
+  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
+  // the client then only ever receives a string every engine agrees on.
+  for (const s of sessions) {
+    if (s.scheduled_at) s.scheduled_at = new Date(s.scheduled_at).toISOString();
+    if (s.completed_at) s.completed_at = new Date(s.completed_at).toISOString();
+    const log = s.data?.session_log;
+    if (log?.completed_at) log.completed_at = new Date(log.completed_at).toISOString();
+  }
+
   const exerciseNotes: AggregatedExerciseNote[] = aggregateExerciseNotes(sessions as any);
 
   // CR-EF-098 — session-level notes for the merged notes pane

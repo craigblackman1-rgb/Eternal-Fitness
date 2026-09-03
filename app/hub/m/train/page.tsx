@@ -18,6 +18,12 @@ export default async function TrainTabPage() {
     scheduled_at: string;
   }[];
 
+  // Normalise scheduled_at to strict ISO-8601 so WebKit (iOS Safari) doesn't
+  // render "Invalid Date". Node/V8 parses the raw format correctly.
+  for (const s of sessions) {
+    s.scheduled_at = new Date(s.scheduled_at).toISOString();
+  }
+
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayEnd = new Date(todayStart.getTime() + 86_400_000);
