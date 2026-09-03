@@ -82,7 +82,7 @@ export function BlockPickerDialog({
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] bg-[var(--status-success-bg)] text-[var(--status-success)] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-[10px] bg-[var(--status-success-bg)] text-[var(--status-success-text)] flex items-center justify-center shrink-0">
               <IconCalendar className="w-[17px] h-[17px]" />
             </div>
             <div>

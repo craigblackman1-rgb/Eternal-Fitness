@@ -73,7 +73,7 @@ function OutstandingActionsInline({ actions }: { actions: string[] | null }) {
 function TabCountBadge({ count, tone }: { count: number; tone: "danger" | "warning" }) {
   const classes = tone === "danger"
     ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]"
-    : "bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning-border)]";
+    : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]";
   return (
     <span className={`inline-grid place-items-center min-w-[18px] h-[18px] px-[5px] rounded-full border text-[11px] font-bold leading-none tabular-nums ${classes}`}>
       {count}
@@ -1047,18 +1047,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
                         {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="font-medium text-foreground">—</span>}
                       </HubDataField>
                       <HubDataField label="PAR-Q completed">
-                        {parqCompletedDate ? formatHubDate(parqCompletedDate) : <span className="text-[var(--status-warning)]">Not on file</span>}
+                        {parqCompletedDate ? formatHubDate(parqCompletedDate) : <span className="text-[var(--status-warning-text)]">Not on file</span>}
                       </HubDataField>
                       <HubDataField label="GP clearance">
-                        {gpClearanceDate ? formatHubDate(gpClearanceDate) : <span className="text-[var(--status-warning)]">Not received</span>}
+                        {gpClearanceDate ? formatHubDate(gpClearanceDate) : <span className="text-[var(--status-warning-text)]">Not received</span>}
                       </HubDataField>
                       <HubDataField label="Training agreement">
-                        {agreementDate ? formatHubDate(agreementDate) : <span className="text-[var(--status-warning)]">Not signed</span>}
+                        {agreementDate ? formatHubDate(agreementDate) : <span className="text-[var(--status-warning-text)]">Not signed</span>}
                       </HubDataField>
                       <HubDataField label="Outstanding">
                         {outstandingCount > 0
-                          ? <span className="text-[var(--status-warning)]">{outstandingCount} item{outstandingCount === 1 ? "" : "s"}</span>
-                          : <span className="text-[var(--status-success)]">None</span>}
+                          ? <span className="text-[var(--status-warning-text)]">{outstandingCount} item{outstandingCount === 1 ? "" : "s"}</span>
+                          : <span className="text-[var(--status-success-text)]">None</span>}
                       </HubDataField>
                       <HubDataField label="Next review">{formatHubDate(client.annual_review_due_date)}</HubDataField>
                     </HubDataGrid>

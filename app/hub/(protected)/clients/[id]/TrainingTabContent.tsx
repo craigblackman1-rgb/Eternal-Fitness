@@ -153,13 +153,13 @@ function SessionCheckinPill({
   const label = isFlagged ? "Fatigue flagged" : "Good";
   if (isFlagged) {
     return (
-      <span className="inline-flex items-center rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-warning)]">
+      <span className="inline-flex items-center rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-warning-text)]">
         {label}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-success)]">
+    <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-success-text)]">
       {label}
     </span>
   );
