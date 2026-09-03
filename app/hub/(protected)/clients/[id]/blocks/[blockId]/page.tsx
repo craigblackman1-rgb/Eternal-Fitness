@@ -6,7 +6,7 @@ import { IconChevronLeft, IconDumbbell } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
 import { SessionList } from "./SessionList";
 import { BlockPoolView } from "@/components/hub/BlockPoolView";
-import { groupSessionsByWeek, isoToMonday, shiftDay } from "@/lib/schedule-dates";
+import { groupSessionsByWeek, isoToMonday, shiftDay, projectUnbookedDates } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName } from "@/lib/session-display";
@@ -121,19 +121,12 @@ export default async function BlockViewPage({
   // supplementary work within a parent slot and should not appear as
   // standalone rows in the block overview.
   const displaySessions = sessions.filter((s) => !s.parent_session_id);
-  const weekGroups = groupSessionsByWeek(displaySessions);
-  const planWeeks = Array.from(new Set(displaySessions.map((s) => s.week))).sort((a, b) => a - b);
 
   // BUG-EF-109 — first incomplete session regardless of date (for week expansion)
   const firstIncomplete = displaySessions.find((s) => {
     const st = sessionStatus(s);
     return st !== "completed" && st !== "cancelled";
   });
-  const targetKey = firstIncomplete
-    ? firstIncomplete.scheduled_at
-      ? isoToMonday(firstIncomplete.scheduled_at)
-      : `p${firstIncomplete.week}`
-    : null;
   const scheduledDates = displaySessions.map((s) => s.scheduled_at).filter((d): d is string => Boolean(d)).sort();
   const scheduledStartIso = (block.scheduled_start as string | null) ?? (scheduledDates[0] ?? null);
   // CR-EF-073 — a block is a dated period: derive its end from the latest
@@ -148,6 +141,27 @@ export default async function BlockViewPage({
         .map((s) => new Date(s.scheduled_at as string).getDay() as Weekday),
     ),
   ).sort((a, b) => a - b);
+
+  // CR-EF-145 — project dates onto unbooked sessions so they appear in
+  // "Week of <Monday>" groups instead of dateless "Plan week N" groups.
+  const lastBookedIso = scheduledDates.length > 0 ? scheduledDates[scheduledDates.length - 1] : null;
+  const projectedSessions = projectUnbookedDates(displaySessions, weekdays, lastBookedIso, scheduledStartIso);
+
+  const weekGroups = groupSessionsByWeek(projectedSessions);
+  const planWeeks = Array.from(new Set(displaySessions.map((s) => s.week))).sort((a, b) => a - b);
+
+  // CR-EF-145 — use projectedSessions so unbooked sessions resolve to a Monday key
+  const firstIncompleteProjected = projectedSessions.find((s) => {
+    const st = sessionStatus(s);
+    return st !== "completed" && st !== "cancelled";
+  });
+  const targetKey = firstIncompleteProjected
+    ? firstIncompleteProjected.scheduled_at
+      ? isoToMonday(firstIncompleteProjected.scheduled_at)
+      : firstIncompleteProjected.projected_at
+        ? isoToMonday(firstIncompleteProjected.projected_at)
+        : `p${firstIncompleteProjected.week}`
+    : null;
 
   // CR-EF-073 — a session's identity is its booking (date + time); an
   // unbooked session leads with its ordinal instead of a meaningless "Day N".
@@ -306,6 +320,7 @@ export default async function BlockViewPage({
         <div className="space-y-3.5">
           {weekGroups.map((group) => {
             const isScheduled = group.kind === "scheduled";
+            const isProjected = group.kind === "projected";
             const weekOpen = group.key === targetKey;
             // CR-EF-101 — exclude sub-sessions from week totals
             const weekPotSessions = group.sessions.filter((s) => !s.parent_session_id);
@@ -313,13 +328,17 @@ export default async function BlockViewPage({
             const cancelled = weekPotSessions.filter((s) => sessionStatus(s) === "cancelled").length;
             const total = weekPotSessions.length;
 
-            const numLabel = isScheduled ? String(Number(group.monday!.split("-")[2])) : String(group.planWeek);
-            const title = isScheduled ? `Week of ${formatShortDate(group.monday!)}` : `Plan week ${group.planWeek}`;
-            const sub = isScheduled
-              ? formatWeekRange(group.monday!)
+            const numLabel = (isScheduled || isProjected) ? String(Number(group.monday!.split("-")[2])) : String(group.planWeek);
+            const title = (isScheduled || isProjected) ? `Week of ${formatShortDate(group.monday!)}` : `Week ${group.planWeek}`;
+            const sub = (isScheduled || isProjected)
+              ? isProjected
+                ? `${total} projected · not yet booked`
+                : formatWeekRange(group.monday!)
               : `${total} session${total === 1 ? "" : "s"} planned · no dates yet`;
-            const progress = isScheduled
-              ? `${done} of ${total} done${cancelled ? ` · ${cancelled} cancelled` : ""}`
+            const progress = (isScheduled || isProjected)
+              ? isProjected
+                ? `${done} of ${total} booked${cancelled ? ` · ${cancelled} cancelled` : ""}`
+                : `${done} of ${total} done${cancelled ? ` · ${cancelled} cancelled` : ""}`
               : "Not scheduled";
 
             return (
@@ -331,7 +350,7 @@ export default async function BlockViewPage({
                 <summary className="list-none cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-[var(--hub-hover)] transition-colors">
                   <span
                     className={`w-[30px] h-[30px] rounded-lg flex items-center justify-center text-[13px] font-extrabold shrink-0 ${
-                      isScheduled ? "bg-rose/10 text-rose" : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]"
+                      isScheduled ? "bg-rose/10 text-rose" : isProjected ? "bg-amber/10 text-amber" : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]"
                     }`}
                   >
                     {numLabel}

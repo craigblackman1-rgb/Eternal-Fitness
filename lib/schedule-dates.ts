@@ -1,3 +1,4 @@
+import type { Weekday } from "@/lib/scheduling";
 import type { ScheduledEntry } from "@/app/hub/(protected)/schedule/ScheduleCalendar";
 
 // --- date/time helpers shared by the day and month schedule views ---
@@ -83,14 +84,15 @@ export function isoToMonday(iso: string): string {
   return toLocalISODate(d);
 }
 
-export type CalendarWeekKind = "scheduled" | "plan";
+export type CalendarWeekKind = "scheduled" | "projected" | "plan";
 
 export interface CalendarWeekGroup<T> {
   /** Stable, sortable identity. Scheduled weeks key by their Monday
    *  ("YYYY-MM-DD"); plan weeks key by the stored ordinal ("p1", "p2", …). */
   key: string;
-  /** "scheduled" → a real Mon–Sun week derived from `scheduled_at`; "plan" →
-   *  the stored `week` ordinal, used only for sessions with no `scheduled_at`. */
+  /** "scheduled" → a real Mon–Sun week derived from `scheduled_at`; "projected"
+   *  → a Mon–Sun week derived from projected_at; "plan" → the stored `week`
+   *  ordinal, used only for sessions with no scheduled or projected date. */
   kind: CalendarWeekKind;
   /** The stored `week` ordinal — the source of truth for "Plan week N" headers
    *  and the fallback grouping key for unscheduled sessions. */
@@ -116,16 +118,17 @@ export interface CalendarWeekGroup<T> {
  * `scheduled_at` (then stable by original order); within a plan week they keep
  * the input order (the caller passes them in `session_number` order).
  */
-export function groupSessionsByWeek<T extends { scheduled_at: string | null; week: number; completed_at?: string | null }>(
+export function groupSessionsByWeek<T extends { scheduled_at: string | null; projected_at?: string | null; week: number; completed_at?: string | null }>(
   sessions: T[],
 ): CalendarWeekGroup<T>[] {
   const scheduledWeeks = new Map<string, { planWeek: number; sessions: T[] }>();
   const planWeeks = new Map<number, T[]>();
 
   for (const s of sessions) {
-    // Use scheduled_at first; fall back to completed_at for sessions that were
-    // performed without a booking (completed_at set, scheduled_at NULL).
-    const weekDate = s.scheduled_at ?? s.completed_at;
+    // Use scheduled_at first; fall back to projected_at for unbooked sessions
+    // with projected dates; then completed_at for sessions performed without
+    // a booking; finally the plan-week fallback.
+    const weekDate = s.scheduled_at ?? s.projected_at ?? s.completed_at;
     if (weekDate) {
       const monday = isoToMonday(weekDate);
       const g = scheduledWeeks.get(monday) ?? { planWeek: s.week, sessions: [] as T[] };
@@ -143,10 +146,15 @@ export function groupSessionsByWeek<T extends { scheduled_at: string | null; wee
   [...scheduledWeeks.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .forEach(([monday, g]) => {
-      const ordered = [...g.sessions].sort(
-        (a, b) => new Date(a.scheduled_at ?? a.completed_at!).getTime() - new Date(b.scheduled_at ?? b.completed_at!).getTime(),
-      );
-      groups.push({ key: monday, kind: "scheduled", planWeek: g.planWeek, monday, sessions: ordered });
+      const ordered = [...g.sessions].sort((a, b) => {
+        const aDate = a.scheduled_at ?? a.projected_at ?? a.completed_at!;
+        const bDate = b.scheduled_at ?? b.projected_at ?? b.completed_at!;
+        return new Date(aDate).getTime() - new Date(bDate).getTime();
+      });
+      // Determine kind: "scheduled" if any session has a real scheduled_at
+      // date in this week, "projected" if all dates are projected.
+      const hasScheduled = ordered.some((s) => s.scheduled_at);
+      groups.push({ key: monday, kind: hasScheduled ? "scheduled" : "projected", planWeek: g.planWeek, monday, sessions: ordered });
     });
 
   [...planWeeks.entries()]
@@ -180,6 +188,124 @@ export function weekDates(isoDate: string): Date[] {
     dt.setDate(start.getDate() + i);
     return dt;
   });
+}
+
+/**
+ * CR-EF-145 — find the most common gap in days between consecutive scheduled
+ * sessions. Used as a fallback weekday pattern when the explicit `weekdays`
+ * parameter is empty.
+ */
+function getCommonWeekdayGap(scheduledDates: string[]): Weekday | null {
+  if (scheduledDates.length < 2) return null;
+  const sorted = [...scheduledDates].sort();
+  const gaps: number[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1]);
+    const curr = new Date(sorted[i]);
+    gaps.push(Math.round((curr.getTime() - prev.getTime()) / 86400000));
+  }
+  // Find the most common gap size
+  const counts = new Map<number, number>();
+  for (const g of gaps) counts.set(g, (counts.get(g) ?? 0) + 1);
+  let bestGap = 0;
+  let bestCount = 0;
+  for (const [gap, count] of counts) {
+    if (count > bestCount || (count === bestCount && gap < bestGap)) {
+      bestGap = gap;
+      bestCount = count;
+    }
+  }
+  if (bestGap <= 0 || bestGap > 6) return null;
+  // The day that is bestGap days after the first scheduled day
+  const first = new Date(sorted[0]);
+  const fallbackDay = (first.getDay() + bestGap) % 7;
+  return fallbackDay as Weekday;
+}
+
+/**
+ * CR-EF-145 — assign projected_at dates to unbooked sessions by walking
+ * forward through the block's weekday pattern after the last booked session.
+ *
+ * Display-only: projected_at is never written to the database.
+ *
+ * @param sessions - all sessions in the block (pot sessions, not sub-sessions)
+ * @param weekdays - the block's weekday pattern (e.g. [1, 3, 5] for Mon/Wed/Fri)
+ * @param lastBookedIso - ISO date of the last booked session (null if none booked)
+ * @param scheduledStartIso - block's scheduled start date (fallback when no sessions are booked)
+ */
+export function projectUnbookedDates<
+  T extends { id: string; scheduled_at: string | null; completed_at?: string | null; cancelled_at?: string | null; parent_session_id?: string | null },
+>(
+  sessions: T[],
+  weekdays: Weekday[],
+  lastBookedIso: string | null,
+  scheduledStartIso: string | null,
+): (T & { projected_at: string })[] {
+  // Separate booked from unbooked (pot sessions only)
+  const booked = sessions.filter(
+    (s) => !s.parent_session_id && (s.scheduled_at || s.completed_at) && !s.cancelled_at,
+  );
+  const unbooked = sessions.filter(
+    (s) => !s.parent_session_id && !s.scheduled_at && !s.completed_at && !s.cancelled_at,
+  );
+
+  // Build a map of session id → projected_at for unbooked sessions
+  const projectedDates = new Map<string, string>();
+
+  if (unbooked.length > 0) {
+    // Determine the weekday pattern: use explicit weekdays, or fall back to the
+    // most common gap between consecutive booked sessions.
+    let pattern: Weekday[];
+    if (weekdays.length > 0) {
+      pattern = [...weekdays].sort((a, b) => a - b);
+    } else {
+      const bookedDates = booked
+        .filter((s) => s.scheduled_at)
+        .map((s) => s.scheduled_at as string)
+        .sort();
+      const fallbackDay = getCommonWeekdayGap(bookedDates);
+      pattern = fallbackDay !== null ? [fallbackDay] : [1]; // ultimate fallback: Monday
+    }
+
+    // Start date: day after the last booked session, or block start, or today
+    let cursorDate: string;
+    if (lastBookedIso) {
+      cursorDate = shiftDay(lastBookedIso, 1);
+    } else if (scheduledStartIso) {
+      cursorDate = scheduledStartIso;
+    } else {
+      cursorDate = todayLocalISODate();
+    }
+
+    // Assign projected dates in chronological order
+    const patternSet = new Set<number>(pattern);
+    const maxDays = unbooked.length * 7 + 14; // safety cap
+    let daysScanned = 0;
+
+    for (const s of unbooked) {
+      // Find the next matching weekday from cursorDate
+      while (daysScanned < maxDays) {
+        const d = new Date(cursorDate);
+        if (patternSet.has(d.getDay())) {
+          projectedDates.set(s.id, cursorDate);
+          cursorDate = shiftDay(cursorDate, 1);
+          daysScanned++;
+          break;
+        }
+        cursorDate = shiftDay(cursorDate, 1);
+        daysScanned++;
+      }
+      // If we exhausted the pattern (shouldn't happen in practice), leave
+      // unmapped — the session will show as "not yet booked" without
+      // a date, which is honest.
+    }
+  }
+
+  // Map ALL sessions, preserving sub-sessions and already-booked ones
+  return sessions.map((s) => ({
+    ...s,
+    projected_at: projectedDates.get(s.id) ?? "",
+  } as T & { projected_at: string }));
 }
 
 /**
