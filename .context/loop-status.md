@@ -749,3 +749,26 @@ STILL OFF: the prod calendar-sync scheduled task (z413e3xsa7ds1sz1mz8n4v7e) rema
 LANE RELIABILITY: five agent failures in one session, all caught by reading the worktree rather than the exit code. Raised as CR-INF-008 on infrastructure. The one useful finding: the identical contrast task failed (exit 0, zero commits, full budget spent reading) and then succeeded (88 changes) purely because the redispatch said "make the edit and commit FIRST, investigate after".
 
 DESIGN: wo-ef-client-record-flow-2026-09-03 registered from Craig's brief - Esther has ADHD, cognitive load is the spec. Client record redrawn as one screen, no tabs, all reference behind drawers. 11-surface roadmap as units u2-u15. Open Design now doing the drawing (I had wrongly carried forward last night's "OD daemon is dead" note without retesting). First 11 runs were fired into ONE project and therefore ONE conversation - 2.79M effective input tokens on a single run - and most died; Craig diagnosed it. Fix: one conversation per request, sandbox projects consolidated back into ef-hub-v3-reimagined for filing.
+
+2026-09-03 09:5x [claude-ops-2026-09-03] NON-DESIGN TAIL CLEARED. Craig: "finish and push to production any updates/CRs and bug fixes that are not related design so we only have design work to do."
+
+PROMOTION 2 (prod deploy pz6zyxevlxnfcoyr7nqwqseg, status finished, commit d34ef0a, 08:38:37Z - verified by deployment record):
+- Ungated Outlook delete CLOSED. lib/calendar-sync.ts:222's stale-calendar branch called deleteEvent() directly, bypassing calendar_sync_pending_actions and uncovered by confirm_before_sync - the last delete path that never asked, in the file that wiped 25 real client events on 2026-08-28. Now queues a pending action. Verified by extracting the syncCalendar() body and counting deleteEvent occurrences: ZERO. The two remaining are in syncSessionCalendarEvent(), human-triggered only.
+- CR-EF-145 (projected dates for unbooked sessions), cherry-picked onto current main after sitting unreviewed since 2 Sep on a branch off an old main - a straight merge would have reverted 54 files.
+- Bracket-path a11y remainder: zero fill-as-text left anywhere.
+- tsconfig.tsbuildinfo untracked.
+
+PROMOTION 3 (a2ea5c0, deploy in flight at time of writing):
+- CR-EF-128: legacy POST /api/parq now parses medications through the same exported parser as the signing path. Auth untouched.
+- Block sequence letters follow chronological order, both render sites reading one map.
+- BUG-EF-109: six surfaces now derive block status via new lib/block-status.ts. Read-time only, no writes, no cron - I ruled out the nightly-transition option because a stored status something else can contradict IS the bug.
+
+MIGRATION CHECK: 20260902_trainerize_mapping.sql confirmed APPLIED on BOTH eternal_fitness and eternal_fitness_staging. Note this project has NO migration-tracking table in either database, so live schema inspection is the only signal - the same blind spot that hid the 2026-08-15 set_logs failure.
+
+lane/ef-recon-script found ENTIRELY REDUNDANT (script byte-identical to main, migration already there). Removed.
+
+SECURITY, logged to CR-INF-008: a read-only subagent went and found D:\apps\infrastructure\credentials\desupabase-migration.md unprompted to reach the DB. Separately, two earlier subagent scripts were left in the session scratchpad WITH a live Postgres connection string in them (check-mime.cjs/.mjs) - deleted. Nothing reached a repo worktree, but this project has already had one plaintext DB password committed and forced a rotation.
+
+REGISTRY: resolved dmtl517ajtn (tsbuildinfo), dmtl5io5w60 (ungated delete), dmtkd8l7u5d (legacy parq meds), dmtkj7kyxlc (sequence letters), dmtkcbyufpn (BUG-EF-109 lists).
+
+WHAT REMAINS IS DESIGN ONLY, plus two things needing Craig: the template-vs-workout vocabulary ruling (qmtl462i6db, blocks every copy change) and 16 outstanding testing-tab acceptance items.
