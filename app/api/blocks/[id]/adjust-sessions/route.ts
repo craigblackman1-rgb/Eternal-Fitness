@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { deriveSessionStatus } from "@/lib/session-status";
 
 /**
  * CR-EF-143 — adjust the session count for a block.
@@ -11,6 +12,9 @@ import { createClient } from "@/lib/supabase-server";
  * - Decreasing: removes uncompleted, uncharged sessions from the highest
  *   session numbers. Never removes completed or charged-cancelled sessions.
  *   Validates that the new count >= already-consumed slots.
+ *
+ * Status reads use deriveSessionStatus (status, cancelled_at, completed_at,
+ * scheduled_at, session_log) — the raw status column is documented as lagging.
  */
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -32,10 +36,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
     .single();
   if (blockError || !block) return NextResponse.json({ error: "Block not found" }, { status: 404 });
 
-  // Fetch all sessions (including sub-sessions for completeness)
+  // Fetch all sessions — select the extra columns needed by deriveSessionStatus
   const { data: sessions, error: sessionsError } = await supabase
     .from("sessions")
-    .select("id, session_number, status, charged_free, parent_session_id")
+    .select("id, session_number, status, charged_free, parent_session_id, cancelled_at, completed_at, scheduled_at, data")
     .eq("block_id", params.id)
     .order("session_number", { ascending: true });
   if (sessionsError) return NextResponse.json({ error: sessionsError.message }, { status: 500 });
@@ -49,6 +53,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ message: "No change needed", added: 0, removed: 0 });
   }
 
+  // Helper: derive status using the same logic as page.tsx sessionStatus()
+  const derivedStatus = (s: typeof potSessions[number]) =>
+    deriveSessionStatus({
+      status: s.status,
+      cancelled_at: s.cancelled_at,
+      completed_at: s.completed_at,
+      scheduled_at: s.scheduled_at,
+      session_log: (s.data as Record<string, unknown>)?.session_log as { completed_at?: string | null } | null,
+    });
+
   // --- INCREASING ---
   if (newCount > currentCount) {
     const toAdd = newCount - currentCount;
@@ -59,11 +73,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // Find the highest existing session_number for pot sessions
     const maxNumber = potSessions.reduce((max, s) => Math.max(max, s.session_number), 0);
 
-    // Find the highest week in use
-    const maxWeek = potSessions.reduce((max, s) => {
-      // All pot sessions have a week; default to 1
-      return max;
-    }, 1);
+    // Find the highest week in use — clone the reduce from sessions POST route
+    // (the previous version ignored the argument and always returned 1)
+    const maxWeek = potSessions.reduce(
+      (max, s) => (s.week != null && s.week > max ? s.week : max),
+      0,
+    );
+    const resolvedWeek = maxWeek > 0 ? maxWeek : 1;
 
     const insertRows = [];
     for (let i = 1; i <= toAdd; i++) {
@@ -74,7 +90,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         client_id: block.client_id,
         session_number: sessionNumber,
         archetype: null,
-        week: maxWeek,
+        week: resolvedWeek,
         phase: null,
         focus_label: null,
         time_tier: "standard",
@@ -90,7 +106,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         block_id: params.id,
         session_number: sessionNumber,
         archetype: null,
-        week: maxWeek,
+        week: resolvedWeek,
         phase: null,
         data: sessionData,
       });
@@ -105,16 +121,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
   // --- DECREASING ---
   const toRemove = currentCount - newCount;
 
-  // Count consumed slots: completed + charged cancellations
-  let consumedSlots = 0;
-  for (const s of potSessions) {
-    const status = s.status;
-    const isCompleted = status === "completed";
-    const isChargedCancel = status === "cancelled" && s.charged_free === "charged";
-    if (isCompleted || isChargedCancel) {
-      consumedSlots++;
-    }
-  }
+  // Count consumed slots using deriveSessionStatus — same as page.tsx
+  const consumedSlots = potSessions.filter((s) => {
+    const st = derivedStatus(s);
+    return st === "completed" || (st === "cancelled" && s.charged_free === "charged");
+  }).length;
 
   if (newCount < consumedSlots) {
     return NextResponse.json(
@@ -130,10 +141,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
   // Remove from highest session_number first (preserve lower-numbered sessions).
   const removable = potSessions
     .filter((s) => {
-      const status = s.status;
-      const isCompleted = status === "completed";
-      const isChargedCancel = status === "cancelled" && s.charged_free === "charged";
-      return !isCompleted && !isChargedCancel;
+      const st = derivedStatus(s);
+      return st !== "completed" && !(st === "cancelled" && s.charged_free === "charged");
     })
     .sort((a, b) => b.session_number - a.session_number);
 
