@@ -3,7 +3,7 @@ import { coerceParam } from "../pg-client";
 
 describe("coerceParam", () => {
   it("JSON-stringifies a plain array for a non-native column (jsonb)", () => {
-    const result = coerceParam("equipment", ["dumbbell", "kettlebell"]);
+    const result = coerceParam("some_jsonb_col", ["dumbbell", "kettlebell"]);
     expect(result).toBe('["dumbbell","kettlebell"]');
   });
 
@@ -35,7 +35,7 @@ describe("coerceParam", () => {
   });
 
   it("stringifies a nested array for jsonb", () => {
-    const result = coerceParam("tags", [["a", "b"], ["c"]]);
+    const result = coerceParam("some_jsonb_col", [["a", "b"], ["c"]]);
     expect(result).toBe('[["a","b"],["c"]]');
   });
 
