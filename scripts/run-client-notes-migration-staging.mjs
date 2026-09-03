@@ -14,11 +14,14 @@ if (!isMain) {
   process.exit(0);
 }
 
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is not set. Export it before running this script.");
+  process.exit(1);
+}
+
 const sql = readFileSync(new URL("../db/migrations/20260817_client_notes.sql", import.meta.url), "utf8");
 
-const client = new pg.Client({
-  connectionString: "postgresql://ef_staging_app:uZ81HJRRFbBprNVMOzNiaBQr8teMrnpM@localhost:5433/eternal_fitness_staging",
-});
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
   await client.connect();

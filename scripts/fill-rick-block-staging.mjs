@@ -2,8 +2,12 @@
 // (client_documents id fddd8fd7-8a7f-4d02-8911-3b204dcc0071) with the real
 // content from Rick_Block1_Plan_17Aug-5Sept2026.docx. Run once, not part of
 // the CR-EF-048 migration set.
-import fs from "fs";
 import pg from "pg";
+
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is not set. Export it before running this script.");
+  process.exit(1);
+}
 
 const DOC_ID = "fddd8fd7-8a7f-4d02-8911-3b204dcc0071";
 
@@ -49,10 +53,7 @@ const enduranceBlock = {
   ],
 };
 
-const env = fs.readFileSync(".env.local", "utf8");
-const client = new pg.Client({
-  connectionString: "postgresql://ef_staging_app:uZ81HJRRFbBprNVMOzNiaBQr8teMrnpM@localhost:5433/eternal_fitness_staging",
-});
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 
 async function main() {
   await client.connect();
