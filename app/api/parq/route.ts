@@ -5,6 +5,7 @@ import { resolveClientId } from "@/lib/resolve-client-id";
 import { getEmailSender } from "@/lib/email";
 import { diffParq } from "@/lib/parq-diff";
 import { mintParqLinkParams, verifyParqLink } from "@/lib/parq-link";
+import { parseMedicationsText, mergeMedications } from "@/lib/medications-from-parq";
 import type { SignedPARQ } from "@/types";
 
 const COACH_EMAIL = "esther.fair@eternal-fitness.co.uk";
@@ -243,6 +244,40 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Mirror the document-engine signing path (CR-EF-128): parse free-text
+  // medications into structured client medication entries on the Health record.
+  if (result) {
+    try {
+      const medsText = medications || null;
+      const clientIdForMeds = result.client_id || clientId || null;
+
+      if (typeof medsText === "string" && medsText.trim() && clientIdForMeds) {
+        const incoming = parseMedicationsText(medsText);
+
+        const { data: clientRow } = await (id ? createAdminClient() : supabase)
+          .from("clients")
+          .select("profile")
+          .eq("id", clientIdForMeds)
+          .maybeSingle();
+
+        if (clientRow) {
+          const profile = (clientRow.profile as Record<string, unknown>) || {};
+          const health = (profile.health as Record<string, unknown>) || {};
+          const existing = Array.isArray(health.medications) ? health.medications : [];
+          health.medications = mergeMedications(existing, incoming);
+          profile.health = health;
+
+          await (id ? createAdminClient() : supabase)
+            .from("clients")
+            .update({ profile })
+            .eq("id", clientIdForMeds);
+        }
+      }
+    } catch (medsErr) {
+      console.error("[parq:medications]", medsErr);
+    }
   }
 
   // After a successful resubmission, notify the coach with a field-level diff.
