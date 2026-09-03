@@ -44,22 +44,27 @@ type ListRes = { data: any[]; error: PgError | null; count: number | null };
 type Filter = { col: string; op: string; val: unknown };
 
 // Columns that are genuine Postgres text[] arrays — these must NOT be JSON.stringify'd.
-// Everything else that arrives as a JS array is a jsonb column expecting a JSON string.
+// Keyed by "table.column" to avoid collisions (e.g. equipment is JSONB on clients but
+// TEXT[] on exercises and workout_templates).  Everything else that arrives as a JS array
+// is a jsonb column expecting a JSON string.
 const NATIVE_ARRAY_COLUMNS = new Set([
   // clients
-  "outstanding_actions",
+  "clients.outstanding_actions",
   // site_content
-  "keyword_cluster",
+  "site_content.keyword_cluster",
   // exercises
-  "archetypes",
-  "muscle_groups",
-  "equipment",
-  "tags",
-  "intensity_tiers",
+  "exercises.archetypes",
+  "exercises.muscle_groups",
+  "exercises.equipment",
+  "exercises.tags",
+  "exercises.intensity_tiers",
   // workout_templates
-  "movement_type",
-  "condition_tags",
-  "position",
+  "workout_templates.archetypes",
+  "workout_templates.movement_type",
+  "workout_templates.muscle_groups",
+  "workout_templates.equipment",
+  "workout_templates.condition_tags",
+  "workout_templates.position",
 ]);
 
 /**
@@ -68,8 +73,8 @@ const NATIVE_ARRAY_COLUMNS = new Set([
  * with 'invalid input syntax for type json' when the column is jsonb. Objects already
  * serialize correctly via prepareValue's JSON path — only arrays are affected.
  */
-export function coerceParam(col: string, val: unknown): unknown {
-  if (Array.isArray(val) && !NATIVE_ARRAY_COLUMNS.has(col)) {
+export function coerceParam(table: string, col: string, val: unknown): unknown {
+  if (Array.isArray(val) && !NATIVE_ARRAY_COLUMNS.has(`${table}.${col}`)) {
     return JSON.stringify(val);
   }
   return val;
@@ -262,7 +267,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
         const rows = Array.isArray(this.payload) ? this.payload : [this.payload];
         const cols = Object.keys(rows[0] ?? {});
         if (cols.length === 0) throw new Error("[pg-client] insert with no columns");
-        const valuesSql = rows.map((r) => "(" + cols.map((c) => { params.push(coerceParam(c, r[c])); return `$${params.length}`; }).join(", ") + ")").join(", ");
+        const valuesSql = rows.map((r) => "(" + cols.map((c) => { params.push(coerceParam(this.table, c, r[c])); return `$${params.length}`; }).join(", ") + ")").join(", ");
         sql = `INSERT INTO ${q(this.table)} (${cols.map(q).join(", ")}) VALUES ${valuesSql}`;
         if (this.action === "upsert") {
           const conflictCols = this._onConflict.split(",").map((c) => c.trim());
@@ -275,7 +280,7 @@ class QueryBuilder implements PromiseLike<ListRes> {
         // otherwise partial updates null out every unspecified column.
         const cols = Object.keys(this.payload ?? {}).filter((c) => this.payload[c] !== undefined);
         if (cols.length === 0) throw new Error("[pg-client] update with no defined columns");
-        const setSql = cols.map((c) => { params.push(coerceParam(c, this.payload[c])); return `${q(c)}=$${params.length}`; }).join(", ");
+        const setSql = cols.map((c) => { params.push(coerceParam(this.table, c, this.payload[c])); return `${q(c)}=$${params.length}`; }).join(", ");
         sql = `UPDATE ${q(this.table)} SET ${setSql}${this.where(params)}`;
         if (this._returning) sql += ` RETURNING ${this.selectList(this._returningCols)}`;
       } else if (this.action === "delete") {
