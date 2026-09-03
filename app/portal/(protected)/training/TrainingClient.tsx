@@ -275,7 +275,7 @@ function ExerciseCard({
           )}
           <div className="min-w-0">
             {exercise.group_label && (
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--status-primary)]">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--status-primary-text)]">
                 {exercise.group_label}
               </p>
             )}
@@ -297,7 +297,7 @@ function ExerciseCard({
             href={exercise.video_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-input px-3.5 text-sm font-medium text-[var(--status-primary)] hover:bg-accent"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-input px-3.5 text-sm font-medium text-[var(--status-primary-text)] hover:bg-accent"
           >
             <IconVideo className="h-4 w-4" aria-hidden="true" />
             Video
@@ -322,7 +322,7 @@ function ExerciseCard({
         );
       })()}
       {exercise.modification && (
-        <p className="mt-1 text-sm text-[var(--status-warning)]">
+        <p className="mt-1 text-sm text-[var(--status-warning-text)]">
           Easier option: {exercise.modification}
         </p>
       )}

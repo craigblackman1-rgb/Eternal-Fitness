@@ -40,7 +40,7 @@ export default async function StudioEquipmentPage() {
         subtitle="The Plan Agent can only programme from items listed here. Toggle off anything out of service."
         className="mb-5"
         actions={
-          <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success-border)]">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
             {activeCount} active
           </span>
         }

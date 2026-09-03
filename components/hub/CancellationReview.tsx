@@ -287,7 +287,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
                       <div className={`mt-2.5 rounded-lg p-2.5 border text-xs ${
                         currentDecision === "charged"
                           ? "bg-[var(--status-danger-bg)] border-[var(--status-danger-bd)] text-[var(--status-danger)]"
-                           : "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--status-success)]"
+                           : "bg-[var(--status-success-bg)] border-[var(--status-success-border)] text-[var(--status-success-text)]"
                       }`}>
                         {currentDecision === "charged" ? (
                           <span>

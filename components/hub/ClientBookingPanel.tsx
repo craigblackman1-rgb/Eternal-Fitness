@@ -150,7 +150,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
         {/* Warning alert banner */}
         <div className="rounded-xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4">
           <div className="flex gap-3">
-            <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning)] mt-0.5" />
+            <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning-text)] mt-0.5" />
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm text-foreground">
                 {bookings.length} Outlook booking{bookings.length === 1 ? "" : "s"} waiting for {firstName}
@@ -181,7 +181,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
         <DialogContent>
           <DialogHeader>
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-[10px] bg-[var(--status-success-bg)] text-[var(--status-success)] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-[10px] bg-[var(--status-success-bg)] text-[var(--status-success-text)] flex items-center justify-center shrink-0">
                 <IconCalendar className="w-[17px] h-[17px]" />
               </div>
               <div>

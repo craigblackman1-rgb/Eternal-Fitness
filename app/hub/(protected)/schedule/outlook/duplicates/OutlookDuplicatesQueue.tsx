@@ -112,7 +112,7 @@ export function OutlookDuplicatesQueue() {
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-foreground">Sessions that might collide with your own events</p>
-            <span className="inline-flex items-center rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning)] px-2 py-0.5 text-xs font-semibold">
+            <span className="inline-flex items-center rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] px-2 py-0.5 text-xs font-semibold">
               {openRows.length} pending
             </span>
           </div>
@@ -157,7 +157,7 @@ export function OutlookDuplicatesQueue() {
                         className={
                           "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold " +
                           (row.status === "linked"
-                            ? "bg-[var(--status-success-bg)] text-[var(--status-success)]"
+                            ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
                             : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]")
                         }
                       >
@@ -172,7 +172,7 @@ export function OutlookDuplicatesQueue() {
 
                 {row.status === "open" && (
                   <div className="mt-3 rounded-xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-3.5 py-2.5">
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--status-warning)] mb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--status-warning-text)] mb-1">
                       Your existing event
                     </p>
                     <div className="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 text-sm">

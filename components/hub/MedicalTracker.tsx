@@ -367,8 +367,8 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
     };
     const textMap: Record<string, string> = {
       ok: "text-[var(--color-body)]",
-      due: "text-[var(--status-warning)] font-semibold",
-      pend: "text-[var(--status-warning)] font-semibold",
+      due: "text-[var(--status-warning-text)] font-semibold",
+      pend: "text-[var(--status-warning-text)] font-semibold",
       exp: "text-[var(--status-danger)] font-semibold",
       out: "text-[var(--status-danger)] font-semibold",
       dec: "text-muted-foreground",
@@ -503,7 +503,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
             >
               {chip.dot && <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: chip.dot }} />}
               {chip.label}
-              <span className={cn("min-w-[18px] rounded-full border px-[5px] text-[11px] font-bold tabular-nums text-center", statusFilter === chip.v ? "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--status-primary)]" : "bg-[var(--hub-canvas)] border-[var(--hub-border)]")}>
+              <span className={cn("min-w-[18px] rounded-full border px-[5px] text-[11px] font-bold tabular-nums text-center", statusFilter === chip.v ? "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--status-primary-text)]" : "bg-[var(--hub-canvas)] border-[var(--hub-border)]")}>
                 {chipCounts[chip.v] ?? 0}
               </span>
             </button>
@@ -599,7 +599,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
                       if (rd !== null && rd < 0) {
                         reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-danger)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-danger)]" />{fmtShort(c.nextReview)} · {Math.abs(rd)}d late</span>;
                       } else if (rd !== null && rd <= DUE_WINDOW) {
-                        reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-warning)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />{fmtShort(c.nextReview)} · in {rd}d</span>;
+                        reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />{fmtShort(c.nextReview)} · in {rd}d</span>;
                       } else {
                         reviewCell = <span className="whitespace-nowrap text-muted-foreground">{fmtShort(c.nextReview)}</span>;
                       }
@@ -660,10 +660,10 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
                       const dueIn = daysFrom(r.expiryDate, today);
                       const colorMap: Record<string, string> = {
                         ok: "bg-[var(--status-success)] text-[var(--color-body)]",
-                        due: "bg-[var(--status-warning)] text-[var(--status-warning)] font-semibold",
+                        due: "bg-[var(--status-warning)] text-[var(--status-warning-text)] font-semibold",
                         exp: "bg-[var(--status-danger)] text-[var(--status-danger)] font-semibold",
                         out: "bg-[var(--status-danger)] text-[var(--status-danger)] font-semibold",
-                        pend: "bg-[var(--status-warning)] text-[var(--status-warning)] font-semibold",
+                        pend: "bg-[var(--status-warning)] text-[var(--status-warning-text)] font-semibold",
                         dec: "bg-[var(--hub-field-border)] text-muted-foreground",
                         na: "bg-[var(--hub-field-border)] text-muted-foreground",
                       };
@@ -704,8 +704,8 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
         {currentRows.length > 0 && (
           <div className="flex flex-wrap gap-4 px-4 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-success)]" />Valid</span>
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />Due within 45 days</span>
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />Requested — awaiting</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />Due within 45 days</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />Requested — awaiting</span>
             <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-danger)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-danger)]" />Outstanding or expired</span>
             <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-muted-foreground"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--hub-field-border)]" />Not applicable / declined</span>
           </div>

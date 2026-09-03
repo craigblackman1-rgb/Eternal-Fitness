@@ -336,7 +336,7 @@ export function SessionsClient({
                 </div>
                 <div className="rounded-[13px] p-4 border border-[rgba(176,138,62,.26)] bg-[#F7EFDD]">
                   <div className="flex items-center gap-2.5 mb-2">
-                    <span className="text-[var(--status-warning)]"><IconWarn /></span>
+                    <span className="text-[var(--status-warning-text)]"><IconWarn /></span>
                     <b className="text-sm text-foreground">Inside {noticeHours} hours — the session is used</b>
                   </div>
                   <p className="text-[13.5px] leading-relaxed m-0 text-[#7A5A17]">
@@ -568,7 +568,7 @@ function CancelDialog({
               : "border-[rgba(8,126,139,.22)] bg-[rgba(8,126,139,.10)]"
           )}>
             <div className="flex items-start gap-2.5 mb-3">
-              <span className={nt.inside ? "text-[var(--status-warning)]" : "text-[var(--color-teal)]"}>
+              <span className={nt.inside ? "text-[var(--status-warning-text)]" : "text-[var(--color-teal)]"}>
                 {nt.inside ? <IconWarn /> : <IconCheck />}
               </span>
               <div>

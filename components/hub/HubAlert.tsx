@@ -36,19 +36,19 @@ export function HubAlert({ severity, title, summary, children, action, className
     },
     warning: {
       bg: "bg-[var(--status-warning-bg)]",
-      icon: "text-[var(--status-warning)]",
+      icon: "text-[var(--status-warning-text)]",
       border: "border-[var(--status-warning-border)]",
       Icon: IconTriangleAlert,
     },
     success: {
       bg: "bg-[var(--status-success-bg)]",
-      icon: "text-[var(--status-success)]",
+      icon: "text-[var(--status-success-text)]",
       border: "border-[var(--status-success-border)]",
       Icon: IconCheckCircle,
     },
     info: {
       bg: "bg-[var(--status-primary-bg)]",
-      icon: "text-[var(--status-primary)]",
+      icon: "text-[var(--status-primary-text)]",
       border: "border-[var(--status-primary-border)]",
       Icon: IconAlertCircle,
     },

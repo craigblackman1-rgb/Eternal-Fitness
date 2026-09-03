@@ -737,7 +737,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                   <span
                     className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
                       isActive
-                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
+                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)]"
                         : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
                     }`}
                   >
@@ -784,7 +784,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                   <span
                     className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
                       isActive
-                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary)]"
+                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)]"
                         : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
                     }`}
                   >

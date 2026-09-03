@@ -72,7 +72,7 @@ function actionColorClasses(action: string) {
       return {
         bg: "bg-[var(--status-success-bg)]",
         border: "border-[var(--status-success-border)]",
-        text: "text-[var(--status-success)]",
+        text: "text-[var(--status-success-text)]",
       };
     case "update":
       return {
@@ -238,7 +238,7 @@ export function CalendarSyncPendingQueue() {
         </HubCard>
         <HubCard className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[11px] grid place-items-center bg-[var(--status-success-bg)] text-[var(--status-success)]">
+            <div className="w-10 h-10 rounded-[11px] grid place-items-center bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <IconCheck className="h-5 w-5" />
             </div>
             <div>
@@ -270,7 +270,7 @@ export function CalendarSyncPendingQueue() {
                 "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold " +
                 (openRows.length
                   ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)]"
-                  : "bg-[var(--status-success-bg)] text-[var(--status-success)]")
+                  : "bg-[var(--status-success-bg)] text-[var(--status-success-text)]")
               }
             >
               {openRows.length} pending
@@ -280,7 +280,7 @@ export function CalendarSyncPendingQueue() {
             <Button
               variant="outline"
               size="sm"
-              className="border-[var(--status-success-border)] text-[var(--status-success)] font-semibold hover:bg-[var(--status-success-bg)]"
+              className="border-[var(--status-success-border)] text-[var(--status-success-text)] font-semibold hover:bg-[var(--status-success-bg)]"
               disabled={busy !== null}
               onClick={() => setShowConfirm(true)}
             >
@@ -415,7 +415,7 @@ export function CalendarSyncPendingQueue() {
             </div>
             <div className="px-5 pt-4 pb-1">
               <div className="flex gap-3 items-start">
-                <div className="w-9 h-9 rounded-[10px] grid place-items-center shrink-0 bg-[var(--status-success-bg)] text-[var(--status-success)]">
+                <div className="w-9 h-9 rounded-[10px] grid place-items-center shrink-0 bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
                   <IconAlertTriangle className="h-[18px] w-[18px]" />
                 </div>
                 <div>

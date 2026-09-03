@@ -227,7 +227,7 @@ export default async function CashflowOverviewPage() {
                           </td>
                           <td className="px-5 py-3">
                             <div className="inline-flex items-center gap-2.5 min-w-0">
-                              <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">
+                              <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-[11px] font-bold shrink-0">
                                 {initials}
                               </span>
                               <span className="text-muted-foreground truncate">

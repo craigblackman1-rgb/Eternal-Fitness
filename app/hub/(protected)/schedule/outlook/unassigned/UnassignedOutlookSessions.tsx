@@ -251,7 +251,7 @@ export function UnassignedOutlookSessions() {
           <div className="flex items-center gap-2">
             <IconCalendar className="h-4 w-4 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">Unassigned Outlook sessions</p>
-            <span className="inline-flex items-center rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning)] px-2 py-0.5 text-xs font-semibold">
+            <span className="inline-flex items-center rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] px-2 py-0.5 text-xs font-semibold">
               {sessions.length}
             </span>
           </div>

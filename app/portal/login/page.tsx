@@ -55,7 +55,7 @@ function PortalLoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-warm px-6 py-16">
       <a
         href="#portal-login-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary)] focus:shadow-md"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary-text)] focus:shadow-md"
       >
         Skip to sign-in form
       </a>

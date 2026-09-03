@@ -199,7 +199,7 @@ export function OutlookBookingsQueue() {
           <div className="flex items-center gap-2">
             <IconCalendar className="h-4 w-4 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">Unmatched Outlook appointments</p>
-            <span className="inline-flex items-center rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] px-2 py-0.5 text-xs font-semibold">
+            <span className="inline-flex items-center rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] px-2 py-0.5 text-xs font-semibold">
               {openRows.length} open
             </span>
           </div>
@@ -230,7 +230,7 @@ export function OutlookBookingsQueue() {
                     </Button>
                   ) : row.client_id && row.clients ? (
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] px-2.5 py-1 text-xs font-semibold">
+                      <span className="inline-flex items-center rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] px-2.5 py-1 text-xs font-semibold">
                         {row.clients.name}
                       </span>
                       <Button size="sm" onClick={() => openConfirm(row)}>

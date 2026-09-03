@@ -153,12 +153,12 @@ export default async function UpdatesReportPage() {
                   {updatesDueClients.map((row) => {
                     const initials = row.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
                     const sc = STATUS_COLORS[row.status!];
-                    const daysClass = row.status === "overdue" ? "text-[var(--status-danger)]" : row.status === "due_soon" ? "text-[var(--status-warning)]" : "text-foreground";
+                    const daysClass = row.status === "overdue" ? "text-[var(--status-danger)]" : row.status === "due_soon" ? "text-[var(--status-warning-text)]" : "text-foreground";
                     return (
                       <tr key={row.clientId} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
                         <td className="px-5 py-3">
                           <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
-                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
+                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
                             <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.name}</span>
                           </Link>
                         </td>

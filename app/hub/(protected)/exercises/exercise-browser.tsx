@@ -461,7 +461,7 @@ export function ExerciseBrowser({
                                 {ex.archetypes.map((a) => (
                                   <span
                                     key={a}
-                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0"
+                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0"
                                   >
                                     {a}
                                   </span>
@@ -620,12 +620,12 @@ export function ExerciseBrowser({
                     {selectedExercise.archetypes.map((a) => (
                       <span
                         key={a}
-                        className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary)] border border-[var(--status-primary-border)] px-2.5 py-0.5 text-[11px] font-semibold"
+                        className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-2.5 py-0.5 text-[11px] font-semibold"
                       >
                         Type {a}
                       </span>
                     ))}
-                    <span className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success-border)] px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] px-2.5 py-0.5 text-[11px] font-semibold">
                       {sourceLabel(selectedExercise.source)}
                     </span>
                     {selectedExercise.source === "trainerize" && selectedExercise.trainerize_custom === true && (
@@ -673,7 +673,7 @@ export function ExerciseBrowser({
                             key={tier}
                             className={`text-[10px] font-medium rounded-full px-2 py-0.5 border ${
                               selectedExercise.intensity_tiers.includes(tier)
-                                ? "bg-[var(--status-primary-bg)] text-[var(--status-primary)] border-[var(--status-primary-border)]"
+                                ? "bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border-[var(--status-primary-border)]"
                                 : "bg-[var(--hub-hover)] text-muted-foreground/40 border-[var(--hub-border)]"
                             }`}
                           >

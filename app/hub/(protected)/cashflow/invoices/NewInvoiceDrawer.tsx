@@ -449,7 +449,7 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
             </div>
             <div>
               <label className="block text-[11.5px] font-semibold uppercase tracking-[0.05em] text-muted-foreground mb-1.5">
-                Due date <span className="text-[var(--status-danger-text)]">*</span>
+                Due date <span className="text-[var(--status-danger)]">*</span>
               </label>
               <input
                 type="date"
