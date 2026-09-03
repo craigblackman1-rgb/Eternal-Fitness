@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -487,8 +487,8 @@ export function BlockPoolView({
             {unbookedSessions.length > 0 && (
               <div className="border-t border-[var(--hub-border)] bg-[repeating-linear-gradient(135deg,#FBFCFD_0_6px,#F6F7F9_6px_12px)]">
                 {unbookedSessions.map((slot) => (
+                  <Fragment key={slot.session.id}>
                   <div
-                    key={slot.session.id}
                     className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)] last:border-b-0"
                   >
                     <div className="w-7 h-7 rounded-lg border border-dashed border-[var(--hub-field-border)] flex items-center justify-center text-muted-foreground shrink-0">
@@ -589,6 +589,7 @@ export function BlockPoolView({
                       </Button>
                     </div>
                   )}
+                  </Fragment>
                 ))}
               </div>
             )}
