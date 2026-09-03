@@ -35,6 +35,7 @@ interface SessionRow {
   cancel_reason: string | null;
   completed_at: string | null;
   parent_session_id: string | null;
+  charged_free: "charged" | "free" | null;
 }
 
 /**
@@ -96,6 +97,12 @@ export default async function BlockViewPage({
   const potSessions = sessions.filter((s) => !s.parent_session_id);
   const totalSessions = potSessions.length;
   const completedSessions = potSessions.filter((s) => sessionStatus(s) === "completed").length;
+  // CR-EF-143 — consumed slots = completed + charged cancellations (the floor
+  // for session count reduction in the edit drawer).
+  const consumedSlots = potSessions.filter((s) => {
+    const st = sessionStatus(s);
+    return st === "completed" || (st === "cancelled" && s.charged_free === "charged");
+  }).length;
 
   // BUG-EF-109 — derive displayed status from sessions: all settled → complete
   const derivedStatus = deriveBlockStatus(block.status, sessions);
@@ -277,6 +284,7 @@ export default async function BlockViewPage({
         clientName={client?.name || "Client"}
         weeks={planWeeks}
         sessionCount={totalSessions}
+        completedSessions={consumedSlots}
         scheduledStartIso={scheduledStartIso}
         weekdays={weekdays}
       >

@@ -25,6 +25,8 @@ interface BlockOverviewClientProps {
   clientName: string;
   weeks: number[];
   sessionCount: number;
+  /** CR-EF-143 — number of completed/charged sessions for the edit drawer's min-floor. */
+  completedSessions: number;
   scheduledStartIso: string | null;
   weekdays: Weekday[];
 }
@@ -37,6 +39,7 @@ export function BlockOverviewClient({
   clientName,
   weeks,
   sessionCount,
+  completedSessions,
   scheduledStartIso,
   weekdays,
 }: BlockOverviewClientProps) {
@@ -95,7 +98,14 @@ export function BlockOverviewClient({
         </HubCard>
       )}
 
-      <EditBlockDrawer open={drawerOpen} onOpenChange={setDrawerOpen} block={block} />
+      <EditBlockDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        block={block}
+        sessionCount={sessionCount}
+        completedSessions={completedSessions}
+        scheduledStartIso={scheduledStartIso}
+      />
       <AddWorkoutDialog open={addWorkoutOpen} onOpenChange={setAddWorkoutOpen} blockId={blockId} weeks={weeks} />
     </div>
   );
