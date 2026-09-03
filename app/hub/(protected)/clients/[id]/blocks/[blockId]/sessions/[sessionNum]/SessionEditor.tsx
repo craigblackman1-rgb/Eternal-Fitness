@@ -1074,7 +1074,7 @@ export function SessionEditor({
       <Dialog open={showTemplatePicker} onOpenChange={setShowTemplatePicker}>
         <DialogContent className="max-w-lg bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[12px] shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-[var(--color-ink)]">Apply workout</DialogTitle>
+            <DialogTitle className="text-[var(--color-ink)]">Apply Workout Template</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground -mt-2">
             Choose a template to load into the {version === "studio" ? "Studio" : "Home"} version.

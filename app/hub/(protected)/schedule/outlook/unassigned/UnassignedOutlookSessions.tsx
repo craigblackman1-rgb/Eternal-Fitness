@@ -178,7 +178,7 @@ export function UnassignedOutlookSessions() {
   return (
     <div className="space-y-6">
       <HubAlert severity="info" title="How bulk assign works">
-        Select one or more Outlook-placeholder sessions, then pick a workout. The template&rsquo;s
+        Select one or more Outlook-placeholder sessions, then pick a workout template. The template&rsquo;s
         exercises will be applied to every selected session, replacing the &ldquo;No workout assigned yet&rdquo; placeholder.
       </HubAlert>
 

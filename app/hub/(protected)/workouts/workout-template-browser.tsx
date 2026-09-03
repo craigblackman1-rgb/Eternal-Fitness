@@ -244,7 +244,7 @@ export function WorkoutTemplateBrowser({
           </div>
           <div>
             <div className="text-[13px] font-semibold text-[var(--color-ink)]">Templates</div>
-            <div className="text-xs text-muted-foreground">Filter and browse saved workouts</div>
+            <div className="text-xs text-muted-foreground">Filter and browse saved workout templates</div>
           </div>
           <div className="ml-auto">
             {hasFilters && (
