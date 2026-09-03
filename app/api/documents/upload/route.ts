@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
 import { DOCUMENT_KIND_LABEL, type DocumentKind } from "@/lib/documents/types";
+import { ALLOWED_UPLOAD_MIMES, mimeFromExtension, extFromFilename } from "@/lib/documents/allowed-mimes";
 
 const MAX_SIZE = 10 * 1024 * 1024;
 
@@ -29,6 +30,31 @@ export async function POST(request: Request) {
 
   if (file.size > MAX_SIZE) {
     return NextResponse.json({ error: "File must be 10 MB or less" }, { status: 400 });
+  }
+
+  let declaredMime = file.type.toLowerCase();
+  const extMime = mimeFromExtension(file.name);
+
+  // Browsers send file.type === "" for files they cannot classify.
+  // Fall back to extension-based inference so a perfectly good PDF whose
+  // content-type came through empty is not silently rejected.
+  if (!declaredMime && extMime) {
+    declaredMime = extMime;
+  }
+
+  if (!ALLOWED_UPLOAD_MIMES.has(declaredMime)) {
+    const ext = extFromFilename(file.name);
+    return NextResponse.json(
+      { error: ext ? `File type "${ext}" is not supported` : "File type not supported" },
+      { status: 422 },
+    );
+  }
+
+  if (extMime && declaredMime !== extMime) {
+    return NextResponse.json(
+      { error: `File extension and type do not match` },
+      { status: 422 },
+    );
   }
 
   const clientNumber = Number(clientNumberRaw);
@@ -60,7 +86,7 @@ export async function POST(request: Request) {
         JSON.stringify({ sections: [] }),
         "signed",
         file.name,
-        file.type,
+        declaredMime,
         file.size,
         clientSignedDate || null,
       ],
