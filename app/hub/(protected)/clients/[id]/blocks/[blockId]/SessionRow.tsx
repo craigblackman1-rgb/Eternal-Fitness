@@ -163,12 +163,22 @@ export function SessionRow({
             )}
             {(status === "scheduled" || status === "in_progress") && (
               <>
-                <Link
-                  href={sessionUrl}
-                  className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-                >
-                  {status === "in_progress" ? "Resume" : "View"}
-                </Link>
+                {status === "scheduled" && isEmpty ? (
+                  <button
+                    type="button"
+                    onClick={() => onAssignWorkout(sessionId)}
+                    className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                  >
+                    Assign workout
+                  </button>
+                ) : (
+                  <Link
+                    href={sessionUrl}
+                    className="inline-flex items-center rounded-lg bg-teal px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                  >
+                    {status === "in_progress" ? "Resume" : "View"}
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={startReschedule}
