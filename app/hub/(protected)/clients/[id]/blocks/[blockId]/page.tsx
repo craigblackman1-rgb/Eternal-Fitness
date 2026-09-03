@@ -315,6 +315,7 @@ export default async function BlockViewPage({
           sessionsPurchased={client?.sessions_purchased ?? null}
           blockExpiryDate={client?.block_expiry_date ?? null}
           blockExpiryExtensions={client?.block_expiry_extensions ?? []}
+          chronologicalPositions={chronologicalPositions}
         />
 
         <div className="space-y-3.5">

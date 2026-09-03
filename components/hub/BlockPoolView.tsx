@@ -21,6 +21,7 @@ interface BlockPoolViewProps {
   sessionsPurchased: number | null;
   blockExpiryDate: string | null;
   blockExpiryExtensions?: { from: string; to: string; at: string; reason?: string }[];
+  chronologicalPositions?: Map<string, { position: number; total: number }>;
 }
 
 interface SlotData {
@@ -52,6 +53,7 @@ export function BlockPoolView({
   sessionsPurchased,
   blockExpiryDate,
   blockExpiryExtensions = [],
+  chronologicalPositions = new Map(),
 }: BlockPoolViewProps) {
   const router = useRouter();
   const [cancelSession, setCancelSession] = useState<DBSession | null>(null);
@@ -112,6 +114,23 @@ export function BlockPoolView({
   const workoutQueue = slotData.filter(
     (s) => s.status !== "completed" && s.status !== "cancelled" && !s.session.parent_session_id,
   );
+
+  // Chronological letter map — letters assigned by scheduled_at order, not
+  // session_number. Sessions without a date sort last, stably by session_number.
+  // Both the ribbon and the planned-workouts list derive letters from this map
+  // so the same session always shows the same letter.
+  const chronologicalLetterMap = new Map<string, string>();
+  const letterItems = [...workoutQueue].sort((a, b) => {
+    const posA = chronologicalPositions.get(a.session.id)?.position;
+    const posB = chronologicalPositions.get(b.session.id)?.position;
+    if (posA != null && posB != null) return posA - posB;
+    if (posA != null) return -1;
+    if (posB != null) return 1;
+    return a.session.session_number - b.session.session_number;
+  });
+  letterItems.forEach((s, i) => {
+    chronologicalLetterMap.set(s.session.id, String.fromCharCode(65 + i));
+  });
 
   // Strict sequence: the earliest undelivered workout
   const spokenWorkouts = new Set(
@@ -226,7 +245,7 @@ export function BlockPoolView({
               const isDone = s.status === "completed";
               const isNext = nextInSequence?.session.id === s.session.id;
               const isAssigned = spokenWorkouts.has(s.session.id);
-              const letter = String.fromCharCode(65 + i); // A, B, C, ...
+              const letter = chronologicalLetterMap.get(s.session.id) ?? String.fromCharCode(65 + i);
 
               let dotClass = "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground";
               let capLabel = "Queued";
@@ -509,7 +528,7 @@ export function BlockPoolView({
               const isDone = slot.status === "completed";
               const isAssigned = spokenWorkouts.has(slot.session.id);
               const isNext = nextInSequence?.session.id === slot.session.id;
-              const letter = String.fromCharCode(65 + i);
+              const letter = chronologicalLetterMap.get(slot.session.id) ?? String.fromCharCode(65 + i);
 
               let rowClass = "";
               let tagClass = "";
