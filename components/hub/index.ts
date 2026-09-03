@@ -18,4 +18,5 @@ export { TrainerizeHistoryPanel } from "./TrainerizeHistoryPanel";
 export { OutlookBookingsBadge, useOutlookTriageCount } from "./OutlookBookingsBadge";
 export { OutlookReconciliationTabs } from "./OutlookReconciliationTabs";
 export { ClientBookingPanel } from "./ClientBookingPanel";
+export { BlockPickerDialog } from "./BlockPickerDialog";
 export type { TrainerizeHistoryData, TrainerizeBlock, TrainerizeWorkout, TrainerizeExercise, TrainerizeNote } from "./types";
