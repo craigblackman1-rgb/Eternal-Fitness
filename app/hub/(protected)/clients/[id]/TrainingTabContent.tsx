@@ -17,6 +17,7 @@ import type { TrainerizeHistoryData } from "@/components/hub";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
 import type { SetLog, BlockStatus } from "@/types";
+import type { Band } from "@/lib/bands";
 import { groupSetLogsBySession, type SessionSetEvidence } from "@/lib/session-sets";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveBlockStatus } from "@/lib/block-status";
@@ -360,6 +361,15 @@ export function TrainingTabContent({
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("10:00");
   const [savingSchedule, setSavingSchedule] = useState(false);
+
+  // CR-EF-147 — bands for the "Add PB" drawer
+  const [bands, setBands] = useState<Band[]>([]);
+  useEffect(() => {
+    fetch("/api/bands")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => { if (Array.isArray(data)) setBands(data); })
+      .catch(() => {});
+  }, []);
 
   const startSchedule = (session: SessionRow) => {
     if (session.scheduled_at) {
@@ -761,6 +771,10 @@ export function TrainingTabContent({
                 emptyTitle="No logged sessions yet"
                 emptyDescription="Log sets from a session and per-exercise personal bests and history will appear here."
                 idPrefix="hub-exercise-history"
+                clientId={String(clientNumber)}
+                clientName={clientName}
+                bands={bands}
+                onPbSaved={() => router.refresh()}
               />
             </div>
           </HubCard>

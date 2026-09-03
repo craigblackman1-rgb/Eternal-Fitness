@@ -4,12 +4,17 @@
  * Per-exercise history panel — PB + last performed. Shared by the hub (any
  * client) and the portal (own data only). Receives pre-computed, serialisable
  * history data from a server component — no data fetching here.
+ *
+ * CR-EF-147 — when clientId/clientName/bands are provided, shows an
+ * "Add personal best manually" button that opens the ExerciseHistoryDrawer.
  */
 
 import { useState } from "react";
 import { EmptyState } from "@/components/hub/EmptyState";
 import { IconClock, IconAward, IconBarChart3 } from "@/components/icons";
+import { ExerciseHistoryDrawer } from "@/components/workout/ExerciseHistoryDrawer";
 import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
+import type { Band } from "@/lib/bands";
 import { formatDate } from "@/lib/exercise-history";
 
 interface ExerciseHistoryPanelProps {
@@ -17,6 +22,12 @@ interface ExerciseHistoryPanelProps {
   emptyTitle?: string;
   emptyDescription?: string;
   idPrefix?: string;
+  /** CR-EF-147 — when provided, enables the "Add PB" button + drawer. */
+  clientId?: string;
+  clientName?: string;
+  bands?: Band[];
+  /** Called after a manual PB is saved, so the parent can refresh data. */
+  onPbSaved?: () => void;
 }
 
 export function ExerciseHistoryPanel({
@@ -24,8 +35,15 @@ export function ExerciseHistoryPanel({
   emptyTitle = "No logged sessions yet",
   emptyDescription = "Once sets are logged against a session, exercise history will appear here.",
   idPrefix = "exercise-history",
+  clientId,
+  clientName,
+  bands,
+  onPbSaved,
 }: ExerciseHistoryPanelProps) {
   const [selectedName, setSelectedName] = useState<string>(history[0]?.exerciseName ?? "");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const canAddPb = !!clientId && !!clientName && !!bands;
 
   if (history.length === 0) {
     return (
@@ -65,8 +83,22 @@ export function ExerciseHistoryPanel({
             ))}
           </select>
         </div>
-        <div className="text-xs text-muted-foreground">
-          {entry.totalSessions} logged session{entry.totalSessions === 1 ? "" : "s"}
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-muted-foreground">
+            {entry.totalSessions} logged session{entry.totalSessions === 1 ? "" : "s"}
+          </div>
+          {canAddPb && (
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Add PB
+            </button>
+          )}
         </div>
       </div>
 
@@ -174,6 +206,22 @@ export function ExerciseHistoryPanel({
           </p>
         )}
       </div>
+
+      {/* CR-EF-147 — ExerciseHistoryDrawer for adding a manual PB */}
+      {canAddPb && (
+        <ExerciseHistoryDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          clientId={clientId}
+          clientName={clientName}
+          exerciseName={entry.exerciseName}
+          bands={bands}
+          onSaved={() => {
+            setDrawerOpen(false);
+            onPbSaved?.();
+          }}
+        />
+      )}
     </div>
   );
 }
