@@ -33,10 +33,10 @@ interface BlockOption {
  * CR-EF-146 — dialog to carry remaining sessions from the current block
  * into an existing later block or a new one.
  *
- * "Remaining" = sessions that consumed no pot slot (not completed, not
- * charged-cancelled). After carry-over the source block shows correct
- * remaining (zero phantom sessions) and the target block has free-to-book
- * sessions available through the existing assignment flow.
+ * "Remaining" = the deriveSessionPot number (client-level:
+ * sessions_purchased − completed − charged-cancellations). After carry-over
+ * the route creates that many new placeholder rows in the target block
+ * (unscheduled, free-to-book).
  */
 export function CarryOverDialog({
   open,
@@ -51,7 +51,6 @@ export function CarryOverDialog({
   const [blocks, setBlocks] = useState<BlockOption[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<string>("new");
 
-  // Fetch client's other blocks when the dialog opens
   useEffect(() => {
     if (!open) return;
     const fetchBlocks = async () => {
@@ -59,7 +58,6 @@ export function CarryOverDialog({
         const res = await fetch(`/api/clients/${clientId}/blocks`);
         if (res.ok) {
           const data = await res.json();
-          // Filter out the current block and only show non-complete blocks
           setBlocks(
             (data as BlockOption[]).filter(
               (b) => b.id !== blockId && b.status !== "complete",
@@ -90,7 +88,11 @@ export function CarryOverDialog({
         throw new Error(err.error || "Failed to carry over");
       }
       const result = await res.json();
-      toast.success(result.message || "Sessions carried over");
+      if (result.leftBehind > 0) {
+        toast.warning(result.message || `Placed ${result.placed} of ${result.remaining} — target block at capacity`);
+      } else {
+        toast.success(result.message || "Sessions carried over");
+      }
       router.refresh();
       onOpenChange(false);
     } catch (err) {
@@ -105,7 +107,7 @@ export function CarryOverDialog({
         <DialogHeader>
           <DialogTitle className="text-[15px]">Carry over remaining sessions</DialogTitle>
           <DialogDescription className="text-sm">
-            Move {remainingCount} remaining session{remainingCount === 1 ? "" : "s"} from Block {blockNumber} into another block. These sessions are unassigned and free to book through the existing scheduling flow.
+            Create {remainingCount} free-to-book session{remainingCount === 1 ? "" : "s"} in another block, using the remaining pot count from Block {blockNumber}. These sessions are unscheduled and ready to book through the existing scheduling flow.
           </DialogDescription>
         </DialogHeader>
 
