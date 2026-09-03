@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { deriveSessionStatus } from "@/lib/session-status";
+import { resolveMaxWeek } from "@/lib/workout-roll-forward";
 
 /**
  * CR-EF-143 — adjust the session count for a block.
@@ -76,13 +77,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // Find the highest existing session_number for pot sessions
     const maxNumber = potSessions.reduce((max, s) => Math.max(max, s.session_number), 0);
 
-    // Find the highest week in use — clone the reduce from sessions POST route
-    // (the previous version ignored the argument and always returned 1)
-    const maxWeek = potSessions.reduce(
-      (max, s) => (s.week != null && s.week > max ? s.week : max),
-      0,
-    );
-    const resolvedWeek = maxWeek > 0 ? maxWeek : 1;
+    // Find the highest week in use
+    const resolvedWeek = resolveMaxWeek(allSessions);
 
     const insertRows = [];
     for (let i = 1; i <= toAdd; i++) {
