@@ -80,5 +80,13 @@ export async function GET() {
     .select("*")
     .order("updated_at", { ascending: false });
 
+  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
+  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
+  // the client then only ever receives a string every engine agrees on.
+  for (const row of data ?? []) {
+    if (row.created_at) row.created_at = new Date(row.created_at).toISOString();
+    if (row.updated_at) row.updated_at = new Date(row.updated_at).toISOString();
+  }
+
   return NextResponse.json(data ?? []);
 }

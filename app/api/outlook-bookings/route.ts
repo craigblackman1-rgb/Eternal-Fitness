@@ -32,5 +32,14 @@ export async function GET(request: Request) {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
+  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
+  // the client then only ever receives a string every engine agrees on.
+  for (const row of data ?? []) {
+    if (row.start_at) row.start_at = new Date(row.start_at).toISOString();
+    if (row.end_at) row.end_at = new Date(row.end_at).toISOString();
+  }
+
   return NextResponse.json(data);
 }

@@ -44,6 +44,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
     [clientUuid, exclude],
   );
 
+  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
+  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
+  // the client then only ever receives a string every engine agrees on.
   return NextResponse.json(
     res.rows.map((row) => ({
       session_id: row.id,
@@ -52,7 +55,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
       week: row.week,
       phase: row.phase,
       archetype: row.archetype,
-      completed_at: row.data.session_log?.completed_at ?? null,
+      completed_at: row.data.session_log?.completed_at
+        ? new Date(row.data.session_log.completed_at).toISOString()
+        : null,
       versions: row.data.versions ?? {},
     }))
   );
