@@ -5,9 +5,9 @@ import Link from "next/link";
 import { HubCard, HubAlert } from "@/components/hub";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { IconCalendar, IconSearch } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { BlockPickerDialog, type BlockPickerBlock } from "@/components/hub/BlockPickerDialog";
 
 interface ClientRef {
   id: string;
@@ -25,13 +25,6 @@ interface BookingRow {
   client_id: string | null;
   status: "open" | "dismissed" | "confirmed" | "blocked";
   clients: ClientRef | null;
-}
-
-interface Block {
-  id: string;
-  block_number: number;
-  status: string;
-  block_note: string | null;
 }
 
 function formatWhen(iso: string) {
@@ -52,9 +45,8 @@ export function OutlookBookingsQueue() {
 
   // Confirm dialog state.
   const [confirmRow, setConfirmRow] = useState<BookingRow | null>(null);
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const [blocks, setBlocks] = useState<BlockPickerBlock[]>([]);
+  const [allBlocks, setAllBlocks] = useState<BlockPickerBlock[]>([]);
   const [blocksLoading, setBlocksLoading] = useState(false);
 
   async function load() {
@@ -124,26 +116,29 @@ export function OutlookBookingsQueue() {
   async function openConfirm(row: BookingRow) {
     if (!row.client_id) return;
     setConfirmRow(row);
-    setSelectedBlockId(null);
     setBlocksLoading(true);
     try {
       const res = await fetch(`/api/clients/${row.client_id}/blocks`);
-      const data: Block[] = res.ok ? await res.json() : [];
-      setBlocks(data);
-      if (data.length === 1) setSelectedBlockId(data[0].id);
+      const all: BlockPickerBlock[] = res.ok ? await res.json() : [];
+      setAllBlocks(all);
+      const nonComplete = all.filter((b) => b.status !== "complete" && b.status !== "completed");
+      const activeBlocks = nonComplete.filter((b) => b.status === "active");
+      const ordered = activeBlocks.length > 0
+        ? activeBlocks
+        : nonComplete;
+      setBlocks(ordered);
     } finally {
       setBlocksLoading(false);
     }
   }
 
-  async function doConfirm() {
-    if (!confirmRow || !confirmRow.client_id || !selectedBlockId) return;
-    setConfirming(true);
+  async function doConfirm(blockId: string) {
+    if (!confirmRow || !confirmRow.client_id) return;
     try {
       const res = await fetch(`/api/outlook-bookings/${confirmRow.id}/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: confirmRow.client_id, blockId: selectedBlockId }),
+        body: JSON.stringify({ clientId: confirmRow.client_id, blockId }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -153,8 +148,6 @@ export function OutlookBookingsQueue() {
       setConfirmRow(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to confirm");
-    } finally {
-      setConfirming(false);
     }
   }
 
@@ -289,49 +282,16 @@ export function OutlookBookingsQueue() {
         Synced with Outlook every 15 minutes. <Link href="/hub/schedule" className="underline underline-offset-2">Back to schedule</Link>
       </p>
 
-      <Dialog open={!!confirmRow} onOpenChange={(open) => !open && setConfirmRow(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Which block is this session part of?</DialogTitle>
-          </DialogHeader>
-          {blocksLoading ? (
-            <p className="text-sm text-muted-foreground">Loading blocks…</p>
-          ) : blocks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {confirmRow?.clients?.name ?? "This client"} has no blocks yet — create one first.
-            </p>
-          ) : (
-            <ul className="space-y-1.5">
-              {blocks.map((b) => (
-                <li key={b.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedBlockId(b.id)}
-                    className={cn(
-                      "w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors",
-                      selectedBlockId === b.id
-                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)]"
-                        : "border-[var(--hub-border)] hover:bg-[var(--hub-hover)]"
-                    )}
-                  >
-                    <span className="font-semibold">Block {b.block_number}</span>
-                    <span className="text-muted-foreground"> · {b.status}</span>
-                    {b.block_note && <span className="block text-xs text-muted-foreground mt-0.5">{b.block_note}</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmRow(null)}>
-              Cancel
-            </Button>
-            <Button onClick={doConfirm} disabled={!selectedBlockId || confirming || blocks.length === 0}>
-              {confirming ? "Confirming…" : "Confirm & create session"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BlockPickerDialog
+        open={!!confirmRow}
+        onOpenChange={(open) => !open && setConfirmRow(null)}
+        booking={confirmRow ? { subject: confirmRow.subject, start_at: confirmRow.start_at } : null}
+        blocks={blocks}
+        allBlocks={allBlocks}
+        blocksLoading={blocksLoading}
+        clientName={confirmRow?.clients?.name ?? "This client"}
+        onConfirm={doConfirm}
+      />
     </div>
   );
 }

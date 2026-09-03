@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { IconTriangleAlert, IconCalendar } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { BlockPickerDialog, type BlockPickerBlock } from "./BlockPickerDialog";
 
 interface ClientRef {
   id: string;
@@ -24,13 +24,6 @@ interface BookingRow {
   clients: ClientRef | null;
 }
 
-interface Block {
-  id: string;
-  block_number: number;
-  status: string;
-  block_note: string | null;
-}
-
 function formatTime(iso: string) {
   const d = new Date(iso);
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
@@ -41,10 +34,6 @@ function formatDate(iso: string) {
   return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
-function formatWhenShort(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
 
 interface ClientBookingPanelProps {
   clientId: string;
@@ -63,13 +52,11 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Block picker dialog state.
+  // Block picker state.
   const [confirmBooking, setConfirmBooking] = useState<BookingRow | null>(null);
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [allBlocks, setAllBlocks] = useState<Block[]>([]);
-  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [blocks, setBlocks] = useState<BlockPickerBlock[]>([]);
+  const [allBlocks, setAllBlocks] = useState<BlockPickerBlock[]>([]);
   const [blocksLoading, setBlocksLoading] = useState(false);
-  const [confirming, setConfirming] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -99,11 +86,10 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
 
   async function openConfirm(row: BookingRow) {
     setConfirmBooking(row);
-    setSelectedBlockId(null);
     setBlocksLoading(true);
     try {
       const res = await fetch(`/api/clients/${clientId}/blocks`);
-      const all: Block[] = res.ok ? await res.json() : [];
+      const all: BlockPickerBlock[] = res.ok ? await res.json() : [];
       setAllBlocks(all);
       const nonComplete = all.filter((b) => b.status !== "complete" && b.status !== "completed");
       const activeBlocks = nonComplete.filter((b) => b.status === "active");
@@ -111,20 +97,18 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
         ? activeBlocks
         : nonComplete;
       setBlocks(ordered);
-      if (ordered.length === 1) setSelectedBlockId(ordered[0].id);
     } finally {
       setBlocksLoading(false);
     }
   }
 
-  async function doConfirm() {
-    if (!confirmBooking || !selectedBlockId) return;
-    setConfirming(true);
+  async function doConfirm(blockId: string) {
+    if (!confirmBooking) return;
     try {
       const res = await fetch(`/api/outlook-bookings/${confirmBooking.id}/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, blockId: selectedBlockId }),
+        body: JSON.stringify({ clientId, blockId }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -134,8 +118,6 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
       setConfirmBooking(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to confirm");
-    } finally {
-      setConfirming(false);
     }
   }
 
@@ -177,76 +159,16 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
       </div>
 
       {/* Block picker dialog */}
-      <Dialog open={!!confirmBooking} onOpenChange={(open) => !open && setConfirmBooking(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-[10px] bg-[var(--status-success-bg)] text-[var(--status-success)] flex items-center justify-center shrink-0">
-                <IconCalendar className="w-[17px] h-[17px]" />
-              </div>
-              <div>
-                <DialogTitle>Attach to session</DialogTitle>
-                {confirmBooking && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {confirmBooking.subject} · {formatWhenShort(confirmBooking.start_at)} {formatTime(confirmBooking.start_at)}
-                  </p>
-                )}
-              </div>
-            </div>
-          </DialogHeader>
-          <p className="text-[12.5px] text-muted-foreground">
-            {blocks.length > 0 && blocks.every((b) => b.status === "active")
-              ? "Pick which active block this Outlook booking belongs to."
-              : blocks.length > 0
-                ? "Pick which block this Outlook booking belongs to."
-                : ""}
-          </p>
-          {blocksLoading ? (
-            <p className="text-sm text-muted-foreground">Loading blocks…</p>
-          ) : blocks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {allBlocks.length > 0
-                ? `${clientName} has no open block — all ${allBlocks.length} block${allBlocks.length === 1 ? "" : "s"} ${allBlocks.length === 1 ? "is" : "are"} complete. Create a new block first.`
-                : `${clientName} has no blocks yet — create one first.`}
-            </p>
-          ) : (
-            <ul className="space-y-2 mt-1">
-              {blocks.map((b) => (
-                <li key={b.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedBlockId(b.id)}
-                    className={cn(
-                      "w-full text-left rounded-xl border px-3.5 py-3 transition-colors",
-                      selectedBlockId === b.id
-                        ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] shadow-[inset_0_0_0_1px_var(--color-rose)]"
-                        : "border-[var(--hub-border)] hover:border-[var(--color-rose)] hover:bg-[var(--status-primary-bg)]"
-                    )}
-                  >
-                    <span className="font-bold text-sm text-foreground">
-                      Block {b.block_number}
-                      {b.status !== "active" && (
-                        <span className="font-normal text-muted-foreground"> · {b.status}</span>
-                      )}
-                    </span>
-                    {b.block_note && (
-                      <span className="block text-xs text-muted-foreground mt-0.5">{b.block_note}</span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmBooking(null)}>
-              Cancel
-            </Button>
-            <Button onClick={doConfirm} disabled={!selectedBlockId || confirming || blocks.length === 0}>
-              {confirming ? "Confirming…" : "Confirm & attach"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BlockPickerDialog
+        open={!!confirmBooking}
+        onOpenChange={(open) => !open && setConfirmBooking(null)}
+        booking={confirmBooking ? { subject: confirmBooking.subject, start_at: confirmBooking.start_at } : null}
+        blocks={blocks}
+        allBlocks={allBlocks}
+        blocksLoading={blocksLoading}
+        clientName={clientName}
+        onConfirm={doConfirm}
+      />
     </>
   );
 }
