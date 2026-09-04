@@ -33,6 +33,25 @@ function isFriday(iso: string): boolean {
   return new Date(iso).getDay() === 5;
 }
 
+/** Derive a short display token (1–4 chars) from a full focus_label for the
+ *  fixed-width 60×42 block-map cell. The full label stays in aria-label and
+ *  title tooltip — this is visual-only. */
+function shortCode(label: string): string {
+  const clean = label
+    .replace(/^Day \d+\s*[—–-]\s*/i, "")
+    .replace(/\b&\b/g, "")
+    .trim();
+  if (!clean) return "—";
+  const skip = new Set(["the", "a", "an", "and", "or", "of", "for", "to", "in", "on"]);
+  const words = clean.split(/\s+/).filter((w) => !skip.has(w.toLowerCase()));
+  const code = words
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 4);
+  return code || "—";
+}
+
 export function BlockMap({ sessions }: { sessions: SessionCell[] }) {
   const { openDrawer } = useDrawerManager();
 
@@ -87,8 +106,11 @@ export function BlockMap({ sessions }: { sessions: SessionCell[] }) {
                   no date
                 </small>
               )}
-              <b className="text-[13.5px] font-extrabold leading-none text-[var(--color-ink)]">
-                {state === "gap" ? "None" : state === "undated" ? String(s.sessionNumber) : (s.focusLabel ?? String(s.sessionNumber))}
+              <b
+                className="text-[13.5px] font-extrabold leading-none text-[var(--color-ink)] overflow-hidden whitespace-nowrap"
+                title={s.focusLabel || undefined}
+              >
+                {state === "gap" ? "None" : state === "undated" ? String(s.sessionNumber) : shortCode(s.focusLabel ?? String(s.sessionNumber))}
               </b>
             </button>
           );
