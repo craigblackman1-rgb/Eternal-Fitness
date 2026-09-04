@@ -66,7 +66,7 @@ export default async function BlockViewPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("name, client_number, profile, sessions_purchased, block_expiry_date, block_expiry_extensions")
+    .select("id, name, client_number, profile, sessions_purchased, block_expiry_date, block_expiry_extensions")
     .eq("client_number", parseInt(params.id))
     .single();
 
@@ -147,12 +147,16 @@ export default async function BlockViewPage({
       : formatShortDateFull(scheduledStartIso)
     : "not yet scheduled";
 
-  // Previous blocks for the "Previous blocks" section
-  const { data: allBlocksData } = await supabase
-    .from("blocks")
-    .select("id, block_number, status, scheduled_start")
-    .eq("client_id", parseInt(params.id))
-    .order("block_number", { ascending: false });
+  // Previous blocks for the "Previous blocks" section.
+  // blocks.client_id is the client's UUID, NOT the client_number in the URL —
+  // keyed off the wrong one this returns nothing and the block reads "of 0".
+  const { data: allBlocksData } = block.client_id
+    ? await supabase
+        .from("blocks")
+        .select("id, block_number, status, scheduled_start")
+        .eq("client_id", block.client_id)
+        .order("block_number", { ascending: false })
+    : { data: [] as { id: string; block_number: number; status: string; scheduled_start: string | null }[] };
 
   const totalBlockCount = (allBlocksData || []).length;
 
