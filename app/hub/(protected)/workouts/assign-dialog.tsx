@@ -105,7 +105,7 @@ export function TemplateAssignDialog({
       <div className="relative w-full max-w-md rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-6 shadow-xl">
         <h3 className="text-lg font-bold text-[var(--color-ink)]">Assign template to a client</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Grounds this workout into the client&apos;s next block through the Plan Agent.
+          Grounds this template into the client&apos;s next block through the Plan Agent.
         </p>
 
         <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">

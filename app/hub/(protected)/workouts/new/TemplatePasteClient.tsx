@@ -170,7 +170,7 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
       setSaveOpen(false);
       setSuccess({
         title: "Template saved",
-        body: `"${saved.name}" is now in your workout templates, ready to assign.`,
+        body: `"${saved.name}" is now in your templates, ready to assign.`,
       });
       setStep(3);
     }
@@ -188,7 +188,7 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
   };
 
   const handleAssigned = (clientName: string) => {
-    const name = createdTemplate?.name ?? editorRef.current?.getName() ?? "This workout";
+    const name = createdTemplate?.name ?? editorRef.current?.getName() ?? "This template";
     setSuccess({
       title: `Assigned to ${clientName}`,
       body: `"${name}" is grounded into ${clientName}'s next block via the Plan Agent.`,
@@ -206,7 +206,7 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
           <h1 className="text-xl font-semibold tracking-tight">New workout template</h1>
           <p className="text-muted-foreground">
             {startBlank
-              ? "Start from an empty editor and build the session by hand."
+              ? "Start from an empty editor and build the template by hand."
               : "Paste a workout you've agreed outside the app, let it structure, then review before saving."}
           </p>
         </div>
@@ -321,7 +321,7 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
           <div className="relative w-full max-w-md rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-6 shadow-xl">
             <h3 className="text-lg font-bold text-[var(--color-ink)]">Save as template</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              This saves a new reusable workout in workout_templates — the reviewed structure above is what gets stored.
+              This saves a new reusable template in workout_templates — the reviewed structure above is what gets stored.
             </p>
             <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
               Template name

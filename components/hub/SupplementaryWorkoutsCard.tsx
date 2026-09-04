@@ -235,7 +235,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
             onClick={openAddDialog}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3 py-1.5 text-[13px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors shrink-0"
           >
-            <IconPlus className="w-3.5 h-3.5" /> Add workout
+            <IconPlus className="w-3.5 h-3.5" /> Add supplementary workout
           </button>
         </div>
 
@@ -369,7 +369,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
             {addStep === 1 ? (
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 <p className="text-[13px] text-[var(--color-body)] leading-relaxed mb-3.5">
-                  Pick the workout that should run alongside every session for {clientName}. It will not use one of her sessions.
+                  Pick the template that should run alongside every session for {clientName}. It will not use one of her sessions.
                 </p>
                 <div className="relative mb-3">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted)] pointer-events-none">
@@ -379,7 +379,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                     type="text"
                     value={addSearch}
                     onChange={(e) => setAddSearch(e.target.value)}
-                    placeholder="Search workouts…"
+                    placeholder="Search templates…"
                     className="w-full h-[38px] pl-9 pr-3 rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-[13px] text-foreground font-[inherit] placeholder:text-[var(--color-muted)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
                   />
                 </div>
@@ -427,7 +427,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                     })}
                     {filteredTemplates.length === 0 && (
                       <div className="text-center py-4 text-[13px] text-[var(--color-muted)]">
-                        No workouts match that search.
+                        No templates match that search.
                       </div>
                     )}
                   </div>
@@ -478,7 +478,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
             {/* Footer */}
             {addStep === 1 ? (
               <div className="flex items-center gap-2 px-5 py-3.5 border-t border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                <span className="text-[11.5px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Step 1 of 2 · Pick a workout</span>
+                <span className="text-[11.5px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Step 1 of 2 · Pick a template</span>
                 <span className="flex-1" />
                 <button type="button" onClick={() => setAddOpen(false)} className="inline-flex items-center rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] px-3.5 py-1.5 text-[13px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors">
                   Cancel

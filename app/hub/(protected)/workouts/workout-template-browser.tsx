@@ -176,8 +176,8 @@ export function WorkoutTemplateBrowser({
   return (
     <div className="space-y-5">
       <HubPageHeader
-        title="Workouts"
-        subtitle="Reusable sessions — assigned into a client's next block or saved back from a logged session."
+        title="Templates"
+        subtitle="Saved workout templates — reusable sessions you can assign to any client."
         actions={
           <>
             <Link href="/hub/exercises" className="text-sm font-medium text-teal hover:underline mr-2">Exercise library</Link>
@@ -194,7 +194,7 @@ export function WorkoutTemplateBrowser({
               onClick={() => setMenuOpen((v) => !v)}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              aria-label="More new-template options"
+              aria-label="More new-workout-template options"
               className="inline-flex items-center justify-center h-9 w-8 rounded-r-lg bg-rose hover:bg-rose/90 text-white border-l border-white/30 transition-colors"
             >
               <IconChevronDown className="h-3.5 w-3.5" />
@@ -213,7 +213,7 @@ export function WorkoutTemplateBrowser({
                   <span className="text-[13px] font-semibold text-[var(--color-ink)]">
                     Paste &amp; structure
                     <span className="block text-[11.5px] font-normal text-muted-foreground mt-0.5">
-                      Paste a workout you agreed outside the app; AI turns it into a template.
+                      Paste a workout you agreed outside the app; AI turns it into a template you can reuse.
                     </span>
                   </span>
                 </button>
@@ -362,7 +362,7 @@ export function WorkoutTemplateBrowser({
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
-                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-4 py-2">Template</th>
+                    <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-4 py-2">Template name</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Exercises</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Equipment</th>
                     <th className="text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2">Position</th>
