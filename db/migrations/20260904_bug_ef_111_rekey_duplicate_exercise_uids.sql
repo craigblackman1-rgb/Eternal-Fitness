@@ -366,16 +366,16 @@ BEGIN
   INSERT INTO _ef111_uid_map (session_id, exercise_name, old_uid)
   SELECT session_id, exercise_name, old_uid
   FROM (
-    SELECT r.session_id, r.exercise_name, r.old_uid,
+    SELECT raw.session_id, raw.exercise_name, raw.old_uid,
            row_number() OVER (
-             PARTITION BY r.session_id, r.exercise_name
+             PARTITION BY raw.session_id, raw.exercise_name
              ORDER BY (
                SELECT count(*) FROM set_logs sl
-               WHERE sl.session_id = r.session_id
-                 AND sl.exercise_name = r.exercise_name
+               WHERE sl.session_id = raw.session_id
+                 AND sl.exercise_name = raw.exercise_name
              ) DESC
            ) AS rn
-    FROM _ef111_uid_raw r
+    FROM _ef111_uid_raw raw
   ) ranked
   WHERE rn = 1;
 
