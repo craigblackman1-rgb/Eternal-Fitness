@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
@@ -847,9 +848,10 @@ function WorkoutDrawer({ sessions, ruleTypesById }: { sessions: DBSession[]; rul
    BLOCK — every workout in the currently-open block
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function BlockDrawer({ latestBlock, blockSessions }: {
+function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
   latestBlock: DBBlock | null;
   blockSessions: DBSession[];
+  clientNumber: number;
 }) {
   const { openWorkoutDrawer } = useDrawerManager();
 
@@ -906,6 +908,16 @@ function BlockDrawer({ latestBlock, blockSessions }: {
         </button>
       ))}
       {workouts.length === 0 && <p className="miss">No sessions in this block yet.</p>}
+
+      {/* Footer */}
+      <div className="mt-4 pt-3 border-t border-[var(--hub-border)]">
+        <Link
+          href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
+        >
+          Manage block →
+        </Link>
+      </div>
     </DrawerShell>
   );
 }
@@ -1126,6 +1138,7 @@ export function ClientDrawers(props: ClientDrawersProps) {
       <BlockDrawer
         latestBlock={props.latestBlock}
         blockSessions={props.blockSessions}
+        clientNumber={props.client.client_number}
       />
       <ProgressDrawer
         exerciseTrends={props.exerciseTrends}

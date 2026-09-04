@@ -72,7 +72,7 @@ export function TrainingSection({
   exerciseTrendSummary,
   trainerizeHistory,
 }: TrainingSectionProps) {
-  const { openDrawer } = useDrawerManager();
+  const { openDrawer, openWorkoutDrawer } = useDrawerManager();
   const firstName = clientName.split(" ")[0];
 
   // Find the next upcoming (not-yet-completed) session in the latest block
@@ -140,11 +140,14 @@ export function TrainingSection({
           {latestBlock ? `Block ${latestBlock.block_number} of ${allBlocks.length}` : "No blocks"} · {totalSessions} sessions since {allBlocks.length > 0 ? fmtDate(allBlocks[allBlocks.length - 1].created_at) : "—"}
         </span>
         <div className="ml-auto flex gap-1.5">
-          <button className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)]">
+          <button
+            onClick={(e) => openDrawer("dw-progress", e.currentTarget)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)]"
+          >
             Progress
           </button>
           <Link
-            href={`/hub/clients/${clientNumber}?tab=plan-agent`}
+            href={`/hub/clients/${clientNumber}/plan-agent`}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] no-underline"
           >
             Plan next block
@@ -181,7 +184,7 @@ export function TrainingSection({
             </div>
             <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
               <button
-                onClick={(e) => openDrawer("dw-workout", e.currentTarget)}
+                onClick={(e) => openWorkoutDrawer(workoutSession!.id, e.currentTarget)}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
               >
                 See the workout
