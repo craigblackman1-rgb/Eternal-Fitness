@@ -42,6 +42,8 @@ export interface NeedsYouInput {
   lastClientLogAt?: string | null;
   quietDays?: number;
   packageUnderSpecified?: boolean;
+  /** Which commercial terms are missing, e.g. ["rate","expiry"]. */
+  missingPackageTerms?: string[];
   clientFirstName?: string;
 }
 
@@ -70,6 +72,7 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
     lastClientLogAt,
     quietDays,
     packageUnderSpecified,
+    missingPackageTerms,
     clientFirstName,
   } = input;
   const items: QueueItem[] = [];
@@ -187,14 +190,17 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
   }
 
   // S1 priority 9 — a package that exists in name only. Distinct from
-  // "unpaid": the package is named but carries no session count, rate,
-  // expiry or review date, so nothing can be counted or chased against it.
+  // "unpaid": the package is named but has no agreed rate or expiry, so
+  // nothing can be invoiced or chased against it.
   if (packageUnderSpecified) {
+    const missing = missingPackageTerms ?? [];
+    const missingLabel =
+      missing.length === 2 ? "rate or expiry" : missing.length === 1 ? `${missing[0]}` : "terms";
     items.push({
       id: "package-underspecified",
       dot: "muted",
-      headline: "The package is recorded in name only",
-      subline: "No session count, rate or expiry is set, so nothing can be counted against it.",
+      headline: `The package has no ${missingLabel} set`,
+      subline: "It is named, but nothing can be invoiced or chased against it.",
       actionLabel: "Set it up",
       actionDrawerId: "dw-arrangement",
     });

@@ -347,14 +347,18 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // Training rules count (from profile)
   const trainingRulesCount = p?.programming_adaptations?.length ?? 0;
 
-  // S1 — a package that exists in name only: named, but carrying none of the
-  // numbers that make it mean anything. Every field checked here is a real
-  // column; the item only appears when a package IS set but is unspecified.
-  const packageUnderSpecified = Boolean((client as any).package_type)
-    && client.sessions_remaining == null
-    && client.sessions_used == null
-    && (client as any).client_rate == null
-    && (client as any).block_expiry_date == null;
+  // S1 — a package that exists in name only. Tested on rate and expiry
+  // specifically: those two are never defaulted, so their absence really does
+  // mean "not agreed", whereas sessions_used defaults to 0 for every client
+  // and sessions_remaining is often legitimately set on its own. An earlier
+  // version required all four to be null and so would never have fired for
+  // the one real client it was drawn for.
+  const missingPackageTerms = [
+    (client as any).client_rate == null ? "rate" : null,
+    (client as any).block_expiry_date == null ? "expiry" : null,
+  ].filter((x): x is string => x !== null);
+  const packageUnderSpecified =
+    Boolean((client as any).package_type) && missingPackageTerms.length > 0;
 
   // Health flags: count of conditions, medications, pain points, contraindications
   const healthFlagsCount = (() => {
@@ -436,6 +440,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       lastClientLogAt={lastClientLogAt}
       quietDays={HOME_TRAINING_QUIET_DAYS}
       packageUnderSpecified={packageUnderSpecified}
+      missingPackageTerms={missingPackageTerms}
       trainingRules={p?.programming_adaptations ?? []}
       exerciseTrendSummary={exerciseTrendSummary}
       missingBandSet={missingBandSet}
