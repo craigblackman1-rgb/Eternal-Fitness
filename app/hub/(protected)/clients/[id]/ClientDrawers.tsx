@@ -171,16 +171,54 @@ function ProfileDrawer({ client, portalAccount, clientNotes }: {
       <div className="fcard acc-ink">
         <div className="fcard-h">Your notes</div>
         <div className="fcard-b pad">
-          {clientNotes.length > 0 ? (
-            <div className="space-y-2">
-              {clientNotes.slice(0, 5).map((n: any) => (
-                <p key={n.id} className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.note}</p>
-              ))}
-              {clientNotes.length > 5 && <p className="miss m-0">+{clientNotes.length - 5} more notes.</p>}
-            </div>
-          ) : (
-            <p className="miss" style={{ margin: 0 }}>Nothing written down.</p>
-          )}
+          {(() => {
+            const n = client.profile?.notes;
+            const hasProfileNotes = n && (n.client_intro || n.esther_observations || n.motivation_notes || n.watch_for);
+            const hasClientNotes = clientNotes.length > 0;
+            if (!hasProfileNotes && !hasClientNotes) {
+              return <p className="miss" style={{ margin: 0 }}>Nothing written down.</p>;
+            }
+            return (
+              <div className="space-y-3">
+                {hasProfileNotes && (
+                  <div className="space-y-2">
+                    {n.client_intro && (
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Client intro</div>
+                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.client_intro}</p>
+                      </div>
+                    )}
+                    {n.esther_observations && (
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Observations</div>
+                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.esther_observations}</p>
+                      </div>
+                    )}
+                    {n.motivation_notes && (
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Motivation</div>
+                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.motivation_notes}</p>
+                      </div>
+                    )}
+                    {n.watch_for && (
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Watch for</div>
+                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.watch_for}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {hasClientNotes && (
+                  <div className={hasProfileNotes ? "pt-2" : undefined} style={hasProfileNotes ? { borderTop: "1px solid var(--hub-border)" } : undefined}>
+                    {clientNotes.slice(0, 5).map((cn: any) => (
+                      <p key={cn.id} className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{cn.note}</p>
+                    ))}
+                    {clientNotes.length > 5 && <p className="miss m-0">+{clientNotes.length - 5} more notes.</p>}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -473,7 +511,7 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
         <div className="fcard-b">
           <div className="fgrid">
             <div className="frow"><span className="fk">Package</span><span className="fv">{packageType || "\u2014"}</span></div>
-            <div className="frow"><span className="fk">Typed on the record</span><span className="fv num">{sessionsUsed ?? 0} used \u00b7 {sessionsRemaining ?? "\u2014"} left</span></div>
+            <div className="frow"><span className="fk">Typed on the record</span><span className="fv num">{sessionsUsed ?? 0} used {"\u00b7"} {sessionsRemaining ?? "\u2014"} left</span></div>
             <div className="frow"><span className="fk">Counted from sessions</span><span className="fv num">{countCompletedSessions} completed {blockSessionCountMismatch ? <span className="bdg warn">Does not match</span> : null}</span></div>
             <div className="frow"><span className="fk">Payment</span><span className="fv">{paymentStatus ? paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1) : "\u2014"}</span></div>
             <div className="frow"><span className="fk">Client status</span><span className="fv">{clientStatus ? clientStatus.charAt(0).toUpperCase() + clientStatus.slice(1) : "\u2014"}</span></div>
@@ -633,7 +671,7 @@ function CommsDrawer({ dueInfo, allTaskRows, clientUpdates }: {
       {/* Tasks */}
       <div className="fcard acc-teal">
         <div className="fcard-h">
-          Tasks \u00b7 {openTasks.length} open, {doneTasks.length} done
+          {`Tasks \u00b7 ${openTasks.length} open, ${doneTasks.length} done`}
         </div>
         <div className="fcard-b">
           {allTaskRows.length > 0 ? (
