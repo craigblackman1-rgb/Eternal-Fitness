@@ -154,6 +154,30 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const { data: ruleTypes } = await supabase.from("training_rule_types").select("id, label, bucket");
   const ruleTypesById = new Map((ruleTypes ?? []).map((rt) => [rt.id, rt]));
 
+  // ── S0b drawer data ──
+
+  // Portal account for this client
+  const { data: portalAccountRows } = await supabase.from("portal_accounts").select("id, email, disabled_at, last_login_at, created_at").eq("client_id", client.id).limit(1);
+  const portalAccount = portalAccountRows?.[0] ?? null;
+
+  // Trainer notes about this client (not session notes)
+  const { data: clientNoteRows } = await supabase.from("client_notes").select("id, note, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
+  const clientNotes = clientNoteRows ?? [];
+
+  // Client reviews
+  const { data: clientReviewRows } = await supabase.from("client_reviews").select("id, decision, note, recorded_by_name, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
+  const clientReviews = clientReviewRows ?? [];
+
+  // Band set assigned to this client
+  const bandSetId = (client as any).band_set_id;
+  const { data: bandSet } = bandSetId
+    ? await supabase.from("band_sets").select("id, name").eq("id", bandSetId).single()
+    : { data: null };
+
+  // Full task rows (not just status count)
+  const { data: fullTaskRows } = await supabase.from("tasks").select("id, title, status, due_date, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
+  const allTaskRows = fullTaskRows ?? [];
+
   const p = client.profile;
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
@@ -393,6 +417,35 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       missingBandSet={missingBandSet}
       latestBlock={latestBlock}
       derivedStatusByBlock={derivedStatusByBlock}
+      /* S0b drawer data */
+      portalAccount={portalAccount}
+      clientNotes={clientNotes}
+      clientReviews={clientReviews}
+      bandSetName={bandSet?.name ?? null}
+      allTaskRows={allTaskRows}
+      clientDocuments={clientDocuments ?? []}
+      legacyDocumentRows={legacyDocumentRows}
+      flags={flags}
+      clientUpdates={clientUpdates ?? []}
+      exerciseTrends={exerciseTrends}
+      ruleTypesById={ruleTypesById}
+      complianceLookup={complianceLookup}
+      gpClearance={gpClearance}
+      sessionsRemaining={client.sessions_remaining}
+      sessionsUsed={client.sessions_used}
+      paymentStatus={client.payment_status}
+      packageType={client.package_type}
+      medicalClearanceStatus={client.medical_clearance_status}
+      riskLevel={client.risk_level}
+      annualReviewDueDate={client.annual_review_due_date}
+      clearanceFrom={client.clearance_from}
+      specialistName={client.specialist_name}
+      exerciseModifications={client.exercise_modifications}
+      clientStatus={client.client_status}
+      referralSource={client.referral_source}
+      startDate={client.start_date}
+      blockExpiryDate={client.block_expiry_date}
+      countCompletedSessions={countedCompleted}
     />
   );
 }

@@ -53,7 +53,7 @@ function shortCode(label: string): string {
 }
 
 export function BlockMap({ sessions }: { sessions: SessionCell[] }) {
-  const { openDrawer } = useDrawerManager();
+  const { openWorkoutDrawer } = useDrawerManager();
 
   // Sort by scheduled_at, undated at end
   const sorted = [...sessions].sort((a, b) => {
@@ -88,7 +88,7 @@ export function BlockMap({ sessions }: { sessions: SessionCell[] }) {
             <button
               key={s.id}
               type="button"
-              onClick={(e) => openDrawer("dw-workout", e.currentTarget)}
+              onClick={(e) => openWorkoutDrawer(s.id, e.currentTarget)}
               disabled={state === "undated"}
               className={`w-[60px] h-[42px] shrink-0 border rounded-lg flex flex-col items-center justify-center gap-0.5 font-[inherit] p-0 transition-all duration-100 focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] hover:border-rose hover:shadow-[0_0_0_1px_var(--color-rose)] ${cellClasses[state] || "bg-white border-[var(--hub-border)]"} ${isWeekEnd ? "mr-[13px]" : ""}`}
               aria-label={

@@ -7,6 +7,8 @@ import { NeedsYouQueue } from "./NeedsYouQueue";
 import { TrainingSection } from "./TrainingSection";
 import { ClientDrawers } from "./ClientDrawers";
 import type { DBBlock, DBSession } from "@/types";
+import type { ExerciseTrend } from "@/lib/progress";
+import type { ComplianceFlags } from "@/lib/compliance";
 
 /* ── ClientRecordShell — the client-side wrapper that composes the new
    single-screen, no-tabs client record layout. Wrapped in DrawerManager
@@ -42,6 +44,35 @@ interface ClientRecordShellProps {
   missingBandSet: boolean;
   latestBlock: DBBlock | null;
   derivedStatusByBlock: Map<string, import("@/types").BlockStatus>;
+  /* S0b drawer data */
+  portalAccount: any;
+  clientNotes: any[];
+  clientReviews: any[];
+  bandSetName: string | null;
+  allTaskRows: any[];
+  clientDocuments: any[];
+  legacyDocumentRows: any[];
+  flags: ComplianceFlags;
+  clientUpdates: any[];
+  exerciseTrends: ExerciseTrend[];
+  ruleTypesById: Map<string, any>;
+  complianceLookup: any;
+  gpClearance: any;
+  sessionsRemaining: number | null;
+  sessionsUsed: number | null;
+  paymentStatus: string;
+  packageType: string | null;
+  medicalClearanceStatus: string;
+  riskLevel: string;
+  annualReviewDueDate: string | null;
+  clearanceFrom: string | null;
+  specialistName: string | null;
+  exerciseModifications: string | null;
+  clientStatus: string;
+  referralSource: string | null;
+  startDate: string | null;
+  blockExpiryDate: string | null;
+  countCompletedSessions: number;
 }
 
 export function ClientRecordShell({
@@ -68,6 +99,35 @@ export function ClientRecordShell({
   missingBandSet,
   latestBlock: latestBlockProp,
   derivedStatusByBlock,
+  /* S0b drawer data */
+  portalAccount,
+  clientNotes,
+  clientReviews,
+  bandSetName,
+  allTaskRows,
+  clientDocuments,
+  legacyDocumentRows,
+  flags,
+  clientUpdates,
+  exerciseTrends,
+  ruleTypesById,
+  complianceLookup,
+  gpClearance,
+  sessionsRemaining,
+  sessionsUsed,
+  paymentStatus,
+  packageType,
+  medicalClearanceStatus,
+  riskLevel,
+  annualReviewDueDate,
+  clearanceFrom,
+  specialistName,
+  exerciseModifications,
+  clientStatus,
+  referralSource,
+  startDate,
+  blockExpiryDate,
+  countCompletedSessions,
 }: ClientRecordShellProps) {
   const latestBlock = latestBlockProp;
 
@@ -152,8 +212,48 @@ export function ClientRecordShell({
         />
       </div>
 
-      {/* ── Drawers (stub shells for S0b) ── */}
-      <ClientDrawers />
+      {/* ── Drawers ── */}
+      <ClientDrawers
+        client={client}
+        blocks={blocks}
+        sessions={sessions}
+        latestBlock={latestBlock}
+        blockSessions={blockSessions}
+        portalAccount={portalAccount}
+        clientNotes={clientNotes}
+        clientReviews={clientReviews}
+        bandSetName={bandSetName}
+        missingBandSet={missingBandSet}
+        allTaskRows={allTaskRows}
+        clientDocuments={clientDocuments}
+        legacyDocumentRows={legacyDocumentRows}
+        flags={flags}
+        clientUpdates={clientUpdates}
+        dueInfo={dueInfo}
+        exerciseTrends={exerciseTrends}
+        exerciseTrendSummary={exerciseTrendSummary}
+        trainerizeHistory={trainerizeHistory}
+        ruleTypesById={ruleTypesById}
+        complianceLookup={complianceLookup}
+        gpClearance={gpClearance}
+        sessionsRemaining={sessionsRemaining}
+        sessionsUsed={sessionsUsed}
+        paymentStatus={paymentStatus}
+        packageType={packageType}
+        medicalClearanceStatus={medicalClearanceStatus}
+        riskLevel={riskLevel}
+        annualReviewDueDate={annualReviewDueDate}
+        clearanceFrom={clearanceFrom}
+        specialistName={specialistName}
+        exerciseModifications={exerciseModifications}
+        clientStatus={clientStatus}
+        referralSource={referralSource}
+        startDate={startDate}
+        blockExpiryDate={blockExpiryDate}
+        blockSessionCountMismatch={blockSessionCountMismatch}
+        unpaidBlocks={unpaidBlocks}
+        countCompletedSessions={countCompletedSessions}
+      />
     </DrawerManager>
   );
 }

@@ -14,16 +14,20 @@ const MAX_DEPTH = 2;
 
 interface DrawerManagerValue {
   openDrawer: (id: string, opener?: HTMLElement | null) => void;
+  openWorkoutDrawer: (sessionId: string, opener?: HTMLElement | null) => void;
   closeDrawer: () => void;
   activeDrawer: string | null;
   parentId: string | null;
+  selectedSessionId: string | null;
 }
 
 const DrawerManagerCtx = createContext<DrawerManagerValue>({
   openDrawer: () => {},
+  openWorkoutDrawer: () => {},
   closeDrawer: () => {},
   activeDrawer: null,
   parentId: null,
+  selectedSessionId: null,
 });
 
 export function useDrawerManager() {
@@ -35,6 +39,7 @@ export function useDrawerManager() {
 export function DrawerManager({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const parentOpenerRef = useRef<HTMLElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
@@ -58,6 +63,24 @@ export function DrawerManager({ children }: { children: React.ReactNode }) {
     }
   }, [activeId, parentId]);
 
+  const openWorkoutDrawer = useCallback((sessionId: string, opener?: HTMLElement | null) => {
+    setSelectedSessionId(sessionId);
+    if (activeId) {
+      if (parentId) {
+        setActiveId(parentId);
+        setParentId(null);
+        parentOpenerRef.current = null;
+      }
+      setParentId(activeId);
+      parentOpenerRef.current = openerRef.current;
+      setActiveId("dw-workout");
+      openerRef.current = opener ?? null;
+    } else {
+      setActiveId("dw-workout");
+      openerRef.current = opener ?? null;
+    }
+  }, [activeId, parentId]);
+
   const closeDrawer = useCallback(() => {
     if (parentId) {
       // Close child, return to parent
@@ -74,6 +97,7 @@ export function DrawerManager({ children }: { children: React.ReactNode }) {
       const opener = openerRef.current;
       setActiveId(null);
       setParentId(null);
+      setSelectedSessionId(null);
       openerRef.current = null;
       parentOpenerRef.current = null;
       // Return focus to opener
@@ -109,7 +133,7 @@ export function DrawerManager({ children }: { children: React.ReactNode }) {
   }, [activeId]);
 
   return (
-    <DrawerManagerCtx.Provider value={{ openDrawer, closeDrawer, activeDrawer: activeId, parentId }}>
+    <DrawerManagerCtx.Provider value={{ openDrawer, openWorkoutDrawer, closeDrawer, activeDrawer: activeId, parentId, selectedSessionId }}>
       {children}
       {/* Scrim */}
       <div
