@@ -1,125 +1,14 @@
 import { createClient } from "@/lib/supabase-server";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { IconChevronLeft, IconClipboardList, IconClipboardCheck, IconFileText, IconHeart, IconMail, IconPencil, IconPlus, IconTarget, IconTriangleAlert, IconDumbbell, IconEdit3, IconAlertCircle, IconLayoutDashboard, IconUser, IconBot, IconCheckSquare, IconActivity, IconPanelLeft, IconCalendar, IconBarChart3 } from "@/components/icons";
 import { computeUpdateDue } from "@/lib/updates-due";
-import { ClientTasksPanel } from "./ClientTasksPanel";
-import { MergedNotesPanel } from "./MergedNotesPanel";
-import { EmptyState } from "@/components/hub/EmptyState";
-import { HubCard, HubCardHeader, HubDataGrid, HubDataField, HubQuickActions, HubAccordionSection, HubTabsList, HubTabsTrigger, TrainerizeHistoryPanel } from "@/components/hub";
-import type { TrainerizeHistoryData } from "@/components/hub";
-import { StatusBadge, TokenPill } from "@/components/hub/StatusBadge";
-import { HubAlert } from "@/components/hub/HubAlert";
-import { lookupStatus, type StatusToken } from "@/lib/hubStatus";
+import { buildExerciseTrends, type TrendSessionMeta } from "@/lib/progress";
 import { computeComplianceFlags } from "@/lib/compliance";
-import type { DBClientGroupType, DBClientPaceMode, SessionNoteData, PinnedNoteRef } from "@/types";
-import { formatFrequency } from "@/types";
-import { PlanAgentTab } from "./PlanAgentTab";
-import { ClientDetailTabs } from "./ClientDetailTabs";
-import { GpLetterCard } from "@/components/hub/GpLetterCard";
-import { DocumentRegister } from "@/components/hub/DocumentRegister";
-import { ClinicalComplianceCard } from "@/components/hub/ClinicalComplianceCard";
-import { PackagePaymentsCard } from "@/components/hub/PackagePaymentsCard";
-import { ClientUpdatesPanel } from "@/components/hub/ClientUpdatesPanel";
-import { PortalAccountCard } from "./PortalAccountCard";
-import type { SentUpdate, SetLog } from "@/types";
-import { ExerciseTrendsPanel } from "@/components/progress/ExerciseTrendsPanel";
-import { ExerciseHistoryPanel } from "@/components/progress/ExerciseHistoryPanel";
-import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
-import { buildExerciseHistory } from "@/lib/exercise-history";
-import { aggregateExerciseNotes } from "@/lib/exercise-notes";
-import { getLastClientLogAt } from "@/lib/progress-db";
-import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
-import { sessionWorkoutName } from "@/lib/session-display";
-import { RESOURCES } from "@/lib/resources";
-import { formatClientEquipment } from "@/lib/client-equipment";
-import { ContextStrip } from "./ContextStrip";
-import { TrainingTabContent } from "./TrainingTabContent";
-import { CommsTabContent } from "./CommsTabContent";
+import { lookupStatus } from "@/lib/hubStatus";
 import { deriveBlockStatus } from "@/lib/block-status";
-import { ClientBookingPanel } from "@/components/hub/ClientBookingPanel";
-
-function YesNoPill({ yes }: { yes: boolean }) {
-  return <TokenPill token={yes ? "success" : "danger"} label={yes ? "Yes" : "No"} />;
-}
-
-function GroupTypeLabel({ groupType }: { groupType: DBClientGroupType | null }) {
-  if (!groupType) return null;
-  return groupType === 'individual_journey' ? 'Individual Journey' : 'Calendar Block';
-}
-
-function PaceModeDisplay({ paceMode }: { paceMode: DBClientPaceMode | null }) {
-  if (!paceMode) return null;
-  const label = paceMode === 'fast' ? 'Fast pace' : paceMode === 'medium' ? 'Medium pace' : 'Slow pace';
-  const exerciseCount = paceMode === 'fast' ? '~10 exercises per session' : paceMode === 'medium' ? '~8 exercises per session' : '~5–6 exercises per session';
-  return <span>{label} — {exerciseCount}</span>;
-}
-
-function OutstandingActionsInline({ actions }: { actions: string[] | null }) {
-  if (!actions || actions.length === 0) return null;
-  return (
-    <ul className="mt-1.5 space-y-0.5">
-      {actions.map((action, i) => (
-        <li key={i} className="flex items-center gap-2 text-sm">
-          <IconTriangleAlert className="w-[15px] h-[15px] shrink-0" />
-          <span>{action}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function TabCountBadge({ count, tone }: { count: number; tone: "danger" | "warning" }) {
-  const classes = tone === "danger"
-    ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]"
-    : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]";
-  return (
-    <span className={`inline-grid place-items-center min-w-[18px] h-[18px] px-[5px] rounded-full border text-[11px] font-bold leading-none tabular-nums ${classes}`}>
-      {count}
-    </span>
-  );
-}
-
-function TagChip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-md bg-[var(--hub-canvas)] border border-[var(--hub-border)] px-2 py-0.5 text-xs text-[var(--color-body)]">
-      {children}
-    </span>
-  );
-}
-
-function formatDeliveryMode(mode: string | null): string {
-  if (!mode) return "—";
-  return mode === "studio_1to1" ? "Studio 1-to-1" : mode === "home_training" ? "Home Training" : mode;
-}
-
-function formatPaceMode(mode: string | null): string {
-  if (!mode) return "—";
-  return mode === "fast" ? "Fast" : mode === "medium" ? "Medium" : "Slow";
-}
-
-function formatSessionDuration(minutes: number | null): string {
-  if (minutes == null || minutes <= 0) return "—";
-  if (minutes >= 60) {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h ${m}min` : `${h}h`;
-  }
-  return `${minutes}min`;
-}
-
-function formatHubDate(value: string | null | undefined): string {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
-
-/** Session names are `focus_label`, never `Block {n} · S{n}` (CR-EF-034). */
-function sessionDisplayName(s: any): string {
-  return sessionWorkoutName(s, s?.session_number != null ? `Session ${s.session_number}` : "—");
-}
+import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
+import type { SessionNoteData, PinnedNoteRef, DBSession, SetLog } from "@/types";
+import { ClientRecordShell } from "./ClientRecordShell";
+import type { TrainerizeHistoryData } from "@/components/hub";
 
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -181,7 +70,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const sessionIds = (sessions ?? []).map((s) => s.id);
   const { data: setLogs } = sessionIds.length > 0
     ? await supabase.from("set_logs").select("*").in("session_id", sessionIds).order("logged_at", { ascending: true })
-    : { data: [] as SetLog[] };
+    : { data: [] as any[] };
   const trendSessionMeta: Record<string, TrendSessionMeta> = {};
   for (const s of sessions ?? []) {
     trendSessionMeta[s.id] = {
@@ -194,8 +83,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     ...trainerizeResultsToSetLogs((workoutResults ?? []) as any),
   ];
   const exerciseTrends = buildExerciseTrends(combinedSetLogs, trendSessionMeta);
-  const exerciseHistory = buildExerciseHistory(combinedSetLogs);
-  const exerciseNotes = aggregateExerciseNotes(sessions ?? []);
 
   // CR-EF-098 — build session-level notes for the merged notes panel.
   // Session notes live in sessions.data.session_log.notes (a free-text string).
@@ -209,7 +96,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     })
     .map((s: any) => {
       const log = s.data?.session_log as { completed_at?: string | null; notes: string };
-      const sessName = sessionDisplayName(s);
+      const sessName = s.data?.focus_label ?? (s.session_number != null ? `Session ${s.session_number}` : "—");
       return {
         note: log.notes,
         sessionName: sessName,
@@ -229,10 +116,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   )
     ? ((client as Record<string, unknown>).pinned_note_refs as PinnedNoteRef[])
     : [];
-
-  const isHomeTraining = client.delivery_mode === "home_training";
-  const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
-  const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
 
@@ -270,6 +153,30 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   );
   const { data: ruleTypes } = await supabase.from("training_rule_types").select("id, label, bucket");
   const ruleTypesById = new Map((ruleTypes ?? []).map((rt) => [rt.id, rt]));
+
+  // ── S0b drawer data ──
+
+  // Portal account for this client
+  const { data: portalAccountRows } = await supabase.from("portal_accounts").select("id, email, disabled_at, last_login_at, created_at").eq("client_id", client.id).limit(1);
+  const portalAccount = portalAccountRows?.[0] ?? null;
+
+  // Trainer notes about this client (not session notes)
+  const { data: clientNoteRows } = await supabase.from("client_notes").select("id, note, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
+  const clientNotes = clientNoteRows ?? [];
+
+  // Client reviews
+  const { data: clientReviewRows } = await supabase.from("client_reviews").select("id, decision, note, recorded_by_name, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
+  const clientReviews = clientReviewRows ?? [];
+
+  // Band set assigned to this client
+  const bandSetId = (client as any).band_set_id;
+  const { data: bandSet } = bandSetId
+    ? await supabase.from("band_sets").select("id, name").eq("id", bandSetId).single()
+    : { data: null };
+
+  // Full task rows (not just status count)
+  const { data: fullTaskRows } = await supabase.from("tasks").select("id, title, status, due_date, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
+  const allTaskRows = fullTaskRows ?? [];
 
   const p = client.profile;
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -312,9 +219,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         .find((s: any) => new Date(s.scheduled_at).getTime() >= Date.now()) ?? null
     );
   })();
-  const workoutSession = nextSession ?? latestCompletedSession;
-  const workoutName = workoutSession ? sessionDisplayName(workoutSession) : null;
-
   const blockSessionCounts: Record<number, number> = {};
   const blockCompletedCounts: Record<number, number> = {};
   for (const s of sessions ?? []) {
@@ -400,872 +304,148 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const gpClearance = p?.health?.gp_clearance;
   const manualActions = client.outstanding_actions ?? [];
   const outstandingCount = flags.autoOutstanding.length + manualActions.length;
-  const draftUpdatesCount = (clientUpdates ?? []).filter((u) => u.status === "draft").length;
 
   const { data: taskRows } = await supabase.from("tasks").select("status").eq("client_id", client.id);
   const pendingTaskCount = (taskRows ?? []).filter((t: any) => t.status !== "done").length;
 
-  // CR-EF-125 — supplementary workouts for the rail mirror.
-  const { data: suppRows } = await supabase
-    .from("client_supplementary_workouts")
-    .select("id, workout_template_id, workout_templates(name)")
-    .eq("client_id", client.id)
-    .is("removed_at", null)
-    .order("sort_order", { ascending: true });
+  // ── Derived values for the new single-screen layout ──
 
-  const contextItems = [
-    { label: "Format", value: formatDeliveryMode(client.delivery_mode) },
-    { label: "Pace", value: formatPaceMode(client.pace_mode) },
-    { label: "Session", value: formatSessionDuration(client.session_duration ?? null) },
-    { label: "Frequency", value: formatFrequency(p?.logistics?.frequency ?? (p?.logistics?.sessions_per_week ? { unit: "week", per_unit: p.logistics.sessions_per_week } : null)) },
-    { label: "Package", value: client.package_type ?? "—" },
-    { label: "Next update", value: dueInfo.nextDueDate ? new Date(dueInfo.nextDueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—" },
-  ];
+  // Draft blocks: blocks whose status is "draft"
+  const draftBlockCount = (blocks ?? []).filter((b) => b.status === "draft").length;
 
-  const rightRail = (
-    <div className="space-y-5">
-      <HubCard>
-        <HubCardHeader icon={<IconClipboardCheck className="w-4 h-4" />} title="Status" color="slate" />
-        <div className="pb-5 space-y-0">
-          <Link href={`/hub/clients/${client.client_number}?tab=compliance`} className="flex items-center justify-between py-2 text-sm group">
-            <span className="text-muted-foreground group-hover:text-rose transition-colors">Compliance</span>
-            {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="text-muted-foreground">—</span>}
-          </Link>
-          <Link href={`/hub/clients/${client.client_number}/edit`} className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)] group">
-            <span className="text-muted-foreground group-hover:text-rose transition-colors">GP Clearance</span>
-            {p?.health ? <YesNoPill yes={gpClearance} /> : <span className="text-muted-foreground">—</span>}
-          </Link>
-          <Link href={`/hub/clients/${client.client_number}?tab=compliance`} className="flex items-center justify-between py-2 text-sm border-t border-[var(--hub-border)] group">
-            <span className="text-muted-foreground group-hover:text-rose transition-colors">Outstanding</span>
-            <span className="font-medium text-foreground">{outstandingCount}</span>
-          </Link>
-        </div>
-      </HubCard>
+  // Undated sessions in the latest block: sessions with no scheduled_at
+  const latestBlockSessions = latestBlock
+    ? (sessions ?? []).filter((s) => s.block_id === latestBlock.id && !s.parent_session_id)
+    : [];
+  const undatedSessionCount = latestBlockSessions.filter((s) => !s.scheduled_at).length;
 
-      <HubCard>
-        <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Active Block" color="slate" />
-        <div className="pb-5">
-          {latestBlock ? (
-            <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="flex items-center justify-between group py-1">
-              <div>
-                <p className="font-semibold text-sm text-foreground group-hover:text-rose transition-colors">Block {latestBlock.block_number}</p>
-                <p className="text-xs text-muted-foreground">{latestBlockDateRangeLabel}</p>
-              </div>
-              <StatusBadge status={latestBlock.status} />
-            </Link>
-          ) : (
-            <div className="flex items-center justify-between py-1 text-sm">
-              <span className="text-muted-foreground">No blocks yet</span>
-              <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`} className="text-rose font-medium hover:underline">Create Block</Link>
-            </div>
-          )}
-        </div>
-      </HubCard>
+  // Block session count mismatch: typed sessions_remaining vs counted completed
+  const countedCompleted = latestBlockSessions.filter((s) => s.completed_at).length;
+  const blockSessionCountMismatch = client.sessions_remaining != null
+    && client.sessions_used != null
+    && client.sessions_remaining + client.sessions_used !== latestBlockSessions.length;
 
-      {/* CR-EF-125 — "In Every Session" rail mirror. Read-only; editing stays
-          on the Training tab so there is one editing surface. */}
-      <HubCard>
-        <HubCardHeader
-          icon={<IconDumbbell className="w-4 h-4" />}
-          title="In Every Session"
-          color="slate"
-        />
-        <div className="px-5 pb-4">
-          {(suppRows ?? []).length > 0 ? (
-            <div className="space-y-2.5">
-              {(suppRows ?? []).map((row: any) => (
-                <div key={row.id} className="flex gap-2.5 items-start">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose mt-1.5 shrink-0" />
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-semibold text-foreground leading-snug">{row.workout_templates?.name ?? "Unknown"}</div>
-                  </div>
-                </div>
-              ))}
-              <div className="pt-2.5 mt-1 border-t border-[var(--hub-border)] text-[11.5px] text-[var(--color-body)] leading-relaxed">
-                Runs alongside each session. Does not use one of {client.name.split(" ")[0]}&apos;s{client.sessions_remaining != null ? ` ${client.sessions_remaining} remaining sessions` : " remaining sessions"}.
-              </div>
-            </div>
-          ) : (
-            <p className="text-[12.5px] text-[var(--color-muted)] leading-relaxed">
-              None set up. Nothing extra is attached to {client.name.split(" ")[0]}&apos;s sessions.
-            </p>
-          )}
-          <Link
-            href={`/hub/clients/${client.client_number}?tab=training`}
-            className="inline-flex items-center gap-1.5 mt-3 text-[12px] font-semibold text-rose hover:underline"
-          >
-            Manage on Training
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </Link>
-        </div>
-      </HubCard>
+  // Unpaid blocks: blocks whose package has payment_status != "paid"
+  // TODO(S0b): This currently checks client-level payment_status. Per-block
+  // payment tracking would need a payments table — not yet available.
+  const unpaidBlocks = client.payment_status !== "paid" && latestBlock
+    ? [`Block ${latestBlock.block_number}`]
+    : [];
 
-      <HubCard>
-        <HubCardHeader icon={<IconPanelLeft className="w-4 h-4" />} title="Resources" action={<span className="text-xs text-muted-foreground">Portal access</span>} color="teal" />
-        <div className="pb-5">
-          <div className="space-y-0">
-            {RESOURCES.map((r) => (
-              <div key={r.key} className="flex items-center justify-between py-2 text-sm">
-                <span className="text-foreground">{r.name}</span>
-                <TokenPill token={resourceVisibility[r.key] ? "success" : "neutral"} label={resourceVisibility[r.key] ? "Enabled" : "Disabled"} />
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-3.5 pt-2.5">
-            <Link href="/hub/resources" className="text-[12.5px] font-semibold text-teal hover:underline">View all clients →</Link>
-            <Link href={`/hub/clients/${client.client_number}/edit`} className="text-[12.5px] font-semibold text-muted-foreground hover:underline">Manage in Edit</Link>
-          </div>
-        </div>
-      </HubCard>
-    </div>
-  );
+  // Missing band set: when a block has group_type === "band" but no band set on the client
+  const missingBandSet = latestBlock?.group_type === "band" && !(client as any).band_set;
+
+  // Training rules count (from profile)
+  const trainingRulesCount = p?.programming_adaptations?.length ?? 0;
+
+  // Health flags: count of conditions, medications, pain points, contraindications
+  const healthFlagsCount = (() => {
+    if (!p?.health) return 0;
+    let count = 0;
+    if (p.health.conditions?.length > 0) count++;
+    if (p.health.medications?.length > 0) count++;
+    if (p.health.pain_points?.length > 0) count++;
+    if (p.health.contraindications?.length > 0) count++;
+    return count;
+  })();
+
+  // Exercise trend summary for the duo panel
+  const exerciseTrendSummary = (() => {
+    if (!exerciseTrends || exerciseTrends.length === 0) {
+      return { totalExercisesLogged: 0, personalBests: 0, heaviestLift: null, belowBestCount: 0, recentNotes: null };
+    }
+    let totalLogged = 0;
+    let personalBests = 0;
+    let heaviestWeight = 0;
+    let heaviestLabel = null;
+    let belowBestCount = 0;
+
+    for (const trend of exerciseTrends) {
+      totalLogged += trend.points?.length ?? 0;
+      // Count personal bests: exercises where the last point's topWeightKg equals
+      // the max across all points (simple heuristic for now)
+      if (trend.points && trend.points.length >= 2) {
+        const maxWeight = Math.max(...trend.points.map((p) => p.topWeightKg ?? 0));
+        const lastWeight = trend.points[trend.points.length - 1].topWeightKg ?? 0;
+        if (maxWeight > 0 && lastWeight === maxWeight) personalBests++;
+        if (lastWeight < maxWeight && lastWeight > 0) belowBestCount++;
+      }
+      // Check for heaviest lift
+      for (const point of trend.points ?? []) {
+        if (point.topWeightKg != null && point.topWeightKg > heaviestWeight) {
+          heaviestWeight = point.topWeightKg;
+          heaviestLabel = `${point.topWeightKg}kg`;
+        }
+      }
+    }
+
+    return {
+      totalExercisesLogged: totalLogged,
+      personalBests,
+      heaviestLift: heaviestLabel,
+      belowBestCount,
+      recentNotes: latestSessionLog?.notes ?? null,
+    };
+  })();
+
+  // Has all docs signed
+  const hasAllDocsSigned = flags.effectiveStatus === "clear"
+    || (flags.autoOutstanding.length === 0 && manualActions.length === 0);
 
   return (
-    <div className="space-y-6">
-      {/* Quick Actions — shared top-left bar, matches hub-dashboard.html's pattern.
-          Sits above the identity header, not inside it, so the compliance/status
-          badge stays the clean, glanceable first thing on the page. Edit Client
-          and New Session live in the header itself (contextual primary actions);
-          the bar carries the cross-navigation shortcuts. */}
-      <HubQuickActions
-        variant="bar"
-        actions={[
-          { href: `/hub/clients/${client.client_number}/add-workout`, label: "Add workout", icon: <IconDumbbell className="w-4 h-4" />, primary: true },
-          { href: `/hub/clients/${client.client_number}/review`, label: "Review", icon: <IconClipboardCheck className="w-4 h-4" /> },
-          { href: `/hub/clients/${client.client_number}?tab=plan-agent`, label: "Plan Block", icon: <IconPlus className="w-4 h-4" /> },
-          { href: `/hub/clients/${client.client_number}?tab=comms&view=tasks`, label: "Tasks", icon: <IconCheckSquare className="w-4 h-4" />, badgeCount: pendingTaskCount },
-          { href: `/hub/clients/${client.client_number}?tab=comms&view=updates`, label: "Send Update", icon: <IconMail className="w-4 h-4" /> },
-          { href: `/hub/clients/${client.client_number}/documents`, label: "View Documents", icon: <IconFileText className="w-4 h-4" /> },
-        ]}
-      />
-
-      <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm p-5 flex items-center gap-4">
-        <Link href="/hub/clients" aria-label="Back to clients" className="w-9 h-9 rounded-lg border border-[var(--hub-border)] flex items-center justify-center shrink-0 text-foreground hover:bg-[var(--hub-hover)] transition-colors">
-          <IconChevronLeft className="w-4 h-4" />
-        </Link>
-        <div className="w-14 h-14 rounded-full bg-rose/15 text-rose flex items-center justify-center text-lg font-bold shrink-0" aria-hidden="true">
-          {initials}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold text-foreground">{client.name}</h1>
-            <span className="text-sm text-muted-foreground font-medium">#{client.client_number}</span>
-            {complianceLookup && <StatusBadge status={flags.effectiveStatus} />}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0 ml-auto">
-          <Link href={`/hub/clients/${client.client_number}/edit`}>
-            <Button variant="outline" className="bg-[var(--hub-card)] border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-              <IconPencil className="w-4 h-4" /> Edit Client
-            </Button>
-          </Link>
-          <Link href={`/hub/clients/${client.client_number}?tab=training&view=sessions`}>
-            <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-              <IconCalendar className="w-4 h-4" /> New Session
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {flags.effectiveStatus === "do_not_train" && (
-        <HubAlert severity="danger" title="Do Not Train">
-          Outstanding paperwork must be resolved before any further sessions.
-          <OutstandingActionsInline actions={flags.autoOutstanding} />
-          <OutstandingActionsInline actions={manualActions} />
-        </HubAlert>
-      )}
-
-      <ContextStrip items={contextItems} />
-
-      <ClientDetailTabs>
-        <HubTabsList>
-          <HubTabsTrigger value="overview">
-            <IconLayoutDashboard /> Overview
-          </HubTabsTrigger>
-          <HubTabsTrigger value="profile">
-            <IconUser /> Profile
-          </HubTabsTrigger>
-          <HubTabsTrigger value="compliance">
-            <IconClipboardCheck /> Compliance
-            {outstandingCount > 0 && <TabCountBadge count={outstandingCount} tone={flags.effectiveStatus === "do_not_train" ? "danger" : "warning"} />}
-          </HubTabsTrigger>
-          <HubTabsTrigger value="documents">
-            <IconFileText /> Documents
-          </HubTabsTrigger>
-          <HubTabsTrigger value="training">
-            <IconDumbbell /> Training
-          </HubTabsTrigger>
-          <HubTabsTrigger value="comms">
-            <IconCheckSquare /> Comms
-            {pendingTaskCount > 0 && <TabCountBadge count={pendingTaskCount} tone="warning" />}
-          </HubTabsTrigger>
-          <HubTabsTrigger value="plan-agent">
-            <IconBot /> Plan Agent
-          </HubTabsTrigger>
-        </HubTabsList>
-
-        <div className="hub-layout mt-6">
-          <div className="space-y-5">
-            <TabsContent value="overview">
-              <ClientBookingPanel clientId={client.id} clientName={client.name} />
-              {flags.effectiveStatus === "pending_medical" && (
-                <HubAlert severity="warning" title={lookupStatus(flags.effectiveStatus)?.label ?? "Action Needed"}>
-                  Do not train until clearance is confirmed.
-                  <OutstandingActionsInline actions={flags.autoOutstanding} />
-                  <OutstandingActionsInline actions={manualActions} />
-                </HubAlert>
-              )}
-              {flags.effectiveStatus === "action_needed" && (
-                <HubAlert
-                  severity="warning"
-                  title={`${outstandingCount} outstanding action${outstandingCount === 1 ? "" : "s"}`}
-                  summary="Actions outstanding — see Compliance tab."
-                  collapsible
-                >
-                  <OutstandingActionsInline actions={flags.autoOutstanding} />
-                  <OutstandingActionsInline actions={manualActions} />
-                </HubAlert>
-              )}
-              {goneQuiet && (
-                <HubAlert severity="warning" title="Home-training client gone quiet">
-                  No self-logged sets in the last {HOME_TRAINING_QUIET_DAYS} days
-                  {lastClientLogAt
-                    ? ` — last logged ${new Date(lastClientLogAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.`
-                    : " — no sets logged yet."}{" "}
-                  Worth checking in with {client.name.split(" ")[0]}.
-                </HubAlert>
-              )}
-              {/* Accordion stack — same HubAccordionSection primitive as the dashboard,
-                  closed by default. "Active Block" opens first: it's the single most-
-                  checked fact on a client record (what's their programme doing right
-                  now), and the real compliance signal already has its own alert banner
-                  above rather than needing to live in the accordion. MergedNotesPanel
-                  stays outside the stack — it's an editable panel, not a collapsible
-                  info section. */}
-              <div className="flex flex-col gap-3">
-              <HubAccordionSection
-                icon={<IconFileText className="w-4 h-4" />}
-                title="Active block"
-                color="teal"
-                defaultOpen
-              >
-                <div className="px-5 pt-4 pb-4">
-                  {latestBlock ? (
-                    <HubDataGrid cols={3}>
-                      <HubDataField label="Block">
-                        <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="font-semibold text-foreground hover:text-rose transition-colors">
-                          Block {latestBlock.block_number}
-                        </Link>
-                      </HubDataField>
-                      <HubDataField label="Dates">{latestBlockDateRangeLabel}</HubDataField>
-                      <HubDataField label="Progress">
-                        {(() => {
-                          const total = blockSessionCounts[latestBlock.block_number] ?? 0;
-                          const done = blockCompletedCounts[latestBlock.block_number] ?? 0;
-                          return `${done} of ${total} complete`;
-                        })()}
-                      </HubDataField>
-                      {workoutName && (
-                        <HubDataField label={nextSession ? "Next session" : "Last workout"}>{workoutName}</HubDataField>
-                      )}
-                      {latestBlock.block_note && (
-                        <HubDataField label="Focus" span>{latestBlock.block_note}</HubDataField>
-                      )}
-                    </HubDataGrid>
-                  ) : (
-                    <div className="flex items-center justify-between py-1 text-sm">
-                      <span className="text-muted-foreground">No blocks yet</span>
-                      <Link href={`/hub/clients/${client.client_number}?tab=plan-agent`} className="text-rose font-medium hover:underline">Create Block</Link>
-                    </div>
-                  )}
-                </div>
-              </HubAccordionSection>
-
-              <HubAccordionSection
-                icon={<IconClipboardList className="w-4 h-4" />}
-                title="Last session"
-                color="slate"
-              >
-                <div className="px-5 pt-4 pb-4">
-                  {latestCompletedSession?.completed_at ? (
-                    <HubDataGrid cols={3}>
-                      <HubDataField label="Completed">
-                        {new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                      </HubDataField>
-                      <HubDataField label="Duration">{formatSessionDuration(client.session_duration ?? null)}</HubDataField>
-                      <HubDataField label="Format">{formatDeliveryMode(client.delivery_mode)}</HubDataField>
-                      {latestSessionLog?.notes && (
-                        <HubDataField label="Notes" span>{latestSessionLog.notes}</HubDataField>
-                      )}
-                    </HubDataGrid>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No sessions logged yet.</p>
-                  )}
-                </div>
-              </HubAccordionSection>
-
-              <MergedNotesPanel
-                clientId={client.id}
-                clientName={client.name}
-                sessionNotes={sessionNotes}
-                exerciseNotes={exerciseNotes}
-                pinnedNoteRefs={pinnedNoteRefs}
-              />
-
-              {p?.programming_adaptations?.some((rule: { severity: string }) => rule.severity === "hard") && (
-                <HubAccordionSection
-                  icon={<IconAlertCircle className="w-4 h-4" />}
-                  title="Active training rules"
-                  subtitle="Applied to every generated block"
-                  color="amber"
-                  defaultOpen
-                >
-                  <div className="px-5 pt-4 pb-4">
-                    <ul className="list-none space-y-2">
-                      {p!.programming_adaptations
-                        .filter((rule: { severity: string }) => rule.severity === "hard")
-                        .map((rule: { id: string; rule_type_id: string; detail: string }) => {
-                          const ruleType = ruleTypesById.get(rule.rule_type_id);
-                          return (
-                            <li key={rule.id} className="flex items-start gap-2 text-sm">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber mt-2 shrink-0" />
-                              <span className="text-foreground">
-                                {rule.detail}
-                                {ruleType && <span className="text-muted-foreground"> — {ruleType.label}</span>}
-                              </span>
-                            </li>
-                          );
-                        })}
-                    </ul>
-                  </div>
-                </HubAccordionSection>
-              )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="profile">
-              <div className="space-y-3">
-                {/* CR-EF-073: Snapshot moved down from Overview — every field
-                    in it is a profile fact, so it belongs on the tab that owns
-                    them rather than competing with "what's happening now". */}
-                <HubAccordionSection
-                  icon={<IconClipboardList className="w-4 h-4" />}
-                  title="Snapshot"
-                  color="teal"
-                >
-                  <div className="px-5 pt-4 pb-4">
-                    <HubDataGrid cols={2}>
-                      {client.referral_source && (
-                        <HubDataField label="Referral source">{client.referral_source}</HubDataField>
-                      )}
-                      {client.start_date && (
-                        <HubDataField label="Start date">
-                          {new Date(client.start_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                        </HubDataField>
-                      )}
-                      <HubDataField label="Primary goal"><span className="capitalize">{p?.goals?.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
-                      <HubDataField label="Sessions per week">{formatFrequency(p?.logistics?.frequency ?? (p?.logistics?.sessions_per_week ? { unit: "week", per_unit: p.logistics.sessions_per_week } : null))}</HubDataField>
-                      <HubDataField label="Session length"><span className="capitalize">{p?.logistics?.time_tier ?? "—"}</span></HubDataField>
-                      {p?.health?.conditions && (
-                        <HubDataField label="Conditions recorded">{p.health.conditions.length}</HubDataField>
-                      )}
-                      <HubDataField label="Package">{client.package_type ?? "—"}</HubDataField>
-                      <HubDataField label="Last check-in">
-                        {latestCompletedSession?.completed_at
-                          ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-                          : "—"}
-                      </HubDataField>
-                    </HubDataGrid>
-                  </div>
-                </HubAccordionSection>
-
-                {p?.health && (
-                  <HubAccordionSection icon={<IconHeart className="w-4 h-4" />} title="Health" color="neutral" defaultOpen>
-                    <div className="px-5 pt-4 pb-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-xs">GP Clearance</span>
-                        <YesNoPill yes={!!p.health.gp_clearance} />
-                      </div>
-                      {client.referral_source && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground text-xs">Referral route</span>
-                          <span className="text-sm font-medium text-foreground">{client.referral_source}</span>
-                        </div>
-                      )}
-                      {p?.emergency_contact && (p.emergency_contact.name || p.emergency_contact.phone) && (
-                        <div className="rounded-lg border border-[var(--hub-border)] p-3 space-y-1.5">
-                          <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Emergency contact</span>
-                          <div className="grid grid-cols-3 gap-2 text-sm">
-                            <div>
-                              <span className="text-muted-foreground text-xs block">Name</span>
-                              <span className="font-medium text-foreground">{p.emergency_contact.name || "—"}</span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground text-xs block">Relationship</span>
-                              <span className="font-medium text-foreground">{p.emergency_contact.relationship || "—"}</span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground text-xs block">Phone</span>
-                              <span className="font-medium text-foreground">{p.emergency_contact.phone || "—"}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <HubDataGrid cols={2}>
-                        {p.health.conditions?.length > 0 && (
-                          <HubDataField label="Conditions">
-                            <div className="flex flex-wrap gap-1.5">{p.health.conditions.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
-                          </HubDataField>
-                        )}
-                        {p.health.medications_relevant?.length > 0 && (
-                          <HubDataField label="Relevant Medications">
-                            <div className="flex flex-wrap gap-1.5">{p.health.medications_relevant.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
-                          </HubDataField>
-                        )}
-                        {p.health.pain_points?.length > 0 && (
-                          <HubDataField label="Pain Points" span>
-                            <div className="flex flex-wrap gap-1.5">{p.health.pain_points.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
-                          </HubDataField>
-                        )}
-                        {p.health.contraindications?.length > 0 && (
-                          <HubDataField label="Contraindications" span>
-                            <div className="flex flex-wrap gap-1.5">{p.health.contraindications.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
-                          </HubDataField>
-                        )}
-                      </HubDataGrid>
-                        {p.health.medications?.length > 0 && (
-                          <div>
-                            <span className="text-xs text-muted-foreground block mb-1.5">Medications</span>
-                            <div className="overflow-x-auto rounded-lg border border-[var(--hub-border)]">
-                              <table className="w-full text-sm">
-                                <thead>
-                                  <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                                    <th className="px-3 py-1.5 text-left font-medium">Name</th>
-                                    <th className="px-3 py-1.5 text-left font-medium">Form</th>
-                                    <th className="px-3 py-1.5 text-left font-medium">Frequency</th>
-                                    <th className="px-3 py-1.5 text-left font-medium">Treats</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {p.health.medications.map((med: { id: string; name: string; form: string; frequency: string; treats: string }) => (
-                                    <tr key={med.id} className="border-b border-[var(--hub-border)] last:border-0">
-                                      <td className="px-3 py-1.5 text-foreground font-medium">{med.name || "—"}</td>
-                                      <td className="px-3 py-1.5 text-foreground">{med.form || "—"}</td>
-                                      <td className="px-3 py-1.5 text-foreground">{med.frequency || "—"}</td>
-                                      <td className="px-3 py-1.5 text-foreground">{med.treats || "—"}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-                        {p.health.injury_history?.length > 0 && (
-                        <div>
-                          <span className="text-xs text-muted-foreground block mb-1.5">Injury History</span>
-                          <div className="overflow-x-auto rounded-lg border border-[var(--hub-border)]">
-                            <table className="w-full text-sm">
-                              <thead>
-                                <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                                  <th className="px-3 py-1.5 text-left font-medium">Date</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">Description</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">Body Area</th>
-                                  <th className="px-3 py-1.5 text-left font-medium">Status</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {p.health.injury_history.map((injury: { id: string; date: string | null; description: string; body_area: string; status: string }) => (
-                                  <tr key={injury.id} className="border-b border-[var(--hub-border)] last:border-0">
-                                    <td className="px-3 py-1.5 text-muted-foreground whitespace-nowrap">
-                                      {injury.date ? new Date(injury.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}
-                                    </td>
-                                    <td className="px-3 py-1.5 text-foreground">{injury.description || "—"}</td>
-                                    <td className="px-3 py-1.5 text-foreground">{injury.body_area || "—"}</td>
-                                    <td className="px-3 py-1.5">
-                                      <Badge variant={injury.status === "active" ? "destructive" : injury.status === "monitoring" ? "secondary" : "default"} className="rounded-full capitalize text-xs">
-                                        {injury.status}
-                                      </Badge>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </HubAccordionSection>
-                )}
-
-                {p?.physical_baseline && (
-                  <HubAccordionSection icon={<IconDumbbell className="w-4 h-4" />} title="Physical Baseline" color="neutral">
-                    <div className="px-5 pt-4 pb-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-xs">Fitness Level</span>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <span
-                              key={n}
-                              className={`w-5 h-5 rounded-full text-xs flex items-center justify-center font-medium ${
-                                n <= (p.physical_baseline.fitness_level ?? 0)
-                                  ? "bg-rose text-white"
-                                  : "bg-border/40 text-muted-foreground"
-                              }`}
-                            >
-                              {n}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <HubDataGrid cols={2}>
-                        <HubDataField label="Lower Body"><span className="capitalize">{p.physical_baseline.strength_baseline?.lower_body ?? "—"}</span></HubDataField>
-                        <HubDataField label="Upper Body"><span className="capitalize">{p.physical_baseline.strength_baseline?.upper_body ?? "—"}</span></HubDataField>
-                        <HubDataField label="Core" span><span className="capitalize">{p.physical_baseline.strength_baseline?.core ?? "—"}</span></HubDataField>
-                      </HubDataGrid>
-                      {p.physical_baseline.movement_quality_flags?.length > 0 && (
-                        <ul className="list-none space-y-1">
-                          {p.physical_baseline.movement_quality_flags.map((flag, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm">
-                              <IconTriangleAlert className="w-[15px] h-[15px] text-amber-500 mt-0.5 shrink-0" />
-                              <span>{flag}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </HubAccordionSection>
-                )}
-
-                {p?.goals && (
-                  <HubAccordionSection icon={<IconTarget className="w-4 h-4" />} title="Goals" color="neutral">
-                    <div className="px-5 pt-4 pb-4">
-                      <HubDataGrid cols={2}>
-                        <HubDataField label="Primary"><span className="capitalize">{p.goals.primary?.replace("_", " ") ?? "—"}</span></HubDataField>
-                        {p.goals.secondary?.length > 0 && (
-                          <HubDataField label="Secondary">
-                            <div className="flex flex-wrap gap-1.5">{p.goals.secondary.map((item, i) => <TagChip key={i}>{item}</TagChip>)}</div>
-                          </HubDataField>
-                        )}
-                      </HubDataGrid>
-                      {p.goals.milestones?.length > 0 && (
-                        <div className="mt-3">
-                          <span className="text-xs text-muted-foreground block mb-1">Milestones</span>
-                          <ul className="list-none space-y-1">
-                            {p.goals.milestones.map((m, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose/50 mt-1.5 shrink-0" />
-                                {m}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </HubAccordionSection>
-                )}
-
-                {p?.logistics && (
-                  <HubAccordionSection icon={<IconCalendar className="w-4 h-4" />} title="Logistics" color="neutral">
-                    <div className="px-5 pt-4 pb-4">
-                      <HubDataGrid cols={2}>
-                        <HubDataField label="Location"><span className="capitalize">{p.logistics.training_location?.replace("_", " ") ?? "—"}</span></HubDataField>
-                        <HubDataField label="Cadence">{formatFrequency(p?.logistics?.frequency ?? (p?.logistics?.sessions_per_week ? { unit: "week", per_unit: p.logistics.sessions_per_week } : null))}</HubDataField>
-                        <HubDataField label="Time tier"><span className="capitalize">{p.logistics.time_tier ?? "—"}</span></HubDataField>
-                        <HubDataField label="Package">{client.package_type ?? "—"}</HubDataField>
-                        <HubDataField label="Pace mode"><PaceModeDisplay paceMode={client.pace_mode} /></HubDataField>
-                        <HubDataField label="Group type"><GroupTypeLabel groupType={client.group_type} /></HubDataField>
-                      </HubDataGrid>
-                    </div>
-                  </HubAccordionSection>
-                )}
-
-                <HubAccordionSection icon={<IconDumbbell className="w-4 h-4" />} title="Equipment" color="neutral">
-                  <div className="px-5 pt-4 pb-4">
-                    {(() => {
-                      const eq = (client as any).equipment;
-                      const formatted = formatClientEquipment(eq);
-                      if (formatted === "Not specified" || formatted === "Bodyweight only") {
-                        return <p className="text-sm text-muted-foreground">{formatted}</p>;
-                      }
-                      const entries = Array.isArray(eq) ? eq : [];
-                      return (
-                        <div className="space-y-2.5">
-                          {entries.map((item: any, i: number) => {
-                            const name = typeof item === "string" ? item : item.name;
-                            const detail = typeof item === "string" ? "" : (item.detail ?? "");
-                            return (
-                              <div key={i} className="flex items-center gap-3">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose shrink-0" />
-                                <div className="min-w-0">
-                                  <span className="text-[13px] font-semibold text-foreground">{name}</span>
-                                  {detail && <span className="text-[12px] text-muted-foreground ml-2">{detail}</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </HubAccordionSection>
-
-                <HubAccordionSection icon={<IconMail className="w-4 h-4" />} title="Client Portal" color="neutral">
-                  <div className="px-5 pt-4 pb-4">
-                    <PortalAccountCard
-                      clientNumber={client.client_number}
-                      hasEmail={!!client.email}
-                    />
-                  </div>
-                </HubAccordionSection>
-
-                {p?.programming_adaptations && p.programming_adaptations.length > 0 && (
-                  <HubAccordionSection icon={<IconAlertCircle className="w-4 h-4" />} title="All Training Rules" color="neutral">
-                    <div className="px-5 pt-4 pb-4">
-                      <ul className="list-none divide-y divide-[var(--hub-border)]">
-                        {p.programming_adaptations.map((rule) => {
-                          const ruleType = ruleTypesById.get(rule.rule_type_id);
-                          return (
-                            <li key={rule.id} className="flex items-start gap-2 text-sm py-[9px]">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber mt-[7px] shrink-0" />
-                              <span className="text-foreground">
-                                <span className={rule.severity === "hard" ? "font-semibold" : "text-muted-foreground"}>
-                                  {rule.severity === "hard" ? "[HARD]" : "[soft]"}
-                                </span>{" "}
-                                {rule.detail}
-                                {ruleType && <span className="text-muted-foreground"> — {ruleType.label}</span>}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  </HubAccordionSection>
-                )}
-
-                {(p?.notes?.client_intro || p?.notes?.esther_observations || p?.notes?.motivation_notes || p?.notes?.watch_for) && (
-                  <HubAccordionSection icon={<IconEdit3 className="w-4 h-4" />} title="Notes" color="neutral">
-                    <div className="px-5 pt-4 pb-4 space-y-3">
-                      {p.notes.client_intro && (
-                        <div>
-                          <span className="text-xs text-muted-foreground block mb-0.5">Client intro</span>
-                          <p className="text-foreground text-sm italic">{p.notes.client_intro}</p>
-                        </div>
-                      )}
-                      {p.notes.esther_observations && (
-                        <div>
-                          <span className="text-xs text-muted-foreground block mb-0.5">Observations</span>
-                          <p className="text-foreground text-sm">{p.notes.esther_observations}</p>
-                        </div>
-                      )}
-                      {p.notes.motivation_notes && (
-                        <div>
-                          <span className="text-xs text-muted-foreground block mb-0.5">Motivation</span>
-                          <p className="text-foreground text-sm">{p.notes.motivation_notes}</p>
-                        </div>
-                      )}
-                      {p.notes.watch_for && (
-                        <div className="mt-1 p-3 rounded-lg bg-rose/5 border border-rose/10">
-                          <span className="text-rose font-semibold text-xs uppercase tracking-wide">Watch for</span>
-                          <p className="text-rose/80 mt-1 text-sm">{p.notes.watch_for}</p>
-                        </div>
-                      )}
-                    </div>
-                  </HubAccordionSection>
-                )}
-
-                <HubAccordionSection icon={<IconClipboardList className="w-4 h-4" />} title="Record" color="neutral">
-                  <div className="px-5 pt-4 pb-4">
-                    <HubDataGrid cols={3}>
-                      <HubDataField label="Client number">#{client.client_number}</HubDataField>
-                      <HubDataField label="Created">{new Date(client.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</HubDataField>
-                      <HubDataField label="Last edited">{(client as any).updated_at ? new Date((client as any).updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}</HubDataField>
-                    </HubDataGrid>
-                  </div>
-                </HubAccordionSection>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="compliance">
-              <div className="space-y-5">
-                <HubCard>
-                  <HubCardHeader icon={<IconTriangleAlert className="w-4 h-4" />} title="Compliance Status" color="amber" />
-                  <div className="px-5 pb-5 space-y-4">
-                    <HubDataGrid cols={3}>
-                      <HubDataField label="Overall status">
-                        {complianceLookup ? <StatusBadge status={flags.effectiveStatus} /> : <span className="font-medium text-foreground">—</span>}
-                      </HubDataField>
-                      <HubDataField label="PAR-Q completed">
-                        {parqCompletedDate ? formatHubDate(parqCompletedDate) : <span className="text-[var(--status-warning-text)]">Not on file</span>}
-                      </HubDataField>
-                      <HubDataField label="GP clearance">
-                        {gpClearanceDate ? formatHubDate(gpClearanceDate) : <span className="text-[var(--status-warning-text)]">Not received</span>}
-                      </HubDataField>
-                      <HubDataField label="Training agreement">
-                        {agreementDate ? formatHubDate(agreementDate) : <span className="text-[var(--status-warning-text)]">Not signed</span>}
-                      </HubDataField>
-                      <HubDataField label="Outstanding">
-                        {outstandingCount > 0
-                          ? <span className="text-[var(--status-warning-text)]">{outstandingCount} item{outstandingCount === 1 ? "" : "s"}</span>
-                          : <span className="text-[var(--status-success-text)]">None</span>}
-                      </HubDataField>
-                      <HubDataField label="Next review">{formatHubDate(client.annual_review_due_date)}</HubDataField>
-                    </HubDataGrid>
-
-                    <div className="pt-3 border-t border-[var(--hub-border)]">
-                      <ClinicalComplianceCard
-                        clientId={client.id}
-                        initial={{
-                          medical_clearance_status: client.medical_clearance_status ?? "not_required",
-                          risk_level: client.risk_level ?? "low",
-                          exercise_modifications: client.exercise_modifications ?? null,
-                        }}
-                      />
-                    </div>
-
-                    <div className="pt-3 border-t border-[var(--hub-border)]">
-                      <span className="text-xs text-muted-foreground block mb-2">GP Clearance Letter</span>
-                      <GpLetterCard
-                        clientId={client.id}
-                        gpLetterStatus={client.gp_letter_status}
-                        requestedDate={client.gp_letter_requested_date}
-                        receivedDate={client.gp_letter_received_date}
-                      />
-                    </div>
-
-                    {outstandingCount > 0 && (
-                      <div className="pt-3 border-t border-[var(--hub-border)]">
-                        <span className="text-xs text-muted-foreground block mb-1">Outstanding</span>
-                        <ul className="list-none space-y-1.5">
-                          {flags.autoOutstanding.map((action, i) => (
-                            <li key={`auto-${i}`} className="flex items-start gap-2 text-sm">
-                              <IconTriangleAlert className="h-3.5 w-3.5 text-rose mt-0.5 shrink-0" />
-                              <span className="text-foreground">{action}</span>
-                            </li>
-                          ))}
-                          {manualActions.map((action, i) => (
-                            <li key={`manual-${i}`} className="flex items-start gap-2 text-sm">
-                              <IconTriangleAlert className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
-                              <span className="text-foreground">{action}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </HubCard>
-
-                <PackagePaymentsCard
-                  clientId={client.id}
-                  initial={{
-                    package_type: client.package_type ?? null,
-                    sessions_purchased: client.sessions_purchased ?? null,
-                    sessions_used: client.sessions_used ?? 0,
-                    sessions_remaining: client.sessions_remaining ?? null,
-                    session_duration: client.session_duration ?? 60,
-                    client_rate: client.client_rate ?? null,
-                    payment_method: client.payment_method ?? null,
-                    payment_status: client.payment_status ?? "pending",
-                    block_expiry_date: client.block_expiry_date ?? null,
-                    client_status: client.client_status ?? "active",
-                    referral_source: client.referral_source ?? null,
-                  }}
-                />
-              </div>
-            </TabsContent>
-
-            {/* CR-EF-073: Documents promoted out of the old Admin tab. The
-                register carries version / last-updated / last-updated-by
-                columns, per-row actions, create-and-upload flows and read-only
-                legacy rows — it was the largest card on a tab it didn't
-                belong to. */}
-            <TabsContent value="documents">
-              <HubCard>
-                <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Documents" color="slate" />
-                <div className="px-5 pb-5">
-                  <DocumentRegister
-                    clientNumber={client.client_number}
-                    documents={[...(clientDocuments ?? []), ...legacyDocumentRows]}
-                    clientEmail={client.email}
-                    clientName={client.name}
-                  />
-                </div>
-              </HubCard>
-            </TabsContent>
-
-            <TabsContent value="training">
-              {/* CR-EF-073: Training snapshot moved down from Overview — it
-                  summarises this tab's own contents, so it reads as a header
-                  for the blocks below rather than a second block card
-                  competing with "Active block" on Overview. */}
-              <div className="mb-5">
-              <HubAccordionSection
-                icon={<IconDumbbell className="w-4 h-4" />}
-                title="Training snapshot"
-                color="teal"
-              >
-                <div className="px-5 pt-4 pb-4">
-                  <HubDataGrid cols={2}>
-                    <HubDataField label="Blocks completed">{blocks?.length ?? 0}</HubDataField>
-                    <HubDataField label="Current block">
-                      {latestBlock ? (
-                        <Link href={`/hub/clients/${client.client_number}/blocks/${latestBlock.id}`} className="font-semibold text-foreground hover:text-rose transition-colors">
-                          Block {latestBlock.block_number}
-                        </Link>
-                      ) : "—"}
-                    </HubDataField>
-                    <HubDataField label="Sessions logged">{sessions?.length ?? 0}</HubDataField>
-                    <HubDataField label="Pace mode"><span className="capitalize">{client.pace_mode ?? "—"}</span></HubDataField>
-                    <HubDataField label="Last session">
-                      {latestCompletedSession?.completed_at
-                        ? new Date(latestCompletedSession.completed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-                        : "—"}
-                    </HubDataField>
-                  </HubDataGrid>
-                </div>
-              </HubAccordionSection>
-              </div>
-              <TrainingTabContent
-                clientNumber={client.client_number}
-                clientName={client.name}
-                sessionsRemaining={client.sessions_remaining ?? null}
-                blocks={blocks ?? []}
-                sessions={sessions ?? []}
-                setLogs={(setLogs ?? []) as SetLog[]}
-                blockSessionCounts={blockSessionCounts}
-                exerciseTrends={exerciseTrends}
-                exerciseHistory={exerciseHistory}
-                trainerizeHistory={trainerizeHistory}
-              />
-            </TabsContent>
-
-            <TabsContent value="comms">
-              <CommsTabContent
-                clientId={client.id}
-                clientNumber={client.client_number}
-                updates={(clientUpdates || []) as SentUpdate[]}
-                updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
-                dueInfo={dueInfo}
-                lastSentAt={lastSentAt}
-                updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
-                updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
-                currentUserName={user?.name ?? null}
-              />
-            </TabsContent>
-
-            <TabsContent value="plan-agent">
-              <PlanAgentTab
-                clientNumber={client.client_number}
-                clientName={client.name}
-                paceMode={client.pace_mode ?? "medium"}
-              />
-            </TabsContent>
-          </div>
-
-          <aside className="hub-rail">{rightRail}</aside>
-        </div>
-      </ClientDetailTabs>
-    </div>
+    <ClientRecordShell
+      client={client}
+      blocks={blocks ?? []}
+      sessions={(sessions ?? []) as DBSession[]}
+      blockSessionCounts={blockSessionCounts}
+      blockCompletedCounts={blockCompletedCounts}
+      blockDateRangeLabel={latestBlockDateRangeLabel}
+      trainerizeHistory={trainerizeHistory}
+      pendingTaskCount={pendingTaskCount}
+      draftBlockCount={draftBlockCount}
+      undatedSessionCount={undatedSessionCount}
+      blockSessionCountMismatch={blockSessionCountMismatch}
+      unpaidBlocks={unpaidBlocks}
+      outstandingActions={manualActions}
+      autoOutstanding={flags.autoOutstanding}
+      effectiveStatus={flags.effectiveStatus}
+      dueInfo={dueInfo}
+      hasAllDocsSigned={hasAllDocsSigned}
+      healthFlagsCount={healthFlagsCount}
+      trainingRulesCount={trainingRulesCount}
+      exerciseTrendSummary={exerciseTrendSummary}
+      missingBandSet={missingBandSet}
+      latestBlock={latestBlock}
+      derivedStatusByBlock={derivedStatusByBlock}
+      /* S0b drawer data */
+      portalAccount={portalAccount}
+      clientNotes={clientNotes}
+      clientReviews={clientReviews}
+      bandSetName={bandSet?.name ?? null}
+      allTaskRows={allTaskRows}
+      clientDocuments={clientDocuments ?? []}
+      legacyDocumentRows={legacyDocumentRows}
+      flags={flags}
+      clientUpdates={clientUpdates ?? []}
+      exerciseTrends={exerciseTrends}
+      ruleTypesById={ruleTypesById}
+      complianceLookup={complianceLookup}
+      gpClearance={gpClearance}
+      sessionsRemaining={client.sessions_remaining}
+      sessionsUsed={client.sessions_used}
+      paymentStatus={client.payment_status}
+      packageType={client.package_type}
+      medicalClearanceStatus={client.medical_clearance_status}
+      riskLevel={client.risk_level}
+      annualReviewDueDate={client.annual_review_due_date}
+      clearanceFrom={client.clearance_from}
+      specialistName={client.specialist_name}
+      exerciseModifications={client.exercise_modifications}
+      clientStatus={client.client_status}
+      referralSource={client.referral_source}
+      startDate={client.start_date}
+      blockExpiryDate={client.block_expiry_date}
+      countCompletedSessions={countedCompleted}
+    />
   );
 }
