@@ -137,7 +137,6 @@ export function ClientRecordShell({
         <TrainingSection
           clientNumber={client.client_number}
           clientName={client.name}
-          clientPaceMode={client.pace_mode}
           sessionDuration={client.session_duration}
           deliveryMode={(client as any).delivery_mode ?? null}
           preferredTime={client.profile?.logistics?.preferred_time ?? null}
