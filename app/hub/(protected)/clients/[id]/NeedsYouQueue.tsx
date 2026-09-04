@@ -1,4 +1,9 @@
+"use client";
+
+import Link from "next/link";
+import { useDrawerManager } from "./DrawerManager";
 import { IconClipboardCheck, IconAlertCircle, IconCheckSquare } from "@/components/icons";
+import type { DBBlock } from "@/types";
 
 /* ── NeedsYouQueue — the single ordered queue of things that need Esther.
    EVERY item is derived from real data. No fabrications.
@@ -12,6 +17,7 @@ interface QueueItem {
   subline?: string;
   actionLabel?: string;
   actionDrawerId?: string;
+  actionHref?: string;
 }
 
 export function NeedsYouQueue({
@@ -28,6 +34,8 @@ export function NeedsYouQueue({
   hasAllDocsSigned,
   healthFlagsCount,
   trainingRulesCount,
+  clientNumber,
+  latestBlock,
 }: {
   pendingTaskCount: number;
   draftBlockCount: number;
@@ -42,7 +50,10 @@ export function NeedsYouQueue({
   hasAllDocsSigned: boolean;
   healthFlagsCount: number;
   trainingRulesCount: number;
+  clientNumber: number;
+  latestBlock: DBBlock | null;
 }) {
+  const { openDrawer } = useDrawerManager();
   const items: QueueItem[] = [];
 
   // Priority 1: Open tasks
@@ -52,6 +63,7 @@ export function NeedsYouQueue({
       dot: "warn",
       headline: `${pendingTaskCount} open task${pendingTaskCount === 1 ? "" : "s"}`,
       actionLabel: "Open tasks",
+      actionDrawerId: "dw-comms",
     });
   }
 
@@ -63,6 +75,7 @@ export function NeedsYouQueue({
       headline: `${draftBlockCount} block${draftBlockCount === 1 ? "" : "s"} still draft`,
       subline: "Cannot run until approved",
       actionLabel: "Review",
+      actionHref: latestBlock ? `/hub/clients/${clientNumber}/blocks/${latestBlock.id}` : undefined,
     });
   }
 
@@ -74,6 +87,7 @@ export function NeedsYouQueue({
       dot: "warn",
       headline: `${undatedSessionCount} session${undatedSessionCount === 1 ? "" : "s"} with no date set`,
       actionLabel: "Set dates",
+      actionHref: latestBlock ? `/hub/clients/${clientNumber}/blocks/${latestBlock.id}` : undefined,
     });
   }
 
@@ -97,6 +111,7 @@ export function NeedsYouQueue({
       headline: `${unpaidBlocks[0]} is unpaid`,
       subline: unpaidBlocks.length > 1 ? `${unpaidBlocks.length - 1} more unpaid` : undefined,
       actionLabel: "Raise invoice",
+      actionHref: "/hub/cashflow/invoices",
     });
   }
 
@@ -107,6 +122,7 @@ export function NeedsYouQueue({
       dot: "muted",
       headline: "No band set chosen",
       actionLabel: "Choose one",
+      actionDrawerId: "dw-arrangement",
     });
   }
 
@@ -169,9 +185,21 @@ export function NeedsYouQueue({
           </span>
           {item.actionLabel && (
             <span className="shrink-0">
-              <button className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors">
-                {item.actionLabel}
-              </button>
+              {item.actionHref ? (
+                <Link
+                  href={item.actionHref}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors no-underline"
+                >
+                  {item.actionLabel}
+                </Link>
+              ) : (
+                <button
+                  onClick={item.actionDrawerId ? (e) => openDrawer(item.actionDrawerId!, e.currentTarget) : undefined}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  {item.actionLabel}
+                </button>
+              )}
             </span>
           )}
         </div>

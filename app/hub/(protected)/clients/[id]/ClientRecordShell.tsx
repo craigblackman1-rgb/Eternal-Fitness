@@ -190,6 +190,8 @@ export function ClientRecordShell({
             hasAllDocsSigned={hasAllDocsSigned}
             healthFlagsCount={healthFlags}
             trainingRulesCount={trainingRulesCount}
+            clientNumber={client.client_number}
+            latestBlock={latestBlock}
           />
         </div>
 

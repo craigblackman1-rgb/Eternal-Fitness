@@ -296,9 +296,10 @@ export function TrainingSection({
             : "Not scheduled";
 
           return (
-            <button
+            <Link
               key={block.id}
-              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-[10px] bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
+              href={`/hub/clients/${clientNumber}/blocks/${block.id}`}
+              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-[10px] bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] no-underline"
             >
               <span className="w-[26px] h-[26px] shrink-0 rounded-lg grid place-items-center text-[11px] font-extrabold bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
                 {block.block_number}
@@ -317,7 +318,7 @@ export function TrainingSection({
               <span className="shrink-0 text-xs font-semibold text-[var(--color-rose)]">
                 See what she lifted ›
               </span>
-            </button>
+            </Link>
           );
         })}
 
