@@ -39,6 +39,9 @@ interface ClientRecordShellProps {
     belowBestCount: number;
     recentNotes: string | null;
   };
+  missingBandSet: boolean;
+  latestBlock: DBBlock | null;
+  derivedStatusByBlock: Map<string, import("@/types").BlockStatus>;
 }
 
 export function ClientRecordShell({
@@ -62,10 +65,11 @@ export function ClientRecordShell({
   healthFlagsCount,
   trainingRulesCount,
   exerciseTrendSummary,
+  missingBandSet,
+  latestBlock: latestBlockProp,
+  derivedStatusByBlock,
 }: ClientRecordShellProps) {
-  const latestBlock = blocks.length > 0
-    ? blocks.find((b) => b.status === "active" || b.status === "approved") ?? blocks[0]
-    : null;
+  const latestBlock = latestBlockProp;
 
   const blockSessions = latestBlock
     ? sessions.filter((s) => s.block_id === latestBlock.id)
@@ -118,7 +122,7 @@ export function ClientRecordShell({
             undatedSessionCount={undatedSessionCount}
             blockSessionCountMismatch={blockSessionCountMismatch}
             unpaidBlocks={unpaidBlocks}
-            missingBandSet={false}
+            missingBandSet={missingBandSet}
             outstandingActions={outstandingActions}
             autoOutstanding={autoOutstanding}
             effectiveStatus={effectiveStatus}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useDrawerManager } from "./DrawerManager";
 import { BlockMap } from "./BlockMap";
+import { sessionWorkoutName } from "@/lib/session-display";
 import type { DBBlock, DBSession } from "@/types";
 
 /* ── TrainingSection — the "training spine" from the mockup. Four bands:
@@ -32,7 +33,6 @@ function formatDuration(minutes: number | null): string {
 interface TrainingSectionProps {
   clientNumber: number;
   clientName: string;
-  clientPaceMode: string | null;
   sessionDuration: number | null;
   deliveryMode: string | null;
   preferredTime: string | null;
@@ -59,7 +59,6 @@ interface TrainingSectionProps {
 export function TrainingSection({
   clientNumber,
   clientName,
-  clientPaceMode,
   sessionDuration,
   deliveryMode,
   preferredTime,
@@ -96,7 +95,7 @@ export function TrainingSection({
   })();
 
   const workoutSession = nextSession ?? latestCompleted;
-  const workoutName = workoutSession?.data?.focus_label ?? null;
+  const workoutName = workoutSession ? sessionWorkoutName(workoutSession) : null;
 
   // Stats for the duo
   const totalLogged = exerciseTrendSummary?.totalExercisesLogged ?? 0;
@@ -111,8 +110,8 @@ export function TrainingSection({
     scheduledAt: s.scheduled_at ?? null,
     isCompleted: !!s.completed_at,
     isNext: s.id === nextSession?.id,
-    focusLabel: s.data?.focus_label ?? null,
-    hasWorkout: !!s.data?.focus_label,
+    focusLabel: sessionWorkoutName(s),
+    hasWorkout: sessionWorkoutName(s) !== "No workout assigned yet",
   }));
 
   // Total sessions across all blocks
@@ -182,7 +181,7 @@ export function TrainingSection({
             </div>
             <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
               <button
-                onClick={() => openDrawer("dw-workout", null)}
+                onClick={(e) => openDrawer("dw-workout", e.currentTarget)}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
               >
                 See the workout
@@ -220,7 +219,7 @@ export function TrainingSection({
             </div>
             <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
               <button
-                onClick={() => openDrawer("dw-progress", null)}
+                onClick={(e) => openDrawer("dw-progress", e.currentTarget)}
                 className="ml-auto text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit]"
               >
                 See every exercise ›
@@ -243,7 +242,7 @@ export function TrainingSection({
             </span>
             <div className="ml-auto flex gap-1.5">
               <button
-                onClick={() => openDrawer("dw-block", null)}
+                onClick={(e) => openDrawer("dw-block", e.currentTarget)}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)]"
               >
                 See all workouts
@@ -322,7 +321,7 @@ export function TrainingSection({
         {/* Trainerize pre-app import */}
         {tzTotalSessions > 0 && (
           <button
-            onClick={() => openDrawer("dw-preapp", null)}
+            onClick={(e) => openDrawer("dw-preapp", e.currentTarget)}
             className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-[10px] bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
           >
             <span className="w-[26px] h-[26px] shrink-0 rounded-lg grid place-items-center text-[11px] font-extrabold bg-[var(--status-neutral-bg)] text-[var(--navy)]">

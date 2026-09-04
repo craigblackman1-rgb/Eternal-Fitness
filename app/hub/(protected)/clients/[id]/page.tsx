@@ -195,9 +195,6 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         .find((s: any) => new Date(s.scheduled_at).getTime() >= Date.now()) ?? null
     );
   })();
-  const workoutSession = nextSession ?? latestCompletedSession;
-  const workoutName = workoutSession?.data?.focus_label ?? null;
-
   const blockSessionCounts: Record<number, number> = {};
   const blockCompletedCounts: Record<number, number> = {};
   for (const s of sessions ?? []) {
@@ -393,6 +390,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       healthFlagsCount={healthFlagsCount}
       trainingRulesCount={trainingRulesCount}
       exerciseTrendSummary={exerciseTrendSummary}
+      missingBandSet={missingBandSet}
+      latestBlock={latestBlock}
+      derivedStatusByBlock={derivedStatusByBlock}
     />
   );
 }

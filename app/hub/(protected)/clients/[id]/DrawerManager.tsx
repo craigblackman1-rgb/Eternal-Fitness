@@ -5,10 +5,12 @@ import { cn } from "@/lib/utils";
 
 /* ── DrawerManager — manages a stack of right-edge drawers.
    Implements the mockup's drawer standard:
-   · One level deep (parent pushes left 24px, child slides over)
+   · Max 2 levels deep (MAX_DEPTH); third open force-closes the top
    · Dismiss: Esc, scrim click, X
    · Focus moves to heading on open, returns to opener on close
    · Page never scrolls behind a drawer */
+
+const MAX_DEPTH = 2;
 
 interface DrawerManagerValue {
   openDrawer: (id: string, opener?: HTMLElement | null) => void;
@@ -39,6 +41,12 @@ export function DrawerManager({ children }: { children: React.ReactNode }) {
 
   const openDrawer = useCallback((id: string, opener?: HTMLElement | null) => {
     if (activeId) {
+      if (parentId) {
+        // Already at MAX_DEPTH — force-close the top drawer before stacking
+        setActiveId(parentId);
+        setParentId(null);
+        parentOpenerRef.current = null;
+      }
       // Stack one level deep
       setParentId(activeId);
       parentOpenerRef.current = openerRef.current;
@@ -48,7 +56,7 @@ export function DrawerManager({ children }: { children: React.ReactNode }) {
       setActiveId(id);
       openerRef.current = opener ?? null;
     }
-  }, [activeId]);
+  }, [activeId, parentId]);
 
   const closeDrawer = useCallback(() => {
     if (parentId) {
