@@ -49,6 +49,8 @@ interface ClientRecordShellProps {
   quietDays: number;
   packageUnderSpecified: boolean;
   missingPackageTerms: string[];
+  openBookingCount: number;
+  oldestOpenBooking: string | null;
   trainingRules: { id: string; rule_type_id: string; detail: string; severity?: string }[];
   latestBlock: DBBlock | null;
   derivedStatusByBlock: Map<string, import("@/types").BlockStatus>;
@@ -111,6 +113,8 @@ export function ClientRecordShell({
   quietDays,
   packageUnderSpecified,
   missingPackageTerms,
+  openBookingCount,
+  oldestOpenBooking,
   trainingRules,
   latestBlock: latestBlockProp,
   derivedStatusByBlock,
@@ -185,6 +189,8 @@ export function ClientRecordShell({
     quietDays,
     packageUnderSpecified,
     missingPackageTerms,
+    openBookingCount,
+    oldestOpenBooking,
     clientFirstName: String(client.name ?? "").split(" ")[0],
   };
   const needsYouCount = buildNeedsYouItems(needsYouInput).length;

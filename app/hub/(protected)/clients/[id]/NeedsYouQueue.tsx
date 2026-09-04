@@ -42,6 +42,9 @@ export interface NeedsYouInput {
   lastClientLogAt?: string | null;
   quietDays?: number;
   packageUnderSpecified?: boolean;
+  /** Outlook bookings for this client still awaiting triage. */
+  openBookingCount?: number;
+  oldestOpenBooking?: string | null;
   /** Which commercial terms are missing, e.g. ["rate","expiry"]. */
   missingPackageTerms?: string[];
   clientFirstName?: string;
@@ -73,6 +76,8 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
     quietDays,
     packageUnderSpecified,
     missingPackageTerms,
+    openBookingCount,
+    oldestOpenBooking,
     clientFirstName,
   } = input;
   const items: QueueItem[] = [];
@@ -94,6 +99,23 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
         : "Home training is self-logged, so nothing has come through the portal at all.",
       actionLabel: "Write an update",
       actionHref: `/hub/clients/${clientNumber}/updates/new`,
+    });
+  }
+
+  // Priority 0b — unsorted Outlook bookings. Ranked this high because it is
+  // not just admin: until they are confirmed into sessions the block reads as
+  // fewer sessions done than actually happened, so every count below is wrong.
+  if ((openBookingCount ?? 0) > 0) {
+    const n = openBookingCount!;
+    items.push({
+      id: "outlook-bookings",
+      dot: "warn",
+      headline: `${n} Outlook booking${n === 1 ? "" : "s"} waiting to be sorted`,
+      subline: oldestOpenBooking
+        ? `Oldest ${new Date(oldestOpenBooking).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}. Until they are confirmed the block reads fewer sessions done than really happened.`
+        : "Until they are confirmed the block reads fewer sessions done than really happened.",
+      actionLabel: "Sort in triage",
+      actionHref: "/hub/schedule/outlook",
     });
   }
 

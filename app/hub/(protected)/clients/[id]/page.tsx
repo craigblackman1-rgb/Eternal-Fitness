@@ -183,6 +183,25 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
   const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
 
+  // Outlook bookings still waiting to be sorted for THIS client. This was the
+  // one item on the mockup's queue that S0a left out for want of a source —
+  // outlook_booking_events is real (status open/confirmed/dismissed/blocked),
+  // and until these are confirmed the block's session count reads short,
+  // which is exactly why it belongs on the record and not only on triage.
+  const { data: openBookingRows } = await supabase
+    .from("outlook_booking_events")
+    .select("id, start_at")
+    .eq("client_id", client.id)
+    .eq("status", "open");
+  const openBookings = openBookingRows ?? [];
+  const openBookingCount = openBookings.length;
+  const oldestOpenBooking = openBookings.length
+    ? openBookings
+        .map((b: any) => b.start_at)
+        .filter(Boolean)
+        .sort()[0] ?? null
+    : null;
+
   // Full task rows (not just status count)
   const { data: fullTaskRows } = await supabase.from("tasks").select("id, title, status, due_date, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
   const allTaskRows = fullTaskRows ?? [];
@@ -440,6 +459,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       lastClientLogAt={lastClientLogAt}
       quietDays={HOME_TRAINING_QUIET_DAYS}
       packageUnderSpecified={packageUnderSpecified}
+      openBookingCount={openBookingCount}
+      oldestOpenBooking={oldestOpenBooking}
       missingPackageTerms={missingPackageTerms}
       trainingRules={p?.programming_adaptations ?? []}
       exerciseTrendSummary={exerciseTrendSummary}
