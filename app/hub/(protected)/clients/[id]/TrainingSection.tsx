@@ -272,9 +272,16 @@ export function TrainingSection({
         {/* ── Block band ── */}
         {latestBlock && (
           <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
-            <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
+            {/* The block heading is the way into the block. It used to be inert
+                text, so the only route to the block page was Training > See all
+                workouts > drawer footer -- three levels down for the most-used
+                route off this record. */}
+            <Link
+              href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
+              className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)] no-underline hover:text-[var(--color-rose)]"
+            >
               Block {latestBlock.block_number}
-            </h3>
+            </Link>
             <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning-border)]">
               {latestBlock.status}
             </span>
@@ -288,6 +295,12 @@ export function TrainingSection({
               >
                 See all workouts
               </button>
+              <Link
+                href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white text-[var(--color-ink)] font-[inherit] text-xs font-semibold px-2.5 py-1 no-underline hover:bg-[var(--hub-hover)]"
+              >
+                Open block
+              </Link>
             </div>
           </div>
         )}

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
@@ -401,6 +403,165 @@ function HealthDrawer({ client, ruleTypesById, gpClearance, medicalClearanceStat
   );
 }
 
+/* ── Editable package card ───────────────────────────────────────────────
+   The mockup's rule is "there is no edit PAGE — a drawer's values become
+   fields". Craig hit the gap immediately: the Needs-you queue tells you the
+   package has no rate or expiry and offers "Set it up", which opened this
+   drawer read-only, so the only way to actually do it was the Edit client
+   screen. These are the four fields that item complains about. */
+
+function PackageCard({
+  clientNumber,
+  packageType,
+  clientRate,
+  blockExpiryDate,
+  sessionsRemaining,
+  sessionsUsed,
+  paymentStatus,
+  clientStatus,
+  countCompletedSessions,
+  blockSessionCountMismatch,
+}: {
+  clientNumber: number;
+  packageType: string | null;
+  clientRate: number | null;
+  blockExpiryDate: string | null;
+  sessionsRemaining: number | null;
+  sessionsUsed: number | null;
+  paymentStatus: string;
+  clientStatus: string;
+  countCompletedSessions: number;
+  blockSessionCountMismatch: boolean;
+}) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [fPackage, setFPackage] = useState(packageType ?? "");
+  const [fRate, setFRate] = useState(clientRate == null ? "" : String(clientRate));
+  const [fExpiry, setFExpiry] = useState(blockExpiryDate ? String(blockExpiryDate).slice(0, 10) : "");
+  const [fRemaining, setFRemaining] = useState(sessionsRemaining == null ? "" : String(sessionsRemaining));
+
+  const cancel = () => {
+    setFPackage(packageType ?? "");
+    setFRate(clientRate == null ? "" : String(clientRate));
+    setFExpiry(blockExpiryDate ? String(blockExpiryDate).slice(0, 10) : "");
+    setFRemaining(sessionsRemaining == null ? "" : String(sessionsRemaining));
+    setError(null);
+    setEditing(false);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    // Empty means "not set" — send null rather than "" so the field genuinely
+    // clears instead of storing an empty string that reads as set.
+    const num = (v: string) => (v.trim() === "" ? null : Number(v));
+    if ((fRate.trim() !== "" && Number.isNaN(Number(fRate)))
+      || (fRemaining.trim() !== "" && Number.isNaN(Number(fRemaining)))) {
+      setError("Rate and sessions left must be numbers.");
+      setSaving(false);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          package_type: fPackage.trim() === "" ? null : fPackage.trim(),
+          client_rate: num(fRate),
+          block_expiry_date: fExpiry.trim() === "" ? null : fExpiry,
+          sessions_remaining: num(fRemaining),
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error ?? "Could not save. Nothing has been changed.");
+        setSaving(false);
+        return;
+      }
+      setEditing(false);
+      setSaving(false);
+      router.refresh();
+    } catch {
+      setError("Could not save — check your connection.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fcard acc-teal">
+      <div className="fcard-h">
+        Package and payment
+        {!editing && (
+          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
+        )}
+      </div>
+
+      {editing ? (
+        <>
+          <div className="fcard-b">
+            <div className="frow">
+              <span className="fk">Package</span>
+              <span className="fv">
+                <input className="fld" value={fPackage} onChange={(e) => setFPackage(e.target.value)} placeholder="e.g. Block of 12" />
+              </span>
+            </div>
+            <div className="frow">
+              <span className="fk">Rate</span>
+              <span className="fv">
+                <input className="fld" value={fRate} onChange={(e) => setFRate(e.target.value)} inputMode="decimal" placeholder="Not set" />
+              </span>
+            </div>
+            <div className="frow">
+              <span className="fk">Block expiry</span>
+              <span className="fv">
+                <input className="fld" type="date" value={fExpiry} onChange={(e) => setFExpiry(e.target.value)} />
+              </span>
+            </div>
+            <div className="frow">
+              <span className="fk">Sessions left</span>
+              <span className="fv">
+                <input className="fld" value={fRemaining} onChange={(e) => setFRemaining(e.target.value)} inputMode="numeric" placeholder="Not set" />
+              </span>
+            </div>
+          </div>
+          {error && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
+            </div>
+          )}
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
+            <button type="button" onClick={cancel} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="button" onClick={save} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="fcard-b">
+            <div className="fgrid">
+              <div className="frow"><span className="fk">Package</span><span className="fv">{packageType || <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
+              <div className="frow"><span className="fk">Rate</span><span className="fv">{clientRate != null ? `£${clientRate}` : <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
+              <div className="frow"><span className="fk">Block expiry</span><span className="fv num">{blockExpiryDate ? fmtDate(String(blockExpiryDate)) : <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
+              <div className="frow"><span className="fk">Typed on the record</span><span className="fv num">{sessionsUsed ?? 0} used {"\u00b7"} {sessionsRemaining ?? "\u2014"} left</span></div>
+              <div className="frow"><span className="fk">Counted from sessions</span><span className="fv num">{countCompletedSessions} completed {blockSessionCountMismatch ? <span className="bdg warn">Does not match</span> : null}</span></div>
+              <div className="frow"><span className="fk">Payment</span><span className="fv">{paymentStatus ? paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1) : "\u2014"}</span></div>
+              <div className="frow"><span className="fk">Client status</span><span className="fv">{clientStatus ? clientStatus.charAt(0).toUpperCase() + clientStatus.slice(1) : "\u2014"}</span></div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    ARRANGEMENT — how they train, goals, package, kit
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -506,30 +667,18 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
         </div>
       </div>
 
-      {/* Package and payment */}
-      <div className="fcard acc-teal">
-        <div className="fcard-h">Package and payment</div>
-        <div className="fcard-b">
-          <div className="fgrid">
-            <div className="frow"><span className="fk">Package</span><span className="fv">{packageType || "\u2014"}</span></div>
-            <div className="frow"><span className="fk">Typed on the record</span><span className="fv num">{sessionsUsed ?? 0} used {"\u00b7"} {sessionsRemaining ?? "\u2014"} left</span></div>
-            <div className="frow"><span className="fk">Counted from sessions</span><span className="fv num">{countCompletedSessions} completed {blockSessionCountMismatch ? <span className="bdg warn">Does not match</span> : null}</span></div>
-            <div className="frow"><span className="fk">Payment</span><span className="fv">{paymentStatus ? paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1) : "\u2014"}</span></div>
-            <div className="frow"><span className="fk">Client status</span><span className="fv">{clientStatus ? clientStatus.charAt(0).toUpperCase() + clientStatus.slice(1) : "\u2014"}</span></div>
-          </div>
-        </div>
-        <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-          <p className="miss" style={{ margin: 0 }}>
-            {!blockExpiryDate && !client.payment_method
-              ? "No block expiry and no payment method set."
-              : !blockExpiryDate
-                ? "No block expiry set."
-                : !client.payment_method
-                  ? "No payment method set."
-                  : ""}
-          </p>
-        </div>
-      </div>
+      <PackageCard
+        clientNumber={client.client_number}
+        packageType={packageType}
+        clientRate={client.client_rate ?? null}
+        blockExpiryDate={blockExpiryDate}
+        sessionsRemaining={sessionsRemaining}
+        sessionsUsed={sessionsUsed}
+        paymentStatus={paymentStatus}
+        clientStatus={clientStatus}
+        countCompletedSessions={countCompletedSessions}
+        blockSessionCountMismatch={blockSessionCountMismatch}
+      />
 
       {/* Kit and reviews */}
       <div className="fcard acc-ink">
