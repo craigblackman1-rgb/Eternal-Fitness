@@ -54,6 +54,10 @@ interface TrainingSectionProps {
     blocks: any[];
     notes: any[];
   };
+  /** S1 — standing rules, shown on-page for home-training clients rather than
+   *  behind the Health drawer, because a rule she does not open is a rule that
+   *  does not apply. Empty for studio clients, where they stay in the drawer. */
+  standingRules?: { id: string; label: string | null; detail: string }[];
 }
 
 export function TrainingSection({
@@ -71,6 +75,7 @@ export function TrainingSection({
   blockDateRangeLabel,
   exerciseTrendSummary,
   trainerizeHistory,
+  standingRules = [],
 }: TrainingSectionProps) {
   const { openDrawer, openWorkoutDrawer } = useDrawerManager();
   const firstName = clientName.split(" ")[0];
@@ -230,6 +235,30 @@ export function TrainingSection({
             </div>
           </div>
         </div>
+
+        {/* ── Standing rules (home training) ──
+            On the page, not behind a drawer: for a client training alone at
+            home these constrain every session, and a rule Esther has to go
+            looking for is one she prescribes around. */}
+        {standingRules.length > 0 && (
+          <div className="mb-3 rounded-[10px] border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] overflow-hidden">
+            <div className="px-3 py-1.5 border-b border-[var(--status-warning-border)]">
+              <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-warning-text)]">
+                Standing rules · every session
+              </span>
+            </div>
+            <div className="grid gap-x-4 gap-y-1.5 px-3 py-2.5 sm:grid-cols-2 lg:grid-cols-3">
+              {standingRules.map((rule) => (
+                <div key={rule.id} className="text-[12.5px] text-[var(--color-ink)] leading-snug">
+                  {rule.label && (
+                    <span className="font-semibold">{rule.label} — </span>
+                  )}
+                  {rule.detail}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Block band ── */}
         {latestBlock && (

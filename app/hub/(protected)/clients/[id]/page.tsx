@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import { computeUpdateDue } from "@/lib/updates-due";
-import { buildExerciseTrends, type TrendSessionMeta } from "@/lib/progress";
+import { buildExerciseTrends, isGoneQuiet, HOME_TRAINING_QUIET_DAYS, type TrendSessionMeta } from "@/lib/progress";
+import { getLastClientLogAt } from "@/lib/progress-db";
 import { computeComplianceFlags } from "@/lib/compliance";
 import { lookupStatus } from "@/lib/hubStatus";
 import { deriveBlockStatus } from "@/lib/block-status";
@@ -174,6 +175,14 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     ? await supabase.from("band_sets").select("id, name").eq("id", bandSetId).single()
     : { data: null };
 
+  // ── S1 (home-training) ──
+  // Gone-quiet detection already exists and was simply never called from this
+  // page (lib/progress-db's own doc comment says "used on the client detail
+  // page"). It is Esther-facing only — nothing is sent to the client from here.
+  const isHomeTraining = (client as any).delivery_mode === "home_training";
+  const lastClientLogAt = isHomeTraining ? await getLastClientLogAt(client.id) : null;
+  const goneQuiet = isHomeTraining && isGoneQuiet(lastClientLogAt);
+
   // Full task rows (not just status count)
   const { data: fullTaskRows } = await supabase.from("tasks").select("id, title, status, due_date, created_at").eq("client_id", client.id).order("created_at", { ascending: false });
   const allTaskRows = fullTaskRows ?? [];
@@ -338,6 +347,15 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   // Training rules count (from profile)
   const trainingRulesCount = p?.programming_adaptations?.length ?? 0;
 
+  // S1 — a package that exists in name only: named, but carrying none of the
+  // numbers that make it mean anything. Every field checked here is a real
+  // column; the item only appears when a package IS set but is unspecified.
+  const packageUnderSpecified = Boolean((client as any).package_type)
+    && client.sessions_remaining == null
+    && client.sessions_used == null
+    && (client as any).client_rate == null
+    && (client as any).block_expiry_date == null;
+
   // Health flags: count of conditions, medications, pain points, contraindications
   const healthFlagsCount = (() => {
     if (!p?.health) return 0;
@@ -413,6 +431,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       hasAllDocsSigned={hasAllDocsSigned}
       healthFlagsCount={healthFlagsCount}
       trainingRulesCount={trainingRulesCount}
+      isHomeTraining={isHomeTraining}
+      goneQuiet={goneQuiet}
+      lastClientLogAt={lastClientLogAt}
+      quietDays={HOME_TRAINING_QUIET_DAYS}
+      packageUnderSpecified={packageUnderSpecified}
+      trainingRules={p?.programming_adaptations ?? []}
       exerciseTrendSummary={exerciseTrendSummary}
       missingBandSet={missingBandSet}
       latestBlock={latestBlock}

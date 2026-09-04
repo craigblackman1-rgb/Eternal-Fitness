@@ -546,9 +546,28 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
           <div className="frow">
             <span className="fk">Equipment</span>
             <span className="fv">
-              {equipment.length > 0
-                ? equipment.map((e: any) => typeof e === "string" ? e : e.name).join(", ")
-                : <span className="miss" style={{ fontWeight: 400 }}>Nothing listed.</span>}
+              {equipment.length > 0 ? (
+                /* Chips, not a comma list: what she can reach is a set of
+                   discrete constraints on what may be prescribed, and it
+                   matters most for a home client with no studio rack. */
+                <span className="tags">
+                  {equipment.map((e: any, i: number) => {
+                    const name = typeof e === "string" ? e : e?.name;
+                    const detail = typeof e === "string" ? null : e?.detail;
+                    if (!name) return null;
+                    return (
+                      <span key={`${name}-${i}`} className="tag">
+                        {name}
+                        {detail ? ` · ${detail}` : ""}
+                      </span>
+                    );
+                  })}
+                </span>
+              ) : (
+                <span className="miss" style={{ fontWeight: 400 }}>
+                  Nothing listed, so plans are not constrained by what they can reach.
+                </span>
+              )}
             </span>
           </div>
           <div className="frow">

@@ -3,7 +3,7 @@
 import { DrawerManager } from "./DrawerManager";
 import { ClientRecordHeader } from "./ClientRecordHeader";
 import { ClientDrawerStrip } from "./ClientDrawerStrip";
-import { NeedsYouQueue } from "./NeedsYouQueue";
+import { NeedsYouQueue, buildNeedsYouItems } from "./NeedsYouQueue";
 import { TrainingSection } from "./TrainingSection";
 import { ClientDrawers } from "./ClientDrawers";
 import type { DBBlock, DBSession } from "@/types";
@@ -42,6 +42,13 @@ interface ClientRecordShellProps {
     recentNotes: string | null;
   };
   missingBandSet: boolean;
+  /** S1 — home-training variant of this same surface. */
+  isHomeTraining: boolean;
+  goneQuiet: boolean;
+  lastClientLogAt: string | null;
+  quietDays: number;
+  packageUnderSpecified: boolean;
+  trainingRules: { id: string; rule_type_id: string; detail: string; severity?: string }[];
   latestBlock: DBBlock | null;
   derivedStatusByBlock: Map<string, import("@/types").BlockStatus>;
   /* S0b drawer data */
@@ -97,6 +104,12 @@ export function ClientRecordShell({
   trainingRulesCount,
   exerciseTrendSummary,
   missingBandSet,
+  isHomeTraining,
+  goneQuiet,
+  lastClientLogAt,
+  quietDays,
+  packageUnderSpecified,
+  trainingRules,
   latestBlock: latestBlockProp,
   derivedStatusByBlock,
   /* S0b drawer data */
@@ -147,6 +160,32 @@ export function ClientRecordShell({
     return count;
   })();
 
+  // Built once so the header count and the rendered rows can never disagree.
+  const needsYouInput = {
+    pendingTaskCount,
+    draftBlockCount,
+    undatedSessionCount,
+    blockSessionCountMismatch,
+    unpaidBlocks,
+    missingBandSet,
+    outstandingActions,
+    autoOutstanding,
+    effectiveStatus,
+    dueInfo,
+    hasAllDocsSigned,
+    healthFlagsCount: healthFlags,
+    trainingRulesCount,
+    clientNumber: client.client_number,
+    latestBlock,
+    isHomeTraining,
+    goneQuiet,
+    lastClientLogAt,
+    quietDays,
+    packageUnderSpecified,
+    clientFirstName: String(client.name ?? "").split(" ")[0],
+  };
+  const needsYouCount = buildNeedsYouItems(needsYouInput).length;
+
   return (
     <DrawerManager>
       <div className="max-w-[940px] mx-auto">
@@ -167,32 +206,13 @@ export function ClientRecordShell({
           <div className="flex items-center gap-2.5 py-2.5 px-4 border-b border-[var(--hub-border)]">
             <h2 className="m-0 text-[15px] font-bold text-[var(--color-ink)] tracking-tight">Needs you</h2>
             <span className="text-xs text-[var(--color-muted)]">
-              {(() => {
-                const count = pendingTaskCount + draftBlockCount + undatedSessionCount
-                  + (blockSessionCountMismatch ? 1 : 0) + unpaidBlocks.length
-                  + autoOutstanding.length + outstandingActions.length;
-                return count > 0 ? `${count} thing${count === 1 ? "" : "s"} · in the order you'd work them` : "All clear";
-              })()}
+              {needsYouCount > 0
+                ? `${needsYouCount} thing${needsYouCount === 1 ? "" : "s"} · in the order you'd work them`
+                : "All clear"}
             </span>
           </div>
 
-          <NeedsYouQueue
-            pendingTaskCount={pendingTaskCount}
-            draftBlockCount={draftBlockCount}
-            undatedSessionCount={undatedSessionCount}
-            blockSessionCountMismatch={blockSessionCountMismatch}
-            unpaidBlocks={unpaidBlocks}
-            missingBandSet={missingBandSet}
-            outstandingActions={outstandingActions}
-            autoOutstanding={autoOutstanding}
-            effectiveStatus={effectiveStatus}
-            dueInfo={dueInfo}
-            hasAllDocsSigned={hasAllDocsSigned}
-            healthFlagsCount={healthFlags}
-            trainingRulesCount={trainingRulesCount}
-            clientNumber={client.client_number}
-            latestBlock={latestBlock}
-          />
+          <NeedsYouQueue {...needsYouInput} />
         </div>
 
         {/* ── Section 2: Training ── */}
@@ -211,6 +231,15 @@ export function ClientRecordShell({
           blockDateRangeLabel={blockDateRangeLabel}
           exerciseTrendSummary={exerciseTrendSummary}
           trainerizeHistory={trainerizeHistory}
+          standingRules={
+            isHomeTraining
+              ? (trainingRules ?? []).map((r) => ({
+                  id: r.id,
+                  label: ruleTypesById.get(r.rule_type_id)?.label ?? null,
+                  detail: r.detail,
+                }))
+              : []
+          }
         />
       </div>
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconChevronLeft, IconPencil, IconCalendar } from "@/components/icons";
+import { IconChevronLeft, IconPencil, IconCalendar, IconMail } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { lookupStatus } from "@/lib/hubStatus";
@@ -74,6 +74,8 @@ export function ClientRecordHeader({
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
   const subline = buildSubline(client);
   const complianceLookup = status ? lookupStatus(status) : null;
+  const isHomeTraining = (client as any).delivery_mode === "home_training";
+  const firstName = client.name.split(" ")[0];
 
   return (
     <>
@@ -113,11 +115,22 @@ export function ClientRecordHeader({
               <IconPencil className="w-4 h-4" /> Edit Client
             </Button>
           </Link>
-          <Link href={`/hub/clients/${client.client_number}?tab=training&view=sessions`}>
-            <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-              <IconCalendar className="w-4 h-4" /> Book session
-            </Button>
-          </Link>
+          {/* A home-training client is never booked into the studio, so
+              "Book session" is the wrong primary action for her — the thing
+              Esther actually does is get in touch. */}
+          {isHomeTraining ? (
+            <Link href={`/hub/clients/${client.client_number}/updates/new`}>
+              <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+                <IconMail className="w-4 h-4" /> Message {firstName}
+              </Button>
+            </Link>
+          ) : (
+            <Link href={`/hub/clients/${client.client_number}?tab=training&view=sessions`}>
+              <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+                <IconCalendar className="w-4 h-4" /> Book session
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </>

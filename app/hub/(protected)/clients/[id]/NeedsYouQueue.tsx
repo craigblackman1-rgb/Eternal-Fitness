@@ -20,23 +20,7 @@ interface QueueItem {
   actionHref?: string;
 }
 
-export function NeedsYouQueue({
-  pendingTaskCount,
-  draftBlockCount,
-  undatedSessionCount,
-  blockSessionCountMismatch,
-  unpaidBlocks,
-  missingBandSet,
-  outstandingActions,
-  autoOutstanding,
-  effectiveStatus,
-  dueInfo,
-  hasAllDocsSigned,
-  healthFlagsCount,
-  trainingRulesCount,
-  clientNumber,
-  latestBlock,
-}: {
+export interface NeedsYouInput {
   pendingTaskCount: number;
   draftBlockCount: number;
   undatedSessionCount: number;
@@ -52,9 +36,63 @@ export function NeedsYouQueue({
   trainingRulesCount: number;
   clientNumber: number;
   latestBlock: DBBlock | null;
-}) {
-  const { openDrawer } = useDrawerManager();
+  /** S1 — home-training only. */
+  isHomeTraining?: boolean;
+  goneQuiet?: boolean;
+  lastClientLogAt?: string | null;
+  quietDays?: number;
+  packageUnderSpecified?: boolean;
+  clientFirstName?: string;
+}
+
+/**
+ * The queue's items, built once from real data.
+ *
+ * Exported so the section header's count and the rendered rows come from the
+ * SAME list. They used to be computed separately, which is why the header
+ * could read "4 things" above two rows: it summed pendingTaskCount (3 tasks
+ * = one row) as three, and omitted the band-set item entirely.
+ */
+export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
+  const {
+    pendingTaskCount,
+    draftBlockCount,
+    undatedSessionCount,
+    blockSessionCountMismatch,
+    unpaidBlocks,
+    missingBandSet,
+    outstandingActions,
+    autoOutstanding,
+    clientNumber,
+    latestBlock,
+    isHomeTraining,
+    goneQuiet,
+    lastClientLogAt,
+    quietDays,
+    packageUnderSpecified,
+    clientFirstName,
+  } = input;
   const items: QueueItem[] = [];
+
+  // S1 priority 0 — a home-training client who has stopped self-logging is the
+  // most urgent thing on the record: nothing else on the page will show it,
+  // because no session is "late", there is just silence. Esther-facing only;
+  // nothing is sent to the client from here.
+  if (isHomeTraining && goneQuiet) {
+    const name = clientFirstName || "This client";
+    items.push({
+      id: "gone-quiet",
+      dot: "due",
+      headline: lastClientLogAt
+        ? `${name} has not logged a set in over ${quietDays ?? 7} days`
+        : `${name} has never logged a set`,
+      subline: lastClientLogAt
+        ? `Last self-logged set ${new Date(lastClientLogAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}. Home training is self-logged, so silence is the only signal.`
+        : "Home training is self-logged, so nothing has come through the portal at all.",
+      actionLabel: "Write an update",
+      actionHref: `/hub/clients/${clientNumber}/updates/new`,
+    });
+  }
 
   // Priority 1: Open tasks
   if (pendingTaskCount > 0) {
@@ -147,6 +185,28 @@ export function NeedsYouQueue({
       });
     }
   }
+
+  // S1 priority 9 — a package that exists in name only. Distinct from
+  // "unpaid": the package is named but carries no session count, rate,
+  // expiry or review date, so nothing can be counted or chased against it.
+  if (packageUnderSpecified) {
+    items.push({
+      id: "package-underspecified",
+      dot: "muted",
+      headline: "The package is recorded in name only",
+      subline: "No session count, rate or expiry is set, so nothing can be counted against it.",
+      actionLabel: "Set it up",
+      actionDrawerId: "dw-arrangement",
+    });
+  }
+
+  return items;
+}
+
+export function NeedsYouQueue(props: NeedsYouInput) {
+  const { dueInfo, hasAllDocsSigned, healthFlagsCount } = props;
+  const { openDrawer } = useDrawerManager();
+  const items = buildNeedsYouItems(props);
 
   // Quiet row at the bottom — everything is fine
   const hasIssues = items.length > 0;
