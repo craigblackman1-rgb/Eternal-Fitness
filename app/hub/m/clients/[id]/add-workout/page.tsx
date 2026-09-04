@@ -237,7 +237,7 @@ export default function AddWorkoutPage() {
   async function previewFromBlock(id: string) {
     const res = await fetch(`/api/sessions/${id}`);
     if (!res.ok) {
-      toast.error("Could not load workout content");
+      toast.error("Could not load content");
       return;
     }
     const session = (await res.json()) as { id: string; data: Session };
@@ -258,7 +258,7 @@ export default function AddWorkoutPage() {
     if (!block) return;
     setBusy(true);
     try {
-      const name = scratchName.trim() || "New workout";
+      const name = scratchName.trim() || "New template";
       // Unlike the template/block paths (which schedule to the chosen targetDay
       // via a follow-up PATCH), this create call had no scheduled_at at all —
       // the session existed but never appeared on the Today screen, which only
@@ -274,7 +274,7 @@ export default function AddWorkoutPage() {
       toast.success(`Created "${name}"`);
       router.push(`/hub/m/train/${body!.id}/edit`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create workout");
+      toast.error(err instanceof Error ? err.message : "Failed to create template");
       setBusy(false);
     }
   }
@@ -370,7 +370,7 @@ export default function AddWorkoutPage() {
               <span className="src-ic">{ICO.tmpl}</span>
               <span>
                 <span className="src-t">From the template library</span>
-                <span className="src-d">Reuse a saved workout — search and assign to a day.</span>
+                <span className="src-d">Reuse a saved template — search and assign to a day.</span>
               </span>
               <span className="src-chev">{ICO.chev}</span>
             </button>
@@ -390,7 +390,7 @@ export default function AddWorkoutPage() {
               <span className="src-ic">{ICO.plus}</span>
               <span>
                 <span className="src-t">Build from scratch</span>
-                <span className="src-d">Start an empty workout — name it, then edit exercises.</span>
+                <span className="src-d">Start an empty template — name it, then edit exercises.</span>
               </span>
               <span className="src-chev">{ICO.chev}</span>
             </button>
@@ -403,7 +403,7 @@ export default function AddWorkoutPage() {
               Template library
             </h1>
             <p className="step-sub" style={{ margin: "0 0 14px", color: "var(--muted)" }}>
-              Search saved workouts, then review before adding.
+              Search saved templates, then review before adding.
             </p>
             <div className="notes-search" style={{ marginBottom: 12 }}>
               <input
@@ -479,7 +479,7 @@ export default function AddWorkoutPage() {
               <div className="bs-row">
                 <input
                   className="bs-input"
-                  placeholder="Workout name, e.g. Home — band circuit"
+                  placeholder="Template name, e.g. Home — band circuit"
                   value={scratchName}
                   onChange={(e) => setScratchName(e.target.value)}
                 />
@@ -491,7 +491,7 @@ export default function AddWorkoutPage() {
               disabled={busy || !block}
               style={{ width: "100%", marginTop: 12 }}
             >
-              {busy ? "Creating…" : "Create workout"}
+              {busy ? "Creating…" : "Create template"}
             </button>
           </section>
         )}
