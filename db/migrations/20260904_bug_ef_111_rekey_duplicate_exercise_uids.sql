@@ -18,6 +18,11 @@
 --      re-join set_logs.exercise_uid via exercise_name to point at the new uids.
 --   4. Verify: confirm zero duplicated uids remain within the affected sessions.
 --
+-- BUG-EF-111 scope fix (2026-09-04): queries now cover all 6 exercise array
+-- paths (studio.{warm_up,main_block,cooldown}, home.{warm_up,main_block,cooldown})
+-- via the _ef111_all_exercises helper. Previously only main_block was read,
+-- missing warm_up/cooldown exercises entirely from detection and remapping.
+
 -- This migration is transactional — if anything fails, nothing is committed.
 --
 -- How to use:
@@ -76,19 +81,10 @@ BEGIN
   FROM (
     SELECT uid
     FROM (
-      SELECT elem->>'uid' AS uid
+      SELECT ae.exercise->>'uid' AS uid
       FROM sessions s,
-           jsonb_array_elements(
-             coalesce(s.data->'versions'->'studio'->'main_block', '[]'::jsonb)
-           ) elem
-      WHERE s.id = ANY(affected) AND elem ? 'uid'
-      UNION ALL
-      SELECT elem->>'uid' AS uid
-      FROM sessions s,
-           jsonb_array_elements(
-             coalesce(s.data->'versions'->'home'->'main_block', '[]'::jsonb)
-           ) elem
-      WHERE s.id = ANY(affected) AND elem ? 'uid'
+           _ef111_all_exercises(s.data, s.id) ae
+      WHERE s.id = ANY(affected)
     ) all_uids
     WHERE uid IS NOT NULL
   ) u
@@ -258,6 +254,52 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+-- Helper: returns one row per exercise object across all 6 array paths
+-- (studio.warm_up, studio.main_block, studio.cooldown,
+--  home.warm_up,  home.main_block,  home.cooldown).
+-- Filters to sessions in the affected set.
+CREATE OR REPLACE FUNCTION _ef111_all_exercises(sessions_data jsonb, sess_id uuid)
+RETURNS TABLE(session_id uuid, exercise jsonb) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'studio'->'warm_up', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'studio'->'main_block', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'studio'->'cooldown', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'home'->'warm_up', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'home'->'main_block', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'home'->'cooldown', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- Apply re-key
 DO $$
 DECLARE
@@ -303,17 +345,8 @@ BEGIN
   FOR r IN SELECT id, data FROM sessions WHERE id = ANY(affected) LOOP
     -- Collect old uids from all exercise arrays in this session
     INSERT INTO _ef111_uid_raw (session_id, exercise_name, old_uid)
-    SELECT r.id, elem->>'exercise_name', elem->>'uid'
-    FROM jsonb_array_elements(
-      coalesce(r.data->'versions'->'studio'->'main_block', '[]'::jsonb)
-    ) elem
-    WHERE elem ? 'uid'
-    UNION ALL
-    SELECT r.id, elem->>'exercise_name', elem->>'uid'
-    FROM jsonb_array_elements(
-      coalesce(r.data->'versions'->'home'->'main_block', '[]'::jsonb)
-    ) elem
-    WHERE elem ? 'uid';
+    SELECT r.id, ae.exercise->>'exercise_name', ae.exercise->>'uid'
+    FROM _ef111_all_exercises(r.data, r.id) ae;
 
     -- Re-key the JSONB (regenerates every uid in the entire data tree)
     UPDATE sessions SET data = _ef111_rekey_uids(data) WHERE id = r.id;
@@ -345,19 +378,11 @@ BEGIN
   UPDATE _ef111_uid_map m
   SET new_uid = new_ex.uid
   FROM (
-    SELECT m2.session_id, m2.exercise_name, elem->>'uid' AS uid
+    SELECT m2.session_id, m2.exercise_name, ae.exercise->>'uid' AS uid
     FROM _ef111_uid_map m2
     JOIN sessions s ON s.id = m2.session_id
-    JOIN jsonb_array_elements(
-      coalesce(s.data->'versions'->'studio'->'main_block', '[]'::jsonb)
-    ) elem ON elem->>'exercise_name' = m2.exercise_name
-    UNION
-    SELECT m2.session_id, m2.exercise_name, elem->>'uid' AS uid
-    FROM _ef111_uid_map m2
-    JOIN sessions s ON s.id = m2.session_id
-    JOIN jsonb_array_elements(
-      coalesce(s.data->'versions'->'home'->'main_block', '[]'::jsonb)
-    ) elem ON elem->>'exercise_name' = m2.exercise_name
+    JOIN _ef111_all_exercises(s.data, s.id) ae
+      ON ae.exercise->>'exercise_name' = m2.exercise_name
   ) new_ex
   WHERE m.session_id = new_ex.session_id AND m.exercise_name = new_ex.exercise_name;
 
@@ -401,6 +426,7 @@ $$;
 
 -- Cleanup helper functions
 DROP FUNCTION IF EXISTS _ef111_rekey_uids(jsonb);
+DROP FUNCTION IF EXISTS _ef111_all_exercises(jsonb, uuid);
 
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -430,20 +456,12 @@ BEGIN
   FROM (
     SELECT uid
     FROM (
-      SELECT elem->>'uid' AS uid
+      SELECT ae.exercise->>'uid' AS uid
       FROM sessions s,
-           jsonb_array_elements(
-             coalesce(s.data->'versions'->'studio'->'main_block', '[]'::jsonb)
-           ) elem
-      WHERE s.id = ANY(affected) AND elem ? 'uid'
-      UNION ALL
-      SELECT elem->>'uid' AS uid
-      FROM sessions s,
-           jsonb_array_elements(
-             coalesce(s.data->'versions'->'home'->'main_block', '[]'::jsonb)
-           ) elem
-      WHERE s.id = ANY(affected) AND elem ? 'uid'
+           _ef111_all_exercises(s.data, s.id) ae
+      WHERE s.id = ANY(affected)
     ) all_uids
+    WHERE uid IS NOT NULL
   ) u
   GROUP BY uid
   HAVING count(*) > 1;
@@ -456,20 +474,12 @@ BEGIN
     FOR dup_detail IN
       SELECT uid, count(*) AS n_sessions
       FROM (
-        SELECT elem->>'uid' AS uid
+        SELECT ae.exercise->>'uid' AS uid
         FROM sessions s,
-             jsonb_array_elements(
-               coalesce(s.data->'versions'->'studio'->'main_block', '[]'::jsonb)
-             ) elem
-        WHERE s.id = ANY(affected) AND elem ? 'uid'
-        UNION ALL
-        SELECT elem->>'uid' AS uid
-        FROM sessions s,
-             jsonb_array_elements(
-               coalesce(s.data->'versions'->'home'->'main_block', '[]'::jsonb)
-             ) elem
-        WHERE s.id = ANY(affected) AND elem ? 'uid'
+             _ef111_all_exercises(s.data, s.id) ae
+        WHERE s.id = ANY(affected)
       ) all_uids
+      WHERE uid IS NOT NULL
       GROUP BY uid
       HAVING count(*) > 1
       LIMIT 5
