@@ -142,7 +142,11 @@ export function TrainingSection({
       <div className="flex items-center gap-2.5 py-2.5 px-4">
         <h2 className="m-0 text-[15px] font-bold text-[var(--color-ink)] tracking-tight">Training</h2>
         <span className="text-xs text-[var(--color-muted)]">
-          {latestBlock ? `Block ${latestBlock.block_number} of ${allBlocks.length}` : "No blocks"} · {totalSessions} sessions since {allBlocks.length > 0 ? fmtDate(allBlocks[allBlocks.length - 1].created_at) : "—"}
+          {/* Quiet empty: a client with no blocks gets a short sentence, not
+              "No blocks · 0 sessions since —". No em-dash is ever a value. */}
+          {allBlocks.length === 0
+            ? "No training blocks yet"
+            : `Block ${latestBlock ? latestBlock.block_number : "—"} of ${allBlocks.length} · ${totalSessions} session${totalSessions === 1 ? "" : "s"} since ${fmtDate(allBlocks[allBlocks.length - 1].created_at)}`}
         </span>
         <div className="ml-auto flex gap-1.5">
           <button
@@ -187,14 +191,19 @@ export function TrainingSection({
                 <p className="m-0 text-[13px] text-[var(--color-muted)] italic">No sessions scheduled</p>
               )}
             </div>
-            <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
-              <button
-                onClick={(e) => openWorkoutDrawer(workoutSession!.id, e.currentTarget)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
-              >
-                See the workout
-              </button>
-            </div>
+            {/* Only when there is a real session to open. This footer used to
+                render unconditionally, so a client with no sessions at all got
+                a "See the workout" button that would throw on click. */}
+            {workoutSession && (
+              <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
+                <button
+                  onClick={(e) => openWorkoutDrawer(workoutSession.id, e.currentTarget)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  See the workout
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Is it working / progress panel */}
