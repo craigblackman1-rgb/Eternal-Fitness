@@ -38,6 +38,96 @@
 --     The final section (4) runs automatically and confirms zero duplicates.
 
 -- ════════════════════════════════════════════════════════════════════════════
+-- HELPER FUNCTIONS (must exist before Section 1 which calls them)
+-- ════════════════════════════════════════════════════════════════════════════
+
+-- Helper: recursively traverse JSONB, regenerating uid on every object that
+-- has one. Returns the modified JSONB. Immutable — does not touch objects
+-- without a uid field.
+CREATE OR REPLACE FUNCTION _ef111_rekey_uids(node jsonb)
+RETURNS jsonb AS $$
+DECLARE
+  result jsonb;
+  key text;
+  child jsonb;
+  i int;
+BEGIN
+  IF node IS NULL OR jsonb_typeof(node) != 'object' THEN
+    RETURN node;
+  END IF;
+
+  -- Leaf: exercise object with a uid — regenerate it
+  IF node ? 'uid' THEN
+    RETURN node || jsonb_build_object('uid', gen_random_uuid()::text);
+  END IF;
+
+  -- Branch: recurse into every value
+  result := '{}'::jsonb;
+  FOR key IN SELECT jsonb_object_keys(node) LOOP
+    child := node->key;
+    IF jsonb_typeof(child) = 'array' THEN
+      child := (
+        SELECT coalesce(jsonb_agg(_ef111_rekey_uids(elem)), '[]'::jsonb)
+        FROM jsonb_array_elements(child) elem
+      );
+    ELSIF jsonb_typeof(child) = 'object' THEN
+      child := _ef111_rekey_uids(child);
+    END IF;
+    result := result || jsonb_build_object(key, child);
+  END LOOP;
+
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Helper: returns one row per exercise object across all 6 array paths
+-- (studio.warm_up, studio.main_block, studio.cooldown,
+--  home.warm_up,  home.main_block,  home.cooldown).
+-- Filters to sessions in the affected set.
+CREATE OR REPLACE FUNCTION _ef111_all_exercises(sessions_data jsonb, sess_id uuid)
+RETURNS TABLE(session_id uuid, exercise jsonb) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'studio'->'warm_up', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'studio'->'main_block', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'studio'->'cooldown', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'home'->'warm_up', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'home'->'main_block', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid'
+  UNION ALL
+  SELECT sess_id, elem
+  FROM jsonb_array_elements(
+    coalesce(sessions_data->'versions'->'home'->'cooldown', '[]'::jsonb)
+  ) elem
+  WHERE elem ? 'uid';
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+-- ════════════════════════════════════════════════════════════════════════════
 -- SECTION 1 — DRY-RUN PREVIEW (read-only, always runs first)
 -- ════════════════════════════════════════════════════════════════════════════
 
@@ -215,91 +305,6 @@ $$;
 -- SECTION 3 — RE-KEY (regenerate uids, remap set_logs)
 -- ════════════════════════════════════════════════════════════════════════════
 
--- Helper: recursively traverse JSONB, regenerating uid on every object that
--- has one. Returns the modified JSONB. Immutable — does not touch objects
--- without a uid field.
-CREATE OR REPLACE FUNCTION _ef111_rekey_uids(node jsonb)
-RETURNS jsonb AS $$
-DECLARE
-  result jsonb;
-  key text;
-  child jsonb;
-  i int;
-BEGIN
-  IF node IS NULL OR jsonb_typeof(node) != 'object' THEN
-    RETURN node;
-  END IF;
-
-  -- Leaf: exercise object with a uid — regenerate it
-  IF node ? 'uid' THEN
-    RETURN node || jsonb_build_object('uid', gen_random_uuid()::text);
-  END IF;
-
-  -- Branch: recurse into every value
-  result := '{}'::jsonb;
-  FOR key IN SELECT jsonb_object_keys(node) LOOP
-    child := node->key;
-    IF jsonb_typeof(child) = 'array' THEN
-      child := (
-        SELECT coalesce(jsonb_agg(_ef111_rekey_uids(elem)), '[]'::jsonb)
-        FROM jsonb_array_elements(child) elem
-      );
-    ELSIF jsonb_typeof(child) = 'object' THEN
-      child := _ef111_rekey_uids(child);
-    END IF;
-    result := result || jsonb_build_object(key, child);
-  END LOOP;
-
-  RETURN result;
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
--- Helper: returns one row per exercise object across all 6 array paths
--- (studio.warm_up, studio.main_block, studio.cooldown,
---  home.warm_up,  home.main_block,  home.cooldown).
--- Filters to sessions in the affected set.
-CREATE OR REPLACE FUNCTION _ef111_all_exercises(sessions_data jsonb, sess_id uuid)
-RETURNS TABLE(session_id uuid, exercise jsonb) AS $$
-BEGIN
-  RETURN QUERY
-  SELECT sess_id, elem
-  FROM jsonb_array_elements(
-    coalesce(sessions_data->'versions'->'studio'->'warm_up', '[]'::jsonb)
-  ) elem
-  WHERE elem ? 'uid'
-  UNION ALL
-  SELECT sess_id, elem
-  FROM jsonb_array_elements(
-    coalesce(sessions_data->'versions'->'studio'->'main_block', '[]'::jsonb)
-  ) elem
-  WHERE elem ? 'uid'
-  UNION ALL
-  SELECT sess_id, elem
-  FROM jsonb_array_elements(
-    coalesce(sessions_data->'versions'->'studio'->'cooldown', '[]'::jsonb)
-  ) elem
-  WHERE elem ? 'uid'
-  UNION ALL
-  SELECT sess_id, elem
-  FROM jsonb_array_elements(
-    coalesce(sessions_data->'versions'->'home'->'warm_up', '[]'::jsonb)
-  ) elem
-  WHERE elem ? 'uid'
-  UNION ALL
-  SELECT sess_id, elem
-  FROM jsonb_array_elements(
-    coalesce(sessions_data->'versions'->'home'->'main_block', '[]'::jsonb)
-  ) elem
-  WHERE elem ? 'uid'
-  UNION ALL
-  SELECT sess_id, elem
-  FROM jsonb_array_elements(
-    coalesce(sessions_data->'versions'->'home'->'cooldown', '[]'::jsonb)
-  ) elem
-  WHERE elem ? 'uid';
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
-
 -- Apply re-key
 DO $$
 DECLARE
@@ -424,9 +429,6 @@ BEGIN
 END;
 $$;
 
--- Cleanup helper functions
-DROP FUNCTION IF EXISTS _ef111_rekey_uids(jsonb);
-DROP FUNCTION IF EXISTS _ef111_all_exercises(jsonb, uuid);
 
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -492,3 +494,8 @@ BEGIN
   RAISE NOTICE '═══ END VERIFICATION ═══';
 END;
 $$;
+
+
+-- Cleanup helper functions
+DROP FUNCTION IF EXISTS _ef111_rekey_uids(jsonb);
+DROP FUNCTION IF EXISTS _ef111_all_exercises(jsonb, uuid);
