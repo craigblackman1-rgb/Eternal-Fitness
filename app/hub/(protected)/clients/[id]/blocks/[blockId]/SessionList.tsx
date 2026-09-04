@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { CancelSessionDialog } from "@/components/hub/CancelSessionDialog";
 import { SessionRow } from "./SessionRow";
 import { SubSessionRow } from "./SubSessionRow";
 import { AssignWorkoutDialog } from "./AssignWorkoutDialog";
@@ -44,6 +47,9 @@ interface SessionListProps {
   chronologicalPositions: Map<string, { position: number; total: number }>;
   /** CR-EF-126 — all sessions in the block (including sub-sessions) for nesting */
   allSessions?: DBSession[];
+  /** Needed by the cancel dialog to re-derive the session pot. */
+  clientName?: string;
+  sessionsPurchased?: number | null;
 }
 
 function sessionStatus(s: SessionItem): SessionStatus {
@@ -94,8 +100,48 @@ export function SessionList({
   archetypeTint,
   chronologicalPositions,
   allSessions = [],
+  clientName = "",
+  sessionsPurchased = null,
 }: SessionListProps) {
+  const router = useRouter();
   const [assignSessionId, setAssignSessionId] = useState<string | null>(null);
+  const [cancelSession, setCancelSession] = useState<DBSession | null>(null);
+  const [suppParentId, setSuppParentId] = useState<string | null>(null);
+  const [suppName, setSuppName] = useState("");
+  const [savingSupp, setSavingSupp] = useState(false);
+
+  const byId = new Map(allSessions.map((s) => [s.id, s]));
+
+  // Same endpoint and shape BlockPoolView used -- supplementary work attaches
+  // to a parent slot and deliberately does not consume a session from the pot.
+  const createSupplementary = async (parentId: string) => {
+    const parent = byId.get(parentId);
+    if (!parent) return;
+    if (!suppName.trim()) { toast.error("Name the supplementary work"); return; }
+    setSavingSupp(true);
+    try {
+      const res = await fetch(`/api/blocks/${blockId}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          focus_label: suppName.trim(),
+          scheduled_at: parent.scheduled_at,
+          parent_session_id: parent.id,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to create" }));
+        toast.error(err.error || "Failed to create supplementary session");
+        return;
+      }
+      toast.success("Supplementary work added");
+      setSuppParentId(null);
+      setSuppName("");
+      router.refresh();
+    } finally {
+      setSavingSupp(false);
+    }
+  };
 
   // CR-EF-126 — build map of parent_session_id → sub-sessions for nesting
   const subSessionsByParent = new Map<string, DBSession[]>();
@@ -133,7 +179,30 @@ export function SessionList({
               chargedFree={session.charged_free}
               isEmpty={sessionHasNoExercises(session.data)}
               onAssignWorkout={setAssignSessionId}
+              onCancel={(id) => { const full = byId.get(id); if (full) setCancelSession(full); }}
+              onAddSupplementary={(id) => { setSuppParentId(id); setSuppName(""); }}
+              canCancel={status !== "completed" && status !== "cancelled"}
             />
+            {suppParentId === session.id && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--hub-hover)] border-t border-[var(--hub-border)]">
+                <input
+                  autoFocus
+                  value={suppName}
+                  onChange={(e) => setSuppName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") createSupplementary(session.id); if (e.key === "Escape") setSuppParentId(null); }}
+                  placeholder="What runs alongside this session?"
+                  className="flex-1 h-8 rounded-md border border-[var(--hub-field-border)] px-2 text-[13px]"
+                />
+                <button type="button" disabled={savingSupp} onClick={() => createSupplementary(session.id)}
+                  className="h-8 px-2.5 rounded-md bg-rose text-white text-xs font-semibold disabled:opacity-50">
+                  {savingSupp ? "Adding…" : "Add"}
+                </button>
+                <button type="button" onClick={() => setSuppParentId(null)}
+                  className="h-8 px-2.5 rounded-md border border-[var(--hub-border)] bg-white text-xs font-semibold">
+                  Cancel
+                </button>
+              </div>
+            )}
             {/* CR-EF-126 — sub-sessions nested under parent */}
             {children.map((child) => (
               <SubSessionRow
@@ -153,6 +222,18 @@ export function SessionList({
         sessionId={assignSessionId || ""}
         blockId={blockId}
       />
+
+      {cancelSession && (
+        <CancelSessionDialog
+          open={!!cancelSession}
+          onOpenChange={(open) => { if (!open) setCancelSession(null); }}
+          session={cancelSession}
+          clientName={clientName}
+          sessionsPurchased={sessionsPurchased}
+          allSessions={allSessions}
+          childCount={allSessions.filter((s) => s.parent_session_id === cancelSession.id).length}
+        />
+      )}
     </>
   );
 }
