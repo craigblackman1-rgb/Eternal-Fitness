@@ -9,10 +9,10 @@ import { BlockSchedulePanel } from "./BlockSchedulePanel";
 import { EditBlockDrawer } from "./EditBlockDrawer";
 import { AddWorkoutDialog } from "./AddWorkoutDialog";
 import { CarryOverDialog } from "./CarryOverDialog";
+import { SessionList } from "./SessionList";
 import { StatusBadge } from "@/components/hub/StatusBadge";
-import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
-import { isoToLocalTime } from "@/lib/schedule-dates";
-import { sessionWorkoutName, sessionHasNoExercises } from "@/lib/session-display";
+import { BlockPoolView } from "@/components/hub/BlockPoolView";
+import { isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import type { Weekday } from "@/lib/scheduling";
 import type { SessionStatus, DBSession, BlockStatus } from "@/types";
@@ -83,10 +83,10 @@ interface BlockOverviewClientProps {
   approvedAt: string | null;
   blockDateSpanLabel: string;
   totalSessions: number;
+  totalBlockCount: number;
   completedSessions: number;
   remainingCount: number;
   scheduledStartIso: string | null;
-  scheduledStartLabel: string;
   weekdays: Weekday[];
   weeks: number[];
   sessions: DBSession[];
@@ -99,8 +99,14 @@ interface BlockOverviewClientProps {
     planWeek?: number;
     sessions: DisplaySession[];
   }[];
+  /** Week group key that should start expanded — the first incomplete session's week. */
+  targetWeekKey: string | null;
   previousBlocks: PreviousBlock[];
   archetypeTint: Record<string, string>;
+  /** CR-EF-099 — session pot inputs for BlockPoolView. */
+  sessionsPurchased: number | null;
+  blockExpiryDate: string | null;
+  blockExpiryExtensions: { from: string; to: string; at: string; reason?: string }[];
 }
 
 function sessionStatus(s: DisplaySession): SessionStatus {
@@ -123,17 +129,22 @@ export function BlockOverviewClient({
   approvedAt: approvedAtInitial,
   blockDateSpanLabel,
   totalSessions,
+  totalBlockCount,
   completedSessions,
   remainingCount,
   scheduledStartIso,
-  scheduledStartLabel,
   weekdays,
   weeks,
   sessions,
   displaySessions,
   chronologicalPositions,
+  weekGroups,
+  targetWeekKey,
   previousBlocks,
   archetypeTint,
+  sessionsPurchased,
+  blockExpiryDate,
+  blockExpiryExtensions,
 }: BlockOverviewClientProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -195,15 +206,6 @@ export function BlockOverviewClient({
     return pos ? `Session ${pos.position} of ${pos.total}` : `Session ${s.session_number}`;
   };
 
-  const dayTimeLabel = (s: DisplaySession): string => {
-    if (s.scheduled_at) {
-      const d = new Date(s.scheduled_at);
-      const date = d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-      return `${date}\n${isoToLocalTime(s.scheduled_at)}`;
-    }
-    return dayLabel(s);
-  };
-
   // ── Archetype chip strip ─────────────────────────────────────
   const archetypeCounts = new Map<string, number>();
   for (const s of displaySessions) {
@@ -214,14 +216,21 @@ export function BlockOverviewClient({
   const archetypes = Array.from(archetypeCounts.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
   const completedCount = displaySessions.filter((s) => sessionStatus(s) === "completed").length;
-  const settledCount = displaySessions.filter((s) => {
-    const st = sessionStatus(s);
-    return st === "completed" || st === "cancelled";
-  }).length;
 
   const blockDescriptor = clientCondition
-    ? `Block ${block.block_number} of ${block.block_number} · ${clientCondition}`
-    : `Block ${block.block_number} of ${block.block_number}`;
+    ? `Block ${block.block_number} of ${totalBlockCount} · ${clientCondition}`
+    : `Block ${block.block_number} of ${totalBlockCount}`;
+
+  // ── Week group labels (derived dates, never fabricated) ──────
+  const formatShortDate = (iso: string): string =>
+    new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+  /** "24 Aug – 30 Aug" — the full Monday–Sunday span of a derived week. */
+  const formatWeekRange = (monday: string): string => {
+    const start = formatShortDate(monday);
+    const end = formatShortDate(shiftDay(monday, 6));
+    return start === end ? start : `${start} – ${end}`;
+  };
 
   const approvedDateLabel = approvedAtState
     ? new Date(approvedAtState).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })
@@ -323,7 +332,22 @@ export function BlockOverviewClient({
         hasRemaining={remainingCount > 0}
       />
 
-      {/* ── Sessions section ───────────────────────────────────── */}
+      {/* ── Session pot: booked slots vs planned workouts (CR-EF-099) ── */}
+      <BlockPoolView
+        sessions={sessions}
+        clientId={clientId}
+        blockId={blockId}
+        clientName={clientName}
+        sessionsPurchased={sessionsPurchased}
+        blockExpiryDate={blockExpiryDate}
+        blockExpiryExtensions={blockExpiryExtensions}
+        chronologicalPositions={chronologicalPositions}
+      />
+
+      {/* ── Sessions, grouped into real Mon–Sun weeks ──────────────
+          CR-EF-032 / CR-EF-145: weeks are DERIVED from dates, never the
+          stored `week` ordinal, and unbooked sessions carry a projected
+          date so they group with the week they will fall in. */}
       <section
         className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden"
         style={{ marginBottom: "var(--d-section-gap, 14px)" }}
@@ -334,140 +358,93 @@ export function BlockOverviewClient({
             {totalSessions} · {completedCount} done
           </span>
         </div>
-        <div>
-          {displaySessions.map((session) => {
-            const st = sessionStatus(session);
-            const workoutName = sessionWorkoutName(session, "—");
-            const isEmpty = st !== "completed" && st !== "cancelled" && sessionHasNoExercises(session.data);
-            const isScheduled = st === "scheduled" || st === "in_progress";
-            const isPlanned = st === "planned";
-            const settled = st === "completed" || st === "cancelled";
-            const pos = chronologicalPositions.get(session.id);
-            const sessionUrl = `/hub/clients/${clientId}/blocks/${blockId}/sessions/${session.session_number}`;
-            const dateParts = session.scheduled_at ? dayTimeLabel(session).split("\n") : null;
-            const subSessions = sessions.filter((s: DBSession) => s.parent_session_id === session.id);
+        <div className="p-3 space-y-2.5">
+          {weekGroups.map((group) => {
+            const isScheduled = group.kind === "scheduled";
+            const isProjected = group.kind === "projected";
+            const weekPotSessions = group.sessions.filter((s) => !s.parent_session_id);
+            const done = weekPotSessions.filter((s) => sessionStatus(s) === "completed").length;
+            const cancelled = weekPotSessions.filter((s) => sessionStatus(s) === "cancelled").length;
+            const total = weekPotSessions.length;
+
+            const numLabel = (isScheduled || isProjected)
+              ? String(Number(group.monday!.split("-")[2]))
+              : String(group.planWeek);
+            const title = (isScheduled || isProjected)
+              ? `Week of ${formatShortDate(group.monday!)}`
+              : `Week ${group.planWeek}`;
+            const sub = (isScheduled || isProjected)
+              ? isProjected
+                ? `${total} projected · not yet booked`
+                : formatWeekRange(group.monday!)
+              // BUG-EF-115 — plan-week groups may hold completed sessions with
+              // no date. Count them separately so the label stays truthful.
+              : `${total} session${total === 1 ? "" : "s"} planned · no dates yet`;
+            const progress = (isScheduled || isProjected)
+              ? isProjected
+                ? `${done} of ${total} booked${cancelled ? ` · ${cancelled} cancelled` : ""}`
+                : `${done} of ${total} done${cancelled ? ` · ${cancelled} cancelled` : ""}`
+              : done > 0
+                ? `${done} completed${total - done > 0 ? ` · ${total - done} not yet booked` : ""}`
+                : "Not scheduled";
 
             return (
-              <div key={session.id}>
-                <div
-                  className={`flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors border-t border-[var(--hub-border)] first:border-t-0 ${settled ? "opacity-60" : ""}`}
-                >
-                  {/* Date + time */}
-                  <div className="w-[116px] shrink-0">
-                    {dateParts ? (
-                      <>
-                        <div className="text-[13px] font-semibold text-[var(--color-ink)]">
-                          {dateParts[0]}
-                        </div>
-                        <div className="text-[11.5px] font-medium text-[var(--muted)]">
-                          {dateParts[1]}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-[13px] font-medium text-[var(--muted)] italic">
-                        {dayLabel(session)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Workout */}
-                  <div className="flex-1 min-w-0">
-                    {isEmpty ? (
-                      <span className="text-[13.5px] text-[var(--muted)] italic">
-                        No workout assigned
-                      </span>
-                    ) : (
-                      <span className="text-[13.5px] text-[var(--color-ink)]">
-                        {session.archetype && (
-                          <>{session.archetype} — </>
-                        )}
-                        {workoutName}
-                      </span>
-                    )}
-                    {pos && (
-                      <div className="text-[11.5px] text-[var(--muted)]">
-                        Session {pos.position} of {pos.total}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Status */}
-                  <div className="shrink-0">
-                    <SessionStatusPill status={st} />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1 shrink-0 w-[168px] justify-end">
-                    {st === "completed" && (
-                      <Link
-                        href={sessionUrl}
-                        className="inline-flex items-center h-[30px] px-2.5 rounded-[6px] border border-transparent text-[12.5px] font-medium text-[var(--muted)] hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] transition-colors"
-                      >
-                        View
-                      </Link>
-                    )}
-                    {st === "cancelled" && (
-                      <Link
-                        href={sessionUrl}
-                        className="inline-flex items-center h-[30px] px-2.5 rounded-[6px] border border-transparent text-[12.5px] font-medium text-[var(--muted)] hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] transition-colors"
-                      >
-                        View
-                      </Link>
-                    )}
-                    {isPlanned && (
-                      <>
-                        {isEmpty ? (
-                          <span className="text-[12.5px] font-semibold text-[var(--rose-text)]">
-                            Assign workout
-                          </span>
-                        ) : (
-                          <Link
-                            href={sessionUrl}
-                            className="inline-flex items-center h-[30px] px-2.5 rounded-[6px] border border-[var(--hub-border)] bg-[var(--hub-card)] text-[12.5px] font-medium text-[var(--color-ink)] hover:bg-[var(--hub-hover)] transition-colors"
-                          >
-                            Edit
-                          </Link>
-                        )}
-                      </>
-                    )}
-                    {(isScheduled || isPlanned) && (
-                      <Link
-                        href={sessionUrl}
-                        className="inline-flex items-center h-[30px] px-2.5 rounded-[6px] text-[12.5px] font-semibold text-[var(--muted)] hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] transition-colors"
-                      >
-                        {isScheduled ? "View" : "Schedule"}
-                      </Link>
-                    )}
-                  </div>
+              <details
+                key={group.key}
+                open={group.key === targetWeekKey}
+                className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--field-fill,#FDFDFE)] overflow-hidden group"
+              >
+                <summary className="list-none cursor-pointer flex items-center gap-3 px-3.5 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
+                  <span
+                    className={`w-[26px] h-[26px] rounded-[6px] flex items-center justify-center text-[12px] font-extrabold shrink-0 ${
+                      isScheduled
+                        ? "bg-[var(--s-primary-bg,rgba(193,131,159,.10))] text-[var(--rose-text,#94566F)]"
+                        : isProjected
+                          ? "bg-[var(--s-warning-bg,#F7EFDD)] text-[var(--amber-text,#83672E)]"
+                          : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]"
+                    }`}
+                  >
+                    {numLabel}
+                  </span>
+                  <span className="text-[13.5px] font-bold text-[var(--color-ink)]">{title}</span>
+                  {sub && <span className="text-[12px] text-[var(--muted)]">{sub}</span>}
+                  <span className="ml-auto text-[12px] text-[var(--muted)]">{progress}</span>
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    className="text-[var(--muted)] transition-transform duration-200 group-open:rotate-90 shrink-0"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div className="border-t border-[var(--hub-border)] bg-[var(--hub-card)]">
+                  <SessionList
+                    sessions={group.sessions}
+                    totalSessions={totalSessions}
+                    clientId={clientId}
+                    blockId={blockId}
+                    archetypeTint={archetypeTint}
+                    chronologicalPositions={chronologicalPositions}
+                    allSessions={sessions}
+                  />
                 </div>
-
-                {/* Cancelled session details */}
-                {st === "cancelled" && (
-                  <div className="px-4 pb-2 text-[11.5px] text-[var(--muted)] border-t border-[var(--hub-border)]">
-                    {session.charged_free === "charged" && (
-                      <span className="inline-flex items-center rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
-                        Charged
-                      </span>
-                    )}
-                    {session.charged_free === "free" && (
-                      <span className="inline-flex items-center rounded-full bg-[var(--s-success-bg)] text-[var(--teal)] border border-[var(--s-success-bd)] px-2 py-0 text-[10px] font-bold mr-1.5">
-                        Free
-                      </span>
-                    )}
-                    Cancelled{session.cancel_reason ? ` — ${session.cancel_reason}` : ""}
-                  </div>
-                )}
-              </div>
+              </details>
             );
           })}
 
-          {displaySessions.length === 0 && (
+          {weekGroups.length === 0 && (
             <div className="py-10 text-center text-sm text-[var(--muted)]">
               No sessions in this block yet.
             </div>
           )}
         </div>
       </section>
+
 
       {/* ── Previous blocks ─────────────────────────────────────── */}
       {previousBlocks.length > 0 && (

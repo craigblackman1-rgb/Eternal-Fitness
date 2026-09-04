@@ -3,12 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IconChevronLeft } from "@/components/icons";
 import { BlockOverviewClient } from "./BlockOverviewClient";
-import { groupSessionsByWeek, isoToMonday, shiftDay, projectUnbookedDates } from "@/lib/schedule-dates";
+import { groupSessionsByWeek, isoToMonday, projectUnbookedDates } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveSessionPot } from "@/lib/session-pot";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
-import { sessionWorkoutName } from "@/lib/session-display";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus, DBSession, BlockStatus } from "@/types";
 
@@ -125,6 +124,21 @@ export default async function BlockViewPage({
   const weekGroups = groupSessionsByWeek(projectedSessions);
   const planWeeks = Array.from(new Set(displaySessions.map((s) => s.week))).sort((a, b) => a - b);
 
+  // CR-EF-145 — the week that opens by default is the one holding the first
+  // session still to be delivered. Uses projectedSessions so an unbooked
+  // session resolves to a real Monday key rather than a "plan week" bucket.
+  const firstIncompleteProjected = projectedSessions.find((s) => {
+    const st = sessionStatus(s);
+    return st !== "completed" && st !== "cancelled";
+  });
+  const targetWeekKey = firstIncompleteProjected
+    ? firstIncompleteProjected.scheduled_at
+      ? isoToMonday(firstIncompleteProjected.scheduled_at)
+      : firstIncompleteProjected.projected_at
+        ? isoToMonday(firstIncompleteProjected.projected_at)
+        : `p${firstIncompleteProjected.week}`
+    : null;
+
   const formatShortDateFull = (iso: string): string =>
     new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   const blockDateSpanLabel = scheduledStartIso
@@ -140,17 +154,16 @@ export default async function BlockViewPage({
     .eq("client_id", parseInt(params.id))
     .order("block_number", { ascending: false });
 
+  const totalBlockCount = (allBlocksData || []).length;
+
   const previousBlocks = (allBlocksData || [])
     .filter((b) => b.id !== params.blockId)
-    .map((b) => {
-      const blockSessions = sessions.filter(() => false); // placeholder, will re-query
-      return {
-        id: b.id,
-        block_number: b.block_number,
-        status: b.status as BlockStatus,
-        scheduled_start: b.scheduled_start as string | null,
-      };
-    });
+    .map((b) => ({
+      id: b.id,
+      block_number: b.block_number,
+      status: b.status as BlockStatus,
+      scheduled_start: b.scheduled_start as string | null,
+    }));
 
   // Fetch session counts for previous blocks
   const prevBlockIds = previousBlocks.map((b) => b.id);
@@ -159,7 +172,7 @@ export default async function BlockViewPage({
     for (const prevId of prevBlockIds) {
       const { data: prevSessions } = await supabase
         .from("sessions")
-        .select("session_number, scheduled_at, status, cancelled_at, completed_at, charged_free, data")
+        .select("session_number, scheduled_at, status, cancelled_at, completed_at, charged_free, parent_session_id, data")
         .eq("block_id", prevId)
         .order("session_number", { ascending: true });
       if (prevSessions) {
@@ -201,15 +214,6 @@ export default async function BlockViewPage({
     status: block.status as BlockStatus,
   };
 
-  const scheduledStartLabel = scheduledStartIso
-    ? new Date(scheduledStartIso).toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "Not yet";
-
   return (
     <div className="space-y-4 pb-24">
       <div className="flex items-center gap-4">
@@ -232,18 +236,23 @@ export default async function BlockViewPage({
         approvedAt={(block as { approved_at?: string | null }).approved_at ?? null}
         blockDateSpanLabel={blockDateSpanLabel}
         totalSessions={totalSessions}
+        totalBlockCount={totalBlockCount}
         completedSessions={consumedSlots}
         remainingCount={remainingCount}
         scheduledStartIso={scheduledStartIso}
-        scheduledStartLabel={scheduledStartLabel}
+
         weekdays={weekdays}
         weeks={planWeeks}
         sessions={sessions as unknown as DBSession[]}
         displaySessions={displaySessions}
         chronologicalPositions={chronologicalPositions}
         weekGroups={weekGroups}
+        targetWeekKey={targetWeekKey}
         previousBlocks={previousBlocksWithCounts}
         archetypeTint={archetypeTint}
+        sessionsPurchased={client?.sessions_purchased ?? null}
+        blockExpiryDate={client?.block_expiry_date ?? null}
+        blockExpiryExtensions={client?.block_expiry_extensions ?? []}
       />
     </div>
   );
