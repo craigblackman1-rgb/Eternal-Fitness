@@ -12,7 +12,8 @@
 --
 -- Strategy:
 --   1. DRY-RUN mode: preview exactly what would change (no writes).
---   2. Archive: snapshot all affected set_logs and session JSONB before touching.
+--   2. Archive: snapshot all affected set_logs AND session JSONB (both tables)
+--      before touching — enables full rollback of the irreversible re-key.
 --   3. Re-key: regenerate every exercise uid in the 8 sessions' JSONB, then
 --      re-join set_logs.exercise_uid via exercise_name to point at the new uids.
 --   4. Verify: confirm zero duplicated uids remain within the affected sessions.
@@ -107,9 +108,15 @@ BEGIN
 
   -- Archive status
   IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bug_ef_111_archive_set_logs' AND relkind = 'r') THEN
-    RAISE NOTICE 'Archive table already exists — will skip re-archiving (idempotent).';
+    RAISE NOTICE 'set_logs archive table already exists — will skip re-archiving (idempotent).';
   ELSE
-    RAISE NOTICE 'Archive table does not exist — will create and populate.';
+    RAISE NOTICE 'set_logs archive table does not exist — will create and populate.';
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bug_ef_111_archive_sessions' AND relkind = 'r') THEN
+    RAISE NOTICE 'sessions archive table already exists — will skip re-archiving (idempotent).';
+  ELSE
+    RAISE NOTICE 'sessions archive table does not exist — will create and populate.';
   END IF;
 
   RAISE NOTICE '';
@@ -147,36 +154,63 @@ BEGIN
     RETURN;
   END IF;
 
+  -- ── Archive set_logs ──
   -- Idempotent: skip if archive already exists (safety against double-run)
   IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bug_ef_111_archive_set_logs' AND relkind = 'r') THEN
     RAISE NOTICE 'Archive table bug_ef_111_archive_set_logs already exists — skipping.';
-    RETURN;
+  ELSE
+    CREATE TABLE bug_ef_111_archive_set_logs AS
+    SELECT sl.*, now() AS archived_at
+    FROM set_logs sl
+    WHERE sl.session_id = ANY(affected);
+
+    SELECT count(*) INTO archive_count FROM bug_ef_111_archive_set_logs;
+    RAISE NOTICE 'Archived % set_logs rows to bug_ef_111_archive_set_logs.', archive_count;
+
+    -- Verify archive is non-empty for sessions that should have set_logs
+    FOR r IN
+      SELECT s.id, s.session_number, c.name AS client
+      FROM sessions s
+      JOIN blocks b ON b.id = s.block_id
+      JOIN clients c ON c.id = b.client_id
+      WHERE s.id = ANY(affected)
+        AND (SELECT count(*) FROM set_logs sl WHERE sl.session_id = s.id) > 0
+    LOOP
+      IF NOT EXISTS (SELECT 1 FROM bug_ef_111_archive_set_logs WHERE session_id = r.id) THEN
+        RAISE EXCEPTION 'Archive verification failed: session % (%) has set_logs but none archived.', r.client, r.session_number;
+      END IF;
+    END LOOP;
+
+    RAISE NOTICE 'Archive verification passed: all set_logs for affected sessions with data are captured.';
   END IF;
 
-  -- Snapshot all set_logs rows for the 8 affected sessions
-  CREATE TABLE bug_ef_111_archive_set_logs AS
-  SELECT sl.*, now() AS archived_at
-  FROM set_logs sl
-  WHERE sl.session_id = ANY(affected);
-
-  SELECT count(*) INTO archive_count FROM bug_ef_111_archive_set_logs;
-  RAISE NOTICE 'Archived % set_logs rows to bug_ef_111_archive_set_logs.', archive_count;
-
-  -- Verify archive is non-empty for sessions that should have set_logs
-  FOR r IN
-    SELECT s.id, s.session_number, c.name AS client
+  -- ── Archive sessions.data (snapshot before irreversible re-key) ──
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'bug_ef_111_archive_sessions' AND relkind = 'r') THEN
+    RAISE NOTICE 'Archive table bug_ef_111_archive_sessions already exists — skipping.';
+  ELSE
+    CREATE TABLE bug_ef_111_archive_sessions AS
+    SELECT s.id, s.data, now() AS archived_at
     FROM sessions s
-    JOIN blocks b ON b.id = s.block_id
-    JOIN clients c ON c.id = b.client_id
-    WHERE s.id = ANY(affected)
-      AND (SELECT count(*) FROM set_logs sl WHERE sl.session_id = s.id) > 0
-  LOOP
-    IF NOT EXISTS (SELECT 1 FROM bug_ef_111_archive_set_logs WHERE session_id = r.id) THEN
-      RAISE EXCEPTION 'Archive verification failed: session % (%) has set_logs but none archived.', r.client, r.session_number;
-    END IF;
-  END LOOP;
+    WHERE s.id = ANY(affected);
 
-  RAISE NOTICE 'Archive verification passed: all set_logs for affected sessions with data are captured.';
+    SELECT count(*) INTO archive_count FROM bug_ef_111_archive_sessions;
+    RAISE NOTICE 'Archived % session rows to bug_ef_111_archive_sessions.', archive_count;
+
+    -- Verify all 8 affected sessions are captured
+    FOR r IN
+      SELECT s.id, s.session_number, c.name AS client
+      FROM sessions s
+      JOIN blocks b ON b.id = s.block_id
+      JOIN clients c ON c.id = b.client_id
+      WHERE s.id = ANY(affected)
+    LOOP
+      IF NOT EXISTS (SELECT 1 FROM bug_ef_111_archive_sessions WHERE id = r.id) THEN
+        RAISE EXCEPTION 'Archive verification failed: session % (%) not captured in session archive.', r.client, r.session_number;
+      END IF;
+    END LOOP;
+
+    RAISE NOTICE 'Archive verification passed: all 8 affected sessions captured.';
+  END IF;
 END;
 $$;
 
