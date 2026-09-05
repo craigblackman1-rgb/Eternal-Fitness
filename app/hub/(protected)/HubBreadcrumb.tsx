@@ -8,6 +8,8 @@ const crumbLabels: Record<string, string> = {
   "/hub/clients": "Clients",
   "/hub/tasks": "Tasks",
   "/hub/workouts": "Workouts",
+  "/hub/programs": "Programs",
+  "/hub/programs/import": "Import a program",
   "/hub/exercises": "Exercise library",
   "/hub/document-templates": "Document templates",
   "/hub/compliance": "Compliance",
@@ -34,6 +36,7 @@ function resolveLabel(pathname: string): string {
   if (pathname.startsWith("/hub/clients/new")) return "New Client";
   if (pathname.startsWith("/hub/clients/")) return "Client";
   if (pathname.startsWith("/hub/agreements/")) return "Agreement";
+  if (pathname.startsWith("/hub/programs/")) return "Program builder";
   return "Hub";
 }
 

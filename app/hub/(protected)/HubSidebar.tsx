@@ -18,6 +18,7 @@ import {
   IconClock,
   IconDumbbell,
   IconEye,
+  IconTarget,
   IconBot,
   IconExternalLink,
   IconFileSignature,
@@ -54,6 +55,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     items: [
       { href: "/hub/exercises", label: "Exercise Library", icon: IconBookText },
       { href: "/hub/workouts", label: "Workouts", icon: IconDumbbell },
+      { href: "/hub/programs", label: "Programs", icon: IconTarget },
     ],
   },
   {
