@@ -92,12 +92,18 @@ export default async function ClientsPage() {
             )
             .then((r) => r.rows),
           pool
-            .query(`SELECT client_id, parq_date, created_at FROM signed_parq WHERE client_id = ANY($1)`, [ids])
+            .query(
+              `SELECT client_id, status, client_signature_date, created_at
+                 FROM signed_parq WHERE client_id = ANY($1)
+                ORDER BY created_at DESC`,
+              [ids],
+            )
             .then((r) => r.rows),
           pool
             .query(
-              `SELECT client_id, status, client_signature_date, created_at
-                 FROM signed_agreements WHERE client_id = ANY($1)`,
+              `SELECT client_id, status, client_signature_date, parq_date, created_at
+                 FROM signed_agreements WHERE client_id = ANY($1)
+                ORDER BY created_at DESC`,
               [ids],
             )
             .then((r) => r.rows),
