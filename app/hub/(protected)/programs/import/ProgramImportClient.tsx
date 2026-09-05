@@ -127,30 +127,34 @@ export function ProgramImportClient() {
           buffer = lines.pop() ?? "";
           for (const line of lines) {
             const trimmed = line.trim();
-            if (!trimmed) continue; // skip keep-alive newlines
+            if (!trimmed) continue;
+            let parsed: any;
             try {
-              const parsed = JSON.parse(trimmed);
-              if (parsed.error) throw new Error(parsed.error);
-              result = parsed;
+              parsed = JSON.parse(trimmed);
             } catch {
-              // skip non-JSON keep-alive lines
+              continue; // skip non-JSON keep-alive lines
             }
+            if (parsed?.error) throw new Error(parsed.error);
+            result = parsed;
           }
         }
         // Process any remaining buffer
         const trimmed = buffer.trim();
         if (trimmed) {
+          let parsed: any;
           try {
-            const parsed = JSON.parse(trimmed);
-            if (parsed.error) throw new Error(parsed.error);
-            result = parsed;
-          } catch (err) {
-            if (err instanceof Error && err.message.includes("Parse failed")) throw err;
+            parsed = JSON.parse(trimmed);
+          } catch {
+            // incomplete trailing JSON, ignore
           }
+          if (parsed?.error) throw new Error(parsed.error);
+          if (parsed) result = parsed;
         }
         if (result) {
           setParsed(result);
           setProgramName(result.name || "");
+        } else {
+          throw new Error("Parse returned nothing — try again");
         }
       } else {
         // Fallback: non-streaming JSON response (defensive)

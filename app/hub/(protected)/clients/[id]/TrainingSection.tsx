@@ -109,6 +109,7 @@ export function TrainingSection({
   // ── Paid-pot computation ──
   const isOngoing = !sessionsPurchased || packageType === "ongoing";
   const totalSessions = isOngoing ? null : sessionsPurchased;
+  const nonSupplementaryCount = allSessions.filter((s) => !s.parent_session_id).length;
   const remaining = sessionsRemaining ?? 0;
 
   // Stats for the "Is it working" panel
@@ -298,7 +299,7 @@ export function TrainingSection({
           <span className="text-xs text-[var(--color-muted)]">
             {allBlocks.length === 0
               ? "No training blocks yet"
-              : `${totalSessions} session${totalSessions === 1 ? "" : "s"} since ${fmtDate(allBlocks[allBlocks.length - 1].created_at)}`}
+              : `${nonSupplementaryCount} session${nonSupplementaryCount === 1 ? "" : "s"} since ${fmtDate(allBlocks[allBlocks.length - 1].created_at)}`}
           </span>
         )}
         <div className="ml-auto flex gap-1.5">
