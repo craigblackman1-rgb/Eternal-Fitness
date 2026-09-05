@@ -96,7 +96,7 @@ export function TrainingSection({
   activeProgramId,
   clientId,
 }: TrainingSectionProps) {
-  const { openWorkoutDrawer } = useDrawerManager();
+  const { openDrawer, openWorkoutDrawer } = useDrawerManager();
   const router = useRouter();
 
   // ── SessionChooser dialog state ──
@@ -110,6 +110,12 @@ export function TrainingSection({
   const isOngoing = !sessionsPurchased || packageType === "ongoing";
   const totalSessions = isOngoing ? null : sessionsPurchased;
   const remaining = sessionsRemaining ?? 0;
+
+  // Stats for the "Is it working" panel
+  const totalLogged = exerciseTrendSummary?.totalExercisesLogged ?? 0;
+  const personalBests = exerciseTrendSummary?.personalBests ?? 0;
+  const heaviestLift = exerciseTrendSummary?.heaviestLift ?? null;
+  const belowBestCount = exerciseTrendSummary?.belowBestCount ?? 0;
 
   // ── Program queue derivation ──
   const slots = programState?.slots ?? [];
@@ -429,6 +435,44 @@ export function TrainingSection({
             </Link>
           </div>
         )}
+
+        {/* ── Is it working ── */}
+        <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col mb-3">
+          <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-[var(--status-success)] bg-[var(--status-success-bg)]">
+            <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-success-text)]">Is it working</span>
+            <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
+              {totalLogged} exercise{totalLogged === 1 ? "" : "s"} logged
+            </span>
+          </div>
+          <div className="flex-1 py-2 px-3">
+            <div className="flex gap-4 flex-wrap mb-0.5">
+              <span className="text-xs text-[var(--color-body)]">
+                <b className="block text-[17px] font-extrabold text-[var(--color-ink)] tracking-tight tabular-nums">{personalBests}</b>
+                personal bests
+              </span>
+              {heaviestLift && (
+                <span className="text-xs text-[var(--color-body)]">
+                  <b className="block text-[17px] font-extrabold text-[var(--color-ink)] tracking-tight tabular-nums">{heaviestLift}</b>
+                  heaviest lift
+                </span>
+              )}
+              {belowBestCount > 0 && (
+                <span className="text-xs text-[var(--color-body)]">
+                  <b className="block text-[17px] font-extrabold text-[var(--status-danger)] tracking-tight tabular-nums">{belowBestCount}</b>
+                  below best
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
+            <button
+              onClick={(e) => openDrawer("dw-progress", e.currentTarget)}
+              className="ml-auto text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit]"
+            >
+              See every exercise ›
+            </button>
+          </div>
+        </div>
 
         {/* ── Program queue map ── */}
         {programState && totalQueueSlots > 0 && (
