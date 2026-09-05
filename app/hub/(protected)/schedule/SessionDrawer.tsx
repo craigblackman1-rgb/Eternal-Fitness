@@ -155,8 +155,7 @@ export function SessionDrawer({ entry, onClose, onComplete }: SessionDrawerProps
           <p className="m-0 mt-5 mb-2 text-[10.5px] font-bold uppercase tracking-[.08em] text-muted-foreground">Stored state</p>
           <div className="border border-[var(--hub-border)] overflow-hidden" style={{ borderRadius: "var(--r-nested)" }}>
             <StampRow label="Booked for" value={formatStamp(entry.scheduledAt)} set />
-            <StampRow label="Confirmed" value={null} set={false} />
-            <StampRow label="Started" value={null} set={false} />
+            <StampRow label="Started" value={entry.startedAt ? formatStamp(entry.startedAt) : null} set={!!entry.startedAt} />
             <StampRow label="Completed" value={entry.completedAt ? formatStamp(entry.completedAt) : null} set={!!entry.completedAt} />
             <StampRow label="Cancelled" value={entry.cancelledAt ? formatStamp(entry.cancelledAt) : null} set={!!entry.cancelledAt} />
           </div>

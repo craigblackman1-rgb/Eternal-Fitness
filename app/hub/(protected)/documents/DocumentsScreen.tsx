@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -101,6 +101,35 @@ function InitialsCircle({ name }: { name: string }) {
       {initials}
     </div>
   );
+}
+
+/* ── Drawer dismiss/focus behaviour — matches DrawerManager.tsx (client
+   record drawers): Esc dismisses, focus moves to the heading on open, and
+   returns to the opener on close. These are plain inline drawers (not run
+   through DrawerManager), so the same behaviour is reproduced locally. */
+function useDrawerA11y(onClose: () => void, headingRef: RefObject<HTMLElement | null>) {
+  const openerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    headingRef.current?.focus({ preventScroll: true });
+    document.body.style.overflow = "hidden";
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handler);
+
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+      openerRef.current?.focus({ preventScroll: true });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }
 
 const statusFilters = [
@@ -383,6 +412,8 @@ function DocumentDrawer({ doc, onClose }: { doc: DocumentRow; onClose: () => voi
   const label = DOCUMENT_KIND_LABEL[doc.kind as DocumentKind] ?? doc.title;
   const isDangerUndelivered = doc.status === "sent" && doc.emailed === false;
   const isQuietUndelivered = doc.status !== "sent" && doc.emailed === false;
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useDrawerA11y(onClose, headingRef);
 
   return (
     <aside
@@ -393,7 +424,7 @@ function DocumentDrawer({ doc, onClose }: { doc: DocumentRow; onClose: () => voi
     >
       <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-[var(--hub-border)] shrink-0">
         <div className="min-w-0 flex-1">
-          <h3 id="dw-doc-h" tabIndex={-1} className="m-0 text-[15.5px] font-bold text-[var(--color-ink)] tracking-tight outline-none">
+          <h3 ref={headingRef} id="dw-doc-h" tabIndex={-1} className="m-0 text-[15.5px] font-bold text-[var(--color-ink)] tracking-tight outline-none">
             {label}
           </h3>
           <span className="block text-xs text-[var(--color-muted)] mt-0.5">
@@ -546,6 +577,8 @@ function NewDocumentDrawer({ clientOptions, onClose }: { clientOptions: ClientOp
   const [selected, setSelected] = useState<ClientOption | null>(null);
   const [kind, setKind] = useState<DocumentKind>(AVAILABLE_KINDS[0]);
   const [creating, setCreating] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useDrawerA11y(onClose, headingRef);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -579,7 +612,7 @@ function NewDocumentDrawer({ clientOptions, onClose }: { clientOptions: ClientOp
       className="fixed top-0 right-0 h-full w-[420px] max-w-[96vw] bg-white shadow-[-8px_0_32px_rgba(16,24,40,.10),_-2px_0_8px_rgba(16,24,40,.06)] flex flex-col z-50"
     >
       <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-[var(--hub-border)] shrink-0">
-        <h3 id="dw-new-h" className="m-0 text-[15.5px] font-bold text-[var(--color-ink)] tracking-tight flex-1">New document</h3>
+        <h3 ref={headingRef} id="dw-new-h" tabIndex={-1} className="m-0 text-[15.5px] font-bold text-[var(--color-ink)] tracking-tight flex-1 outline-none">New document</h3>
         <button
           onClick={onClose}
           aria-label="Close"
