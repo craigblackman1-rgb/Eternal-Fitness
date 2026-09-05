@@ -89,7 +89,7 @@ const columns: HubColumn<AgreementRow>[] = [
       <div className="flex items-center gap-2 whitespace-nowrap">
         {row.client_number && (
           <Link
-            href={`/hub/clients/${row.client_number}?tab=compliance`}
+            href={`/hub/clients/${row.client_number}`}
             className="text-rose font-medium hover:underline text-xs"
           >
             Profile

@@ -291,7 +291,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
             )}
           </Button>
           {clientNumber != null && (
-            <Link href={`/hub/clients/${clientNumber}?tab=compliance`}>
+            <Link href={`/hub/clients/${clientNumber}`}>
               <Button variant="outline" size="sm" className="gap-1.5 rounded-lg">
                 <IconArrowLeft className="w-4 h-4" />
                 Open client profile
@@ -586,7 +586,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
                 {clientNumber != null ? " — edit the live values on the profile." : "."}
               </p>
               {clientNumber != null && (
-                <Link href={`/hub/clients/${clientNumber}?tab=compliance`} className="inline-flex items-center gap-1.5 text-rose font-medium hover:underline mt-2">
+                <Link href={`/hub/clients/${clientNumber}`} className="inline-flex items-center gap-1.5 text-rose font-medium hover:underline mt-2">
                   Open client profile
                   <IconArrowLeft className="w-3.5 h-3.5 rotate-180" />
                 </Link>

@@ -302,6 +302,15 @@ export function TrainingSection({
               >
                 Open block
               </Link>
+              {/* add-workout had no link from the client record — its only
+                  referrers were clients/new, the orphaned review flow, and
+                  BlockAtAGlance.tsx, which is dead code. */}
+              <Link
+                href={`/hub/clients/${clientNumber}/add-workout`}
+                className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white text-[var(--color-ink)] font-[inherit] text-xs font-semibold px-2.5 py-1 no-underline hover:bg-[var(--hub-hover)]"
+              >
+                Add a workout
+              </Link>
             </div>
           </div>
         )}

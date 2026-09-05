@@ -67,9 +67,11 @@ function buildSubline(client: DBClient): string {
 export function ClientRecordHeader({
   client,
   status,
+  activeBlockId,
 }: {
   client: DBClient;
   status: string | null;
+  activeBlockId?: string | null;
 }) {
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
   const subline = buildSubline(client);
@@ -115,6 +117,12 @@ export function ClientRecordHeader({
               <IconPencil className="w-4 h-4" /> Edit Client
             </Button>
           </Link>
+          {/* The review flow existed with no link anywhere in the app. */}
+          <Link href={`/hub/clients/${client.client_number}/review`}>
+            <Button variant="outline" className="bg-white border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-control px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
+              Review
+            </Button>
+          </Link>
           {/* A home-training client is never booked into the studio, so
               "Book session" is the wrong primary action for her — the thing
               Esther actually does is get in touch. */}
@@ -125,7 +133,7 @@ export function ClientRecordHeader({
               </Button>
             </Link>
           ) : (
-            <Link href={`/hub/clients/${client.client_number}?tab=training&view=sessions`}>
+            <Link href={activeBlockId ? `/hub/clients/${client.client_number}/blocks/${activeBlockId}` : "/hub/schedule"}>
               <Button className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
                 <IconCalendar className="w-4 h-4" /> Book session
               </Button>

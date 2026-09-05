@@ -362,7 +362,7 @@ export default function ParqEditClient({
               {linkCopied ? "Copied!" : "Copy client link"}
             </Button>
             {clientNumber != null && (
-              <a href={`/hub/clients/${clientNumber}?tab=compliance`} className="text-sm text-teal font-medium hover:underline">
+              <a href={`/hub/clients/${clientNumber}`} className="text-sm text-teal font-medium hover:underline">
                 Back to client
               </a>
             )}
@@ -627,7 +627,7 @@ export default function ParqEditClient({
               <p className="m-0 text-xs text-muted-foreground"><b className="text-foreground font-semibold">Admin save — no signature required.</b></p>
               <div className="ml-auto flex gap-2">
                 {clientNumber != null && (
-                  <a href={`/hub/clients/${clientNumber}?tab=compliance`} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-muted-text)] text-foreground hover:bg-[var(--hub-canvas)] px-4 py-2 text-[13px] font-medium no-underline transition-colors">
+                  <a href={`/hub/clients/${clientNumber}`} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--color-muted-text)] text-foreground hover:bg-[var(--hub-canvas)] px-4 py-2 text-[13px] font-medium no-underline transition-colors">
                     Cancel
                   </a>
                 )}

@@ -199,7 +199,7 @@ export function ClientRecordShell({
   return (
     <DrawerManager>
       <div className="max-w-[940px] mx-auto">
-        <ClientRecordHeader client={client} status={effectiveStatus} />
+        <ClientRecordHeader client={client} status={effectiveStatus} activeBlockId={latestBlock?.id ?? null} />
 
         <ClientDrawerStrip
           items={[
