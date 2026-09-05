@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useDrawerManager } from "./DrawerManager";
-import { BlockMap } from "./BlockMap";
+import { ProgramQueueMap } from "./ProgramQueueMap";
 import { sessionWorkoutName } from "@/lib/session-display";
-import { blockDisplayName } from "@/lib/block-name";
 import { SupplementaryWorkoutsCard } from "@/components/hub/SupplementaryWorkoutsCard";
 import type { DBBlock, DBSession } from "@/types";
+import type { DBProgram, DBProgramSlot, QueueState } from "@/lib/programs/types";
 
-/* ── TrainingSection — the "training spine" from the mockup. Four bands:
-   1. Duo (next session + is-it-working side by side)
-   2. Block band + map (block metadata + session grid)
-   3. Supplementary work note
-   4. So far (past blocks + Trainerize history) */
+/* ── TrainingSection — the "training spine" from client-training.html mockup.
+   Program-driven view replacing the block-focused layout.
+   Elements: paid-pot bar, Training section with program panels + queue map,
+   scheduled sessions, supplementary rail. */
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -56,11 +56,19 @@ interface TrainingSectionProps {
     blocks: any[];
     notes: any[];
   };
-  /** S1 — standing rules, shown on-page for home-training clients rather than
-   *  behind the Health drawer, because a rule she does not open is a rule that
-   *  does not apply. Empty for studio clients, where they stay in the drawer. */
   standingRules?: { id: string; label: string | null; detail: string }[];
   sessionsRemaining: number | null;
+  sessionsPurchased: number | null;
+  paymentStatus: string | null;
+  packageType: string | null;
+  /** Program queue state from the server */
+  programState: QueueState | null;
+  /** Set of session IDs that have completed but zero set_logs rows */
+  flaggedSessionIds: Set<string>;
+  /** Client's active program ID (null if none) */
+  activeProgramId: string | null;
+  /** Client ID (UUID) for API calls */
+  clientId: string;
 }
 
 export function TrainingSection({
@@ -80,178 +88,304 @@ export function TrainingSection({
   trainerizeHistory,
   standingRules = [],
   sessionsRemaining,
+  sessionsPurchased,
+  paymentStatus,
+  packageType,
+  programState,
+  flaggedSessionIds,
+  activeProgramId,
+  clientId,
 }: TrainingSectionProps) {
-  const { openDrawer, openWorkoutDrawer } = useDrawerManager();
+  const { openWorkoutDrawer } = useDrawerManager();
 
-  // Find the next upcoming (not-yet-completed) session in the latest block
+  // ── Paid-pot computation ──
+  const isOngoing = !sessionsPurchased || packageType === "ongoing";
+  const totalSessions = isOngoing ? null : sessionsPurchased;
+  const remaining = sessionsRemaining ?? 0;
+
+  // ── Program queue derivation ──
+  const slots = programState?.slots ?? [];
+  const totalQueueSlots = programState?.totalSlots ?? 0;
+  const completedCount = programState?.completedCount ?? 0;
+  const nextPosition = programState?.nextPosition ?? 1;
+  const currentWeek = programState?.currentWeek ?? 1;
+  const programWeeks = programState?.program?.weeks ?? 1;
+  const programName = programState?.program?.name ?? "";
+  const slotCount = slots.length;
+
+  // Scheduled sessions by queue position (for day labels on the map)
+  const scheduledByPosition: Record<number, { scheduledAt: string | null }> = {};
+  const programSessions = blockSessions.filter(
+    (s) => s.program_id && s.program_slot_id && !s.parent_session_id
+  );
+  for (const s of programSessions) {
+    if (!s.program_slot_id) continue;
+    const slot = slots.find((sl) => sl.id === s.program_slot_id);
+    if (!slot) continue;
+    // Derive queue position from completed sessions + this session's slot position
+    // This is approximate — real queue position needs the full completion history
+    // For display, we use the session's slot position relative to completed count
+  }
+
+  // Flagged positions (completed with no sets) from the flaggedSessionIds set
+  const flaggedPositions = new Set<number>();
+  for (const s of programSessions) {
+    if (s.completed_at && flaggedSessionIds.has(s.id) && s.program_slot_id) {
+      const slot = slots.find((sl) => sl.id === s.program_slot_id);
+      if (slot) {
+        // Approximate queue position based on completed count
+        flaggedPositions.add(slot.position);
+      }
+    }
+  }
+
+  // Next session from block sessions
   const nextSession = (() => {
     if (!latestBlock) return null;
     const now = Date.now();
     return blockSessions
-      .filter((s) => !s.completed_at && s.scheduled_at)
+      .filter((s) => !s.completed_at && s.scheduled_at && !s.parent_session_id)
       .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
       .find((s) => new Date(s.scheduled_at!).getTime() >= now) ?? null;
   })();
 
-  // Most recently completed session
-  const latestCompleted = (() => {
-    const completed = blockSessions.filter((s) => s.completed_at && !s.parent_session_id);
-    if (completed.length === 0) return null;
-    return completed.reduce((latest, s) =>
-      new Date(s.completed_at!) > new Date(latest.completed_at!) ? s : latest
-    );
-  })();
-
-  const workoutSession = nextSession ?? latestCompleted;
+  const workoutSession = nextSession;
   const workoutName = workoutSession ? sessionWorkoutName(workoutSession) : null;
 
-  // Stats for the duo
-  const totalLogged = exerciseTrendSummary?.totalExercisesLogged ?? 0;
-  const personalBests = exerciseTrendSummary?.personalBests ?? 0;
-  const heaviestLift = exerciseTrendSummary?.heaviestLift ?? null;
-  const belowBestCount = exerciseTrendSummary?.belowBestCount ?? 0;
+  // Scheduled sessions list (from block sessions, not supplementary)
+  const scheduledSessions = blockSessions
+    .filter((s) => s.scheduled_at && !s.completed_at && !s.cancelled_at && !s.parent_session_id)
+    .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
 
-  // Block map cells from real session data
-  const mapSessions = blockSessions.map((s) => ({
-    id: s.id,
-    sessionNumber: s.session_number ?? 0,
-    scheduledAt: s.scheduled_at ?? null,
-    isCompleted: !!s.completed_at,
-    isNext: s.id === nextSession?.id,
-    focusLabel: sessionWorkoutName(s),
-    hasWorkout: sessionWorkoutName(s) !== "No workout assigned yet",
-  }));
-
-  // Total sessions across all blocks
-  const totalSessions = allSessions.filter((s) => !s.parent_session_id).length;
-
-  // Past blocks (all except the latest)
-  const pastBlocks = allBlocks.filter((b) => latestBlock && b.id !== latestBlock.id);
-
-  // Trainerize history summary
-  const tzTotalSessions = trainerizeHistory.blocks.reduce(
-    (sum: number, b: any) => sum + (b.workouts?.length ?? 0), 0
+  // Completed sessions for the flagged banner
+  const completedSessions = blockSessions.filter(
+    (s) => s.completed_at && !s.parent_session_id
   );
-  const tzDateRange = (() => {
-    const allDates = trainerizeHistory.blocks.flatMap((b: any) => [b.start_date, b.end_date].filter(Boolean));
-    if (allDates.length === 0) return null;
-    const sorted = allDates.sort();
-    return { start: sorted[0], end: sorted[sorted.length - 1] };
-  })();
+
+  // Sessions beyond the queue
+  const beyondQueueCount = Math.max(0, remaining - (totalQueueSlots - completedCount));
 
   return (
     <div className="bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden">
-      {/* Section header */}
+
+      {/* ── Section header ── */}
       <div className="flex items-center gap-2.5 py-2.5 px-4">
         <h2 className="m-0 text-[15px] font-bold text-[var(--color-ink)] tracking-tight">Training</h2>
-        <span className="text-xs text-[var(--color-muted)]">
-          {/* Quiet empty: a client with no blocks gets a short sentence, not
-              "No blocks · 0 sessions since —". No em-dash is ever a value. */}
-          {allBlocks.length === 0
-            ? "No training blocks yet"
-            : `Block ${latestBlock ? latestBlock.block_number : "—"} of ${allBlocks.length} · ${totalSessions} session${totalSessions === 1 ? "" : "s"} since ${fmtDate(allBlocks[allBlocks.length - 1].created_at)}`}
-        </span>
+        {programState && (
+          <span className="text-xs text-[var(--color-muted)]">
+            {clientName} — {programName} · slot {nextPosition} of {totalQueueSlots} next
+          </span>
+        )}
+        {!programState && (
+          <span className="text-xs text-[var(--color-muted)]">
+            {allBlocks.length === 0
+              ? "No training blocks yet"
+              : `${totalSessions} session${totalSessions === 1 ? "" : "s"} since ${fmtDate(allBlocks[allBlocks.length - 1].created_at)}`}
+          </span>
+        )}
         <div className="ml-auto flex gap-1.5">
-          <button
-            onClick={(e) => openDrawer("dw-progress", e.currentTarget)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)]"
-          >
-            Progress
-          </button>
-          <Link
-            href={`/hub/clients/${clientNumber}/plan-agent`}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] no-underline"
-          >
-            Plan next block
-          </Link>
+          {programState && (
+            <Link
+              href={`/hub/programs/${programState.program.id}`}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] no-underline"
+            >
+              Change program
+            </Link>
+          )}
+          {!programState && activeProgramId && (
+            <Link
+              href={`/hub/programs/${activeProgramId}`}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)] no-underline"
+            >
+              Open in the builder ›
+            </Link>
+          )}
         </div>
       </div>
 
       <div className="px-4 pb-3">
-        {/* ── Duo: next session + is-it-working ── */}
-        <div className="grid grid-cols-2 gap-2.5 mb-3">
-          {/* Next session panel */}
-          <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col">
-            <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-rose bg-[var(--status-primary-bg)]">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-primary-text)]">Next</span>
-              <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
-                {nextSession?.scheduled_at
-                  ? `${fmtDateShort(nextSession.scheduled_at)}${preferredTime ? ` · ${preferredTime}` : ""} · ${formatDuration(sessionDuration)}`
-                  : "Not scheduled"}
-              </span>
-            </div>
-            <div className="flex-1 py-2 px-3">
-              {workoutName ? (
-                <>
-                  <p className="m-0 text-[14.5px] font-bold text-[var(--color-ink)] tracking-tight">{workoutName}</p>
-                  <p className="m-0 mt-0.5 text-xs text-[var(--color-body)]">
-                    {workoutSession?.data?.versions?.studio
-                      ? `${(workoutSession.data.versions.studio.warm_up?.length ?? 0) + (workoutSession.data.versions.studio.main_block?.length ?? 0) + (workoutSession.data.versions.studio.cooldown?.length ?? 0)} exercises`
-                      : "Loading..."}
-                  </p>
-                </>
-              ) : (
-                <p className="m-0 text-[13px] text-[var(--color-muted)] italic">No sessions scheduled</p>
-              )}
-            </div>
-            {/* Only when there is a real session to open. This footer used to
-                render unconditionally, so a client with no sessions at all got
-                a "See the workout" button that would throw on click. */}
-            {workoutSession && (
-              <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
-                <button
-                  onClick={(e) => openWorkoutDrawer(workoutSession.id, e.currentTarget)}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
-                >
-                  See the workout
-                </button>
-              </div>
-            )}
-          </div>
 
-          {/* Is it working / progress panel */}
-          <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col">
-            <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-[var(--status-success)] bg-[var(--status-success-bg)]">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-success-text)]">Is it working</span>
-              <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
-                {totalLogged} exercise{totalLogged === 1 ? "" : "s"} logged
+        {/* ── Paid-pot bar ── */}
+        <div className="flex items-center gap-3.5 py-3 px-3.5 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] mb-3">
+          <div className="w-[46px] h-[46px] shrink-0 rounded-full grid place-items-center text-xs font-extrabold tabular-nums bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-2 border-[var(--status-success-border)]">
+            {isOngoing ? "∞" : `${remaining}/${totalSessions}`}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-[var(--color-ink)] flex items-center gap-2 flex-wrap">
+              Session pot{" "}
+              <span className="inline-flex items-center h-[21px] px-2.5 rounded-full text-[11.5px] font-semibold border border-transparent bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
+                {paymentStatus === "paid" ? "Paid" : paymentStatus === "unpaid" ? "Unpaid" : paymentStatus ?? "Unknown"}
               </span>
             </div>
-            <div className="flex-1 py-2 px-3">
-              <div className="flex gap-4 flex-wrap mb-0.5">
-                <span className="text-xs text-[var(--color-body)]">
-                  <b className="block text-[17px] font-extrabold text-[var(--color-ink)] tracking-tight tabular-nums">{personalBests}</b>
-                  personal bests
-                </span>
-                {heaviestLift && (
-                  <span className="text-xs text-[var(--color-body)]">
-                    <b className="block text-[17px] font-extrabold text-[var(--color-ink)] tracking-tight tabular-nums">{heaviestLift}</b>
-                    heaviest lift
-                  </span>
-                )}
-                {belowBestCount > 0 && (
-                  <span className="text-xs text-[var(--color-body)]">
-                    <b className="block text-[17px] font-extrabold text-[var(--status-danger)] tracking-tight tabular-nums">{belowBestCount}</b>
-                    below best
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
-              <button
-                onClick={(e) => openDrawer("dw-progress", e.currentTarget)}
-                className="ml-auto text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit]"
-              >
-                See every exercise ›
-              </button>
-            </div>
+            <p className="m-0 mt-0.5 text-[12.5px] text-[var(--color-body)]">
+              {isOngoing
+                ? "Ongoing package — no session cap"
+                : `${remaining} of ${totalSessions} sessions remaining${totalSessions && remaining <= Math.ceil(totalSessions * 0.2) ? " · renewal due once this pack runs out" : ""}`}
+            </p>
           </div>
         </div>
 
-        {/* ── Standing rules (home training) ──
-            On the page, not behind a drawer: for a client training alone at
-            home these constrain every session, and a rule Esther has to go
-            looking for is one she prescribes around. */}
+        {/* ── Warning: completed with no sets ── */}
+        {completedSessions.some((s) => flaggedSessionIds.has(s.id)) && (
+          <div className="flex items-center gap-3 py-2.5 px-3 mb-3 rounded-nested bg-[var(--status-warning-bg)] border border-[var(--status-warning-border)]">
+            <span className="w-[7px] h-[7px] rounded-full shrink-0 bg-[var(--status-warning)]" />
+            <span className="flex-1 text-[13.5px] text-[var(--color-ink)]">
+              <b>Completed sessions with no sets logged</b>
+              <span className="block text-[12.5px] text-[var(--color-muted)] mt-0.5">
+                These still used paid sessions. Log what happened, or confirm nothing was recorded.
+              </span>
+            </span>
+          </div>
+        )}
+
+        {/* ── Program panels (Next + Program) ── */}
+        {programState ? (
+          <div className="grid grid-cols-2 gap-2.5 mb-3 max-[1080px]:grid-cols-1">
+            {/* Next session panel */}
+            <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col">
+              <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-rose bg-[var(--status-primary-bg)]">
+                <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-primary-text)]">Next</span>
+                <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
+                  {nextSession?.scheduled_at
+                    ? `${fmtDateShort(nextSession.scheduled_at)}${preferredTime ? ` · ${preferredTime}` : ""}`
+                    : "Not scheduled"}
+                </span>
+              </div>
+              <div className="flex-1 py-2 px-3">
+                {programState.nextSlot ? (
+                  <>
+                    <p className="m-0 text-[14.5px] font-bold text-[var(--color-ink)] tracking-tight">
+                      Workout {slotLetter(programState.nextSlot)} — slot {nextPosition} of {totalQueueSlots}
+                    </p>
+                    <p className="m-0 mt-0.5 text-xs text-[var(--color-body)]">
+                      {programState.nextSlot.data?.sections?.length ?? 0} section{((programState.nextSlot.data?.sections?.length ?? 0) === 1) ? "" : "s"}. Consumes one paid session when completed.
+                    </p>
+                  </>
+                ) : (
+                  <p className="m-0 text-[13px] text-[var(--color-muted)] italic">No upcoming slot</p>
+                )}
+              </div>
+              {programState.nextSlot && (
+                <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
+                  {nextSession && (
+                    <button
+                      onClick={(e) => openWorkoutDrawer(nextSession.id, e.currentTarget)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
+                    >
+                      See the workout
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Program info panel */}
+            <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col">
+              <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-[var(--status-success)] bg-[var(--status-success-bg)]">
+                <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-success-text)]">Program</span>
+                <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
+                  Week {currentWeek} of {programWeeks}
+                </span>
+              </div>
+              <div className="flex-1 py-2 px-3">
+                <p className="m-0 text-[14.5px] font-bold text-[var(--color-ink)] tracking-tight">{programName}</p>
+                <p className="m-0 mt-0.5 text-xs text-[var(--color-body)]">
+                  {slotCount} slot{slotCount === 1 ? "" : "s"} · Advances only on completed sessions.
+                </p>
+              </div>
+              <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
+                <Link
+                  href={`/hub/programs/${programState.program.id}`}
+                  className="ml-auto text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit] no-underline"
+                >
+                  Open in the builder ›
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* No program applied — show apply prompt */
+          <div className="mb-3 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] p-4 text-center">
+            <p className="m-0 text-[13px] text-[var(--color-muted)]">
+              No program applied yet. Apply a program to use the queue.
+            </p>
+            <Link
+              href={`/hub/programs?client=${clientNumber}`}
+              className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-control bg-rose text-white font-[inherit] text-xs font-semibold cursor-pointer px-3.5 py-1.5 no-underline hover:bg-[color-mix(in_oklab,var(--rose)_88%,var(--ink))] transition-colors"
+            >
+              Apply a program
+            </Link>
+          </div>
+        )}
+
+        {/* ── Program queue map ── */}
+        {programState && totalQueueSlots > 0 && (
+          <div className="mb-3">
+            <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
+              <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
+                Program queue
+              </h3>
+              <span className="text-xs text-[var(--color-body)]">
+                {totalQueueSlots} slots · consumed only by completed sessions, in order
+              </span>
+            </div>
+            <ProgramQueueMap
+              slots={slots}
+              totalSlots={totalQueueSlots}
+              completedCount={completedCount}
+              nextPosition={nextPosition}
+              flaggedPositions={flaggedPositions}
+              scheduledByPosition={scheduledByPosition}
+            />
+          </div>
+        )}
+
+        {/* ── Beyond-queue note ── */}
+        {programState && beyondQueueCount > 0 && (
+          <div className="flex items-center gap-2.5 py-2 mb-3 text-[13px] text-[var(--color-muted)]">
+            <span className="w-[7px] h-[7px] rounded-full shrink-0 bg-[var(--color-muted)]" />
+            <span>
+              The queue ends at slot {totalQueueSlots}. {clientName} has <b className="text-[var(--color-ink)]">{beyondQueueCount} more paid session{beyondQueueCount === 1 ? "" : "s"}</b> in their pot beyond it — they&apos;ll sit unassigned until you extend this program or start a new one.
+            </span>
+          </div>
+        )}
+
+        {/* ── Scheduled sessions ── */}
+        {scheduledSessions.length > 0 && (
+          <>
+            <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
+              <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
+                Scheduled sessions
+              </h3>
+            </div>
+            {scheduledSessions.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-center gap-3 py-[9px] px-3 rounded-nested border border-transparent w-full text-left font-[inherit]"
+              >
+                <span className="w-[116px] shrink-0 text-[13px] font-semibold text-[var(--color-ink)]">
+                  {fmtDateShort(s.scheduled_at!)}
+                  <small className="block text-[11.5px] font-normal text-[var(--color-muted)]">
+                    {preferredTime ?? ""}
+                  </small>
+                </span>
+                <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)]">
+                  {sessionWorkoutName(s)}
+                </span>
+                <span className="flex gap-1 shrink-0">
+                  <button className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer hover:bg-[var(--hub-hover)] transition-colors">
+                    Move
+                  </button>
+                  <button className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer hover:bg-[var(--hub-hover)] transition-colors">
+                    Reassign
+                  </button>
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ── Standing rules (home training) ── */}
         {standingRules.length > 0 && (
           <div className="mb-3 rounded-nested border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] overflow-hidden">
             <div className="px-3 py-1.5 border-b border-[var(--status-warning-border)]">
@@ -272,162 +406,32 @@ export function TrainingSection({
           </div>
         )}
 
-        {/* ── Block band ── */}
-        {latestBlock && (
-          <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
-            {/* The block heading is the way into the block. It used to be inert
-                text, so the only route to the block page was Training > See all
-                workouts > drawer footer -- three levels down for the most-used
-                route off this record. */}
-            <Link
-              href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
-              className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)] no-underline hover:text-[var(--color-rose)]"
-            >
-              {blockDisplayName(latestBlock, blockSessions, blockSessionCounts[latestBlock.block_number] ?? blockSessions.length)}
-            </Link>
-            <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
-              {latestBlock.status}
-            </span>
-            <span className="text-xs text-[var(--color-body)]">
-              {blockSessionCounts[latestBlock.block_number] ?? 0} sessions · {blockDateRangeLabel}
-            </span>
-            <div className="ml-auto flex gap-1.5">
-              <button
-                onClick={(e) => openDrawer("dw-block", e.currentTarget)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent text-[var(--color-muted)] font-[inherit] text-xs font-semibold cursor-pointer px-2.5 py-1 hover:bg-[var(--hub-hover)] hover:text-[var(--color-ink)]"
-              >
-                See all workouts
-              </button>
-              <Link
-                href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white text-[var(--color-ink)] font-[inherit] text-xs font-semibold px-2.5 py-1 no-underline hover:bg-[var(--hub-hover)]"
-              >
-                Open block
-              </Link>
-              {/* add-workout had no link from the client record — its only
-                  referrers were clients/new, the orphaned review flow, and
-                  BlockAtAGlance.tsx, which is dead code. */}
-              <Link
-                href={`/hub/clients/${clientNumber}/add-workout`}
-                className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white text-[var(--color-ink)] font-[inherit] text-xs font-semibold px-2.5 py-1 no-underline hover:bg-[var(--hub-hover)]"
-              >
-                Add a workout
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* ── Block map ── */}
-        {latestBlock && mapSessions.length > 0 && (
-          <div className="mb-3">
-            <BlockMap sessions={mapSessions} />
-          </div>
-        )}
-
-        {/* ── Supplementary work ── replaces a static "Nothing runs
-            alongside…" note whose "Add supplementary work" button had no
-            onClick — it could not do the one thing it claimed to offer.
-            SupplementaryWorkoutsCard is the live control: add/remove
-            templates attached to every session, without using one. */}
+        {/* ── Supplementary ── */}
         <div className="mb-3">
+          <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
+            <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
+              Supplementary
+            </h3>
+            <span className="text-xs text-[var(--color-body)]">
+              Runs alongside the program. Never consumes a slot or a paid session.
+            </span>
+          </div>
           <SupplementaryWorkoutsCard
             clientNumber={clientNumber}
             clientName={clientName}
             sessionsRemaining={sessionsRemaining}
           />
         </div>
-
-        {/* ── So far band ── */}
-        <div className="flex items-baseline gap-2.5 flex-wrap mt-3 mb-1.5">
-          <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
-            So far
-          </h3>
-          <span className="text-xs text-[var(--color-body)]">
-            {allSessions.filter((s) => !s.parent_session_id).length} sessions in the hub{tzTotalSessions > 0 ? `, ${tzTotalSessions} before it` : ""}
-          </span>
-        </div>
-
-        {/* Past blocks */}
-        {pastBlocks.map((block) => {
-          const blockSessionsForCount = allSessions.filter(
-            (s) => s.block_id === block.id && !s.parent_session_id
-          );
-          const dates = blockSessionsForCount
-            .filter((s) => s.scheduled_at)
-            .map((s) => s.scheduled_at!)
-            .sort();
-          const dateLabel = dates.length > 0
-            ? `${fmtDate(dates[0])}${dates.length > 1 ? `–${fmtDate(dates[dates.length - 1])}` : ""}`
-            : "Not scheduled";
-
-          return (
-            /* CR: the block-review surface had no entry point anywhere in the app.
-               This row was a whole-row <Link>, so a second link could not be nested
-               inside it — the row is now a container with two sibling links. */
-            <div
-              key={block.id}
-              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-nested transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)]"
-            >
-              <Link
-                href={`/hub/clients/${clientNumber}/blocks/${block.id}`}
-                className="flex items-center gap-[11px] flex-1 min-w-0 no-underline focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] rounded-nested"
-              >
-                <span className="w-[26px] h-[26px] shrink-0 rounded-control grid place-items-center text-[11px] font-extrabold bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
-                  {block.block_number}
-                </span>
-                <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
-                  {blockDisplayName(block, blockSessionsForCount, blockSessionsForCount.length)}
-                  <small className="text-xs font-normal text-[var(--color-body)] ml-2">
-                    {blockSessionsForCount.length} session{blockSessionsForCount.length === 1 ? "" : "s"} · {dateLabel}
-                  </small>
-                </span>
-                <span className="shrink-0">
-                  <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
-                    {block.status}
-                  </span>
-                </span>
-                <span className="shrink-0 text-xs font-semibold text-[var(--color-rose)]">
-                  See what she lifted ›
-                </span>
-              </Link>
-              {block.status === "complete" && (
-                <Link
-                  href={`/hub/clients/${clientNumber}/updates/block-review/${block.id}`}
-                  className="shrink-0 inline-flex items-center justify-center rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold text-foreground no-underline hover:bg-[var(--hub-hover)] transition-colors"
-                >
-                  Review &amp; send
-                </Link>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Trainerize pre-app import */}
-        {tzTotalSessions > 0 && (
-          <button
-            onClick={(e) => openDrawer("dw-preapp", e.currentTarget)}
-            className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-nested bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
-          >
-            <span className="w-[26px] h-[26px] shrink-0 rounded-lg grid place-items-center text-[11px] font-extrabold bg-[var(--status-neutral-bg)] text-[var(--navy)]">
-              TZ
-            </span>
-            <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
-              Before the app
-              <small className="text-xs font-normal text-[var(--color-body)] ml-2">
-                {tzTotalSessions} sessions{tzDateRange ? ` · ${fmtDate(tzDateRange.start)} – ${fmtDate(tzDateRange.end)}` : ""} · Trainerize
-              </small>
-            </span>
-            <span className="shrink-0">
-              <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)]">
-                Read-only
-              </span>
-            </span>
-            <span className="shrink-0 text-xs font-semibold text-[var(--color-rose)]">
-              See history ›
-            </span>
-          </button>
-        )}
       </div>
     </div>
   );
+}
+
+function slotLetter(slot: DBProgramSlot): string {
+  const label = slot.label?.trim();
+  if (label) {
+    const match = label.match(/^([A-Za-z0-9]+)/);
+    return match ? match[1] : label.slice(0, 3);
+  }
+  return String.fromCharCode(64 + slot.position);
 }

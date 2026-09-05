@@ -9,6 +9,7 @@ import { deriveBlockStatus } from "@/lib/block-status";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 import { toIsoTimestamp } from "@/lib/pg-timestamp";
 import { aggregateExerciseNotes } from "@/lib/exercise-notes";
+import { getClientProgramState } from "@/lib/programs/queue";
 import type { SessionNoteData, PinnedNoteRef, DBSession, SetLog } from "@/types";
 import { ClientRecordShell } from "./ClientRecordShell";
 import type { TrainerizeHistoryData } from "@/components/hub";
@@ -562,6 +563,27 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const hasAllDocsSigned = flags.effectiveStatus === "clear"
     || (flags.autoOutstanding.length === 0 && manualActions.length === 0);
 
+  // ── CR-EF-154: Program queue state ──
+  const programState = client.active_program_id
+    ? await getClientProgramState(client.id)
+    : null;
+
+  // Flagged sessions: completed sessions with zero set_logs rows.
+  // setLogs is already loaded above (all set_logs for this client's sessions).
+  // Build a map of session_id → set_log count, then flag any completed session
+  // that has zero.
+  const setLogCountBySession = new Map<string, number>();
+  for (const log of setLogs ?? []) {
+    const sid = (log as any).session_id;
+    if (sid) setLogCountBySession.set(sid, (setLogCountBySession.get(sid) ?? 0) + 1);
+  }
+  const flaggedSessionIds = new Set<string>();
+  for (const s of sessions ?? []) {
+    if (s.completed_at && !s.parent_session_id && (setLogCountBySession.get(s.id) ?? 0) === 0) {
+      flaggedSessionIds.add(s.id);
+    }
+  }
+
   return (
     <ClientRecordShell
       client={client}
@@ -626,6 +648,10 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       blockExpiryDate={client.block_expiry_date}
       countCompletedSessions={countedCompleted}
       clientId={client.id}
+      programState={programState}
+      flaggedSessionIds={flaggedSessionIds}
+      activeProgramId={client.active_program_id ?? null}
+      sessionsPurchased={client.sessions_purchased ?? null}
       updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
       updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
       updateIntervalNextDate={(client as any).update_interval_next_date ?? null}

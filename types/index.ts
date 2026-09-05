@@ -650,6 +650,10 @@ export interface DBSession {
    *  ("This session only"). ON DELETE SET NULL: the sub-session keeps its
    *  history but loses the provenance tag if the supplementary row is removed. */
   supplementary_source_id?: string | null;
+  /** CR-EF-154 — program pointer. Non-null when this session was assigned from a program queue. */
+  program_id?: string | null;
+  /** CR-EF-154 — specific slot within the program this session was assigned from. */
+  program_slot_id?: string | null;
 }
 
 export type DocumentStatus = "draft" | "sent" | "received" | "signed" | "expired" | "needs_update" | "superseded";

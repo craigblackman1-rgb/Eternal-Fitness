@@ -14,6 +14,7 @@ import type { UpdateInterval, UpdateDueInfo } from "@/lib/updates-due";
 import type { TrainerizeHistoryData } from "@/components/hub";
 import type { SessionNoteData, PinnedNoteRef } from "@/types";
 import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
+import type { QueueState } from "@/lib/programs/types";
 
 /* ── ClientRecordShell — the client-side wrapper that composes the new
    single-screen, no-tabs client record layout. Wrapped in DrawerManager
@@ -99,6 +100,11 @@ interface ClientRecordShellProps {
   sessionNotes: SessionNoteData[];
   exerciseNotes: AggregatedExerciseNote[];
   pinnedNoteRefs: PinnedNoteRef[];
+  /* CR-EF-154 program queue state */
+  programState: QueueState | null;
+  flaggedSessionIds: Set<string>;
+  activeProgramId: string | null;
+  sessionsPurchased: number | null;
 }
 
 export function ClientRecordShell({
@@ -172,6 +178,10 @@ export function ClientRecordShell({
   sessionNotes,
   exerciseNotes,
   pinnedNoteRefs,
+  programState,
+  flaggedSessionIds,
+  activeProgramId,
+  sessionsPurchased,
 }: ClientRecordShellProps) {
   const latestBlock = latestBlockProp;
 
@@ -280,6 +290,13 @@ export function ClientRecordShell({
           exerciseTrendSummary={exerciseTrendSummary}
           trainerizeHistory={trainerizeHistory}
           sessionsRemaining={sessionsRemaining}
+          sessionsPurchased={sessionsPurchased}
+          paymentStatus={paymentStatus}
+          packageType={packageType}
+          programState={programState}
+          flaggedSessionIds={flaggedSessionIds}
+          activeProgramId={activeProgramId}
+          clientId={client.id}
           standingRules={
             isHomeTraining
               ? (trainingRules ?? []).map((r) => ({
@@ -304,6 +321,7 @@ export function ClientRecordShell({
         blockDateRangeLabel={blockDateRangeLabel}
         trainerizeHistory={trainerizeHistory}
         sessionsRemaining={sessionsRemaining}
+        programState={programState}
       />
       <ClientDrawers
         client={client}

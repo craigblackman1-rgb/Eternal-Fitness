@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
 import { BlockMap } from "./BlockMap";
+import { ProgramQueueMap } from "./ProgramQueueMap";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { blockDisplayName } from "@/lib/block-name";
 import { SupplementaryWorkoutsCard } from "@/components/hub/SupplementaryWorkoutsCard";
 import type { DBBlock, DBSession } from "@/types";
+import type { QueueState } from "@/lib/programs/types";
 import type {
   TrainerizeHistoryData,
   TrainerizePerformedWorkoutSummary,
@@ -116,6 +118,7 @@ interface TrainingDrawerProps {
   blockDateRangeLabel: string;
   trainerizeHistory: TrainerizeHistoryData;
   sessionsRemaining: number | null;
+  programState: QueueState | null;
 }
 
 export function TrainingDrawer({
@@ -129,6 +132,7 @@ export function TrainingDrawer({
   blockDateRangeLabel,
   trainerizeHistory,
   sessionsRemaining,
+  programState,
 }: TrainingDrawerProps) {
   const { openWorkoutDrawer } = useDrawerManager();
 
@@ -203,11 +207,25 @@ export function TrainingDrawer({
     <DrawerShell
       id="dw-training"
       title="Training"
-      subtitle={latestBlock
-        ? `Block ${latestBlock.block_number} · ${blockSessionCounts[latestBlock.block_number] ?? blockSessions.length} sessions`
-        : allBlocks.length > 0 ? `${allBlocks.length} blocks` : "No training blocks yet"}
+      subtitle={programState
+        ? `${programState.program.name} · Week ${programState.currentWeek} of ${programState.program.weeks}`
+        : latestBlock
+          ? `Block ${latestBlock.block_number} · ${blockSessionCounts[latestBlock.block_number] ?? blockSessions.length} sessions`
+          : allBlocks.length > 0 ? `${allBlocks.length} blocks` : "No training blocks yet"}
       width="lg"
     >
+      {/* ── Program queue map ── */}
+      {programState && programState.totalSlots > 0 && (
+        <div className="mb-3">
+          <ProgramQueueMap
+            slots={programState.slots}
+            totalSlots={programState.totalSlots}
+            completedCount={programState.completedCount}
+            nextPosition={programState.nextPosition}
+          />
+        </div>
+      )}
+
       {/* ── Block map ── */}
       {latestBlock && mapSessions.length > 0 && (
         <div className="mb-3">
