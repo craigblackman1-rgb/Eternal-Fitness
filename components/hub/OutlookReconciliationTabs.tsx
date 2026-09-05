@@ -7,10 +7,11 @@ import { IconCalendar } from "@/components/icons";
 
 /** CR-EF-050/CR-EF-028/CR-EF-111 — tab bar shared by the three Outlook reconciliation
  *  queues (Bookings, Possible duplicates, Unassigned), matching the mockup's tabbar. */
-export function OutlookReconciliationTabs({ active }: { active: "bookings" | "duplicates" | "unassigned" }) {
+export function OutlookReconciliationTabs({ active }: { active: "bookings" | "duplicates" | "unassigned" | "pending" }) {
   const [bookingsCount, setBookingsCount] = useState<number | null>(null);
   const [duplicatesCount, setDuplicatesCount] = useState<number | null>(null);
   const [unassignedCount, setUnassignedCount] = useState<number | null>(null);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/outlook-bookings?status=open&count=true", { signal: AbortSignal.timeout(15000) })
@@ -25,6 +26,14 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
       .then((r) => (r.ok ? r.json() : null))
       .then((b) => setUnassignedCount(b?.count ?? 0))
       .catch(() => setUnassignedCount(0));
+    // Calendar changes waiting on approval. This tab did not exist, and the
+    // page had no inbound link from anywhere in the app, so 17 actions sat
+    // unapproved for a week -- Outlook quietly drifting from the hub because
+    // the only way to reach the queue was to type the URL.
+    fetch("/api/calendar-sync-pending-actions")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b) => setPendingCount(Array.isArray(b) ? b.length : (b?.count ?? b?.actions?.length ?? 0)))
+      .catch(() => setPendingCount(0));
   }, []);
 
   const tabClass = (on: boolean) =>
@@ -68,6 +77,16 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
         <IconCalendar className="h-3.5 w-3.5" />
         Unassigned
         <span className={countClass(active === "unassigned")}>{unassignedCount ?? "–"}</span>
+      </Link>
+      <Link
+        role="tab"
+        aria-selected={active === "pending"}
+        href="/hub/schedule/outlook/pending-deletions"
+        className={tabClass(active === "pending")}
+      >
+        <IconCalendar className="h-3.5 w-3.5" />
+        Waiting for approval
+        <span className={countClass(active === "pending")}>{pendingCount ?? "–"}</span>
       </Link>
     </nav>
   );
