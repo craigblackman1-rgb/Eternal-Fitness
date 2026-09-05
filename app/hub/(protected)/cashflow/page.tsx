@@ -158,7 +158,7 @@ export default async function CashflowOverviewPage() {
       id: `block-${c.id}`,
       tone: "due",
       headline: `${c.name}'s block ${whenText}`,
-      subline: `${remaining} of ${purchased} session${purchased === 1 ? "" : "s"} unused · block_expiry_date, sessions_remaining. Decide whether to sell the next one now.`,
+      subline: `${remaining} of ${purchased} session${purchased === 1 ? "" : "s"} unused. Decide whether to sell the next block now.`,
       actionLabel: "Raise invoice",
       href: "/hub/cashflow/invoices/new",
     });
@@ -241,7 +241,7 @@ export default async function CashflowOverviewPage() {
       id: `rate-${c.id}`,
       tone: "quiet",
       headline: `${c.name} has no rate set`,
-      subline: `Trains in ${c.session_duration}-minute sessions, not the standard ${STANDARD_SESSION_DURATION}. clients.client_rate IS NULL — every invoice for ${c.name.split(" ")[0]} defaults to the standard rate until this is set.`,
+      subline: `Trains in ${c.session_duration}-minute sessions, not the standard ${STANDARD_SESSION_DURATION}, but has no rate set — so every invoice for ${c.name.split(" ")[0]} falls back to the standard rate.`,
       actionLabel: "Set rate",
       href: `/hub/clients/${c.client_number}`,
     });
