@@ -5,9 +5,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
 import { blockDisplayName } from "@/lib/block-name";
+import { sessionWorkoutName } from "@/lib/session-display";
+import { UpdateIntervalControl } from "./UpdateIntervalControl";
+import { ClientTasksPanel } from "./ClientTasksPanel";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
+import type { UpdateInterval, UpdateDueInfo } from "@/lib/updates-due";
 import type {
   TrainerizeHistoryData,
   TrainerizePerformedWorkoutSummary,
@@ -34,7 +38,13 @@ interface ClientDrawersProps {
   legacyDocumentRows: any[];
   flags: ComplianceFlags;
   clientUpdates: any[];
-  dueInfo: { nextDueDate: string | null; daysUntilDue: number | null; status: string | null };
+  dueInfo: UpdateDueInfo;
+  clientId: string;
+  updateInterval: UpdateInterval | null;
+  updateIntervalWeeks: number | null;
+  updateIntervalNextDate: string | null;
+  lastSentAt: string | null;
+  currentUserName: string | null;
   exerciseTrends: ExerciseTrend[];
   exerciseTrendSummary?: {
     totalExercisesLogged: number;
@@ -1401,15 +1411,29 @@ function medicalClearanceIsPending(flags: ComplianceFlags): boolean {
    COMMS — updates, tasks, sent history
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function CommsDrawer({ clientNumber, dueInfo, allTaskRows, clientUpdates }: {
+function CommsDrawer({
+  clientId,
+  clientNumber,
+  dueInfo,
+  allTaskRows,
+  clientUpdates,
+  updateInterval,
+  updateIntervalWeeks,
+  updateIntervalNextDate,
+  lastSentAt,
+  currentUserName,
+}: {
+  clientId: string;
   clientNumber: number;
-  dueInfo: { nextDueDate: string | null; daysUntilDue: number | null; status: string | null };
+  dueInfo: UpdateDueInfo;
   allTaskRows: any[];
   clientUpdates: any[];
+  updateInterval: UpdateInterval | null;
+  updateIntervalWeeks: number | null;
+  updateIntervalNextDate: string | null;
+  lastSentAt: string | null;
+  currentUserName: string | null;
 }) {
-  const openTasks = allTaskRows.filter((t) => t.status !== "done");
-  const doneTasks = allTaskRows.filter((t) => t.status === "done");
-  const recentDone = doneTasks.slice(0, 3);
   const sentUpdates = clientUpdates.filter((u) => u.status === "sent" && u.sent_at);
 
   return (
@@ -1432,61 +1456,29 @@ function CommsDrawer({ clientNumber, dueInfo, allTaskRows, clientUpdates }: {
           See every update sent
         </Link>
       </div>
-      {/* Next update */}
-      {dueInfo.nextDueDate && (
-        <div className="fcard acc-amber">
-          <div className="fcard-h">Next update</div>
-          <div className="fcard-b">
-            <div className="frow">
-              <span className="fk">Due</span>
-              <span className="fv num">
-                {fmtDate(dueInfo.nextDueDate)}
-                {dueInfo.daysUntilDue != null && dueInfo.daysUntilDue > 0 && (
-                  <span className="bdg mut" style={{ marginLeft: 6 }}>in {dueInfo.daysUntilDue} days</span>
-                )}
-              </span>
-            </div>
-            <div className="frow">
-              <span className="fk">Cadence</span>
-              <span className="fv">{dueInfo.status === "overdue" ? "Overdue" : "Scheduled"}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tasks */}
-      <div className="fcard acc-teal">
-        <div className="fcard-h">
-          {`Tasks \u00b7 ${openTasks.length} open, ${doneTasks.length} done`}
-        </div>
-        <div className="fcard-b">
-          {allTaskRows.length > 0 ? (
-            <>
-              {openTasks.slice(0, 5).map((t: any) => (
-                <div key={t.id} className="frow">
-                  <span className="fk num">{fmtShortDate(t.due_date || t.created_at)}</span>
-                  <span className="fv">{t.title}</span>
-                </div>
-              ))}
-              {recentDone.map((t: any) => (
-                <div key={t.id} className="frow">
-                  <span className="fk num">{fmtShortDate(t.due_date || t.created_at)}</span>
-                  <span className="fv">{t.title} <span className="bdg ok">Done</span></span>
-                </div>
-              ))}
-              {allTaskRows.length > 8 && (
-                <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-                  <p className="miss" style={{ margin: 0 }}>
-                    Showing {Math.min(openTasks.length, 5)} open and {recentDone.length} recent done.
-                  </p>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="miss">No tasks.</p>
-          )}
-        </div>
+      {/* Next update \u2014 live control (CR-EF-073), supersedes the old read-only
+          Due/Cadence fcard: setting the cadence belongs beside the updates
+          it schedules. */}
+      <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
+        <UpdateIntervalControl
+          clientNumber={clientNumber}
+          updateInterval={updateInterval}
+          updateIntervalWeeks={updateIntervalWeeks}
+          updateIntervalNextDate={updateIntervalNextDate}
+          dueInfo={dueInfo}
+        />
       </div>
+
+      {/* Tasks \u2014 live add/complete control, supersedes the old read-only
+          task fcard. */}
+      <ClientTasksPanel
+        clientId={clientId}
+        clientNumber={clientNumber}
+        updateInterval={updateInterval}
+        dueInfo={dueInfo}
+        lastSentAt={lastSentAt}
+        currentUserName={currentUserName}
+      />
 
       {/* Sent */}
       <div className="fcard acc-ink">
@@ -1532,7 +1524,7 @@ function WorkoutDrawer({ sessions, ruleTypesById }: { sessions: DBSession[]; rul
   const mainBlock: any[] = version?.main_block ?? [];
   const warmUp: any[] = version?.warm_up ?? [];
   const cooldown: any[] = version?.cooldown ?? [];
-  const focusLabel = data?.focus_label ?? `Session ${session.session_number}`;
+  const focusLabel = sessionWorkoutName(session, `Session ${session.session_number}`);
   const blockNumber = (session as any).blocks?.block_number;
   const sessionNumber = session.session_number;
 
@@ -1648,11 +1640,16 @@ function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
     );
   }
 
-  // Group sessions by focus_label to show unique workouts
+  // Group sessions by resolved workout name (CR-EF-115's sessionWorkoutName \u2014
+  // the same helper the block map on this screen already uses) so Outlook
+  // placeholder sessions collapse into "No workout assigned yet" here too,
+  // instead of a raw "Outlook booking \u2014 <name>" label masquerading as a real
+  // workout (BUG raised by Craig, 5 Sep 2026: the drawer contradicted the map).
+  const NO_WORKOUT_LABEL = "No workout assigned yet";
   const workoutMap = new Map<string, { label: string; sessions: DBSession[]; exerciseSummary: string }>();
   for (const s of blockSessions) {
     if ((s as any).parent_session_id) continue;
-    const label = s.data?.focus_label ?? `Session ${s.session_number}`;
+    const label = sessionWorkoutName(s, `Session ${s.session_number}`);
     const existing = workoutMap.get(label);
     if (existing) {
       existing.sessions.push(s);
@@ -1668,7 +1665,13 @@ function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
     }
   }
 
-  const workouts = Array.from(workoutMap.values());
+  // Real workouts keep their existing order and get A/B/C letters; the
+  // unassigned group (if any) is listed last, ungrouped from the lettering,
+  // so Esther still sees how many sessions still need a workout without it
+  // reading as one more real workout.
+  const allWorkouts = Array.from(workoutMap.values());
+  const workouts = allWorkouts.filter((w) => w.label !== NO_WORKOUT_LABEL);
+  const unassigned = allWorkouts.find((w) => w.label === NO_WORKOUT_LABEL) ?? null;
 
   return (
     <DrawerShell
@@ -1697,7 +1700,26 @@ function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
           </span>
         </button>
       ))}
-      {workouts.length === 0 && <p className="miss">No sessions in this block yet.</p>}
+
+      {unassigned && (
+        <button
+          type="button"
+          className="srow"
+          onClick={(e) => openWorkoutDrawer(unassigned.sessions[0].id, e.currentTarget)}
+        >
+          <span className="srow-d">
+            <small>{unassigned.sessions.length} session{unassigned.sessions.length !== 1 ? "s" : ""}</small>
+          </span>
+          <span className="srow-w">
+            {NO_WORKOUT_LABEL}
+          </span>
+          <span className="srow-a">
+            <span className="btn-link">See sessions</span>
+          </span>
+        </button>
+      )}
+
+      {workouts.length === 0 && !unassigned && <p className="miss">No sessions in this block yet.</p>}
 
       {/* Footer */}
       <div className="mt-4 pt-3 border-t border-[var(--hub-border)]">
@@ -2087,10 +2109,16 @@ export function ClientDrawers(props: ClientDrawersProps) {
         gpLetterStatus={props.client.gp_letter_status}
       />
       <CommsDrawer
+        clientId={props.clientId}
         clientNumber={props.client.client_number}
         dueInfo={props.dueInfo}
         allTaskRows={props.allTaskRows}
         clientUpdates={props.clientUpdates}
+        updateInterval={props.updateInterval}
+        updateIntervalWeeks={props.updateIntervalWeeks}
+        updateIntervalNextDate={props.updateIntervalNextDate}
+        lastSentAt={props.lastSentAt}
+        currentUserName={props.currentUserName}
       />
       <WorkoutDrawer
         sessions={props.sessions}

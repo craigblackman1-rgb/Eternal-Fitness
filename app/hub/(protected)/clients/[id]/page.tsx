@@ -15,6 +15,7 @@ import type { TrainerizeHistoryData } from "@/components/hub";
 export default async function ClientDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const currentUserName = user?.name || "Staff";
   const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode, resource_visibility").eq("client_number", parseInt(params.id)).single();
 
   if (!client) notFound();
@@ -616,6 +617,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       startDate={client.start_date}
       blockExpiryDate={client.block_expiry_date}
       countCompletedSessions={countedCompleted}
+      clientId={client.id}
+      updateInterval={(client.update_interval as import("@/lib/updates-due").UpdateInterval) ?? null}
+      updateIntervalWeeks={(client as any).update_interval_weeks ?? null}
+      updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
+      lastSentAt={lastSentAt}
+      currentUserName={currentUserName}
     />
   );
 }

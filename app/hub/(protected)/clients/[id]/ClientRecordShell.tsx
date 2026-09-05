@@ -9,6 +9,7 @@ import { ClientDrawers } from "./ClientDrawers";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
+import type { UpdateInterval, UpdateDueInfo } from "@/lib/updates-due";
 import type { TrainerizeHistoryData } from "@/components/hub";
 
 /* ── ClientRecordShell — the client-side wrapper that composes the new
@@ -31,7 +32,7 @@ interface ClientRecordShellProps {
   outstandingActions: string[];
   autoOutstanding: string[];
   effectiveStatus: string;
-  dueInfo: { nextDueDate: string | null; daysUntilDue: number | null; status: string | null };
+  dueInfo: UpdateDueInfo;
   hasAllDocsSigned: boolean;
   healthFlagsCount: number;
   trainingRulesCount: number;
@@ -84,6 +85,13 @@ interface ClientRecordShellProps {
   startDate: string | null;
   blockExpiryDate: string | null;
   countCompletedSessions: number;
+  /* Comms drawer live controls (CR-EF-073 / BUG fix, 5 Sep 2026) */
+  clientId: string;
+  updateInterval: UpdateInterval | null;
+  updateIntervalWeeks: number | null;
+  updateIntervalNextDate: string | null;
+  lastSentAt: string | null;
+  currentUserName: string | null;
 }
 
 export function ClientRecordShell({
@@ -148,6 +156,12 @@ export function ClientRecordShell({
   startDate,
   blockExpiryDate,
   countCompletedSessions,
+  clientId,
+  updateInterval,
+  updateIntervalWeeks,
+  updateIntervalNextDate,
+  lastSentAt,
+  currentUserName,
 }: ClientRecordShellProps) {
   const latestBlock = latestBlockProp;
 
@@ -294,6 +308,12 @@ export function ClientRecordShell({
         blockSessionCountMismatch={blockSessionCountMismatch}
         unpaidBlocks={unpaidBlocks}
         countCompletedSessions={countCompletedSessions}
+        clientId={clientId}
+        updateInterval={updateInterval}
+        updateIntervalWeeks={updateIntervalWeeks}
+        updateIntervalNextDate={updateIntervalNextDate}
+        lastSentAt={lastSentAt}
+        currentUserName={currentUserName}
       />
     </DrawerManager>
   );
