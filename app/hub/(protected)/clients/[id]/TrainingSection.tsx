@@ -348,29 +348,44 @@ export function TrainingSection({
             : "Not scheduled";
 
           return (
-            <Link
+            /* CR: the block-review surface had no entry point anywhere in the app.
+               This row was a whole-row <Link>, so a second link could not be nested
+               inside it — the row is now a container with two sibling links. */
+            <div
               key={block.id}
-              href={`/hub/clients/${clientNumber}/blocks/${block.id}`}
-              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-nested bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] no-underline"
+              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-nested transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)]"
             >
-              <span className="w-[26px] h-[26px] shrink-0 rounded-lg grid place-items-center text-[11px] font-extrabold bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
-                {block.block_number}
-              </span>
-              <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
-                {blockDisplayName(block, blockSessionsForCount, blockSessionsForCount.length)}
-                <small className="text-xs font-normal text-[var(--color-body)] ml-2">
-                  {blockSessionsForCount.length} sessions · {dateLabel}
-                </small>
-              </span>
-              <span className="shrink-0">
-                <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
-                  {block.status}
+              <Link
+                href={`/hub/clients/${clientNumber}/blocks/${block.id}`}
+                className="flex items-center gap-[11px] flex-1 min-w-0 no-underline focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] rounded-nested"
+              >
+                <span className="w-[26px] h-[26px] shrink-0 rounded-control grid place-items-center text-[11px] font-extrabold bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
+                  {block.block_number}
                 </span>
-              </span>
-              <span className="shrink-0 text-xs font-semibold text-[var(--color-rose)]">
-                See what she lifted ›
-              </span>
-            </Link>
+                <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
+                  {blockDisplayName(block, blockSessionsForCount, blockSessionsForCount.length)}
+                  <small className="text-xs font-normal text-[var(--color-body)] ml-2">
+                    {blockSessionsForCount.length} session{blockSessionsForCount.length === 1 ? "" : "s"} · {dateLabel}
+                  </small>
+                </span>
+                <span className="shrink-0">
+                  <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
+                    {block.status}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xs font-semibold text-[var(--color-rose)]">
+                  See what she lifted ›
+                </span>
+              </Link>
+              {block.status === "complete" && (
+                <Link
+                  href={`/hub/clients/${clientNumber}/updates/block-review/${block.id}`}
+                  className="shrink-0 inline-flex items-center justify-center rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold text-foreground no-underline hover:bg-[var(--hub-hover)] transition-colors"
+                >
+                  Review &amp; send
+                </Link>
+              )}
+            </div>
           );
         })}
 
