@@ -1841,38 +1841,24 @@ function ExerciseCard({
                           {isBand ? (
                             /* CR-EF-014 — band picker REPLACES the weight field */
                             <div className="flex flex-col gap-[3px]" style={{ width: 186 }}>
-                              <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                Band
-                                {set.prefillBandColour && set.bandColour === set.prefillBandColour && set.status !== "done" && (
-                                  <span className="rounded border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#5D646B]" title="Prefilled from last session">Last {set.bandColour}</span>
-                                )}
-                                {set.prefillBandColour && set.bandColour !== set.prefillBandColour && set.status !== "done" && (
-                                  <>
-                                    <span className="rounded border border-[rgba(193,131,159,.2)] bg-[rgba(193,131,159,.1)] px-1 py-px text-[9px] font-extrabold normal-case tracking-normal text-[#8A5570]">Edited</span>
-                                    <button type="button" onClick={() => onSetField(refKey, sIdx, "bandColour", set.prefillBandColour!)} className="text-[9px] font-extrabold normal-case tracking-normal text-teal underline">undo</button>
-                                  </>
-                                )}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => setOpenPicker(openPicker === `${refKey}:${sIdx}` ? null : `${refKey}:${sIdx}`)}
-                                aria-expanded={openPicker === `${refKey}:${sIdx}`}
-                                className={`inline-flex h-[36px] w-full items-center gap-2 rounded-lg border px-2.5 text-[13px] font-bold transition-colors ${
-                                  set.bandColour
-                                    ? "border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)]"
-                                    : "border-dashed border-[var(--hub-field-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"
-                                }`}
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Band load (lb)</span>
+                              {/* A fixed 5 lb ladder, not a colour. The colours differ between the
+                                  studio's bands and what each client owns at home; the load does not.
+                                  Previously this branch rendered a colour picker and the lb ladder was
+                                  nested inside the OTHER arm of the same isBand test, so it could never
+                                  render. */}
+                              <select
+                                value={snapBandLoadLb(set.weight) ?? ""}
+                                onChange={(e) => onSetField(refKey, sIdx, "weight", e.target.value)}
+                                disabled={set.status === "skipped"}
+                                aria-label="Band load in pounds"
+                                className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
                               >
-                                {set.bandColour ? (
-                                  <>
-                                    {(() => { const b = bandById(bands, set.bandColour); return b ? <BandDot band={b} /> : null; })()}
-                                    {set.bandColour} band
-                                  </>
-                                ) : (
-                                  "Choose band"
-                                )}
-                                <span className="ml-auto text-muted-foreground">{ICO.chevSm}</span>
-                              </button>
+                                <option value="">—</option>
+                                {bandLoadOptionsLb().map((lb) => (
+                                  <option key={lb} value={lb}>{lb} lb</option>
+                                ))}
+                              </select>
                             </div>
                           ) : (
                             <div className="flex w-[120px] flex-col gap-[3px]">
@@ -2179,27 +2165,24 @@ function SupersetBlock({
                             </div>
                             {isBandEx ? (
                               <div className="flex flex-col gap-[3px]" style={{ width: 186 }}>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Band</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setOpenPicker(openPicker === `${ref}:${roundIdx}` ? null : `${ref}:${roundIdx}`)}
-                                  aria-expanded={openPicker === `${ref}:${roundIdx}`}
-                                  className={`inline-flex h-[36px] w-full items-center gap-2 rounded-lg border px-2.5 text-[13px] font-bold transition-colors ${
-                                    set.bandColour
-                                      ? "border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)]"
-                                      : "border-dashed border-[var(--hub-field-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"
-                                  }`}
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Band load (lb)</span>
+                                {/* A fixed 5 lb ladder, not a colour. The colours differ between the
+                                    studio's bands and what each client owns at home; the load does not.
+                                    Previously this branch rendered a colour picker and the lb ladder was
+                                    nested inside the OTHER arm of the same isBand test, so it could never
+                                    render. */}
+                                <select
+                                  value={snapBandLoadLb(set.weight) ?? ""}
+                                  onChange={(e) => onSetField(ref, roundIdx, "weight", e.target.value)}
+                                  disabled={set.status === "skipped"}
+                                  aria-label="Band load in pounds"
+                                  className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
                                 >
-                                  {set.bandColour ? (
-                                    <>
-                                      {(() => { const b = bandById(bands, set.bandColour); return b ? <BandDot band={b} /> : null; })()}
-                                      {set.bandColour} band
-                                    </>
-                                  ) : (
-                                    "Choose band"
-                                  )}
-                                  <span className="ml-auto text-muted-foreground">{ICO.chevSm}</span>
-                                </button>
+                                  <option value="">—</option>
+                                  {bandLoadOptionsLb().map((lb) => (
+                                    <option key={lb} value={lb}>{lb} lb</option>
+                                  ))}
+                                </select>
                               </div>
                             ) : (
                               <div className="flex w-[120px] flex-col gap-[3px]">
