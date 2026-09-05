@@ -11,7 +11,8 @@ import { AddWorkoutDialog } from "./AddWorkoutDialog";
 import { CarryOverDialog } from "./CarryOverDialog";
 import { SessionList } from "./SessionList";
 import { StatusBadge } from "@/components/hub/StatusBadge";
-import { BlockPoolView } from "@/components/hub/BlockPoolView";
+import { SessionPotCounter } from "@/components/hub/SessionPotCounter";
+import { deriveSessionPot } from "@/lib/session-pot";
 import { isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import type { Weekday } from "@/lib/scheduling";
@@ -332,16 +333,17 @@ export function BlockOverviewClient({
         hasRemaining={remainingCount > 0}
       />
 
-      {/* ── Session pot: booked slots vs planned workouts (CR-EF-099) ── */}
-      <BlockPoolView
-        sessions={sessions}
-        clientId={clientId}
-        blockId={blockId}
-        clientName={clientName}
-        sessionsPurchased={sessionsPurchased}
+      {/* ── Session pot ──────────────────────────────────────────────
+          Kept visible (Craig, 4 Sep) but ONLY the pot. The rest of
+          BlockPoolView -- the sequence ribbon, Booked slots and Planned
+          workouts -- listed the same 18 sessions a second and third time and
+          made this the hardest page in the hub to drive. Its two unique
+          actions (Cancel, Add supplementary) now live on the session row. */}
+      <SessionPotCounter
+        pot={deriveSessionPot(sessions as any, sessionsPurchased)}
         blockExpiryDate={blockExpiryDate}
-        blockExpiryExtensions={blockExpiryExtensions}
-        chronologicalPositions={chronologicalPositions}
+        extended={blockExpiryExtensions.length > 0}
+        originalExpiry={blockExpiryExtensions.length > 0 ? blockExpiryExtensions[0].from : null}
       />
 
       {/* ── Sessions, grouped into real Mon–Sun weeks ──────────────
@@ -431,6 +433,8 @@ export function BlockOverviewClient({
                     archetypeTint={archetypeTint}
                     chronologicalPositions={chronologicalPositions}
                     allSessions={sessions}
+                    clientName={clientName}
+                    sessionsPurchased={sessionsPurchased}
                   />
                 </div>
               </details>

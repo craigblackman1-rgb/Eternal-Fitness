@@ -31,6 +31,12 @@ interface SessionRowProps {
   chargedFree?: "charged" | "free" | null;
   isEmpty: boolean;
   onAssignWorkout: (sessionId: string) => void;
+  /** Actions moved here from BlockPoolView when the duplicate session
+   *  panels were removed -- the row is now the only place a session is
+   *  listed, so it has to carry everything you can do to one. */
+  onCancel?: (sessionId: string) => void;
+  onAddSupplementary?: (sessionId: string) => void;
+  canCancel?: boolean;
 }
 
 /**
@@ -54,6 +60,9 @@ export function SessionRow({
   chargedFree,
   isEmpty,
   onAssignWorkout,
+  onCancel,
+  onAddSupplementary,
+  canCancel,
 }: SessionRowProps) {
   const router = useRouter();
   const [rescheduling, setRescheduling] = useState(false);
@@ -193,6 +202,29 @@ export function SessionRow({
                 >
                   Reschedule
                 </button>
+              </>
+            )}
+            {(onCancel || onAddSupplementary) && status !== "completed" && status !== "cancelled" && (
+              <>
+                {onAddSupplementary && (
+                  <button
+                    type="button"
+                    onClick={() => onAddSupplementary(sessionId)}
+                    title="Work that runs alongside this session without using one up"
+                    className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground transition-colors"
+                  >
+                    + Supplementary
+                  </button>
+                )}
+                {onCancel && canCancel && (
+                  <button
+                    type="button"
+                    onClick={() => onCancel(sessionId)}
+                    className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
               </>
             )}
           </div>
