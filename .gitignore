@@ -40,3 +40,5 @@ dist-ssr
 # Generated TypeScript build artefact. Tracked until 2026-09-03, when it had
 # caused a merge conflict or a dirty-tree block on most merges of the day.
 tsconfig.tsbuildinfo
+
+_*.cjs

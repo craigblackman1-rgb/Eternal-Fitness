@@ -1389,7 +1389,8 @@ function medicalClearanceIsPending(flags: ComplianceFlags): boolean {
    COMMS — updates, tasks, sent history
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function CommsDrawer({ dueInfo, allTaskRows, clientUpdates }: {
+function CommsDrawer({ clientNumber, dueInfo, allTaskRows, clientUpdates }: {
+  clientNumber: number;
   dueInfo: { nextDueDate: string | null; daysUntilDue: number | null; status: string | null };
   allTaskRows: any[];
   clientUpdates: any[];
@@ -1401,6 +1402,24 @@ function CommsDrawer({ dueInfo, allTaskRows, clientUpdates }: {
 
   return (
     <DrawerShell id="dw-comms" title="Comms" subtitle="Updates and tasks" width="md">
+      {/* The V3 client record shipped with no way to send an update at all: the
+          only "Write an update" action lived in the Needs You queue, gated to
+          home-training clients who had gone quiet, so it never appeared for a
+          studio client. Raised by Craig, 5 Sep 2026. */}
+      <div className="flex items-center gap-2 flex-wrap pb-3">
+        <Link
+          href={`/hub/clients/${clientNumber}/updates/new`}
+          className="inline-flex items-center justify-center rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold text-foreground no-underline hover:bg-[var(--hub-hover)] transition-colors"
+        >
+          Write an update
+        </Link>
+        <Link
+          href={`/hub/clients/${clientNumber}/updates`}
+          className="text-xs font-semibold text-[var(--color-rose)] no-underline hover:underline underline-offset-2"
+        >
+          See every update sent
+        </Link>
+      </div>
       {/* Next update */}
       {dueInfo.nextDueDate && (
         <div className="fcard acc-amber">
@@ -2055,6 +2074,7 @@ export function ClientDrawers(props: ClientDrawersProps) {
         gpLetterStatus={props.client.gp_letter_status}
       />
       <CommsDrawer
+        clientNumber={props.client.client_number}
         dueInfo={props.dueInfo}
         allTaskRows={props.allTaskRows}
         clientUpdates={props.clientUpdates}
