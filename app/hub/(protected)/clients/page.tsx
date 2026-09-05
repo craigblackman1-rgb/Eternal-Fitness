@@ -231,14 +231,14 @@ export default async function ClientsPage() {
       id: `bookings-${bookings[0].number}`, dot: "warn",
       headline: `${bookings[0].name} has ${bookings[0].n} booking${bookings[0].n === 1 ? "" : "s"} waiting to be sorted`,
       subline: "Until they are sorted the block reads fewer sessions done than really happened.",
-      actionLabel: "Sort in triage", href: "/hub/schedule/outlook",
+      actionLabel: "Sort in triage", href: "/hub/schedule/triage",
     });
   else if (bookings.length > 1)
     queue.push({
       id: "bookings", dot: "warn",
       headline: `${bookings.reduce((n, b) => n + b.n, 0)} bookings waiting to be sorted, across ${bookings.length} clients`,
       subline: `${names(bookings)}. Until they are sorted those blocks read fewer sessions done than really happened.`,
-      actionLabel: "Sort in triage", href: "/hub/schedule/outlook",
+      actionLabel: "Sort in triage", href: "/hub/schedule/triage",
     });
   if (quiet.length)
     queue.push({

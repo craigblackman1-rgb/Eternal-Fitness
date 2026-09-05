@@ -115,7 +115,7 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
         ? `Oldest ${new Date(oldestOpenBooking).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}. Until they are confirmed the block reads fewer sessions done than really happened.`
         : "Until they are confirmed the block reads fewer sessions done than really happened.",
       actionLabel: "Sort in triage",
-      actionHref: "/hub/schedule/outlook",
+      actionHref: "/hub/schedule/triage",
     });
   }
 
