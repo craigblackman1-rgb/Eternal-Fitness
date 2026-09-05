@@ -1148,7 +1148,6 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
           payment_method: client.payment_method ?? null,
           payment_status: paymentStatus as import("@/types").PaymentStatus,
           client_status: clientStatus as import("@/types").ClientStatus,
-          referral_source: client.referral_source ?? null,
           block_expiry_date: blockExpiryDate,
         }}
       />
@@ -1269,7 +1268,11 @@ function DocumentsDrawer({ clientNumber, clientDocuments, legacyDocumentRows, fl
       <p className="dw-h">On file</p>
       {allDocs.length > 0 ? (
         allDocs.map((doc: any) => (
-          <div key={doc.id} className="drow">
+          <Link
+            key={doc.id}
+            href={`/hub/clients/${clientNumber}/documents/${doc.id}`}
+            className="drow no-underline hover:bg-[var(--hub-hover)] transition-colors rounded-nested"
+          >
             <span className="drow-m">
               {doc.title || doc.kind}
               <small>
@@ -1280,7 +1283,7 @@ function DocumentsDrawer({ clientNumber, clientDocuments, legacyDocumentRows, fl
             <span className={`bdg ${doc.status === "signed" ? "ok" : doc.status === "superseded" ? "mut" : "warn"}`}>
               {doc.status === "signed" ? "Signed" : doc.status === "superseded" ? "Superseded" : doc.status === "sent" ? "Sent" : "Draft"}
             </span>
-          </div>
+          </Link>
         ))
       ) : (
         <p className="miss">No documents on file.</p>

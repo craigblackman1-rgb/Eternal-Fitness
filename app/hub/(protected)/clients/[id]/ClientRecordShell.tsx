@@ -5,6 +5,7 @@ import { ClientRecordHeader } from "./ClientRecordHeader";
 import { ClientDrawerStrip } from "./ClientDrawerStrip";
 import { NeedsYouQueue, buildNeedsYouItems } from "./NeedsYouQueue";
 import { TrainingSection } from "./TrainingSection";
+import { TrainingDrawer } from "./TrainingDrawer";
 import { ClientDrawers } from "./ClientDrawers";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
@@ -216,18 +217,32 @@ export function ClientRecordShell({
     openBookingCount,
     oldestOpenBooking,
     clientFirstName: String(client.name ?? "").split(" ")[0],
+    sessionsRemaining,
+    sessionsPurchased: client.sessions_purchased ?? null,
+    paymentStatus,
+    blockExpiryDate,
   };
   const needsYouCount = buildNeedsYouItems(needsYouInput).length;
 
   return (
     <DrawerManager>
       <div className="max-w-[940px] mx-auto">
-        <ClientRecordHeader client={client} status={effectiveStatus} activeBlockId={latestBlock?.id ?? null} />
+        <ClientRecordHeader
+          client={client}
+          status={effectiveStatus}
+          activeBlockId={latestBlock?.id ?? null}
+          sessionsRemaining={sessionsRemaining}
+          sessionsUsed={sessionsUsed}
+          sessionsPurchased={client.sessions_purchased ?? null}
+          paymentStatus={paymentStatus}
+          packageType={packageType}
+        />
 
         <ClientDrawerStrip
           items={[
             { id: "dw-profile", label: "Profile" },
             { id: "dw-health", label: "Health", count: healthFlags },
+            { id: "dw-training", label: "Training" },
             { id: "dw-arrangement", label: "Arrangement" },
             { id: "dw-documents", label: "Documents" },
             { id: "dw-comms", label: "Comms", count: pendingTaskCount },
@@ -278,6 +293,18 @@ export function ClientRecordShell({
       </div>
 
       {/* ── Drawers ── */}
+      <TrainingDrawer
+        clientNumber={client.client_number}
+        clientName={client.name}
+        latestBlock={latestBlock}
+        blockSessions={blockSessions}
+        allBlocks={blocks}
+        allSessions={sessions}
+        blockSessionCounts={blockSessionCounts}
+        blockDateRangeLabel={blockDateRangeLabel}
+        trainerizeHistory={trainerizeHistory}
+        sessionsRemaining={sessionsRemaining}
+      />
       <ClientDrawers
         client={client}
         blocks={blocks}

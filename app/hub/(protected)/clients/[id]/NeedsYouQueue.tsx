@@ -48,6 +48,11 @@ export interface NeedsYouInput {
   /** Which commercial terms are missing, e.g. ["rate","expiry"]. */
   missingPackageTerms?: string[];
   clientFirstName?: string;
+  /** D1 — renewal-due detection. */
+  sessionsRemaining?: number | null;
+  sessionsPurchased?: number | null;
+  paymentStatus?: string;
+  blockExpiryDate?: string | null;
 }
 
 /**
@@ -79,6 +84,10 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
     openBookingCount,
     oldestOpenBooking,
     clientFirstName,
+    sessionsRemaining,
+    sessionsPurchased,
+    paymentStatus,
+    blockExpiryDate,
   } = input;
   const items: QueueItem[] = [];
 
@@ -166,7 +175,34 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
     });
   }
 
-  // Priority 5: Unpaid blocks
+  // Priority 5: Renewal due — payment_status != paid AND either sessions
+  // remaining is low (<= 1) or block expiry is imminent (within 14 days).
+  // Supersedes the narrower "unpaid" item when it fires.
+  if (paymentStatus && paymentStatus !== "paid") {
+    const sessionsLow = sessionsPurchased != null && sessionsRemaining != null && sessionsRemaining <= 1;
+    let expirySoon = false;
+    if (blockExpiryDate) {
+      const daysUntilExpiry = Math.ceil((new Date(blockExpiryDate).getTime() - Date.now()) / 86_400_000);
+      expirySoon = daysUntilExpiry <= 14;
+    }
+    if (sessionsLow || expirySoon) {
+      const reason = sessionsLow && expirySoon
+        ? "sessions are nearly used up and the block is expiring soon"
+        : sessionsLow
+          ? "sessions are nearly used up"
+          : "the block is expiring soon";
+      items.push({
+        id: "renewal-due",
+        dot: "due",
+        headline: `Renewal due \u2014 ${reason}`,
+        subline: paymentStatus === "pending" ? "Payment is pending." : paymentStatus === "overdue" ? "Payment is overdue." : undefined,
+        actionLabel: "Arrangement",
+        actionDrawerId: "dw-arrangement",
+      });
+    }
+  }
+
+  // Priority 5b: Unpaid blocks
   if (unpaidBlocks.length > 0) {
     items.push({
       id: "unpaid",

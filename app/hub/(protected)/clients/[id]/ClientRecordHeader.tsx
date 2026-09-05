@@ -68,16 +68,35 @@ export function ClientRecordHeader({
   client,
   status,
   activeBlockId,
+  sessionsRemaining,
+  sessionsUsed,
+  sessionsPurchased,
+  paymentStatus,
+  packageType,
 }: {
   client: DBClient;
   status: string | null;
   activeBlockId?: string | null;
+  sessionsRemaining: number | null;
+  sessionsUsed: number | null;
+  sessionsPurchased: number | null;
+  paymentStatus: string;
+  packageType: string | null;
 }) {
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
   const subline = buildSubline(client);
   const complianceLookup = status ? lookupStatus(status) : null;
   const isHomeTraining = (client as any).delivery_mode === "home_training";
   const firstName = client.name.split(" ")[0];
+
+  // Sessions chip: "N of M · Paid/Unpaid" or "Ongoing"
+  const isOngoing = packageType === "ongoing" || sessionsPurchased == null;
+  const sessionsChipText = isOngoing
+    ? `Ongoing \u00b7 ${paymentStatus === "paid" ? "Paid" : "Unpaid"}`
+    : `${sessionsRemaining ?? 0} of ${sessionsPurchased} sessions \u00b7 ${paymentStatus === "paid" ? "Paid" : "Unpaid"}`;
+  const sessionsChipColor = paymentStatus === "paid"
+    ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]"
+    : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]";
 
   return (
     <>
@@ -104,6 +123,9 @@ export function ClientRecordHeader({
               #{client.client_number}
             </span>
             {complianceLookup && <StatusBadge status={status!} />}
+            <span className={`inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold ${sessionsChipColor}`}>
+              {sessionsChipText}
+            </span>
           </div>
           {subline && (
             <p className="m-0 mt-0.5 text-[13px] text-[var(--color-body)]">{subline}</p>
@@ -120,7 +142,7 @@ export function ClientRecordHeader({
           {/* The review flow existed with no link anywhere in the app. */}
           <Link href={`/hub/clients/${client.client_number}/review`}>
             <Button variant="outline" className="bg-white border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-control px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
-              Review
+              Full review
             </Button>
           </Link>
           {/* A home-training client is never booked into the studio, so

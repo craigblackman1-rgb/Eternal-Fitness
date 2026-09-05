@@ -23,7 +23,6 @@ type Fields = Pick<
   | "payment_method"
   | "payment_status"
   | "client_status"
-  | "referral_source"
 >;
 
 interface PackagePaymentsCardProps {
@@ -167,9 +166,6 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Referral source">
-                <Input value={form.referral_source ?? ""} onChange={(e) => set("referral_source", e.target.value || null)} placeholder="e.g. Word of mouth" className="h-9" />
-              </Field>
             </div>
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="outline" size="sm" onClick={cancel} disabled={saving} className="rounded-lg gap-1.5 border-border/60">
@@ -198,7 +194,6 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
               <span className={`font-semibold ${paymentTone[initial.payment_status] ?? "text-foreground"}`}>{titleCase(initial.payment_status)}</span>
             </div>
             <ReadField label="Client status" value={titleCase(initial.client_status)} />
-            <ReadField label="Referral source" value={initial.referral_source ?? "—"} />
           </div>
         )}
       </CardContent>
