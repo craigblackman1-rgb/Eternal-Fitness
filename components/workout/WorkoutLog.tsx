@@ -970,12 +970,16 @@ export function WorkoutLog({
   }, [drainQueue]);
 
   // ── Complete session ─────────────────────────────────────────────
-  const handleComplete = async (confirmOffDay?: boolean) => {
+  const handleComplete = async (offDay?: { mode: "today" | "booked"; scheduledAt: string }) => {
     setCompleting(true);
     const d = dataRef.current;
     if (!d) return;
     const updatedLog: SessionLog = {
-      completed_at: new Date().toISOString(),
+      // Logging a session from paper: "booked" records the completion on the day
+      // it was actually delivered. The server has always supported off_day_mode,
+      // but no caller ever sent it, so every back-dated log was stamped as today.
+      completed_at:
+        offDay?.mode === "booked" ? offDay.scheduledAt : new Date().toISOString(),
       started_at: sessionLogRef.current?.started_at ?? null,
       rpe,
       fatigue,
@@ -988,7 +992,10 @@ export function WorkoutLog({
         exercise_notes: savedNotesRef.current,
       },
     };
-    if (confirmOffDay) body.confirm_off_day = true;
+    if (offDay) {
+      body.confirm_off_day = true;
+      body.off_day_mode = offDay.mode;
+    }
     const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -1004,10 +1011,21 @@ export function WorkoutLog({
           day: "numeric",
           month: "long",
         });
-        if (window.confirm(`This session is booked for ${scheduledDate}, not today. Complete it anyway?`)) {
-          return handleComplete(true);
+        if (!window.confirm(`This session is booked for ${scheduledDate}, not today. Complete it anyway?`)) {
+          return;
         }
-        return;
+        // Which day did it actually happen? Stamping a paper session with today's
+        // date is what makes progress history and "last logged" read wrong.
+        const onBookedDay = window.confirm(
+          `Did it happen on ${scheduledDate}?
+
+OK — record it on ${scheduledDate} (logging from paper)
+Cancel — record it as today`,
+        );
+        return handleComplete({
+          mode: onBookedDay ? "booked" : "today",
+          scheduledAt: err.scheduledAt,
+        });
       }
       toast.error(err?.error || "Failed to mark session complete");
       return;
