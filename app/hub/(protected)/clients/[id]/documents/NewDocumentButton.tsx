@@ -8,8 +8,11 @@ import { IconPlus } from "@/components/icons";
 import { toast } from "sonner";
 import { DOCUMENT_KIND_LABEL, type DocumentKind } from "@/lib/documents/types";
 
-// Kinds that have a template seeded.
-const AVAILABLE_KINDS: DocumentKind[] = ["parq", "terms", "remote_coaching", "intake_form", "fortnightly_checkin", "endurance_block", "risk_assessment", "annual_review", "consent", "feedback", "leg_pain_questionnaire"];
+// Kinds that have a template seeded. Exported so other document-creation
+// entry points (e.g. the cross-client Documents screen's "New document"
+// drawer) offer exactly the same real, creatable set — never a hand-kept
+// second copy that can drift from this one.
+export const AVAILABLE_KINDS: DocumentKind[] = ["parq", "terms", "remote_coaching", "intake_form", "fortnightly_checkin", "endurance_block", "risk_assessment", "annual_review", "consent", "feedback", "leg_pain_questionnaire"];
 
 export function NewDocumentButton({ clientNumber }: { clientNumber: number }) {
   const router = useRouter();

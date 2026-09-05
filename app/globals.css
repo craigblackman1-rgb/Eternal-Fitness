@@ -1596,3 +1596,34 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
 .btn-link { background: none; border: 0; padding: 0; font: inherit; font-size: inherit; color: var(--rose-text); cursor: pointer; text-decoration: underline; text-decoration-color: transparent; transition: text-decoration-color 150ms; }
 .btn-link:hover { text-decoration-color: var(--rose-text); }
 
+/* ── S7 Documents additions ──────────────────────────────────────────────
+   New, appended per RULES.md's Output rule. Two of these (.fld, and the
+   fact ClientDrawers.tsx already assumed .fld existed) close a pre-existing
+   gap rather than only serving this screen — those drawer inputs were
+   unstyled before this. */
+
+/* Text/select field inside a drawer — ClientDrawers.tsx already used this
+   class name (e.g. package/rate/expiry edit fields) but it was never
+   defined, so those inputs rendered unstyled. Defined once, here. */
+.fld { width: 100%; height: 32px; border: 1px solid var(--hub-field-border); border-radius: var(--r-control-sm); padding: 0 9px; font-family: inherit; font-size: 13px; color: var(--color-ink); background: var(--field-fill, #FDFDFE); }
+.fld:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(193,131,159,.3); border-color: var(--color-rose); }
+
+/* History row — one shape for "a thing in a list, click to see more" that
+   needs to carry a client identity, which no existing v3 drawer list
+   (.drow, .srow) needed before (every other surface already knows who
+   you're looking at). Used by the New Document drawer's client picker. */
+.hrow { display: flex; align-items: center; gap: 11px; padding: 8px 11px; border: 1px solid transparent; border-radius: var(--r-nested); background: none; font-family: inherit; text-align: left; cursor: pointer; transition: background-color .12s, border-color .12s; }
+.hrow:hover { background: var(--hub-hover); border-color: var(--hub-border); }
+.hrow-m { flex: 1; min-width: 0; font-size: 13.5px; color: var(--color-ink); font-weight: 600; }
+
+/* Honesty callout — the emailed-vs-status distinction is a first-class
+   requirement (BUG history: the "fake send" bug), so it gets its own visual
+   weight in the document drawer rather than living in a .frow like every
+   other fact. */
+.honesty { display: flex; gap: 9px; padding: 10px 11px; border-radius: var(--r-nested); font-size: 12.5px; margin-bottom: 14px; }
+.honesty.warn { background: var(--status-warning-bg); border: 1px solid var(--status-warning-border); color: var(--amber-text, var(--status-warning-text)); }
+.honesty.danger { background: var(--status-danger-bg); border: 1px solid var(--status-danger-border); color: var(--status-danger); }
+.honesty.ok { background: var(--status-success-bg); border: 1px solid var(--status-success-border); color: var(--status-success-text); }
+.honesty b { font-weight: 700; }
+.honesty code { background: rgba(0,0,0,.06); padding: 1px 4px; border-radius: 4px; font-size: 11.5px; }
+
