@@ -9,6 +9,7 @@ import { deriveBlockStatus } from "@/lib/block-status";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { deriveSessionPot } from "@/lib/session-pot";
+import { toIsoTimestamp } from "@/lib/pg-timestamp";
 import { aggregateExerciseNotes, type AggregatedExerciseNote } from "@/lib/exercise-notes";
 import { ClientModeView } from "./ClientModeView";
 import type {
@@ -169,14 +170,13 @@ export default async function MobileClientModePage({ params }: { params: { id: s
     : { data: [] as SessionRow[] };
   const sessions = (sessionsData ?? []) as SessionRow[];
 
-  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
-  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
-  // the client then only ever receives a string every engine agrees on.
+  // Normalise to strict ISO-8601 (offset-preserving) so WebKit (iOS Safari)
+  // doesn't render "Invalid Date" — see lib/pg-timestamp.ts.
   for (const s of sessions) {
-    if (s.scheduled_at) s.scheduled_at = new Date(s.scheduled_at).toISOString();
-    if (s.completed_at) s.completed_at = new Date(s.completed_at).toISOString();
+    if (s.scheduled_at) s.scheduled_at = toIsoTimestamp(s.scheduled_at) as string;
+    if (s.completed_at) s.completed_at = toIsoTimestamp(s.completed_at) as string;
     const log = s.data?.session_log;
-    if (log?.completed_at) log.completed_at = new Date(log.completed_at).toISOString();
+    if (log?.completed_at) log.completed_at = toIsoTimestamp(log.completed_at) as string;
   }
 
   const exerciseNotes: AggregatedExerciseNote[] = aggregateExerciseNotes(sessions as any);

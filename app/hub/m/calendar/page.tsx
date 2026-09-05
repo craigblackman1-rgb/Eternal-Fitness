@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import type { Session } from "@/types";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { DEFAULT_ARCHETYPE_FOCUS_LABELS } from "@/lib/planAgentPrompt";
+import { toIsoTimestamp } from "@/lib/pg-timestamp";
 import {
   todayLocalISODate,
   shiftDay,
@@ -95,7 +96,7 @@ export default async function MobileCalendarPage({
     const client = block ? clientById.get(block.client_id) : undefined;
     return {
       id: s.id,
-      scheduledAt: s.scheduled_at ? new Date(s.scheduled_at).toISOString() : (s.scheduled_at as string),
+      scheduledAt: toIsoTimestamp(s.scheduled_at) as string,
       name: sessionName(s),
       status: deriveSessionStatus({
         status: s.status,
