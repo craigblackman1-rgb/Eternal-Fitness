@@ -96,7 +96,7 @@ export function ClientsScreen({
       <div className="flex items-baseline gap-2.5 flex-wrap mb-3.5">
         <h1 className="m-0 text-[25px] font-bold tracking-tight text-[var(--color-ink)]">Clients</h1>
         {needCount > 0 && (
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning-border)]">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
             {needCount} need{needCount === 1 ? "s" : ""} you
           </span>
         )}

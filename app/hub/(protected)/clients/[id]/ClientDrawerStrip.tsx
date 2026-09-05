@@ -28,7 +28,7 @@ export function ClientDrawerStrip({ items }: { items: DrawerStripItem[] }) {
         >
           {item.label}
           {item.count != null && item.count > 0 && (
-            <span className="inline-grid place-items-center min-w-[17px] h-[17px] px-[5px] rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning)] border border-[var(--status-warning-border)] text-[10.5px] font-bold leading-none tabular-nums">
+            <span className="inline-grid place-items-center min-w-[17px] h-[17px] px-[5px] rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-border)] text-[10.5px] font-bold leading-none tabular-nums">
               {item.count}
             </span>
           )}

@@ -282,7 +282,7 @@ export function TrainingSection({
             >
               Block {latestBlock.block_number}
             </Link>
-            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning-border)]">
+            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
               {latestBlock.status}
             </span>
             <span className="text-xs text-[var(--color-body)]">
@@ -362,7 +362,7 @@ export function TrainingSection({
                 </small>
               </span>
               <span className="shrink-0">
-                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success-border)]">
+                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
                   {block.status}
                 </span>
               </span>
