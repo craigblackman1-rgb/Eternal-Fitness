@@ -112,13 +112,56 @@ export function ProgramImportClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: pastedText }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `Parse failed (${res.status})`);
+
+      // Streaming response: read lines, ignore keep-alive, parse final line
+      if (res.headers.get("content-type")?.includes("text/plain") && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let result: ParsedProgram | null = null;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue; // skip keep-alive newlines
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (parsed.error) throw new Error(parsed.error);
+              result = parsed;
+            } catch {
+              // skip non-JSON keep-alive lines
+            }
+          }
+        }
+        // Process any remaining buffer
+        const trimmed = buffer.trim();
+        if (trimmed) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.error) throw new Error(parsed.error);
+            result = parsed;
+          } catch (err) {
+            if (err instanceof Error && err.message.includes("Parse failed")) throw err;
+          }
+        }
+        if (result) {
+          setParsed(result);
+          setProgramName(result.name || "");
+        }
+      } else {
+        // Fallback: non-streaming JSON response (defensive)
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `Parse failed (${res.status})`);
+        }
+        const data: ParsedProgram = await res.json();
+        setParsed(data);
+        setProgramName(data.name || "");
       }
-      const data: ParsedProgram = await res.json();
-      setParsed(data);
-      setProgramName(data.name || "");
     } catch (err) {
       setParseError(err instanceof Error ? err.message : "Parse failed");
     } finally {
