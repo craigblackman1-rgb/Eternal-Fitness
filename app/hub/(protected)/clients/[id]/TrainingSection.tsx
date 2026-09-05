@@ -137,7 +137,7 @@ export function TrainingSection({
   })();
 
   return (
-    <div className="bg-white border border-[var(--hub-border)] rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden">
+    <div className="bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden">
       {/* Section header */}
       <div className="flex items-center gap-2.5 py-2.5 px-4">
         <h2 className="m-0 text-[15px] font-bold text-[var(--color-ink)] tracking-tight">Training</h2>
@@ -168,7 +168,7 @@ export function TrainingSection({
         {/* ── Duo: next session + is-it-working ── */}
         <div className="grid grid-cols-2 gap-2.5 mb-3">
           {/* Next session panel */}
-          <div className="border border-[var(--hub-border)] rounded-[10px] bg-white overflow-hidden flex flex-col">
+          <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col">
             <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-rose bg-[var(--status-primary-bg)]">
               <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-primary-text)]">Next</span>
               <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
@@ -207,7 +207,7 @@ export function TrainingSection({
           </div>
 
           {/* Is it working / progress panel */}
-          <div className="border border-[var(--hub-border)] rounded-[10px] bg-white overflow-hidden flex flex-col">
+          <div className="border border-[var(--hub-border)] rounded-nested bg-white overflow-hidden flex flex-col">
             <div className="flex items-baseline gap-2.5 py-[7px] px-3 border-b border-[var(--hub-border)] border-t-[3px] border-t-[var(--status-success)] bg-[var(--status-success-bg)]">
               <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-success-text)]">Is it working</span>
               <span className="ml-auto text-xs font-semibold text-[var(--color-body)] tabular-nums">
@@ -250,7 +250,7 @@ export function TrainingSection({
             home these constrain every session, and a rule Esther has to go
             looking for is one she prescribes around. */}
         {standingRules.length > 0 && (
-          <div className="mb-3 rounded-[10px] border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] overflow-hidden">
+          <div className="mb-3 rounded-nested border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] overflow-hidden">
             <div className="px-3 py-1.5 border-b border-[var(--status-warning-border)]">
               <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--status-warning-text)]">
                 Standing rules · every session
@@ -350,7 +350,7 @@ export function TrainingSection({
             <Link
               key={block.id}
               href={`/hub/clients/${clientNumber}/blocks/${block.id}`}
-              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-[10px] bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] no-underline"
+              className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-nested bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)] no-underline"
             >
               <span className="w-[26px] h-[26px] shrink-0 rounded-lg grid place-items-center text-[11px] font-extrabold bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
                 {block.block_number}
@@ -377,7 +377,7 @@ export function TrainingSection({
         {tzTotalSessions > 0 && (
           <button
             onClick={(e) => openDrawer("dw-preapp", e.currentTarget)}
-            className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-[10px] bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
+            className="flex items-center gap-[11px] w-full py-[7px] px-[11px] border border-transparent rounded-nested bg-transparent font-[inherit] text-left cursor-pointer transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(193,131,159,.3)]"
           >
             <span className="w-[26px] h-[26px] shrink-0 rounded-lg grid place-items-center text-[11px] font-extrabold bg-[var(--status-neutral-bg)] text-[var(--navy)]">
               TZ

@@ -53,7 +53,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-[var(--hub-border)] rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden mb-3.5">
+    <div className="bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden mb-3.5">
       <div className="flex items-center gap-2.5 py-2.5 px-4 border-b border-[var(--hub-border)]">
         <h2 className="m-0 text-[15px] font-bold text-[var(--color-ink)] tracking-tight">{title}</h2>
         {meta && <span className="text-xs text-[var(--color-muted)]">{meta}</span>}
@@ -176,7 +176,7 @@ export function TodayScreen({
           {alerts.map((a) => (
             <div
               key={a.id}
-              className="flex items-center gap-3 py-2 px-3 rounded-[10px] border border-transparent hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] transition-colors"
+              className="flex items-center gap-3 py-2 px-3 rounded-nested border border-transparent hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] transition-colors"
             >
               <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${DOT[a.dot]}`} />
               <span className="min-w-0 flex-1 text-[13.5px] text-[var(--color-ink)]">

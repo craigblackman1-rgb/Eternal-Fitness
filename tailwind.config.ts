@@ -104,6 +104,18 @@ export default {
         },
       },
       borderRadius: {
+        /* The EF design-system scale, by name. globals.css defines --r-* as
+           the app's radius language (surface 16 / nested 10 / control 8 /
+           control-sm 6 / pill), but Tailwind was only wired to the inherited
+           shadcn --radius scale, where rounded-2xl is 24px. So a section card
+           written as rounded-2xl rendered 24px where the design says 16px,
+           and the drift kept coming back because the correct value had no
+           utility name to reach for. Now it does. */
+        surface: "var(--r-surface)",
+        nested: "var(--r-nested)",
+        control: "var(--r-control)",
+        "control-sm": "var(--r-control-sm)",
+        pill: "var(--r-pill)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
