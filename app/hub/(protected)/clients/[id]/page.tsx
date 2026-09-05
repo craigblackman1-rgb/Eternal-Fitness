@@ -56,17 +56,47 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     if (log?.completed_at) log.completed_at = new Date(log.completed_at).toISOString();
   }
 
-  const { data: trainerizeBlocks } = await supabase.from("trainerize_training_blocks").select("*").eq("client_id", client.id).order("start_date", { ascending: false });
+  // Column lists below deliberately exclude each table's `raw_data` JSONB blob
+  // (and other columns nothing downstream reads) — that column duplicates the
+  // whole imported API row and was previously pulled over the wire on every
+  // client page load via `select("*")` for no reason: nothing in page.tsx or
+  // the drawers reads it except trainerize_exercises' targetDetail below.
+  const { data: trainerizeBlocks } = await supabase
+    .from("trainerize_training_blocks")
+    .select("id, trainerize_phase_id, phase_name, start_date, end_date, plan_type, instruction")
+    .eq("client_id", client.id)
+    .order("start_date", { ascending: false });
   const tBlockIds = (trainerizeBlocks ?? []).map((b: any) => b.id);
   const { data: trainerizeWorkouts } = tBlockIds.length > 0
-    ? await supabase.from("trainerize_workouts").select("*").in("trainerize_block_id", tBlockIds).order("workout_index", { ascending: true })
+    ? await supabase
+        .from("trainerize_workouts")
+        .select("id, trainerize_block_id, trainerize_workout_id, workout_name, workout_index, duration_seconds, workout_type, instruction")
+        .in("trainerize_block_id", tBlockIds)
+        .order("workout_index", { ascending: true })
     : { data: [] };
   const workoutIds = (trainerizeWorkouts ?? []).map((w: any) => w.id);
   const { data: trainerizeExercises } = workoutIds.length > 0
-    ? await supabase.from("trainerize_exercises").select("*").in("trainerize_workout_id", workoutIds).order("exercise_order", { ascending: true })
+    ? await supabase
+        .from("trainerize_exercises")
+        .select("id, trainerize_workout_id, trainerize_exercise_id, exercise_name, exercise_order, sets, target_reps, target_type, rest_time_seconds, record_type, raw_data")
+        .in("trainerize_workout_id", workoutIds)
+        .order("exercise_order", { ascending: true })
     : { data: [] };
-  const { data: trainerizeNotes } = await supabase.from("trainerize_client_notes").select("*").eq("client_id", client.id).order("source_date", { ascending: false });
-  const { data: workoutResults } = await supabase.from("trainerize_workout_results").select("*").eq("client_id", client.id).order("performed_date", { ascending: false });
+  const { data: trainerizeNotes } = await supabase
+    .from("trainerize_client_notes")
+    .select("id, source, content, source_date, sender_name")
+    .eq("client_id", client.id)
+    .order("source_date", { ascending: false });
+  // Still fetches every logged set for this client (needed for exerciseTrends
+  // below, which computes personal bests across the client's full history) —
+  // but no longer pulls raw_data, distance, or created_at, none of which are
+  // used by either the trend computation or the "Before the app" summary
+  // built from this same array further down.
+  const { data: workoutResults } = await supabase
+    .from("trainerize_workout_results")
+    .select("id, trainerize_daily_workout_id, workout_name, performed_date, rpe, trainerize_daily_exercise_id, exercise_name, set_number, reps, weight, duration_seconds")
+    .eq("client_id", client.id)
+    .order("performed_date", { ascending: false });
 
   const sessionIds = (sessions ?? []).map((s) => s.id);
   const { data: setLogs } = sessionIds.length > 0
@@ -120,6 +150,94 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
 
   const { data: clientUpdates } = await supabase.from("sent_updates").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
 
+  // BUG-EF-116 — the "Before the app" drawer used to render only block
+  // headers (name, date range, workout count): the 19,687 rows in
+  // trainerize_workout_results were fetched (needed for exerciseTrends
+  // above) but never reached the drawer, and trainerize_client_notes wasn't
+  // read by it at all. This reconstructs each real workout Esther's clients
+  // logged in Trainerize (grouped by trainerize_daily_workout_id — there is
+  // no FK from results to trainerize_workouts, the *prescribed* program) as
+  // a compact summary: exercise name, set count, and top set per exercise.
+  // Full per-set reps/weight/RPE for one workout is fetched on demand by
+  // GET /api/clients/[id]/trainerize-workout/[workoutId] when a workout row
+  // is expanded in the drawer — this summary never carries every set.
+  //
+  // Results carry no block reference either, only their own performed_date,
+  // so each workout instance is bucketed into the training block whose
+  // start_date is the latest one on/before it (open-ended — a real client's
+  // declared block end_date is frequently earlier than their last logged
+  // session in that phase; using it as a hard upper bound left roughly half
+  // of Emma Atkinson's 3,162 results unmatched to any block in testing,
+  // against ~0% with this open-ended approach).
+  function summarisePerformedWorkouts() {
+    const sortedBlocks = [...(trainerizeBlocks ?? [])]
+      .filter((b: any) => b.start_date)
+      .sort((a: any, b: any) => (a.start_date < b.start_date ? -1 : a.start_date > b.start_date ? 1 : 0));
+
+    interface ExerciseAcc { name: string; setCount: number; topWeightKg: number | null; topReps: number | null }
+    interface WorkoutAcc {
+      id: string;
+      workoutName: string | null;
+      performedDate: string | null;
+      setCount: number;
+      exercises: Map<string, ExerciseAcc>;
+    }
+    const workoutsById = new Map<string, WorkoutAcc>();
+    for (const r of (workoutResults ?? []) as any[]) {
+      if (!r.exercise_name || !r.performed_date) continue;
+      const wid = String(r.trainerize_daily_workout_id);
+      let w = workoutsById.get(wid);
+      if (!w) {
+        w = { id: wid, workoutName: r.workout_name ?? null, performedDate: r.performed_date, setCount: 0, exercises: new Map() };
+        workoutsById.set(wid, w);
+      }
+      if (r.performed_date < (w.performedDate ?? r.performed_date)) w.performedDate = r.performed_date;
+      w.setCount++;
+      const weight = r.weight != null ? Number(r.weight) : null;
+      const reps = r.reps != null ? Number(r.reps) : null;
+      let ex = w.exercises.get(r.exercise_name);
+      if (!ex) {
+        ex = { name: r.exercise_name, setCount: 0, topWeightKg: null, topReps: null };
+        w.exercises.set(r.exercise_name, ex);
+      }
+      ex.setCount++;
+      if (weight != null && !Number.isNaN(weight) && (ex.topWeightKg == null || weight > ex.topWeightKg)) {
+        ex.topWeightKg = weight;
+        ex.topReps = reps != null && !Number.isNaN(reps) ? reps : null;
+      }
+    }
+
+    const toSummary = (w: WorkoutAcc) => ({
+      id: w.id,
+      workoutName: w.workoutName,
+      performedDate: w.performedDate,
+      setCount: w.setCount,
+      exercises: Array.from(w.exercises.values()),
+    });
+
+    const byBlockId: Record<string, ReturnType<typeof toSummary>[]> = {};
+    const unmatched: ReturnType<typeof toSummary>[] = [];
+    for (const w of workoutsById.values()) {
+      const summary = toSummary(w);
+      if (sortedBlocks.length === 0 || !w.performedDate || w.performedDate < sortedBlocks[0].start_date) {
+        unmatched.push(summary);
+        continue;
+      }
+      let blockId = sortedBlocks[0].id;
+      for (const b of sortedBlocks) {
+        if (w.performedDate >= b.start_date) blockId = b.id;
+        else break;
+      }
+      (byBlockId[blockId] ??= []).push(summary);
+    }
+    const byDateDesc = (a: { performedDate: string | null }, b: { performedDate: string | null }) =>
+      (b.performedDate ?? "").localeCompare(a.performedDate ?? "");
+    for (const list of Object.values(byBlockId)) list.sort(byDateDesc);
+    unmatched.sort(byDateDesc);
+    return { byBlockId, unmatched };
+  }
+  const { byBlockId: performedWorkoutsByBlockId, unmatched: unmatchedPerformedWorkouts } = summarisePerformedWorkouts();
+
   const composeHistoryData = (): TrainerizeHistoryData => {
     const workoutsByBlock: Record<string, any[]> = {};
     for (const w of (trainerizeWorkouts ?? [])) {
@@ -131,10 +249,12 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     const tBlocks = (trainerizeBlocks ?? []).map((b: any) => ({
       ...b,
       workouts: workoutsByBlock[b.id] || [],
+      performedWorkouts: performedWorkoutsByBlockId[b.id] || [],
     }));
     return {
       blocks: tBlocks,
       notes: trainerizeNotes ?? [],
+      unmatchedPerformedWorkouts,
     };
   };
   const trainerizeHistory = composeHistoryData();
