@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import type { Session, SessionVersion, WorkoutTemplate } from "@/types";
+import { blockDisplayName } from "@/lib/block-name";
 
 const ICO = {
   back: (
@@ -64,6 +65,8 @@ interface ClientBlock {
   block_number: number;
   client_id: string;
   status: string;
+  /** CR-EF-153 — Esther's own name for the block; blank falls back to its date span. */
+  title?: string | null;
 }
 
 interface BlockWorkout {
@@ -78,6 +81,8 @@ interface SessionRow {
   id: string;
   block_id: string;
   data: Session;
+  scheduled_at?: string | null;
+  parent_session_id?: string | null;
 }
 
 interface PreviewData {
@@ -155,6 +160,7 @@ export default function AddWorkoutPage() {
   const [step, setStep] = useState<Step>(initialStep);
   const [clientName, setClientName] = useState("");
   const [block, setBlock] = useState<ClientBlock | null>(null);
+  const [blockLabel, setBlockLabel] = useState<string | null>(null);
   const [blockWorkouts, setBlockWorkouts] = useState<BlockWorkout[]>([]);
   const [week, setWeek] = useState(1);
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
@@ -177,6 +183,15 @@ export default function AddWorkoutPage() {
         setBlock(current);
         const sessionRes = await fetch(`/api/blocks/${current.id}/sessions`);
         const rows = sessionRes.ok ? ((await sessionRes.json()) as SessionRow[]) : [];
+        // CR-EF-153 — single source of truth (lib/block-name.ts). Pot count
+        // excludes supplementary sub-sessions, matching the desktop convention.
+        setBlockLabel(
+          blockDisplayName(
+            current,
+            rows,
+            rows.filter((r) => !r.parent_session_id).length,
+          ),
+        );
         // `data.session_id` (inside the JSON blob) is a separate, unrelated
         // UUID minted at insert time -- sometimes even empty on older rows.
         // The real primary key every other route expects is the outer row's
@@ -380,7 +395,7 @@ export default function AddWorkoutPage() {
               <span>
                 <span className="src-t">From this client&apos;s block</span>
                 <span className="src-d">
-                  {block ? `Clone a workout from ${clientName ? `${clientName}'s ` : ""}Block ${block.block_number}.` : "No block available."}
+                  {block ? `Clone a workout from ${clientName ? `${clientName}'s ` : ""}${blockLabel ?? `Block ${block.block_number}`}.` : "No block available."}
                 </span>
               </span>
               <span className="src-chev">{ICO.chev}</span>
@@ -439,7 +454,7 @@ export default function AddWorkoutPage() {
         {step === "block" && (
           <section className="pane on">
             <h1 className="step-title" style={{ margin: "0 0 2px" }}>
-              {block ? `Block ${block.block_number}` : "This client's block"}
+              {block ? (blockLabel ?? `Block ${block.block_number}`) : "This client's block"}
             </h1>
             <p className="step-sub" style={{ margin: "0 0 14px", color: "var(--muted)" }}>
               Clone a workout from this client&apos;s current block.

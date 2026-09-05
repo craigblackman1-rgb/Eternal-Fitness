@@ -155,10 +155,10 @@ export default async function MobileClientModePage({ params }: { params: { id: s
 
   const { data: blocksData } = await supabase
     .from("blocks")
-    .select("id, block_number, status, block_note")
+    .select("id, block_number, status, block_note, title")
     .eq("client_id", row.id)
     .order("block_number", { ascending: false });
-  const blocks = (blocksData ?? []) as { id: string; block_number: number; status: string; block_note: string | null }[];
+  const blocks = (blocksData ?? []) as { id: string; block_number: number; status: string; block_note: string | null; title: string | null }[];
 
   const blockIds = blocks.map((b) => b.id);
   const { data: sessionsData } = blockIds.length
@@ -241,7 +241,9 @@ export default async function MobileClientModePage({ params }: { params: { id: s
     ? {
         id: currentBlock.id,
         number: currentBlock.block_number,
-        focus: currentBlock.block_note && currentBlock.block_note !== "Auto-created when adding a workout." ? currentBlock.block_note : null,
+        // CR-EF-153 — prefer Esther's own block name over the free-text block_note.
+        focus: currentBlock.title?.trim()
+          || (currentBlock.block_note && currentBlock.block_note !== "Auto-created when adding a workout." ? currentBlock.block_note : null),
         done: blockDone,
         total: blockTotal,
         pct: blockPct,

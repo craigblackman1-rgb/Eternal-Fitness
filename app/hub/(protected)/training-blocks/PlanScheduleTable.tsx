@@ -175,9 +175,12 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
       header: "Block",
       sortable: true,
       sortValue: (row: BlockWithClient) => row.block_number,
-      className: "tabular-nums w-[80px]",
+      className: "min-w-[140px]",
       render: (row: BlockWithClient) => (
-        <span className="tabular-nums font-medium">Block {row.block_number}</span>
+        <span className="font-medium">
+          <span className="tabular-nums text-muted-foreground mr-1.5">#{row.block_number}</span>
+          {row.display_name}
+        </span>
       ),
     },
     {

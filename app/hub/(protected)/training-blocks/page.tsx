@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase-server";
 import { HubPageHeader } from "@/components/hub";
 import { PlanScheduleTable } from "./PlanScheduleTable";
 import { deriveBlockStatus } from "@/lib/block-status";
+import { blockDisplayName } from "@/lib/block-name";
 import Link from "next/link";
 import type { DBBlock, ClientProfile, BlockStatus } from "@/types";
 
@@ -23,6 +24,8 @@ export type BlockWithClient = DBBlock & {
   sessions_completed: number;
   sessions_total: number;
   derived_status: BlockStatus;
+  /** CR-EF-153 — computed via lib/block-name.ts, the single source of truth. */
+  display_name: string;
 };
 
 interface ClientRow {
@@ -98,6 +101,9 @@ export default async function TrainingBlocksPage() {
     const client = clientById.get(b.client_id);
     const counts = countsByBlock.get(b.id) ?? { completed: 0, total: 0 };
     const blockSessions = sessionsByBlock.get(b.id) ?? [];
+    // CR-EF-101 convention — sub-sessions occupy no slot, so the pot count
+    // (matching blockSessionCounts elsewhere) excludes them.
+    const potSessions = blockSessions.filter((s) => !s.parent_session_id);
     return {
       ...b,
       client_name: client?.name ?? null,
@@ -108,6 +114,7 @@ export default async function TrainingBlocksPage() {
       sessions_completed: counts.completed,
       sessions_total: counts.total,
       derived_status: deriveBlockStatus(b.status, blockSessions),
+      display_name: blockDisplayName(b, potSessions, potSessions.length),
     };
   });
 

@@ -8,6 +8,7 @@ import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveSessionPot } from "@/lib/session-pot";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
+import { blockDisplayName } from "@/lib/block-name";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus, DBSession, BlockStatus } from "@/types";
 
@@ -96,6 +97,15 @@ export default async function BlockViewPage({
 
   const derivedStatus = deriveBlockStatus(block.status, sessions);
 
+  // CR-EF-153 — single source of truth (lib/block-name.ts). Uses potSessions
+  // (real scheduled_at values, sub-sessions excluded) so the count agrees
+  // with totalSessions shown elsewhere on this page.
+  const blockDisplayNameLabel = blockDisplayName(
+    { title: (block as { title?: string | null }).title ?? null },
+    potSessions,
+    totalSessions,
+  );
+
   const clientCondition = client?.profile?.health?.conditions?.[0] ?? null;
 
   // Chronological positions — "Session N of M" labels
@@ -153,10 +163,10 @@ export default async function BlockViewPage({
   const { data: allBlocksData } = block.client_id
     ? await supabase
         .from("blocks")
-        .select("id, block_number, status, scheduled_start")
+        .select("id, block_number, status, scheduled_start, title")
         .eq("client_id", block.client_id)
         .order("block_number", { ascending: false })
-    : { data: [] as { id: string; block_number: number; status: string; scheduled_start: string | null }[] };
+    : { data: [] as { id: string; block_number: number; status: string; scheduled_start: string | null; title: string | null }[] };
 
   const totalBlockCount = (allBlocksData || []).length;
 
@@ -167,6 +177,7 @@ export default async function BlockViewPage({
       block_number: b.block_number,
       status: b.status as BlockStatus,
       scheduled_start: b.scheduled_start as string | null,
+      title: b.title as string | null,
     }));
 
   // Fetch session counts for previous blocks
@@ -207,6 +218,10 @@ export default async function BlockViewPage({
       sessionCount: counts?.total ?? 0,
       completedCount: counts?.completed ?? 0,
       dateRange: startLabel && endLabel ? (startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`) : "not scheduled",
+      // CR-EF-153 — title if Esther set one, else the ordinal (the row
+      // already shows the precise dateRange above, so no need for a second,
+      // less precise month-span here).
+      displayName: b.title?.trim() || `Block ${b.block_number}`,
     };
   });
 
@@ -216,6 +231,7 @@ export default async function BlockViewPage({
     block_note: block.block_note as string | null,
     summary: block.summary as string | null,
     status: block.status as BlockStatus,
+    title: (block as { title?: string | null }).title ?? null,
   };
 
   return (
@@ -239,6 +255,7 @@ export default async function BlockViewPage({
         blockStatus={derivedStatus}
         approvedAt={(block as { approved_at?: string | null }).approved_at ?? null}
         blockDateSpanLabel={blockDateSpanLabel}
+        blockDisplayNameLabel={blockDisplayNameLabel}
         totalSessions={totalSessions}
         totalBlockCount={totalBlockCount}
         completedSessions={consumedSlots}

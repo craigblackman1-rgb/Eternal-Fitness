@@ -23,6 +23,7 @@ import { deriveSessionStatus } from "@/lib/session-status";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { sessionWorkoutName, sessionBlockContext } from "@/lib/session-display";
+import { blockDisplayName } from "@/lib/block-name";
 import { isoToLocalTime, localPartsToISO, todayLocalISODate } from "@/lib/schedule-dates";
 import {
   IconFileText,
@@ -42,6 +43,8 @@ interface BlockRow {
   block_number: number;
   created_at: string;
   status: string;
+  /** CR-EF-153 — Esther's own name for the block; blank falls back to its date span. */
+  title?: string | null;
 }
 
 interface SessionRow {
@@ -529,7 +532,13 @@ export function TrainingTabContent({
                 <tbody>
                   {blocks.map((block) => (
                     <tr key={block.id} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)]">
-                      <td className="py-2.5 px-5 font-semibold text-foreground">Block {block.block_number}</td>
+                      <td className="py-2.5 px-5 font-semibold text-foreground">
+                        {blockDisplayName(
+                          block,
+                          sessions.filter((s) => s.block_id === block.id && !(s as any).parent_session_id),
+                          blockSessionCounts[block.block_number] ?? 0,
+                        )}
+                      </td>
                       <td className="py-2.5 px-5 text-muted-foreground whitespace-nowrap">
                         {blockDateRangeLabel(block.id, sessions)}
                       </td>
