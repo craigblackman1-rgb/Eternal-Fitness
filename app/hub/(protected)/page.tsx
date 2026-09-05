@@ -148,7 +148,7 @@ export default async function HubTodayPage() {
     alerts.push({
       id: "quiet", dot: "warn",
       headline: `${quietRows.length} client${quietRows.length === 1 ? "" : "s"} logged nothing in ${QUIET_DAYS} days`,
-      subline: `${names(quietRows)}. All of them have a block running.`,
+      subline: `${names(quietRows)}. ${quietRows.length === 1 ? "They have" : "All of them have"} a block running.`,
       actionLabel: "See them", href: "/hub/clients",
     });
   if (clearanceRows.length)
