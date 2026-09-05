@@ -99,7 +99,7 @@ export function WeekView({ entries, plannedEntries, unconfirmedCount, onSelectSe
         <div className="border border-[var(--hub-border)] rounded-[var(--r-nested)] overflow-hidden mb-[var(--d-section-gap)]" style={{ background: "var(--hub-card)" }}>
           <div className="px-4 py-2">
             <div className="flex items-center gap-3 py-[var(--d-row-y)]">
-              <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: "var(--s-warning)" }} />
+              <span className="w-[7px] h-[7px] rounded-pill shrink-0" style={{ background: "var(--s-warning)" }} />
               <span className="min-w-0 flex-1 text-[13.5px] text-foreground">
                 <b className="font-semibold">{unconfirmedCount} decisions</b> are waiting in triage before this calendar is complete
                 <span className="block text-[12.5px] text-muted-foreground mt-px">
@@ -306,11 +306,11 @@ export function WeekView({ entries, plannedEntries, unconfirmedCount, onSelectSe
                           {/* Status dot */}
                           <span className="shrink-0">
                             {isOffDay ? (
-                              <span className="w-[7px] h-[7px] rounded-full inline-block" style={{ background: "var(--s-warning)" }} />
+                              <span className="w-[7px] h-[7px] rounded-pill inline-block" style={{ background: "var(--s-warning)" }} />
                             ) : isCompleted ? (
-                              <span className="w-[7px] h-[7px] rounded-full inline-block" style={{ background: "var(--s-success)" }} />
+                              <span className="w-[7px] h-[7px] rounded-pill inline-block" style={{ background: "var(--s-success)" }} />
                             ) : needsLogging ? (
-                              <span className="w-[7px] h-[7px] rounded-full inline-block border border-dashed" style={{ borderColor: "var(--body)" }} />
+                              <span className="w-[7px] h-[7px] rounded-pill inline-block border border-dashed" style={{ borderColor: "var(--body)" }} />
                             ) : null}
                           </span>
 

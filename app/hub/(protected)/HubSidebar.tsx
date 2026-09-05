@@ -143,7 +143,7 @@ export function HubSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 onClick={() => toggleGroup(group.label)}
                 aria-expanded={!isCollapsed}
-                className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-1 mb-1.5 text-left hover:bg-[var(--hub-sidebar-hover)] transition-colors"
+                className="flex w-full items-center justify-between gap-2 rounded-nested px-3 py-1 mb-1.5 text-left hover:bg-[var(--hub-sidebar-hover)] transition-colors"
               >
                 <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/30">
                   {group.label}
@@ -174,7 +174,7 @@ export function HubSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                         )}
                       >
                         {isActive && (
-                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-rose" />
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-pill bg-rose" />
                         )}
                         <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-rose" : "text-white/45")} />
                         {item.label}
@@ -190,7 +190,7 @@ export function HubSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="px-3 py-3 border-t border-white/[0.07]">
         <div className="flex items-center gap-2.5 px-2 py-1.5">
-          <div className="w-8 h-8 rounded-full bg-rose/20 text-rose flex items-center justify-center text-xs font-bold shrink-0">
+          <div className="w-8 h-8 rounded-pill bg-rose/20 text-rose flex items-center justify-center text-xs font-bold shrink-0">
             EF
           </div>
           <div className="text-xs min-w-0 flex-1">

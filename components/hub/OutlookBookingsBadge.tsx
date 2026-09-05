@@ -53,7 +53,7 @@ export function OutlookBookingsBadge() {
       <Link href="/hub/schedule/outlook" title="Resolve Outlook items that need your attention — bookings that haven't reached the app, and sessions that might collide with an event you already have">
         <IconCalendar className="h-4 w-4 mr-1.5" />
         Outlook bookings
-        <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 rounded-full bg-[var(--color-rose)] text-white text-[11px] font-bold leading-5 text-center px-1 border-2 border-[var(--hub-card)]">
+        <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 rounded-pill bg-[var(--color-rose)] text-white text-[11px] font-bold leading-5 text-center px-1 border-2 border-[var(--hub-card)]">
           {total}
         </span>
       </Link>

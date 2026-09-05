@@ -130,7 +130,7 @@ export function ClientBookingPanel({ clientId, clientName, mobile = false }: Cli
     <>
       <div className="mb-4">
         {/* Warning alert banner */}
-        <div className="rounded-xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4">
+        <div className="rounded-surface border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-4">
           <div className="flex gap-3">
             <IconTriangleAlert className="w-[18px] h-[18px] shrink-0 text-[var(--status-warning-text)] mt-0.5" />
             <div className="flex-1 min-w-0">
@@ -187,12 +187,12 @@ function BookingRowItem({
   onDismiss: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-3">
+    <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] p-3">
       <div className={cn("flex flex-wrap items-start gap-3", mobile && "gap-2.5")}>
         {/* Time/date icon */}
         <div className="flex gap-2.5 min-w-0 shrink-0">
           <div className={cn(
-            "rounded-[10px] grid place-items-center shrink-0 border",
+            "rounded-nested grid place-items-center shrink-0 border",
             mobile ? "w-8 h-8 rounded-lg" : "w-9 h-9",
             "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--color-rose)]"
           )}>
@@ -207,7 +207,7 @@ function BookingRowItem({
         {/* Subject */}
         {!mobile && (
           <div className="border-l-2 border-[var(--hub-border)] pl-2.5 ml-0.5 self-center min-w-0 flex-1">
-            <code className="text-xs text-foreground/75 break-words font-[ui-monospace,'SF_Mono',Menlo,monospace] bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-md px-1.5 py-px inline-block max-w-full">
+            <code className="text-xs text-foreground/75 break-words font-[ui-monospace,'SF_Mono',Menlo,monospace] bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-nested px-1.5 py-px inline-block max-w-full">
               {row.subject || "(no subject)"}
             </code>
           </div>

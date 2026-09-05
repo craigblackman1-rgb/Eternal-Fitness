@@ -96,7 +96,7 @@ export function ClientsScreen({
       <div className="flex items-baseline gap-2.5 flex-wrap mb-3.5">
         <h1 className="m-0 text-[25px] font-bold tracking-tight text-[var(--color-ink)]">Clients</h1>
         {needCount > 0 && (
-          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
+          <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
             {needCount} need{needCount === 1 ? "s" : ""} you
           </span>
         )}
@@ -119,7 +119,7 @@ export function ClientsScreen({
               key={item.id}
               className="flex items-center gap-3 py-2 px-3 rounded-nested border border-transparent transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)]"
             >
-              <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${DOT[item.dot]}`} />
+              <span className={`w-[7px] h-[7px] rounded-pill shrink-0 ${DOT[item.dot]}`} />
               <span className="min-w-0 flex-1 text-[13.5px] text-[var(--color-ink)]">
                 <b className="font-semibold">{item.headline}</b>
                 {item.subline && (
@@ -139,7 +139,7 @@ export function ClientsScreen({
             <>
               <hr className="h-px bg-[var(--hub-border)] border-0 my-3" />
               <div className="flex items-center gap-2.5 py-2 px-3 text-[13px] text-[var(--color-muted)]">
-                <span className="w-[7px] h-[7px] rounded-full bg-[var(--status-success)] shrink-0" />
+                <span className="w-[7px] h-[7px] rounded-pill bg-[var(--status-success)] shrink-0" />
                 <span>
                   The other {settledNames.length} need nothing from you today
                   {settledNames.length <= 6 ? ` — ${settledNames.join(", ")}` : ""}.
@@ -150,7 +150,7 @@ export function ClientsScreen({
 
           {queue.length === 0 && (
             <div className="flex items-center gap-2.5 py-2 px-3 text-[13px] text-[var(--color-muted)]">
-              <span className="w-[7px] h-[7px] rounded-full bg-[var(--status-success)] shrink-0" />
+              <span className="w-[7px] h-[7px] rounded-pill bg-[var(--status-success)] shrink-0" />
               <span>Nothing needs you today.</span>
             </div>
           )}
@@ -186,7 +186,7 @@ export function ClientsScreen({
               href={`/hub/clients/${r.clientNumber}`}
               className={`flex items-center gap-3 py-2 px-4 border-t border-[var(--hub-border)] first:border-t-0 no-underline transition-colors hover:bg-[var(--hub-hover)] ${r.archived ? "opacity-60" : ""}`}
             >
-              <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${DOT[r.dot]}`} />
+              <span className={`w-[7px] h-[7px] rounded-pill shrink-0 ${DOT[r.dot]}`} />
               <span className="w-[190px] shrink-0 text-[13.5px] font-semibold text-[var(--color-ink)] truncate">
                 {r.name}
                 {r.archived && <span className="ml-1.5 text-[11px] font-normal text-[var(--color-muted)]">archived</span>}

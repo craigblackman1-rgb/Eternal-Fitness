@@ -82,7 +82,7 @@ export function InjuryHistoryTable({ value, onChange }: InjuryHistoryTableProps)
           </div>
         </div>
       ))}
-      <Button type="button" variant="outline" onClick={add} className="gap-1.5 rounded-full border-border/60">
+      <Button type="button" variant="outline" onClick={add} className="gap-1.5 rounded-pill border-border/60">
         <IconPlus className="h-4 w-4" />
         Add injury
       </Button>

@@ -154,7 +154,7 @@ export function ReviewFlowClient({
       {/* Back link */}
       <Link
         href={`/hub/clients/${clientNumber}`}
-        className="inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md px-2 py-0.5 -ml-2"
+        className="inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground hover:text-foreground transition-colors rounded-nested px-2 py-0.5 -ml-2"
       >
         <IconChevronLeft className="w-4 h-4" />
         Back to {client.name}
@@ -162,7 +162,7 @@ export function ReviewFlowClient({
 
       {/* Page header */}
       <div className="flex items-center gap-3.5">
-        <div className="w-[44px] h-[44px] rounded-full bg-rose/10 text-rose flex items-center justify-center text-[15px] font-bold shrink-0">
+        <div className="w-[44px] h-[44px] rounded-pill bg-rose/10 text-rose flex items-center justify-center text-[15px] font-bold shrink-0">
           {initials(client.name)}
         </div>
         <div className="min-w-0">
@@ -180,7 +180,7 @@ export function ReviewFlowClient({
       </div>
 
       {/* Last review context strip */}
-      <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground p-2.5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px]">
+      <div className="flex items-center gap-2 text-[12.5px] text-muted-foreground p-2.5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-nested">
         <IconClock className="w-[15px] h-[15px] shrink-0 text-muted-foreground" />
         {lastReview ? (
           <span>
@@ -266,7 +266,7 @@ export function ReviewFlowClient({
                       type="button"
                       onClick={() => setDecision(key)}
                       className={cn(
-                        "flex items-start gap-3 p-3.5 border rounded-[10px] bg-[var(--hub-card)] cursor-pointer transition-colors w-full text-left",
+                        "flex items-start gap-3 p-3.5 border rounded-nested bg-[var(--hub-card)] cursor-pointer transition-colors w-full text-left",
                         selected
                           ? "border-rose bg-rose/5"
                           : "border-[var(--hub-border)] hover:border-[var(--hub-field-hover)]",
@@ -295,7 +295,7 @@ export function ReviewFlowClient({
               {/* Consequence box */}
               <div
                 className={cn(
-                  "rounded-[10px] p-3.5 border flex gap-2.5",
+                  "rounded-nested p-3.5 border flex gap-2.5",
                   decision === "continue"
                     ? "bg-[var(--status-success-bg)] border-[var(--status-success-border)]"
                     : decision === "adjust"
@@ -395,7 +395,7 @@ function Stepper({ steps, current, onStepClick }: { steps: readonly string[]; cu
             >
               <span
                 className={cn(
-                  "w-[26px] h-[26px] rounded-full border grid place-items-center text-[12px] font-bold shrink-0",
+                  "w-[26px] h-[26px] rounded-pill border grid place-items-center text-[12px] font-bold shrink-0",
                   isOn
                     ? "bg-rose border-rose text-white"
                     : isDone
@@ -484,7 +484,7 @@ function ProgressStep({
           />
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm overflow-hidden mb-4">
               <div className="px-4 py-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Delivered</p>
                 <p className="text-base font-bold text-foreground mt-0.5 tabular-nums">{completedSessions.length}</p>
@@ -532,7 +532,7 @@ function OutstandingStep({
         icon={<IconTriangleAlert className="w-4 h-4" />}
         title="Outstanding"
         subtitle="Compliance actions, unreviewed cancellations, lapse-flagged sessions"
-        action={openCount > 0 ? <span className="inline-grid place-items-center min-w-[20px] h-[20px] px-1.5 rounded-full bg-amber/10 border border-amber/20 text-amber text-[11.5px] font-bold tabular-nums">{openCount}</span> : undefined}
+        action={openCount > 0 ? <span className="inline-grid place-items-center min-w-[20px] h-[20px] px-1.5 rounded-pill bg-amber/10 border border-amber/20 text-amber text-[11.5px] font-bold tabular-nums">{openCount}</span> : undefined}
       />
       <div className="space-y-4">
         {/* Compliance actions */}
@@ -554,7 +554,7 @@ function OutstandingStep({
                 <div className="flex items-center gap-2.5 flex-1 min-w-0">
                   <svg className="hub-acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                   <span className="flex-1 min-w-0 truncate text-[13px] font-semibold text-foreground">{action}</span>
-                  <span className="shrink-0 inline-flex items-center gap-1.5 h-[22px] px-2.5 rounded-full border text-[11.5px] font-semibold bg-amber/5 border-amber/20 text-amber">
+                  <span className="shrink-0 inline-flex items-center gap-1.5 h-[22px] px-2.5 rounded-pill border text-[11.5px] font-semibold bg-amber/5 border-amber/20 text-amber">
                     {action.includes("overdue") ? "Action needed" : "Pending"}
                   </span>
                 </div>
@@ -566,7 +566,7 @@ function OutstandingStep({
         {/* Unreviewed cancellations */}
         <SectionHeader title="Unreviewed cancellations" />
         {unreviewedCancellations.length > 0 ? (
-          <div className="border border-amber/20 bg-amber/5 rounded-[10px] overflow-hidden">
+          <div className="border border-amber/20 bg-amber/5 rounded-nested overflow-hidden">
             <div className="flex items-center gap-2.5 p-3">
               <div className="w-7 h-7 rounded-lg bg-[var(--hub-card)] text-amber grid place-items-center shrink-0">
                 <IconTriangleAlert className="w-4 h-4" />
@@ -589,7 +589,7 @@ function OutstandingStep({
                   <span className="text-[12.5px] text-muted-foreground flex-1 min-w-0">
                     {s.cancel_reason || "Outlook shows cancelled — charged/free not set by a trainer."}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 h-[22px] px-2.5 rounded-full border text-[11.5px] font-semibold bg-amber/5 border-amber/20 text-amber">
+                  <span className="inline-flex items-center gap-1.5 h-[22px] px-2.5 rounded-pill border text-[11.5px] font-semibold bg-amber/5 border-amber/20 text-amber">
                     Unreviewed
                   </span>
                 </div>
@@ -709,10 +709,10 @@ function PositionStep({
         ) : (effectivePurchased != null ? (
           <>
             {/* Bar */}
-            <div className="flex h-3 rounded-full overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session position breakdown">
-              {pctCompleted > 0 && <span className="h-full rounded-l-full" style={{ width: `${pctCompleted}%`, backgroundColor: "var(--status-success)" }} />}
+            <div className="flex h-3 rounded-pill overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session position breakdown">
+              {pctCompleted > 0 && <span className="h-full rounded-l-pill" style={{ width: `${pctCompleted}%`, backgroundColor: "var(--status-success)" }} />}
               {pctCharged > 0 && <span className="h-full" style={{ width: `${pctCharged}%`, backgroundColor: "var(--status-danger)" }} />}
-              {pctRemaining > 0 && <span className="h-full rounded-r-full" style={{ width: `${pctRemaining}%`, background: "repeating-linear-gradient(135deg,#E4E7EC 0 5px,#F2F3F6 5px 10px)" }} />}
+              {pctRemaining > 0 && <span className="h-full rounded-r-pill" style={{ width: `${pctRemaining}%`, background: "repeating-linear-gradient(135deg,#E4E7EC 0 5px,#F2F3F6 5px 10px)" }} />}
             </div>
             <div className="flex flex-wrap gap-1.5">
               <Legend color="var(--status-success)" label="Completed" count={pot.completed} />
@@ -728,7 +728,7 @@ function PositionStep({
 
         {/* Unreviewed — shown again as "not counted above" */}
         {unreviewedCount > 0 && (
-          <div className="border border-amber/20 bg-amber/5 rounded-[10px] overflow-hidden">
+          <div className="border border-amber/20 bg-amber/5 rounded-nested overflow-hidden">
             <div className="flex items-center gap-2.5 p-3">
               <div className="w-7 h-7 rounded-lg bg-[var(--hub-card)] text-amber grid place-items-center shrink-0">
                 <IconTriangleAlert className="w-4 h-4" />
@@ -879,7 +879,7 @@ function ConfirmationPanel({
     <div className="space-y-4 max-w-[900px] mx-auto">
       <Link
         href={`/hub/clients/${clientNumber}`}
-        className="inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md px-2 py-0.5 -ml-2"
+        className="inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground hover:text-foreground transition-colors rounded-nested px-2 py-0.5 -ml-2"
       >
         <IconChevronLeft className="w-4 h-4" />
         Back to {client.name}
@@ -887,7 +887,7 @@ function ConfirmationPanel({
 
       <HubCard>
         <div className="text-center py-10 px-8">
-          <div className="w-14 h-14 rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-pill bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center mx-auto mb-4">
             <IconCheckCircle className="w-7 h-7" />
           </div>
           <h2 className="text-[19px] font-extrabold text-foreground mb-1.5">Decision recorded</h2>
@@ -899,7 +899,7 @@ function ConfirmationPanel({
             <DataRow label="Recorded by" value={`${review.recorded_by_name} · ${formatDateTime(review.created_at)}`} muted />
           </dl>
 
-          <div className="max-w-[440px] mx-auto mt-4 text-left text-[12.5px] text-foreground/75 bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-[10px] p-3 leading-relaxed">
+          <div className="max-w-[440px] mx-auto mt-4 text-left text-[12.5px] text-foreground/75 bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-nested p-3 leading-relaxed">
             <span className="font-bold text-foreground">Where this shows up: </span>
             {client.name}&apos;s overview panel as the latest review outcome, and in the review history below.
             {decision !== "continue" && <> Add a workout for {firstName(client.name)} is available on the next screen if you are ready to set up the new programme.</>}
@@ -941,7 +941,7 @@ function ConfirmationPanel({
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold text-foreground">
                 {DECISIONS[review.decision]?.label ?? review.decision}
-                <span className="ml-1.5 inline-flex items-center h-[22px] px-2.5 rounded-full bg-[var(--status-success-bg)] border border-[var(--status-success-border)] text-[11.5px] font-semibold text-[var(--status-success-text)]">
+                <span className="ml-1.5 inline-flex items-center h-[22px] px-2.5 rounded-pill bg-[var(--status-success-bg)] border border-[var(--status-success-border)] text-[11.5px] font-semibold text-[var(--status-success-text)]">
                   Just recorded
                 </span>
               </p>
@@ -984,7 +984,7 @@ function SectionHeader({ title }: { title: string }) {
 
 function InfoLine({ children, variant = "success" }: { children: React.ReactNode; variant?: "success" | "muted" | "danger" }) {
   return (
-    <div className={cn("flex items-start gap-2 text-[12.5px] text-foreground/75 p-3 bg-[var(--hub-hover)] border rounded-[10px]",
+    <div className={cn("flex items-start gap-2 text-[12.5px] text-foreground/75 p-3 bg-[var(--hub-hover)] border rounded-nested",
       variant === "danger" ? "bg-[var(--status-danger-bg)] border-[var(--status-danger-border)]" : "border-[var(--hub-border)]",
     )}>
       {variant === "success" && <IconCheckCircle className="w-[15px] h-[15px] shrink-0 mt-0.5 text-[var(--status-success-text)]" />}
@@ -998,7 +998,7 @@ function InfoLine({ children, variant = "success" }: { children: React.ReactNode
 function Legend({ color, label, count }: { color: string; label: string; count: number }) {
   return (
     <span className="flex items-center gap-1.5 text-xs text-foreground/75">
-      <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
+      <span className="w-2.5 h-2.5 rounded-control shrink-0" style={{ backgroundColor: color }} />
       {label} <span className="font-bold text-foreground tabular-nums">{count}</span>
     </span>
   );

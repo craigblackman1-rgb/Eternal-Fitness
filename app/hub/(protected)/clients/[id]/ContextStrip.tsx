@@ -15,7 +15,7 @@ export function ContextStrip({
   return (
     <div
       className={cn(
-        "flex items-center gap-4 sm:gap-6 rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-4 sm:px-5 py-3 text-[13px] flex-wrap",
+        "flex items-center gap-4 sm:gap-6 rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] px-4 sm:px-5 py-3 text-[13px] flex-wrap",
         className,
       )}
     >

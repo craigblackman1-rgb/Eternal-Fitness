@@ -67,7 +67,7 @@ export function CommsTabContent({
             key={s.key}
             onClick={() => handleSegmentChange(s.key)}
             className={cn(
-              "rounded-md px-4 py-2 text-[13px] font-semibold transition-all",
+              "rounded-nested px-4 py-2 text-[13px] font-semibold transition-all",
               segment === s.key
                 ? "bg-[var(--hub-card)] text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -84,7 +84,7 @@ export function CommsTabContent({
               Snapshot card. It sets how often this client is due a written
               update, so it belongs beside the updates it schedules rather than
               on a top-level summary. */}
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
             <UpdateIntervalControl
               clientNumber={clientNumber}
               updateInterval={updateInterval}

@@ -97,7 +97,7 @@ export function CancelSessionDialog({
       <div className="relative w-full max-w-[560px] mx-4 bg-[var(--hub-canvas)] shadow-2xl flex flex-col max-h-[calc(100vh-48px)]" style={{ borderRadius: "var(--r-surface)" }}>
         {/* Header */}
         <div className="flex items-start gap-3 px-6 pt-5 pb-4 bg-[var(--hub-card)] border-b border-[var(--hub-border)]" style={{ borderRadius: "var(--r-surface) var(--r-surface) 0 0" }}>
-          <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-[var(--status-danger-bg)] text-[var(--status-danger)] shrink-0">
+          <div className="w-9 h-9 rounded-nested flex items-center justify-center bg-[var(--status-danger-bg)] text-[var(--status-danger)] shrink-0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={18} height={18}>
               <circle cx="12" cy="12" r="9" />
               <path d="m15 9-6 6M9 9l6 6" />
@@ -138,7 +138,7 @@ export function CancelSessionDialog({
 
           {/* Option: Charged */}
           <label
-            className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
+            className={`flex items-start gap-3 p-3.5 rounded-surface border cursor-pointer transition-colors ${
               chargedFree === "charged"
                 ? "border-rose bg-rose/5"
                 : "border-[var(--hub-border)] bg-[var(--hub-card)] hover:border-[var(--hub-field-hover)]"
@@ -154,7 +154,7 @@ export function CancelSessionDialog({
             <span className="min-w-0">
               <span className="text-[13.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
                 Charged — late notice
-                <span className="inline-flex items-center rounded-full px-2 py-0 text-[10.5px] font-extrabold uppercase tracking-wider bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-bd)]">
+                <span className="inline-flex items-center rounded-pill px-2 py-0 text-[10.5px] font-extrabold uppercase tracking-wider bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-bd)]">
                   Uses a session
                 </span>
               </span>
@@ -166,7 +166,7 @@ export function CancelSessionDialog({
 
           {/* Option: Free */}
           <label
-            className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors ${
+            className={`flex items-start gap-3 p-3.5 rounded-surface border cursor-pointer transition-colors ${
               chargedFree === "free"
                 ? "border-rose bg-rose/5"
                 : "border-[var(--hub-border)] bg-[var(--hub-card)] hover:border-[var(--hub-field-hover)]"
@@ -182,7 +182,7 @@ export function CancelSessionDialog({
             <span className="min-w-0">
               <span className="text-[13.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
                 Free — enough notice
-                <span className="inline-flex items-center rounded-full px-2 py-0 text-[10.5px] font-extrabold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)]">
+                <span className="inline-flex items-center rounded-pill px-2 py-0 text-[10.5px] font-extrabold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)]">
                   No session used
                 </span>
               </span>
@@ -195,7 +195,7 @@ export function CancelSessionDialog({
           {/* Consequence preview */}
           {chargedFree && (
             <div
-              className={`rounded-xl p-4 border flex gap-3 ${
+              className={`rounded-surface p-4 border flex gap-3 ${
                 chargedFree === "charged"
                   ? "bg-[var(--status-danger-bg)] border-[var(--status-danger-bd)]"
                    : "bg-[var(--status-success-bg)] border-[var(--status-success-border)]"
@@ -232,7 +232,7 @@ export function CancelSessionDialog({
                     </>
                   )}
                 </p>
-                <div className="inline-flex items-center gap-2 mt-2.5 text-xs font-bold text-body bg-white/80 border border-[var(--hub-border)] rounded-full px-3 py-0.5 tabular-nums">
+                <div className="inline-flex items-center gap-2 mt-2.5 text-xs font-bold text-body bg-white/80 border border-[var(--hub-border)] rounded-pill px-3 py-0.5 tabular-nums">
                   <span>{pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"}{pot.purchasedIsEstimate ? " (est.)" : ""} remaining</span>
                   <span className="text-muted-foreground font-semibold">&rarr;</span>
                   <span className="text-foreground">{chargedFree === "charged" ? (afterCharged != null ? afterCharged : "?") : (pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?")}{chargedFree === "charged" && pot.purchasedIsEstimate && afterCharged != null ? " (est.)" : ""} remaining</span>

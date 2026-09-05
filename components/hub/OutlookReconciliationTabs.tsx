@@ -43,7 +43,7 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
     );
   const countClass = (on: boolean) =>
     cn(
-      "inline-flex items-center justify-center min-w-[19px] h-[19px] px-1.5 rounded-full text-[11px] font-extrabold tabular-nums text-white",
+      "inline-flex items-center justify-center min-w-[19px] h-[19px] px-1.5 rounded-pill text-[11px] font-extrabold tabular-nums text-white",
       on ? "bg-[var(--status-danger)]" : "bg-[var(--hub-field-border)]"
     );
 
@@ -51,7 +51,7 @@ export function OutlookReconciliationTabs({ active }: { active: "bookings" | "du
     <nav
       role="tablist"
       aria-label="Outlook reconciliation queues"
-      className="inline-flex bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px] p-1 gap-1 mb-4"
+      className="inline-flex bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-nested p-1 gap-1 mb-4"
     >
       <Link role="tab" aria-selected={active === "bookings"} href="/hub/schedule/outlook" className={tabClass(active === "bookings")}>
         <IconCalendar className="h-3.5 w-3.5" />

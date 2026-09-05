@@ -70,7 +70,7 @@ export async function EmailDeliveryTimeline({ entityType, entityId }: { entityTy
               {i < events.length - 1 && (
                 <span className="absolute left-[9px] top-[26px] bottom-[-6px] w-px bg-[var(--hub-border)]" />
               )}
-              <span className={`relative z-10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${c.bg} ${c.text}`}>
+              <span className={`relative z-10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-pill ${c.bg} ${c.text}`}>
                 {EVENT_ICON[e.event]}
               </span>
               <div className="min-w-0">

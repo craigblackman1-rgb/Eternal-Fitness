@@ -26,7 +26,7 @@ function InitialsCircle({ name }: { name: string }) {
     .toUpperCase()
     .slice(0, 2);
   return (
-    <div className="w-8 h-8 rounded-full bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
+    <div className="w-8 h-8 rounded-pill bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
       {initials}
     </div>
   );
@@ -55,7 +55,7 @@ const columns: HubColumn<DBClient>[] = [
         <InitialsCircle name={client.name} />
         <span className="font-semibold text-foreground truncate">{client.name}</span>
         {client.client_status === "archived" && (
-          <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-full px-2 py-0.5 shrink-0">
+          <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-pill px-2 py-0.5 shrink-0">
             Archived
           </span>
         )}

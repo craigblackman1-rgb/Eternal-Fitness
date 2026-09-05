@@ -421,7 +421,7 @@ export function MergedNotesPanel({
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
-    <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)]">
+    <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)]">
       {/* Header */}
       <div className="flex items-center gap-2.5 px-5 pt-5 pb-0">
         <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground shrink-0">
@@ -504,7 +504,7 @@ export function MergedNotesPanel({
                     type="button"
                     onClick={() => setFilter(fk)}
                     aria-pressed={on}
-                    className={`inline-flex items-center gap-1.5 h-[30px] px-3 rounded-full border text-[12.5px] font-semibold transition-colors ${
+                    className={`inline-flex items-center gap-1.5 h-[30px] px-3 rounded-pill border text-[12.5px] font-semibold transition-colors ${
                       on
                         ? "bg-[rgba(193,131,159,0.12)] border-[rgba(193,131,159,0.26)] text-[var(--rose-text)] font-bold"
                         : "border-[var(--hub-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] hover:text-foreground"
@@ -543,7 +543,7 @@ export function MergedNotesPanel({
           ) : loadError ? (
             /* Load failure — must never look like an empty record */
             <div className="text-center py-[34px] px-5 rounded-[12px] bg-[rgba(239,68,68,0.07)] border border-[rgba(239,68,68,0.22)]">
-              <div className="w-[46px] h-[46px] rounded-full mx-auto mb-3.5 flex items-center justify-center bg-white text-[var(--status-danger)]">
+              <div className="w-[46px] h-[46px] rounded-pill mx-auto mb-3.5 flex items-center justify-center bg-white text-[var(--status-danger)]">
                 <IconWarn />
               </div>
               <div className="text-[15px] font-bold text-foreground">Notes could not be loaded</div>
@@ -782,7 +782,7 @@ function NoteRow({
         {sessionLink && (
           <a
             href={sessionLink}
-            className="inline-flex items-center gap-1.5 mt-2 h-[26px] px-2.5 rounded-full border border-[var(--hub-border)] bg-[var(--hub-card)] text-[var(--color-teal)] text-xs font-bold no-underline max-w-full hover:bg-[var(--hub-hover)] hover:text-[#066A75] hover:border-[rgba(34,176,190,0.3)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-rose)] focus-visible:outline-offset-2"
+            className="inline-flex items-center gap-1.5 mt-2 h-[26px] px-2.5 rounded-pill border border-[var(--hub-border)] bg-[var(--hub-card)] text-[var(--color-teal)] text-xs font-bold no-underline max-w-full hover:bg-[var(--hub-hover)] hover:text-[#066A75] hover:border-[rgba(34,176,190,0.3)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-rose)] focus-visible:outline-offset-2"
           >
             <IconOpenExternal />
             <span className="overflow-hidden text-ellipsis whitespace-nowrap">
@@ -872,7 +872,7 @@ function EmptyNoteState({
 
   return (
     <div className="text-center py-[34px] px-5">
-      <div className="w-[46px] h-[46px] rounded-full mx-auto mb-3.5 flex items-center justify-center bg-[var(--hub-hover)] text-muted-foreground">
+      <div className="w-[46px] h-[46px] rounded-pill mx-auto mb-3.5 flex items-center justify-center bg-[var(--hub-hover)] text-muted-foreground">
         {allEmpty ? <IconNote /> : <IconWarn />}
       </div>
       <div className="text-[15px] font-bold text-foreground">{title}</div>

@@ -202,7 +202,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                 aria-pressed={view === "grid"}
                 aria-label="Grid view"
                 title="Grid view"
-                className={`w-8 h-8 rounded-md grid place-items-center transition-colors ${view === "grid" ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                className={`w-8 h-8 rounded-nested grid place-items-center transition-colors ${view === "grid" ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5">
                   <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -217,7 +217,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                 aria-pressed={view === "list"}
                 aria-label="List view"
                 title="List view"
-                className={`w-8 h-8 rounded-md grid place-items-center transition-colors ${view === "list" ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                className={`w-8 h-8 rounded-nested grid place-items-center transition-colors ${view === "list" ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-3.5 h-3.5">
                   <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
@@ -248,10 +248,10 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
                   >
                     <Link href={`/hub/document-templates/${t.id}`} className="contents">
                       <div className="flex items-center gap-2.5 mb-2.5">
-                        <span className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${c.bg} ${c.text}`}>
+                        <span className={`w-[34px] h-[34px] rounded-nested flex items-center justify-center shrink-0 ${c.bg} ${c.text}`}>
                           <Icon className="w-4 h-4" />
                         </span>
-                        <span className={`ml-auto inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${c.bg} ${c.text} ${c.border}`}>
+                        <span className={`ml-auto inline-flex items-center rounded-pill border px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${c.bg} ${c.text} ${c.border}`}>
                           {meta.label.split(" & ")[0]}
                         </span>
                       </div>
@@ -294,7 +294,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
               })}
             </div>
           ) : (
-            <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden overflow-x-auto">
+            <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-[var(--hub-border)] bg-[var(--hub-hover)] text-left">
@@ -371,7 +371,7 @@ export function TemplatesLibrary({ templates, clients }: { templates: DocumentTe
 
       <HubCard>
         <div className="flex items-start gap-4">
-          <span className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
+          <span className="w-[34px] h-[34px] rounded-nested flex items-center justify-center shrink-0 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
             <IconFileText className="w-4 h-4" />
           </span>
           <div className="min-w-0 flex-1">

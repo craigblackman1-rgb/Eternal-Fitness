@@ -182,7 +182,7 @@ export default function TransactionsPage() {
       {/* Last import summary */}
       {lastImport && (
         <HubCard className="flex items-center gap-3.5 p-4">
-          <div className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-success-bg)] text-[var(--color-teal)] flex items-center justify-center shrink-0">
+          <div className="w-[38px] h-[38px] rounded-nested bg-[var(--status-success-bg)] text-[var(--color-teal)] flex items-center justify-center shrink-0">
             <IconCheck className="w-[18px] h-[18px]" />
           </div>
           <div className="flex-1 min-w-0">
@@ -201,7 +201,7 @@ export default function TransactionsPage() {
       {parseError && (
         <HubCard>
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-pill bg-[var(--status-danger-bg)] text-[var(--status-danger)] flex items-center justify-center shrink-0 mt-0.5">
               <IconSearch className="w-4 h-4" />
             </div>
             <div>

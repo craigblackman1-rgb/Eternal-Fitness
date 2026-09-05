@@ -153,9 +153,9 @@ export function SessionsClient({
     <div className="space-y-5">
       {/* ── Confirmation banner ── */}
       {showBanner && (
-        <div className="relative flex gap-3.5 items-start bg-white rounded-2xl border border-[rgba(8,126,139,.22)] shadow-sm p-4 pl-5 overflow-hidden">
+        <div className="relative flex gap-3.5 items-start bg-white rounded-surface border border-[rgba(8,126,139,.22)] shadow-sm p-4 pl-5 overflow-hidden">
           <div className="absolute inset-y-0 left-0 w-1 bg-[var(--color-teal)]" />
-          <div className="w-[38px] h-[38px] rounded-full bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] grid place-items-center shrink-0 ml-1.5">
+          <div className="w-[38px] h-[38px] rounded-pill bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] grid place-items-center shrink-0 ml-1.5">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
           </div>
           <div className="flex-1 min-w-0">
@@ -165,11 +165,11 @@ export function SessionsClient({
               inbox, and a reminder follows the day before.
             </p>
             <div className="flex flex-wrap gap-2 mt-2.5">
-              <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-white px-3 py-1 text-[13px] font-semibold hover:bg-[var(--hover)]">
+              <button type="button" className="inline-flex items-center gap-1.5 rounded-nested border border-border bg-white px-3 py-1 text-[13px] font-semibold hover:bg-[var(--hover)]">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" /></svg>
                 Add to calendar
               </button>
-              <button type="button" className="inline-flex items-center gap-1.5 rounded-[10px] px-3 py-1 text-[13px] font-semibold text-body hover:bg-[var(--hover)]">
+              <button type="button" className="inline-flex items-center gap-1.5 rounded-nested px-3 py-1 text-[13px] font-semibold text-body hover:bg-[var(--hover)]">
                 How cancelling works
               </button>
             </div>
@@ -194,7 +194,7 @@ export function SessionsClient({
       </div>
 
       {/* ── Pot strip ── */}
-      <section className="flex flex-wrap items-center gap-4 lg:gap-6 bg-white border border-border rounded-2xl shadow-sm p-4">
+      <section className="flex flex-wrap items-center gap-4 lg:gap-6 bg-white border border-border rounded-surface shadow-sm p-4">
         <div className="flex items-baseline gap-2.5 shrink-0">
           <span className="text-4xl font-bold tracking-[-.03em] text-foreground tabular-nums" style={{ fontFamily: "var(--serif, Georgia)" }}>
             {pot.purchasedIsEstimate ? pot.estimatedRemaining : pot.remaining ?? "?"}
@@ -219,7 +219,7 @@ export function SessionsClient({
         <div className="text-[12.5px] leading-relaxed text-muted-foreground shrink-0">
           Use by <b className="text-foreground">{expiryLabel ?? "—"}</b>
           {lastExt && (
-            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] border border-[rgba(8,126,139,.22)] ml-2 mt-1">
+            <span className="inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] border border-[rgba(8,126,139,.22)] ml-2 mt-1">
               Extended by Esther
             </span>
           )}
@@ -229,7 +229,7 @@ export function SessionsClient({
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
         <div className="space-y-5">
           {/* ── Upcoming ── */}
-          <section className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+          <section className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
             <div className="flex items-start gap-3 p-5 pb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(193,131,159,.10)] text-[var(--color-rose)]">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
@@ -267,21 +267,21 @@ export function SessionsClient({
                         <div className="flex flex-wrap items-center gap-2 mt-2">
                           {nt.inside ? (
                             <>
-                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[#F7EFDD] text-[#7A5A17] border border-[rgba(176,138,62,.26)]">
+                              <span className="inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[11px] font-bold bg-[#F7EFDD] text-[#7A5A17] border border-[rgba(176,138,62,.26)]">
                                 <IconWarn /> Notice window closed
                               </span>
                               <span className="text-[12px] text-muted-foreground">Cancelling now still uses this session</span>
                             </>
                           ) : nt.hoursToClose <= 24 ? (
                             <>
-                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(193,131,159,.10)] text-[#94566F] border border-[rgba(193,131,159,.22)]">
+                              <span className="inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(193,131,159,.10)] text-[#94566F] border border-[rgba(193,131,159,.22)]">
                                 <IconClock /> Free to cancel for {fmtDur(nt.hoursToClose)}
                               </span>
                               <span className="text-[12px] text-muted-foreground">Window closes {fmtWhenShort(nt.closes.toISOString())}</span>
                             </>
                           ) : (
                             <>
-                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] border border-[rgba(8,126,139,.22)]">
+                              <span className="inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] border border-[rgba(8,126,139,.22)]">
                                 <IconCheck /> Free to cancel
                               </span>
                               <span className="text-[12px] text-muted-foreground">Until {fmtWhenShort(nt.closes.toISOString())}</span>
@@ -290,13 +290,13 @@ export function SessionsClient({
                         </div>
                       </div>
                       <div className="flex gap-2 shrink-0 ml-auto">
-                        <button type="button" className="rounded-[10px] border border-border bg-white px-3 py-1 text-[13px] font-semibold hover:bg-[var(--hover)]">
+                        <button type="button" className="rounded-nested border border-border bg-white px-3 py-1 text-[13px] font-semibold hover:bg-[var(--hover)]">
                           Move
                         </button>
                         <button
                           type="button"
                           onClick={() => setCancelSession(s)}
-                          className="rounded-[10px] px-3 py-1 text-[13px] font-semibold text-body hover:bg-[var(--hover)]"
+                          className="rounded-nested px-3 py-1 text-[13px] font-semibold text-body hover:bg-[var(--hover)]"
                         >
                           Cancel
                         </button>
@@ -309,7 +309,7 @@ export function SessionsClient({
           </section>
 
           {/* ── The rule ── */}
-          <section className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden" id="ruleCard">
+          <section className="bg-white border border-border rounded-surface shadow-sm overflow-hidden" id="ruleCard">
             <div className="flex items-start gap-3 p-5 pb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(8,126,139,.10)] text-[var(--color-teal)]">
                 <IconInfo />
@@ -358,7 +358,7 @@ export function SessionsClient({
           </section>
 
           {/* ── Past ── */}
-          <section className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+          <section className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
             <div className="flex items-start gap-3 p-5 pb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[var(--hover)] text-muted-foreground">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l3 2" /></svg>
@@ -416,7 +416,7 @@ export function SessionsClient({
                         </div>
                       </div>
                       <div className="shrink-0">
-                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold border", badgeClass)}>
+                        <span className={cn("inline-flex items-center rounded-pill px-2.5 py-0.5 text-xs font-bold border", badgeClass)}>
                           {badgeLabel}
                         </span>
                       </div>
@@ -431,7 +431,7 @@ export function SessionsClient({
         {/* ── Sidebar ── */}
         <div className="space-y-5 lg:sticky lg:top-[150px]">
           {/* Message Esther */}
-          <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
             <div className="flex items-start gap-3 p-5 pb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(193,131,159,.10)] text-[var(--color-rose)]">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8a2 2 0 0 1 1.7 2Z" /></svg>
@@ -445,7 +445,7 @@ export function SessionsClient({
               </div>
             </div>
             <div className="px-5 pb-5">
-              <button type="button" className="w-full min-h-[46px] rounded-[10px] bg-[var(--color-rose)] text-white text-sm font-bold hover:bg-[var(--color-rose-deep)]">
+              <button type="button" className="w-full min-h-[46px] rounded-nested bg-[var(--color-rose)] text-white text-sm font-bold hover:bg-[var(--color-rose-deep)]">
                 Message Esther
               </button>
               <p className="text-[11px] text-muted-foreground leading-relaxed mt-2.5">
@@ -455,7 +455,7 @@ export function SessionsClient({
           </div>
 
           {/* Block expiry */}
-          <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
             <div className="flex items-start gap-3 p-5 pb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(8,126,139,.10)] text-[var(--color-teal)]">
                 <IconClock />
@@ -469,7 +469,7 @@ export function SessionsClient({
               </div>
             </div>
             <div className="px-5 pb-5">
-              <button type="button" className="w-full rounded-[10px] border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-[var(--hover)]">
+              <button type="button" className="w-full rounded-nested border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-[var(--hover)]">
                 Ask about extending it
               </button>
               <p className="text-[11px] text-muted-foreground leading-relaxed mt-2.5">
@@ -497,7 +497,7 @@ export function SessionsClient({
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50">
-          <div className="bg-foreground text-white text-[13.5px] font-semibold px-4 py-3 rounded-[10px] shadow-lg flex items-center gap-2.5 max-w-[380px] leading-relaxed animate-in slide-in-from-bottom-2">
+          <div className="bg-foreground text-white text-[13.5px] font-semibold px-4 py-3 rounded-nested shadow-lg flex items-center gap-2.5 max-w-[380px] leading-relaxed animate-in slide-in-from-bottom-2">
             <svg className="w-4 h-4 shrink-0 text-[var(--color-rose)] mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" />
             </svg>
@@ -587,7 +587,7 @@ function CancelDialog({
             </div>
 
             {/* Before/after count */}
-            <div className="flex bg-white border border-border rounded-xl overflow-hidden">
+            <div className="flex bg-white border border-border rounded-surface overflow-hidden">
               <div className="flex-1 p-3 text-center">
                 <div className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-muted-foreground">Sessions left now</div>
                 <div className="text-[30px] font-bold text-foreground leading-tight mt-0.5 tabular-nums">{sessionsRemaining ?? "?"}</div>
@@ -611,11 +611,11 @@ function CancelDialog({
 
           {/* Escape hatch — only inside window */}
           {nt.inside && (
-            <div className="p-3.5 rounded-xl border border-dashed border-[var(--hub-field-border, #AFB5C0)] bg-[var(--hover)] text-[13px] leading-relaxed mb-4">
+            <div className="p-3.5 rounded-surface border border-dashed border-[var(--hub-field-border, #AFB5C0)] bg-[var(--hover)] text-[13px] leading-relaxed mb-4">
               <b className="text-foreground">Is this because something changed you could not help?</b>{" "}
               Illness, a treatment date moving, a hospital appointment — Esther would rather hear from you than
               have the session used. She can put it back by hand.
-              <button type="button" className="mt-2 w-full rounded-[10px] border border-border bg-white px-3 py-1.5 text-[13px] font-semibold hover:bg-[var(--hover)]">
+              <button type="button" className="mt-2 w-full rounded-nested border border-border bg-white px-3 py-1.5 text-[13px] font-semibold hover:bg-[var(--hover)]">
                 Message Esther instead
               </button>
             </div>
@@ -628,7 +628,7 @@ function CancelDialog({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 min-h-[44px] rounded-[10px] border border-border bg-white text-foreground text-sm font-bold hover:bg-[var(--hover)]"
+              className="flex-1 min-h-[44px] rounded-nested border border-border bg-white text-foreground text-sm font-bold hover:bg-[var(--hover)]"
             >
               Keep this session
             </button>
@@ -636,7 +636,7 @@ function CancelDialog({
               type="button"
               onClick={onConfirm}
               className={cn(
-                "flex-1 min-h-[44px] rounded-[10px] border border-transparent text-sm font-bold text-white",
+                "flex-1 min-h-[44px] rounded-nested border border-transparent text-sm font-bold text-white",
                 nt.inside
                   ? "bg-[var(--status-danger)] hover:bg-[#733F52]"
                   : "bg-[var(--color-rose)] hover:bg-[var(--color-rose-deep)]"

@@ -9,7 +9,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--color-rose);
   color: var(--color-ink);
   font-size: 0.95rem;
@@ -234,7 +234,7 @@
   margin-left: 0.4rem;
   background: rgba(8, 126, 139, 0.1);
   border: 1px solid var(--color-teal);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   padding: 0.05rem 0.6rem;
   font-size: 0.72rem;
   font-weight: 700;
@@ -252,7 +252,7 @@
 .cg-preset {
   border: 1.5px solid var(--color-border-warm);
   background: #fff;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -272,7 +272,7 @@
 .cg-mbar {
   display: flex;
   height: 1.5rem;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   overflow: hidden;
   border: 1px solid var(--color-border-warm);
   background: var(--color-warm);

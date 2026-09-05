@@ -88,7 +88,7 @@ export function ClientRecordHeader({
 
       <div className="flex items-start gap-3.5 mb-2.5">
         {/* Avatar */}
-        <div className="w-[52px] h-[52px] rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-base font-bold shrink-0">
+        <div className="w-[52px] h-[52px] rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-base font-bold shrink-0">
           {initials}
         </div>
 

@@ -62,7 +62,7 @@ export function OpenUploadButton({ doc, clientName, variant, children }: OpenUpl
         className="w-full text-left"
       >
         {open ? (
-          <div className="border border-rose bg-rose/10 rounded-[16px]">
+          <div className="border border-rose bg-rose/10 rounded-surface">
             {children}
           </div>
         ) : (

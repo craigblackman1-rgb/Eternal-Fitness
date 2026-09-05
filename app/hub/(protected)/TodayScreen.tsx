@@ -139,7 +139,7 @@ export function TodayScreen({
               key={t.id}
               className="flex items-center gap-3 py-2 px-4 border-t border-[var(--hub-border)] first:border-t-0 hover:bg-[var(--hub-hover)] transition-colors"
             >
-              <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${t.overdue ? "bg-rose" : "bg-[var(--status-warning)]"}`} />
+              <span className={`w-[7px] h-[7px] rounded-pill shrink-0 ${t.overdue ? "bg-rose" : "bg-[var(--status-warning)]"}`} />
               <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] truncate">
                 {t.title}
                 {t.clientName && <span className="text-[var(--color-muted)]"> · {t.clientName}</span>}
@@ -178,7 +178,7 @@ export function TodayScreen({
               key={a.id}
               className="flex items-center gap-3 py-2 px-3 rounded-nested border border-transparent hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)] transition-colors"
             >
-              <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${DOT[a.dot]}`} />
+              <span className={`w-[7px] h-[7px] rounded-pill shrink-0 ${DOT[a.dot]}`} />
               <span className="min-w-0 flex-1 text-[13.5px] text-[var(--color-ink)]">
                 <b className="font-semibold">{a.headline}</b>
                 {a.subline && <span className="block text-xs text-[var(--color-muted)] mt-px">{a.subline}</span>}
@@ -193,7 +193,7 @@ export function TodayScreen({
           ))}
           {alerts.length === 0 && (
             <div className="flex items-center gap-2.5 py-2 px-3 text-[13px] text-[var(--color-muted)]">
-              <span className="w-[7px] h-[7px] rounded-full bg-[var(--status-success)] shrink-0" />
+              <span className="w-[7px] h-[7px] rounded-pill bg-[var(--status-success)] shrink-0" />
               <span>Nothing needs looking at.</span>
             </div>
           )}

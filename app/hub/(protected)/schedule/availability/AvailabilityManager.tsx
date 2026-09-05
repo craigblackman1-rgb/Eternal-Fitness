@@ -406,13 +406,13 @@ export function AvailabilityManager({
                         aria-checked={isOn}
                         onClick={() => toggleDay(dow)}
                         className={cn(
-                          "relative w-[42px] h-6 rounded-full border-0 cursor-pointer transition-colors",
+                          "relative w-[42px] h-6 rounded-pill border-0 cursor-pointer transition-colors",
                           isOn ? "bg-[var(--color-rose)]" : "bg-[var(--hub-field-border)]"
                         )}
                       >
                         <span
                           className={cn(
-                            "absolute top-[3px] left-[3px] w-[18px] h-[18px] rounded-full bg-white transition-transform shadow-sm",
+                            "absolute top-[3px] left-[3px] w-[18px] h-[18px] rounded-pill bg-white transition-transform shadow-sm",
                             isOn && "translate-x-[18px]"
                           )}
                         />
@@ -436,7 +436,7 @@ export function AvailabilityManager({
                             <button
                               type="button"
                               onClick={() => removeRange(r.id)}
-                              className="w-6 h-6 rounded-md grid place-items-center text-muted-foreground hover:bg-[var(--status-danger-bg)] hover:text-[var(--status-danger)]"
+                              className="w-6 h-6 rounded-nested grid place-items-center text-muted-foreground hover:bg-[var(--status-danger-bg)] hover:text-[var(--status-danger)]"
                               aria-label={`Remove ${r.start_time} to ${r.end_time}`}
                             >
                               <IconTrash2 className="w-3.5 h-3.5" />
@@ -548,7 +548,7 @@ export function AvailabilityManager({
               </div>
 
               {/* Notice period — special treatment */}
-              <div className="mt-3.5 border border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] rounded-xl p-3.5">
+              <div className="mt-3.5 border border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] rounded-surface p-3.5">
                 <label className="text-xs font-bold text-foreground block mb-1">
                   Cancellation notice
                 </label>
@@ -572,7 +572,7 @@ export function AvailabilityManager({
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
-                <div className="mt-2.5 p-2.5 rounded-[10px] bg-[var(--hub-card)] border border-[var(--hub-border)] text-[12.5px] leading-relaxed">
+                <div className="mt-2.5 p-2.5 rounded-nested bg-[var(--hub-card)] border border-[var(--hub-border)] text-[12.5px] leading-relaxed">
                   <span className="text-[10.5px] font-extrabold uppercase tracking-[.08em] text-muted-foreground block mb-1">
                     What the client sees on their booking
                   </span>
@@ -625,7 +625,7 @@ export function AvailabilityManager({
                       <div className="flex flex-wrap items-start gap-3">
                         <div
                           className={cn(
-                            "w-9 h-9 rounded-[10px] grid place-items-center shrink-0 border border-[var(--hub-border)]",
+                            "w-9 h-9 rounded-nested grid place-items-center shrink-0 border border-[var(--hub-border)]",
                             o.override_type === "time_off"
                               ? "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]"
                               : "bg-[var(--status-success-bg)] text-[var(--color-teal)]"
@@ -654,7 +654,7 @@ export function AvailabilityManager({
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             <span
                               className={cn(
-                                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border",
+                                "inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[11px] font-semibold border",
                                 o.override_type === "time_off"
                                   ? "bg-[var(--status-warning-bg)] text-[#7A5A17] border-[var(--status-warning-border)]"
                                   : "bg-[var(--status-primary-bg)] text-[var(--color-rose-text)] border-[var(--status-primary-border)]"
@@ -663,13 +663,13 @@ export function AvailabilityManager({
                               {o.override_type === "time_off" ? "Time off" : "Extra availability"}
                             </span>
                             {o.override_type === "time_off" && clashes.length > 0 && (
-                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border bg-[var(--status-warning-bg)] text-[#7A5A17] border-[var(--status-warning-border)]">
+                              <span className="inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[11px] font-semibold border bg-[var(--status-warning-bg)] text-[#7A5A17] border-[var(--status-warning-border)]">
                                 <IconAlertTriangle className="w-3 h-3" />
                                 {clashes.length} clash{clashes.length !== 1 ? "es" : ""}
                               </span>
                             )}
                             {o.override_type === "time_off" && clashes.length === 0 && (
-                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border bg-[var(--status-success-bg)] text-[var(--color-teal)] border-[var(--status-success-border)]">
+                              <span className="inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-[11px] font-semibold border bg-[var(--status-success-bg)] text-[var(--color-teal)] border-[var(--status-success-border)]">
                                 <IconCheckCircle className="w-3 h-3" />
                                 No sessions affected
                               </span>
@@ -694,7 +694,7 @@ export function AvailabilityManager({
 
                       {/* ── Real clash list (only for time-off overrides with actual clashes) ── */}
                       {o.override_type === "time_off" && clashes.length > 0 && (
-                        <div className="mt-3 ml-12 border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] rounded-xl p-3.5">
+                        <div className="mt-3 ml-12 border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] rounded-surface p-3.5">
                           <p className="text-[11.5px] text-[#7A5A17] leading-relaxed mb-3">
                             {clashes.length} client{clashes.length !== 1 ? "s are" : " is"} booked in this
                             period. Blocking these hours does not cancel their sessions behind your back.
@@ -728,7 +728,7 @@ export function AvailabilityManager({
                                       : "border-[var(--hub-border)] bg-[var(--hub-card)]"
                                   )}
                                 >
-                                  <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-[var(--color-rose-text)] grid place-items-center text-[11px] font-bold shrink-0">
+                                  <div className="w-8 h-8 rounded-pill bg-[var(--status-primary-bg)] text-[var(--color-rose-text)] grid place-items-center text-[11px] font-bold shrink-0">
                                     {clash.clientName
                                       .split(" ")
                                       .map((n) => n[0])

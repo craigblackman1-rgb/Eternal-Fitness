@@ -55,12 +55,12 @@ function PortalLoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-warm px-6 py-16">
       <a
         href="#portal-login-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary-text)] focus:shadow-md"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-nested focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary-text)] focus:shadow-md"
       >
         Skip to sign-in form
       </a>
 
-      <div className="w-full max-w-sm rounded-2xl border border-[var(--color-border-warm)] bg-white p-8 shadow-[var(--shadow-glass)] sm:p-10">
+      <div className="w-full max-w-sm rounded-surface border border-[var(--color-border-warm)] bg-white p-8 shadow-[var(--shadow-glass)] sm:p-10">
         <div className="mb-12">
           <EternalFitnessLogo variant="dark" size="lg" />
         </div>
@@ -114,7 +114,7 @@ function PortalLoginForm() {
             </div>
             <Button
               type="submit"
-              className="w-full min-h-11 rounded-full bg-rose hover:bg-rose/90 text-white text-base font-semibold"
+              className="w-full min-h-11 rounded-pill bg-rose hover:bg-rose/90 text-white text-base font-semibold"
               disabled={loading}
             >
               {loading ? "Signing in..." : "Sign in"}

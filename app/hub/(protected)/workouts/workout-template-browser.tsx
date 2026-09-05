@@ -382,7 +382,7 @@ export function WorkoutTemplateBrowser({
                       >
                         <td className="px-4 py-2.5 align-middle">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-7 h-7 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                               <IconDumbbell className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
@@ -392,7 +392,7 @@ export function WorkoutTemplateBrowser({
                                   <span
                                     key={a}
                                     title={`Type ${a} — ${archetypeLabels[a] || a}`}
-                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none"
+                                    className="inline-flex rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none"
                                   >
                                     {a}
                                   </span>
@@ -411,7 +411,7 @@ export function WorkoutTemplateBrowser({
                           {t.equipment.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {t.equipment.map((eq) => (
-                                <span key={eq} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                                <span key={eq} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
                                   {equipmentLabels[eq] || eq}
                                 </span>
                               ))}
@@ -424,7 +424,7 @@ export function WorkoutTemplateBrowser({
                           {t.position.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {t.position.map((p) => (
-                                <span key={p} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
+                                <span key={p} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
                                   {positionLabels[p] || p}
                                 </span>
                               ))}
@@ -437,7 +437,7 @@ export function WorkoutTemplateBrowser({
                           {t.condition_tags.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {t.condition_tags.map((ct) => (
-                                <span key={ct} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                                <span key={ct} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
                                   {ct}
                                 </span>
                               ))}
@@ -494,7 +494,7 @@ export function WorkoutTemplateBrowser({
           />
           <aside className="fixed top-0 right-0 z-50 h-full w-full max-w-[560px] flex flex-col bg-[var(--hub-canvas)] shadow-2xl">
             <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--hub-border)] bg-[var(--hub-card)]">
-              <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center bg-[var(--status-primary-bg)] text-rose shrink-0">
+              <div className="w-[38px] h-[38px] rounded-nested flex items-center justify-center bg-[var(--status-primary-bg)] text-rose shrink-0">
                 <IconDumbbell className="w-[18px] h-[18px]" />
               </div>
               <div className="min-w-0">
@@ -517,7 +517,7 @@ export function WorkoutTemplateBrowser({
                   <span
                     key={a}
                     title={`Type ${a} — ${archetypeLabels[a] || a}`}
-                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-2 py-0.5 text-[11px] font-semibold"
+                    className="inline-flex rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-2 py-0.5 text-[11px] font-semibold"
                   >
                     Type {a} — {archetypeLabels[a] || a}
                   </span>
@@ -525,7 +525,7 @@ export function WorkoutTemplateBrowser({
                 {selected.condition_tags.map((ct) => (
                   <span
                     key={ct}
-                    className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] px-2 py-0.5 text-[11px] font-semibold"
+                    className="inline-flex rounded-pill bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] px-2 py-0.5 text-[11px] font-semibold"
                   >
                     {ct}
                   </span>
@@ -533,7 +533,7 @@ export function WorkoutTemplateBrowser({
                 {selected.position.map((p) => (
                   <span
                     key={p}
-                    className="inline-flex rounded-full bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border border-[var(--status-neutral-border)] px-2 py-0.5 text-[11px] font-semibold"
+                    className="inline-flex rounded-pill bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border border-[var(--status-neutral-border)] px-2 py-0.5 text-[11px] font-semibold"
                   >
                     {positionLabels[p] || p}
                   </span>

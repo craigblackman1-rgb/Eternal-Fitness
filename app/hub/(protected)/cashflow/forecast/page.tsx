@@ -137,7 +137,7 @@ export default async function ForecastPage() {
                   <td className="px-[18px] py-[11px] border-b border-[var(--hub-border)] align-middle">
                     <span className="font-semibold text-[var(--color-ink)]">{m.label}</span>
                     {isNegative && (
-                      <span className="inline-flex items-center gap-[5px] text-[10.5px] font-bold uppercase tracking-[0.04em] text-[var(--status-danger)] bg-white border border-[var(--status-danger)] rounded-full px-2 py-0.5 ml-2">
+                      <span className="inline-flex items-center gap-[5px] text-[10.5px] font-bold uppercase tracking-[0.04em] text-[var(--status-danger)] bg-white border border-[var(--status-danger)] rounded-pill px-2 py-0.5 ml-2">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
                           <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
                           <path d="M12 9v4M12 17h.01" />

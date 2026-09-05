@@ -179,7 +179,7 @@ export function PortalAccountCard({
             New login details — copy and send to the client now. The password won&apos;t be shown again.
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            <div className="flex items-center justify-between gap-2 rounded-md border border-[var(--hub-border)] bg-background px-3 py-2">
+            <div className="flex items-center justify-between gap-2 rounded-nested border border-[var(--hub-border)] bg-background px-3 py-2">
               <div>
                 <div className="text-[10.5px] uppercase tracking-wide text-muted-foreground">Username</div>
                 <div className="text-sm font-mono">{credentials.email}</div>
@@ -193,7 +193,7 @@ export function PortalAccountCard({
                 <IconCopy className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex items-center justify-between gap-2 rounded-md border border-[var(--hub-border)] bg-background px-3 py-2">
+            <div className="flex items-center justify-between gap-2 rounded-nested border border-[var(--hub-border)] bg-background px-3 py-2">
               <div>
                 <div className="text-[10.5px] uppercase tracking-wide text-muted-foreground">Password</div>
                 <div className="text-sm font-mono">{credentials.password}</div>

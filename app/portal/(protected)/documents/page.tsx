@@ -69,7 +69,7 @@ export default async function PortalDocumentsPage() {
       )}
 
       {/* Paper alternative */}
-      <div className="rounded-2xl border border-teal/30 bg-teal/5 p-5">
+      <div className="rounded-surface border border-teal/30 bg-teal/5 p-5">
         <div className="flex gap-3">
           <div className="w-[30px] h-[30px] rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 11v5.5M12 7.5v.5" /></svg>

@@ -231,7 +231,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
       <div className="flex items-start gap-3 pb-4 mb-4 border-b border-[var(--hub-border)]">
         <label htmlFor="bw-only" className="relative shrink-0 w-5 h-5 mt-0.5 cursor-pointer">
           <input type="checkbox" id="bw-only" checked={bw} onChange={toggleBw} className="sr-only peer" />
-          <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center peer-checked:bg-rose peer-checked:border-rose bg-[var(--hub-card)] border-[var(--color-muted-text)]`}>
+          <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center peer-checked:bg-rose peer-checked:border-rose bg-[var(--hub-card)] border-[var(--color-muted-text)]`}>
             {bw && <IconCheck className="w-3.5 h-3.5 text-white" />}
           </span>
         </label>
@@ -243,7 +243,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
 
       {/* Bulk bar */}
       {selected.size > 0 && (
-        <div className="flex items-center gap-2.5 mb-3 px-3 py-2 rounded-[10px] bg-rose/10 border border-rose/20 text-[12.5px] text-foreground">
+        <div className="flex items-center gap-2.5 mb-3 px-3 py-2 rounded-nested bg-rose/10 border border-rose/20 text-[12.5px] text-foreground">
           <span><b>{selected.size}</b> selected</span>
           <button type="button" onClick={clearSelection} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-1">Clear</button>
           <button type="button" onClick={removeSelected} className="text-xs font-medium border border-[var(--color-muted-text)] rounded-lg px-2.5 py-1 hover:bg-[var(--hub-hover)] transition-colors">Remove selected</button>
@@ -256,10 +256,10 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
           const fromCat = catalogue.some((c) => c.name.toLowerCase() === entry.name.toLowerCase());
           const isSel = selected.has(idx);
           return (
-            <div key={`${entry.name}-${idx}`} className={`grid gap-3 items-center py-2.5 px-3 rounded-[10px] border transition-colors ${isSel ? "border-rose/20 bg-rose/10" : "border-[var(--hub-border)] bg-[var(--hub-hover)]"}`} style={{ gridTemplateColumns: "20px minmax(0,1.1fr) minmax(0,1.4fr) 34px" }}>
+            <div key={`${entry.name}-${idx}`} className={`grid gap-3 items-center py-2.5 px-3 rounded-nested border transition-colors ${isSel ? "border-rose/20 bg-rose/10" : "border-[var(--hub-border)] bg-[var(--hub-hover)]"}`} style={{ gridTemplateColumns: "20px minmax(0,1.1fr) minmax(0,1.4fr) 34px" }}>
               <label className="relative shrink-0 w-5 h-5 cursor-pointer">
                 <input type="checkbox" checked={isSel} onChange={() => toggleSelect(idx)} aria-label={`Select ${entry.name}`} className="sr-only peer" />
-                <span className={`absolute inset-0 rounded-[4px] border cursor-pointer transition-colors grid place-items-center peer-checked:bg-rose peer-checked:border-rose bg-[var(--hub-card)] border-[var(--color-muted-text)]`}>
+                <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center peer-checked:bg-rose peer-checked:border-rose bg-[var(--hub-card)] border-[var(--color-muted-text)]`}>
                   {isSel && <IconCheck className="w-3 h-3 text-white" />}
                 </span>
               </label>
@@ -312,7 +312,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
           </div>
           <p className="text-[11.5px] text-muted-foreground mt-1.5">↑ ↓ to move, Enter to add. Anything not in the studio list is added as your own words.</p>
           {open && (
-            <div className="absolute z-30 left-0 right-0 top-[calc(100%+6px)] bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px] shadow-[var(--shadow-pop)] overflow-hidden">
+            <div className="absolute z-30 left-0 right-0 top-[calc(100%+6px)] bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-nested shadow-[var(--shadow-pop)] overflow-hidden">
               <ul id="eq-listbox" className="list-none m-0 p-[5px] max-h-[232px] overflow-y-auto" role="listbox">
                 {options().length === 0 ? (
                   <li className="py-2.5 px-3 text-[12.5px] text-muted-foreground">Type the name of anything {clientFirstName} has.</li>
@@ -341,7 +341,7 @@ export function ClientEquipmentCard({ value, onChange, clientFirstName, showCopy
       )}
 
       {/* Foot */}
-      <div className="flex items-start gap-2 mt-4 pt-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] rounded-b-[16px] px-5 py-3 -mx-5 -mb-5 text-[12px] text-muted-foreground leading-relaxed" style={{ margin: "24px -20px -20px", padding: "12px 20px" }}>
+      <div className="flex items-start gap-2 mt-4 pt-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] rounded-b-surface px-5 py-3 -mx-5 -mb-5 text-[12px] text-muted-foreground leading-relaxed" style={{ margin: "24px -20px -20px", padding: "12px 20px" }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 mt-0.5 text-rose"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="8.5" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/></svg>
         <span>{footText}</span>
       </div>

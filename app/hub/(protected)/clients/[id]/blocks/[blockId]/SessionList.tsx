@@ -191,14 +191,14 @@ export function SessionList({
                   onChange={(e) => setSuppName(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") createSupplementary(session.id); if (e.key === "Escape") setSuppParentId(null); }}
                   placeholder="What runs alongside this session?"
-                  className="flex-1 h-8 rounded-md border border-[var(--hub-field-border)] px-2 text-[13px]"
+                  className="flex-1 h-8 rounded-nested border border-[var(--hub-field-border)] px-2 text-[13px]"
                 />
                 <button type="button" disabled={savingSupp} onClick={() => createSupplementary(session.id)}
-                  className="h-8 px-2.5 rounded-md bg-rose text-white text-xs font-semibold disabled:opacity-50">
+                  className="h-8 px-2.5 rounded-nested bg-rose text-white text-xs font-semibold disabled:opacity-50">
                   {savingSupp ? "Adding…" : "Add"}
                 </button>
                 <button type="button" onClick={() => setSuppParentId(null)}
-                  className="h-8 px-2.5 rounded-md border border-[var(--hub-border)] bg-white text-xs font-semibold">
+                  className="h-8 px-2.5 rounded-nested border border-[var(--hub-border)] bg-white text-xs font-semibold">
                   Cancel
                 </button>
               </div>

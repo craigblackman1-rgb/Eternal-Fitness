@@ -266,7 +266,7 @@ function SessionPrintSection({
       </div>
 
       {s?.coaching_notes && (
-        <div className="mt-3 rounded-md border p-2 text-sm">
+        <div className="mt-3 rounded-nested border p-2 text-sm">
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Coaching Notes
           </span>

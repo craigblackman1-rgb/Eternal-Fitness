@@ -136,7 +136,7 @@ export default function ReviewPage({ params }: { params: { id: string; blockId: 
                   >
                     <TableCell className="font-medium text-sm py-2.5">{sessionWorkoutName(session, `Session ${session.session_number}`)}</TableCell>
                     <TableCell className="text-sm py-2.5">
-                      <Badge variant={session.archetype === "A" ? "secondary" : session.archetype === "B" ? "default" : "outline"} className="rounded-full">
+                      <Badge variant={session.archetype === "A" ? "secondary" : session.archetype === "B" ? "default" : "outline"} className="rounded-pill">
                         {session.archetype}
                       </Badge>
                     </TableCell>

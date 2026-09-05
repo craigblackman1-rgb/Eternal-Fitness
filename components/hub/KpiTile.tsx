@@ -44,7 +44,7 @@ export function KpiTile({ icon, label, value, trend, trendUp, statusToken = "pri
       {trend && (
         <span
           className={cn(
-            "inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[11px] font-semibold leading-none shrink-0",
+            "inline-flex items-center gap-0.5 rounded-pill px-2 py-1 text-[11px] font-semibold leading-none shrink-0",
             trendUp === false
               ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)]"
               : "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",

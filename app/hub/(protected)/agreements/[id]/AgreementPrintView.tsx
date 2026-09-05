@@ -198,7 +198,7 @@ export default function AgreementPrintView({ agreement, onClose }: { agreement: 
               8. Agreement and signatures
             </h3>
 
-            <div className="bg-[#F1F1F1] rounded-md p-4 mb-6 text-sm">
+            <div className="bg-[#F1F1F1] rounded-nested p-4 mb-6 text-sm">
               <p className="mb-3">
                 By signing below, both parties confirm that they have read and understood this agreement in full. The client confirms that they have completed the PAR-Q honestly and accept all terms set out in this agreement.
               </p>
@@ -261,7 +261,7 @@ export default function AgreementPrintView({ agreement, onClose }: { agreement: 
               {/* Personal Details */}
               <div className="mb-4">
                 <h4 className="text-sm font-semibold text-[#087E8B] mb-2">Personal Details</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm bg-[#F1F1F1] rounded-md p-3">
+                <div className="grid grid-cols-2 gap-2 text-sm bg-[#F1F1F1] rounded-nested p-3">
                   <div><p className="text-xs text-[#525A61] uppercase">Name</p><p className="font-medium">{parqData.full_name}</p></div>
                   <div><p className="text-xs text-[#525A61] uppercase">Date of birth</p><p>{formatDate(parqData.date_of_birth)}</p></div>
                   <div className="col-span-2"><p className="text-xs text-[#525A61] uppercase">Address</p><p>{parqData.address || "—"}</p></div>
@@ -314,7 +314,7 @@ export default function AgreementPrintView({ agreement, onClose }: { agreement: 
               )}
 
               {/* Signature */}
-              <div className="bg-[#F1F1F1] rounded-md p-3 text-sm">
+              <div className="bg-[#F1F1F1] rounded-nested p-3 text-sm">
                 <div className="grid grid-cols-3 gap-4">
                   <div><p className="text-xs text-[#525A61] uppercase">Client name (print)</p><p className="font-medium">{parqData.client_name_print || "—"}</p></div>
                   <div><p className="text-xs text-[#525A61] uppercase">Date</p><p>{formatDate(parqData.client_signature_date)}</p></div>
@@ -326,7 +326,7 @@ export default function AgreementPrintView({ agreement, onClose }: { agreement: 
 
           {/* PAR-Q and Medical clearance filing */}
           <section className="mb-6">
-            <div className="bg-[#F1F1F1] rounded-md p-4">
+            <div className="bg-[#F1F1F1] rounded-nested p-4">
               <div className="grid grid-cols-3 gap-4 text-sm mb-4">
                 <div><p className="text-xs text-[#525A61] uppercase">PAR-Q completed</p><p className="font-medium uppercase">{agreement.parq_completed || "—"}</p></div>
                 <div><p className="text-xs text-[#525A61] uppercase">Date</p><p>{formatDate(agreement.parq_date)}</p></div>

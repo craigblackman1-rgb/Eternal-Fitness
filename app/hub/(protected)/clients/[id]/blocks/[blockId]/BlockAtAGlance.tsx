@@ -333,7 +333,7 @@ function GlanceView({
 function StickyBar({ activeSession, activeDate }: { activeSession: number; activeDate: string }) {
   const { totalSessions, workoutCount } = useGlance();
   return (
-    <div className="sticky top-[60px] z-30 flex items-center gap-3 px-3.5 py-2 mb-3 bg-white/90 backdrop-blur-md border border-[var(--hub-border)] rounded-[10px] shadow-sm text-[12.5px] text-muted-foreground no-print">
+    <div className="sticky top-[60px] z-30 flex items-center gap-3 px-3.5 py-2 mb-3 bg-white/90 backdrop-blur-md border border-[var(--hub-border)] rounded-nested shadow-sm text-[12.5px] text-muted-foreground no-print">
       <span>Reading</span>
       <span className="font-bold text-foreground tabular-nums">Session {activeSession} of {totalSessions}</span>
       <span className="text-[var(--hub-field-border)]">&middot;</span>
@@ -495,10 +495,10 @@ function SessionCard({
       ref={cardRef}
       data-n={n}
       data-d={dateLabel ?? ""}
-      className="glance-card bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm"
+      className="glance-card bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm"
     >
       <div className="flex items-center gap-3 p-3.5">
-        <span className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[12px] font-extrabold bg-[var(--hub-hover)] border border-[var(--hub-border)] text-foreground shrink-0 tabular-nums">
+        <span className="w-[34px] h-[34px] rounded-pill flex items-center justify-center text-[12px] font-extrabold bg-[var(--hub-hover)] border border-[var(--hub-border)] text-foreground shrink-0 tabular-nums">
           {n}
         </span>
         <div className="min-w-[150px]">
@@ -509,7 +509,7 @@ function SessionCard({
         </div>
         <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
           {session.archetype && (
-            <span className={`w-[26px] h-[26px] rounded-[6px] flex items-center justify-center text-[12px] font-extrabold border shrink-0 ${archetypeTint[session.archetype] ?? "bg-muted text-muted-foreground"}`}>
+            <span className={`w-[26px] h-[26px] rounded-control-sm flex items-center justify-center text-[12px] font-extrabold border shrink-0 ${archetypeTint[session.archetype] ?? "bg-muted text-muted-foreground"}`}>
               {session.archetype}
             </span>
           )}
@@ -524,7 +524,7 @@ function SessionCard({
               type="button"
               onClick={onToggle}
               aria-expanded={!isCollapsed}
-              className="border-0 bg-transparent px-2 py-1 rounded-[6px] font-inherit text-[12.5px] font-semibold text-teal cursor-pointer hover:bg-[var(--hub-hover)] hover:text-[#066A75] transition-colors"
+              className="border-0 bg-transparent px-2 py-1 rounded-control-sm font-inherit text-[12.5px] font-semibold text-teal cursor-pointer hover:bg-[var(--hub-hover)] hover:text-[#066A75] transition-colors"
             >
               {isCollapsed ? `Same as session ${repeat} \u2014 show` : `Same as session ${repeat} \u2014 hide`}
             </button>

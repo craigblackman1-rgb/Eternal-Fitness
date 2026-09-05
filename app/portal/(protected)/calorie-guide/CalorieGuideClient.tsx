@@ -174,7 +174,7 @@ export default function CalorieGuideClient({ clientName }: Props) {
       </div>
 
       {/* Privacy note */}
-      <div className="rounded-xl border border-teal/20 bg-teal/5 p-4">
+      <div className="rounded-surface border border-teal/20 bg-teal/5 p-4">
         <div className="flex gap-3">
           <IconAlertTriangle className="w-5 h-5 text-teal flex-none mt-0.5" aria-hidden="true" />
           <div>
@@ -189,7 +189,7 @@ export default function CalorieGuideClient({ clientName }: Props) {
       </div>
 
       {/* Step 1 — About you */}
-      <section className="rounded-2xl border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-about">
+      <section className="rounded-surface border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-about">
         <div className="cg-card-head">
           <span className="cg-num" aria-hidden="true">1</span>
           <h2 id="cg-h-about">About you</h2>
@@ -376,7 +376,7 @@ export default function CalorieGuideClient({ clientName }: Props) {
       </section>
 
       {/* Step 2 — Activity */}
-      <section className="rounded-2xl border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-activity">
+      <section className="rounded-surface border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-activity">
         <div className="cg-card-head">
           <span className="cg-num" aria-hidden="true">2</span>
           <h2 id="cg-h-activity">How active is your usual week?</h2>
@@ -412,7 +412,7 @@ export default function CalorieGuideClient({ clientName }: Props) {
       </section>
 
       {/* Step 3 — Targets */}
-      <section className="rounded-2xl border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-targets">
+      <section className="rounded-surface border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-targets">
         <div className="cg-card-head">
           <span className="cg-num" aria-hidden="true">3</span>
           <h2 id="cg-h-targets">Your daily targets</h2>
@@ -485,7 +485,7 @@ export default function CalorieGuideClient({ clientName }: Props) {
       </section>
 
       {/* Step 4 — Macro split */}
-      <section className="rounded-2xl border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-split">
+      <section className="rounded-surface border border-border-warm bg-white p-5 sm:p-6 shadow-sm" aria-labelledby="cg-h-split">
         <div className="cg-card-head">
           <span className="cg-num" aria-hidden="true">4</span>
           <h2 id="cg-h-split">How that splits across your plate</h2>
@@ -618,7 +618,7 @@ export default function CalorieGuideClient({ clientName }: Props) {
       </section>
 
       {/* Caveats */}
-      <section className="rounded-2xl border p-5 sm:p-6 shadow-sm cg-caveats" aria-labelledby="cg-h-caveats">
+      <section className="rounded-surface border p-5 sm:p-6 shadow-sm cg-caveats" aria-labelledby="cg-h-caveats">
         <h2 id="cg-h-caveats">Three things a calculator cannot know about you</h2>
         <p className="cg-sub">
           This is an estimate built from averages. These are the places it stops being reliable, and

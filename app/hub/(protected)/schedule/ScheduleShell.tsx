@@ -164,7 +164,7 @@ export function ScheduleShell({
               type="button"
               onClick={() => setViewMode(v)}
               className={
-                "rounded-md px-4 py-1.5 text-sm font-semibold capitalize transition-colors " +
+                "rounded-nested px-4 py-1.5 text-sm font-semibold capitalize transition-colors " +
                 (viewMode === v ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")
               }
             >

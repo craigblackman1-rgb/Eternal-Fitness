@@ -177,7 +177,7 @@ function Stepper({ steps, current }: { steps: { n: number; label: string }[]; cu
           {i > 0 && <span className="w-6 h-px bg-[var(--hub-border)]" />}
           <div className={`inline-flex items-center gap-2 text-[13px] font-semibold ${current >= s.n ? "text-[var(--color-ink)]" : "text-muted-foreground"}`}>
             <span
-              className={`w-[26px] h-[26px] rounded-full border grid place-items-center text-xs font-bold shrink-0 ${
+              className={`w-[26px] h-[26px] rounded-pill border grid place-items-center text-xs font-bold shrink-0 ${
                 current === s.n
                   ? "bg-rose border-rose text-white"
                   : current > s.n
@@ -199,7 +199,7 @@ function Stepper({ steps, current }: { steps: { n: number; label: string }[]; cu
 
 function EqChip({ name }: { name: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-xs font-semibold bg-[var(--hub-hover)] border border-[var(--hub-border)] text-[var(--color-body)]">
+    <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-pill text-xs font-semibold bg-[var(--hub-hover)] border border-[var(--hub-border)] text-[var(--color-body)]">
       {IC.dumbbell} {name}
     </span>
   );
@@ -501,7 +501,7 @@ export function AddWorkoutClient({
       {/* Back link */}
       <Link
         href={`/hub/clients/${clientNumber}`}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-md px-2 py-1 hover:bg-[var(--hub-hover)] transition-colors w-fit"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-nested px-2 py-1 hover:bg-[var(--hub-hover)] transition-colors w-fit"
       >
         {IC.back} {clientName}
       </Link>
@@ -516,7 +516,7 @@ export function AddWorkoutClient({
 
       {/* ── CONTEXT FETCH ERROR ──────────────────────────────────────── */}
       {ctxError && !ctx && view !== "guard" && (
-        <div className="rounded-[16px] border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] p-4 text-[13px]">
+        <div className="rounded-surface border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] p-4 text-[13px]">
           <p className="font-bold text-[var(--status-danger)]">Could not load client data</p>
           <p className="text-[var(--color-body)] mt-1">The connection dropped while fetching equipment and template data. Try reloading the page.</p>
         </div>
@@ -524,9 +524,9 @@ export function AddWorkoutClient({
 
       {/* ── GUARD: equipment is NULL ──────────────────────────────────── */}
       {view === "guard" && (
-        <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
           <div className="flex flex-col items-center justify-center text-center gap-1 py-10 px-6">
-            <span className="w-12 h-12 rounded-full bg-[var(--s-warning-bg)] text-[var(--s-warning-tx)] grid place-items-center mb-2">
+            <span className="w-12 h-12 rounded-pill bg-[var(--s-warning-bg)] text-[var(--s-warning-tx)] grid place-items-center mb-2">
               {IC.warning}
             </span>
             <p className="text-base font-bold text-[var(--color-ink)]">We need to know what {clientName}&rsquo;s got first</p>
@@ -545,7 +545,7 @@ export function AddWorkoutClient({
 
       {/* ── Equipment context banner (persistent across all non-guard views) ── */}
       {view !== "guard" && view !== "done" && (
-        <div className="flex items-start gap-3 p-3.5 rounded-[16px] bg-[var(--hub-card)] border border-[var(--hub-border)]">
+        <div className="flex items-start gap-3 p-3.5 rounded-surface bg-[var(--hub-card)] border border-[var(--hub-border)]">
           <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center shrink-0">
             {IC.check}
           </span>
@@ -573,7 +573,7 @@ export function AddWorkoutClient({
           </div>
           <Link
             href={`/hub/clients/${clientNumber}/edit`}
-            className="shrink-0 inline-flex items-center h-[30px] px-2.5 rounded-md border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[12.5px] font-semibold transition-colors"
+            className="shrink-0 inline-flex items-center h-[30px] px-2.5 rounded-nested border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[12.5px] font-semibold transition-colors"
           >
             {IC.edit} <span className="ml-1">Not right? Edit</span>
           </Link>
@@ -585,7 +585,7 @@ export function AddWorkoutClient({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={() => goTo("qa")}
-            className="flex flex-col items-start gap-2.5 text-left p-5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm cursor-pointer font-[inherit] transition-all hover:border-rose hover:shadow-[0_4px_14px_rgba(193,131,159,.14)] focus-visible:outline-2 focus-visible:outline-rose focus-visible:outline-offset-2"
+            className="flex flex-col items-start gap-2.5 text-left p-5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm cursor-pointer font-[inherit] transition-all hover:border-rose hover:shadow-[0_4px_14px_rgba(193,131,159,.14)] focus-visible:outline-2 focus-visible:outline-rose focus-visible:outline-offset-2"
           >
             <span className="w-10 h-10 rounded-lg bg-[var(--s-primary-bg)] text-[var(--s-primary-tx)] grid place-items-center shrink-0">{IC.sparkle}</span>
             <span className="text-[15px] font-bold text-[var(--color-ink)]">Answer a few questions</span>
@@ -594,7 +594,7 @@ export function AddWorkoutClient({
           </button>
           <button
             onClick={() => goTo("templates")}
-            className="flex flex-col items-start gap-2.5 text-left p-5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm cursor-pointer font-[inherit] transition-all hover:border-rose hover:shadow-[0_4px_14px_rgba(193,131,159,.14)] focus-visible:outline-2 focus-visible:outline-rose focus-visible:outline-offset-2"
+            className="flex flex-col items-start gap-2.5 text-left p-5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm cursor-pointer font-[inherit] transition-all hover:border-rose hover:shadow-[0_4px_14px_rgba(193,131,159,.14)] focus-visible:outline-2 focus-visible:outline-rose focus-visible:outline-offset-2"
           >
             <span className="w-10 h-10 rounded-lg bg-[var(--s-primary-bg)] text-[var(--s-primary-tx)] grid place-items-center shrink-0">{IC.doc}</span>
             <span className="text-[15px] font-bold text-[var(--color-ink)]">Pick from a template</span>
@@ -603,7 +603,7 @@ export function AddWorkoutClient({
           </button>
           <button
             onClick={() => goTo("paste")}
-            className="flex flex-col items-start gap-2.5 text-left p-5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm cursor-pointer font-[inherit] transition-all hover:border-rose hover:shadow-[0_4px_14px_rgba(193,131,159,.14)] focus-visible:outline-2 focus-visible:outline-rose focus-visible:outline-offset-2"
+            className="flex flex-col items-start gap-2.5 text-left p-5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm cursor-pointer font-[inherit] transition-all hover:border-rose hover:shadow-[0_4px_14px_rgba(193,131,159,.14)] focus-visible:outline-2 focus-visible:outline-rose focus-visible:outline-offset-2"
           >
             <span className="w-10 h-10 rounded-lg bg-[var(--s-primary-bg)] text-[var(--s-primary-tx)] grid place-items-center shrink-0">{IC.paste}</span>
             <span className="text-[15px] font-bold text-[var(--color-ink)]">Paste in a workout</span>
@@ -617,7 +617,7 @@ export function AddWorkoutClient({
       {view === "qa" && (
         <>
           <Stepper steps={[{ n: 1, label: "Questions" }, { n: 2, label: "Building" }, { n: 3, label: "Preview" }]} current={1} />
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
             <div className="p-4 space-y-4">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-[.05em] text-muted-foreground mb-1.5">What should this workout focus on?</label>
@@ -708,13 +708,13 @@ export function AddWorkoutClient({
       {view === "qa-generating" && (
         <>
           <Stepper steps={[{ n: 1, label: "Questions" }, { n: 2, label: "Building" }, { n: 3, label: "Preview" }]} current={2} />
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden" aria-busy="true">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden" aria-busy="true">
             <div className="p-4">
               <p className="text-[13px] font-bold text-[var(--color-ink)] mb-1">Building {clientName}&rsquo;s workout…</p>
               <p className="text-[12px] text-muted-foreground mb-4">Checking their equipment and known restrictions as it goes.</p>
               <div className="space-y-2">
                 <div className="h-3 w-[60%] rounded bg-gradient-to-r from-[var(--hub-hover)] via-[#EEF0F3] to-[var(--hub-hover)] bg-[length:400%_100%] animate-[sk_1.4s_ease-in-out_infinite]" />
-                <div className="h-5 w-[88px] rounded-full bg-gradient-to-r from-[var(--hub-hover)] via-[#EEF0F3] to-[var(--hub-hover)] bg-[length:400%_100%] animate-[sk_1.4s_ease-in-out_infinite]" />
+                <div className="h-5 w-[88px] rounded-pill bg-gradient-to-r from-[var(--hub-hover)] via-[#EEF0F3] to-[var(--hub-hover)] bg-[length:400%_100%] animate-[sk_1.4s_ease-in-out_infinite]" />
                 <div className="h-3 w-[90%] rounded bg-gradient-to-r from-[var(--hub-hover)] via-[#EEF0F3] to-[var(--hub-hover)] bg-[length:400%_100%] animate-[sk_1.4s_ease-in-out_infinite]" />
                 <div className="h-3 w-[90%] rounded bg-gradient-to-r from-[var(--hub-hover)] via-[#EEF0F3] to-[var(--hub-hover)] bg-[length:400%_100%] animate-[sk_1.4s_ease-in-out_infinite]" />
                 <div className="h-3 w-[40%] rounded bg-gradient-to-r from-[var(--hub-hover)] via-[#EEF0F3] to-[var(--hub-hover)] bg-[length:400%_100%] animate-[sk_1.4s_ease-in-out_infinite]" />
@@ -729,15 +729,15 @@ export function AddWorkoutClient({
       {view === "templates" && (
         <>
           <Stepper steps={[{ n: 1, label: "Templates" }, { n: 2, label: "Preview" }]} current={1} />
-          <div className="flex gap-3 border border-[var(--s-primary-bd)] rounded-[16px] p-3.5 text-[12.5px] leading-[1.6] bg-[var(--s-primary-bg)] text-[var(--color-ink)]">
-            <span className="w-6 h-6 rounded-full bg-rose text-white grid place-items-center text-xs font-extrabold shrink-0 mt-px">i</span>
+          <div className="flex gap-3 border border-[var(--s-primary-bd)] rounded-surface p-3.5 text-[12.5px] leading-[1.6] bg-[var(--s-primary-bg)] text-[var(--color-ink)]">
+            <span className="w-6 h-6 rounded-pill bg-rose text-white grid place-items-center text-xs font-extrabold shrink-0 mt-px">i</span>
             <div>
               <b>Showing templates that match {clientName}&rsquo;s equipment.</b>{" "}
               {deliveryLabel} {equipmentDisplay.length > 0 && <>· {equipmentDisplay.join(", ")}</>}.{" "}
               Anything needing kit they don&rsquo;t have is left out below, with the reason — never hidden without explanation.
             </div>
           </div>
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
             <div className="p-4 space-y-2">
               {(ctx?.matchedTemplates ?? []).length === 0 ? (
                 <div className="text-center py-8">
@@ -749,7 +749,7 @@ export function AddWorkoutClient({
                   <button
                     key={t.id}
                     onClick={() => previewTemplate(t)}
-                    className="flex items-center gap-3 w-full p-3.5 border border-[var(--hub-border)] rounded-[10px] bg-[var(--hub-card)] text-left font-[inherit] hover:border-rose transition-colors"
+                    className="flex items-center gap-3 w-full p-3.5 border border-[var(--hub-border)] rounded-nested bg-[var(--hub-card)] text-left font-[inherit] hover:border-rose transition-colors"
                   >
                     <span className="w-[34px] h-[34px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground grid place-items-center shrink-0">
                       {IC.doc}
@@ -760,7 +760,7 @@ export function AddWorkoutClient({
                         {formatDeliveryMode(deliveryMode)} · {t.equipment.length > 0 ? t.equipment.join(", ") : "Bodyweight"} · est. {t.estimatedMinutes} min
                       </span>
                     </span>
-                    <span className="inline-flex items-center h-[30px] px-2.5 rounded-md border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[12.5px] font-semibold transition-colors shrink-0">
+                    <span className="inline-flex items-center h-[30px] px-2.5 rounded-nested border border-[var(--hub-field-border)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] text-[12.5px] font-semibold transition-colors shrink-0">
                       Preview
                     </span>
                   </button>
@@ -770,11 +770,11 @@ export function AddWorkoutClient({
             {/* Excluded templates accordion */}
             {(ctx?.excludedTemplates ?? []).length > 0 && (
               <div className="px-4 pb-3 border-t border-[var(--hub-border)]">
-                <details className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden mt-0">
+                <details className="rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden mt-0">
                   <summary className="flex items-center gap-2.5 min-h-[48px] px-3.5 cursor-pointer list-none text-[13px] font-semibold text-[var(--color-ink)] hover:bg-[var(--hub-hover)] transition-colors">
                     <svg className="w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-150 group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                     <span className="flex-1">{ctx.excludedTemplates.length} template{ctx.excludedTemplates.length === 1 ? "" : "s"} excluded — see why</span>
-                    <span className="inline-flex items-center h-[22px] px-2 rounded-full text-[11.5px] font-bold bg-[var(--status-neutral-bg)] border border-[var(--status-neutral-border)] text-[var(--color-body)]">{ctx.excludedTemplates.length}</span>
+                    <span className="inline-flex items-center h-[22px] px-2 rounded-pill text-[11.5px] font-bold bg-[var(--status-neutral-bg)] border border-[var(--status-neutral-border)] text-[var(--color-body)]">{ctx.excludedTemplates.length}</span>
                   </summary>
                   <div className="px-3.5 pb-3.5 pt-1 text-[12.5px]">
                     {ctx.excludedTemplates.map((e, i) => (
@@ -800,7 +800,7 @@ export function AddWorkoutClient({
       {view === "paste" && (
         <>
           <Stepper steps={[{ n: 1, label: "Paste" }, { n: 2, label: "Review & edit" }, { n: 3, label: "Preview" }]} current={1} />
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
               <span className="text-[11px] text-muted-foreground font-mono">Paste from email, chat or notes — formatting is kept</span>
             </div>
@@ -838,7 +838,7 @@ export function AddWorkoutClient({
       {view === "paste-review" && reviewData && (
         <>
           <Stepper steps={[{ n: 1, label: "Paste" }, { n: 2, label: "Review & edit" }, { n: 3, label: "Preview" }]} current={2} />
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--hub-border)]">
               <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center shrink-0">{IC.check}</span>
               <div>
@@ -865,7 +865,7 @@ export function AddWorkoutClient({
                     <h4 className="text-[11px] font-bold uppercase tracking-[.06em] text-muted-foreground mb-1.5">{sectionLabel}</h4>
                     <div className="space-y-1.5">
                       {exercises.map((ex, i) => (
-                        <div key={i} className="flex items-center gap-2.5 text-[13px] py-2 px-2.5 border border-[var(--hub-border)] rounded-[10px]">
+                        <div key={i} className="flex items-center gap-2.5 text-[13px] py-2 px-2.5 border border-[var(--hub-border)] rounded-nested">
                           <span className="text-muted-foreground font-variant-numeric:tabular-nums w-4 shrink-0 text-[12px] font-extrabold">{i + 1}</span>
                           <span className="text-[var(--color-ink)] font-semibold flex-1 min-w-0">{ex.exercise_name}</span>
                            <div className="shrink-0 flex flex-col gap-0.5">
@@ -882,7 +882,7 @@ export function AddWorkoutClient({
                                   });
                                 }
                               }}
-                              className={`w-[130px] h-[30px] border rounded-md px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-[var(--color-ink)] focus:outline-none focus:shadow-[0_0_0_3px_rgba(193,131,159,.28)] shrink-0 ${reviewParseErrors[`${section}:${i}`] ? "border-[var(--status-danger)] focus:border-[var(--status-danger)]" : "border-[var(--hub-field-border)] focus:border-rose"}`}
+                              className={`w-[130px] h-[30px] border rounded-nested px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-[var(--color-ink)] focus:outline-none focus:shadow-[0_0_0_3px_rgba(193,131,159,.28)] shrink-0 ${reviewParseErrors[`${section}:${i}`] ? "border-[var(--status-danger)] focus:border-[var(--status-danger)]" : "border-[var(--hub-field-border)] focus:border-rose"}`}
                             />
                             {reviewParseErrors[`${section}:${i}`] && (
                               <p className="text-[10.5px] text-[var(--status-danger)] leading-tight max-w-[140px] text-right">{reviewParseErrors[`${section}:${i}`]}</p>
@@ -913,7 +913,7 @@ export function AddWorkoutClient({
 
       {/* ── PREVIEW: shared by all three routes ───────────────────────── */}
       {view === "preview" && preview && (
-        <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--hub-border)]">
             <span className="w-8 h-8 rounded-lg bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center shrink-0">{IC.check}</span>
@@ -967,9 +967,9 @@ export function AddWorkoutClient({
 
       {/* ── DONE: post-create confirmation ────────────────────────────── */}
       {view === "done" && (
-        <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
           <div className="text-center py-12 px-8">
-            <div className="w-[60px] h-[60px] rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center mx-auto mb-4">
+            <div className="w-[60px] h-[60px] rounded-pill bg-[var(--status-success-bg)] text-[var(--status-success-text)] grid place-items-center mx-auto mb-4">
               {IC.checkCircle}
             </div>
             <h2 className="text-lg font-extrabold text-[var(--color-ink)] mb-1.5">Added to {clientName}&rsquo;s programme</h2>

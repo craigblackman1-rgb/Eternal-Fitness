@@ -109,7 +109,7 @@ export function BlockSchedulePanel({
     .join(", ");
 
   return (
-    <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+    <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
       {isScheduled ? (
         <div className="flex items-center gap-3 px-4 py-3">
           <span className="w-8 h-8 rounded-lg bg-[var(--status-primary-bg)] text-rose flex items-center justify-center shrink-0">

@@ -117,7 +117,7 @@ export function ExercisePicker({
         }}
       >
         <div className="flex items-center gap-3 border-b border-[var(--hub-border)] bg-[var(--hub-card)] px-[22px] py-[18px]">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-rose/10 text-rose">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-nested bg-rose/10 text-rose">
             <IconSearch className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">
@@ -203,7 +203,7 @@ export function ExercisePicker({
               <button
                 key={ex.id}
                 onClick={() => handleSelect(ex)}
-                className="flex w-full items-center gap-2.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5 text-left text-sm transition-colors hover:bg-[var(--hub-hover)]"
+                className="flex w-full items-center gap-2.5 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5 text-left text-sm transition-colors hover:bg-[var(--hub-hover)]"
               >
                 <div className="min-w-0 flex-1">
                   <span className="text-[13px] font-semibold text-[var(--color-ink)]">{ex.name}</span>

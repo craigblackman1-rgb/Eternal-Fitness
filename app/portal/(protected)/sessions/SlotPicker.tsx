@@ -248,12 +248,12 @@ export function SlotPicker({
           return (
             <li
               key={sess.id}
-              className={`flex gap-4 border rounded-2xl bg-white p-5 shadow-sm transition-shadow hover:shadow-md ${
+              className={`flex gap-4 border rounded-surface bg-white p-5 shadow-sm transition-shadow hover:shadow-md ${
                 !isBooked ? "" : ""
               }`}
             >
               {/* Icon */}
-              <span className="w-10 h-10 rounded-xl bg-warm border border-border flex items-center justify-center shrink-0 text-foreground" aria-hidden="true">
+              <span className="w-10 h-10 rounded-surface bg-warm border border-border flex items-center justify-center shrink-0 text-foreground" aria-hidden="true">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3.5" y="5" width="17" height="15" rx="1.5" />
                   <path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" />
@@ -282,14 +282,14 @@ export function SlotPicker({
               {/* Side — badge + button */}
               <div className="flex flex-col items-end gap-2 shrink-0">
                 {isBooked ? (
-                  <span className="inline-flex items-center gap-1.5 border border-teal rounded-full px-2.5 py-0.5 text-xs font-bold bg-teal/10 text-foreground whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 border border-teal rounded-pill px-2.5 py-0.5 text-xs font-bold bg-teal/10 text-foreground whitespace-nowrap">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <path d="m5 12.5 4.5 4.5L19 7.5" />
                     </svg>
                     Booked
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 border border-border rounded-full px-2.5 py-0.5 text-xs font-bold bg-rose/10 text-foreground whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 border border-border rounded-pill px-2.5 py-0.5 text-xs font-bold bg-rose/10 text-foreground whitespace-nowrap">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <circle cx="12" cy="12" r="9" />
                       <path d="M12 7.5v5.5l3.5 2" />
@@ -301,7 +301,7 @@ export function SlotPicker({
                 {isBooked ? (
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-full border border-border bg-white text-foreground text-sm font-bold hover:bg-warm transition-colors"
+                    className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-pill border border-border bg-white text-foreground text-sm font-bold hover:bg-warm transition-colors"
                     onClick={() => openSheet(sess, true)}
                   >
                     Reschedule
@@ -309,7 +309,7 @@ export function SlotPicker({
                 ) : (
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-full bg-rose text-foreground text-sm font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                    className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-pill bg-rose text-foreground text-sm font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all"
                     onClick={() => openSheet(sess, false)}
                   >
                     Choose a time
@@ -442,7 +442,7 @@ export function SlotPicker({
                   <h3>No slots free this week</h3>
                   <p>{emptyMessage}</p>
                   <p className="mt-4 m-0">
-                    <a href="tel:07517658128" className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-full border border-border bg-white text-foreground text-sm font-bold hover:bg-warm transition-colors">
+                    <a href="tel:07517658128" className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-pill border border-border bg-white text-foreground text-sm font-bold hover:bg-warm transition-colors">
                       Call the studio
                     </a>
                   </p>
@@ -500,14 +500,14 @@ export function SlotPicker({
                 <div className="flex gap-3 ml-auto">
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-full border border-body bg-transparent text-foreground text-sm font-bold hover:bg-white transition-colors"
+                    className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-pill border border-body bg-transparent text-foreground text-sm font-bold hover:bg-white transition-colors"
                     onClick={closeSheet}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
-                    className={`inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-full text-sm font-bold transition-all ${
+                    className={`inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-pill text-sm font-bold transition-all ${
                       selectedSlot && !confirming
                         ? "bg-rose text-foreground hover:shadow-lg hover:-translate-y-0.5"
                         : "bg-warm text-muted-foreground cursor-not-allowed"
@@ -531,7 +531,7 @@ export function SlotPicker({
                 <p>{result.message}</p>
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-full bg-rose text-foreground text-sm font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all mt-6"
+                  className="inline-flex items-center justify-center gap-2 min-h-[3rem] px-6 rounded-pill bg-rose text-foreground text-sm font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all mt-6"
                   onClick={closeSheet}
                 >
                   Back to your sessions

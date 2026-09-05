@@ -86,11 +86,11 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
 
         {/* Bar */}
         <div className="flex-1 min-w-[220px]">
-          <div className="flex h-3 rounded-full overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session pot breakdown">
+          <div className="flex h-3 rounded-pill overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session pot breakdown">
             {segments.map((seg) => (
               <span
                 key={seg.label}
-                className="h-full first:rounded-l-full last:rounded-r-full"
+                className="h-full first:rounded-l-pill last:rounded-r-pill"
                 style={{
                   width: `${(seg.count / total) * 100}%`,
                   backgroundColor: seg.color,
@@ -102,7 +102,7 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
           <div className="flex flex-wrap gap-1 mt-2">
             {segments.map((seg) => (
               <span key={seg.label} className="flex items-center gap-1.5 text-xs text-body">
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
+                <span className="w-2.5 h-2.5 rounded-control shrink-0" style={{ backgroundColor: seg.color }} />
                 {seg.label} <b className="text-foreground font-bold tabular-nums">{seg.count}</b>
               </span>
             ))}
@@ -130,7 +130,7 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
                 <>{days} day{days === 1 ? "" : "s"} left</>
               )}
               {extended && (
-                <span className="ml-1.5 inline-flex items-center rounded-full bg-amber/10 text-[var(--color-amber-text)] border border-amber/20 px-1.5 py-0 text-[10px] font-bold">
+                <span className="ml-1.5 inline-flex items-center rounded-pill bg-amber/10 text-[var(--color-amber-text)] border border-amber/20 px-1.5 py-0 text-[10px] font-bold">
                   Extended
                 </span>
               )}

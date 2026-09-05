@@ -115,7 +115,7 @@ export function SessionRow({
             : dayLabel}
         </span>
         <div className="flex-1 min-w-0 flex items-center gap-2.5 flex-wrap">
-          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold shrink-0 ${archetypeTint}`}>
+          <span className={`inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-[11px] font-semibold shrink-0 ${archetypeTint}`}>
             {archetypeLabel}
           </span>
           <div className="flex flex-col min-w-0">
@@ -234,12 +234,12 @@ export function SessionRow({
       {status === "cancelled" && (
         <div className="px-4 pb-3 text-xs text-muted-foreground">
           {chargedFree === "charged" && (
-            <span className="inline-flex items-center rounded-full bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
+            <span className="inline-flex items-center rounded-pill bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
               Charged
             </span>
           )}
           {chargedFree === "free" && (
-            <span className="inline-flex items-center rounded-full bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
+            <span className="inline-flex items-center rounded-pill bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
               Free
             </span>
           )}

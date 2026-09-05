@@ -112,7 +112,7 @@ export default async function PortalDashboardPage() {
 
       {/* Action summary --------------------------------------- */}
       {hasOutstanding && (
-        <div className="rounded-xl border border-amber/25 bg-amber/5 px-4 py-3">
+        <div className="rounded-surface border border-amber/25 bg-amber/5 px-4 py-3">
           <div className="flex items-start gap-2.5">
             <IconClock className="w-[18px] h-[18px] shrink-0 mt-0.5 text-amber" />
             <div>
@@ -174,7 +174,7 @@ export default async function PortalDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <span
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                        className={`inline-flex items-center rounded-pill border px-2 py-0.5 text-[11px] font-semibold ${
                           needsSig
                             ? "border-amber/30 bg-amber/5 text-amber"
                             : "border-teal/30 bg-teal/5 text-teal"
@@ -196,28 +196,28 @@ export default async function PortalDashboardPage() {
                     {needsSig ? (
                       <Link
                         href={`/portal/documents/${doc.id}`}
-                        className="inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
+                        className="inline-flex min-h-10 items-center rounded-pill bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
                       >
                         Read and sign
                       </Link>
                     ) : hasFeedbackSections ? (
                       <Link
                         href={`/portal/documents/${doc.id}`}
-                        className="inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
+                        className="inline-flex min-h-10 items-center rounded-pill bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
                       >
                         Carry on filling it in
                       </Link>
                     ) : (
                       <Link
                         href={`/portal/documents/${doc.id}`}
-                        className="inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
+                        className="inline-flex min-h-10 items-center rounded-pill bg-ink px-5 text-sm font-semibold text-white hover:bg-ink/90 transition-colors"
                       >
                         View document
                       </Link>
                     )}
                     <Link
                       href="/portal/documents"
-                      className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+                      className="inline-flex min-h-10 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
                     >
                       Later
                     </Link>
@@ -243,7 +243,7 @@ export default async function PortalDashboardPage() {
             the client area later this year.
           </p>
 
-          <div className="rounded-2xl bg-ink text-white p-5">
+          <div className="rounded-surface bg-ink text-white p-5">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-1">
@@ -304,7 +304,7 @@ export default async function PortalDashboardPage() {
             </p>
           </HubCard>
         ) : (
-          <ul className="divide-y divide-border/60 rounded-2xl border border-border/60 bg-white">
+          <ul className="divide-y divide-border/60 rounded-surface border border-border/60 bg-white">
             {signed.map((doc) => (
               <li key={doc.id}>
                 <Link
@@ -324,7 +324,7 @@ export default async function PortalDashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center rounded-full border border-teal/30 bg-teal/5 px-2 py-0.5 text-[11px] font-semibold text-teal shrink-0">
+                  <span className="inline-flex items-center rounded-pill border border-teal/30 bg-teal/5 px-2 py-0.5 text-[11px] font-semibold text-teal shrink-0">
                     <IconCheckCircle className="w-3 h-3 mr-1.5" />
                     Signed
                   </span>
@@ -338,7 +338,7 @@ export default async function PortalDashboardPage() {
           <p className="mt-4">
             <Link
               href="/portal/documents"
-              className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+              className="inline-flex min-h-10 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
             >
               See all documents
             </Link>
@@ -357,7 +357,7 @@ export default async function PortalDashboardPage() {
             Esther.
           </p>
 
-          <div className="rounded-2xl border border-border/60 bg-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="rounded-surface border border-border/60 bg-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-start gap-3 min-w-0">
               <div className="w-9 h-9 rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0 mt-0.5">
                 <svg
@@ -392,7 +392,7 @@ export default async function PortalDashboardPage() {
             </div>
             <Link
               href="/portal/calorie-guide"
-              className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent shrink-0"
+              className="inline-flex min-h-10 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent shrink-0"
             >
               Open
             </Link>
@@ -435,13 +435,13 @@ export default async function PortalDashboardPage() {
           ].map((item) => (
             <li
               key={item.label}
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-white px-5 py-3.5 text-sm"
+              className="flex items-center gap-3 rounded-surface border border-border/60 bg-white px-5 py-3.5 text-sm"
             >
               <b className="text-ink shrink-0">{item.label}</b>
               <span className="text-muted-foreground hidden sm:inline">
                 — {item.desc}
               </span>
-              <span className="ml-auto inline-flex items-center rounded-full border border-slate/30 bg-slate/5 px-2.5 py-0.5 text-[11px] font-semibold text-slate shrink-0">
+              <span className="ml-auto inline-flex items-center rounded-pill border border-slate/30 bg-slate/5 px-2.5 py-0.5 text-[11px] font-semibold text-slate shrink-0">
                 {item.eta}
               </span>
             </li>

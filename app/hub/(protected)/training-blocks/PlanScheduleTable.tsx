@@ -155,7 +155,7 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
         const num = row.client_number;
         return (
           <div className="flex items-center gap-2.5">
-            <span className="inline-grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--status-primary-bg)] text-[var(--color-rose)] text-xs font-bold">
+            <span className="inline-grid h-8 w-8 shrink-0 place-items-center rounded-pill bg-[var(--status-primary-bg)] text-[var(--color-rose)] text-xs font-bold">
               {initialsFor(name)}
             </span>
             <div className="min-w-0">
@@ -220,9 +220,9 @@ export function PlanScheduleTable({ data }: { data: BlockWithClient[] }) {
         const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
         return (
           <div className="flex items-center gap-2">
-            <span className="inline-block h-1.5 w-[90px] rounded-full bg-[var(--hub-border)] overflow-hidden align-middle">
+            <span className="inline-block h-1.5 w-[90px] rounded-pill bg-[var(--hub-border)] overflow-hidden align-middle">
               <span
-                className="block h-full rounded-full bg-[var(--color-teal)]"
+                className="block h-full rounded-pill bg-[var(--color-teal)]"
                 style={{ width: `${pct}%` }}
               />
             </span>

@@ -57,7 +57,7 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
         <select
           value={kind}
           onChange={(e) => setKind(e.target.value as DocumentKind)}
-          className="h-8 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
+          className="h-8 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
         >
           {(Object.entries(DOCUMENT_KIND_LABEL) as [DocumentKind, string][]).map(([k, v]) => (
             <option key={k} value={k}>{v}</option>
@@ -71,7 +71,7 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={DOCUMENT_KIND_LABEL[kind]}
-          className="h-8 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
+          className="h-8 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
         />
       </div>
       <div className="flex flex-col gap-0.5">
@@ -80,7 +80,7 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
           type="date"
           value={signedDate}
           onChange={(e) => setSignedDate(e.target.value)}
-          className="h-8 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
+          className="h-8 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs"
         />
       </div>
       <div className="flex flex-col gap-0.5">
@@ -90,7 +90,7 @@ export function DocumentUploadForm({ clientNumber, onDone }: DocumentUploadFormP
           type="file"
           accept={ACCEPT_ATTRIBUTE}
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="h-8 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs file:mr-2 file:border-0 file:bg-transparent file:text-xs file:font-medium"
+          className="h-8 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 text-xs file:mr-2 file:border-0 file:bg-transparent file:text-xs file:font-medium"
         />
       </div>
       <Button type="submit" size="sm" disabled={busy} className="h-8 rounded-lg gap-1.5 text-xs">

@@ -334,7 +334,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
 
       {/* Email feedback */}
       {emailStatus === "success" && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2">
+        <div className="bg-green-50 border border-green-200 rounded-nested p-3 flex items-center gap-2">
           <IconCheckCircle className="w-4 h-4 text-green-600" />
           <p className="text-sm text-green-800">
             {emailDryRun
@@ -344,7 +344,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
         </div>
       )}
       {emailStatus === "error" && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 rounded-nested p-3 flex items-center gap-2">
           <IconAlertCircle className="w-4 h-4 text-red-600" />
           <p className="text-sm text-red-800">{emailError}</p>
         </div>
@@ -473,13 +473,13 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
         ) : (
             <div className="space-y-6">
               {parqSaveSuccess && (
-                <div className="bg-green-50 border border-green-200 rounded-md p-3 flex items-center gap-2">
+                <div className="bg-green-50 border border-green-200 rounded-nested p-3 flex items-center gap-2">
                   <IconCheckCircle className="w-4 h-4 text-green-600" />
                   <p className="text-sm text-green-800">PAR-Q saved successfully</p>
                 </div>
               )}
               {parqSaveError && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2">
+                <div className="bg-red-50 border border-red-200 rounded-nested p-3 flex items-center gap-2">
                   <IconAlertCircle className="w-4 h-4 text-red-600" />
                   <p className="text-sm text-red-800">{parqSaveError}</p>
                 </div>
@@ -508,7 +508,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
                   <h4 className="text-sm font-semibold mb-3 pb-2 border-b">{section.label}</h4>
                   <div className="space-y-2">
                     {section.questions.map(({ q, text, note }) => (
-                      <div key={q} className="bg-muted/30 rounded-md p-2.5">
+                      <div key={q} className="bg-muted/30 rounded-nested p-2.5">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <span className="text-sm font-medium">Q{q.replace("q", "")}. </span><span className="text-sm">{text}</span>

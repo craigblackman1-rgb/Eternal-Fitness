@@ -228,7 +228,7 @@ export function TrainingRuleTypesManager({ initialRuleTypes }: TrainingRuleTypes
                         <td className="py-3 px-5 font-semibold text-foreground">{rt.label}</td>
                         <td className="py-3 px-5">
                           <span
-                            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                            className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold"
                             style={{
                               borderColor: `var(--status-${BUCKET_STATUS_MAP[rt.bucket]}-border)`,
                               backgroundColor: `var(--status-${BUCKET_STATUS_MAP[rt.bucket]}-bg)`,

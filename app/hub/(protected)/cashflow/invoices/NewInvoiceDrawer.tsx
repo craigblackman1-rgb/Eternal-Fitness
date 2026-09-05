@@ -238,10 +238,10 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
         </div>
 
         <div className="flex gap-1 px-[22px] py-[14px] border-b border-[var(--hub-border)] shrink-0">
-          <div className="flex-1 h-1 rounded-full bg-[var(--color-rose)]" />
-          <div className="flex-1 h-1 rounded-full bg-[var(--color-rose)]" />
-          <div className="flex-1 h-1 rounded-full bg-[var(--hub-border)]" />
-          <div className="flex-1 h-1 rounded-full bg-[var(--hub-border)]" />
+          <div className="flex-1 h-1 rounded-pill bg-[var(--color-rose)]" />
+          <div className="flex-1 h-1 rounded-pill bg-[var(--color-rose)]" />
+          <div className="flex-1 h-1 rounded-pill bg-[var(--hub-border)]" />
+          <div className="flex-1 h-1 rounded-pill bg-[var(--hub-border)]" />
         </div>
 
         <div className="flex-1 overflow-y-auto p-[22px]">
@@ -374,7 +374,7 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
                   <tr key={li.key}>
                     <td className="p-1">
                       <input
-                        className="w-full h-[34px] rounded-md border border-[var(--hub-field-border)] px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-foreground focus:outline-none focus:border-[var(--color-rose)]"
+                        className="w-full h-[34px] rounded-nested border border-[var(--hub-field-border)] px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-foreground focus:outline-none focus:border-[var(--color-rose)]"
                         placeholder="Description"
                         value={li.description}
                         onChange={(e) => updateLine(li.key, "description", e.target.value)}
@@ -385,7 +385,7 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
                         type="number"
                         min="0"
                         step="1"
-                        className="w-full h-[34px] rounded-md border border-[var(--hub-field-border)] px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-foreground text-right focus:outline-none focus:border-[var(--color-rose)]"
+                        className="w-full h-[34px] rounded-nested border border-[var(--hub-field-border)] px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-foreground text-right focus:outline-none focus:border-[var(--color-rose)]"
                         value={li.quantity}
                         onChange={(e) =>
                           updateLine(li.key, "quantity", parseFloat(e.target.value) || 0)
@@ -397,7 +397,7 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
                         type="number"
                         min="0"
                         step="0.01"
-                        className="w-full h-[34px] rounded-md border border-[var(--hub-field-border)] px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-foreground text-right focus:outline-none focus:border-[var(--color-rose)]"
+                        className="w-full h-[34px] rounded-nested border border-[var(--hub-field-border)] px-2 text-[12.5px] font-[inherit] bg-[var(--hub-card)] text-foreground text-right focus:outline-none focus:border-[var(--color-rose)]"
                         value={li.unit_price}
                         onChange={(e) =>
                           updateLine(li.key, "unit_price", parseFloat(e.target.value) || 0)
@@ -406,7 +406,7 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
                     </td>
                     <td className="p-1">
                       <button
-                        className="w-7 h-7 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] text-[var(--status-danger)] grid place-items-center cursor-pointer hover:bg-[var(--hub-hover)]"
+                        className="w-7 h-7 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] text-[var(--status-danger)] grid place-items-center cursor-pointer hover:bg-[var(--hub-hover)]"
                         onClick={() => removeLine(li.key)}
                         aria-label="Remove line"
                       >

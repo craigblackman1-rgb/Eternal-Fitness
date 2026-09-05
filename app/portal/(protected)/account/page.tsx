@@ -77,7 +77,7 @@ export default async function PortalAccountPage() {
                 { label: "Larger", note: "130%", value: "2" },
                 { label: "Largest", note: "150%", value: "3" },
               ].map((opt) => (
-                <label key={opt.value} className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-medium cursor-pointer hover:bg-accent">
+                <label key={opt.value} className="inline-flex items-center gap-2 rounded-pill border border-input px-4 py-2 text-sm font-medium cursor-pointer hover:bg-accent">
                   <input type="radio" name="textsize" value={opt.value} defaultChecked={opt.value === "0"} className="h-4 w-4 text-teal" />
                   {opt.label} <span className="text-muted-foreground font-normal">{opt.note}</span>
                 </label>
@@ -100,7 +100,7 @@ export default async function PortalAccountPage() {
                 <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
               </div>
-              <button type="button" className="shrink-0 inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent">
+              <button type="button" className="shrink-0 inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent">
                 Turn on
               </button>
             </div>
@@ -111,7 +111,7 @@ export default async function PortalAccountPage() {
               <h3 className="text-sm font-semibold text-foreground">Back to normal</h3>
               <p className="text-sm text-muted-foreground mt-1">Puts the text size back to 100%. Contrast and motion stay as you set them.</p>
             </div>
-            <button type="button" className="shrink-0 inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent">
+            <button type="button" className="shrink-0 inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent">
               Reset text size
             </button>
           </div>
@@ -155,7 +155,7 @@ export default async function PortalAccountPage() {
           title="Your details"
           color="navy"
           action={
-            <button type="button" className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent">
+            <button type="button" className="inline-flex min-h-10 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent">
               Change details
             </button>
           }
@@ -196,7 +196,7 @@ export default async function PortalAccountPage() {
               { value: "phone", label: "Phone call" },
               { value: "post", label: "Post" },
             ].map((opt) => (
-              <label key={opt.value} className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-medium cursor-pointer hover:bg-accent">
+              <label key={opt.value} className="inline-flex items-center gap-2 rounded-pill border border-input px-4 py-2 text-sm font-medium cursor-pointer hover:bg-accent">
                 <input type="checkbox" name="contact" value={opt.value} defaultChecked={opt.defaultChecked} className="h-4 w-4 text-teal" />
                 {opt.label}
               </label>
@@ -225,7 +225,7 @@ export default async function PortalAccountPage() {
                 <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
               </div>
-              <button type="button" className="shrink-0 inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent">
+              <button type="button" className="shrink-0 inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent">
                 {item.title === "Get a copy of everything" ? "Request copy" : item.title === "Correct something" ? "Ask for a change" : "Close account"}
               </button>
             </div>
@@ -234,7 +234,7 @@ export default async function PortalAccountPage() {
       </HubCard>
 
       {/* Accessibility help */}
-      <div className="rounded-2xl border border-teal/30 bg-teal/5 p-5">
+      <div className="rounded-surface border border-teal/30 bg-teal/5 p-5">
         <div className="flex gap-3">
           <div className="w-[30px] h-[30px] rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 11v5.5M12 7.5v.5" /></svg>

@@ -259,12 +259,12 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
 
       <div className="flex items-center gap-2 px-5 pt-4">
         {selectedTemplate ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose/20 bg-rose/5 pl-3 pr-1.5 py-1 text-xs font-medium text-rose">
+          <span className="inline-flex items-center gap-1.5 rounded-pill border border-rose/20 bg-rose/5 pl-3 pr-1.5 py-1 text-xs font-medium text-rose">
             <IconDumbbell className="h-3.5 w-3.5" />
             Framework: {selectedTemplate.name}
             <button
               onClick={() => setSelectedTemplate(null)}
-              className="ml-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-rose/10"
+              className="ml-0.5 inline-flex h-5 w-5 items-center justify-center rounded-pill hover:bg-rose/10"
               aria-label="Clear template"
             >
               <IconX className="h-3 w-3" />
@@ -273,7 +273,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
         ) : (
           <button
             onClick={openTemplatePicker}
-            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--hub-border)] px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-rose hover:text-rose"
+            className="inline-flex items-center gap-1.5 rounded-pill border border-dashed border-[var(--hub-border)] px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-rose hover:text-rose"
           >
             <IconCopy className="h-3.5 w-3.5" />
             Use a template as the framework
@@ -303,7 +303,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
               className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
               <div
-                className={`w-6 h-6 rounded-full grid place-items-center shrink-0 text-[10px] font-bold ${
+                className={`w-6 h-6 rounded-pill grid place-items-center shrink-0 text-[10px] font-bold ${
                   message.role === "user"
                     ? "bg-[var(--status-primary-bg)] text-rose"
                     : "bg-[var(--status-success-bg)] text-teal"
@@ -321,9 +321,9 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
                 >
                   {message.content === "" && streaming ? (
                     <span className="inline-flex gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+                      <span className="w-1.5 h-1.5 rounded-pill bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 rounded-pill bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 rounded-pill bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
                     </span>
                   ) : message.role === "assistant" ? (
                     <div className="plan-agent-md leading-relaxed">
@@ -350,7 +350,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
 
       {hasConversation && lastMessageIsAssistant && !streaming && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground px-5 pb-4">
-          <Badge variant="outline" className="rounded-full text-xs">
+          <Badge variant="outline" className="rounded-pill text-xs">
             {messages.filter((m) => m.role === "user").length} messages
           </Badge>
           <span>
@@ -420,7 +420,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
                   }}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3"
                 >
-                  <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                     <IconDumbbell className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -428,7 +428,7 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
                     {t.condition_tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-0.5">
                         {t.condition_tags.map((tag) => (
-                          <span key={tag} className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold">
+                          <span key={tag} className="inline-flex rounded-pill bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold">
                             {tag}
                           </span>
                         ))}

@@ -86,10 +86,10 @@ export default async function ClientDocumentsPage({ params }: { params: { id: st
                         created_at: d.created_at,
                       }}
                     >
-                      <Card className="shadow-sm bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] hover:border-rose/40 transition">
+                      <Card className="shadow-sm bg-[var(--hub-card)] rounded-surface border border-[var(--hub-border)] hover:border-rose/40 transition">
                         <CardContent className="flex items-center justify-between p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[var(--hub-hover)] text-muted-foreground flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-pill bg-[var(--hub-hover)] text-muted-foreground flex items-center justify-center shrink-0">
                               <IconFileText className="h-4 w-4" />
                             </div>
                             <div>
@@ -133,10 +133,10 @@ export default async function ClientDocumentsPage({ params }: { params: { id: st
             <div className="space-y-3">
               {generated.map((d) => (
                 <Link key={d.id} href={`/hub/clients/${clientNumber}/documents/${d.id}`}>
-                  <Card className="shadow-sm bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] hover:border-rose/40 transition">
+                  <Card className="shadow-sm bg-[var(--hub-card)] rounded-surface border border-[var(--hub-border)] hover:border-rose/40 transition">
                     <CardContent className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-teal/10 flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-pill bg-teal/10 flex items-center justify-center shrink-0">
                           <IconFileText className="h-4 w-4 text-teal" />
                         </div>
                         <div>
@@ -147,7 +147,7 @@ export default async function ClientDocumentsPage({ params }: { params: { id: st
                               <IconCalendar className="h-3 w-3" />
                               {formatDate(d.created_at)}
                             </span>
-                            <Badge variant="outline" className="rounded-full text-xs">v{d.version}</Badge>
+                            <Badge variant="outline" className="rounded-pill text-xs">v{d.version}</Badge>
                           </div>
                         </div>
                       </div>

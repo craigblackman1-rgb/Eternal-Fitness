@@ -136,7 +136,7 @@ export default function TrainingClient({
                 key={s.id}
                 onClick={() => setSelectedIdx(i)}
                 aria-current={active ? "true" : undefined}
-                className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors ${
+                className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-pill border px-4 text-sm font-medium transition-colors ${
                   active
                     ? "border-transparent bg-[var(--status-primary)] text-white"
                     : "border-input bg-white text-foreground hover:bg-accent"
@@ -152,7 +152,7 @@ export default function TrainingClient({
 
       {/* Selected session */}
       <section aria-label={`Session ${chronologicalPositions?.get(session.id)?.position ?? session.session_number}`} className="space-y-4">
-        <div className="rounded-2xl border border-border/60 bg-white p-4 sm:p-5">
+        <div className="rounded-surface border border-border/60 bg-white p-4 sm:p-5">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <h2 className="text-lg font-semibold">Session {chronologicalPositions?.get(session.id)?.position ?? session.session_number}</h2>
             <span className="text-sm capitalize text-muted-foreground">
@@ -262,7 +262,7 @@ function ExerciseCard({
   }
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-white p-4">
+    <div className="rounded-surface border border-border/60 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           {exercise.image_url && (
@@ -297,7 +297,7 @@ function ExerciseCard({
             href={exercise.video_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-input px-3.5 text-sm font-medium text-[var(--status-primary-text)] hover:bg-accent"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-pill border border-input px-3.5 text-sm font-medium text-[var(--status-primary-text)] hover:bg-accent"
           >
             <IconVideo className="h-4 w-4" aria-hidden="true" />
             Video
@@ -313,7 +313,7 @@ function ExerciseCard({
         const p = parseLoad(exercise.load);
         if (!p) return null;
         return (
-          <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-2 py-0.5 text-xs font-semibold text-rose">
+          <div className="mt-1.5 inline-flex items-center gap-1 rounded-nested border border-rose/20 bg-rose/5 px-2 py-0.5 text-xs font-semibold text-rose">
             {p.kind === "weight" && <>{p.value} {p.unit}</>}
             {p.kind === "pair" && <>{p.multiplier} × {p.value} {p.unit}</>}
             {p.kind === "token" && <>{p.label}{p.sub ? ` (${p.sub})` : ""}</>}
@@ -330,7 +330,7 @@ function ExerciseCard({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className={`mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors ${
+        className={`mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-pill border px-4 text-sm font-medium transition-colors ${
           loggedCount > 0
             ? "border-teal/30 bg-teal/10 text-teal"
             : "border-input bg-white text-foreground hover:bg-accent"
@@ -424,7 +424,7 @@ function ExerciseSetLogger({
   };
 
   return (
-    <div className="space-y-2 rounded-xl bg-accent/50 p-3">
+    <div className="space-y-2 rounded-surface bg-accent/50 p-3">
       <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         Prescribed {exercise.sets ?? 1} × {exercise.reps || "—"}
       </p>
@@ -495,7 +495,7 @@ function ExerciseSetLogger({
               {log ? (log.completed ? "Done" : "Skipped") : ""}
             </span>
             {pbSets.has(setNumber) && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-amber)] text-[var(--color-ink)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shrink-0">
+              <span className="inline-flex items-center gap-1 rounded-pill bg-[var(--color-amber)] text-[var(--color-ink)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shrink-0">
                 New PB
               </span>
             )}

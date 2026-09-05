@@ -294,7 +294,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
               <div className="flex flex-wrap gap-1">
                 {position.length > 0 ? (
                   position.map((p) => (
-                    <span key={p} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
+                    <span key={p} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-body)]">
                       {positionLabels[p] || p}
                     </span>
                   ))
@@ -321,7 +321,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Archetypes</div>
             <div className="flex flex-wrap gap-1">
               {archetypes.map((a) => (
-                <span key={a} className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">
+                <span key={a} className="inline-flex rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none">
                   {a}
                 </span>
               ))}
@@ -333,7 +333,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Movement types</div>
             <div className="flex flex-wrap gap-1">
               {movementTypes.map((mt) => (
-                <span key={mt} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                <span key={mt} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
                   {movementTypeLabels[mt] || mt}
                 </span>
               ))}
@@ -345,7 +345,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Muscle groups</div>
             <div className="flex flex-wrap gap-1">
               {muscleGroups.map((mg) => (
-                <span key={mg} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                <span key={mg} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
                   {mg}
                 </span>
               ))}
@@ -357,7 +357,7 @@ export const TemplateEditorClient = forwardRef<TemplateEditorHandle, TemplateEdi
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Equipment</div>
             <div className="flex flex-wrap gap-1">
               {equipment.map((eq) => (
-                <span key={eq} className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
+                <span key={eq} className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground leading-none">
                   {eq}
                 </span>
               ))}
@@ -425,7 +425,7 @@ function TagInput({ value, onChange }: { value: string[]; onChange: (v: string[]
       {value.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
+          className="inline-flex items-center gap-1 rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
         >
           {tag}
           <button onClick={() => remove(tag)} className="hover:text-foreground">
@@ -438,7 +438,7 @@ function TagInput({ value, onChange }: { value: string[]; onChange: (v: string[]
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
-        className="h-7 w-32 text-xs rounded-full border-[var(--hub-field-border)] bg-[var(--hub-card)]"
+        className="h-7 w-32 text-xs rounded-pill border-[var(--hub-field-border)] bg-[var(--hub-card)]"
       />
     </div>
   );
@@ -464,7 +464,7 @@ function EquipmentTagInput({ value, onChange }: { value: string[]; onChange: (v:
       {value.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground"
+          className="inline-flex items-center gap-1 rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold text-muted-foreground"
         >
           {tag}
           <button onClick={() => remove(tag)} className="hover:text-foreground">
@@ -477,7 +477,7 @@ function EquipmentTagInput({ value, onChange }: { value: string[]; onChange: (v:
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
-        className="h-6 w-24 text-[10px] rounded-full border-[var(--hub-field-border)] bg-[var(--hub-card)]"
+        className="h-6 w-24 text-[10px] rounded-pill border-[var(--hub-field-border)] bg-[var(--hub-card)]"
       />
     </div>
   );

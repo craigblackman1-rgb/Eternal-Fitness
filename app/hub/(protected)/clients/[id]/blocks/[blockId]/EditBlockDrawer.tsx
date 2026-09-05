@@ -105,7 +105,7 @@ export function EditBlockDrawer({ open, onOpenChange, block, sessionCount, compl
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-5 pt-5 pb-4 space-y-1.5 border-b border-[var(--hub-border)]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-[10px] bg-rose/10 text-rose flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-nested bg-rose/10 text-rose flex items-center justify-center shrink-0">
               <IconPencil className="w-4.5 h-4.5" />
             </div>
             <div>

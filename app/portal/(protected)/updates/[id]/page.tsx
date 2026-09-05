@@ -36,7 +36,7 @@ export default async function PortalUpdateDetailPage({ params }: { params: { id:
 
       <HubCard>
         <HubCardHeader icon={<IconMail className="w-5 h-5" aria-hidden="true" />} title="Email content" color="teal" />
-        <div className="border border-border/60 rounded-xl overflow-hidden bg-[#F5F5F5]">
+        <div className="border border-border/60 rounded-surface overflow-hidden bg-[#F5F5F5]">
           <iframe srcDoc={update.body_html || "<p>No content</p>"} title={update.subject} className="w-full" style={{ height: "70vh", border: "none" }} />
         </div>
       </HubCard>

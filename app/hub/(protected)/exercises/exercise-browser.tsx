@@ -461,13 +461,13 @@ export function ExerciseBrowser({
                                 {ex.archetypes.map((a) => (
                                   <span
                                     key={a}
-                                    className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0"
+                                    className="inline-flex rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0"
                                   >
                                     {a}
                                   </span>
                                 ))}
                                 {ex.source === "trainerize" && ex.trainerize_custom === true && (
-                                  <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0">
+                                  <span className="inline-flex rounded-pill bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-1.5 py-0 text-[10px] font-semibold leading-none shrink-0">
                                     Custom
                                   </span>
                                 )}
@@ -479,7 +479,7 @@ export function ExerciseBrowser({
                           </td>
                           <td className="px-3 py-2.5 align-middle">
                             {ex.difficulty != null ? (
-                              <span className="inline-flex rounded-full bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10.5px] font-medium text-[var(--color-body)] leading-[18px]">
+                              <span className="inline-flex rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] px-1.5 py-0 text-[10.5px] font-medium text-[var(--color-body)] leading-[18px]">
                                 {difficultyLabel(ex.difficulty)}
                               </span>
                             ) : (
@@ -511,7 +511,7 @@ export function ExerciseBrowser({
                         setPageSize(Number(e.target.value));
                         setPage(0);
                       }}
-                      className="h-7 rounded-md border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-1.5 text-xs text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
+                      className="h-7 rounded-nested border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-1.5 text-xs text-foreground hover:border-[var(--hub-field-border-hover)] focus:outline-none focus:border-rose focus:ring-[3px] focus:ring-rose/30"
                       aria-label="Exercises per page"
                     >
                       {[10, 25, 50, 100].map((n) => (
@@ -620,16 +620,16 @@ export function ExerciseBrowser({
                     {selectedExercise.archetypes.map((a) => (
                       <span
                         key={a}
-                        className="inline-flex rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-2.5 py-0.5 text-[11px] font-semibold"
+                        className="inline-flex rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border border-[var(--status-primary-border)] px-2.5 py-0.5 text-[11px] font-semibold"
                       >
                         Type {a}
                       </span>
                     ))}
-                    <span className="inline-flex rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="inline-flex rounded-pill bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] px-2.5 py-0.5 text-[11px] font-semibold">
                       {sourceLabel(selectedExercise.source)}
                     </span>
                     {selectedExercise.source === "trainerize" && selectedExercise.trainerize_custom === true && (
-                      <span className="inline-flex rounded-full bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-semibold">
+                      <span className="inline-flex rounded-pill bg-[var(--hub-hover)] text-muted-foreground border border-[var(--hub-border)] px-2.5 py-0.5 text-[11px] font-semibold">
                         Esther&apos;s Custom
                       </span>
                     )}
@@ -671,7 +671,7 @@ export function ExerciseBrowser({
                         {(["compact", "standard", "extended"] as const).map((tier) => (
                           <span
                             key={tier}
-                            className={`text-[10px] font-medium rounded-full px-2 py-0.5 border ${
+                            className={`text-[10px] font-medium rounded-pill px-2 py-0.5 border ${
                               selectedExercise.intensity_tiers.includes(tier)
                                 ? "bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] border-[var(--status-primary-border)]"
                                 : "bg-[var(--hub-hover)] text-muted-foreground/40 border-[var(--hub-border)]"
@@ -714,7 +714,7 @@ export function ExerciseBrowser({
                         {selectedExercise.muscle_groups.map((mg) => (
                           <span
                             key={mg}
-                            className="inline-flex rounded-full bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
+                            className="inline-flex rounded-pill bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
                           >
                             {mg}
                           </span>
@@ -733,7 +733,7 @@ export function ExerciseBrowser({
                         {selectedExercise.equipment.map((eq) => (
                           <span
                             key={eq}
-                            className="inline-flex rounded-full bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
+                            className="inline-flex rounded-pill bg-[var(--hub-hover)] px-2 py-0.5 text-[10px] text-muted-foreground"
                           >
                             {equipmentLabels[eq] || eq}
                           </span>

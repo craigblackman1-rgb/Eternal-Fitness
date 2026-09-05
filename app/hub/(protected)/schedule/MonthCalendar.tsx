@@ -144,27 +144,27 @@ export function MonthCalendar({
 
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("planned").color }} />
+          <span className="h-2.5 w-2.5 rounded-control" style={{ background: sessionStatusColors("planned").color }} />
           Planned
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("scheduled").color }} />
+          <span className="h-2.5 w-2.5 rounded-control" style={{ background: sessionStatusColors("scheduled").color }} />
           Scheduled
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("in_progress").color }} />
+          <span className="h-2.5 w-2.5 rounded-control" style={{ background: sessionStatusColors("in_progress").color }} />
           In progress
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("completed").color }} />
+          <span className="h-2.5 w-2.5 rounded-control" style={{ background: sessionStatusColors("completed").color }} />
           Completed
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: sessionStatusColors("cancelled").color }} />
+          <span className="h-2.5 w-2.5 rounded-control" style={{ background: sessionStatusColors("cancelled").color }} />
           Cancelled
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-[var(--status-warning)]" />
+          <span className="h-2 w-2 rounded-pill bg-[var(--status-warning)]" />
           Clash between clients
         </span>
         <label className="ml-auto inline-flex cursor-pointer select-none items-center gap-2 font-semibold">
@@ -210,7 +210,7 @@ export function MonthCalendar({
               >
                 <div className="mb-1.5 flex items-center justify-between">
                   {isToday ? (
-                    <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-rose text-[11px] font-semibold text-white">
+                    <span className="grid h-[22px] w-[22px] place-items-center rounded-pill bg-rose text-[11px] font-semibold text-white">
                       {d.getDate()}
                     </span>
                   ) : (
@@ -220,7 +220,7 @@ export function MonthCalendar({
                   )}
                   {hasClash && (
                     <span
-                      className="h-2 w-2 rounded-full bg-[var(--status-warning)]"
+                      className="h-2 w-2 rounded-pill bg-[var(--status-warning)]"
                       title="Clash between clients"
                     />
                   )}
@@ -233,7 +233,7 @@ export function MonthCalendar({
                       <div
                         key={e.id}
                         className={cn(
-                          "flex items-baseline gap-1.5 overflow-hidden rounded-md px-1.5 py-0.5 text-[11px] leading-tight",
+                          "flex items-baseline gap-1.5 overflow-hidden rounded-nested px-1.5 py-0.5 text-[11px] leading-tight",
                           cancelled && "line-through",
                         )}
                         style={{

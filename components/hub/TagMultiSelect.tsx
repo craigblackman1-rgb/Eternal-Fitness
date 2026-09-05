@@ -82,9 +82,9 @@ export function TagMultiSelect({ category, selected, onChange, placeholder }: Ta
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {selected.map((value) => (
-            <Badge key={value} variant="secondary" className="gap-1 rounded-full pr-1.5 font-normal">
+            <Badge key={value} variant="secondary" className="gap-1 rounded-pill pr-1.5 font-normal">
               {value}
-              <button type="button" onClick={() => remove(value)} className="rounded-full hover:bg-black/10 p-0.5">
+              <button type="button" onClick={() => remove(value)} className="rounded-pill hover:bg-black/10 p-0.5">
                 <IconX className="h-3 w-3" />
               </button>
             </Badge>

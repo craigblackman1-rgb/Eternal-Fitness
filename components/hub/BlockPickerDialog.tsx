@@ -82,7 +82,7 @@ export function BlockPickerDialog({
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] bg-[var(--status-success-bg)] text-[var(--status-success-text)] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-nested bg-[var(--status-success-bg)] text-[var(--status-success-text)] flex items-center justify-center shrink-0">
               <IconCalendar className="w-[17px] h-[17px]" />
             </div>
             <div>
@@ -118,7 +118,7 @@ export function BlockPickerDialog({
                   type="button"
                   onClick={() => setSelectedBlockId(b.id)}
                   className={cn(
-                    "w-full text-left rounded-xl border px-3.5 py-3 transition-colors",
+                    "w-full text-left rounded-surface border px-3.5 py-3 transition-colors",
                     selectedBlockId === b.id
                       ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] shadow-[inset_0_0_0_1px_var(--color-rose)]"
                       : "border-[var(--hub-border)] hover:border-[var(--color-rose)] hover:bg-[var(--status-primary-bg)]"

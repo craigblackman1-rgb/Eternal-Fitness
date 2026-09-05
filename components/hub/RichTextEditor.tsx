@@ -78,7 +78,7 @@ export function RichTextEditor({ value, onChange, placeholder, minHeight = 96 }:
               else if (action.kind === "link") addLink();
               else exec("unlink");
             }}
-            className="min-w-8 h-8 px-2 rounded-md text-sm text-muted-foreground hover:bg-rose/10 hover:text-rose transition flex items-center justify-center"
+            className="min-w-8 h-8 px-2 rounded-nested text-sm text-muted-foreground hover:bg-rose/10 hover:text-rose transition flex items-center justify-center"
             style={action.kind === "command" ? action.style : undefined}
           >
             {action.label}

@@ -366,7 +366,7 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
                       </td>
                       <td className="py-3 px-2" onClick={() => setPreview(u)}>
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] flex items-center justify-center text-[11px] font-bold shrink-0">
+                          <span className="w-7 h-7 rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] flex items-center justify-center text-[11px] font-bold shrink-0">
                             {initials}
                           </span>
                           {u.client ? (
@@ -389,7 +389,7 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
                       <td className="py-3 px-2 text-muted-foreground whitespace-nowrap" onClick={() => setPreview(u)}>
                         {timeLabel}
                         {u.status === "sent" && !u.emailed && (
-                          <Badge variant="secondary" className="rounded-full text-xs ml-2">Logged only</Badge>
+                          <Badge variant="secondary" className="rounded-pill text-xs ml-2">Logged only</Badge>
                         )}
                         {u.status === "sent" && u.opened_at && (
                           <span className="flex items-center gap-1 text-teal mt-0.5" title={`Opened ${formatUpdateTime(u.opened_at)}`}>
@@ -450,7 +450,7 @@ export function UpdatesReport({ updates }: { updates: UpdateWithClient[] }) {
             {preview && (
               <>
                 <div className="flex items-center gap-3 px-6 py-[18px] border-b border-[var(--hub-border)] bg-[var(--hub-card)] shrink-0">
-                  <span className="w-[38px] h-[38px] rounded-[10px] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] flex items-center justify-center shrink-0">
+                  <span className="w-[38px] h-[38px] rounded-nested bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] flex items-center justify-center shrink-0">
                     <IconMail className="h-[18px] w-[18px]" />
                   </span>
                   <div className="min-w-0 flex-1">

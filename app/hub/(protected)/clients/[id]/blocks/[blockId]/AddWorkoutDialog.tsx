@@ -144,7 +144,7 @@ export function AddWorkoutDialog({ open, onOpenChange, blockId, weeks, parentSes
                 disabled={adding !== null}
                 className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3 disabled:opacity-50"
               >
-                <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                   <IconDumbbell className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
