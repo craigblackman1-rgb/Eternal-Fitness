@@ -191,6 +191,34 @@ export function ScheduleShell({
           plannedEntries={plannedEntries ?? []}
           unconfirmedCount={(unconfirmedBookings ?? []).length}
           onSelectSession={handleSelectSession}
+          onComplete={(entry) => {
+            const now = new Date();
+            const scheduledDay = londonDayKey(entry.scheduledAt);
+            const todayDay = toLocalISODate(now);
+            if (scheduledDay !== todayDay) {
+              setGuardSession({
+                id: entry.id,
+                clientName: entry.clientName,
+                focus: entry.focusLabel,
+                scheduledAt: entry.scheduledAt,
+                durationMinutes: entry.durationMinutes,
+              });
+            } else {
+              patchSession(entry.id, {
+                data: {
+                  session_log: { completed_at: now.toISOString() },
+                },
+                confirm_off_day: true,
+              }).then((ok) => {
+                if (ok) {
+                  toast.success("Completed.");
+                  router.refresh();
+                } else {
+                  toast.error("Failed to complete");
+                }
+              });
+            }
+          }}
         />
       ) : viewMode === "month" ? (
         <MonthCalendar entries={entries} onJumpToDay={jumpToDay} />

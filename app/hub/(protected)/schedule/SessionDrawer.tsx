@@ -22,6 +22,7 @@ function formatHhmm(iso: string): string {
 interface SessionDrawerProps {
   entry: ScheduledEntry | null;
   onClose: () => void;
+  onComplete?: (entry: ScheduledEntry) => void;
 }
 
 /**
@@ -29,7 +30,7 @@ interface SessionDrawerProps {
  * timestamps, and available actions. Matches the mockup's drawer standard:
  * 420px width, Esc/scrim/X dismiss, focus to heading.
  */
-export function SessionDrawer({ entry, onClose }: SessionDrawerProps) {
+export function SessionDrawer({ entry, onClose, onComplete }: SessionDrawerProps) {
   if (!entry) return null;
 
   const sessionUrl =
@@ -174,13 +175,27 @@ export function SessionDrawer({ entry, onClose }: SessionDrawerProps) {
         <div className="px-[18px] py-3 border-t border-[var(--hub-border)] flex gap-2 shrink-0" style={{ background: "#FDFDFE" }}>
           {entry.status === "scheduled" && (
             <>
-              <button type="button" className="inline-flex items-center justify-center gap-1.5 rounded-[var(--r-control)] px-3.5 py-1.5 min-h-[30px] font-[inherit] text-[12.5px] font-semibold cursor-pointer border border-[var(--muted)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] hover:border-foreground transition-colors">
+              <button
+                type="button"
+                disabled
+                title="Not available yet — use the Calendar view for now"
+                className="inline-flex items-center justify-center gap-1.5 rounded-[var(--r-control)] px-3.5 py-1.5 min-h-[30px] font-[inherit] text-[12.5px] font-semibold cursor-not-allowed border border-[var(--muted)] bg-[var(--hub-card)] text-muted-foreground opacity-50"
+              >
                 Reschedule
               </button>
-              <button type="button" className="inline-flex items-center justify-center gap-1.5 rounded-[var(--r-control)] px-3.5 py-1.5 min-h-[30px] font-[inherit] text-[12.5px] font-semibold cursor-pointer border border-[var(--muted)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] hover:border-foreground transition-colors">
+              <button
+                type="button"
+                onClick={() => onComplete?.(entry)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-[var(--r-control)] px-3.5 py-1.5 min-h-[30px] font-[inherit] text-[12.5px] font-semibold cursor-pointer border border-[var(--muted)] bg-[var(--hub-card)] text-foreground hover:bg-[var(--hub-hover)] hover:border-foreground transition-colors"
+              >
                 Mark completed
               </button>
-              <button type="button" className="inline-flex items-center justify-center gap-1.5 rounded-[var(--r-control)] px-3.5 py-1.5 min-h-[30px] font-[inherit] text-[12.5px] font-semibold cursor-pointer border border-transparent bg-transparent text-muted-foreground hover:bg-[var(--hub-hover)] hover:text-foreground transition-colors">
+              <button
+                type="button"
+                disabled
+                title="Not available yet — use the Calendar view for now"
+                className="inline-flex items-center justify-center gap-1.5 rounded-[var(--r-control)] px-3.5 py-1.5 min-h-[30px] font-[inherit] text-[12.5px] font-semibold cursor-not-allowed border border-transparent bg-transparent text-muted-foreground opacity-50"
+              >
                 Cancel
               </button>
             </>

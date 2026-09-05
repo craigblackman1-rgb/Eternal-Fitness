@@ -24,6 +24,7 @@ interface WeekViewProps {
   plannedEntries: PlannedEntry[];
   unconfirmedCount: number;
   onSelectSession: (id: string) => void;
+  onComplete?: (entry: ScheduledEntry) => void;
 }
 
 /**
@@ -34,7 +35,7 @@ interface WeekViewProps {
  * This view NEVER duplicates triage — the triage pointer links to
  * /hub/schedule/triage for exception queues.
  */
-export function WeekView({ entries, plannedEntries, unconfirmedCount, onSelectSession }: WeekViewProps) {
+export function WeekView({ entries, plannedEntries, unconfirmedCount, onSelectSession, onComplete }: WeekViewProps) {
   const [cursorDate, setCursorDate] = useState(() => toLocalISODate(new Date()));
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const [showCancelled, setShowCancelled] = useState(false);
@@ -337,6 +338,7 @@ export function WeekView({ entries, plannedEntries, unconfirmedCount, onSelectSe
           setSelectedId(null);
           setPlannedSchedulingId(null);
         }}
+        onComplete={onComplete}
       />
     </>
   );
