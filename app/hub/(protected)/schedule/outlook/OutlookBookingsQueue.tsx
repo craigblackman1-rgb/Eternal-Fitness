@@ -25,6 +25,8 @@ interface BookingRow {
   client_id: string | null;
   status: "open" | "dismissed" | "confirmed" | "blocked";
   clients: ClientRef | null;
+  series_master_id: string | null;
+  event_type: string | null;
 }
 
 function formatWhen(iso: string) {
@@ -156,6 +158,13 @@ export function OutlookBookingsQueue() {
   const manual = openRows.filter((r) => !r.client_id);
   const dismissedRows = rows.filter((r) => r.status === "dismissed");
 
+  // O2 — group open rows by series_master_id to annotate recurring series.
+  const seriesCounts = new Map<string, number>();
+  for (const r of openRows) {
+    if (!r.series_master_id) continue;
+    seriesCounts.set(r.series_master_id, (seriesCounts.get(r.series_master_id) ?? 0) + 1);
+  }
+
   return (
     <div className="space-y-6">
       <HubAlert severity="info" title="How this queue works">
@@ -215,6 +224,11 @@ export function OutlookBookingsQueue() {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">{formatWhen(row.start_at)}</p>
                     <code className="text-xs text-muted-foreground break-words">{row.subject || "(no subject)"}</code>
+                    {row.series_master_id && (seriesCounts.get(row.series_master_id) ?? 0) > 1 && (
+                      <span className="ml-2 inline-flex items-center rounded-pill bg-[var(--status-info-bg)] text-[var(--status-info-text)] px-1.5 py-0.5 text-[10px] font-medium">
+                        Recurring · {seriesCounts.get(row.series_master_id)} open
+                      </span>
+                    )}
                   </div>
 
                   {row.status === "dismissed" ? (

@@ -458,6 +458,8 @@ export async function syncOutlookBookings(): Promise<SyncOutlookBookingsResult> 
       end_at: ev.end?.dateTime ? new Date(ev.end.dateTime + "Z").toISOString() : null,
       parsed_name: parsedName,
       client_id: matched?.id ?? null,
+      series_master_id: ev.seriesMasterId ?? null,
+      event_type: ev.type ?? null,
       updated_at: new Date().toISOString(),
     };
 

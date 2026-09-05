@@ -315,6 +315,8 @@ export interface GraphCalendarEvent {
   end: { dateTime: string; timeZone: string };
   organizer?: { emailAddress?: { address?: string; name?: string } };
   createdDateTime?: string;
+  seriesMasterId?: string;
+  type?: string;
 }
 
 /**
@@ -331,7 +333,7 @@ export async function listCalendarView(
   let path: string | null =
     `/me/calendars/${encodeURIComponent(calendarId)}/calendarView` +
     `?startDateTime=${encodeURIComponent(startUtc)}&endDateTime=${encodeURIComponent(endUtc)}` +
-    `&$select=id,subject,start,end,organizer,createdDateTime&$top=100`;
+    `&$select=id,subject,start,end,organizer,createdDateTime,seriesMasterId,type&$top=100`;
   while (path) {
     const res = await graphFetch(path.startsWith("http") ? path.replace(GRAPH_BASE, "") : path);
     if (!res.ok) {
