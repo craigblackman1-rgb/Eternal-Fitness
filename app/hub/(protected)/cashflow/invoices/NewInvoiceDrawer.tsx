@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { IconX, IconPlus, IconTrash2, IconSearch } from "@/components/icons";
+import { IconX, IconPlus, IconTrash2, IconSearch, IconEye } from "@/components/icons";
+import { TemplateInvoicePreviewDialog } from "./TemplateInvoicePreviewDialog";
 import type { DBInvoiceTemplate, InvoiceTemplateLineItem } from "@/types";
 
 interface LineItem {
@@ -52,6 +53,7 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<DBInvoiceTemplate | null>(null);
 
   const reset = useCallback(() => {
     setClients([]);
@@ -327,19 +329,33 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
                 <div
                   key={t.id}
                   className={cn(
-                    "border-[1.5px] rounded-[12px] p-[14px] cursor-pointer transition-colors",
+                    "border-[1.5px] rounded-[12px] p-[14px] cursor-pointer transition-colors group",
                     selectedTemplateId === t.id
                       ? "border-[var(--color-rose)] bg-[var(--status-primary-bg)]"
                       : "border-[var(--hub-border)] hover:border-[var(--hub-field-border-hover)]"
                   )}
                   onClick={() => applyTemplate(t.id)}
                 >
-                  <p className="text-[13px] font-bold text-foreground m-0 mb-[3px]">
-                    {t.name}
-                  </p>
-                  <p className="text-[11.5px] text-muted-foreground m-0">
-                    {t.description}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-bold text-foreground m-0 mb-[3px]">
+                        {t.name}
+                      </p>
+                      <p className="text-[11.5px] text-muted-foreground m-0">
+                        {t.description}
+                      </p>
+                    </div>
+                    <button
+                      className="shrink-0 w-6 h-6 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] grid place-items-center text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)] opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewTemplate(t);
+                      }}
+                      aria-label={`Preview ${t.name}`}
+                    >
+                      <IconEye className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
               {templates.length === 0 && (
@@ -500,6 +516,15 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
           </button>
         </div>
       </aside>
+
+      {previewTemplate && (
+        <TemplateInvoicePreviewDialog
+          open={!!previewTemplate}
+          onOpenChange={(o) => { if (!o) setPreviewTemplate(null); }}
+          templateName={previewTemplate.name}
+          lineItems={previewTemplate.line_items}
+        />
+      )}
     </>
   );
 }

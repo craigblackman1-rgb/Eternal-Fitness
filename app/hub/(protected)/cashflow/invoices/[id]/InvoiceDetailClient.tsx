@@ -16,7 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { IconChevronLeft, IconMail, IconTrash2, IconEdit3, IconFileText } from "@/components/icons";
+import { IconChevronLeft, IconMail, IconTrash2, IconEdit3, IconFileText, IconEye } from "@/components/icons";
+import { InvoicePreviewDialog } from "./InvoicePreviewDialog";
 import { toast } from "sonner";
 import type { DBInvoice, DBInvoiceLineItem } from "@/types";
 
@@ -31,6 +32,7 @@ interface InvoiceDetailClientProps {
 export function InvoiceDetailClient({ invoice, lineItems, deliveryHistory }: InvoiceDetailClientProps) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const isDraft = invoice.status === "draft";
   const client = invoice.clients;
@@ -72,72 +74,83 @@ export function InvoiceDetailClient({ invoice, lineItems, deliveryHistory }: Inv
           </Link>
         }
         actions={
-          isDraft ? (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                className="rounded-lg gap-1.5"
-                disabled
-                title="Invoice editing is not yet available — use the API to update draft invoices"
-                aria-label="Edit invoice (not yet available)"
-              >
-                <IconEdit3 className="h-4 w-4" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                className="rounded-lg gap-1.5"
-                onClick={sendInvoice}
-                disabled={busy !== null}
-                aria-label="Send invoice"
-              >
-                {busy === "send" ? "…" : (
-                  <>
-                    <IconMail className="h-4 w-4" />
-                    Send
-                  </>
-                )}
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="rounded-lg gap-1.5"
-                    style={{
-                      color: "var(--status-danger-solid)",
-                      borderColor: "var(--status-danger-solid)",
-                    }}
-                    disabled={busy !== null}
-                    aria-label="Delete invoice"
-                  >
-                    <IconTrash2 className="h-4 w-4" />
-                    {busy === "delete" ? "…" : "Delete"}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this invoice?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete invoice {invoice.invoice_number}. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={deleteInvoice}
-                      disabled={busy !== null}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="rounded-lg gap-1.5"
+              onClick={() => setPreviewOpen(true)}
+              aria-label="Preview invoice"
+            >
+              <IconEye className="h-4 w-4" />
+              Preview
+            </Button>
+            {isDraft ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="rounded-lg gap-1.5"
+                  disabled
+                  title="Invoice editing is not yet available — use the API to update draft invoices"
+                  aria-label="Edit invoice (not yet available)"
+                >
+                  <IconEdit3 className="h-4 w-4" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-lg gap-1.5"
+                  onClick={sendInvoice}
+                  disabled={busy !== null}
+                  aria-label="Send invoice"
+                >
+                  {busy === "send" ? "…" : (
+                    <>
+                      <IconMail className="h-4 w-4" />
+                      Send
+                    </>
+                  )}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="rounded-lg gap-1.5"
                       style={{
-                        backgroundColor: "var(--status-danger-solid)",
-                        color: "var(--status-danger-solid-fg)",
+                        color: "var(--status-danger-solid)",
+                        borderColor: "var(--status-danger-solid)",
                       }}
+                      disabled={busy !== null}
+                      aria-label="Delete invoice"
                     >
-                      {busy === "delete" ? "Deleting…" : "Delete"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          ) : undefined
+                      <IconTrash2 className="h-4 w-4" />
+                      {busy === "delete" ? "…" : "Delete"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this invoice?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete invoice {invoice.invoice_number}. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={deleteInvoice}
+                        disabled={busy !== null}
+                        style={{
+                          backgroundColor: "var(--status-danger-solid)",
+                          color: "var(--status-danger-solid-fg)",
+                        }}
+                      >
+                        {busy === "delete" ? "Deleting…" : "Delete"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            ) : null}
+          </div>
         }
       />
 
@@ -226,6 +239,12 @@ export function InvoiceDetailClient({ invoice, lineItems, deliveryHistory }: Inv
       )}
 
       {deliveryHistory}
+
+      <InvoicePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        invoice={invoice}
+      />
     </div>
   );
 }

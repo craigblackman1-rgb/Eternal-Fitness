@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { HubPageHeader, HubCard, HubCardHeader, EmptyState } from "@/components/hub";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { IconChevronLeft, IconPlus, IconTrash2, IconFileText, IconSave } from "@/components/icons";
+import { IconChevronLeft, IconPlus, IconTrash2, IconFileText, IconSave, IconEye } from "@/components/icons";
+import { TemplateInvoicePreviewDialog } from "../TemplateInvoicePreviewDialog";
 import type { DBInvoiceTemplate, InvoiceTemplateLineItem } from "@/types";
 
 interface LineItem {
@@ -43,6 +44,7 @@ export default function NewInvoicePage() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/invoices/templates")
@@ -235,22 +237,42 @@ export default function NewInvoicePage() {
       {/* Template picker */}
       <HubCard>
         <HubCardHeader icon={<IconFileText className="w-4 h-4" />} title="Template" color="slate" />
-        <select
-          className="w-full rounded-lg border border-[var(--hub-field-border)] px-3 py-2 text-sm bg-[var(--hub-card)] focus:outline-none focus:border-[var(--color-rose)] focus:ring-1 focus:ring-[var(--color-rose)]"
-          value={selectedTemplateId}
-          onChange={(e) => applyTemplate(e.target.value)}
-        >
-          <option value="">Start blank</option>
-          {templates.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-2">
+          <select
+            className="flex-1 rounded-lg border border-[var(--hub-field-border)] px-3 py-2 text-sm bg-[var(--hub-card)] focus:outline-none focus:border-[var(--color-rose)] focus:ring-1 focus:ring-[var(--color-rose)]"
+            value={selectedTemplateId}
+            onChange={(e) => applyTemplate(e.target.value)}
+          >
+            <option value="">Start blank</option>
+            {templates.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          {selectedTemplateId && (
+            <button
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+              onClick={() => setPreviewOpen(true)}
+              aria-label="Preview selected template"
+            >
+              <IconEye className="h-3.5 w-3.5" />
+              Preview
+            </button>
+          )}
+        </div>
         {selectedTemplateId && templates.find((t) => t.id === selectedTemplateId)?.description && (
           <p className="text-xs text-muted-foreground mt-1.5">
             {templates.find((t) => t.id === selectedTemplateId)?.description}
           </p>
+        )}
+        {selectedTemplateId && previewOpen && (
+          <TemplateInvoicePreviewDialog
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            templateName={templates.find((t) => t.id === selectedTemplateId)?.name || "Invoice preview"}
+            lineItems={templates.find((t) => t.id === selectedTemplateId)?.line_items || []}
+          />
         )}
       </HubCard>
 
