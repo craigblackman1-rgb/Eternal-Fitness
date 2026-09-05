@@ -32,7 +32,7 @@ export default async function LapseReviewPage() {
             <p className="text-sm text-muted-foreground mt-0.5">Sessions past their slot with no logged activity</p>
           </div>
         </div>
-        <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-10 text-center">
+        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] p-10 text-center">
           <p className="text-sm text-muted-foreground">No flagged sessions — all clear.</p>
         </div>
       </div>

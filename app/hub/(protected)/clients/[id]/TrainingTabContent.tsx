@@ -149,7 +149,7 @@ function SessionCheckinPill({
   const hasData = fatigue != null || rpe != null;
   if (!hasData) {
     return (
-      <span className="inline-flex items-center rounded-full border border-muted/40 bg-muted/10 px-1.5 py-px text-[11px] font-semibold text-muted-foreground">
+      <span className="inline-flex items-center rounded-pill border border-muted/40 bg-muted/10 px-1.5 py-px text-[11px] font-semibold text-muted-foreground">
         Not logged
       </span>
     );
@@ -158,13 +158,13 @@ function SessionCheckinPill({
   const label = isFlagged ? "Fatigue flagged" : "Good";
   if (isFlagged) {
     return (
-      <span className="inline-flex items-center rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-warning-text)]">
+      <span className="inline-flex items-center rounded-pill border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-warning-text)]">
         {label}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-success-text)]">
+    <span className="inline-flex items-center rounded-pill border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-1.5 py-px text-[11px] font-semibold text-[var(--status-success-text)]">
       {label}
     </span>
   );
@@ -479,7 +479,7 @@ export function TrainingTabContent({
             key={s.key}
             onClick={() => handleSegmentChange(s.key)}
             className={cn(
-              "rounded-md px-4 py-2 text-[13px] font-semibold transition-all",
+              "rounded-nested px-4 py-2 text-[13px] font-semibold transition-all",
               segment === s.key
                 ? "bg-[var(--hub-card)] text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

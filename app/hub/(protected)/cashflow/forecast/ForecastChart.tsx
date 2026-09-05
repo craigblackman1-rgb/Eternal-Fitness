@@ -21,7 +21,7 @@ export function ForecastChart({ projection }: ForecastChartProps) {
   const yDomain: [number, number] = allPositive ? [0, maxVal * 1.15] : [minVal * 1.15, maxVal * 1.15];
 
   return (
-    <div className="chart-card bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm p-5 mb-[18px]">
+    <div className="chart-card bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm p-5 mb-[18px]">
       <div className="flex items-baseline justify-between mb-2.5">
         <p className="text-[13px] font-bold text-[var(--color-ink)] m-0">Closing balance by month</p>
         <p className="text-xs text-[var(--color-muted-text)] m-0">

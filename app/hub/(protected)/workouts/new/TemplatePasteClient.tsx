@@ -84,7 +84,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
           >
             <span
               className={cn(
-                "w-[26px] h-[26px] rounded-full border grid place-items-center text-xs font-bold",
+                "w-[26px] h-[26px] rounded-pill border grid place-items-center text-xs font-bold",
                 step === s.n
                   ? "bg-rose border-rose text-white"
                   : step > s.n
@@ -300,7 +300,7 @@ export function TemplatePasteClient({ startBlank = false }: { startBlank?: boole
       {step === 3 && success && (
         <HubCard padded={false}>
           <div className="px-8 py-12 flex flex-col items-center text-center">
-            <div className="w-[60px] h-[60px] rounded-full bg-[var(--status-success-bg)] text-teal flex items-center justify-center mb-4">
+            <div className="w-[60px] h-[60px] rounded-pill bg-[var(--status-success-bg)] text-teal flex items-center justify-center mb-4">
               <IconCheckCircle className="h-7 w-7" />
             </div>
             <h3 className="text-lg font-extrabold text-[var(--color-ink)]">{success.title}</h3>

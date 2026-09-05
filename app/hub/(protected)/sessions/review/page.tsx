@@ -35,7 +35,7 @@ export default async function CancellationReviewPage() {
             <p className="text-sm text-muted-foreground mt-0.5">Review cancelled sessions and decide whether to charge or mark free</p>
           </div>
         </div>
-        <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-10 text-center">
+        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] p-10 text-center">
           <p className="text-sm text-muted-foreground">All cancelled sessions have been reviewed.</p>
         </div>
       </div>

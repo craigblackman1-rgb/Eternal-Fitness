@@ -96,11 +96,11 @@ export default async function UpdatesHistoryPage({ params }: { params: { id: str
                     </span>
                     <TokenPill token={meta.token} label={meta.label} />
                     {update.block_number > 0 && (
-                      <Badge variant="outline" className="rounded-full text-xs">Block {update.block_number}</Badge>
+                      <Badge variant="outline" className="rounded-pill text-xs">Block {update.block_number}</Badge>
                     )}
-                    <Badge variant="outline" className="rounded-full text-xs">{getTemplateKind(update.template_kind).label}</Badge>
+                    <Badge variant="outline" className="rounded-pill text-xs">{getTemplateKind(update.template_kind).label}</Badge>
                     {update.status === "sent" && (
-                      <Badge variant={update.emailed ? "default" : "secondary"} className="rounded-full text-xs">
+                      <Badge variant={update.emailed ? "default" : "secondary"} className="rounded-pill text-xs">
                         {update.emailed ? "Emailed" : "Logged"}
                       </Badge>
                     )}

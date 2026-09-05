@@ -477,7 +477,7 @@ export default function SessionViewPage({
               {` · ${sessionSlotMinutes} min slot`}
               {chronoPos ? ` · Session ${chronoPos.position} of ${chronoPos.total}` : ""}{" "}
               <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold ${
+                className={`inline-flex items-center gap-1 rounded-pill border px-2.5 py-0.5 text-[11.5px] font-semibold ${
                   overSlot
                     ? "border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]"
                     : "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground"
@@ -607,7 +607,7 @@ export default function SessionViewPage({
       )}
 
       {(client?.profile?.notes?.client_intro || session.data?.client_intro) && (
-        <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-[16px]">
+        <Card className="shadow-sm border-rose/20 bg-rose/5 rounded-surface">
           <CardContent className="pt-4">
             <p className="text-sm italic text-muted-foreground">Client intro</p>
             <p className="mt-1">{client?.profile?.notes?.client_intro || session.data?.client_intro}</p>
@@ -617,7 +617,7 @@ export default function SessionViewPage({
 
       {/* ── Mode segmented control ──────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex gap-0.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm" role="tablist" aria-label="Session mode">
+        <div className="inline-flex gap-0.5 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] p-1 shadow-sm" role="tablist" aria-label="Session mode">
           <button
             type="button"
             role="tab"
@@ -649,7 +649,7 @@ export default function SessionViewPage({
       </div>
 
       {/* ── CR-EF-126 · Supplementary work on this session ────────────── */}
-      <div className="rounded-[16px] border border-rose/20 bg-rose/5 overflow-hidden">
+      <div className="rounded-surface border border-rose/20 bg-rose/5 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-rose/20 bg-rose/10">
           <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
             <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={16} height={16}>
@@ -710,9 +710,9 @@ export default function SessionViewPage({
               }
                const subUrl = `/hub/clients/${params.id}/blocks/${params.blockId}/sessions/${sub.session_number}?session=${sub.id}`;
               return (
-                <div key={sub.id} className="relative flex items-center gap-3 pl-4 py-2.5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[10px]">
+                <div key={sub.id} className="relative flex items-center gap-3 pl-4 py-2.5 bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-nested">
                   {/* Rose spine — "hangs off the session" cue */}
-                  <div className="absolute left-[-1px] top-[-1px] bottom-[-1px] w-[3px] bg-rose rounded-l-[10px]" />
+                  <div className="absolute left-[-1px] top-[-1px] bottom-[-1px] w-[3px] bg-rose rounded-l-nested" />
                   <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
                     <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={14} height={14}>
                       <path d="M16 6v20M6 16h20" />
@@ -721,7 +721,7 @@ export default function SessionViewPage({
                   <div className="flex-1 min-w-0">
                     <div className="text-[13.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
                       {sub.data?.focus_label || "Supplementary work"}
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider rounded-full px-2 py-0.5 bg-rose/10 text-rose border border-rose/20">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider rounded-pill px-2 py-0.5 bg-rose/10 text-rose border border-rose/20">
                         Every session
                       </span>
                     </div>
@@ -731,7 +731,7 @@ export default function SessionViewPage({
                         : "Supplementary work"}
                     </div>
                   </div>
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[12px] font-semibold shrink-0 ${stateClass}`}>
+                  <span className={`inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-0.5 text-[12px] font-semibold shrink-0 ${stateClass}`}>
                     {stateLabel}
                   </span>
                   <span className="text-[11.5px] font-bold text-muted-foreground whitespace-nowrap shrink-0">
@@ -820,7 +820,7 @@ export default function SessionViewPage({
                   type="button"
                   disabled={disabled}
                   onClick={() => { tabManuallyClicked.current = true; setActiveTab(v); }}
-                  className={`flex min-h-[30px] flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-center text-sm font-semibold transition-colors ${
+                  className={`flex min-h-[30px] flex-1 cursor-pointer items-center justify-center rounded-nested px-3 text-center text-sm font-semibold transition-colors ${
                     disabled ? "opacity-40 cursor-not-allowed" : ""
                   } ${
                     active
@@ -897,7 +897,7 @@ export default function SessionViewPage({
       {showReopen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[var(--hub-sidebar)]/50 p-5 backdrop-blur-[2px]" onClick={() => setShowReopen(false)}>
           <div className="w-full max-w-[400px] rounded-[20px] bg-[var(--hub-card)] p-7 shadow-[0_24px_64px_rgba(16,24,40,.24)]" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-rose/10 text-rose">
+            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-pill bg-rose/10 text-rose">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
             </div>
             <h3 className="mb-1.5 text-lg font-extrabold text-foreground">Reopen this session?</h3>
@@ -908,10 +908,10 @@ export default function SessionViewPage({
               Reopening is recorded and audited, so it stays clear that a finished session was changed after completion.
             </p>
             <div className="flex flex-col gap-2">
-              <button type="button" onClick={() => setShowReopen(false)} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-[18px] text-sm font-bold text-foreground hover:bg-[var(--hub-hover)]">
+              <button type="button" onClick={() => setShowReopen(false)} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-[18px] text-sm font-bold text-foreground hover:bg-[var(--hub-hover)]">
                 Keep it read-only
               </button>
-              <button type="button" onClick={handleReopen} disabled={reopening} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] px-[18px] text-sm font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" onClick={handleReopen} disabled={reopening} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-nested px-[18px] text-sm font-semibold text-muted-foreground hover:bg-[var(--hub-hover)] disabled:cursor-not-allowed disabled:opacity-50">
                 Reopen session
               </button>
             </div>

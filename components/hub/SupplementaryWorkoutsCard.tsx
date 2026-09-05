@@ -255,10 +255,10 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                   <div className="flex-1 min-w-0">
                     <div className="text-[14px] font-bold text-foreground">{row.template_name}</div>
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      <span className="inline-flex items-center rounded-full border border-rose/34 bg-rose/12 px-2.5 py-0.5 text-[11.5px] font-semibold text-rose">
+                      <span className="inline-flex items-center rounded-pill border border-rose/34 bg-rose/12 px-2.5 py-0.5 text-[11.5px] font-semibold text-rose">
                         In every session
                       </span>
-                      <span className="inline-flex items-center rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-2.5 py-0.5 text-[11.5px] font-semibold text-[var(--status-success-text)]">
+                      <span className="inline-flex items-center rounded-pill border border-[var(--status-success-border)] bg-[var(--status-success-bg)] px-2.5 py-0.5 text-[11.5px] font-semibold text-[var(--status-success-text)]">
                         <IconCheck className="w-3 h-3 mr-1" /> Doesn&apos;t use a session
                       </span>
                     </div>
@@ -406,7 +406,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                               : "hover:bg-[var(--hub-hover)] cursor-pointer",
                           )}
                         >
-                          <div className="w-8 h-8 rounded-md grid place-items-center bg-[var(--color-teal)]/12 text-[var(--color-teal)] shrink-0">
+                          <div className="w-8 h-8 rounded-nested grid place-items-center bg-[var(--color-teal)]/12 text-[var(--color-teal)] shrink-0">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={15} height={15}>
                               <path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11" />
                             </svg>
@@ -439,7 +439,7 @@ export function SupplementaryWorkoutsCard({ clientNumber, clientName, sessionsRe
                 {selectedTemplate && (
                   <>
                     <div className="flex items-center gap-2.5 border border-rose/34 bg-rose/8 rounded-[var(--r-nested)] p-3 mb-3.5">
-                      <div className="w-8 h-8 rounded-md grid place-items-center bg-rose/12 text-rose shrink-0">
+                      <div className="w-8 h-8 rounded-nested grid place-items-center bg-rose/12 text-rose shrink-0">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={16} height={16}>
                           <path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11" />
                         </svg>

@@ -22,7 +22,7 @@ export function TokenPill({ token, label, className }: { token: StatusToken; lab
   const c = getStatusClasses(token);
   return (
     <span className={cn(
-      "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+      "inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold",
       c.bg,
       c.text,
       c.border,

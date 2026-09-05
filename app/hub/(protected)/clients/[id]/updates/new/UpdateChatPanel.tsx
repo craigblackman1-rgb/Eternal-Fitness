@@ -151,7 +151,7 @@ export function UpdateChatPanel({
             {messages.map((message, i) => (
               <div key={i} className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${
+                  className={`w-6 h-6 rounded-pill flex items-center justify-center shrink-0 text-[11px] font-bold ${
                     message.role === "user" ? "bg-rose/15 text-rose" : "bg-dark-navy/10 text-dark-navy"
                   }`}
                 >
@@ -164,9 +164,9 @@ export function UpdateChatPanel({
                 >
                   {message.content === "" && streaming ? (
                     <span className="inline-flex gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+                      <span className="w-1.5 h-1.5 rounded-pill bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 rounded-pill bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 rounded-pill bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
                     </span>
                   ) : message.role === "assistant" ? (
                     <div className="plan-agent-md leading-relaxed">
@@ -202,7 +202,7 @@ export function UpdateChatPanel({
 
       {hasConversation && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
-          <Badge variant="outline" className="rounded-full text-xs">
+          <Badge variant="outline" className="rounded-pill text-xs">
             {messages.filter((m) => m.role === "user").length} messages
           </Badge>
           <span>When ready, click Create Draft — data-only is fine too if there's nothing more to add.</span>

@@ -241,7 +241,7 @@ export function AssignWorkoutDialog({
             <button
               type="button"
               onClick={() => { setActiveTab("block"); setSearch(""); }}
-              className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`flex-1 rounded-nested px-3 py-1.5 text-xs font-semibold transition-colors ${
                 activeTab === "block"
                   ? "bg-[var(--hub-card)] text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -252,7 +252,7 @@ export function AssignWorkoutDialog({
             <button
               type="button"
               onClick={() => { setActiveTab("templates"); setSearch(""); }}
-              className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`flex-1 rounded-nested px-3 py-1.5 text-xs font-semibold transition-colors ${
                 activeTab === "templates"
                   ? "bg-[var(--hub-card)] text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -300,7 +300,7 @@ export function AssignWorkoutDialog({
                     disabled={assigning !== null}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3 disabled:opacity-50"
                   >
-                    <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                       <IconDumbbell className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -329,7 +329,7 @@ export function AssignWorkoutDialog({
                   disabled={assigning !== null}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3 disabled:opacity-50"
                 >
-                  <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                     <IconDumbbell className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">

@@ -101,7 +101,7 @@ export function TrainingRulesEditor({ value, onChange }: TrainingRulesEditorProp
           </div>
         </div>
       ))}
-      <Button type="button" variant="outline" onClick={add} disabled={loading || ruleTypes.length === 0} className="gap-1.5 rounded-full border-border/60">
+      <Button type="button" variant="outline" onClick={add} disabled={loading || ruleTypes.length === 0} className="gap-1.5 rounded-pill border-border/60">
         <IconPlus className="h-4 w-4" />
         Add training rule
       </Button>

@@ -42,7 +42,7 @@ function ResourcePill({ enabled }: { enabled: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-[11px] py-[3px] pl-2 text-[11.5px] font-semibold",
+        "inline-flex items-center gap-1.5 rounded-pill border px-[11px] py-[3px] pl-2 text-[11.5px] font-semibold",
         enabled
           ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]"
           : "bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)]",
@@ -50,7 +50,7 @@ function ResourcePill({ enabled }: { enabled: boolean }) {
     >
       <span
         className={cn(
-          "h-[7px] w-[7px] rounded-full shrink-0",
+          "h-[7px] w-[7px] rounded-pill shrink-0",
           enabled ? "bg-[var(--status-success-text)]" : "bg-[var(--status-neutral)]",
         )}
       />
@@ -104,7 +104,7 @@ export function ResourcesMatrix({
           return (
             <div
               key={r.key}
-              className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] p-4 flex items-center gap-3.5"
+              className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] p-4 flex items-center gap-3.5"
             >
               <div
                 className={cn(
@@ -123,10 +123,10 @@ export function ResourcesMatrix({
                 <p className="text-[12.5px] text-[var(--color-body)] m-0 mt-[3px]">
                   {r.enabledCount} of {r.totalCount} client{r.totalCount !== 1 ? "s" : ""} enabled
                 </p>
-                <div className="w-[100px] h-1.5 rounded-full bg-[var(--hub-border)] overflow-hidden mt-1.5">
+                <div className="w-[100px] h-1.5 rounded-pill bg-[var(--hub-border)] overflow-hidden mt-1.5">
                   <div
                     className={cn(
-                      "h-full rounded-full",
+                      "h-full rounded-pill",
                       col === "teal" ? "bg-teal" : "bg-rose",
                     )}
                     style={{ width: `${pct}%` }}
@@ -201,7 +201,7 @@ export function ResourcesMatrix({
                   >
                     <td className="px-5 py-3 border-b border-[var(--hub-border)]">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[var(--status-primary-bg)] text-rose grid place-items-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-pill bg-[var(--status-primary-bg)] text-rose grid place-items-center text-xs font-bold shrink-0">
                           {initials(client.name)}
                         </div>
                         <span className="font-semibold text-foreground">{client.name}</span>
@@ -235,7 +235,7 @@ export function ResourcesMatrix({
 
       {/* Note */}
       <div className="flex gap-3 rounded-[12px] p-3.5 text-[12.5px] leading-[1.55] bg-[var(--status-primary-bg)] border border-[var(--status-primary-border)]">
-        <span className="w-[22px] h-[22px] rounded-full bg-rose text-white grid place-items-center text-[11px] font-extrabold shrink-0">
+        <span className="w-[22px] h-[22px] rounded-pill bg-rose text-white grid place-items-center text-[11px] font-extrabold shrink-0">
           i
         </span>
         <div>

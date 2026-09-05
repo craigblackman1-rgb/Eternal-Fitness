@@ -71,7 +71,7 @@ function SegmentedControl<T extends string | number>({
               />
               <span
                 className={
-                  "flex min-h-[30px] cursor-pointer items-center justify-center rounded-md px-2.5 text-center text-sm font-semibold transition-colors " +
+                  "flex min-h-[30px] cursor-pointer items-center justify-center rounded-nested px-2.5 text-center text-sm font-semibold transition-colors " +
                   (active
                     ? "bg-[var(--hub-card)] text-foreground shadow-sm"
                     : "text-[var(--color-body)] hover:text-foreground")
@@ -297,20 +297,20 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
       <div>
         <Link
           href={`/hub/clients/${params.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-md px-2 py-1 -ml-2 mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-nested px-2 py-1 -ml-2 mb-3 transition-colors"
         >
           <IconChevronLeft className="h-3.5 w-3.5" />
           Back to {name || "client"}
         </Link>
         <div className="flex items-start gap-3.5">
-          <div className="w-12 h-12 rounded-full bg-rose/15 text-rose flex items-center justify-center shrink-0 text-base font-bold">
+          <div className="w-12 h-12 rounded-pill bg-rose/15 text-rose flex items-center justify-center shrink-0 text-base font-bold">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-[22px] font-bold tracking-tight text-foreground">Edit client</h1>
               {clientNumber != null && (
-                <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-md px-1.5 py-0.5">
+                <span className="text-xs font-medium text-muted-foreground bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-nested px-1.5 py-0.5">
                   #{clientNumber}
                 </span>
               )}
@@ -593,7 +593,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   onChange={(e) => updateProfile("health", { gp_clearance_required: e.target.checked })}
                   className="sr-only"
                 />
-                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.gp_clearance_required ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center ${(profile.health.gp_clearance_required ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                   {(profile.health.gp_clearance_required ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
                 </span>
               </label>
@@ -611,7 +611,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   onChange={(e) => updateProfile("health", { gp_clearance: e.target.checked })}
                   className="sr-only"
                 />
-                <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center ${profile.health.gp_clearance ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                   {profile.health.gp_clearance && <IconCheck className="w-3.5 h-3.5 text-white" />}
                 </span>
               </label>
@@ -630,7 +630,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                     onChange={(e) => updateProfile("health", { parq_trainer_override: e.target.checked })}
                     className="sr-only"
                   />
-                  <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                  <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center ${(profile.health.parq_trainer_override ?? false) ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                     {(profile.health.parq_trainer_override ?? false) && <IconCheck className="w-3.5 h-3.5 text-white" />}
                   </span>
                 </label>
@@ -920,7 +920,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                         }}
                         className="sr-only"
                       />
-                      <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${enabled ? "bg-teal border-teal" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                      <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center ${enabled ? "bg-teal border-teal" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                         {enabled && <IconCheck className="w-3.5 h-3.5 text-white" />}
                       </span>
                     </label>

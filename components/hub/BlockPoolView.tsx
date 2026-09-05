@@ -229,7 +229,7 @@ export function BlockPoolView({
 
       {/* Sequence Ribbon */}
       {workoutQueue.length > 0 && (
-        <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
+        <div className="bg-[var(--hub-card)] rounded-surface border border-[var(--hub-border)] shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)]">
             <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={16} height={16}>
@@ -266,7 +266,7 @@ export function BlockPoolView({
                 <span key={s.session.id} className="contents">
                   {i > 0 && <span className="flex-1 min-w-3.5 h-[1.5px] bg-[var(--hub-border)] mt-[-20px]" />}
                   <div className="flex flex-col items-center gap-1.5 shrink-0 w-[62px]">
-                    <span className={`w-[34px] h-[34px] rounded-full flex items-center justify-center text-[13px] font-extrabold border-[1.5px] ${dotClass}`}>
+                    <span className={`w-[34px] h-[34px] rounded-pill flex items-center justify-center text-[13px] font-extrabold border-[1.5px] ${dotClass}`}>
                       {letter}
                     </span>
                     <span className={`text-[10px] font-bold uppercase tracking-wider text-center leading-tight ${isNext ? "text-rose" : "text-muted-foreground"}`}>
@@ -292,7 +292,7 @@ export function BlockPoolView({
       {/* Two-panel split: Booked Slots | Planned Workouts */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-4 items-start">
         {/* Booked Slots */}
-        <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
+        <div className="bg-[var(--hub-card)] rounded-surface border border-[var(--hub-border)] shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)]">
             <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-[var(--status-success-bg)] text-[var(--teal)] shrink-0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={16} height={16}>
@@ -599,7 +599,7 @@ export function BlockPoolView({
         </div>
 
         {/* Planned Workouts */}
-        <div className="bg-[var(--hub-card)] rounded-[16px] border border-[var(--hub-border)] shadow-sm overflow-hidden">
+        <div className="bg-[var(--hub-card)] rounded-surface border border-[var(--hub-border)] shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--hub-border)]">
             <div className="w-[30px] h-[30px] rounded-lg flex items-center justify-center bg-slate/10 text-slate shrink-0">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width={16} height={16}>
@@ -664,7 +664,7 @@ export function BlockPoolView({
                       {isDone ? "Delivered" : isAssigned ? "Attached to a slot" : "Not used yet"}
                     </div>
                   </div>
-                  <span className={`shrink-0 text-[10px] font-extrabold uppercase tracking-wider rounded-full px-2 py-0.5 whitespace-nowrap ${tagClass}`}>
+                  <span className={`shrink-0 text-[10px] font-extrabold uppercase tracking-wider rounded-pill px-2 py-0.5 whitespace-nowrap ${tagClass}`}>
                     {tagLabel}
                   </span>
                 </div>
@@ -699,7 +699,7 @@ export function BlockPoolView({
           <div className="absolute inset-0 bg-dark-navy/42 backdrop-blur-sm" onClick={() => { setSupplementaryParentId(null); setSupplementaryName(""); }} />
           <div className="relative w-full max-w-[480px] mx-4 bg-[var(--hub-canvas)] shadow-2xl flex flex-col" style={{ borderRadius: "var(--r-surface)" }}>
             <div className="flex items-start gap-3 px-6 pt-5 pb-4 bg-[var(--hub-card)] border-b border-[var(--hub-border)]" style={{ borderRadius: "var(--r-surface) var(--r-surface) 0 0" }}>
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-slate/10 text-slate shrink-0">
+              <div className="w-9 h-9 rounded-nested flex items-center justify-center bg-slate/10 text-slate shrink-0">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" width={18} height={18}>
                   <path d="M12 5v14M5 12h14" />
                 </svg>

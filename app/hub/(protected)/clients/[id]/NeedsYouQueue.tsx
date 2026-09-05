@@ -262,9 +262,9 @@ export function NeedsYouQueue(props: NeedsYouInput) {
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-3 py-2 px-3 rounded-[10px] border border-transparent transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)]"
+          className="flex items-center gap-3 py-2 px-3 rounded-nested border border-transparent transition-colors duration-100 hover:bg-[var(--hub-hover)] hover:border-[var(--hub-border)]"
         >
-          <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${dotClasses[item.dot]}`} />
+          <span className={`w-[7px] h-[7px] rounded-pill shrink-0 ${dotClasses[item.dot]}`} />
           <span className="min-w-0 flex-1 text-[13.5px] text-[var(--color-ink)]">
             <b className="font-semibold">{item.headline}</b>
             {item.subline && (
@@ -295,7 +295,7 @@ export function NeedsYouQueue(props: NeedsYouInput) {
 
       {!hasIssues && quietText && (
         <div className="flex items-center gap-2.5 py-2 px-3 text-[13px] text-[var(--color-muted)]">
-          <span className="w-[7px] h-[7px] rounded-full bg-[var(--status-success)]" />
+          <span className="w-[7px] h-[7px] rounded-pill bg-[var(--status-success)]" />
           <span>{quietText}</span>
         </div>
       )}

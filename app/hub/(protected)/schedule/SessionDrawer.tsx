@@ -115,7 +115,7 @@ export function SessionDrawer({ entry, onClose, onComplete }: SessionDrawerProps
           {/* Status */}
           <p className="m-0 mb-3 text-[10.5px] font-bold uppercase tracking-[.08em] text-muted-foreground">Status</p>
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border"
+            className="inline-flex items-center gap-1.5 rounded-pill px-2.5 py-0.5 text-xs font-semibold border"
             style={{
               color: statusColor[entry.status] ?? "#525A61",
               backgroundColor: statusBg[entry.status] ?? "#F2F3F5",

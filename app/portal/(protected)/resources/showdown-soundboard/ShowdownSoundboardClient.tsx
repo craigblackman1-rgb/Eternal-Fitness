@@ -177,7 +177,7 @@ export default function ShowdownSoundboardClient({ clientName }: { clientName: s
       <p className="sb-back">
         <Link
           href="/portal/resources"
-          className="inline-flex min-h-10 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+          className="inline-flex min-h-10 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
         >
           &larr; Back to resources
         </Link>

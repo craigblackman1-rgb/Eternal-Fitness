@@ -22,7 +22,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
     <div className="min-h-screen bg-[var(--hub-canvas)] text-foreground">
       <a
         href="#portal-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary-text)] focus:shadow-md"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-nested focus:bg-white focus:px-4 focus:py-2 focus:text-[var(--status-primary-text)] focus:shadow-md"
       >
         Skip to content
       </a>
@@ -41,7 +41,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
           <form action="/api/portal/auth/logout" method="POST">
             <button
               type="submit"
-              className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+              className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
             >
               Sign out
             </button>
@@ -53,39 +53,39 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         >
           <Link
             href="/portal"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
           >
             Documents &amp; updates
           </Link>
           <Link
             href="/portal/book"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
           >
             Book
           </Link>
           <Link
             href="/portal/sessions"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
           >
             My sessions
           </Link>
           <Link
             href="/portal/exercise-history"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
           >
             Exercise history
           </Link>
           {client?.delivery_mode === "home_training" && (
             <Link
               href="/portal/training"
-              className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+              className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
             >
               Your training
             </Link>
           )}
           <Link
             href="/portal/resources"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-medium hover:bg-accent"
+            className="inline-flex min-h-11 items-center rounded-pill border border-input px-4 text-sm font-medium hover:bg-accent"
           >
             Resources
           </Link>

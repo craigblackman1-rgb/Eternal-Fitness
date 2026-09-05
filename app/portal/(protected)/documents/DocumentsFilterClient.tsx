@@ -126,7 +126,7 @@ export function DocumentsFilterClient({
               type="button"
               onClick={() => setFilter(cat)}
               aria-pressed={filter === cat}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1.5 rounded-pill border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
                 filter === cat
                   ? "border-teal bg-teal text-white"
                   : "border-input bg-white hover:bg-accent"
@@ -148,7 +148,7 @@ export function DocumentsFilterClient({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="For example: agreement"
             autoComplete="off"
-            className="w-full min-h-[2.9rem] rounded-full border border-foreground/40 bg-white px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-foreground/60"
+            className="w-full min-h-[2.9rem] rounded-pill border border-foreground/40 bg-white px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal/20 focus:border-foreground/60"
           />
         </div>
       </div>
@@ -162,13 +162,13 @@ export function DocumentsFilterClient({
       </p>
 
       {grouped.length === 0 ? (
-        <div className="rounded-2xl border border-border/60 bg-white p-10 text-center">
+        <div className="rounded-surface border border-border/60 bg-white p-10 text-center">
           <h3 className="text-base font-semibold text-foreground">No documents match that search</h3>
           <p className="text-sm text-muted-foreground mt-1">Try a shorter word, or clear the search to see all documents.</p>
           <button
             type="button"
             onClick={() => { setFilter("all"); setQuery(""); }}
-            className="mt-4 inline-flex min-h-11 items-center rounded-full border border-input px-5 text-sm font-medium hover:bg-accent"
+            className="mt-4 inline-flex min-h-11 items-center rounded-pill border border-input px-5 text-sm font-medium hover:bg-accent"
           >
             Clear search and filters
           </button>
@@ -182,7 +182,7 @@ export function DocumentsFilterClient({
             const href = docLinkHref(doc);
 
             return (
-              <li key={doc.id} className="rounded-2xl border border-border/60 bg-white p-5 flex flex-wrap items-start gap-4 hover:border-border transition-colors">
+              <li key={doc.id} className="rounded-surface border border-border/60 bg-white p-5 flex flex-wrap items-start gap-4 hover:border-border transition-colors">
                 {/* Icon */}
                 <div className="w-9 h-9 rounded-lg bg-teal/10 text-teal flex items-center justify-center shrink-0 mt-0.5">
                   <IconFileText className="w-4 h-4" />
@@ -217,12 +217,12 @@ export function DocumentsFilterClient({
 
                 {/* Side */}
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${badge.color}`}>
+                  <span className={`inline-flex items-center rounded-pill border px-2.5 py-0.5 text-[11px] font-semibold ${badge.color}`}>
                     {badge.label}
                   </span>
                   <Link
                     href={href}
-                    className={`inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold ${
+                    className={`inline-flex min-h-10 items-center rounded-pill px-4 text-sm font-semibold ${
                       docActionVariant(doc, isSigned) === "primary"
                         ? "bg-teal text-white hover:bg-teal/90"
                         : "border border-input hover:bg-accent"

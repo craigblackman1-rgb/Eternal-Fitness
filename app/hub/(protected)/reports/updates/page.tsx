@@ -158,7 +158,7 @@ export default async function UpdatesReportPage() {
                       <tr key={row.clientId} className="border-b border-[var(--hub-border)] last:border-0 hover:bg-[var(--hub-hover)] transition-colors">
                         <td className="px-5 py-3">
                           <Link href={`/hub/clients/${row.clientNumber}`} className="inline-flex items-center gap-2.5 min-w-0 group">
-                            <span className="w-7 h-7 rounded-full bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
+                            <span className="w-7 h-7 rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-[11px] font-bold shrink-0">{initials}</span>
                             <span className="font-semibold text-foreground group-hover:text-rose transition-colors truncate">{row.name}</span>
                           </Link>
                         </td>

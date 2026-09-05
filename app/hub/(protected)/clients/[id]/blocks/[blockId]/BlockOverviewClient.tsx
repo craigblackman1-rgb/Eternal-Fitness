@@ -269,7 +269,7 @@ export function BlockOverviewClient({
             <button
               type="button"
               onClick={() => setApproveOpen(true)}
-              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-[8px] bg-[var(--rose)] hover:bg-[color-mix(in_oklab,var(--rose)_88%,var(--ink))] text-white text-[13px] font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-control bg-[var(--rose)] hover:bg-[color-mix(in_oklab,var(--rose)_88%,var(--ink))] text-white text-[13px] font-semibold transition-colors"
             >
               <IconCheck className="w-4 h-4" /> Review and approve
             </button>
@@ -284,12 +284,12 @@ export function BlockOverviewClient({
 
       {/* ── Block state section ─────────────────────────────────── */}
       <section
-        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden"
+        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm overflow-hidden"
         style={{ marginBottom: "var(--d-section-gap, 14px)" }}
       >
         <div className="p-4">
-          <div className="flex items-start gap-3.5 border border-[var(--hub-border)] rounded-[10px] bg-[var(--field-fill,#FDFDFE)] p-3.5">
-            <div className="w-[44px] h-[44px] rounded-[8px] bg-[var(--s-primary-bg,rgba(193,131,159,.10))] text-[var(--rose-text,#94566F)] flex items-center justify-center text-[17px] font-extrabold shrink-0">
+          <div className="flex items-start gap-3.5 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill,#FDFDFE)] p-3.5">
+            <div className="w-[44px] h-[44px] rounded-control bg-[var(--s-primary-bg,rgba(193,131,159,.10))] text-[var(--rose-text,#94566F)] flex items-center justify-center text-[17px] font-extrabold shrink-0">
               {block.block_number}
             </div>
             <div className="flex-1 min-w-0">
@@ -309,7 +309,7 @@ export function BlockOverviewClient({
                 {archetypes.map(([arch, count]) => (
                   <span
                     key={arch}
-                    className="w-[24px] h-[24px] rounded-[6px] flex items-center justify-center text-[11.5px] font-bold bg-[var(--hub-card)] border border-[var(--hub-border)] text-[var(--muted)]"
+                    className="w-[24px] h-[24px] rounded-control-sm flex items-center justify-center text-[11.5px] font-bold bg-[var(--hub-card)] border border-[var(--hub-border)] text-[var(--muted)]"
                   >
                     {arch}
                   </span>
@@ -323,7 +323,7 @@ export function BlockOverviewClient({
               <button
                 type="button"
                 onClick={() => setDrawerOpen(true)}
-                className="inline-flex items-center h-[30px] px-2.5 rounded-[6px] border border-[var(--hub-border)] bg-[var(--hub-card)] text-[12.5px] font-medium text-[var(--color-ink)] hover:bg-[var(--hub-hover)] transition-colors"
+                className="inline-flex items-center h-[30px] px-2.5 rounded-control-sm border border-[var(--hub-border)] bg-[var(--hub-card)] text-[12.5px] font-medium text-[var(--color-ink)] hover:bg-[var(--hub-hover)] transition-colors"
               >
                 Edit block
               </button>
@@ -363,7 +363,7 @@ export function BlockOverviewClient({
           stored `week` ordinal, and unbooked sessions carry a projected
           date so they group with the week they will fall in. */}
       <section
-        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden"
+        className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm overflow-hidden"
         style={{ marginBottom: "var(--d-section-gap, 14px)" }}
       >
         <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-[var(--hub-border)]">
@@ -406,11 +406,11 @@ export function BlockOverviewClient({
               <details
                 key={group.key}
                 open={group.key === targetWeekKey}
-                className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--field-fill,#FDFDFE)] overflow-hidden group"
+                className="rounded-nested border border-[var(--hub-border)] bg-[var(--field-fill,#FDFDFE)] overflow-hidden group"
               >
                 <summary className="list-none cursor-pointer flex items-center gap-3 px-3.5 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
                   <span
-                    className={`w-[26px] h-[26px] rounded-[6px] flex items-center justify-center text-[12px] font-extrabold shrink-0 ${
+                    className={`w-[26px] h-[26px] rounded-control-sm flex items-center justify-center text-[12px] font-extrabold shrink-0 ${
                       isScheduled
                         ? "bg-[var(--s-primary-bg,rgba(193,131,159,.10))] text-[var(--rose-text,#94566F)]"
                         : isProjected
@@ -465,7 +465,7 @@ export function BlockOverviewClient({
       {/* ── Previous blocks ─────────────────────────────────────── */}
       {previousBlocks.length > 0 && (
         <section
-          className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-[16px] shadow-sm overflow-hidden"
+          className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-sm overflow-hidden"
           style={{ marginBottom: "var(--d-section-gap, 14px)" }}
         >
           <div className="px-4 py-2.5 border-b border-[var(--hub-border)]">
@@ -477,7 +477,7 @@ export function BlockOverviewClient({
                 key={prevBlock.id}
                 className="flex items-center gap-2.5 px-3 py-2 hover:bg-[var(--hub-hover)] transition-colors border-t border-[var(--hub-border)] first:border-t-0"
               >
-                <span className="w-[7px] h-[7px] rounded-full bg-[var(--s-success)] shrink-0" />
+                <span className="w-[7px] h-[7px] rounded-pill bg-[var(--s-success)] shrink-0" />
                 <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
                   {prevBlock.displayName}
                   <span className="font-normal text-[var(--body)] mx-2">·</span>

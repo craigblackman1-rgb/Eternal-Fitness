@@ -71,7 +71,7 @@ export function OffDayGuardDialog({ open, onClose, onConfirm, session, now }: Of
       aria-modal="true"
       aria-labelledby="guardTitle"
     >
-      <div className="bg-[var(--hub-card)] rounded-2xl w-full max-w-[560px] shadow-[0_24px_64px_rgba(16,24,40,.28)] overflow-hidden">
+      <div className="bg-[var(--hub-card)] rounded-surface w-full max-w-[560px] shadow-[0_24px_64px_rgba(16,24,40,.28)] overflow-hidden">
         {/* Header */}
         <div className="flex gap-2.5 px-5 pt-5 pb-3">
           <span
@@ -105,11 +105,11 @@ export function OffDayGuardDialog({ open, onClose, onConfirm, session, now }: Of
           >
             <span
               className={cn(
-                "w-[17px] h-[17px] rounded-full border-2 shrink-0 mt-0.5 relative",
+                "w-[17px] h-[17px] rounded-pill border-2 shrink-0 mt-0.5 relative",
                 choice === "today" ? "border-rose" : "border-[var(--hub-field-border)]",
               )}
             >
-              {choice === "today" && <span className="absolute inset-[3px] rounded-full bg-rose" />}
+              {choice === "today" && <span className="absolute inset-[3px] rounded-pill bg-rose" />}
             </span>
             <span>
               <span className="text-[13px] font-bold text-foreground block">It happened today, {todayKey}</span>
@@ -135,11 +135,11 @@ export function OffDayGuardDialog({ open, onClose, onConfirm, session, now }: Of
           >
             <span
               className={cn(
-                "w-[17px] h-[17px] rounded-full border-2 shrink-0 mt-0.5 relative",
+                "w-[17px] h-[17px] rounded-pill border-2 shrink-0 mt-0.5 relative",
                 choice === "booked" ? "border-rose" : "border-[var(--hub-field-border)]",
               )}
             >
-              {choice === "booked" && !isFuture && <span className="absolute inset-[3px] rounded-full bg-rose" />}
+              {choice === "booked" && !isFuture && <span className="absolute inset-[3px] rounded-pill bg-rose" />}
             </span>
             <span>
               <span className="text-[13px] font-bold text-foreground block">

@@ -115,7 +115,7 @@ export function sessionStatusColors(status: SessionStatus): Pick<SessionStatusCo
 export function FlagPill({ icon, label, title, className }: { icon: ReactNode; label: string; title?: string; className?: string }) {
   return (
     <span
-      className={cn("inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11.5px] font-bold", className)}
+      className={cn("inline-flex items-center whitespace-nowrap rounded-pill border px-2 py-0.5 text-[11.5px] font-bold", className)}
       style={{
         gap: 5,
         color: "#7A4257",
@@ -136,7 +136,7 @@ export function SessionStatusPill({ status, unconfirmed, offDay, outOfSequence, 
   if (unconfirmed) {
     return (
       <span
-        className={cn("inline-flex items-center whitespace-nowrap rounded-full border", className)}
+        className={cn("inline-flex items-center whitespace-nowrap rounded-pill border", className)}
         style={{
           gap: 5,
           padding: "2px 10px",
@@ -157,7 +157,7 @@ export function SessionStatusPill({ status, unconfirmed, offDay, outOfSequence, 
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <span
-        className="inline-flex items-center whitespace-nowrap rounded-full border"
+        className="inline-flex items-center whitespace-nowrap rounded-pill border"
         style={{
           gap: 5,
           padding: "2px 10px",

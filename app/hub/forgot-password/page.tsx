@@ -38,8 +38,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="hub-shell relative flex min-h-screen items-center justify-center bg-[var(--hub-canvas)] overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-rose/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-teal/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-rose/5 rounded-pill blur-3xl" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-teal/5 rounded-pill blur-3xl" />
       </div>
 
       <HubCard className="relative w-full max-w-md shadow-md border-border/60">
@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full min-h-11 rounded-full bg-rose hover:bg-rose/90 text-white text-base font-semibold"
+                className="w-full min-h-11 rounded-pill bg-rose hover:bg-rose/90 text-white text-base font-semibold"
                 disabled={loading}
               >
                 {loading ? "Sending..." : "Send reset link"}

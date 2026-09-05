@@ -139,9 +139,9 @@ export function DocumentDetailClient({
           <h1 className="text-xl font-semibold tracking-tight">{doc.title}</h1>
           <div className="flex items-center gap-2 mt-0.5">
             <StatusBadge status={doc.status} />
-            <Badge variant="outline" className="rounded-full text-xs">v{doc.version}</Badge>
+            <Badge variant="outline" className="rounded-pill text-xs">v{doc.version}</Badge>
             {doc.status === "sent" && doc.emailed === false && (
-              <Badge variant="outline" className="rounded-full text-xs border-amber-300 bg-amber-50 text-amber-800">Not actually delivered</Badge>
+              <Badge variant="outline" className="rounded-pill text-xs border-amber-300 bg-amber-50 text-amber-800">Not actually delivered</Badge>
             )}
           </div>
         </div>

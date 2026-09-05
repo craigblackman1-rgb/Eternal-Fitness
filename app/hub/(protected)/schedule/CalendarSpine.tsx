@@ -184,7 +184,7 @@ export function CalendarSpine({ entries, showCancelled, onSelectSession, selecte
                 type="button"
                 onClick={() => setView(v)}
                 className={cn(
-                  "rounded-md px-4 py-1.5 text-sm font-semibold capitalize transition-colors",
+                  "rounded-nested px-4 py-1.5 text-sm font-semibold capitalize transition-colors",
                   view === v ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -288,7 +288,7 @@ export function CalendarSpine({ entries, showCancelled, onSelectSession, selecte
                   style={{ top: nowLinePx }}
                   title={`Now — ${formatHhmm(now)}`}
                 >
-                  <span className="absolute -left-1 -top-[5px] w-2 h-2 rounded-full bg-rose" />
+                  <span className="absolute -left-1 -top-[5px] w-2 h-2 rounded-pill bg-rose" />
                 </div>
               )}
 

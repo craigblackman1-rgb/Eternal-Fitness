@@ -345,7 +345,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
 
   /* ── document state cell ────────────────────────────── */
   function docStateCell(doc: DocInfo | null, key: string) {
-    if (!doc) return <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-muted-foreground"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--hub-field-border)]" />—</span>;
+    if (!doc) return <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-muted-foreground"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--hub-field-border)]" />—</span>;
     const st = doc.state;
     let txt: string;
     if (st === "ok") txt = fmtShort(doc.expiryDate ?? doc.signedDate);
@@ -377,7 +377,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
     const title = doc.note ?? (doc.signedDate ? "Signed " + fmt(doc.signedDate) : ST_LABEL[st]);
     return (
       <span className={cn("inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums", textMap[st] ?? "")} title={title}>
-        <i className={cn("w-2 h-2 rounded-full shrink-0", colorMap[st] ?? "")} />
+        <i className={cn("w-2 h-2 rounded-pill shrink-0", colorMap[st] ?? "")} />
         {txt}
       </span>
     );
@@ -447,7 +447,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
             <div className="text-[13.5px] font-bold text-foreground">Compliance register</div>
             <div className="text-[12.5px] text-muted-foreground">Derived from document dates — never set by hand</div>
           </div>
-          <div className="inline-flex ml-auto bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-[10px] p-[3px] gap-0.5" role="tablist" aria-label="Tracker view">
+          <div className="inline-flex ml-auto bg-[var(--hub-canvas)] border border-[var(--hub-border)] rounded-nested p-[3px] gap-0.5" role="tablist" aria-label="Tracker view">
             <button type="button" role="tab" aria-selected={view === "matrix"} className={cn("border-0 rounded-[7px] bg-transparent font-[inherit] text-[12.5px] font-semibold px-3.5 py-1.5 cursor-pointer transition-colors", view === "matrix" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")} onClick={() => { setView("matrix"); setSortKey("status"); setSortDir(1); setPage(0); }}>
               By client
             </button>
@@ -469,7 +469,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
               className="w-full h-10 rounded-lg border border-[var(--hub-field-border)] bg-white pl-[34px] pr-[34px] text-[13px] text-foreground placeholder:text-muted-foreground font-[inherit] outline-none hover:border-[var(--hub-field-border-hover)] focus:border-[var(--color-rose)] focus:ring-[3px] focus:ring-[rgba(193,131,159,.3)]"
             />
             {search && (
-              <button type="button" className="absolute right-1.5 top-1/2 -translate-y-1/2 w-[26px] h-[26px] rounded-md border-0 bg-transparent text-muted-foreground cursor-pointer grid place-items-center hover:bg-[var(--hub-hover)] hover:text-foreground" onClick={() => { setSearch(""); setPage(0); }} aria-label="Clear search">
+              <button type="button" className="absolute right-1.5 top-1/2 -translate-y-1/2 w-[26px] h-[26px] rounded-nested border-0 bg-transparent text-muted-foreground cursor-pointer grid place-items-center hover:bg-[var(--hub-hover)] hover:text-foreground" onClick={() => { setSearch(""); setPage(0); }} aria-label="Clear search">
                 <IconX className="w-3.5 h-3.5" />
               </button>
             )}
@@ -493,7 +493,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
               key={chip.v}
               type="button"
               className={cn(
-                "inline-flex items-center gap-[7px] rounded-full border px-3 py-1.5 text-[12.5px] font-medium cursor-pointer transition-colors",
+                "inline-flex items-center gap-[7px] rounded-pill border px-3 py-1.5 text-[12.5px] font-medium cursor-pointer transition-colors",
                 statusFilter === chip.v
                   ? "bg-[var(--hub-sidebar-active)] border-[var(--status-primary-border)] text-foreground font-semibold"
                   : "bg-white border-[var(--hub-border)] text-muted-foreground hover:text-foreground hover:border-[var(--hub-field-border)]",
@@ -501,9 +501,9 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
               onClick={() => { setStatusFilter(chip.v); setPage(0); }}
               aria-pressed={statusFilter === chip.v}
             >
-              {chip.dot && <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: chip.dot }} />}
+              {chip.dot && <span className="w-[7px] h-[7px] rounded-pill shrink-0" style={{ background: chip.dot }} />}
               {chip.label}
-              <span className={cn("min-w-[18px] rounded-full border px-[5px] text-[11px] font-bold tabular-nums text-center", statusFilter === chip.v ? "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--status-primary-text)]" : "bg-[var(--hub-canvas)] border-[var(--hub-border)]")}>
+              <span className={cn("min-w-[18px] rounded-pill border px-[5px] text-[11px] font-bold tabular-nums text-center", statusFilter === chip.v ? "bg-[var(--status-primary-bg)] border-[var(--status-primary-border)] text-[var(--status-primary-text)]" : "bg-[var(--hub-canvas)] border-[var(--hub-border)]")}>
                 {chipCounts[chip.v] ?? 0}
               </span>
             </button>
@@ -597,9 +597,9 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
                       let reviewCell: React.ReactNode;
                       const rd = daysFrom(c.nextReview, today);
                       if (rd !== null && rd < 0) {
-                        reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-danger)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-danger)]" />{fmtShort(c.nextReview)} · {Math.abs(rd)}d late</span>;
+                        reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-danger)] font-semibold"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--status-danger)]" />{fmtShort(c.nextReview)} · {Math.abs(rd)}d late</span>;
                       } else if (rd !== null && rd <= DUE_WINDOW) {
-                        reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />{fmtShort(c.nextReview)} · in {rd}d</span>;
+                        reviewCell = <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--status-warning)]" />{fmtShort(c.nextReview)} · in {rd}d</span>;
                       } else {
                         reviewCell = <span className="whitespace-nowrap text-muted-foreground">{fmtShort(c.nextReview)}</span>;
                       }
@@ -608,7 +608,7 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
                         <tr key={c.id} className="cursor-pointer transition-colors hover:bg-[var(--hub-hover)] border-b border-[var(--hub-border)] last:border-b-0" tabIndex={0} onClick={() => router.push(`/hub/clients/${c.clientNumber}`)} onKeyDown={(e) => { if (e.key === "Enter") router.push(`/hub/clients/${c.clientNumber}`); }}>
                           <td className="py-2.5 px-3 min-w-[230px]">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-[34px] h-[34px] rounded-full bg-[rgba(193,131,159,.15)] text-[var(--color-rose)] grid place-items-center text-[12.5px] font-bold shrink-0">{initials(c.name)}</div>
+                              <div className="w-[34px] h-[34px] rounded-pill bg-[rgba(193,131,159,.15)] text-[var(--color-rose)] grid place-items-center text-[12.5px] font-bold shrink-0">{initials(c.name)}</div>
                               <div className="min-w-0">
                                 <div className="font-semibold text-foreground">{c.name}</div>
                                 <div className="text-[11.5px] text-muted-foreground leading-[1.3] max-w-[210px] truncate" title={c.conditions.join(", ")}>#{c.clientNumber} · {c.conditions[0] ?? "—"}{more}</div>
@@ -671,14 +671,14 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
                         <tr key={`${r.clientId}-${r.docKey}`} className="cursor-pointer transition-colors hover:bg-[var(--hub-hover)] border-b border-[var(--hub-border)] last:border-b-0" tabIndex={0} onClick={() => router.push(`/hub/clients/${r.clientNumber}`)} onKeyDown={(e) => { if (e.key === "Enter") router.push(`/hub/clients/${r.clientNumber}`); }}>
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-[34px] h-[34px] rounded-full bg-[rgba(193,131,159,.15)] text-[var(--color-rose)] grid place-items-center text-[12.5px] font-bold shrink-0">{initials(r.clientName)}</div>
+                              <div className="w-[34px] h-[34px] rounded-pill bg-[rgba(193,131,159,.15)] text-[var(--color-rose)] grid place-items-center text-[12.5px] font-bold shrink-0">{initials(r.clientName)}</div>
                               <span className="font-semibold text-foreground">{r.clientName}</span>
                             </div>
                           </td>
                           <td className="py-2.5 px-3"><span className="font-medium text-foreground">{r.docLabel}</span></td>
                           <td className="py-2.5 px-3">
                             <span className={cn("inline-flex items-center gap-[7px] whitespace-nowrap text-[12.5px] tabular-nums", colorMap[r.state]?.split(" ").slice(1).join(" ") ?? "")}>
-                              <i className={cn("w-2 h-2 rounded-full shrink-0", colorMap[r.state]?.split(" ")[0] ?? "")} />
+                              <i className={cn("w-2 h-2 rounded-pill shrink-0", colorMap[r.state]?.split(" ")[0] ?? "")} />
                               {ST_LABEL[r.state]}
                             </span>
                           </td>
@@ -703,11 +703,11 @@ export function MedicalTracker({ clients }: MedicalTrackerProps) {
         {/* Legend */}
         {currentRows.length > 0 && (
           <div className="flex flex-wrap gap-4 px-4 py-3 border-t border-[var(--hub-border)] bg-[var(--hub-hover)] text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-success)]" />Valid</span>
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />Due within 45 days</span>
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-warning)]" />Requested — awaiting</span>
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-danger)] font-semibold"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--status-danger)]" />Outstanding or expired</span>
-            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-muted-foreground"><i className="w-2 h-2 rounded-full shrink-0 bg-[var(--hub-field-border)]" />Not applicable / declined</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--status-success)]" />Valid</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--status-warning)]" />Due within 45 days</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-warning-text)] font-semibold"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--status-warning)]" />Requested — awaiting</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-[var(--status-danger)] font-semibold"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--status-danger)]" />Outstanding or expired</span>
+            <span className="inline-flex items-center gap-[7px] whitespace-nowrap text-xs text-muted-foreground"><i className="w-2 h-2 rounded-pill shrink-0 bg-[var(--hub-field-border)]" />Not applicable / declined</span>
           </div>
         )}
 

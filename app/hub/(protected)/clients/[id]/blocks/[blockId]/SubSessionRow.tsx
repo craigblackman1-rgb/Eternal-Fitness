@@ -57,7 +57,7 @@ export function SubSessionRow({ subSession, clientId, blockId }: SubSessionRowPr
           with the parent's workout name, not under its date. */}
       <div className="flex items-center gap-2.5 ml-[117px] pr-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors">
         {/* Rose spine — "hangs off the session above" cue */}
-        <div className="w-[3px] self-stretch -ml-2.5 rounded-l-[10px] bg-rose shrink-0" />
+        <div className="w-[3px] self-stretch -ml-2.5 rounded-l-nested bg-rose shrink-0" />
 
         {/* Icon */}
         <div className="w-[26px] h-[26px] rounded-lg flex items-center justify-center bg-rose/10 text-rose shrink-0">
@@ -70,12 +70,12 @@ export function SubSessionRow({ subSession, clientId, blockId }: SubSessionRowPr
         <div className="flex-1 min-w-0">
           <div className="text-[12.5px] font-bold text-foreground flex items-center gap-2 flex-wrap">
             {name}
-            <span className="text-[9.5px] font-extrabold uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-rose/10 text-rose border border-rose/20">
+            <span className="text-[9.5px] font-extrabold uppercase tracking-wider rounded-pill px-1.5 py-0.5 bg-rose/10 text-rose border border-rose/20">
               {isSupplementary ? "Every session" : "This session only"}
             </span>
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-muted-foreground flex-wrap">
-            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0 text-[11px] font-semibold ${stateClass}`}>
+            <span className={`inline-flex items-center gap-1 rounded-pill border px-2 py-0 text-[11px] font-semibold ${stateClass}`}>
               {stateLabel}
             </span>
             <span className="text-[var(--hub-field-border)]">·</span>

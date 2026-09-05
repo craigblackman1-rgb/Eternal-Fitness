@@ -164,7 +164,7 @@ export function ClientTasksPanel({
     dueInfo.nextDueDate && updateInterval && dueInfo.status;
 
   return (
-        <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)]">
+        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)]">
           <div className="px-5 pt-5 pb-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
@@ -271,7 +271,7 @@ export function ClientTasksPanel({
                   style={{ background: "rgba(var(--color-amber-rgb, 176, 138, 62), 0.04)" }}
                 >
                   <span
-                    className="inline-flex items-center justify-center w-7 h-7 rounded-full shrink-0"
+                    className="inline-flex items-center justify-center w-7 h-7 rounded-pill shrink-0"
                     style={{
                       background: "rgba(var(--color-amber-rgb, 176, 138, 62), 0.12)",
                       color: "var(--status-warning)",
@@ -343,7 +343,7 @@ export function ClientTasksPanel({
                       key={task.id}
                       className="flex items-start gap-3 p-[13px] rounded-[12px] border border-[var(--hub-border)] group"
                     >
-                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-[var(--hub-hover)] text-muted-foreground">
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-pill shrink-0 bg-[var(--hub-hover)] text-muted-foreground">
                         <IconClipboardList className="w-[13px] h-[13px] stroke-[2.5]" />
                       </span>
                       <div className="min-w-0 flex-1">

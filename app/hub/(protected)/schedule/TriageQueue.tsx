@@ -86,7 +86,7 @@ export function TriageQueue({ bookings, onConfirm, onDecline, now }: TriageQueue
         </span>
         <span className="text-[13px] font-bold text-foreground">Awaiting your decision</span>
         <span
-          className="ml-auto min-w-[21px] h-[21px] px-1.5 rounded-full text-[11px] font-extrabold leading-[21px] text-center tabular-nums"
+          className="ml-auto min-w-[21px] h-[21px] px-1.5 rounded-pill text-[11px] font-extrabold leading-[21px] text-center tabular-nums"
           style={{ background: "#8A6A2E", color: "#fff" }}
         >
           {bookings.length}

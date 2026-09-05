@@ -163,11 +163,11 @@ export function EquipmentManager({ initialEquipment }: EquipmentManagerProps) {
                       role="switch"
                       aria-checked={item.active}
                       onClick={() => toggleActive(item)}
-                      className={`relative inline-block w-10 h-[22px] shrink-0 rounded-full transition-[background-color] duration-200 ${item.active ? "bg-[var(--status-success)]" : "bg-[var(--hub-field-border)]"} focus-visible:outline-none`}
+                      className={`relative inline-block w-10 h-[22px] shrink-0 rounded-pill transition-[background-color] duration-200 ${item.active ? "bg-[var(--status-success)]" : "bg-[var(--hub-field-border)]"} focus-visible:outline-none`}
                       style={item.active ? { boxShadow: "none" } : {}}
                     >
                       <span
-                        className={`absolute left-[3px] top-[3px] w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.2)] ${item.active ? "translate-x-[18px]" : "translate-x-0"}`}
+                        className={`absolute left-[3px] top-[3px] w-4 h-4 rounded-pill bg-white transition-transform duration-200 shadow-[0_1px_2px_rgba(0,0,0,0.2)] ${item.active ? "translate-x-[18px]" : "translate-x-0"}`}
                       />
                     </button>
                   </td>

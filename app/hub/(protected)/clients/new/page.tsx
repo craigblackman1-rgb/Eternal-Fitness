@@ -101,7 +101,7 @@ function SegmentedControl<T extends string | number>({
               />
               <span
                 className={
-                  "flex min-h-[30px] cursor-pointer items-center justify-center rounded-md px-2.5 text-center text-sm font-semibold transition-colors " +
+                  "flex min-h-[30px] cursor-pointer items-center justify-center rounded-nested px-2.5 text-center text-sm font-semibold transition-colors " +
                   (active
                     ? "bg-[var(--hub-card)] text-foreground shadow-sm"
                     : "text-[var(--body)] hover:text-foreground")
@@ -135,7 +135,7 @@ function GateAlert({
       ? "bg-[var(--s-warning-bg)] border-[var(--s-warning-bd)] text-[var(--s-warning-tx)]"
       : "bg-[var(--s-success-bg)] border-[var(--s-success-bd)] text-[var(--s-success-tx)]";
   return (
-    <div className={`flex gap-2.5 p-3 rounded-[10px] border ${styles}`}>
+    <div className={`flex gap-2.5 p-3 rounded-nested border ${styles}`}>
       <IconAlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
       <div className="text-[12.5px] leading-relaxed">{children}</div>
     </div>
@@ -707,7 +707,7 @@ export default function NewClientPage() {
       <div>
         <Link
           href="/hub/clients"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-md px-2 py-1 -ml-2 mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-nested px-2 py-1 -ml-2 mb-3 transition-colors"
         >
           <IconChevronLeft className="h-3.5 w-3.5" />
           Back to Clients
@@ -720,7 +720,7 @@ export default function NewClientPage() {
 
       {/* Draft resumed banner */}
       {isResumingDraft && (
-        <div className="flex items-center gap-3 p-3 rounded-[10px] border border-teal/20 bg-teal/5">
+        <div className="flex items-center gap-3 p-3 rounded-nested border border-teal/20 bg-teal/5">
           <IconCheck className="w-4 h-4 shrink-0 text-teal" />
           <p className="flex-1 text-[12.5px] text-foreground">
             <strong>Draft restored.</strong> Picking up from step {step} — everything you entered is here.
@@ -728,7 +728,7 @@ export default function NewClientPage() {
           <button
             type="button"
             onClick={handleDiscardDraft}
-            className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-md px-2 py-1 transition-colors"
+            className="shrink-0 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-nested px-2 py-1 transition-colors"
           >
             Start fresh
           </button>
@@ -758,7 +758,7 @@ export default function NewClientPage() {
                 } ${isClickable ? "cursor-pointer" : "cursor-default"}`}
               >
                 <span
-                  className={`w-[26px] h-[26px] rounded-full border grid place-items-center text-[12px] font-bold shrink-0 transition-colors ${
+                  className={`w-[26px] h-[26px] rounded-pill border grid place-items-center text-[12px] font-bold shrink-0 transition-colors ${
                     isOn
                       ? "bg-rose border-rose text-white"
                       : isDone
@@ -990,7 +990,7 @@ export default function NewClientPage() {
                 <div className="space-y-2.5">
                   {/* Send to client */}
                   <label
-                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                    className={`block rounded-nested border p-3 cursor-pointer transition-colors ${
                       parqMode === "send"
                         ? "bg-rose/5 border-rose/20"
                         : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
@@ -1018,7 +1018,7 @@ export default function NewClientPage() {
 
                   {/* Upload signed PAR-Q */}
                   <label
-                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                    className={`block rounded-nested border p-3 cursor-pointer transition-colors ${
                       parqMode === "upload"
                         ? "bg-rose/5 border-rose/20"
                         : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
@@ -1061,7 +1061,7 @@ export default function NewClientPage() {
 
                   {/* Trainer override */}
                   <label
-                    className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                    className={`block rounded-nested border p-3 cursor-pointer transition-colors ${
                       parqMode === "override"
                         ? "bg-rose/5 border-rose/20"
                         : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
@@ -1107,7 +1107,7 @@ export default function NewClientPage() {
                 {/* PAR-Q structure (accordion) */}
                 <div>
                   <Label>What&apos;s on the form — structure only</Label>
-                  <div className="mt-2 rounded-[10px] border border-[var(--hub-border)] divide-y divide-[var(--hub-border)]">
+                  <div className="mt-2 rounded-nested border border-[var(--hub-border)] divide-y divide-[var(--hub-border)]">
                     {[
                       { title: "Section 1 · Cardiovascular and general health", count: 11 },
                       { title: "Section 2 · Musculoskeletal, neurological and surgical history", count: 7 },
@@ -1118,7 +1118,7 @@ export default function NewClientPage() {
                         <summary className="flex items-center gap-2.5 px-3.5 min-h-[44px] cursor-pointer text-[12.5px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors list-none [&::-webkit-details-marker]:hidden">
                           <svg className="w-3.5 h-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                           <span className="flex-1 min-w-0">{sec.title}</span>
-                          <span className="inline-grid place-items-center min-w-[20px] h-5 px-1.5 rounded-full bg-[var(--s-neutral-bg)] border border-[var(--s-neutral-bd)] text-[11.5px] font-bold text-[var(--body)]">{sec.count}</span>
+                          <span className="inline-grid place-items-center min-w-[20px] h-5 px-1.5 rounded-pill bg-[var(--s-neutral-bg)] border border-[var(--s-neutral-bd)] text-[11.5px] font-bold text-[var(--body)]">{sec.count}</span>
                         </summary>
                         <div className="px-3.5 pb-3 pt-2 text-xs text-[var(--body)]">
                           Pulled from the live document template at send time — not editable here.
@@ -1142,7 +1142,7 @@ export default function NewClientPage() {
                       }}
                       className="sr-only"
                     />
-                    <span className={`absolute inset-0 rounded-[5px] border cursor-pointer transition-colors grid place-items-center ${gpClearanceRequired ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
+                    <span className={`absolute inset-0 rounded-control-sm border cursor-pointer transition-colors grid place-items-center ${gpClearanceRequired ? "bg-rose border-rose" : "bg-[var(--hub-card)] border-[var(--color-muted-text)]"}`}>
                       {gpClearanceRequired && <IconCheck className="w-3.5 h-3.5 text-white" />}
                     </span>
                   </label>
@@ -1354,7 +1354,7 @@ export default function NewClientPage() {
                   ].map((route) => (
                     <label
                       key={route.value}
-                      className={`block rounded-[10px] border p-3 cursor-pointer transition-colors ${
+                      className={`block rounded-nested border p-3 cursor-pointer transition-colors ${
                         firstWorkoutRoute === route.value
                           ? "bg-rose/5 border-rose/20"
                           : "bg-[var(--hub-hover)] border-[var(--hub-border)] hover:border-[var(--color-muted-text)]"
@@ -1375,7 +1375,7 @@ export default function NewClientPage() {
                 </div>
 
                 {/* Preview line */}
-                <div className="flex items-center gap-2.5 p-3 rounded-[10px] bg-teal/5 border border-teal/20">
+                <div className="flex items-center gap-2.5 p-3 rounded-nested bg-teal/5 border border-teal/20">
                   <IconCheck className="w-4 h-4 shrink-0 text-teal" />
                   <span className="text-[12.5px]">
                     <strong className="text-foreground">After creating the client, you'll be taken straight to add the first workout.</strong>{" "}
@@ -1390,7 +1390,7 @@ export default function NewClientPage() {
                 {/* Review summary */}
                 <SectionHeader title="Review & finish" end={<span>{complianceFlags.length > 0 ? <span className="pill warning">{complianceFlags.length} outstanding</span> : <span className="pill success">Ready</span>}</span>} />
 
-                <div className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
+                <div className="rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] p-4">
                   {[
                     { label: "Who they are", value: name.trim() || "This client", sub: email.trim() || "no email yet", editStep: 1 as StepKey },
                     { label: "Package & cadence", value: `${packageType} · ${cadenceLabel}`, editStep: 1 as StepKey },
@@ -1417,7 +1417,7 @@ export default function NewClientPage() {
                       <button
                         type="button"
                         onClick={() => goTo(row.editStep)}
-                        className="shrink-0 text-xs font-semibold text-rose hover:bg-rose/5 rounded-md px-1.5 py-0.5 transition-colors"
+                        className="shrink-0 text-xs font-semibold text-rose hover:bg-rose/5 rounded-nested px-1.5 py-0.5 transition-colors"
                       >
                         Edit
                       </button>
@@ -1427,7 +1427,7 @@ export default function NewClientPage() {
 
                 {/* Outstanding */}
                 <Label>Still outstanding</Label>
-                <div className="rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-3.5">
+                <div className="rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] p-3.5">
                   {complianceFlags.length > 0 ? (
                     complianceFlags.map((flag, i) => (
                       <div key={i} className={`flex items-start gap-2.5 py-2.5 ${i > 0 ? "border-t border-[var(--hub-border)]" : ""}`}>
@@ -1486,7 +1486,7 @@ export default function NewClientPage() {
 
         {/* ── Rail ── */}
         <aside className="hidden lg:block sticky top-20 space-y-4" aria-label="Captured so far">
-          <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
+          <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm overflow-hidden">
             <p className="px-4 py-3 border-b border-[var(--hub-border)] text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Captured so far</p>
             <div className="px-4 py-2">
               <dl className="space-y-0">

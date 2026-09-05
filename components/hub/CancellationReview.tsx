@@ -162,7 +162,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
 
   if (remainingClients.length === 0) {
     return (
-      <div className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] p-10 text-center">
+      <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] p-10 text-center">
         <p className="text-sm text-muted-foreground">All cancelled sessions have been reviewed.</p>
       </div>
     );
@@ -176,12 +176,12 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
           : null;
 
         return (
-          <div key={client.clientId} className="rounded-xl border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden">
+          <div key={client.clientId} className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] overflow-hidden">
             {/* Client header */}
             <div className="px-5 py-4 border-b border-[var(--hub-border)] bg-[var(--hub-hover)]">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
+                  <div className="w-8 h-8 rounded-pill bg-rose/15 text-rose flex items-center justify-center text-xs font-bold shrink-0">
                     {client.clientName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                   </div>
                   <div>

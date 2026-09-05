@@ -267,7 +267,7 @@ export function CalendarSyncPendingQueue() {
             <p className="text-sm font-semibold text-foreground">Calendar actions waiting on your review</p>
             <span
               className={
-                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold " +
+                "inline-flex items-center rounded-pill px-2 py-0.5 text-xs font-semibold " +
                 (openRows.length
                   ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)]"
                   : "bg-[var(--status-success-bg)] text-[var(--status-success-text)]")
@@ -308,7 +308,7 @@ export function CalendarSyncPendingQueue() {
                 <li key={row.id} className="px-5 py-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className={`w-[38px] h-[38px] rounded-[10px] grid place-items-center shrink-0 ${colors.bg} border ${colors.border} ${colors.text}`}>
+                      <div className={`w-[38px] h-[38px] rounded-nested grid place-items-center shrink-0 ${colors.bg} border ${colors.border} ${colors.text}`}>
                         {actionIcon(row.action)}
                       </div>
                       <div className="min-w-0">
@@ -321,7 +321,7 @@ export function CalendarSyncPendingQueue() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border ${colors.border} ${colors.bg} px-2.5 py-0.5 text-xs font-semibold ${colors.text}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-pill border ${colors.border} ${colors.bg} px-2.5 py-0.5 text-xs font-semibold ${colors.text}`}>
                         {actionLabel(row.action)}
                       </span>
                       <span className="text-[11.5px] text-muted-foreground whitespace-nowrap">
@@ -331,7 +331,7 @@ export function CalendarSyncPendingQueue() {
                   </div>
 
                   {/* Reason panel */}
-                  <div className={`mt-3 rounded-xl border ${colors.border} ${colors.bg} px-3.5 py-2.5`}>
+                  <div className={`mt-3 rounded-surface border ${colors.border} ${colors.bg} px-3.5 py-2.5`}>
                     <p className={`text-[11px] font-bold uppercase tracking-wide ${colors.text} mb-1`}>
                       {row.action === "delete" ? "Outlook event to be deleted" : "Event details"}
                     </p>
@@ -401,7 +401,7 @@ export function CalendarSyncPendingQueue() {
             if (e.target === e.currentTarget) setShowConfirm(false);
           }}
         >
-          <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-2xl shadow-2xl w-full max-w-[460px] flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+          <div className="bg-[var(--hub-card)] border border-[var(--hub-border)] rounded-surface shadow-2xl w-full max-w-[460px] flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
             <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[var(--hub-border)]">
               <h2 id="confirm-title" className="flex-1 text-[15px] font-bold text-foreground">Approve all pending actions?</h2>
               <button
@@ -415,7 +415,7 @@ export function CalendarSyncPendingQueue() {
             </div>
             <div className="px-5 pt-4 pb-1">
               <div className="flex gap-3 items-start">
-                <div className="w-9 h-9 rounded-[10px] grid place-items-center shrink-0 bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
+                <div className="w-9 h-9 rounded-nested grid place-items-center shrink-0 bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
                   <IconAlertTriangle className="h-[18px] w-[18px]" />
                 </div>
                 <div>
@@ -453,7 +453,7 @@ export function CalendarSyncPendingQueue() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-[90]">
-          <div className="bg-foreground text-white text-sm font-medium px-4 py-2.5 rounded-[10px] shadow-lg">
+          <div className="bg-foreground text-white text-sm font-medium px-4 py-2.5 rounded-nested shadow-lg">
             {toast}
           </div>
         </div>

@@ -843,7 +843,7 @@ export function SessionEditor({
                       <span className="cursor-grab text-[var(--hub-field-border)]" title="Drag the whole superset to reorder">
                         <IconGripVertical className="h-4 w-4" />
                       </span>
-                      <span className="inline-flex items-center rounded-full border border-rose/20 bg-white/60 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-rose">
+                      <span className="inline-flex items-center rounded-pill border border-rose/20 bg-white/60 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-rose">
                         Superset {block.label}
                       </span>
                       <span className="text-[11.5px] text-rose">{block.items.length} exercises performed together</span>
@@ -1103,7 +1103,7 @@ export function SessionEditor({
                   onClick={() => applyTemplate(t)}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3"
                 >
-                  <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                     <IconDumbbell className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -1193,7 +1193,7 @@ function ExerciseRow({
           aria-pressed={picked}
           aria-label={picked ? `Deselect ${ex.exercise_name} for grouping` : `Select ${ex.exercise_name} for grouping`}
           title={picked ? "Deselect for grouping" : "Select to group into a superset"}
-          className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+          className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-nested border transition-colors ${
             picked
               ? "border-rose bg-rose text-white"
               : "border-[var(--hub-field-border)] text-transparent hover:border-rose hover:text-rose/40"
@@ -1240,7 +1240,7 @@ function ExerciseRow({
             <button
               type="button"
               onClick={() => onSetLogType(sectionKey, ex._uid, "reps")}
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-nested px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
                 logType !== "time" ? "bg-[var(--hub-card)] text-rose shadow-sm" : "text-muted-foreground"
               }`}
             >
@@ -1249,7 +1249,7 @@ function ExerciseRow({
             <button
               type="button"
               onClick={() => onSetLogType(sectionKey, ex._uid, "time")}
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-nested px-2 py-1 text-[10.5px] font-bold uppercase tracking-wide transition-colors ${
                 logType === "time" ? "bg-[var(--hub-card)] text-teal shadow-sm" : "text-muted-foreground"
               }`}
             >
@@ -1259,7 +1259,7 @@ function ExerciseRow({
         </div>
         {ex.coaching_cue && <p className="mt-0.5 text-xs text-muted-foreground">{ex.coaching_cue}</p>}
         {ex.modification && (
-          <span className="mt-1 inline-flex rounded-md border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
+          <span className="mt-1 inline-flex rounded-nested border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
             {ex.modification}
           </span>
         )}
@@ -1268,7 +1268,7 @@ function ExerciseRow({
             {ex.equipment.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center text-[11px] font-semibold text-muted-foreground bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-full px-[9px] py-[2px]"
+                className="inline-flex items-center text-[11px] font-semibold text-muted-foreground bg-[var(--hub-hover)] border border-[var(--hub-border)] rounded-pill px-[9px] py-[2px]"
               >
                 {tag}
                 <button
@@ -1298,7 +1298,7 @@ function ExerciseRow({
             }
           }}
           placeholder="+ Add equipment tag, press Enter"
-          className="mt-1.5 h-7 w-full max-w-[260px] rounded-md border border-dashed border-[var(--hub-field-border)] bg-transparent px-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-rose focus:border-solid focus:outline-none focus:ring-2 focus:ring-rose/30"
+          className="mt-1.5 h-7 w-full max-w-[260px] rounded-nested border border-dashed border-[var(--hub-field-border)] bg-transparent px-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-rose focus:border-solid focus:outline-none focus:ring-2 focus:ring-rose/30"
         />
         {videoOpen && (
           <div className="mt-2 flex gap-2 border-t border-dashed border-[var(--hub-border)] pt-2">
@@ -1307,11 +1307,11 @@ function ExerciseRow({
               value={videoDraft}
               onChange={(e) => setVideoDraft(e.target.value)}
               placeholder="Paste video URL..."
-              className="min-w-0 flex-1 rounded-md border px-2 py-1 text-xs"
+              className="min-w-0 flex-1 rounded-nested border px-2 py-1 text-xs"
               onKeyDown={(e) => e.key === "Enter" && onSaveVideo(sectionKey, ex._uid)}
               autoFocus
             />
-            <button onClick={() => onSaveVideo(sectionKey, ex._uid)} className="rounded-md bg-rose px-2 py-1 text-xs text-white">
+            <button onClick={() => onSaveVideo(sectionKey, ex._uid)} className="rounded-nested bg-rose px-2 py-1 text-xs text-white">
               Save
             </button>
           </div>
@@ -1323,11 +1323,11 @@ function ExerciseRow({
               value={imageDraft}
               onChange={(e) => setImageDraft(e.target.value)}
               placeholder="Paste image URL..."
-              className="min-w-0 flex-1 rounded-md border px-2 py-1 text-xs"
+              className="min-w-0 flex-1 rounded-nested border px-2 py-1 text-xs"
               onKeyDown={(e) => e.key === "Enter" && onSaveImage(sectionKey, ex._uid)}
               autoFocus
             />
-            <button onClick={() => onSaveImage(sectionKey, ex._uid)} className="rounded-md bg-rose px-2 py-1 text-xs text-white">
+            <button onClick={() => onSaveImage(sectionKey, ex._uid)} className="rounded-nested bg-rose px-2 py-1 text-xs text-white">
               Save
             </button>
           </div>
@@ -1438,7 +1438,7 @@ function EditField({ label, value, onChange, width, type = "text", placeholder }
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-[30px] w-full rounded-md border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-1.5 text-center text-[13px] text-foreground focus:border-rose focus:outline-none focus:ring-2 focus:ring-rose/30"
+        className="h-[30px] w-full rounded-nested border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-1.5 text-center text-[13px] text-foreground focus:border-rose focus:outline-none focus:ring-2 focus:ring-rose/30"
       />
     </div>
   );

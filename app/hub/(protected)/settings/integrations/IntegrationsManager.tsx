@@ -187,7 +187,7 @@ export function IntegrationsManager() {
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <select
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-9 rounded-nested border border-input bg-background px-3 text-sm"
             value={selectedCalendar}
             onChange={(e) => setSelectedCalendar(e.target.value)}
             disabled={working}

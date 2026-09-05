@@ -133,7 +133,7 @@ export default async function TaxPage() {
                 {dateRangeLabel} · based on {formatCurrency(calculation.taxable_profit)} taxable profit to date
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[.05em] text-[var(--status-warning-text)] bg-white border border-[var(--status-warning-border)] rounded-full px-3 py-1.5 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[.05em] text-[var(--status-warning-text)] bg-white border border-[var(--status-warning-border)] rounded-pill px-3 py-1.5 shrink-0">
               <IconTriangleAlert className="w-3 h-3" />
               Estimate
             </span>

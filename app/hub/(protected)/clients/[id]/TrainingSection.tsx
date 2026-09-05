@@ -283,7 +283,7 @@ export function TrainingSection({
             >
               {blockDisplayName(latestBlock, blockSessions, blockSessionCounts[latestBlock.block_number] ?? blockSessions.length)}
             </Link>
-            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
+            <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
               {latestBlock.status}
             </span>
             <span className="text-xs text-[var(--color-body)]">
@@ -315,7 +315,7 @@ export function TrainingSection({
 
         {/* ── Supplementary work note ── */}
         <div className="flex items-center gap-2.5 py-2 px-3 text-[13px] text-[var(--color-muted)]">
-          <span className="w-[7px] h-[7px] rounded-full bg-[var(--color-muted)]" />
+          <span className="w-[7px] h-[7px] rounded-pill bg-[var(--color-muted)]" />
           <span>
             Nothing runs alongside {firstName}&apos;s sessions.{" "}
             <button className="text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit]">
@@ -363,7 +363,7 @@ export function TrainingSection({
                 </small>
               </span>
               <span className="shrink-0">
-                <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
+                <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
                   {block.status}
                 </span>
               </span>
@@ -390,7 +390,7 @@ export function TrainingSection({
               </small>
             </span>
             <span className="shrink-0">
-              <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)]">
+              <span className="inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)]">
                 Read-only
               </span>
             </span>

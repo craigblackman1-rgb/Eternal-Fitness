@@ -311,7 +311,7 @@ export function ScheduleCalendar({
                           entry.completedAt &&
                           londonDayKey(entry.completedAt) !== londonDayKey(entry.scheduledAt) ? (
                             <span
-                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold"
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-pill border px-2.5 py-0.5 text-xs font-semibold"
                               style={{
                                 color: sessionStatusColors("completed").color,
                                 backgroundColor: sessionStatusColors("completed").background,
@@ -328,7 +328,7 @@ export function ScheduleCalendar({
                             <SessionStatusPill status={entry.status} />
                           )}
                           {conflicted && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
+                            <span className="inline-flex items-center gap-1 rounded-pill border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">
                               <IconTriangleAlert className="h-3 w-3" />
                               Clash
                             </span>

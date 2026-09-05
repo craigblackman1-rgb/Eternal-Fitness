@@ -424,7 +424,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
           <IconPlus className="h-4 w-4" /> New Task
         </Button>
         {currentUserName && ASSIGNEE_OPTIONS.includes(currentUserName) && (
-          <div className="inline-flex gap-0.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-[3px] shadow-sm">
+          <div className="inline-flex gap-0.5 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] p-[3px] shadow-sm">
             <button
               onClick={() => setShowOnlyMine(true)}
               className={`rounded-[7px] px-3.5 py-1.5 text-sm font-medium transition-colors ${
@@ -475,7 +475,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                 <button
                   key={task.id}
                   onClick={() => startEdit(task)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-xs font-medium transition-colors ${
                     bucket === "overdue"
                       ? "border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger)] hover:border-[var(--status-danger)]"
                       : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground hover:border-[var(--hub-field-border-hover)] hover:text-foreground"
@@ -489,7 +489,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
             {dueSoonTasks.length > 6 && (
               <button
                 onClick={() => setDueFilter("dueSoon")}
-                className="inline-flex items-center rounded-full border border-[var(--hub-border)] bg-[var(--hub-canvas)] px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                className="inline-flex items-center rounded-pill border border-[var(--hub-border)] bg-[var(--hub-canvas)] px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
               >
                 +{dueSoonTasks.length - 6} more
               </button>
@@ -701,13 +701,13 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                       if (e.key === "Escape") cancelEditBucket();
                     }}
                     disabled={bucketBusy}
-                    className="w-28 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose"
+                    className="w-28 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose"
                   />
                   <button
                     onClick={() => saveBucketRename(b)}
                     disabled={bucketBusy}
                     title="Save"
-                    className="rounded-md p-1 text-muted-foreground hover:bg-[var(--hub-card)] hover:text-foreground"
+                    className="rounded-nested p-1 text-muted-foreground hover:bg-[var(--hub-card)] hover:text-foreground"
                   >
                     <IconCheck className="h-3.5 w-3.5" />
                   </button>
@@ -715,7 +715,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                     onClick={cancelEditBucket}
                     disabled={bucketBusy}
                     title="Cancel"
-                    className="rounded-md p-1 text-muted-foreground hover:bg-[var(--hub-card)] hover:text-foreground"
+                    className="rounded-nested p-1 text-muted-foreground hover:bg-[var(--hub-card)] hover:text-foreground"
                   >
                     <IconX className="h-3.5 w-3.5" />
                   </button>
@@ -735,7 +735,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                 >
                   {b.name}
                   <span
-                    className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+                    className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-pill border px-1 text-[11px] font-bold leading-none tabular-nums ${
                       isActive
                         ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)]"
                         : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
@@ -747,14 +747,14 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                 <button
                   onClick={() => startEditBucket(b)}
                   title={`Rename "${b.name}"`}
-                  className="ml-0.5 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-[var(--hub-hover)] hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
+                  className="ml-0.5 rounded-nested p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-[var(--hub-hover)] hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
                 >
                   <IconPencil className="h-3 w-3" />
                 </button>
                 <button
                   onClick={() => deleteBucket(b)}
                   title={`Delete "${b.name}"`}
-                  className="rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-[var(--hub-hover)] hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100"
+                  className="rounded-nested p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-[var(--hub-hover)] hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100"
                 >
                   <IconTrash2 className="h-3 w-3" />
                 </button>
@@ -782,7 +782,7 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                 >
                   {opt.label}
                   <span
-                    className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-1 text-[11px] font-bold leading-none tabular-nums ${
+                    className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-pill border px-1 text-[11px] font-bold leading-none tabular-nums ${
                       isActive
                         ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)]"
                         : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
@@ -925,21 +925,21 @@ export function TasksManager({ initialTasks, initialBuckets, currentUserName, cl
                       )}
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
                         {task.assignee ? (
-                          <span className="inline-flex items-center rounded-full border border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-primary-text)]">
+                          <span className="inline-flex items-center rounded-pill border border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-primary-text)]">
                             {task.assignee}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-neutral)]">
+                          <span className="inline-flex items-center rounded-pill border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-neutral)]">
                             Unassigned
                           </span>
                         )}
                         {getClientName(task) && (
-                          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold" style={{ background: "rgba(8,126,139,.08)", borderColor: "rgba(8,126,139,.18)", color: "var(--color-teal, #087E8B)" }}>
+                          <span className="inline-flex items-center rounded-pill border px-2 py-0.5 text-[11px] font-semibold" style={{ background: "rgba(8,126,139,.08)", borderColor: "rgba(8,126,139,.18)", color: "var(--color-teal, #087E8B)" }}>
                             {getClientName(task)}
                           </span>
                         )}
                         {task.bucket_id && getBucketName(task.bucket_id) && (
-                          <span className="inline-flex items-center rounded-full border border-[var(--hub-border)] bg-[var(--hub-canvas)] px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          <span className="inline-flex items-center rounded-pill border border-[var(--hub-border)] bg-[var(--hub-canvas)] px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                             {getBucketName(task.bucket_id)}
                           </span>
                         )}

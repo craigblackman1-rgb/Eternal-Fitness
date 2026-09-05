@@ -37,7 +37,7 @@ export default function ResourcePreviewPage({ params }: { params: { key: string 
           </p>
         </div>
       </div>
-      <div className="rounded-[16px] border border-[var(--hub-border)] bg-white p-6 sm:p-8">
+      <div className="rounded-surface border border-[var(--hub-border)] bg-white p-6 sm:p-8">
         <Component clientName="Sample Client" clientId="preview" />
       </div>
     </div>

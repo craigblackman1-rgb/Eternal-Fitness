@@ -72,20 +72,20 @@ function registerStatusBadge(status: ProcessStatus) {
       return <StatusBadge status="active" />;
     case "review":
       return (
-        <span className="inline-flex items-center rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-warning-text)]">
+        <span className="inline-flex items-center rounded-pill border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-warning-text)]">
           Review
         </span>
       );
     case "archived":
       return (
-        <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">
+        <span className="inline-flex items-center rounded-pill border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">
           Archived
         </span>
       );
     case "draft":
     default:
       return (
-        <span className="inline-flex items-center rounded-full border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">
+        <span className="inline-flex items-center rounded-pill border border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--status-neutral)]">
           Draft
         </span>
       );
@@ -158,7 +158,7 @@ export function ProcessQualityManager({
             >
               {tab.label}
               <span
-                className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-full border px-[5px] text-[11px] font-bold leading-none tabular-nums ${
+                className={`inline-grid min-w-[18px] h-[18px] place-items-center rounded-pill border px-[5px] text-[11px] font-bold leading-none tabular-nums ${
                   isActive
                     ? "border-[var(--status-primary-border)] bg-[var(--status-primary-bg)] text-[var(--status-primary-text)]"
                     : "border-[var(--hub-border)] bg-[var(--hub-canvas)] text-muted-foreground"
@@ -1118,7 +1118,7 @@ function OverviewSection({ data }: { data: OverviewData }) {
 function ProcessStep({ n, title, desc, meta, isLast }: { n: number; title: string; desc: string; meta: string; isLast?: boolean }) {
   return (
     <div className="flex gap-3.5 px-5 py-3.5 relative">
-      <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] z-[1]">
+      <div className="w-7 h-7 rounded-pill shrink-0 flex items-center justify-center text-xs font-bold bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] z-[1]">
         {n}
       </div>
       <div className="min-w-0">
@@ -1134,7 +1134,7 @@ function ProcessStep({ n, title, desc, meta, isLast }: { n: number; title: strin
 function ChecklistRow({ checked, title, desc, count, urgent }: { checked: boolean; title: string; desc: string; count: string; urgent?: boolean }) {
   return (
     <div className="flex items-start gap-3 px-5 py-3">
-      <div className={`w-5 h-5 rounded-md border shrink-0 flex items-center justify-center mt-px ${checked ? "bg-[var(--status-success)] border-[var(--status-success)] text-white" : "border-[var(--hub-field-border)]"}`}>
+      <div className={`w-5 h-5 rounded-nested border shrink-0 flex items-center justify-center mt-px ${checked ? "bg-[var(--status-success)] border-[var(--status-success)] text-white" : "border-[var(--hub-field-border)]"}`}>
         {checked && <IconCheck className="w-3 h-3" />}
       </div>
       <div className="min-w-0 flex-1">

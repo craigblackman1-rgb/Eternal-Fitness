@@ -48,7 +48,7 @@ export function HubQuickActions({ actions, className, divider = false, variant =
               <span className={cn("w-4 h-4 shrink-0", action.primary ? "text-white" : "text-rose")}>{action.icon}</span>
               {action.label}
               {!!action.badgeCount && (
-                <span className="inline-grid place-items-center min-w-[18px] h-[18px] px-[5px] rounded-full border text-[11px] font-bold leading-none tabular-nums bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]">
+                <span className="inline-grid place-items-center min-w-[18px] h-[18px] px-[5px] rounded-pill border text-[11px] font-bold leading-none tabular-nums bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]">
                   {action.badgeCount}
                 </span>
               )}

@@ -105,7 +105,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[15px] font-bold text-foreground leading-tight">{doc.title}</span>
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${TYPE_TAG_CLASSES[kind]}`}>
+              <span className={`inline-flex items-center rounded-pill px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide ${TYPE_TAG_CLASSES[kind]}`}>
                 {uploadKindLabel(kind)}
               </span>
             </div>
@@ -125,7 +125,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
             <a
               href={`/api/documents/${doc.id}/file`}
               download
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] px-3 h-9"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-nested text-sm font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] px-3 h-9"
             >
               <IconDownload className="h-4 w-4" />
               Download
@@ -135,7 +135,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
               onClick={() => onOpenChange(false)}
               autoFocus
               aria-label="Close viewer"
-              className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] text-muted-foreground"
+              className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] text-muted-foreground"
             >
               <IconX className="h-4 w-4" />
             </button>
@@ -178,7 +178,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
             <button
               type="button"
               onClick={() => setRot((r) => (r + 90) % 360)}
-              className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] text-xs font-medium"
+              className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] text-xs font-medium"
             >
               <IconRefreshCw className="h-3.5 w-3.5" />
               Rotate
@@ -196,7 +196,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
           {error ? (
             <div
               role="alert"
-              className="w-full rounded-[10px] bg-rose/10 border border-rose/20 px-3.5 py-3 flex items-center gap-2.5 text-[13px]"
+              className="w-full rounded-nested bg-rose/10 border border-rose/20 px-3.5 py-3 flex items-center gap-2.5 text-[13px]"
             >
               <IconAlertCircle className="h-4 w-4 text-[var(--rose-text)] shrink-0" />
               <span className="flex-1">
@@ -212,7 +212,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
               <a
                 href={`/api/documents/${doc.id}/file`}
                 download
-                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-xs font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] px-2.5 py-1.5 shrink-0"
+                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-nested text-xs font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] px-2.5 py-1.5 shrink-0"
               >
                 <IconDownload className="h-3 w-3" />
                 Download
@@ -222,7 +222,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
             <iframe
               src={cacheBustSrc}
               title={doc.source_file_name ?? doc.title}
-              className="w-full min-h-[720px] h-full bg-white border border-[var(--hub-border)] rounded-sm shadow"
+              className="w-full min-h-[720px] h-full bg-white border border-[var(--hub-border)] rounded-control shadow"
             />
           ) : kind === "img" ? (
             <div
@@ -241,7 +241,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
             </div>
           ) : (
             <div className="max-w-[420px] text-center mx-auto py-12">
-              <div className="w-16 h-16 rounded-full border border-[var(--hub-border)] bg-[var(--hub-card)] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-pill border border-[var(--hub-border)] bg-[var(--hub-card)] flex items-center justify-center mx-auto mb-4">
                 <IconFileText className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="text-sm font-semibold text-foreground mb-2">
@@ -256,7 +256,7 @@ export function DocumentViewerDrawer({ open, onOpenChange, clientName, doc }: Do
               <a
                 href={`/api/documents/${doc.id}/file`}
                 download
-                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] px-3 h-9"
+                className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-nested text-sm font-medium border border-[var(--hub-border)] bg-[var(--hub-card)] hover:bg-[var(--hub-hover)] px-3 h-9"
               >
                 <IconDownload className="h-4 w-4" />
                 Download {doc.source_file_name}

@@ -228,7 +228,7 @@ export function UnassignedOutlookSessions() {
                   disabled={assigning}
                   className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--hub-hover)] transition-colors flex items-center gap-3 disabled:opacity-50"
                 >
-                  <div className="w-8 h-8 rounded-md bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-nested bg-[var(--status-success-bg)] text-teal flex items-center justify-center shrink-0">
                     <IconDumbbell className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -251,7 +251,7 @@ export function UnassignedOutlookSessions() {
           <div className="flex items-center gap-2">
             <IconCalendar className="h-4 w-4 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">Unassigned Outlook sessions</p>
-            <span className="inline-flex items-center rounded-full bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] px-2 py-0.5 text-xs font-semibold">
+            <span className="inline-flex items-center rounded-pill bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] px-2 py-0.5 text-xs font-semibold">
               {sessions.length}
             </span>
           </div>

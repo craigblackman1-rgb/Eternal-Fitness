@@ -48,7 +48,7 @@ export function ClientNotesPanel({ clientId, exerciseNotes = [] }: ClientNotesPa
   }
 
   return (
-    <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)]">
+    <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)]">
       <div className="px-5 pt-5 pb-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">

@@ -748,11 +748,11 @@ export function SessionWorkoutLog({
               {progress.doneExCount === allExerciseRefs.length ? "All logged" : progress.started ? "Partially logged" : "Not started"}
             </span>
             {queuedSetsCount > 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]" title={`${queuedSetsCount} set${queuedSetsCount === 1 ? "" : "s"} saved on this device — will sync when the connection is back`}>
+              <span className="inline-flex items-center gap-1.5 rounded-pill border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]" title={`${queuedSetsCount} set${queuedSetsCount === 1 ? "" : "s"} saved on this device — will sync when the connection is back`}>
                 {ICO.cloudOff}Queued · will sync
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground" title="Everything logged so far is saved">
+              <span className="inline-flex items-center gap-1.5 rounded-pill border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground" title="Everything logged so far is saved">
                 {ICO.cloud}Synced
               </span>
             )}
@@ -768,8 +768,8 @@ export function SessionWorkoutLog({
             </button>
           </div>
         </div>
-        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[var(--hub-border)]">
-          <div className="h-full rounded-full bg-rose transition-[width] duration-300" style={{ width: `${progress.pct}%` }} />
+        <div className="mt-2.5 h-1.5 overflow-hidden rounded-pill bg-[var(--hub-border)]">
+          <div className="h-full rounded-pill bg-rose transition-[width] duration-300" style={{ width: `${progress.pct}%` }} />
         </div>
       </div>
 
@@ -807,7 +807,7 @@ export function SessionWorkoutLog({
         const estSeconds = estimateSectionSeconds(list);
 
         return (
-          <div key={sec.key} className="overflow-hidden rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm">
+          <div key={sec.key} className="overflow-hidden rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] shadow-sm">
             <button
               type="button"
               onClick={() => setCollapsed((p) => ({ ...p, [sec.key]: !p[sec.key] }))}
@@ -896,7 +896,7 @@ export function SessionWorkoutLog({
       })}
 
       {/* ── Session summary ──────────────────────────────────────── */}
-      <div className="rounded-[16px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 shadow-sm">
+      <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] p-4 shadow-sm">
         <h2 className="text-[15px] font-extrabold text-foreground">Session summary</h2>
         <p className="mb-4 mt-0.5 text-[12.5px] text-muted-foreground">Logged once, at the end — covers how the whole session felt, not one exercise.</p>
 
@@ -954,7 +954,7 @@ export function SessionWorkoutLog({
               <button
                 type="button"
                 onClick={() => toggleVoice("session")}
-                className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-bold transition-colors ${
+                className={`inline-flex items-center gap-1 rounded-nested border px-2 py-1 text-[11px] font-bold transition-colors ${
                   voiceTarget === "session" && speech.listening
                     ? "border-rose bg-rose text-white"
                     : "border-[var(--hub-field-border)] bg-[var(--hub-card)] text-muted-foreground hover:border-rose/30 hover:text-rose"
@@ -970,7 +970,7 @@ export function SessionWorkoutLog({
             value={sessionNotes}
             onChange={(e) => setSessionNotes(e.target.value)}
             placeholder="How did the session go overall — anything to flag for next time?"
-            className="min-h-[76px] w-full resize-y rounded-[10px] border border-[var(--hub-field-border)] bg-[var(--hub-card)] p-2.5 text-[13.5px] text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30"
+            className="min-h-[76px] w-full resize-y rounded-nested border border-[var(--hub-field-border)] bg-[var(--hub-card)] p-2.5 text-[13.5px] text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30"
           />
         </div>
 
@@ -987,7 +987,7 @@ export function SessionWorkoutLog({
               setShowComplete(true);
             }}
             disabled={completing}
-            className="inline-flex h-[46px] items-center justify-center gap-1.5 rounded-[10px] bg-rose px-[18px] text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-[46px] items-center justify-center gap-1.5 rounded-nested bg-rose px-[18px] text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {ICO.checkLg}
             Mark session complete
@@ -999,7 +999,7 @@ export function SessionWorkoutLog({
       {showComplete && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[var(--hub-sidebar)]/50 p-5 backdrop-blur-[2px]" onClick={() => setShowComplete(false)}>
           <div className="w-full max-w-[400px] rounded-[20px] bg-[var(--hub-card)] p-7 text-center shadow-[0_24px_64px_rgba(16,24,40,.24)]" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-teal/10 text-teal">{ICO.checkLg}</div>
+            <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-pill bg-teal/10 text-teal">{ICO.checkLg}</div>
             <h3 className="mb-1.5 text-lg font-extrabold text-foreground">Mark this session complete?</h3>
             <p className="mb-5 text-[13.5px] text-muted-foreground">
               {progress.doneExCount === allExerciseRefs.length
@@ -1007,10 +1007,10 @@ export function SessionWorkoutLog({
                 : `${allExerciseRefs.length - progress.doneExCount} of ${allExerciseRefs.length} exercises are still unlogged. You can complete anyway — unlogged sets are saved as not recorded.`}
             </p>
             <div className="flex flex-col gap-2">
-              <button type="button" onClick={() => handleComplete()} disabled={completing} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] bg-rose px-[18px] text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" onClick={() => handleComplete()} disabled={completing} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-nested bg-rose px-[18px] text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
                 Yes, complete session
               </button>
-              <button type="button" onClick={() => setShowComplete(false)} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-[10px] border border-[var(--hub-border)] bg-[var(--hub-card)] px-[18px] text-sm font-bold text-foreground hover:bg-[var(--hub-hover)]">
+              <button type="button" onClick={() => setShowComplete(false)} className="inline-flex h-[46px] w-full items-center justify-center gap-1.5 rounded-nested border border-[var(--hub-border)] bg-[var(--hub-card)] px-[18px] text-sm font-bold text-foreground hover:bg-[var(--hub-hover)]">
                 Keep logging
               </button>
             </div>
@@ -1062,26 +1062,26 @@ function SetRow({
           : "border-[var(--hub-border)] bg-[var(--hub-hover)]"
     }`}>
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span className="grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-full border border-[var(--hub-border)] bg-[var(--hub-card)] text-[11px] font-extrabold text-foreground">{setIdx + 1}</span>
+        <span className="grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-pill border border-[var(--hub-border)] bg-[var(--hub-card)] text-[11px] font-extrabold text-foreground">{setIdx + 1}</span>
         <span className="min-w-0 flex-1 text-xs text-muted-foreground">{targetLabel}</span>
         <button
           type="button"
           onClick={() => onWarmupToggle(exerciseRef, setIdx)}
           aria-pressed={set.isWarmup}
           title="Warm-up set — excluded from personal bests"
-          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+          className={`inline-flex items-center gap-1 rounded-pill border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
             set.isWarmup ? "border-[var(--status-neutral-border)] bg-[var(--status-neutral-bg)] text-[var(--status-neutral)]" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:text-foreground"
           }`}
         >
           Warm-up
         </button>
         {set.status === "done" && set.isNewPb && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--status-warning-text)]">
+          <span className="inline-flex items-center gap-1 rounded-pill border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2.5 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--status-warning-text)]">
             {ICO.star}PB
           </span>
         )}
         {set.pendingSync && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--status-warning-text)]" title="Saved on this device — will sync when the connection is back">
+          <span className="inline-flex items-center gap-1 rounded-pill border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--status-warning-text)]" title="Saved on this device — will sync when the connection is back">
             {ICO.cloudOff}Queued
           </span>
         )}
@@ -1198,8 +1198,8 @@ function RestControl({
   return (
     <div className="mt-2.5 rounded-[12px] border border-teal/20 bg-teal/10 p-2.5">
       <div className="flex gap-1 rounded-lg border border-teal/20 bg-white/70 p-[3px]">
-        <button type="button" onClick={() => onRestMode(timerKey, "countdown")} className={`h-[34px] flex-1 rounded-md text-[12.5px] font-bold ${timer.mode === "countdown" ? "bg-teal text-white" : "text-[var(--color-body)] hover:text-foreground"}`}>Countdown</button>
-        <button type="button" onClick={() => onRestMode(timerKey, "stopwatch")} className={`h-[34px] flex-1 rounded-md text-[12.5px] font-bold ${timer.mode === "stopwatch" ? "bg-teal text-white" : "text-[var(--color-body)] hover:text-foreground"}`}>Stopwatch</button>
+        <button type="button" onClick={() => onRestMode(timerKey, "countdown")} className={`h-[34px] flex-1 rounded-nested text-[12.5px] font-bold ${timer.mode === "countdown" ? "bg-teal text-white" : "text-[var(--color-body)] hover:text-foreground"}`}>Countdown</button>
+        <button type="button" onClick={() => onRestMode(timerKey, "stopwatch")} className={`h-[34px] flex-1 rounded-nested text-[12.5px] font-bold ${timer.mode === "stopwatch" ? "bg-teal text-white" : "text-[var(--color-body)] hover:text-foreground"}`}>Stopwatch</button>
       </div>
       <div className="py-2 text-center">
         <div className={`text-[34px] font-extrabold leading-none tabular-nums text-foreground ${over ? "text-[var(--status-danger)]" : ""}`}>{mmss(remaining)}</div>
@@ -1207,8 +1207,8 @@ function RestControl({
           {timer.mode === "countdown" ? (over ? `Over the prescribed ${timer.seconds}s rest` : `Counting down from ${timer.seconds}s — prescribed rest`) : "Counting up — no target"}
         </div>
       </div>
-      <div className="mx-1.5 mb-2 h-1 overflow-hidden rounded-full bg-white/80">
-        <i className="block h-full rounded-full bg-teal transition-[width] duration-300" style={{ width: `${pct}%` }} />
+      <div className="mx-1.5 mb-2 h-1 overflow-hidden rounded-pill bg-white/80">
+        <i className="block h-full rounded-pill bg-teal transition-[width] duration-300" style={{ width: `${pct}%` }} />
       </div>
       <div className="flex gap-2">
         <button type="button" onClick={() => onRestReset(timerKey)} className="h-[34px] flex-1 rounded-lg border border-teal/20 bg-white/80 text-[12.5px] font-bold text-foreground hover:bg-white">Reset</button>
@@ -1274,11 +1274,11 @@ function ExerciseCard({
   return (
     <div className={`rounded-[13px] border bg-[var(--hub-card)] p-3 ${exComplete ? "border-teal/20" : "border-[var(--hub-border)]"}`}>
       <button type="button" onClick={onToggleCollapse} className="flex w-full items-center gap-2 text-left" aria-expanded={!collapsed}>
-        <span className={`grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-full border text-[11px] font-bold tabular-nums ${exComplete ? "border-teal/20 bg-teal/10 text-teal" : "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground"}`}>
+        <span className={`grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-pill border text-[11px] font-bold tabular-nums ${exComplete ? "border-teal/20 bg-teal/10 text-teal" : "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground"}`}>
           {exComplete ? ICO.check : sets.length}
         </span>
         <span className="text-[15px] font-bold text-foreground">{exercise.exercise_name}</span>
-        <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${timeBased ? "border-teal/20 bg-teal/10 text-teal" : "border-rose/20 bg-rose/5 text-rose"}`}>
+        <span className={`inline-flex items-center gap-1 rounded-nested border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${timeBased ? "border-teal/20 bg-teal/10 text-teal" : "border-rose/20 bg-rose/5 text-rose"}`}>
           {timeBased ? <>{ICO.clock}Time</> : <>{ICO.reps}Reps &amp; wt</>}
         </span>
         <span className="ml-auto text-xs font-semibold tabular-nums text-muted-foreground">{exComplete ? "Done" : `${doneSets}/${sets.length} logged`}</span>
@@ -1291,12 +1291,12 @@ function ExerciseCard({
             <div className="min-w-0 flex-1">
               {exercise.coaching_cue && <p className="text-[12.5px] text-muted-foreground">{exercise.coaching_cue}</p>}
               {exercise.modification && (
-                <span className="mt-1 inline-flex rounded-md border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">{exercise.modification}</span>
+                <span className="mt-1 inline-flex rounded-nested border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--status-warning-text)]">{exercise.modification}</span>
               )}
               {exercise.equipment && exercise.equipment.length > 0 && (
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {exercise.equipment.map((t) => (
-                    <span key={t} className="rounded-full border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{t}</span>
+                    <span key={t} className="rounded-pill border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{t}</span>
                   ))}
                 </div>
               )}
@@ -1308,7 +1308,7 @@ function ExerciseCard({
                 const p = parseLoad(exercise.load);
                 if (!p) return null;
                 return (
-                  <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[12px] font-bold text-rose">
+                  <div className="mt-1.5 inline-flex items-center gap-1 rounded-nested border border-rose/20 bg-rose/5 px-1.5 py-0.5 text-[12px] font-bold text-rose">
                     {p.kind === "weight" && <>{p.value} {p.unit}</>}
                     {p.kind === "pair" && <>{p.multiplier} × {p.value} {p.unit}</>}
                     {p.kind === "token" && <>{p.label}{p.sub ? ` (${p.sub})` : ""}</>}
@@ -1435,10 +1435,10 @@ function SupersetBlock({
   return (
     <div className="rounded-[14px] border-[1.5px] border-rose/20 bg-rose/5 p-2.5">
       <button type="button" onClick={() => setCollapsed((p) => ({ ...p, [groupKey]: !p[groupKey] }))} className="flex w-full items-center gap-2 text-left" aria-expanded={!isCollapsed}>
-        <span className={`grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-full border text-[11px] font-bold tabular-nums ${complete ? "border-teal/20 bg-teal/10 text-teal" : "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground"}`}>
+        <span className={`grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-pill border text-[11px] font-bold tabular-nums ${complete ? "border-teal/20 bg-teal/10 text-teal" : "border-[var(--hub-border)] bg-[var(--hub-hover)] text-muted-foreground"}`}>
           {complete ? ICO.check : totalSets}
         </span>
-        <span className="rounded-full border border-rose/20 bg-white/60 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-rose">Superset {label}</span>
+        <span className="rounded-pill border border-rose/20 bg-white/60 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-rose">Superset {label}</span>
         <span className="text-[11.5px] text-rose">{block.items.length} exercises · {totalRounds} rounds</span>
         <span className="ml-auto text-xs font-semibold tabular-nums text-muted-foreground">{complete ? "Done" : `${doneSets}/${totalSets} logged`}</span>
         <span className={`text-rose transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}>{ICO.chev}</span>
@@ -1458,12 +1458,12 @@ function SupersetBlock({
                 <div key={`leg-${ref}`} className="rounded-[12px] border border-[var(--hub-border)] bg-[var(--hub-card)] p-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-[14px] font-bold text-foreground">{ex.exercise_name}</span>
-                    <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${timeBased ? "border-teal/20 bg-teal/10 text-teal" : "border-rose/20 bg-rose/5 text-rose"}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-nested border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${timeBased ? "border-teal/20 bg-teal/10 text-teal" : "border-rose/20 bg-rose/5 text-rose"}`}>
                       {timeBased ? <>{ICO.clock}Time</> : <>{ICO.reps}Reps &amp; wt</>}
                     </span>
                     <div className="ml-auto flex shrink-0 gap-1">
-                      <button type="button" onClick={() => onVoice(ref)} className={`grid h-7 w-7 place-items-center rounded-md border ${voiceTarget === ref ? "border-rose bg-rose text-white" : note ? "border-rose/20 bg-rose/5 text-rose" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"}`} aria-label="Voice note" title="Voice note">{ICO.mic}</button>
-                      <button type="button" onClick={() => onNoteToggle(ref)} className={`grid h-7 w-7 place-items-center rounded-md border ${note ? "border-rose/20 bg-rose/5 text-rose" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"}`} aria-label="Add note">{ICO.note}</button>
+                      <button type="button" onClick={() => onVoice(ref)} className={`grid h-7 w-7 place-items-center rounded-nested border ${voiceTarget === ref ? "border-rose bg-rose text-white" : note ? "border-rose/20 bg-rose/5 text-rose" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"}`} aria-label="Voice note" title="Voice note">{ICO.mic}</button>
+                      <button type="button" onClick={() => onNoteToggle(ref)} className={`grid h-7 w-7 place-items-center rounded-nested border ${note ? "border-rose/20 bg-rose/5 text-rose" : "border-[var(--hub-border)] bg-[var(--hub-card)] text-muted-foreground hover:bg-[var(--hub-hover)]"}`} aria-label="Add note">{ICO.note}</button>
                     </div>
                   </div>
                   {ex.coaching_cue && <p className="mt-1 text-[12px] text-muted-foreground">{ex.coaching_cue}</p>}

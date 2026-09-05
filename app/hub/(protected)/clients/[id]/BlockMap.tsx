@@ -79,7 +79,7 @@ export function BlockMap({ sessions }: { sessions: SessionCell[] }) {
   };
 
   return (
-    <div className="border border-[var(--hub-border)] rounded-[10px] bg-[var(--field-fill)] py-1 px-[11px] pb-2.5">
+    <div className="border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] py-1 px-[11px] pb-2.5">
       <div className="flex flex-wrap gap-[5px] pt-2">
         {sorted.map((s) => {
           const state = cellState(s);

@@ -277,7 +277,7 @@ export function BlockScheduler({
                     <TableCell className="text-sm py-2.5">
                       <Badge
                         variant={session.archetype === "A" ? "secondary" : session.archetype === "B" ? "default" : "outline"}
-                        className="rounded-full"
+                        className="rounded-pill"
                       >
                         {session.archetype}
                       </Badge>
@@ -295,13 +295,13 @@ export function BlockScheduler({
                     <TableCell className="text-sm py-2.5">
                       {isCancelled ? (
                         <div className="space-y-0.5">
-                          <Badge variant="destructive" className="rounded-full">Cancelled</Badge>
+                          <Badge variant="destructive" className="rounded-pill">Cancelled</Badge>
                           {session.cancel_reason && (
                             <p className="text-xs text-muted-foreground">{session.cancel_reason}</p>
                           )}
                         </div>
                       ) : (
-                        <Badge variant="outline" className="rounded-full text-muted-foreground">Active</Badge>
+                        <Badge variant="outline" className="rounded-pill text-muted-foreground">Active</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-sm py-2.5">

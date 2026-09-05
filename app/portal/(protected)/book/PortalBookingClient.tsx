@@ -244,7 +244,7 @@ export function PortalBookingClient({
       </div>
 
       {/* ── THE POT ── */}
-      <section className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+      <section className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
         <div className="flex flex-wrap items-start gap-5 p-5">
           {/* Figure */}
           <div className="min-w-[184px]">
@@ -263,7 +263,7 @@ export function PortalBookingClient({
             <div className="flex gap-1.5 mb-3" role="img" aria-label={`${pot.completed} sessions used, ${pot.chargedCancellations + pot.freeCancellations} cancellations, ${free} free to book`}>
               {pot.purchased != null && Array.from({ length: pot.purchased }, (_, i) => {
                 const cls = i < pot.completed ? "" : i < pot.completed + (pot.chargedCancellations) ? "bg-[var(--color-rose)]" : i < pot.used ? "bg-[var(--color-rose)]" : "bg-white border-2 border-[var(--color-rose)]";
-                return <i key={i} className={cn("h-[34px] flex-1 min-w-[9px] rounded-[5px]", cls)} />;
+                return <i key={i} className={cn("h-[34px] flex-1 min-w-[9px] rounded-control-sm", cls)} />;
               })}
             </div>
             <div className="flex flex-wrap gap-2 text-xs font-semibold text-body">
@@ -285,11 +285,11 @@ export function PortalBookingClient({
           {/* Badge */}
           <div className="shrink-0">
             {pot.purchasedIsEstimate ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold bg-[#F7EFDD] text-[#7A5A17] border border-[rgba(176,138,62,.26)]">
+              <span className="inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-xs font-bold bg-[#F7EFDD] text-[#7A5A17] border border-[rgba(176,138,62,.26)]">
                 Estimate — not yet confirmed
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold bg-[rgba(193,131,159,.10)] text-[#94566F] border border-[rgba(193,131,159,.22)]">
+              <span className="inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-xs font-bold bg-[rgba(193,131,159,.10)] text-[#94566F] border border-[rgba(193,131,159,.22)]">
                 Block in progress
               </span>
             )}
@@ -306,7 +306,7 @@ export function PortalBookingClient({
               <div className="flex flex-wrap items-center gap-2 mb-0.5">
                 <b className="text-foreground">Use these by {expiryLabel}</b>
                 {lastExt && (
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] border border-[rgba(8,126,139,.22)]">
+                  <span className="inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold bg-[rgba(8,126,139,.10)] text-[var(--color-teal)] border border-[rgba(8,126,139,.22)]">
                     Extended by Esther
                   </span>
                 )}
@@ -328,7 +328,7 @@ export function PortalBookingClient({
       {/* ── PICKER + BASKET ── */}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
         {/* Picker */}
-        <section className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+        <section className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
           <div className="flex items-start gap-3 p-5 pb-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(193,131,159,.10)] text-[var(--color-rose)]">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -351,7 +351,7 @@ export function PortalBookingClient({
                 type="button"
                 disabled={weekIdx === 0}
                 onClick={() => setWeek(weekIdx - 1)}
-                className="w-10 h-10 shrink-0 rounded-[10px] border border-border bg-white grid place-items-center disabled:text-[#B9BEC6] disabled:cursor-not-allowed hover:bg-[var(--hover)]"
+                className="w-10 h-10 shrink-0 rounded-nested border border-border bg-white grid place-items-center disabled:text-[#B9BEC6] disabled:cursor-not-allowed hover:bg-[var(--hover)]"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
               </button>
@@ -363,7 +363,7 @@ export function PortalBookingClient({
                 type="button"
                 disabled={weekIdx >= weeks.length - 1}
                 onClick={() => setWeek(weekIdx + 1)}
-                className="w-10 h-10 shrink-0 rounded-[10px] border border-border bg-white grid place-items-center disabled:text-[#B9BEC6] disabled:cursor-not-allowed hover:bg-[var(--hover)]"
+                className="w-10 h-10 shrink-0 rounded-nested border border-border bg-white grid place-items-center disabled:text-[#B9BEC6] disabled:cursor-not-allowed hover:bg-[var(--hover)]"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
               </button>
@@ -382,7 +382,7 @@ export function PortalBookingClient({
                     aria-pressed={i === dayIdx}
                     onClick={() => setDayIdx(i)}
                     className={cn(
-                      "rounded-xl border-[1.5px] border-border bg-white py-2 px-0.5 text-center transition-colors",
+                      "rounded-surface border-[1.5px] border-border bg-white py-2 px-0.5 text-center transition-colors",
                       i === dayIdx && "bg-foreground border-foreground",
                       !open && !hasMine && "bg-[var(--hover)] cursor-not-allowed"
                     )}
@@ -405,7 +405,7 @@ export function PortalBookingClient({
             {loading ? (
               <div className="text-center py-8 text-sm text-muted-foreground">Loading availability…</div>
             ) : currentDay && currentDay.state === "open" && currentDay.slots.length > 0 ? (
-              <div className="border border-border rounded-xl p-4 bg-[var(--hover)]">
+              <div className="border border-border rounded-surface p-4 bg-[var(--hover)]">
                 <p className="text-[14.5px] font-bold text-foreground mb-0.5">{currentDay.dayName} {currentDay.dayNum} {currentDay.monthShort}</p>
                 <p className="text-xs text-muted-foreground mb-3.5">
                   {currentDay.slots.length} {currentDay.slots.length === 1 ? "time" : "times"} free · {sessionLen}-minute session
@@ -463,7 +463,7 @@ export function PortalBookingClient({
 
         {/* ── BASKET ── */}
         <aside className="lg:sticky lg:top-[150px]">
-          <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-border rounded-surface shadow-sm overflow-hidden">
             <div className="p-4 pb-3 border-b border-border">
               <b className="block text-sm font-bold text-foreground">
                 {picked.length === 0 ? "Nothing selected yet" : `${picked.length} session${picked.length > 1 ? "s" : ""} selected`}
@@ -493,7 +493,7 @@ export function PortalBookingClient({
                     <button
                       type="button"
                       onClick={() => removePicked(p.key)}
-                      className="w-8 h-8 shrink-0 rounded-[8px] border border-border bg-white grid place-items-center text-muted-foreground hover:bg-[rgba(138,78,99,.10)] hover:border-[rgba(138,78,99,.22)] hover:text-[var(--status-danger)]"
+                      className="w-8 h-8 shrink-0 rounded-control border border-border bg-white grid place-items-center text-muted-foreground hover:bg-[rgba(138,78,99,.10)] hover:border-[rgba(138,78,99,.22)] hover:text-[var(--status-danger)]"
                       aria-label={`Remove ${p.fullDay} at ${p.time}`}
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
@@ -521,7 +521,7 @@ export function PortalBookingClient({
                 disabled={picked.length === 0 || booking}
                 onClick={handleBook}
                 className={cn(
-                  "w-full min-h-[46px] rounded-[10px] border border-transparent text-[14.5px] font-bold transition-colors",
+                  "w-full min-h-[46px] rounded-nested border border-transparent text-[14.5px] font-bold transition-colors",
                   picked.length > 0
                     ? "bg-[var(--color-rose)] text-white hover:bg-[var(--color-rose-deep)]"
                     : "bg-[#DDE1E6] text-[#7C838C] cursor-not-allowed"
@@ -544,7 +544,7 @@ export function PortalBookingClient({
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50">
-          <div className="bg-foreground text-white text-[13.5px] font-semibold px-4 py-3 rounded-[10px] shadow-lg flex items-center gap-2.5 max-w-[340px] animate-in slide-in-from-bottom-2">
+          <div className="bg-foreground text-white text-[13.5px] font-semibold px-4 py-3 rounded-nested shadow-lg flex items-center gap-2.5 max-w-[340px] animate-in slide-in-from-bottom-2">
             <svg className="w-4 h-4 shrink-0 text-[var(--color-rose)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 6 9 17l-5-5" />
             </svg>
