@@ -226,11 +226,18 @@ export default async function ClientsPage() {
       actionLabel: drafts.length === 1 ? "Review it" : `Review the ${drafts.length}`,
       href: `/hub/clients/${drafts[0].number}`,
     });
-  for (const b of bookings)
+  if (bookings.length === 1)
     queue.push({
-      id: `bookings-${b.number}`, dot: "warn",
-      headline: `${b.name} has ${b.n} booking${b.n === 1 ? "" : "s"} waiting to be sorted`,
+      id: `bookings-${bookings[0].number}`, dot: "warn",
+      headline: `${bookings[0].name} has ${bookings[0].n} booking${bookings[0].n === 1 ? "" : "s"} waiting to be sorted`,
       subline: "Until they are sorted the block reads fewer sessions done than really happened.",
+      actionLabel: "Sort in triage", href: "/hub/schedule/outlook",
+    });
+  else if (bookings.length > 1)
+    queue.push({
+      id: "bookings", dot: "warn",
+      headline: `${bookings.reduce((n, b) => n + b.n, 0)} bookings waiting to be sorted, across ${bookings.length} clients`,
+      subline: `${names(bookings)}. Until they are sorted those blocks read fewer sessions done than really happened.`,
       actionLabel: "Sort in triage", href: "/hub/schedule/outlook",
     });
   if (quiet.length)
@@ -241,12 +248,22 @@ export default async function ClientsPage() {
       actionLabel: quiet.length === 1 ? "See them" : `See the ${quiet.length}`,
       href: `/hub/clients/${quiet[0].number}`,
     });
-  for (const u of unpaid)
+  // Collapse, exactly as paperwork does. One unpaid client is a person to
+  // chase; sixteen is one billing job. A queue with a row per client is the
+  // Compliance column all over again -- it never narrows anything.
+  if (unpaid.length === 1)
     queue.push({
-      id: `unpaid-${u.number}`, dot: "due",
-      headline: `${u.name} has an unpaid ${u.pkg ?? "package"}`,
+      id: `unpaid-${unpaid[0].number}`, dot: "due",
+      headline: `${unpaid[0].name} has an unpaid ${unpaid[0].pkg ?? "package"}`,
       subline: "Payment is pending.",
       actionLabel: "Raise invoice", href: "/hub/cashflow/invoices",
+    });
+  else if (unpaid.length > 1)
+    queue.push({
+      id: "unpaid", dot: "due",
+      headline: `${unpaid.length} clients have an unpaid package`,
+      subline: `${names(unpaid)}. One billing job, not ${unpaid.length} decisions.`,
+      actionLabel: "Raise invoices", href: "/hub/cashflow/invoices",
     });
   if (paperwork.length)
     queue.push({
