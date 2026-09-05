@@ -10,8 +10,10 @@
  * original single whole-text parse when no workout headings are found.
  */
 
-import { getAiConfig, aiChat, QUALITY_MODEL } from "@/lib/ai-client";
+import { getAiConfig, aiChat } from "@/lib/ai-client";
 import type { ParsedProgram, ParsedSlot, SlotData, ProgramSection, ProgramExercise } from "./types";
+
+type SlotParseResult = ParsedSlot | { failed: true; label: string };
 
 // ─────────────────────────────────────────────────────────────────────
 // Full-program system prompt (used for fallback whole-text parse)
@@ -259,16 +261,16 @@ export function chunkWorkouts(text: string): { label: string; chunk: string }[] 
 
 /**
  * Parse one chunk (a single workout) with its own AI call.
- * Returns the slot object on success, null on failure.
+ * Returns the slot object on success, or a failure marker on failure.
  */
-async function parseSlotChunk(chunk: string, label: string, model: string, timeoutMs?: number): Promise<ParsedSlot | null> {
+async function parseSlotChunk(chunk: string, label: string, model: string, timeoutMs?: number): Promise<SlotParseResult> {
   let raw: string | null;
   try {
     raw = await aiChat({ system: SLOT_SYSTEM, user: chunk, maxTokens: 6000, model, temperature: 0.2, timeoutMs: timeoutMs ?? 90_000 });
   } catch {
-    return null;
+    return { failed: true, label };
   }
-  if (!raw) return null;
+  if (!raw) return { failed: true, label };
 
   let parsed: Record<string, unknown> | undefined;
   try {
@@ -296,9 +298,9 @@ async function parseSlotChunk(chunk: string, label: string, model: string, timeo
       // fall through
     }
   }
-  if (!parsed) return null;
+  if (!parsed) return { failed: true, label };
 
-  return normalizeSlot(parsed);
+  return normalizeSlot(parsed) ?? { failed: true, label };
 }
 
 /**
@@ -382,16 +384,23 @@ export async function parseProgram(text: string): Promise<ParsedProgram | null> 
   const aiConfig = getAiConfig();
   if (!aiConfig.provider) return null;
 
-  const model = aiConfig.provider === "openrouter" ? QUALITY_MODEL.openrouter : QUALITY_MODEL.claude;
+  const model = aiConfig.model;
 
   // Try parallel per-slot parsing when workout headings are present
   const chunks = chunkWorkouts(text);
   if (chunks && chunks.length >= 2) {
-    const slotResults = await Promise.all(
+    const results = await Promise.all(
       chunks.map(({ chunk, label }) => parseSlotChunk(chunk, label, model, 90_000)),
     );
 
-    const slots = slotResults.filter((s): s is ParsedSlot => s !== null);
+    const failed = results.filter((r): r is { failed: true; label: string } => "failed" in r && r.failed);
+    const slots = results.filter((r): r is ParsedSlot => !("failed" in r));
+
+    if (failed.length > 0 && failed.length < results.length) {
+      const names = failed.map((f) => f.label).join(", ");
+      throw new Error(`${names} failed to parse — hit Parse again`);
+    }
+
     if (slots.length > 0) {
       const resolved = resolveCrossSlotReferences(slots);
       return assembleProgram(resolved);
