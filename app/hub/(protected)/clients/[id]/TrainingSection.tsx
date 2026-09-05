@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useDrawerManager } from "./DrawerManager";
 import { ProgramQueueMap } from "./ProgramQueueMap";
+import { SessionChooser } from "./SessionChooser";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { SupplementaryWorkoutsCard } from "@/components/hub/SupplementaryWorkoutsCard";
-import type { DBBlock, DBSession } from "@/types";
+import { ensureUids } from "@/lib/exercise-ref";
+import type { DBBlock, DBSession, SessionVersion } from "@/types";
 import type { DBProgram, DBProgramSlot, QueueState } from "@/lib/programs/types";
 
 /* ── TrainingSection — the "training spine" from client-training.html mockup.
@@ -61,13 +65,9 @@ interface TrainingSectionProps {
   sessionsPurchased: number | null;
   paymentStatus: string | null;
   packageType: string | null;
-  /** Program queue state from the server */
   programState: QueueState | null;
-  /** Set of session IDs that have completed but zero set_logs rows */
   flaggedSessionIds: Set<string>;
-  /** Client's active program ID (null if none) */
   activeProgramId: string | null;
-  /** Client ID (UUID) for API calls */
   clientId: string;
 }
 
@@ -97,6 +97,14 @@ export function TrainingSection({
   clientId,
 }: TrainingSectionProps) {
   const { openWorkoutDrawer } = useDrawerManager();
+  const router = useRouter();
+
+  // ── SessionChooser dialog state ──
+  const [chooserSessionId, setChooserSessionId] = useState<string | null>(null);
+  const [chooserBusy, setChooserBusy] = useState(false);
+
+  // ── Extend program state ──
+  const [extending, setExtending] = useState(false);
 
   // ── Paid-pot computation ──
   const isOngoing = !sessionsPurchased || packageType === "ongoing";
@@ -118,14 +126,6 @@ export function TrainingSection({
   const programSessions = blockSessions.filter(
     (s) => s.program_id && s.program_slot_id && !s.parent_session_id
   );
-  for (const s of programSessions) {
-    if (!s.program_slot_id) continue;
-    const slot = slots.find((sl) => sl.id === s.program_slot_id);
-    if (!slot) continue;
-    // Derive queue position from completed sessions + this session's slot position
-    // This is approximate — real queue position needs the full completion history
-    // For display, we use the session's slot position relative to completed count
-  }
 
   // Flagged positions (completed with no sets) from the flaggedSessionIds set
   const flaggedPositions = new Set<number>();
@@ -133,7 +133,6 @@ export function TrainingSection({
     if (s.completed_at && flaggedSessionIds.has(s.id) && s.program_slot_id) {
       const slot = slots.find((sl) => sl.id === s.program_slot_id);
       if (slot) {
-        // Approximate queue position based on completed count
         flaggedPositions.add(slot.position);
       }
     }
@@ -164,6 +163,119 @@ export function TrainingSection({
 
   // Sessions beyond the queue
   const beyondQueueCount = Math.max(0, remaining - (totalQueueSlots - completedCount));
+
+  // ── Reassign handler: PATCH session with program slot ──
+  async function handleReassignProgram(sessionId: string, slotId: string) {
+    setChooserBusy(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          program_id: programState?.program.id ?? null,
+          program_slot_id: slotId,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to reassign");
+      }
+      toast.success("Session reassigned to program slot");
+      setChooserSessionId(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reassign");
+    } finally {
+      setChooserBusy(false);
+    }
+  }
+
+  // ── Reassign handler: PATCH session with template data ──
+  async function handleReassignTemplate(sessionId: string, templateId: string, templateName: string) {
+    setChooserBusy(true);
+    try {
+      // Fetch full template data
+      const tplRes = await fetch("/api/workout-templates");
+      if (!tplRes.ok) throw new Error("Could not load template data");
+      const tplList: { id: string; name: string; data: SessionVersion }[] = await tplRes.json();
+      const tpl = tplList.find((t) => t.id === templateId);
+      if (!tpl) throw new Error("Template not found");
+
+      // Apply template data to the session (same logic as add-workout POST)
+      const versions: Record<string, SessionVersion> = {};
+      const sectionKeys = ["warm_up", "main_block", "cooldown"] as const;
+      const buildVersion = (src: SessionVersion): SessionVersion => ({
+        warm_up: ensureUids(src.warm_up ?? []),
+        main_block: ensureUids(src.main_block ?? []),
+        cooldown: ensureUids(src.cooldown ?? []),
+      });
+      versions.studio = buildVersion(tpl.data);
+      versions.home = buildVersion(tpl.data);
+
+      const patchBody = {
+        data: {
+          versions,
+          focus_label: tpl.name,
+        },
+        source_focus_label: tpl.name,
+        source_archetype: null,
+      };
+
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patchBody),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to assign template");
+      }
+
+      // Increment template usage count
+      fetch(`/api/workout-templates/${templateId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ increment_usage: true }),
+      }).catch(() => {});
+
+      toast.success(`Assigned "${tpl.name}" to session`);
+      setChooserSessionId(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to assign template");
+    } finally {
+      setChooserBusy(false);
+    }
+  }
+
+  // ── One-off: navigate to add-workout ──
+  function handleReassignOneOff(sessionId: string) {
+    setChooserSessionId(null);
+    router.push(`/hub/clients/${clientNumber}/add-workout?view=chooser`);
+  }
+
+  // ── Extend program handler ──
+  async function handleExtendProgram(weeks: number) {
+    if (!programState?.program.id) return;
+    setExtending(true);
+    try {
+      const res = await fetch(`/api/programs/${programState.program.id}/extend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weeks }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to extend program");
+      }
+      toast.success(`Program extended by ${weeks} week${weeks === 1 ? "" : "s"}`);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to extend program");
+    } finally {
+      setExtending(false);
+    }
+  }
 
   return (
     <div className="bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden">
@@ -336,16 +448,33 @@ export function TrainingSection({
               nextPosition={nextPosition}
               flaggedPositions={flaggedPositions}
               scheduledByPosition={scheduledByPosition}
+              onCellClick={(position) => {
+                // Find the session at this queue position and open its workout drawer
+                const slotAtPosition = slots.find((s) => s.position === ((position - 1) % slotCount) + 1);
+                if (!slotAtPosition) return;
+                const sessionForCell = programSessions.find((s) => s.program_slot_id === slotAtPosition.id);
+                if (sessionForCell) {
+                  openWorkoutDrawer(sessionForCell.id);
+                }
+              }}
             />
           </div>
         )}
 
-        {/* ── Beyond-queue note ── */}
+        {/* ── Beyond-queue note with Extend action ── */}
         {programState && beyondQueueCount > 0 && (
           <div className="flex items-center gap-2.5 py-2 mb-3 text-[13px] text-[var(--color-muted)]">
             <span className="w-[7px] h-[7px] rounded-full shrink-0 bg-[var(--color-muted)]" />
             <span>
-              The queue ends at slot {totalQueueSlots}. {clientName} has <b className="text-[var(--color-ink)]">{beyondQueueCount} more paid session{beyondQueueCount === 1 ? "" : "s"}</b> in their pot beyond it — they&apos;ll sit unassigned until you extend this program or start a new one.
+              The queue ends at slot {totalQueueSlots}. {clientName} has <b className="text-[var(--color-ink)]">{beyondQueueCount} more paid session{beyondQueueCount === 1 ? "" : "s"}</b> in their pot beyond it — they&apos;ll sit unassigned until you extend this program or start a new one.{" "}
+              <button
+                type="button"
+                disabled={extending}
+                onClick={() => handleExtendProgram(2)}
+                className="inline font-[inherit] text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer disabled:opacity-50"
+              >
+                {extending ? "Extending…" : "Extend the program"}
+              </button>
             </span>
           </div>
         )}
@@ -373,12 +502,14 @@ export function TrainingSection({
                   {sessionWorkoutName(s)}
                 </span>
                 <span className="flex gap-1 shrink-0">
-                  <button className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer hover:bg-[var(--hub-hover)] transition-colors">
-                    Move
-                  </button>
-                  <button className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer hover:bg-[var(--hub-hover)] transition-colors">
-                    Reassign
-                  </button>
+                  {programState && (
+                    <button
+                      onClick={() => setChooserSessionId(s.id)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer hover:bg-[var(--hub-hover)] transition-colors"
+                    >
+                      Reassign
+                    </button>
+                  )}
                 </span>
               </div>
             ))}
@@ -423,6 +554,47 @@ export function TrainingSection({
           />
         </div>
       </div>
+
+      {/* ── Session Chooser dialog ── */}
+      {chooserSessionId && programState && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-[var(--color-ink)]/40 backdrop-blur-sm"
+            onClick={() => !chooserBusy && setChooserSessionId(null)}
+          />
+          <div className="relative w-full max-w-[680px] mx-4 bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_20px_60px_rgba(16,24,40,.18)] max-h-[85vh] overflow-y-auto">
+            <div className="px-5 py-4 border-b border-[var(--hub-border)]">
+              <h3 className="m-0 text-[15.5px] font-bold text-[var(--color-ink)] tracking-tight">
+                Assign this session
+              </h3>
+              <p className="m-0 mt-0.5 text-xs text-[var(--color-muted)]">
+                {fmtDateShort(scheduledSessions.find((s) => s.id === chooserSessionId)?.scheduled_at ?? "")} · {clientName}
+              </p>
+            </div>
+            <div className="px-5 py-4">
+              <SessionChooser
+                nextSlot={programState.nextSlot}
+                currentWeek={currentWeek}
+                programWeeks={programWeeks}
+                slotPosition={nextPosition}
+                totalSlots={totalQueueSlots}
+                sessionsRemaining={remaining}
+                programName={programName}
+                clientNumber={clientNumber}
+                onConfirmProgram={(slotId) => handleReassignProgram(chooserSessionId, slotId)}
+                onConfirmTemplate={(templateId, templateName) => handleReassignTemplate(chooserSessionId, templateId, templateName)}
+                onConfirmOneOff={() => handleReassignOneOff(chooserSessionId)}
+                onCancel={() => !chooserBusy && setChooserSessionId(null)}
+              />
+            </div>
+            {chooserBusy && (
+              <div className="absolute inset-0 bg-white/60 rounded-surface flex items-center justify-center pointer-events-none">
+                <span className="text-[13px] font-semibold text-[var(--color-muted)]">Saving…</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

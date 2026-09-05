@@ -1,33 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import type { DBProgramSlot, SlotData } from "@/lib/programs/types";
+import { useEffect, useState } from "react";
+import type { DBProgramSlot } from "@/lib/programs/types";
+import type { SessionVersion } from "@/types";
 
 /* ── SessionChooser — the guided three-way choice from program-chooser.html.
    When assigning a workout to a session, offers:
    1. Program queue (default, pre-selected next slot)
-   2. Workout template (pick from library)
-   3. One-off build (freeform, for today only)
+   2. Workout template (pick from library — real list, not placeholder)
+   3. One-off build (navigates to add-workout page)
    Each option states what it does to the queue and paid pot. */
 
+interface TemplateSummary {
+  id: string;
+  name: string;
+  equipment: string[];
+  position: string[];
+  estimatedMinutes: number;
+}
+
 interface SessionChooserProps {
-  /** Next slot from the program queue, if available */
   nextSlot: DBProgramSlot | null;
-  /** Current week in the program */
   currentWeek: number;
-  /** Total weeks in the program */
   programWeeks: number;
-  /** Slot position in the queue (e.g. "slot 2 of 18") */
   slotPosition: number;
-  /** Total slots in the queue */
   totalSlots: number;
-  /** Remaining paid sessions */
   sessionsRemaining: number;
-  /** Program name */
   programName: string;
-  /** Callback when choice is confirmed */
-  onConfirm: (choice: "program" | "template" | "oneoff", slotId?: string) => void;
-  /** Cancel callback */
+  clientNumber: number;
+  onConfirmProgram: (slotId: string) => void;
+  onConfirmTemplate: (templateId: string, templateName: string, templateData: SessionVersion) => void;
+  onConfirmOneOff: () => void;
   onCancel: () => void;
 }
 
@@ -40,6 +43,11 @@ function slotLetter(slot: DBProgramSlot): string {
   return String.fromCharCode(64 + slot.position);
 }
 
+function formatDeliveryMode(mode: string | null): string {
+  if (!mode) return "—";
+  return mode === "studio_1to1" ? "Studio 1:1" : mode === "home_training" ? "Home training" : mode;
+}
+
 export function SessionChooser({
   nextSlot,
   currentWeek,
@@ -48,13 +56,41 @@ export function SessionChooser({
   totalSlots,
   sessionsRemaining,
   programName,
-  onConfirm,
+  clientNumber,
+  onConfirmProgram,
+  onConfirmTemplate,
+  onConfirmOneOff,
   onCancel,
 }: SessionChooserProps) {
   const [choice, setChoice] = useState<"program" | "template" | "oneoff">("program");
 
+  /* Template list state */
+  const [templates, setTemplates] = useState<TemplateSummary[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templateQuery, setTemplateQuery] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+
+  /* Load templates on demand when user picks the template route */
+  useEffect(() => {
+    if (choice !== "template" || templates.length > 0 || templatesLoading) return;
+    setTemplatesLoading(true);
+    fetch(`/api/clients/${clientNumber}/add-workout`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((ctx) => {
+        if (ctx?.matchedTemplates) setTemplates(ctx.matchedTemplates);
+      })
+      .catch(() => {})
+      .finally(() => setTemplatesLoading(false));
+  }, [choice, clientNumber, templates.length, templatesLoading]);
+
+  const filteredTemplates = templateQuery.trim()
+    ? templates.filter((t) => t.name.toLowerCase().includes(templateQuery.toLowerCase()))
+    : templates;
+
+  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) ?? null;
+
   const nextSlotLabel = nextSlot ? slotLetter(nextSlot) : null;
-  const remaining = Math.max(0, sessionsRemaining - 1); // minus the one this session will consume
+  const remaining = Math.max(0, sessionsRemaining - 1);
 
   return (
     <div>
@@ -145,7 +181,9 @@ export function SessionChooser({
         </button>
       </div>
 
-      {/* ── Detail panel (switches per selection) ── */}
+      {/* ── Detail panels ── */}
+
+      {/* Program detail */}
       {choice === "program" && nextSlot && (
         <div className="mt-3.5 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] p-3.5">
           <p className="text-[13.5px] font-bold text-[var(--color-ink)] m-0 mb-2">
@@ -156,23 +194,65 @@ export function SessionChooser({
           </p>
         </div>
       )}
+
+      {/* Template picker */}
       {choice === "template" && (
         <div className="mt-3.5 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] p-3.5">
           <p className="text-[13.5px] font-bold text-[var(--color-ink)] m-0 mb-2">
             Choose a template
           </p>
-          <p className="text-[13px] text-[var(--color-muted)] m-0">
-            Search the shared workout library. Nothing is pre-selected — this route exists for a session that shouldn&apos;t follow her program today (illness, a one-off focus area, cover from another trainer).
-          </p>
+          {templatesLoading && (
+            <p className="text-[13px] text-[var(--color-muted)] m-0">Loading templates…</p>
+          )}
+          {!templatesLoading && templates.length === 0 && (
+            <p className="text-[13px] text-[var(--color-muted)] m-0">
+              No templates match this client&apos;s equipment and training format.
+            </p>
+          )}
+          {!templatesLoading && templates.length > 0 && (
+            <>
+              <input
+                type="search"
+                placeholder="Search templates…"
+                value={templateQuery}
+                onChange={(e) => setTemplateQuery(e.target.value)}
+                className="w-full h-8 border border-[var(--hub-field-border)] rounded-control px-2.5 text-[12.5px] font-[inherit] bg-white mb-2 focus:outline-none focus:border-rose focus:shadow-[0_0_0_3px_rgba(193,131,159,.28)]"
+              />
+              <div className="max-h-[180px] overflow-y-auto space-y-1">
+                {filteredTemplates.length === 0 && (
+                  <p className="text-[12px] text-[var(--color-muted)] m-0 py-2">No matches.</p>
+                )}
+                {filteredTemplates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setSelectedTemplateId(t.id === selectedTemplateId ? null : t.id)}
+                    className={`w-full text-left border rounded-control p-2.5 cursor-pointer font-[inherit] transition-[border-color] duration-[100ms] ${
+                      selectedTemplateId === t.id
+                        ? "border-rose bg-white shadow-[inset_0_0_0_1px_var(--rose)]"
+                        : "border-[var(--hub-border)] bg-white hover:border-rose"
+                    }`}
+                  >
+                    <span className="text-[13px] font-bold text-[var(--color-ink)] block">{t.name}</span>
+                    <span className="text-[11px] text-[var(--color-muted)]">
+                      {formatDeliveryMode(t.position[0] ?? null)} · {t.equipment.length > 0 ? t.equipment.join(", ") : "Bodyweight"} · est. {t.estimatedMinutes} min
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
+
+      {/* One-off detail */}
       {choice === "oneoff" && (
         <div className="mt-3.5 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] p-3.5">
           <p className="text-[13.5px] font-bold text-[var(--color-ink)] m-0 mb-2">
             Build for today
           </p>
           <p className="text-[13px] text-[var(--color-muted)] m-0">
-            Opens the same section editor as the program builder — warm-up, supersets, standalone, cool-down — but nothing here is saved back to a reusable program.
+            Opens the section editor — warm-up, supersets, standalone, cool-down. Nothing is saved back to a reusable program.
           </p>
         </div>
       )}
@@ -188,14 +268,25 @@ export function SessionChooser({
         </button>
         <button
           type="button"
-          onClick={() => onConfirm(choice, choice === "program" ? nextSlot?.id : undefined)}
-          className="inline-flex items-center justify-center gap-1.5 rounded-control bg-rose text-white font-[inherit] text-xs font-semibold cursor-pointer px-3.5 py-1.5 hover:bg-[color-mix(in_oklab,var(--rose)_88%,var(--ink))] transition-colors"
+          disabled={choice === "template" && !selectedTemplateId}
+          onClick={() => {
+            if (choice === "program" && nextSlot) {
+              onConfirmProgram(nextSlot.id);
+            } else if (choice === "template" && selectedTemplate) {
+              onConfirmTemplate(selectedTemplate.id, selectedTemplate.name, {} as SessionVersion);
+            } else if (choice === "oneoff") {
+              onConfirmOneOff();
+            }
+          }}
+          className="inline-flex items-center justify-center gap-1.5 rounded-control bg-rose text-white font-[inherit] text-xs font-semibold cursor-pointer px-3.5 py-1.5 hover:bg-[color-mix(in_oklab,var(--rose)_88%,var(--ink))] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {choice === "program" && nextSlotLabel
             ? `Assign Workout ${nextSlotLabel} to this session`
             : choice === "template"
-              ? "Choose a template to assign"
-              : "Save and assign this session"}
+              ? selectedTemplateId
+                ? `Assign "${selectedTemplate?.name}" to this session`
+                : "Pick a template first"
+              : "Open the one-off builder"}
         </button>
       </div>
     </div>
