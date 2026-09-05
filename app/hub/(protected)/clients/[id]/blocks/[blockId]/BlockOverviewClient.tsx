@@ -327,6 +327,14 @@ export function BlockOverviewClient({
               >
                 Edit block
               </button>
+              {/* The printable block plan existed but had no link anywhere in the
+                  app. Found in the post-update route audit, 5 Sep 2026. */}
+              <Link
+                href={`/hub/clients/${clientId}/blocks/${blockId}/print`}
+                className="inline-flex items-center h-[30px] px-2.5 rounded-control-sm border border-[var(--hub-border)] bg-[var(--hub-card)] text-[12.5px] font-medium text-[var(--color-ink)] no-underline hover:bg-[var(--hub-hover)] transition-colors"
+              >
+                Print
+              </Link>
             </div>
           </div>
         </div>

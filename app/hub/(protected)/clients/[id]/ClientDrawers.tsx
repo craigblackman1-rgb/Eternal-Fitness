@@ -1323,7 +1323,8 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
    DOCUMENTS — one list of paper with compliance summary
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function DocumentsDrawer({ clientDocuments, legacyDocumentRows, flags, gpClearance, annualReviewDueDate, gpLetterStatus }: {
+function DocumentsDrawer({ clientNumber, clientDocuments, legacyDocumentRows, flags, gpClearance, annualReviewDueDate, gpLetterStatus }: {
+  clientNumber: number;
   clientDocuments: any[];
   legacyDocumentRows: any[];
   flags: ComplianceFlags;
@@ -1337,6 +1338,17 @@ function DocumentsDrawer({ clientDocuments, legacyDocumentRows, flags, gpClearan
 
   return (
     <DrawerShell id="dw-documents" title="Documents" subtitle={`${allDocs.length} on file \u00b7 ${signedDocs.length} signed`} width="md">
+      {/* The drawer listed documents but carried no action at all, and the full
+          per-client documents page was unreachable from anywhere in the app.
+          Found in the post-update route audit, 5 Sep 2026. */}
+      <div className="flex items-center gap-2 flex-wrap pb-3">
+        <Link
+          href={`/hub/clients/${clientNumber}/documents`}
+          className="inline-flex items-center justify-center rounded-control border border-[var(--hub-field-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold text-foreground no-underline hover:bg-[var(--hub-hover)] transition-colors"
+        >
+          Send or manage documents
+        </Link>
+      </div>
       {/* Cleared to train summary */}
       <div className="fcard acc-teal">
         <div className="fcard-h">Cleared to train</div>
@@ -2066,6 +2078,7 @@ export function ClientDrawers(props: ClientDrawersProps) {
         clientReviews={props.clientReviews}
       />
       <DocumentsDrawer
+        clientNumber={props.client.client_number}
         clientDocuments={props.clientDocuments}
         legacyDocumentRows={props.legacyDocumentRows}
         flags={props.flags}
