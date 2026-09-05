@@ -18,6 +18,13 @@ import { TodayScreen, type TodaySession, type AlertRow, type TaskRow } from "./T
    updates going out. It survives as an alert row, which is the shape this
    screen uses for exactly this kind of thing. */
 
+/* This page reads the database on every request and must never be
+   statically prerendered: the Docker build has no database, so Next trying to
+   generate it at build time fails the build outright. The other hub pages get
+   this implicitly by calling createClient() (which reads cookies); this one
+   only uses the pool, so it has to say so. */
+export const dynamic = "force-dynamic";
+
 const QUIET_DAYS = 7;
 
 function startOfWeek(d: Date): string {
