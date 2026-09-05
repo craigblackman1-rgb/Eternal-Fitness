@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise, DeliveryMode } from "@/types";
 import type { Band } from "@/lib/bands";
+import { bandLoadOptionsLb, snapBandLoadLb } from "@/lib/band-load";
 import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { computeGroups, nextGroupLabel, checkSupersetSetCounts } from "@/lib/exercise-groups";
 import { isTimeBased, parsePrescribedSeconds, parsePrescribedReps, parseRestSeconds, formatPrescription } from "@/lib/prescription";
@@ -1620,15 +1621,33 @@ function SetRow({
                   </button>
                 )}
               </span>
-              <input
-                className="set-input"
-                type="text"
-                inputMode="decimal"
-                value={set.weight}
-                onChange={(e) => onSetField(uid, setIdx, "weight", e.target.value)}
-                placeholder="BW"
-                disabled={disabled}
-              />
+              {isBand ? (
+                /* Bands are chosen, not typed: a fixed 5 lb ladder so the same
+                   number means the same thing on every band Esther or the
+                   client owns, whatever colour it happens to be. */
+                <select
+                  className="set-input"
+                  value={snapBandLoadLb(set.weight) ?? ""}
+                  onChange={(e) => onSetField(uid, setIdx, "weight", e.target.value)}
+                  disabled={disabled}
+                  aria-label="Band load in pounds"
+                >
+                  <option value="">—</option>
+                  {bandLoadOptionsLb().map((lb) => (
+                    <option key={lb} value={lb}>{lb} lb</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="set-input"
+                  type="text"
+                  inputMode="decimal"
+                  value={set.weight}
+                  onChange={(e) => onSetField(uid, setIdx, "weight", e.target.value)}
+                  placeholder="BW"
+                  disabled={disabled}
+                />
+              )}
             </div>
           </>
         )}

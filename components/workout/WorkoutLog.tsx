@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Session, SessionLog, SetLog, Exercise } from "@/types";
 import type { Band } from "@/lib/bands";
+import { bandLoadOptionsLb, snapBandLoadLb } from "@/lib/band-load";
 import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { computeGroups } from "@/lib/exercise-groups";
 import {
@@ -1870,6 +1871,23 @@ function ExerciseCard({
                                 )}
                                 <button type="button" onClick={() => onSwapUnit(refKey, exercise)} className="font-bold normal-case tracking-normal text-teal underline" title="Correct the unit for this exercise">switch</button>
                               </span>
+                              {isBandEquipment(exercise.equipment ?? []) ? (
+                                /* Bands are chosen from a fixed 5 lb ladder, not
+                                   typed — colours differ between the studio and
+                                   what clients own at home, the load does not. */
+                                <select
+                                  value={snapBandLoadLb(set.weight) ?? ""}
+                                  onChange={(e) => onSetField(refKey, sIdx, "weight", e.target.value)}
+                                  disabled={set.status === "skipped"}
+                                  aria-label="Band load in pounds"
+                                  className="h-[36px] w-full rounded-lg border border-[var(--hub-field-border)] bg-[var(--hub-card)] px-2.5 text-sm font-semibold tabular-nums text-foreground focus:border-rose focus:outline-none focus:ring-[3px] focus:ring-rose/30 disabled:opacity-55"
+                                >
+                                  <option value="">—</option>
+                                  {bandLoadOptionsLb().map((lb) => (
+                                    <option key={lb} value={lb}>{lb} lb</option>
+                                  ))}
+                                </select>
+                              ) : (
                               <input
                                 type="text"
                                 inputMode="decimal"
@@ -1885,6 +1903,7 @@ function ExerciseCard({
                                       : "border-[var(--hub-field-border)]"
                                 }`}
                               />
+                              )}
                             </div>
                           )}
                         </>
