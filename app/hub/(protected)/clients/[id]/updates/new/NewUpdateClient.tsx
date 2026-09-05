@@ -49,6 +49,17 @@ export interface EditableUpdate {
   scheduledFor: string | null;
 }
 
+/** Seed values for a brand-new compose that should skip the chat/AI step and
+ *  open straight into the editor — e.g. the block review screen, which
+ *  assembles real block facts into the sections instead of asking Esther to
+ *  compose from a blank box. Compose-mode only (ignored when `existing` is
+ *  set — an edit already has its own saved content). */
+export interface InitialDraft {
+  subject: string;
+  sections: SectionValues;
+  blockNumber?: number;
+}
+
 interface NewUpdateClientProps {
   clientNumber: number;
   clientName: string;
@@ -56,6 +67,20 @@ interface NewUpdateClientProps {
   defaultEmailSource?: string;
   /** When present, the component edits this saved update instead of composing new. */
   existing?: EditableUpdate;
+  /** Pre-fills the editor and skips the chat/paste step for a new compose. */
+  initialDraft?: InitialDraft;
+  /** Hides this component's own back-link/heading — used when a parent screen
+   *  (e.g. the block review surface) already supplies the page chrome and is
+   *  embedding this as one section of a longer scroll, not a standalone page. */
+  embedded?: boolean;
+  /** Runs before any of the four terminal actions (draft/log/schedule/send),
+   *  compose or edit mode alike. Throwing aborts the action and surfaces the
+   *  thrown message through this component's existing error state — used by
+   *  the block review screen to save its internal decision in the same step
+   *  ("Save the review & send" fires both writes in sequence). */
+  onBeforeSubmit?: (action: "draft" | "log" | "schedule" | "send") => Promise<void> | void;
+  /** Overrides the "Send now" button's label — e.g. "Save the review & send". */
+  primarySendLabel?: string;
 }
 
 /** Rebuild the branded email HTML from the edited section values, per kind.
@@ -95,7 +120,17 @@ function toLocalInput(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", defaultEmailSource, existing }: NewUpdateClientProps) {
+export function NewUpdateClient({
+  clientNumber,
+  clientName,
+  defaultEmail = "",
+  defaultEmailSource,
+  existing,
+  initialDraft,
+  embedded = false,
+  onBeforeSubmit,
+  primarySendLabel,
+}: NewUpdateClientProps) {
   const router = useRouter();
   const isEdit = !!existing;
 
@@ -104,14 +139,16 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
   const [busy, setBusy] = useState<string | null>(null); // which action is running
   const [testingTo, setTestingTo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [hasDraft, setHasDraft] = useState(isEdit);
-  const [subject, setSubject] = useState(existing?.subject ?? "");
+  const [hasDraft, setHasDraft] = useState(isEdit || !!initialDraft);
+  const [subject, setSubject] = useState(existing?.subject ?? initialDraft?.subject ?? "");
   const [greetingName, setGreetingName] = useState((existing?.sections?.greetingName as string) || firstName(clientName));
   const [introText, setIntroText] = useState((existing?.sections?.introText as string) || DEFAULT_INTRO);
   const [sections, setSections] = useState<SectionValues>(
-    Object.fromEntries(
-      Object.entries(existing?.sections ?? {}).filter((e): e is [string, string] => typeof e[1] === "string"),
-    ),
+    isEdit
+      ? Object.fromEntries(
+          Object.entries(existing?.sections ?? {}).filter((e): e is [string, string] => typeof e[1] === "string"),
+        )
+      : (initialDraft?.sections ?? {}),
   );
   /** Per-section header text — editable per send, defaults to the template's own labels. */
   const [sectionLabels, setSectionLabels] = useState<SectionValues>(
@@ -120,7 +157,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
   const [flexSections, setFlexSections] = useState<FlexibleSection[]>(
     (existing?.sections?.flexSections as FlexibleSection[] | undefined) ?? [{ ...EMPTY_FLEX_SECTION }],
   );
-  const [blockNumber, setBlockNumber] = useState(existing?.blockNumber ?? 0);
+  const [blockNumber, setBlockNumber] = useState(existing?.blockNumber ?? initialDraft?.blockNumber ?? 0);
   const [clientEmail, setClientEmail] = useState(existing?.clientEmail ?? defaultEmail);
   const [scheduledFor, setScheduledFor] = useState(toLocalInput(existing?.scheduledFor ?? null));
   const [showRaw, setShowRaw] = useState(false);
@@ -281,6 +318,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     setBusy("send");
     setError(null);
     try {
+      if (onBeforeSubmit) await onBeforeSubmit("send");
       if (isEdit) {
         // Persist the current editor content first — the send route emails the
         // saved html — then dispatch it now.
@@ -308,6 +346,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     setBusy("log");
     setError(null);
     try {
+      if (onBeforeSubmit) await onBeforeSubmit("log");
       await postCreate("log", { clientEmail: clientEmail.trim() || undefined });
       toast.success("Update logged");
       goBack();
@@ -321,6 +360,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     setBusy("draft");
     setError(null);
     try {
+      if (onBeforeSubmit) await onBeforeSubmit("draft");
       if (isEdit) {
         await patchExisting({ status: "draft", scheduledFor: null });
         toast.success("Draft saved");
@@ -348,6 +388,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
     setBusy("schedule");
     setError(null);
     try {
+      if (onBeforeSubmit) await onBeforeSubmit("schedule");
       if (isEdit) {
         await patchExisting({ status: "scheduled", scheduledFor: iso });
         toast.success("Update rescheduled");
@@ -383,17 +424,19 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/hub/clients/${clientNumber}/updates`} className="text-muted-foreground hover:text-foreground">
-          <IconChevronLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">{isEdit ? "Edit Update" : "New Update"}</h1>
-          <p className="text-muted-foreground">
-            {isEdit ? "Make your changes, then reschedule, save, or send" : "Chat through what to include, then edit and send"}
-          </p>
+      {!embedded && (
+        <div className="flex items-center gap-4">
+          <Link href={`/hub/clients/${clientNumber}/updates`} className="text-muted-foreground hover:text-foreground">
+            <IconChevronLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight">{isEdit ? "Edit Update" : "New Update"}</h1>
+            <p className="text-muted-foreground">
+              {isEdit ? "Make your changes, then reschedule, save, or send" : "Chat through what to include, then edit and send"}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -710,7 +753,7 @@ export function NewUpdateClient({ clientNumber, clientName, defaultEmail = "", d
                     className="gap-2 bg-rose hover:bg-rose/90 text-white"
                   >
                     <IconSend className="h-4 w-4" />
-                    {busy === "send" ? "Sending…" : "Send now"}
+                    {busy === "send" ? "Sending…" : (primarySendLabel ?? "Send now")}
                   </Button>
                 </div>
               </div>
