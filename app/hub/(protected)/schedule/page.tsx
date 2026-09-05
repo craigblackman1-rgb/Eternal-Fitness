@@ -9,6 +9,8 @@ import type { ScheduledEntry } from "./ScheduleCalendar";
 import type { UnconfirmedBooking } from "./ScheduleCalendar";
 import { ScheduleShell } from "./ScheduleShell";
 
+export const dynamic = "force-dynamic";
+
 /**
  * CR-EF-037 — Studio-wide calendar with unified session state model.
  *

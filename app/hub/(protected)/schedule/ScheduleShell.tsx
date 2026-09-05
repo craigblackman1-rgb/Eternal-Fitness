@@ -10,10 +10,11 @@ import { PlannedSessionsStrip } from "./PlannedSessionsStrip";
 import { TriageQueue, type TriageBooking } from "./TriageQueue";
 import { SessionDetail } from "./SessionDetail";
 import { OffDayGuardDialog } from "./OffDayGuardDialog";
+import { WeekView } from "./WeekView";
 import { toLocalISODate, londonDayKey } from "@/lib/schedule-dates";
 import type { SessionStatus } from "@/types";
 
-type ViewMode = "month" | "spine";
+type ViewMode = "week" | "spine" | "month";
 
 /** Planned entry stripped to what the PlannedSessionsStrip needs. */
 interface PlannedEntry {
@@ -45,7 +46,7 @@ export function ScheduleShell({
   plannedEntries?: PlannedEntry[];
 }) {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<ViewMode>("spine");
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [jumpDay, setJumpDay] = useState<string | undefined>(undefined);
   const [showCancelled, setShowCancelled] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export function ScheduleShell({
 
   const jumpToDay = (isoDate: string) => {
     setJumpDay(isoDate);
-    setViewMode("spine");
+    setViewMode(viewMode === "week" ? "week" : "spine");
   };
 
   const handleSelectSession = useCallback((id: string) => {
@@ -157,7 +158,7 @@ export function ScheduleShell({
       {/* View toggle */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex rounded-lg border border-[var(--hub-border)] bg-[var(--hub-canvas)] p-0.5">
-          {(["spine", "month"] as const).map((v) => (
+          {(["week", "spine", "month"] as const).map((v) => (
             <button
               key={v}
               type="button"
@@ -167,7 +168,7 @@ export function ScheduleShell({
                 (viewMode === v ? "bg-[var(--hub-card)] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")
               }
             >
-              {v === "spine" ? "Calendar" : "Month"}
+              {v === "spine" ? "Calendar" : v === "week" ? "Week" : "Month"}
             </button>
           ))}
         </div>
@@ -184,7 +185,14 @@ export function ScheduleShell({
         )}
       </div>
 
-      {viewMode === "month" ? (
+      {viewMode === "week" ? (
+        <WeekView
+          entries={entries}
+          plannedEntries={plannedEntries ?? []}
+          unconfirmedCount={(unconfirmedBookings ?? []).length}
+          onSelectSession={handleSelectSession}
+        />
+      ) : viewMode === "month" ? (
         <MonthCalendar entries={entries} onJumpToDay={jumpToDay} />
       ) : (
         <div className="grid gap-5 max-[1180px]:grid-cols-1 grid-cols-[minmax(0,1fr)_330px]">
