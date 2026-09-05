@@ -98,35 +98,18 @@ function ProfileDrawer({ client, portalAccount, clientNotes }: {
 }) {
   const p = client.profile;
   const emergency = p?.emergency_contact;
-  const hasEmail = !!client.email;
 
   return (
     <DrawerShell id="dw-profile" title="Profile" subtitle="Who this client is" width="md">
       {/* Who she is */}
-      <div className="fcard acc-rose">
-        <div className="fcard-h">Who they are</div>
-        <div className="fcard-b">
-          <div className="frow">
-            <span className="fk">Email</span>
-            <span className="fv">
-              {hasEmail ? "On file \u2014 documents are delivered to it" : <span className="miss">Not on file.</span>}
-            </span>
-          </div>
-        </div>
-        <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-          <p className="miss" style={{ margin: 0 }}>
-            {(() => {
-              const missing: string[] = [];
-              if (!client.phone) missing.push("phone number");
-              if (!p?.client?.date_of_birth) missing.push("date of birth");
-              if (!client.gender) missing.push("gender");
-              return missing.length > 0
-                ? `No ${missing.join(", ")} on this record.`
-                : "All identity fields filled.";
-            })()}
-          </p>
-        </div>
-      </div>
+      <IdentityCard
+        clientNumber={client.client_number}
+        name={client.name}
+        email={client.email}
+        phone={client.phone}
+        dateOfBirth={p?.client?.date_of_birth ?? null}
+        gender={client.gender}
+      />
 
       {/* Emergency contact */}
       <div className="fcard acc-rose">
@@ -232,24 +215,230 @@ function ProfileDrawer({ client, portalAccount, clientNotes }: {
       </div>
 
       {/* Record */}
-      <div className="fcard acc-ink">
-        <div className="fcard-h">Record</div>
-        <div className="fcard-b">
-          <div className="fgrid">
-            <div className="frow"><span className="fk">Client number</span><span className="fv num">#{client.client_number ?? "\u2014"}</span></div>
-            <div className="frow"><span className="fk">Client since</span><span className="fv num">{fmtDate(client.start_date ?? client.created_at)}</span></div>
-            {client.referral_source && (
-              <div className="frow"><span className="fk">How they found you</span><span className="fv">{client.referral_source}</span></div>
-            )}
-          </div>
-        </div>
-        {!client.referral_source && (
-          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-            <p className="miss" style={{ margin: 0 }}>Referral source not captured.</p>
-          </div>
+      <RecordCard
+        clientNumber={client.client_number}
+        clientSince={client.start_date ?? client.created_at}
+        referralSource={client.referral_source}
+      />
+    </DrawerShell>
+  );
+}
+
+/* \u2500\u2500 Editable identity card (Profile drawer) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+
+function IdentityCard({ clientNumber, name, email, phone, dateOfBirth, gender }: {
+  clientNumber: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  dateOfBirth: string | null;
+  gender: string | null;
+}) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [fName, setFName] = useState(name ?? "");
+  const [fEmail, setFEmail] = useState(email ?? "");
+  const [fPhone, setFPhone] = useState(phone ?? "");
+  const [fDob, setFDob] = useState(dateOfBirth ? String(dateOfBirth).slice(0, 10) : "");
+
+  const cancel = () => {
+    setFName(name ?? "");
+    setFEmail(email ?? "");
+    setFPhone(phone ?? "");
+    setFDob(dateOfBirth ? String(dateOfBirth).slice(0, 10) : "");
+    setError(null);
+    setEditing(false);
+  };
+
+  const save = async () => {
+    if (fName.trim() === "") {
+      setError("Name cannot be empty.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fName.trim(),
+          email: fEmail.trim() === "" ? null : fEmail.trim(),
+          phone: fPhone.trim() === "" ? null : fPhone.trim(),
+          date_of_birth: fDob.trim() === "" ? null : fDob,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error ?? "Could not save. Nothing has been changed.");
+        setSaving(false);
+        return;
+      }
+      setEditing(false);
+      setSaving(false);
+      router.refresh();
+    } catch {
+      setError("Could not save \u2014 check your connection.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fcard acc-rose">
+      <div className="fcard-h">
+        Who they are
+        {!editing && (
+          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
         )}
       </div>
-    </DrawerShell>
+      {editing ? (
+        <>
+          <div className="fcard-b">
+            <div className="frow">
+              <span className="fk">Name</span>
+              <span className="fv"><input className="fld" value={fName} onChange={(e) => setFName(e.target.value)} /></span>
+            </div>
+            <div className="frow">
+              <span className="fk">Email</span>
+              <span className="fv"><input className="fld" type="email" value={fEmail} onChange={(e) => setFEmail(e.target.value)} placeholder="Not set" /></span>
+            </div>
+            <div className="frow">
+              <span className="fk">Phone</span>
+              <span className="fv"><input className="fld" value={fPhone} onChange={(e) => setFPhone(e.target.value)} placeholder="Not set" /></span>
+            </div>
+            <div className="frow">
+              <span className="fk">Date of birth</span>
+              <span className="fv"><input className="fld" type="date" value={fDob} onChange={(e) => setFDob(e.target.value)} /></span>
+            </div>
+          </div>
+          {error && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
+            </div>
+          )}
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
+            <button type="button" onClick={cancel} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="button" onClick={save} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
+              {saving ? "Saving\u2026" : "Save"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="fcard-b">
+            <div className="fgrid">
+              <div className="frow"><span className="fk">Name</span><span className="fv">{name}</span></div>
+              <div className="frow"><span className="fk">Email</span><span className="fv">{email || <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
+              <div className="frow"><span className="fk">Phone</span><span className="fv">{phone || <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
+              <div className="frow"><span className="fk">Date of birth</span><span className="fv num">{dateOfBirth ? fmtDate(String(dateOfBirth)) : <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
+            </div>
+          </div>
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+            <p className="miss" style={{ margin: 0 }}>
+              {!gender ? "No gender on this record." : "Gender on file."}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* \u2500\u2500 Editable record card (Profile drawer \u2014 referral source only; client
+   number and client-since are derived/assigned, never editable) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+
+function RecordCard({ clientNumber, clientSince, referralSource }: {
+  clientNumber: number;
+  clientSince: string | null;
+  referralSource: string | null;
+}) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fReferral, setFReferral] = useState(referralSource ?? "");
+
+  const cancel = () => {
+    setFReferral(referralSource ?? "");
+    setError(null);
+    setEditing(false);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referral_source: fReferral.trim() === "" ? null : fReferral.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error ?? "Could not save. Nothing has been changed.");
+        setSaving(false);
+        return;
+      }
+      setEditing(false);
+      setSaving(false);
+      router.refresh();
+    } catch {
+      setError("Could not save \u2014 check your connection.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fcard acc-ink">
+      <div className="fcard-h">
+        Record
+        {!editing && (
+          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
+        )}
+      </div>
+      <div className="fcard-b">
+        <div className="fgrid">
+          <div className="frow"><span className="fk">Client number</span><span className="fv num">#{clientNumber ?? "\u2014"}</span></div>
+          <div className="frow"><span className="fk">Client since</span><span className="fv num">{fmtDate(clientSince)}</span></div>
+          <div className="frow">
+            <span className="fk">How they found you</span>
+            <span className="fv">
+              {editing ? (
+                <input className="fld" value={fReferral} onChange={(e) => setFReferral(e.target.value)} placeholder="Not captured" />
+              ) : (
+                referralSource || <span className="miss" style={{ fontWeight: 400 }}>Not captured.</span>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+      {editing && (
+        <>
+          {error && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
+            </div>
+          )}
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
+            <button type="button" onClick={cancel} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="button" onClick={save} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
+              {saving ? "Saving\u2026" : "Save"}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -383,29 +572,208 @@ function HealthDrawer({ client, ruleTypesById, gpClearance, medicalClearanceStat
       </div>
 
       {/* Cleared to train */}
-      <div className="fcard acc-teal">
-        <div className="fcard-h">Cleared to train</div>
-        <div className="fcard-b">
-          <div className="fgrid">
-            <div className="frow"><span className="fk">Medical clearance</span><span className="fv">{medicalClearanceStatus === "cleared" ? "Cleared" : medicalClearanceStatus === "pending" ? "Pending" : medicalClearanceStatus === "not_required" ? "Not required" : "Not yet requested"}</span></div>
-            <div className="frow"><span className="fk">Risk level</span><span className="fv">{riskLevel ? riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1) : "\u2014"}</span></div>
-            <div className="frow"><span className="fk">GP letter</span><span className="fv">{client.gp_letter_status === "received" ? "Received" : client.gp_letter_status === "requested" ? "Requested" : "Not required"}</span></div>
-            <div className="frow"><span className="fk">Annual review</span><span className="fv num">{annualReviewDueDate ? "Due " + fmtDate(annualReviewDueDate) : "Not set"}</span></div>
-          </div>
-        </div>
-        {(clearanceFrom || specialistName || exerciseModifications) && (
-          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-            {clearanceFrom && <div className="frow"><span className="fk">Cleared by</span><span className="fv">{clearanceFrom}{specialistName ? ` (${specialistName})` : ""}</span></div>}
-            {exerciseModifications && <div className="frow"><span className="fk">Modifications</span><span className="fv">{exerciseModifications}</span></div>}
-          </div>
-        )}
-        {!clearanceFrom && !specialistName && !exerciseModifications && (
-          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-            <p className="miss" style={{ margin: 0 }}>No GP or specialist named against the clearance.</p>
-          </div>
+      <ClearedToTrainCard
+        clientNumber={client.client_number}
+        medicalClearanceStatus={medicalClearanceStatus}
+        riskLevel={riskLevel}
+        gpLetterStatus={client.gp_letter_status}
+        annualReviewDueDate={annualReviewDueDate}
+        clearanceFrom={clearanceFrom}
+        specialistName={specialistName}
+        exerciseModifications={exerciseModifications}
+      />
+    </DrawerShell>
+  );
+}
+
+/* \u2500\u2500 Editable "cleared to train" card (Health drawer) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+
+const MEDICAL_CLEARANCE_OPTIONS = [
+  { value: "not_yet_requested", label: "Not yet requested" },
+  { value: "pending", label: "Pending" },
+  { value: "cleared", label: "Cleared" },
+  { value: "not_required", label: "Not required" },
+];
+const RISK_LEVEL_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
+const GP_LETTER_OPTIONS = [
+  { value: "not_required", label: "Not required" },
+  { value: "requested", label: "Requested" },
+  { value: "received", label: "Received" },
+];
+
+function ClearedToTrainCard({
+  clientNumber,
+  medicalClearanceStatus,
+  riskLevel,
+  gpLetterStatus,
+  annualReviewDueDate,
+  clearanceFrom,
+  specialistName,
+  exerciseModifications,
+}: {
+  clientNumber: number;
+  medicalClearanceStatus: string;
+  riskLevel: string;
+  gpLetterStatus: string;
+  annualReviewDueDate: string | null;
+  clearanceFrom: string | null;
+  specialistName: string | null;
+  exerciseModifications: string | null;
+}) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [fMedical, setFMedical] = useState(medicalClearanceStatus || "not_yet_requested");
+  const [fRisk, setFRisk] = useState(riskLevel || "low");
+  const [fGp, setFGp] = useState(gpLetterStatus || "not_required");
+  const [fAnnual, setFAnnual] = useState(annualReviewDueDate ? String(annualReviewDueDate).slice(0, 10) : "");
+  const [fClearanceFrom, setFClearanceFrom] = useState(clearanceFrom ?? "");
+  const [fSpecialist, setFSpecialist] = useState(specialistName ?? "");
+  const [fMods, setFMods] = useState(exerciseModifications ?? "");
+
+  const cancel = () => {
+    setFMedical(medicalClearanceStatus || "not_yet_requested");
+    setFRisk(riskLevel || "low");
+    setFGp(gpLetterStatus || "not_required");
+    setFAnnual(annualReviewDueDate ? String(annualReviewDueDate).slice(0, 10) : "");
+    setFClearanceFrom(clearanceFrom ?? "");
+    setFSpecialist(specialistName ?? "");
+    setFMods(exerciseModifications ?? "");
+    setError(null);
+    setEditing(false);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          medical_clearance_status: fMedical,
+          risk_level: fRisk,
+          gp_letter_status: fGp,
+          annual_review_due_date: fAnnual.trim() === "" ? null : fAnnual,
+          clearance_from: fClearanceFrom.trim() === "" ? null : fClearanceFrom.trim(),
+          specialist_name: fSpecialist.trim() === "" ? null : fSpecialist.trim(),
+          exercise_modifications: fMods.trim() === "" ? null : fMods.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error ?? "Could not save. Nothing has been changed.");
+        setSaving(false);
+        return;
+      }
+      setEditing(false);
+      setSaving(false);
+      router.refresh();
+    } catch {
+      setError("Could not save \u2014 check your connection.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fcard acc-teal">
+      <div className="fcard-h">
+        Cleared to train
+        {!editing && (
+          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
         )}
       </div>
-    </DrawerShell>
+
+      {editing ? (
+        <>
+          <div className="fcard-b">
+            <div className="frow">
+              <span className="fk">Medical clearance</span>
+              <span className="fv">
+                <select className="fld" value={fMedical} onChange={(e) => setFMedical(e.target.value)}>
+                  {MEDICAL_CLEARANCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </span>
+            </div>
+            <div className="frow">
+              <span className="fk">Risk level</span>
+              <span className="fv">
+                <select className="fld" value={fRisk} onChange={(e) => setFRisk(e.target.value)}>
+                  {RISK_LEVEL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </span>
+            </div>
+            <div className="frow">
+              <span className="fk">GP letter</span>
+              <span className="fv">
+                <select className="fld" value={fGp} onChange={(e) => setFGp(e.target.value)}>
+                  {GP_LETTER_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </span>
+            </div>
+            <div className="frow">
+              <span className="fk">Annual review</span>
+              <span className="fv"><input className="fld" type="date" value={fAnnual} onChange={(e) => setFAnnual(e.target.value)} /></span>
+            </div>
+            <div className="frow">
+              <span className="fk">Cleared by</span>
+              <span className="fv"><input className="fld" value={fClearanceFrom} onChange={(e) => setFClearanceFrom(e.target.value)} placeholder="e.g. GP" /></span>
+            </div>
+            <div className="frow">
+              <span className="fk">Specialist</span>
+              <span className="fv"><input className="fld" value={fSpecialist} onChange={(e) => setFSpecialist(e.target.value)} placeholder="Not set" /></span>
+            </div>
+            <div className="frow">
+              <span className="fk">Modifications</span>
+              <span className="fv"><input className="fld" value={fMods} onChange={(e) => setFMods(e.target.value)} placeholder="Not set" /></span>
+            </div>
+          </div>
+          {error && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
+            </div>
+          )}
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
+            <button type="button" onClick={cancel} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="button" onClick={save} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
+              {saving ? "Saving\u2026" : "Save"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="fcard-b">
+            <div className="fgrid">
+              <div className="frow"><span className="fk">Medical clearance</span><span className="fv">{medicalClearanceStatus === "cleared" ? "Cleared" : medicalClearanceStatus === "pending" ? "Pending" : medicalClearanceStatus === "not_required" ? "Not required" : "Not yet requested"}</span></div>
+              <div className="frow"><span className="fk">Risk level</span><span className="fv">{riskLevel ? riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1) : "\u2014"}</span></div>
+              <div className="frow"><span className="fk">GP letter</span><span className="fv">{gpLetterStatus === "received" ? "Received" : gpLetterStatus === "requested" ? "Requested" : "Not required"}</span></div>
+              <div className="frow"><span className="fk">Annual review</span><span className="fv num">{annualReviewDueDate ? "Due " + fmtDate(annualReviewDueDate) : "Not set"}</span></div>
+            </div>
+          </div>
+          {(clearanceFrom || specialistName || exerciseModifications) && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              {clearanceFrom && <div className="frow"><span className="fk">Cleared by</span><span className="fv">{clearanceFrom}{specialistName ? ` (${specialistName})` : ""}</span></div>}
+              {exerciseModifications && <div className="frow"><span className="fk">Modifications</span><span className="fv">{exerciseModifications}</span></div>}
+            </div>
+          )}
+          {!clearanceFrom && !specialistName && !exerciseModifications && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0 }}>No GP or specialist named against the clearance.</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 
@@ -568,6 +936,246 @@ function PackageCard({
   );
 }
 
+/* ── Editable "how they train" card (Arrangement drawer) — format, session
+   length and pace are plain columns and become fields; where/how-often live
+   in the nested `profile.logistics` blob (not extended by this lane) and
+   stay read-only. ────────────────────────────────────────────────────────── */
+
+const DELIVERY_MODE_OPTIONS = [
+  { value: "studio_1to1", label: "Studio 1-to-1" },
+  { value: "home_training", label: "Home training" },
+];
+const PACE_MODE_OPTIONS = [
+  { value: "fast", label: "Fast" },
+  { value: "medium", label: "Medium" },
+  { value: "slow", label: "Slow" },
+];
+
+function HowTheyTrainCard({
+  clientNumber,
+  deliveryMode,
+  trainingLocation,
+  frequencyLabel,
+  sessionDuration,
+  paceMode,
+}: {
+  clientNumber: number;
+  deliveryMode: string;
+  trainingLocation: string | null;
+  frequencyLabel: string | null;
+  sessionDuration: number | null;
+  paceMode: string;
+}) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [fDelivery, setFDelivery] = useState(deliveryMode || "studio_1to1");
+  const [fDuration, setFDuration] = useState(sessionDuration == null ? "" : String(sessionDuration));
+  const [fPace, setFPace] = useState(paceMode || "medium");
+
+  const cancel = () => {
+    setFDelivery(deliveryMode || "studio_1to1");
+    setFDuration(sessionDuration == null ? "" : String(sessionDuration));
+    setFPace(paceMode || "medium");
+    setError(null);
+    setEditing(false);
+  };
+
+  const save = async () => {
+    if (fDuration.trim() !== "" && (Number.isNaN(Number(fDuration)) || Number(fDuration) <= 0)) {
+      setError("Session length must be a number of minutes.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          delivery_mode: fDelivery,
+          session_duration: fDuration.trim() === "" ? null : Number(fDuration),
+          pace_mode: fPace,
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error ?? "Could not save. Nothing has been changed.");
+        setSaving(false);
+        return;
+      }
+      setEditing(false);
+      setSaving(false);
+      router.refresh();
+    } catch {
+      setError("Could not save — check your connection.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fcard acc-teal">
+      <div className="fcard-h">
+        How they train
+        {!editing && (
+          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
+        )}
+      </div>
+      <div className="fcard-b">
+        <div className="fgrid">
+          <div className="frow">
+            <span className="fk">Format</span>
+            <span className="fv">
+              {editing ? (
+                <select className="fld" value={fDelivery} onChange={(e) => setFDelivery(e.target.value)}>
+                  {DELIVERY_MODE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              ) : (
+                deliveryMode === "studio_1to1" ? "Studio 1-to-1" : deliveryMode === "home_training" ? "Home training" : deliveryMode || "—"
+              )}
+            </span>
+          </div>
+          <div className="frow">
+            <span className="fk">Where</span>
+            <span className="fv">{trainingLocation === "studio" ? "The studio" : trainingLocation === "home" ? "Home" : trainingLocation || "—"}</span>
+          </div>
+          <div className="frow">
+            <span className="fk">How often</span>
+            <span className="fv num">{frequencyLabel || "—"}</span>
+          </div>
+          <div className="frow">
+            <span className="fk">Session length</span>
+            <span className="fv num">
+              {editing ? (
+                <input className="fld" value={fDuration} onChange={(e) => setFDuration(e.target.value)} inputMode="numeric" placeholder="Minutes" />
+              ) : (
+                sessionDuration ? `${sessionDuration} min` : "—"
+              )}
+            </span>
+          </div>
+          <div className="frow">
+            <span className="fk">Pace</span>
+            <span className="fv">
+              {editing ? (
+                <select className="fld" value={fPace} onChange={(e) => setFPace(e.target.value)}>
+                  {PACE_MODE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              ) : (
+                paceMode ? paceMode.charAt(0).toUpperCase() + paceMode.slice(1) : "—"
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+      {editing && (
+        <>
+          {error && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
+            </div>
+          )}
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
+            <button type="button" onClick={cancel} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="button" onClick={save} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── Editable goals card (Arrangement drawer) — `goals.primary` lives nested
+   inside `profile`; the PATCH route was extended (see route.ts) to merge a
+   `goals_primary` key into that blob without touching the rest of it. ───── */
+
+function GoalsCard({ clientNumber, primary }: { clientNumber: number; primary: string | null }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fPrimary, setFPrimary] = useState(primary ?? "");
+
+  const cancel = () => {
+    setFPrimary(primary ?? "");
+    setError(null);
+    setEditing(false);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goals_primary: fPrimary.trim() === "" ? null : fPrimary.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error ?? "Could not save. Nothing has been changed.");
+        setSaving(false);
+        return;
+      }
+      setEditing(false);
+      setSaving(false);
+      router.refresh();
+    } catch {
+      setError("Could not save — check your connection.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fcard acc-teal">
+      <div className="fcard-h">
+        Goals
+        {!editing && (
+          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
+        )}
+      </div>
+      <div className="fcard-b">
+        {editing ? (
+          <div className="frow">
+            <span className="fk">Primary</span>
+            <span className="fv"><input className="fld" value={fPrimary} onChange={(e) => setFPrimary(e.target.value)} placeholder="Not set" /></span>
+          </div>
+        ) : primary ? (
+          <div className="frow"><span className="fk">Primary</span><span className="fv">{primary}</span></div>
+        ) : (
+          <p className="miss" style={{ margin: 0 }}>No goals recorded.</p>
+        )}
+      </div>
+      {editing && (
+        <>
+          {error && (
+            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
+              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
+            </div>
+          )}
+          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
+            <button type="button" onClick={cancel} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="button" onClick={save} disabled={saving}
+              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    ARRANGEMENT — how they train, goals, package, kit
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -633,45 +1241,17 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
       )}
 
       {/* How they train */}
-      <div className="fcard acc-teal">
-        <div className="fcard-h">How they train</div>
-        <div className="fcard-b">
-          <div className="fgrid">
-            <div className="frow">
-              <span className="fk">Format</span>
-              <span className="fv">{client.delivery_mode === "studio_1to1" ? "Studio 1-to-1" : client.delivery_mode === "home_training" ? "Home training" : client.delivery_mode || "\u2014"}</span>
-            </div>
-            <div className="frow">
-              <span className="fk">Where</span>
-              <span className="fv">{logistics?.training_location === "studio" ? "The studio" : logistics?.training_location === "home" ? "Home" : logistics?.training_location || "\u2014"}</span>
-            </div>
-            <div className="frow">
-              <span className="fk">How often</span>
-              <span className="fv num">{logistics?.frequency?.per_unit ? `${logistics.frequency.per_unit} a ${logistics.frequency.unit}` : logistics?.sessions_per_week ? `${logistics.sessions_per_week} a week` : "\u2014"}</span>
-            </div>
-            <div className="frow">
-              <span className="fk">Session length</span>
-              <span className="fv num">{client.session_duration ? `${client.session_duration} min` : "\u2014"}</span>
-            </div>
-            <div className="frow">
-              <span className="fk">Pace</span>
-              <span className="fv">{client.pace_mode ? client.pace_mode.charAt(0).toUpperCase() + client.pace_mode.slice(1) : "\u2014"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <HowTheyTrainCard
+        clientNumber={client.client_number}
+        deliveryMode={client.delivery_mode}
+        trainingLocation={logistics?.training_location ?? null}
+        frequencyLabel={logistics?.frequency?.per_unit ? `${logistics.frequency.per_unit} a ${logistics.frequency.unit}` : logistics?.sessions_per_week ? `${logistics.sessions_per_week} a week` : null}
+        sessionDuration={client.session_duration ?? null}
+        paceMode={client.pace_mode}
+      />
 
       {/* Goals */}
-      <div className="fcard acc-teal">
-        <div className="fcard-h">Goals</div>
-        <div className="fcard-b">
-          {goals?.primary ? (
-            <div className="frow"><span className="fk">Primary</span><span className="fv">{goals.primary}</span></div>
-          ) : (
-            <p className="miss" style={{ margin: 0 }}>No goals recorded.</p>
-          )}
-        </div>
-      </div>
+      <GoalsCard clientNumber={client.client_number} primary={goals?.primary ?? null} />
 
       <PackageCard
         clientNumber={client.client_number}

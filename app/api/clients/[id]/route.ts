@@ -45,6 +45,17 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   });
 }
 
+// Fields the client-record drawers let Esther edit inline that do NOT have
+// their own top-level column — they live nested inside the `profile` JSONB
+// blob alongside a lot of unrelated data (health, notes, emergency contact,
+// logistics, ...). `clients.update(body)` below does a plain column SET, so
+// blind-assigning `profile: {...}` from the client would silently wipe out
+// every sibling field that wasn't part of this edit. Instead we read the
+// current profile, merge only the requested nested path, and let the normal
+// update carry the merged object through.
+const PROFILE_PATCH_KEYS = ["date_of_birth", "goals_primary"] as const;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -52,9 +63,37 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const body = await request.json();
   if ("equipment" in body) body.equipment = normaliseClientEquipment(body.equipment);
+
+  if ("name" in body && (typeof body.name !== "string" || body.name.trim() === "")) {
+    return NextResponse.json({ error: "Name cannot be empty." }, { status: 400 });
+  }
+  if ("date_of_birth" in body && body.date_of_birth !== null && !DATE_RE.test(String(body.date_of_birth))) {
+    return NextResponse.json({ error: "Date of birth must be a valid date." }, { status: 400 });
+  }
+
   const numericId = parseInt(params.id);
   const col = Number.isFinite(numericId) && numericId > 0 ? "client_number" : "id";
   const val = Number.isFinite(numericId) && numericId > 0 ? numericId : params.id;
+
+  const hasProfilePatch = PROFILE_PATCH_KEYS.some((k) => k in body);
+  if (hasProfilePatch) {
+    const { data: existing, error: fetchError } = await supabase
+      .from("clients").select("profile").eq(col, val).single();
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 404 });
+    const profile = { ...(existing?.profile ?? {}) };
+
+    if ("date_of_birth" in body) {
+      profile.client = { ...(profile.client ?? {}), date_of_birth: body.date_of_birth };
+      delete body.date_of_birth;
+    }
+    if ("goals_primary" in body) {
+      const primary = typeof body.goals_primary === "string" ? body.goals_primary.trim() : body.goals_primary;
+      profile.goals = { ...(profile.goals ?? {}), primary: primary === "" ? null : primary };
+      delete body.goals_primary;
+    }
+    body.profile = profile;
+  }
+
   const { data, error } = await supabase.from("clients").update(body).eq(col, val).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
