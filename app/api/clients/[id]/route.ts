@@ -73,14 +73,25 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 //     compliance_status, outstanding_actions, group_type, pace_mode,
 //     delivery_mode, equipment, resource_visibility, start_date,
 //     band_set_id, package_type
-//   - UpdateIntervalControl.tsx (rendered in CommsTabContent.tsx):
+//   - UpdateIntervalControl.tsx (rendered in CommsDrawer):
 //     update_interval, update_interval_weeks, update_interval_next_date
 //   (* = virtual profile-nested key, not a real column — see PROFILE_PATCH_KEYS)
-// components/hub/{ClinicalComplianceCard,GpLetterCard,GracePeriodExtension,
-// PackagePaymentsCard}.tsx are NOT imported by any page (dead code) — their
-// fields (e.g. gp_letter_requested_date, gp_letter_received_date,
-// block_expiry_extensions) are deliberately excluded. If one of those
-// components is wired up in future, add its column(s) here at that time.
+// 5 Sep 2026 (client-record drawer reconnect) — three more of these
+// components got wired into live drawers, so their columns join the list:
+//   - GpLetterCard.tsx (Health drawer, dates only — status stays owned by
+//     ClearedToTrainCard): gp_letter_requested_date, gp_letter_received_date
+//   - GracePeriodExtension.tsx (Arrangement drawer, sole editor of block
+//     expiry): block_expiry_date (already listed), block_expiry_extensions
+//   - PackagePaymentsCard.tsx (Arrangement drawer, replaced the inline
+//     PackageCard): sessions_purchased, sessions_used, payment_method,
+//     payment_status, client_status (package_type, client_rate,
+//     block_expiry_date, sessions_remaining, referral_source, session_duration
+//     were already listed)
+// components/hub/ClinicalComplianceCard.tsx stays NOT imported by any page —
+// every field it edits (medical_clearance_status, risk_level,
+// exercise_modifications) is already covered by the live "Cleared to train"
+// card in the Health drawer, so wiring it in would give the same fields two
+// editors. No new column needed for it.
 const ALLOWED_COLUMNS = new Set<string>([
   "name",
   "email",
@@ -89,6 +100,8 @@ const ALLOWED_COLUMNS = new Set<string>([
   "medical_clearance_status",
   "risk_level",
   "gp_letter_status",
+  "gp_letter_requested_date",
+  "gp_letter_received_date",
   "annual_review_due_date",
   "clearance_from",
   "specialist_name",
@@ -96,7 +109,13 @@ const ALLOWED_COLUMNS = new Set<string>([
   "package_type",
   "client_rate",
   "block_expiry_date",
+  "block_expiry_extensions",
   "sessions_remaining",
+  "sessions_purchased",
+  "sessions_used",
+  "payment_method",
+  "payment_status",
+  "client_status",
   "delivery_mode",
   "session_duration",
   "pace_mode",

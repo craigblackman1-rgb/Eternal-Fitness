@@ -8,10 +8,20 @@ import { blockDisplayName } from "@/lib/block-name";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
-import type { DBBlock, DBSession } from "@/types";
+import { PortalAccountCard } from "./PortalAccountCard";
+import { MergedNotesPanel } from "./MergedNotesPanel";
+// components/hub/ClinicalComplianceCard.tsx is deliberately NOT wired in here —
+// every field it edits (medical_clearance_status, risk_level,
+// exercise_modifications) is already covered by ClearedToTrainCard below;
+// adding it too would give those fields a second, out-of-sync editor.
+import { GpLetterCard } from "@/components/hub/GpLetterCard";
+import { PackagePaymentsCard } from "@/components/hub/PackagePaymentsCard";
+import { GracePeriodExtension } from "@/components/hub/GracePeriodExtension";
+import type { DBBlock, DBSession, SessionNoteData, PinnedNoteRef } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
 import type { UpdateInterval, UpdateDueInfo } from "@/lib/updates-due";
+import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
 import type {
   TrainerizeHistoryData,
   TrainerizePerformedWorkoutSummary,
@@ -74,6 +84,10 @@ interface ClientDrawersProps {
   blockSessionCountMismatch: boolean;
   unpaidBlocks: string[];
   countCompletedSessions: number;
+  /* Profile drawer merged notes panel (CR-EF-098) */
+  sessionNotes: SessionNoteData[];
+  exerciseNotes: AggregatedExerciseNote[];
+  pinnedNoteRefs: PinnedNoteRef[];
 }
 
 function fmtDate(iso: string | null): string {
@@ -101,10 +115,13 @@ function daysUntil(iso: string | null): number | null {
    PROFILE — identity only
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function ProfileDrawer({ client, portalAccount, clientNotes }: {
+function ProfileDrawer({ client, portalAccount, clientNotes, sessionNotes, exerciseNotes, pinnedNoteRefs }: {
   client: any;
   portalAccount: any;
   clientNotes: any[];
+  sessionNotes: SessionNoteData[];
+  exerciseNotes: AggregatedExerciseNote[];
+  pinnedNoteRefs: PinnedNoteRef[];
 }) {
   const p = client.profile;
   const emergency = p?.emergency_contact;
@@ -137,92 +154,81 @@ function ProfileDrawer({ client, portalAccount, clientNotes }: {
         </div>
       </div>
 
-      {/* Portal */}
-      <div className="fcard acc-teal">
-        <div className="fcard-h">Portal</div>
-        <div className="fcard-b">
-          <div className="frow">
-            <span className="fk">Account</span>
-            <span className="fv">
-              {portalAccount
-                ? portalAccount.disabled_at
-                  ? "Disabled"
-                  : portalAccount.last_login_at
-                    ? "Active \u2014 last login " + fmtShortDate(portalAccount.last_login_at)
-                    : "Invited, not yet logged in"
-                : <span className="miss">Not invited.</span>}
-            </span>
-          </div>
+      {/* Portal \u2014 live control (reconnect, 5 Sep 2026). Supersedes the old
+          read-only "Account / Not invited" fcard: per the project's
+          CLAUDE.md, portal accounts can ONLY be created through this
+          button, so the dead text used to mean no client could be invited
+          at all from anywhere in the app. */}
+      <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <span className="text-sm font-semibold text-foreground">Portal</span>
           {portalAccount && !portalAccount.disabled_at && (
-            <div className="frow">
-              <span className="fk">She can see</span>
-              <span className="fv">
-                {(() => {
-                  const rv = client.resource_visibility;
-                  if (!rv || Object.keys(rv).length === 0) return "Default visibility";
-                  const allOn = Object.values(rv).every(Boolean);
-                  return allOn ? "All resources are switched on" : "Custom visibility";
-                })()}
-              </span>
-            </div>
+            <span className="text-xs text-muted-foreground">
+              {(() => {
+                const rv = client.resource_visibility;
+                if (!rv || Object.keys(rv).length === 0) return "Default visibility";
+                const allOn = Object.values(rv).every(Boolean);
+                return allOn ? "All resources are switched on" : "Custom visibility";
+              })()}
+            </span>
           )}
         </div>
+        <PortalAccountCard clientNumber={client.client_number} hasEmail={!!client.email} />
       </div>
 
-      {/* Your notes */}
-      <div className="fcard acc-ink">
-        <div className="fcard-h">Your notes</div>
-        <div className="fcard-b pad">
-          {(() => {
-            const n = client.profile?.notes;
-            const hasProfileNotes = n && (n.client_intro || n.esther_observations || n.motivation_notes || n.watch_for);
-            const hasClientNotes = clientNotes.length > 0;
-            if (!hasProfileNotes && !hasClientNotes) {
-              return <p className="miss" style={{ margin: 0 }}>Nothing written down.</p>;
-            }
-            return (
-              <div className="space-y-3">
-                {hasProfileNotes && (
-                  <div className="space-y-2">
-                    {n.client_intro && (
-                      <div>
-                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Client intro</div>
-                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.client_intro}</p>
-                      </div>
-                    )}
-                    {n.esther_observations && (
-                      <div>
-                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Observations</div>
-                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.esther_observations}</p>
-                      </div>
-                    )}
-                    {n.motivation_notes && (
-                      <div>
-                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Motivation</div>
-                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.motivation_notes}</p>
-                      </div>
-                    )}
-                    {n.watch_for && (
-                      <div>
-                        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Watch for</div>
-                        <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.watch_for}</p>
-                      </div>
-                    )}
+      {/* Your notes \u2014 profile.notes (client_intro / observations / motivation /
+          watch_for) is a structured block edited from the full record editor
+          (clients/[id]/edit), not by this drawer, so it stays a read-only
+          summary here. The freeform quick-capture list below it is now the
+          live MergedNotesPanel (CR-EF-098) instead of a static top-5 slice of
+          client_notes with no way to add, delete, or see session/exercise
+          notes alongside it. */}
+      {(() => {
+        const n = client.profile?.notes;
+        const hasProfileNotes = n && (n.client_intro || n.esther_observations || n.motivation_notes || n.watch_for);
+        if (!hasProfileNotes) return null;
+        return (
+          <div className="fcard acc-ink">
+            <div className="fcard-h">From the profile</div>
+            <div className="fcard-b pad">
+              <div className="space-y-2">
+                {n.client_intro && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Client intro</div>
+                    <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.client_intro}</p>
                   </div>
                 )}
-                {hasClientNotes && (
-                  <div className={hasProfileNotes ? "pt-2" : undefined} style={hasProfileNotes ? { borderTop: "1px solid var(--hub-border)" } : undefined}>
-                    {clientNotes.slice(0, 5).map((cn: any) => (
-                      <p key={cn.id} className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{cn.note}</p>
-                    ))}
-                    {clientNotes.length > 5 && <p className="miss m-0">+{clientNotes.length - 5} more notes.</p>}
+                {n.esther_observations && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Observations</div>
+                    <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.esther_observations}</p>
+                  </div>
+                )}
+                {n.motivation_notes && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Motivation</div>
+                    <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.motivation_notes}</p>
+                  </div>
+                )}
+                {n.watch_for && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "var(--color-ink)", opacity: 0.5 }}>Watch for</div>
+                    <p className="text-[13px] text-[var(--color-ink)] m-0" style={{ whiteSpace: "pre-wrap" }}>{n.watch_for}</p>
                   </div>
                 )}
               </div>
-            );
-          })()}
-        </div>
-      </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      <MergedNotesPanel
+        clientId={client.id}
+        clientName={client.name}
+        sessionNotes={sessionNotes}
+        exerciseNotes={exerciseNotes}
+        pinnedNoteRefs={pinnedNoteRefs}
+      />
 
       {/* Record */}
       <RecordCard
@@ -592,6 +598,23 @@ function HealthDrawer({ client, ruleTypesById, gpClearance, medicalClearanceStat
         specialistName={specialistName}
         exerciseModifications={exerciseModifications}
       />
+
+      {/* GP letter dates — live control (reconnect, 5 Sep 2026). The status
+          field above is edited by ClearedToTrainCard; this card only adds
+          the requested/received dates, which had no editor anywhere in the
+          app until now (the two columns were deliberately excluded from the
+          PATCH allow-list until a UI actually wrote them — see route.ts). */}
+      <div className="fcard acc-teal">
+        <div className="fcard-h">GP letter dates</div>
+        <div className="fcard-b pad">
+          <GpLetterCard
+            clientId={client.id}
+            gpLetterStatus={client.gp_letter_status}
+            requestedDate={client.gp_letter_requested_date ?? null}
+            receivedDate={client.gp_letter_received_date ?? null}
+          />
+        </div>
+      </div>
     </DrawerShell>
   );
 }
@@ -781,165 +804,6 @@ function ClearedToTrainCard({
               <p className="miss" style={{ margin: 0 }}>No GP or specialist named against the clearance.</p>
             </div>
           )}
-        </>
-      )}
-    </div>
-  );
-}
-
-/* ── Editable package card ───────────────────────────────────────────────
-   The mockup's rule is "there is no edit PAGE — a drawer's values become
-   fields". Craig hit the gap immediately: the Needs-you queue tells you the
-   package has no rate or expiry and offers "Set it up", which opened this
-   drawer read-only, so the only way to actually do it was the Edit client
-   screen. These are the four fields that item complains about. */
-
-function PackageCard({
-  clientNumber,
-  packageType,
-  clientRate,
-  blockExpiryDate,
-  sessionsRemaining,
-  sessionsUsed,
-  paymentStatus,
-  clientStatus,
-  countCompletedSessions,
-  blockSessionCountMismatch,
-}: {
-  clientNumber: number;
-  packageType: string | null;
-  clientRate: number | null;
-  blockExpiryDate: string | null;
-  sessionsRemaining: number | null;
-  sessionsUsed: number | null;
-  paymentStatus: string;
-  clientStatus: string;
-  countCompletedSessions: number;
-  blockSessionCountMismatch: boolean;
-}) {
-  const router = useRouter();
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [fPackage, setFPackage] = useState(packageType ?? "");
-  const [fRate, setFRate] = useState(clientRate == null ? "" : String(clientRate));
-  const [fExpiry, setFExpiry] = useState(blockExpiryDate ? String(blockExpiryDate).slice(0, 10) : "");
-  const [fRemaining, setFRemaining] = useState(sessionsRemaining == null ? "" : String(sessionsRemaining));
-
-  const cancel = () => {
-    setFPackage(packageType ?? "");
-    setFRate(clientRate == null ? "" : String(clientRate));
-    setFExpiry(blockExpiryDate ? String(blockExpiryDate).slice(0, 10) : "");
-    setFRemaining(sessionsRemaining == null ? "" : String(sessionsRemaining));
-    setError(null);
-    setEditing(false);
-  };
-
-  const save = async () => {
-    setSaving(true);
-    setError(null);
-    // Empty means "not set" — send null rather than "" so the field genuinely
-    // clears instead of storing an empty string that reads as set.
-    const num = (v: string) => (v.trim() === "" ? null : Number(v));
-    if ((fRate.trim() !== "" && Number.isNaN(Number(fRate)))
-      || (fRemaining.trim() !== "" && Number.isNaN(Number(fRemaining)))) {
-      setError("Rate and sessions left must be numbers.");
-      setSaving(false);
-      return;
-    }
-    try {
-      const res = await fetch(`/api/clients/${clientNumber}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          package_type: fPackage.trim() === "" ? null : fPackage.trim(),
-          client_rate: num(fRate),
-          block_expiry_date: fExpiry.trim() === "" ? null : fExpiry,
-          sessions_remaining: num(fRemaining),
-        }),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setError(j.error ?? "Could not save. Nothing has been changed.");
-        setSaving(false);
-        return;
-      }
-      setEditing(false);
-      setSaving(false);
-      router.refresh();
-    } catch {
-      setError("Could not save — check your connection.");
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fcard acc-teal">
-      <div className="fcard-h">
-        Package and payment
-        {!editing && (
-          <button className="btn-link" type="button" onClick={() => setEditing(true)}>Edit</button>
-        )}
-      </div>
-
-      {editing ? (
-        <>
-          <div className="fcard-b">
-            <div className="frow">
-              <span className="fk">Package</span>
-              <span className="fv">
-                <input className="fld" value={fPackage} onChange={(e) => setFPackage(e.target.value)} placeholder="e.g. Block of 12" />
-              </span>
-            </div>
-            <div className="frow">
-              <span className="fk">Rate</span>
-              <span className="fv">
-                <input className="fld" value={fRate} onChange={(e) => setFRate(e.target.value)} inputMode="decimal" placeholder="Not set" />
-              </span>
-            </div>
-            <div className="frow">
-              <span className="fk">Block expiry</span>
-              <span className="fv">
-                <input className="fld" type="date" value={fExpiry} onChange={(e) => setFExpiry(e.target.value)} />
-              </span>
-            </div>
-            <div className="frow">
-              <span className="fk">Sessions left</span>
-              <span className="fv">
-                <input className="fld" value={fRemaining} onChange={(e) => setFRemaining(e.target.value)} inputMode="numeric" placeholder="Not set" />
-              </span>
-            </div>
-          </div>
-          {error && (
-            <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)" }}>
-              <p className="miss" style={{ margin: 0, color: "var(--status-danger)" }}>{error}</p>
-            </div>
-          )}
-          <div className="fcard-b pad" style={{ borderTop: "1px solid var(--hub-border)", display: "flex", gap: 8 }}>
-            <button type="button" onClick={cancel} disabled={saving}
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--hub-border)] bg-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-[var(--hub-hover)] disabled:opacity-50">
-              Cancel
-            </button>
-            <button type="button" onClick={save} disabled={saving}
-              className="inline-flex items-center justify-center rounded-lg bg-rose text-white px-2.5 py-1 min-h-[30px] text-xs font-semibold hover:bg-rose/90 disabled:opacity-50">
-              {saving ? "Saving…" : "Save"}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="fcard-b">
-            <div className="fgrid">
-              <div className="frow"><span className="fk">Package</span><span className="fv">{packageType || <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
-              <div className="frow"><span className="fk">Rate</span><span className="fv">{clientRate != null ? `£${clientRate}` : <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
-              <div className="frow"><span className="fk">Block expiry</span><span className="fv num">{blockExpiryDate ? fmtDate(String(blockExpiryDate)) : <span className="miss" style={{ fontWeight: 400 }}>Not set.</span>}</span></div>
-              <div className="frow"><span className="fk">Typed on the record</span><span className="fv num">{sessionsUsed ?? 0} used {"\u00b7"} {sessionsRemaining ?? "\u2014"} left</span></div>
-              <div className="frow"><span className="fk">Counted from sessions</span><span className="fv num">{countCompletedSessions} completed {blockSessionCountMismatch ? <span className="bdg warn">Does not match</span> : null}</span></div>
-              <div className="frow"><span className="fk">Payment</span><span className="fv">{paymentStatus ? paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1) : "\u2014"}</span></div>
-              <div className="frow"><span className="fk">Client status</span><span className="fv">{clientStatus ? clientStatus.charAt(0).toUpperCase() + clientStatus.slice(1) : "\u2014"}</span></div>
-            </div>
-          </div>
         </>
       )}
     </div>
@@ -1263,17 +1127,39 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
       {/* Goals */}
       <GoalsCard clientNumber={client.client_number} primary={goals?.primary ?? null} />
 
-      <PackageCard
-        clientNumber={client.client_number}
-        packageType={packageType}
-        clientRate={client.client_rate ?? null}
-        blockExpiryDate={blockExpiryDate}
-        sessionsRemaining={sessionsRemaining}
-        sessionsUsed={sessionsUsed}
-        paymentStatus={paymentStatus}
-        clientStatus={clientStatus}
-        countCompletedSessions={countCompletedSessions}
-        blockSessionCountMismatch={blockSessionCountMismatch}
+      {/* Package & payments — live control (reconnect, 5 Sep 2026). Replaces
+          the inline PackageCard added earlier the same day: that card only
+          covered package/rate/expiry/sessions-remaining, where this one is a
+          superset (sessions purchased/used, payment method/status, client
+          status, referral source too) and was the more complete of the two,
+          so it's kept and PackageCard is deleted rather than run alongside
+          it. Block expiry is excluded from its edit form on purpose — see
+          GracePeriodExtension immediately below, which is the sole editor
+          for that field so it stays audited. */}
+      <PackagePaymentsCard
+        clientId={client.id}
+        initial={{
+          package_type: packageType,
+          sessions_purchased: client.sessions_purchased ?? null,
+          sessions_used: sessionsUsed,
+          sessions_remaining: sessionsRemaining,
+          session_duration: client.session_duration ?? null,
+          client_rate: client.client_rate ?? null,
+          payment_method: client.payment_method ?? null,
+          payment_status: paymentStatus as import("@/types").PaymentStatus,
+          client_status: clientStatus as import("@/types").ClientStatus,
+          referral_source: client.referral_source ?? null,
+          block_expiry_date: blockExpiryDate,
+        }}
+      />
+
+      {/* Block expiry — the sole editor for block_expiry_date, so grace-period
+          extensions stay audited (from/to/reason/when) rather than a plain
+          date field anyone could silently overwrite. */}
+      <GracePeriodExtension
+        clientId={client.id}
+        currentExpiry={blockExpiryDate}
+        extensions={client.block_expiry_extensions ?? []}
       />
 
       {/* Kit and reviews */}
@@ -2071,6 +1957,9 @@ export function ClientDrawers(props: ClientDrawersProps) {
         client={props.client}
         portalAccount={props.portalAccount}
         clientNotes={props.clientNotes}
+        sessionNotes={props.sessionNotes}
+        exerciseNotes={props.exerciseNotes}
+        pinnedNoteRefs={props.pinnedNoteRefs}
       />
       <HealthDrawer
         client={props.client}

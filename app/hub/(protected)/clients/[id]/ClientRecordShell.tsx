@@ -11,6 +11,8 @@ import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
 import type { UpdateInterval, UpdateDueInfo } from "@/lib/updates-due";
 import type { TrainerizeHistoryData } from "@/components/hub";
+import type { SessionNoteData, PinnedNoteRef } from "@/types";
+import type { AggregatedExerciseNote } from "@/lib/exercise-notes";
 
 /* ── ClientRecordShell — the client-side wrapper that composes the new
    single-screen, no-tabs client record layout. Wrapped in DrawerManager
@@ -92,6 +94,10 @@ interface ClientRecordShellProps {
   updateIntervalNextDate: string | null;
   lastSentAt: string | null;
   currentUserName: string | null;
+  /* Profile drawer merged notes panel (CR-EF-098) */
+  sessionNotes: SessionNoteData[];
+  exerciseNotes: AggregatedExerciseNote[];
+  pinnedNoteRefs: PinnedNoteRef[];
 }
 
 export function ClientRecordShell({
@@ -162,6 +168,9 @@ export function ClientRecordShell({
   updateIntervalNextDate,
   lastSentAt,
   currentUserName,
+  sessionNotes,
+  exerciseNotes,
+  pinnedNoteRefs,
 }: ClientRecordShellProps) {
   const latestBlock = latestBlockProp;
 
@@ -255,6 +264,7 @@ export function ClientRecordShell({
           blockDateRangeLabel={blockDateRangeLabel}
           exerciseTrendSummary={exerciseTrendSummary}
           trainerizeHistory={trainerizeHistory}
+          sessionsRemaining={sessionsRemaining}
           standingRules={
             isHomeTraining
               ? (trainingRules ?? []).map((r) => ({
@@ -314,6 +324,9 @@ export function ClientRecordShell({
         updateIntervalNextDate={updateIntervalNextDate}
         lastSentAt={lastSentAt}
         currentUserName={currentUserName}
+        sessionNotes={sessionNotes}
+        exerciseNotes={exerciseNotes}
+        pinnedNoteRefs={pinnedNoteRefs}
       />
     </DrawerManager>
   );

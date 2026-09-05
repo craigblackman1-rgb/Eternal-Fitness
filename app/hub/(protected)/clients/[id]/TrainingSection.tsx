@@ -5,6 +5,7 @@ import { useDrawerManager } from "./DrawerManager";
 import { BlockMap } from "./BlockMap";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { blockDisplayName } from "@/lib/block-name";
+import { SupplementaryWorkoutsCard } from "@/components/hub/SupplementaryWorkoutsCard";
 import type { DBBlock, DBSession } from "@/types";
 
 /* ── TrainingSection — the "training spine" from the mockup. Four bands:
@@ -59,6 +60,7 @@ interface TrainingSectionProps {
    *  behind the Health drawer, because a rule she does not open is a rule that
    *  does not apply. Empty for studio clients, where they stay in the drawer. */
   standingRules?: { id: string; label: string | null; detail: string }[];
+  sessionsRemaining: number | null;
 }
 
 export function TrainingSection({
@@ -77,9 +79,9 @@ export function TrainingSection({
   exerciseTrendSummary,
   trainerizeHistory,
   standingRules = [],
+  sessionsRemaining,
 }: TrainingSectionProps) {
   const { openDrawer, openWorkoutDrawer } = useDrawerManager();
-  const firstName = clientName.split(" ")[0];
 
   // Find the next upcoming (not-yet-completed) session in the latest block
   const nextSession = (() => {
@@ -322,15 +324,17 @@ export function TrainingSection({
           </div>
         )}
 
-        {/* ── Supplementary work note ── */}
-        <div className="flex items-center gap-2.5 py-2 px-3 text-[13px] text-[var(--color-muted)]">
-          <span className="w-[7px] h-[7px] rounded-pill bg-[var(--color-muted)]" />
-          <span>
-            Nothing runs alongside {firstName}&apos;s sessions.{" "}
-            <button className="text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit]">
-              Add supplementary work
-            </button>
-          </span>
+        {/* ── Supplementary work ── replaces a static "Nothing runs
+            alongside…" note whose "Add supplementary work" button had no
+            onClick — it could not do the one thing it claimed to offer.
+            SupplementaryWorkoutsCard is the live control: add/remove
+            templates attached to every session, without using one. */}
+        <div className="mb-3">
+          <SupplementaryWorkoutsCard
+            clientNumber={clientNumber}
+            clientName={clientName}
+            sessionsRemaining={sessionsRemaining}
+          />
         </div>
 
         {/* ── So far band ── */}

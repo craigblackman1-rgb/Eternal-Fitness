@@ -22,14 +22,17 @@ type Fields = Pick<
   | "client_rate"
   | "payment_method"
   | "payment_status"
-  | "block_expiry_date"
   | "client_status"
   | "referral_source"
 >;
 
 interface PackagePaymentsCardProps {
   clientId: string;
-  initial: Fields;
+  /* block_expiry_date is read here but never edited by this card — the
+     Arrangement drawer's GracePeriodExtension is the sole editor (it logs an
+     extension history, which this card has no way to do), so this card would
+     otherwise be a second, unaudited way to change the same field. */
+  initial: Fields & { block_expiry_date: string | null };
 }
 
 const paymentTone: Record<PaymentStatus, string> = {
@@ -66,7 +69,12 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
 
   const save = async () => {
     setSaving(true);
-    const payload: Fields = { ...form, sessions_remaining: derivedRemaining ?? null };
+    // `form` was seeded from `initial`, which carries block_expiry_date at
+    // runtime even though the Fields type no longer declares it (see the
+    // props comment) — strip it explicitly so a stale value from whenever
+    // this card mounted can never overwrite what GracePeriodExtension wrote.
+    const { block_expiry_date: _omit, ...formWithoutExpiry } = form as Fields & { block_expiry_date?: string | null };
+    const payload: Fields = { ...formWithoutExpiry, sessions_remaining: derivedRemaining ?? null };
     const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -121,9 +129,9 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
               <Field label="Client rate (£)">
                 <Input type="number" step="0.01" value={form.client_rate ?? ""} onChange={(e) => set("client_rate", e.target.value ? parseFloat(e.target.value) : null)} placeholder="Standard" className="h-9" />
               </Field>
-              <Field label="Block expiry">
-                <Input type="date" value={form.block_expiry_date ?? ""} onChange={(e) => set("block_expiry_date", e.target.value || null)} className="h-9" />
-              </Field>
+              {/* Block expiry is edited only via GracePeriodExtension below,
+                  which keeps an audited extension history — not duplicated
+                  here as a second, unaudited way to change the same date. */}
               <Field label="Sessions purchased">
                 <Input type="number" value={form.sessions_purchased ?? ""} onChange={(e) => set("sessions_purchased", e.target.value ? parseInt(e.target.value) : null)} className="h-9" />
               </Field>

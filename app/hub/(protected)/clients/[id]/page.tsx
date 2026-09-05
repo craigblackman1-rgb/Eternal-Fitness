@@ -8,6 +8,7 @@ import { lookupStatus } from "@/lib/hubStatus";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
 import { toIsoTimestamp } from "@/lib/pg-timestamp";
+import { aggregateExerciseNotes } from "@/lib/exercise-notes";
 import type { SessionNoteData, PinnedNoteRef, DBSession, SetLog } from "@/types";
 import { ClientRecordShell } from "./ClientRecordShell";
 import type { TrainerizeHistoryData } from "@/components/hub";
@@ -142,6 +143,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         author: "Esther Fair",
       };
     });
+
+  // CR-EF-098 — exercise-level notes for the same merged notes panel. Was
+  // computed nowhere on this page: the panel's props were never threaded
+  // through page.tsx -> ClientRecordShell -> ClientDrawers, so the client
+  // record's "Your notes" fcard rendered only the plain client_notes table
+  // and profile.notes, missing session notes and exercise notes entirely.
+  const exerciseNotes = aggregateExerciseNotes(sessions ?? []);
 
   const pinnedNoteRefs: PinnedNoteRef[] = Array.isArray(
     (client as Record<string, unknown>).pinned_note_refs,
@@ -623,6 +631,9 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       updateIntervalNextDate={(client as any).update_interval_next_date ?? null}
       lastSentAt={lastSentAt}
       currentUserName={currentUserName}
+      sessionNotes={sessionNotes}
+      exerciseNotes={exerciseNotes}
+      pinnedNoteRefs={pinnedNoteRefs}
     />
   );
 }
