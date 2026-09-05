@@ -56,12 +56,76 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 const PROFILE_PATCH_KEYS = ["date_of_birth", "goals_primary"] as const;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+// BUG-EF fix — column allow-list. Previously `clients.update(body)` ran with
+// whatever keys the caller sent, so any hub session could write any column
+// on the table (including ones no UI exposes). This is the exhaustive list
+// of columns the shipped hub UI actually edits through this route, plus the
+// two virtual `profile`-nested keys handled below. Enumerated by reading
+// every legitimate PATCH call site as of this fix:
+//   - ClientDrawers.tsx (client record drawers): name, email, phone,
+//     date_of_birth*, referral_source, medical_clearance_status, risk_level,
+//     gp_letter_status, annual_review_due_date, clearance_from,
+//     specialist_name, exercise_modifications, package_type, client_rate,
+//     block_expiry_date, sessions_remaining, delivery_mode, session_duration,
+//     pace_mode, goals_primary*
+//   - clients/[id]/edit/page.tsx (full record editor, linked from
+//     ClientRecordHeader "Edit"): name, email, phone, profile,
+//     compliance_status, outstanding_actions, group_type, pace_mode,
+//     delivery_mode, equipment, resource_visibility, start_date,
+//     band_set_id, package_type
+//   - UpdateIntervalControl.tsx (rendered in CommsTabContent.tsx):
+//     update_interval, update_interval_weeks, update_interval_next_date
+//   (* = virtual profile-nested key, not a real column — see PROFILE_PATCH_KEYS)
+// components/hub/{ClinicalComplianceCard,GpLetterCard,GracePeriodExtension,
+// PackagePaymentsCard}.tsx are NOT imported by any page (dead code) — their
+// fields (e.g. gp_letter_requested_date, gp_letter_received_date,
+// block_expiry_extensions) are deliberately excluded. If one of those
+// components is wired up in future, add its column(s) here at that time.
+const ALLOWED_COLUMNS = new Set<string>([
+  "name",
+  "email",
+  "phone",
+  "referral_source",
+  "medical_clearance_status",
+  "risk_level",
+  "gp_letter_status",
+  "annual_review_due_date",
+  "clearance_from",
+  "specialist_name",
+  "exercise_modifications",
+  "package_type",
+  "client_rate",
+  "block_expiry_date",
+  "sessions_remaining",
+  "delivery_mode",
+  "session_duration",
+  "pace_mode",
+  "profile",
+  "compliance_status",
+  "outstanding_actions",
+  "group_type",
+  "equipment",
+  "resource_visibility",
+  "start_date",
+  "band_set_id",
+  "update_interval",
+  "update_interval_weeks",
+  "update_interval_next_date",
+  ...PROFILE_PATCH_KEYS,
+]);
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
+
+  const offending = Object.keys(body).find((k) => !ALLOWED_COLUMNS.has(k));
+  if (offending) {
+    return NextResponse.json({ error: `Field "${offending}" cannot be edited through this endpoint.` }, { status: 400 });
+  }
+
   if ("equipment" in body) body.equipment = normaliseClientEquipment(body.equipment);
 
   if ("name" in body && (typeof body.name !== "string" || body.name.trim() === "")) {

@@ -29,7 +29,7 @@ export default async function SchedulePage() {
   // 1. Scheduled sessions (on the calendar)
   const { data: sessionRows } = await supabase
     .from("sessions")
-    .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, cancel_reason, status, completed_at")
+    .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, cancel_reason, status, started_at, completed_at")
     .not("scheduled_at", "is", null)
     .order("scheduled_at", { ascending: true });
 
@@ -43,6 +43,7 @@ export default async function SchedulePage() {
     cancelled_at: string | null;
     cancel_reason: string | null;
     status: string | null;
+    started_at: string | null;
     completed_at: string | null;
   }> = sessionRows ?? [];
 
@@ -102,6 +103,7 @@ export default async function SchedulePage() {
           scheduled_at: s.scheduled_at,
           session_log: s.data?.session_log,
         }),
+        startedAt: s.started_at ?? null,
         completedAt: s.completed_at ?? null,
         cancelledAt: s.cancelled_at ?? null,
         cancelReason: s.cancel_reason ?? null,

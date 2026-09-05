@@ -48,6 +48,8 @@ export interface ScheduledEntry {
   durationMinutes: number;
   /** Lifecycle state (CR-EF-037) — the 5-state pill this entry renders. */
   status: SessionStatus;
+  /** When the session was actually started (sessions.started_at). */
+  startedAt: string | null;
   /** When the session was actually completed — may differ from scheduledAt. */
   completedAt: string | null;
   /** When the booking was cancelled. NULL = not cancelled. */

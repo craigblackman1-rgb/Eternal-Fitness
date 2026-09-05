@@ -142,8 +142,7 @@ export function SessionDetail({ entry, now, onComplete }: SessionDetailProps) {
         {/* Timestamps */}
         <ul className="list-none m-0 p-0 border border-[var(--hub-border)] overflow-hidden mb-3" style={{ borderRadius: "var(--r-nested)" }}>
           <StampRow label="Booked for" value={formatStamp(entry.scheduledAt)} set={true} />
-          <StampRow label="Confirmed" value={null} set={false} />
-          <StampRow label="Started" value={null} set={false} />
+          <StampRow label="Started" value={entry.startedAt ? formatStamp(entry.startedAt) : null} set={!!entry.startedAt} />
           <StampRow label="Completed" value={entry.completedAt ? formatStamp(entry.completedAt) : null} set={!!entry.completedAt} />
           <StampRow label="Cancelled" value={entry.cancelledAt ? formatStamp(entry.cancelledAt) : null} set={!!entry.cancelledAt} />
         </ul>
