@@ -8,9 +8,23 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { clientId, blockNote } = await request.json();
+  const { clientId, blockNote, title } = await request.json();
   if (!clientId) {
     return NextResponse.json({ error: "clientId is required" }, { status: 400 });
+  }
+
+  // CR-EF-153 — optional block name at creation time. Same server-side guard
+  // as the PATCH route: trim, cap length, reject non-strings.
+  let cleanTitle: string | null = null;
+  if (title !== undefined && title !== null) {
+    if (typeof title !== "string") {
+      return NextResponse.json({ error: "title must be a string or null" }, { status: 400 });
+    }
+    const trimmed = title.trim();
+    if (trimmed.length > 80) {
+      return NextResponse.json({ error: "title must be 80 characters or fewer" }, { status: 400 });
+    }
+    cleanTitle = trimmed || null;
   }
 
   const { data: client, error: clientError } = await supabase
@@ -39,6 +53,7 @@ export async function POST(request: Request) {
       block_number: blockNumber,
       status: "draft",
       block_note: blockNote || null,
+      title: cleanTitle,
     })
     .select()
     .single();

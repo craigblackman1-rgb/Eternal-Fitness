@@ -66,6 +66,14 @@ interface PreviousBlock {
   sessionCount: number;
   completedCount: number;
   dateRange: string;
+  /**
+   * CR-EF-153 — Esther's title if she set one, otherwise "Block N". Kept as
+   * the ordinal fallback here (rather than the full name+span from
+   * lib/block-name.ts) because this row already shows the precise dateRange
+   * and sessionCount alongside it — a month-precision span too would just
+   * repeat the same information less precisely.
+   */
+  displayName: string;
 }
 
 interface BlockOverviewClientProps {
@@ -75,6 +83,7 @@ interface BlockOverviewClientProps {
     block_note: string | null;
     summary: string | null;
     status: BlockStatus;
+    title: string | null;
   };
   clientId: string;
   blockId: string;
@@ -83,6 +92,8 @@ interface BlockOverviewClientProps {
   blockStatus: BlockStatus;
   approvedAt: string | null;
   blockDateSpanLabel: string;
+  /** CR-EF-153 — computed via lib/block-name.ts, the single source of truth. */
+  blockDisplayNameLabel: string;
   totalSessions: number;
   totalBlockCount: number;
   completedSessions: number;
@@ -129,6 +140,7 @@ export function BlockOverviewClient({
   blockStatus,
   approvedAt: approvedAtInitial,
   blockDateSpanLabel,
+  blockDisplayNameLabel,
   totalSessions,
   totalBlockCount,
   completedSessions,
@@ -244,7 +256,7 @@ export function BlockOverviewClient({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">
-              Block {block.block_number}
+              {blockDisplayNameLabel}
             </h1>
             <StatusBadge status={blockStatusState} />
           </div>
@@ -283,7 +295,7 @@ export function BlockOverviewClient({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <strong className="text-[14.5px] font-bold text-[var(--color-ink)]">
-                  Block {block.block_number}
+                  {blockDisplayNameLabel}
                 </strong>
                 <StatusBadge status={blockStatusState} />
               </div>
@@ -467,7 +479,7 @@ export function BlockOverviewClient({
               >
                 <span className="w-[7px] h-[7px] rounded-full bg-[var(--s-success)] shrink-0" />
                 <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
-                  Block {prevBlock.block_number}
+                  {prevBlock.displayName}
                   <span className="font-normal text-[var(--body)] mx-2">·</span>
                   <span className="font-normal text-[var(--body)]">
                     {prevBlock.sessionCount} sessions · {prevBlock.dateRange} · {prevBlock.status}

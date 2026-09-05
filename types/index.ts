@@ -608,6 +608,8 @@ export interface DBBlock {
   created_at: string;
   approved_at: string | null;
   scheduled_start: string | null;
+  /** CR-EF-153 — Esther's own name for the block; blank falls back to its date span. */
+  title: string | null;
 }
 
 export interface DBSession {

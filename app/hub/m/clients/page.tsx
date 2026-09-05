@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import type { ClientProfile } from "@/types";
 import { buildMedicalFlags } from "@/lib/mobile-client-flags";
+import { blockNameOrSpan } from "@/lib/block-name";
 import { ClientsScreen } from "./ClientsScreen";
 
 export interface MobileClientListItem {
@@ -15,7 +16,7 @@ export interface MobileClientListItem {
   bookedToday: boolean;
   hasFlag: boolean;
   flagCount: number;
-  /** e.g. "Block 3 · 9/12". Null when no block. */
+  /** e.g. "Full-body strength · 9/12" or "Sep–Oct 2026 · 9/12". Null when no block. */
   blockLabel: string | null;
 }
 
@@ -46,6 +47,8 @@ interface BlockRow {
   status: string;
   summary: string | null;
   block_note: string | null;
+  /** CR-EF-153 — Esther's own name for the block; blank falls back to its date span. */
+  title: string | null;
 }
 
 interface SessionRow {
@@ -99,7 +102,7 @@ export default async function MobileClientsPage() {
 
   const { data: blockRows } = await supabase
     .from("blocks")
-    .select("id, client_id, block_number, status, summary, block_note");
+    .select("id, client_id, block_number, status, summary, block_note, title");
   const blocks = (blockRows ?? []) as BlockRow[];
 
   const { data: sessionRows } = await supabase
@@ -154,7 +157,7 @@ export default async function MobileClientsPage() {
         // CR-EF-101 — exclude sub-sessions from block progress: they occupy no slot.
         const potSessions = blockSessions.filter((s) => !s.parent_session_id);
         const done = potSessions.filter((s) => s.data?.session_log?.completed_at).length;
-        blockLabel = `Block ${currentBlock.block_number} · ${done}/${potSessions.length}`;
+        blockLabel = `${blockNameOrSpan(currentBlock, potSessions)} · ${done}/${potSessions.length}`;
       }
 
       const clientSessions = (sessionsByClient.get(client.id) ?? [])

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useDrawerManager } from "./DrawerManager";
 import { BlockMap } from "./BlockMap";
 import { sessionWorkoutName } from "@/lib/session-display";
+import { blockDisplayName } from "@/lib/block-name";
 import type { DBBlock, DBSession } from "@/types";
 
 /* ── TrainingSection — the "training spine" from the mockup. Four bands:
@@ -280,7 +281,7 @@ export function TrainingSection({
               href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
               className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)] no-underline hover:text-[var(--color-rose)]"
             >
-              Block {latestBlock.block_number}
+              {blockDisplayName(latestBlock, blockSessions, blockSessionCounts[latestBlock.block_number] ?? blockSessions.length)}
             </Link>
             <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]">
               {latestBlock.status}
@@ -356,7 +357,7 @@ export function TrainingSection({
                 {block.block_number}
               </span>
               <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
-                Block {block.block_number}
+                {blockDisplayName(block, blockSessionsForCount, blockSessionsForCount.length)}
                 <small className="text-xs font-normal text-[var(--color-body)] ml-2">
                   {blockSessionsForCount.length} sessions · {dateLabel}
                 </small>

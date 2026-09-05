@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
+import { blockDisplayName } from "@/lib/block-name";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
@@ -1054,7 +1055,12 @@ function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
   const workouts = Array.from(workoutMap.values());
 
   return (
-    <DrawerShell id="dw-block" title={`Block ${latestBlock.block_number}`} subtitle={`Every workout in the block`} width="md">
+    <DrawerShell
+      id="dw-block"
+      title={blockDisplayName(latestBlock, blockSessions, blockSessions.filter((s) => !(s as any).parent_session_id).length)}
+      subtitle={`Every workout in the block`}
+      width="md"
+    >
       {workouts.map((w, i) => (
         <button
           key={i}
