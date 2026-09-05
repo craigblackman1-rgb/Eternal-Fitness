@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import { toIsoTimestamp } from "@/lib/pg-timestamp";
 
 export default async function TrainTabPage() {
   const supabase = createClient();
@@ -18,10 +19,10 @@ export default async function TrainTabPage() {
     scheduled_at: string;
   }[];
 
-  // Normalise scheduled_at to strict ISO-8601 so WebKit (iOS Safari) doesn't
-  // render "Invalid Date". Node/V8 parses the raw format correctly.
+  // Normalise to strict ISO-8601 (offset-preserving) so WebKit (iOS Safari)
+  // doesn't render "Invalid Date" — see lib/pg-timestamp.ts.
   for (const s of sessions) {
-    s.scheduled_at = new Date(s.scheduled_at).toISOString();
+    s.scheduled_at = toIsoTimestamp(s.scheduled_at) as string;
   }
 
   const now = new Date();

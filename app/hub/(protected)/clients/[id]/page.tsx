@@ -7,6 +7,7 @@ import { computeComplianceFlags } from "@/lib/compliance";
 import { lookupStatus } from "@/lib/hubStatus";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { trainerizeResultsToSetLogs } from "@/lib/trainerize-adapter";
+import { toIsoTimestamp } from "@/lib/pg-timestamp";
 import type { SessionNoteData, PinnedNoteRef, DBSession, SetLog } from "@/types";
 import { ClientRecordShell } from "./ClientRecordShell";
 import type { TrainerizeHistoryData } from "@/components/hub";
@@ -46,14 +47,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         .limit(50)
     : { data: [] as any[] };
 
-  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
-  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
-  // the client then only ever receives a string every engine agrees on.
+  // Normalise to strict ISO-8601 (offset-preserving) so WebKit (iOS Safari)
+  // doesn't render "Invalid Date" — see lib/pg-timestamp.ts.
   for (const s of sessions ?? []) {
-    if (s.scheduled_at) s.scheduled_at = new Date(s.scheduled_at).toISOString();
-    if (s.completed_at) s.completed_at = new Date(s.completed_at).toISOString();
+    if (s.scheduled_at) s.scheduled_at = toIsoTimestamp(s.scheduled_at) as string;
+    if (s.completed_at) s.completed_at = toIsoTimestamp(s.completed_at) as string;
     const log = s.data?.session_log;
-    if (log?.completed_at) log.completed_at = new Date(log.completed_at).toISOString();
+    if (log?.completed_at) log.completed_at = toIsoTimestamp(log.completed_at) as string;
   }
 
   // Column lists below deliberately exclude each table's `raw_data` JSONB blob

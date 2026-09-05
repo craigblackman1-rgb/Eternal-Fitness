@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { getPool } from "@/lib/pg-client";
+import { toIsoTimestamp } from "@/lib/pg-timestamp";
 import type { SessionVersion } from "@/types";
 
 interface CompletedSessionRow {
@@ -44,9 +45,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
     [clientUuid, exclude],
   );
 
-  // Normalise Postgres TIMESTAMPTZ to strict ISO-8601 so WebKit (iOS Safari)
-  // doesn't render "Invalid Date". Node/V8 parses the raw format correctly;
-  // the client then only ever receives a string every engine agrees on.
+  // Normalise to strict ISO-8601 (offset-preserving) so WebKit (iOS Safari)
+  // doesn't render "Invalid Date" — see lib/pg-timestamp.ts.
   return NextResponse.json(
     res.rows.map((row) => ({
       session_id: row.id,
@@ -55,9 +55,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       week: row.week,
       phase: row.phase,
       archetype: row.archetype,
-      completed_at: row.data.session_log?.completed_at
-        ? new Date(row.data.session_log.completed_at).toISOString()
-        : null,
+      completed_at: toIsoTimestamp(row.data.session_log?.completed_at ?? null),
       versions: row.data.versions ?? {},
     }))
   );

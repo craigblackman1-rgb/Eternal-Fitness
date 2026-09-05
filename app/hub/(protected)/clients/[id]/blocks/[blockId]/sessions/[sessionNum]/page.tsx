@@ -18,7 +18,6 @@ import type { DBSession, SessionLog, SessionVersion, SetLog, Exercise } from "@/
 import type { Band } from "@/lib/bands";
 import type { LastSessionPrefill, PbMetadata } from "@/lib/last-session-data";
 import { SessionEditor } from "./SessionEditor";
-import { SessionWorkoutLog } from "./SessionWorkoutLog";
 import { AddWorkoutDialog } from "../../AddWorkoutDialog";
 import { WorkoutLog } from "@/components/workout/WorkoutLog";
 import { estimateSessionSeconds, formatDurationEstimate } from "@/lib/prescription";

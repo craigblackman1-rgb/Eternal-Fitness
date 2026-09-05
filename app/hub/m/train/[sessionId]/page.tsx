@@ -8,6 +8,7 @@ import { getLastSessionAndPbData } from "@/lib/last-session-data";
 import { backfillExerciseMedia } from "@/lib/exercise-media";
 import { ensureUids } from "@/lib/exercise-ref";
 import { getPool } from "@/lib/pg-client";
+import { toIsoTimestamp } from "@/lib/pg-timestamp";
 import { TrainScreen } from "./TrainScreen";
 
 export default async function TrainSessionPage({ params }: { params: { sessionId: string } }) {
@@ -80,12 +81,9 @@ export default async function TrainSessionPage({ params }: { params: { sessionId
 
   const blockNumber = block?.block_number ?? null;
   const sessionRow = session as DBSession;
-  // Normalise scheduled_at to strict ISO-8601 so WebKit (iOS Safari) doesn't
-  // render "Invalid Date". Node/V8 parses Postgres's raw format correctly;
-  // the client then only ever receives a string every engine agrees on.
-  const scheduledAtISO = sessionRow.scheduled_at
-    ? new Date(sessionRow.scheduled_at).toISOString()
-    : null;
+  // Normalise to strict ISO-8601 (offset-preserving) so WebKit (iOS Safari)
+  // doesn't render "Invalid Date" — see lib/pg-timestamp.ts.
+  const scheduledAtISO = toIsoTimestamp(sessionRow.scheduled_at ?? null);
   let sessionData = sessionRow.data ?? null;
   const sessionLog = sessionData?.session_log ?? null;
   const deliveryMode: DeliveryMode = client?.delivery_mode ?? "studio_1to1";
