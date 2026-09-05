@@ -1,4 +1,6 @@
 import { getPool } from "@/lib/pg-client";
+import { getClientsNeedingAttention } from "@/lib/hub/attention";
+import { getClientsUpdateDueSoon } from "@/lib/updates-due-db";
 import { TodayScreen, type TodaySession, type AlertRow, type TaskRow } from "./TodayScreen";
 
 /* ── S5 Today (design-systems v3/03-today.html) ───────────────────────────
@@ -62,17 +64,9 @@ export default async function HubTodayPage() {
             ORDER BY (t.due_date IS NULL), t.due_date, t.created_at`,
         )
         .then((r) => r.rows),
-      // Clearance / action outstanding — the stored signal, which is what the
-      // old dashboard's "Needs attention" card used.
-      pool
-        .query(
-          `SELECT client_number, name FROM clients
-            WHERE client_status IS DISTINCT FROM 'archived'
-              AND (medical_clearance_status IN ('pending','do_not_train')
-                   OR (outstanding_actions IS NOT NULL AND array_length(outstanding_actions, 1) > 0))
-            ORDER BY name`,
-        )
-        .then((r) => r.rows),
+      // Clearance / action outstanding — the SAME derivation the clients list
+      // uses, so the two screens cannot quote different numbers.
+      getClientsNeedingAttention(),
       // Gone quiet — silence from either side of the logging divide, and only
       // for people who are supposed to be training (a live block).
       pool
@@ -102,16 +96,10 @@ export default async function HubTodayPage() {
         )
         .then((r) => r.rows),
       // Updates due — kept from the old dashboard on purpose (see header note).
-      pool
-        .query(
-          `SELECT client_number, name, update_interval_next_date
-             FROM clients
-            WHERE client_status IS DISTINCT FROM 'archived'
-              AND update_interval_next_date IS NOT NULL
-              AND update_interval_next_date <= (now() + INTERVAL '7 days')
-            ORDER BY update_interval_next_date`,
-        )
-        .then((r) => r.rows),
+      // Uses the real cadence derivation: only 1 client in 22 has a fixed
+      // next-date, so keying off that column alone would leave this
+      // permanently empty while looking present.
+      getClientsUpdateDueSoon(7),
     ]);
 
   const fmtTime = (iso: string) =>
