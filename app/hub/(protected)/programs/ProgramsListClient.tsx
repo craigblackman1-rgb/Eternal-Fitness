@@ -3,13 +3,14 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { HubTable, type HubColumn } from "@/components/hub/HubTable";
 import { HubPageHeader } from "@/components/hub/HubPageHeader";
 import { TokenPill } from "@/components/hub/StatusBadge";
 import { EmptyState } from "@/components/hub/EmptyState";
 import type { DBProgram } from "@/lib/programs/types";
 import type { StatusToken } from "@/lib/hubStatus";
-import { IconTarget, IconPlus, IconUpload } from "@/components/icons";
+import { IconTarget, IconPlus, IconUpload, IconCheck } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 interface ProgramRow extends DBProgram {
@@ -17,14 +18,28 @@ interface ProgramRow extends DBProgram {
   slot_count?: number;
 }
 
+export interface ClientContext {
+  id: string;
+  name: string;
+  client_number: string;
+  active_program_id: string | null;
+}
+
 const statusConfig: Record<string, { token: StatusToken; label: string }> = {
   active: { token: "primary", label: "Active" },
   archived: { token: "neutral", label: "Archived" },
 };
 
-export function ProgramsListClient({ programs }: { programs: ProgramRow[] }) {
+export function ProgramsListClient({
+  programs,
+  clientContext,
+}: {
+  programs: ProgramRow[];
+  clientContext?: ClientContext | null;
+}) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
   const handleNewProgram = async () => {
     setCreating(true);
@@ -39,6 +54,27 @@ export function ProgramsListClient({ programs }: { programs: ProgramRow[] }) {
       router.push(`/hub/programs/${id}`);
     } catch {
       setCreating(false);
+    }
+  };
+
+  const handleApply = async (programId: string) => {
+    if (!clientContext) return;
+    setApplyingId(programId);
+    try {
+      const res = await fetch(`/api/clients/${clientContext.id}/apply-program`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ program_id: programId }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to apply program");
+      }
+      toast.success("Program applied");
+      router.push(`/hub/clients/${clientContext.client_number}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      setApplyingId(null);
     }
   };
 
@@ -96,8 +132,54 @@ export function ProgramsListClient({ programs }: { programs: ProgramRow[] }) {
     },
   ];
 
+  if (clientContext) {
+    columns.push({
+      key: "apply",
+      header: "",
+      render: (row) => {
+        const isApplied = clientContext.active_program_id === row.id;
+        const isApplying = applyingId === row.id;
+        if (isApplied) {
+          return (
+            <span className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
+              <IconCheck className="h-4 w-4" />
+              Applied
+            </span>
+          );
+        }
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={applyingId !== null}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleApply(row.id);
+            }}
+          >
+            {isApplying ? "Applying…" : "Apply"}
+          </Button>
+        );
+      },
+      className: "w-28",
+    });
+  }
+
   return (
     <div className="space-y-4">
+      {clientContext && (
+        <div className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm">
+          Choosing a program for{" "}
+          <Link
+            href={`/hub/clients/${clientContext.client_number}`}
+            className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+          >
+            {clientContext.name}
+          </Link>
+        </div>
+      )}
+
       <HubPageHeader
         title="Programs"
         subtitle="Reusable training programmes with weekly progression"

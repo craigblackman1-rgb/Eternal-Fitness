@@ -8,10 +8,32 @@ interface ProgramRow extends DBProgram {
   slot_count?: number;
 }
 
-export default async function ProgramsPage() {
+export default async function ProgramsPage({
+  searchParams,
+}: {
+  searchParams?: { client?: string };
+}) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/hub/login");
+
+  // Resolve client_number → client UUID + name + active_program_id
+  let clientContext: { id: string; name: string; client_number: string; active_program_id: string | null } | null = null;
+  if (searchParams?.client) {
+    const { data: client } = await supabase
+      .from("clients")
+      .select("id, name, client_number, active_program_id")
+      .eq("client_number", searchParams.client)
+      .single();
+    if (client) {
+      clientContext = {
+        id: client.id,
+        name: client.name,
+        client_number: client.client_number,
+        active_program_id: client.active_program_id,
+      };
+    }
+  }
 
   const PAGE_SIZE = 1000;
   const allPrograms: ProgramRow[] = [];
@@ -46,5 +68,5 @@ export default async function ProgramsPage() {
     slot_count: slotCounts[p.id] || 0,
   }));
 
-  return <ProgramsListClient programs={programs} />;
+  return <ProgramsListClient programs={programs} clientContext={clientContext} />;
 }
