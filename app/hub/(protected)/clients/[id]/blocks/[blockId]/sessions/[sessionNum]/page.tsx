@@ -294,7 +294,7 @@ export default function SessionViewPage({
   );
 
   // Backfill equipment from the exercise library into the session data so
-  // SessionWorkoutLog sees correct equipment for band detection / unit defaults.
+  // WorkoutLog sees correct equipment for band detection / unit defaults.
   const backfilledSession = useMemo(() => {
     if (!session || equipmentByName.size === 0) return session;
     const fill = (exercises: Exercise[]): Exercise[] =>

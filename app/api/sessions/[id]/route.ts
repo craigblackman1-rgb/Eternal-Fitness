@@ -87,7 +87,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   // its own comments call for: nothing has written these columns since, so
   // every session completed after 2026-08-18 was silently drifting back into
   // the exact four-surfaces-disagree bug CR-EF-037 exists to kill. This is
-  // the single place both TrainScreen.tsx and SessionWorkoutLog.tsx's
+  // the single place both TrainScreen.tsx and WorkoutLog.tsx's
   // handleComplete already PATCH through — no frontend change needed.
   // Precedence matches the migration's backfill: cancelled beats completed.
   const incomingData = update.data as { session_log?: { completed_at?: string | null } } | undefined;
