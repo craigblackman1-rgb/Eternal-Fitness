@@ -19,4 +19,14 @@ export { OutlookBookingsBadge, useOutlookTriageCount } from "./OutlookBookingsBa
 export { OutlookReconciliationTabs } from "./OutlookReconciliationTabs";
 export { ClientBookingPanel } from "./ClientBookingPanel";
 export { BlockPickerDialog } from "./BlockPickerDialog";
-export type { TrainerizeHistoryData, TrainerizeBlock, TrainerizeWorkout, TrainerizeExercise, TrainerizeNote } from "./types";
+export type {
+  TrainerizeHistoryData,
+  TrainerizeBlock,
+  TrainerizeWorkout,
+  TrainerizeExercise,
+  TrainerizeNote,
+  TrainerizePerformedWorkoutSummary,
+  TrainerizePerformedExerciseSummary,
+  TrainerizePerformedExerciseDetail,
+  TrainerizePerformedSet,
+} from "./types";

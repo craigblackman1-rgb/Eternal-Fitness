@@ -8,6 +8,11 @@ import { blockDisplayName } from "@/lib/block-name";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
+import type {
+  TrainerizeHistoryData,
+  TrainerizePerformedWorkoutSummary,
+  TrainerizePerformedExerciseDetail,
+} from "@/components/hub";
 
 /* ── ClientDrawers — real drawer content for the five reference doors plus
    the training content drawers. Each drawer receives data threaded from
@@ -38,7 +43,7 @@ interface ClientDrawersProps {
     belowBestCount: number;
     recentNotes: string | null;
   };
-  trainerizeHistory: { blocks: any[]; notes: any[] };
+  trainerizeHistory: TrainerizeHistoryData;
   ruleTypesById: Map<string, any>;
   complianceLookup: any;
   gpClearance: any;
@@ -1194,53 +1199,222 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary }: {
    PRE-APP — Trainerize import history (read-only)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function PreAppDrawer({ trainerizeHistory }: { trainerizeHistory: { blocks: any[]; notes: any[] } }) {
-  const tBlocks = trainerizeHistory.blocks ?? [];
-  const totalSessions = tBlocks.reduce((sum: number, b: any) => sum + (b.workouts?.length ?? 0), 0);
+function sourceLabel(source: string): string {
+  switch (source) {
+    case "message": return "Message";
+    case "attention": return "Attention flag";
+    case "program_instruction": return "Block note";
+    case "workout_instruction": return "Workout note";
+    default: return source;
+  }
+}
 
-  // Date range
+/** One logged workout row inside an expanded block (or the "Outside any
+ * block" bucket) \u2014 collapsed to a summary line until clicked, at which point
+ * it lazy-fetches the real per-set detail so the drawer never has to hold
+ * (or render) every set for every workout at once. */
+function PerformedWorkoutRow({
+  workout,
+  clientNumber,
+  isOpen,
+  onToggle,
+  detail,
+}: {
+  workout: TrainerizePerformedWorkoutSummary;
+  clientNumber: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  detail: TrainerizePerformedExerciseDetail[] | "loading" | "error" | undefined;
+}) {
+  const exerciseCount = workout.exercises.length;
+  return (
+    <div>
+      <button type="button" className="srow" style={{ paddingLeft: 30 }} onClick={onToggle}>
+        <span className="srow-d" style={{ width: 18, fontSize: 12 }}>{isOpen ? "\u25be" : "\u25b8"}</span>
+        <span className="srow-w">
+          {workout.workoutName || "Workout"}
+          <small>
+            {fmtShortDate(workout.performedDate)} \u00b7 {exerciseCount} exercise{exerciseCount !== 1 ? "s" : ""} \u00b7 {workout.setCount} set{workout.setCount !== 1 ? "s" : ""}
+          </small>
+        </span>
+      </button>
+      {isOpen && (
+        <div className="fcard-b pad rounded-control-sm" style={{ background: "var(--hub-hover)", borderBottom: "1px solid var(--hub-border)", marginLeft: 18 }}>
+          {detail === "loading" && <p className="miss" style={{ margin: 0 }}>Loading sets\u2026</p>}
+          {detail === "error" && <p className="miss" style={{ margin: 0 }}>Couldn&rsquo;t load this workout&rsquo;s sets.</p>}
+          {Array.isArray(detail) && detail.length === 0 && (
+            <p className="miss" style={{ margin: 0 }}>No sets recorded for this workout.</p>
+          )}
+          {Array.isArray(detail) && detail.map((ex, i) => (
+            <div key={i} style={{ marginBottom: i < detail.length - 1 ? 10 : 0 }}>
+              <p className="fk" style={{ margin: "0 0 4px", fontWeight: 700, color: "var(--color-ink)" }}>{ex.name}</p>
+              <table className="ptab">
+                <thead>
+                  <tr><th>Set</th><th>Reps</th><th>Weight</th><th>RPE</th></tr>
+                </thead>
+                <tbody>
+                  {ex.sets.map((s, si) => (
+                    <tr key={si}>
+                      <td className="n">{s.setNumber}</td>
+                      <td className="n">{s.reps ?? "\u2014"}</td>
+                      <td className="n">{s.weightKg != null ? `${s.weightKg}kg` : "\u2014"}</td>
+                      <td className="n">{s.rpe ?? "\u2014"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PreAppDrawer({ trainerizeHistory, clientNumber }: { trainerizeHistory: TrainerizeHistoryData; clientNumber: number }) {
+  const tBlocks = trainerizeHistory.blocks ?? [];
+  const unmatched = trainerizeHistory.unmatchedPerformedWorkouts ?? [];
+  const notes = trainerizeHistory.notes ?? [];
+
+  // "Sessions" is the count of workouts Esther's clients actually logged
+  // (trainerize_workout_results), not the number of prescribed workout
+  // templates in the program \u2014 the two can differ, and the real count is
+  // what matters for "has this client got a history to review".
+  const totalSessions = tBlocks.reduce((sum, b) => sum + (b.performedWorkouts?.length ?? 0), 0) + unmatched.length;
+  const hasHistory = tBlocks.length > 0 || unmatched.length > 0 || notes.length > 0;
+
   const allDates: string[] = [];
   for (const b of tBlocks) {
     if (b.start_date) allDates.push(b.start_date);
     if (b.end_date) allDates.push(b.end_date);
   }
+  for (const w of unmatched) if (w.performedDate) allDates.push(w.performedDate);
   const sortedDates = allDates.sort();
   const periodStart = sortedDates.length > 0 ? sortedDates[0] : null;
   const periodEnd = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
 
+  const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null);
+  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [detailCache, setDetailCache] = useState<Record<string, TrainerizePerformedExerciseDetail[] | "loading" | "error">>({});
+
+  const toggleWorkout = (workoutId: string) => {
+    if (expandedWorkoutId === workoutId) {
+      setExpandedWorkoutId(null);
+      return;
+    }
+    setExpandedWorkoutId(workoutId);
+    if (detailCache[workoutId]) return;
+    setDetailCache((c) => ({ ...c, [workoutId]: "loading" }));
+    fetch(`/api/clients/${clientNumber}/trainerize-workout/${workoutId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        return res.json();
+      })
+      .then((json) => setDetailCache((c) => ({ ...c, [workoutId]: json.exercises ?? [] })))
+      .catch(() => setDetailCache((c) => ({ ...c, [workoutId]: "error" })));
+  };
+
+  const renderPerformedList = (workouts: TrainerizePerformedWorkoutSummary[]) =>
+    workouts.map((w) => (
+      <PerformedWorkoutRow
+        key={w.id}
+        workout={w}
+        clientNumber={clientNumber}
+        isOpen={expandedWorkoutId === w.id}
+        onToggle={() => toggleWorkout(w.id)}
+        detail={detailCache[w.id]}
+      />
+    ));
+
   return (
-    <DrawerShell id="dw-preapp" title="Before the app" subtitle={`${totalSessions} sessions imported from Trainerize \u00b7 read-only`} width="md">
-      {tBlocks.length > 0 ? (
+    <DrawerShell id="dw-preapp" title="Before the app" subtitle={`${totalSessions} session${totalSessions !== 1 ? "s" : ""} imported from Trainerize \u00b7 read-only`} width="md">
+      {hasHistory ? (
         <>
           <div className="fcard acc-ink">
             <div className="fcard-h">Imported</div>
             <div className="fcard-b">
               <div className="fgrid">
                 <div className="frow"><span className="fk">Period</span><span className="fv num">{periodStart && periodEnd ? `${fmtShortDate(periodStart)} \u2013 ${fmtShortDate(periodEnd)}` : "\u2014"}</span></div>
+                <div className="frow"><span className="fk">Blocks</span><span className="fv num">{tBlocks.length}</span></div>
                 <div className="frow"><span className="fk">Sessions</span><span className="fv num">{totalSessions}</span></div>
+                <div className="frow"><span className="fk">Notes</span><span className="fv num">{notes.length}</span></div>
               </div>
             </div>
           </div>
 
-          <p className="dw-h">Sessions</p>
-          {tBlocks.map((b: any) => {
-            const workoutCount = b.workouts?.length ?? 0;
-            return (
-              <div key={b.id} className="drow">
-                <span className="drow-m">
-                  {b.name || `Block`}
-                  <small>
-                    {b.start_date && b.end_date
-                      ? `${fmtShortDate(b.start_date)} \u2013 ${fmtShortDate(b.end_date)}`
-                      : b.start_date
-                        ? `From ${fmtShortDate(b.start_date)}`
-                        : ""}
-                    {workoutCount > 0 ? ` \u00b7 ${workoutCount} session${workoutCount !== 1 ? "s" : ""}` : ""}
-                  </small>
-                </span>
-              </div>
-            );
-          })}
+          {tBlocks.length > 0 && (
+            <>
+              <p className="dw-h">Training blocks \u2014 tap to see sessions</p>
+              {tBlocks.map((b) => {
+                const isOpen = expandedBlockId === b.id;
+                const performed = b.performedWorkouts ?? [];
+                return (
+                  <div key={b.id}>
+                    <button
+                      type="button"
+                      className="srow"
+                      onClick={() => setExpandedBlockId(isOpen ? null : b.id)}
+                    >
+                      <span className="srow-d" style={{ width: 18, fontSize: 13 }}>{isOpen ? "\u25be" : "\u25b8"}</span>
+                      <span className="srow-w">
+                        {b.phase_name || "Block"}
+                        <small>
+                          {b.start_date && b.end_date
+                            ? `${fmtShortDate(b.start_date)} \u2013 ${fmtShortDate(b.end_date)}`
+                            : b.start_date
+                              ? `From ${fmtShortDate(b.start_date)}`
+                              : "Not dated"}
+                          {" \u00b7 "}
+                          {performed.length > 0 ? `${performed.length} session${performed.length !== 1 ? "s" : ""} performed` : "no sessions logged"}
+                        </small>
+                      </span>
+                    </button>
+                    {isOpen && (
+                      performed.length > 0
+                        ? renderPerformedList(performed)
+                        : <p className="miss" style={{ padding: "10px 0 10px 30px", margin: 0 }}>No logged sessions fell inside this block&rsquo;s dates.</p>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {unmatched.length > 0 && (
+            <>
+              <p className="dw-h">Outside any block</p>
+              <p className="miss" style={{ margin: "0 0 8px" }}>
+                {unmatched.length} logged session{unmatched.length !== 1 ? "s" : ""} from before this client&rsquo;s first imported block.
+              </p>
+              {renderPerformedList(unmatched)}
+            </>
+          )}
+
+          <button
+            type="button"
+            className="dw-h"
+            style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, font: "inherit" }}
+            onClick={() => setNotesOpen((v) => !v)}
+          >
+            <span style={{ fontSize: 11 }}>{notesOpen ? "\u25be" : "\u25b8"}</span>
+            Notes ({notes.length})
+          </button>
+          {notesOpen && (
+            notes.length > 0 ? (
+              notes.map((n) => (
+                <div key={n.id} className="drow">
+                  <span className="drow-m">
+                    {sourceLabel(n.source)}{n.sender_name ? ` \u00b7 ${n.sender_name}` : ""}
+                    <small style={{ whiteSpace: "pre-wrap" }}>{n.content}</small>
+                  </span>
+                  <span className="fk num" style={{ minWidth: 0, flexShrink: 0 }}>{fmtShortDate(n.source_date)}</span>
+                </div>
+              ))
+            ) : (
+              <p className="miss">No notes or messages imported.</p>
+            )
+          )}
 
           <p className="miss" style={{ margin: "14px 0 0" }}>
             Imported history cannot be edited and does not count toward the session pot.
@@ -1320,6 +1494,7 @@ export function ClientDrawers(props: ClientDrawersProps) {
       />
       <PreAppDrawer
         trainerizeHistory={props.trainerizeHistory}
+        clientNumber={props.client.client_number}
       />
     </>
   );

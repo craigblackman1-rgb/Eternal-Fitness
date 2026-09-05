@@ -9,6 +9,7 @@ import { ClientDrawers } from "./ClientDrawers";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
+import type { TrainerizeHistoryData } from "@/components/hub";
 
 /* ── ClientRecordShell — the client-side wrapper that composes the new
    single-screen, no-tabs client record layout. Wrapped in DrawerManager
@@ -21,7 +22,7 @@ interface ClientRecordShellProps {
   blockSessionCounts: Record<number, number>;
   blockCompletedCounts: Record<number, number>;
   blockDateRangeLabel: string;
-  trainerizeHistory: { blocks: any[]; notes: any[] };
+  trainerizeHistory: TrainerizeHistoryData;
   pendingTaskCount: number;
   draftBlockCount: number;
   undatedSessionCount: number;
