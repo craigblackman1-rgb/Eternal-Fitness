@@ -241,7 +241,7 @@ export function normaliseProgramJson(raw: unknown): ParsedProgram {
  * Returns null if no workout headings are found (caller should fall back to whole-text parse).
  */
 export function chunkWorkouts(text: string): { label: string; chunk: string }[] | null {
-  const headingRe = /^\s*workout\s+[A-Z0-9]+(?:\b[^]*)$/gim;
+  const headingRe = /^\s*workout\s+([A-Z0-9]+)\b[^\n]*$/gim;
   const matches = [...text.matchAll(headingRe)];
   if (matches.length < 2) return null;
 
@@ -250,8 +250,8 @@ export function chunkWorkouts(text: string): { label: string; chunk: string }[] 
     const start = matches[i].index!;
     const end = i + 1 < matches.length ? matches[i + 1].index! : text.length;
     const chunk = text.slice(start, end).trim();
-    const labelMatch = matches[i][0].match(/workout\s+([A-Z0-9]+)/i);
-    const label = labelMatch ? `Workout ${labelMatch[1]}` : `Workout ${i + 1}`;
+    const labelRaw = matches[i][1] || String(i + 1);
+    const label = `Workout ${labelRaw}`;
     chunks.push({ label, chunk });
   }
   return chunks;
@@ -261,10 +261,10 @@ export function chunkWorkouts(text: string): { label: string; chunk: string }[] 
  * Parse one chunk (a single workout) with its own AI call.
  * Returns the slot object on success, null on failure.
  */
-async function parseSlotChunk(chunk: string, label: string, model: string): Promise<ParsedSlot | null> {
+async function parseSlotChunk(chunk: string, label: string, model: string, timeoutMs?: number): Promise<ParsedSlot | null> {
   let raw: string | null;
   try {
-    raw = await aiChat({ system: SLOT_SYSTEM, user: chunk, maxTokens: 6000, model, temperature: 0.2 });
+    raw = await aiChat({ system: SLOT_SYSTEM, user: chunk, maxTokens: 6000, model, temperature: 0.2, timeoutMs: timeoutMs ?? 90_000 });
   } catch {
     return null;
   }
@@ -289,6 +289,7 @@ async function parseSlotChunk(chunk: string, label: string, model: string): Prom
         maxTokens: 6000,
         model,
         temperature: 0.2,
+        timeoutMs: timeoutMs ?? 90_000,
       });
       if (repaired) parsed = extractJson(repaired);
     } catch {
@@ -387,7 +388,7 @@ export async function parseProgram(text: string): Promise<ParsedProgram | null> 
   const chunks = chunkWorkouts(text);
   if (chunks && chunks.length >= 2) {
     const slotResults = await Promise.all(
-      chunks.map(({ chunk, label }) => parseSlotChunk(chunk, label, model)),
+      chunks.map(({ chunk, label }) => parseSlotChunk(chunk, label, model, 90_000)),
     );
 
     const slots = slotResults.filter((s): s is ParsedSlot => s !== null);
@@ -401,7 +402,7 @@ export async function parseProgram(text: string): Promise<ParsedProgram | null> 
   // Whole-text fallback (original single-call parse)
   let raw: string | null;
   try {
-    raw = await aiChat({ system: SYSTEM, user: text, maxTokens: 12000, model, temperature: 0.2 });
+    raw = await aiChat({ system: SYSTEM, user: text, maxTokens: 12000, model, temperature: 0.2, timeoutMs: 150_000 });
   } catch (err) {
     const detail = err instanceof Error ? err.message.slice(0, 300) : "unknown error";
     throw new Error(`AI call failed: ${detail}`);
@@ -434,6 +435,7 @@ export async function parseProgram(text: string): Promise<ParsedProgram | null> 
         maxTokens: 12000,
         model,
         temperature: 0.2,
+        timeoutMs: 150_000,
       });
     } catch {
       // fall through

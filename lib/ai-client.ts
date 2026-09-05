@@ -64,6 +64,8 @@ export interface ChatRequest {
   temperature?: number;
   /** Override the configured model for this call (provider-appropriate id). */
   model?: string;
+  /** Abort fetch after this many ms (default: 120 000). */
+  timeoutMs?: number;
 }
 
 function toMessages(req: ChatRequest): ChatMessage[] {
@@ -102,26 +104,37 @@ async function openRouterChat(
 ): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY!;
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://eternal-fitness.co.uk",
-      "X-Title": "Eternal Fitness",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: req.system },
-        ...toMessages(req),
-      ],
-      max_tokens: req.maxTokens ?? 4000,
-      temperature: req.temperature ?? 0.5,
-      // See openRouterChatStream — avoid Bedrock's silent content-filter drops.
-      provider: { order: ["Anthropic"], allow_fallbacks: true },
-    }),
-  });
+  const timeoutMs = req.timeoutMs ?? 120_000;
+
+  let res: Response;
+  try {
+    res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://eternal-fitness.co.uk",
+        "X-Title": "Eternal Fitness",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: req.system },
+          ...toMessages(req),
+        ],
+        max_tokens: req.maxTokens ?? 4000,
+        temperature: req.temperature ?? 0.5,
+        // See openRouterChatStream — avoid Bedrock's silent content-filter drops.
+        provider: { order: ["Anthropic"], allow_fallbacks: true },
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new Error(`AI call timed out after ${Math.round(timeoutMs / 1000)}s`);
+    }
+    throw err;
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -244,13 +257,25 @@ async function claudeChat(
 ): Promise<string> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  const timeoutMs = req.timeoutMs ?? 120_000;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: req.maxTokens ?? 4000,
-    system: toSystemBlocks(req.system),
-    messages: toMessages(req),
-  });
+  let response;
+  try {
+    response = await client.messages.create(
+      {
+        model,
+        max_tokens: req.maxTokens ?? 4000,
+        system: toSystemBlocks(req.system),
+        messages: toMessages(req),
+      },
+      { signal: AbortSignal.timeout(timeoutMs) },
+    );
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new Error(`AI call timed out after ${Math.round(timeoutMs / 1000)}s`);
+    }
+    throw err;
+  }
 
   const text = response.content[0].type === "text" ? response.content[0].text : "";
   if (!text) throw new Error("Claude returned empty response");

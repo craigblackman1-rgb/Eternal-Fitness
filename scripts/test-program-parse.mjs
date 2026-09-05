@@ -181,6 +181,22 @@ const IAN_JSON = {
 // Test runner
 // ─────────────────────────────────────────────────────────────────────
 
+// Replicate chunkWorkouts (mirrors lib/programs/parse.ts)
+function chunkWorkouts(text) {
+  const headingRe = /^\s*workout\s+([A-Z0-9]+)\b[^\n]*$/gim;
+  const matches = [...text.matchAll(headingRe)];
+  if (matches.length < 2) return null;
+  const chunks = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].index;
+    const end = i + 1 < matches.length ? matches[i + 1].index : text.length;
+    const chunk = text.slice(start, end).trim();
+    const labelRaw = matches[i][1] || String(i + 1);
+    chunks.push({ label: `Workout ${labelRaw}`, chunk });
+  }
+  return chunks;
+}
+
 let passed = 0;
 let failed = 0;
 
@@ -261,6 +277,19 @@ if (cB && cA) eq(cB.exercises.length, cA.exercises.length, "slot B cooldown same
 // 9. Slot B supersets
 const supsB = sB.data.sections.filter((s) => s.kind === "superset");
 eq(supsB.length, 4, "slot B has 4 supersets");
+
+// 10. Chunking regex splits fixture across newlines
+const chunks = chunkWorkouts(fixture);
+assert(chunks != null, "chunkWorkouts returns chunks for fixture");
+assert(chunks && chunks.length === 2, `chunkWorkouts returns exactly 2 chunks (got ${chunks?.length})`);
+assert(chunks && chunks[0]?.label === "Workout A", `chunk 0 label = "Workout A" (got "${chunks?.[0]?.label}")`);
+assert(chunks && chunks[1]?.label === "Workout B", `chunk 1 label = "Workout B" (got "${chunks?.[1]?.label}")`);
+
+// Inline two-line sample to exercise regex across newlines explicitly
+const twoLine = "WORKOUT A: some stuff\nWORKOUT B: other stuff\n";
+const twoChunks = chunkWorkouts(twoLine);
+assert(twoChunks != null, "chunkWorkouts returns chunks for inline two-line sample");
+assert(twoChunks && twoChunks.length === 2, `inline sample splits into 2 chunks (got ${twoChunks?.length})`);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
