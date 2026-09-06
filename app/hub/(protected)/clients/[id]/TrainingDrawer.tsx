@@ -562,8 +562,8 @@ export function TrainingDrawer({
                                 : isNext
                                   ? "text-[var(--color-rose)]"
                                   : "text-[var(--color-body)]"
-                          } ${cell.dayLabel ? "font-semibold tabular-nums" : "italic"}`}>
-                            {cell.dayLabel || "not booked"}
+                          } ${cell.dayLabel ? "font-semibold tabular-nums" : isDone || isFlag || isBeyond ? "" : "italic"}`}>
+                            {(isDone || isFlag) ? (cell.dayLabel || "done") : isBeyond ? "unscheduled" : (cell.dayLabel || "not booked")}
                           </span>
                           <span className={`text-[11px] leading-tight font-semibold truncate max-w-[120px] ${
                             isBeyond
