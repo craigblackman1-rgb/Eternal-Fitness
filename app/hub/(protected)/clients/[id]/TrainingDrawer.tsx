@@ -104,31 +104,32 @@ function PerformedWorkoutRow({
           {Array.isArray(detail) && detail.length === 0 && (
             <p className="text-[12.5px] text-[var(--color-muted)] px-2.5 py-2">No sets recorded for this workout.</p>
           )}
-          {Array.isArray(detail) && detail.map((ex, i) => (
-            <div key={i} className={i < detail.length - 1 ? "border-b border-[var(--hub-border)]" : ""}>
-              <p className="text-[13px] font-bold text-[var(--color-ink)] px-2.5 pt-2.5 pb-1 m-0">{ex.name}</p>
-              <table className="w-full border-collapse text-[12.5px]">
-                <thead>
-                  <tr>
-                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">Set</th>
-                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">Reps</th>
-                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">Weight</th>
-                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">RPE</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ex.sets.map((s, si) => (
-                    <tr key={si}>
-                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] font-semibold tabular-nums">{s.setNumber}</td>
-                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] tabular-nums">{s.reps ?? "—"}</td>
-                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] tabular-nums">{s.weightKg != null ? `${s.weightKg}kg` : "—"}</td>
-                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] tabular-nums">{s.rpe ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
+          {Array.isArray(detail) && detail.map((ex, i) => {
+            const reps = ex.sets.map((s) => s.reps).filter((r): r is number => r != null);
+            const hasWeight = ex.sets.some((s) => s.weightKg != null);
+            const weights = ex.sets.map((s) => s.weightKg).filter((w): w is number => w != null);
+            const hasDuration = ex.sets.some((s) => s.durationSeconds != null);
+            const durations = ex.sets.map((s) => s.durationSeconds).filter((d): d is number => d != null);
+            const rpes = ex.sets.map((s) => s.rpe).filter((r): r is number => r != null);
+            const nonPlaceholderRpes = rpes.filter((r) => r > 1);
+
+            const unique = <T,>(arr: T[]) => arr.length > 0 && new Set(arr).size === 1;
+            const range = (arr: number[]) =>
+              unique(arr) ? String(arr[0]) : `${Math.min(...arr)}\u2013${Math.max(...arr)}`;
+
+            const parts: string[] = [`${ex.sets.length} sets`];
+            if (reps.length > 0) parts.push(`${range(reps)} reps`);
+            else if (hasDuration) parts.push(unique(durations) ? `${durations[0]}s` : `${Math.min(...durations)}\u2013${Math.max(...durations)}s`);
+            if (weights.length > 0) parts.push(`${range(weights)}kg`);
+            if (nonPlaceholderRpes.length > 0) parts.push(`RPE ${range(nonPlaceholderRpes)}`);
+
+            return (
+              <div key={i} className={`flex items-baseline gap-1.5 px-2.5 py-1.5 ${i < detail.length - 1 ? "border-b border-[var(--hub-border)]" : ""}`}>
+                <span className="text-[12.5px] font-semibold text-[var(--color-ink)] shrink-0">{ex.name}</span>
+                <span className="text-[12px] text-[var(--color-muted)]">{parts.join(" \u00b7 ")}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -475,7 +476,7 @@ export function TrainingDrawer({
       title="Training"
       subtitle={
         programState
-          ? `${clientName} — ${programState.program.name} · ${remaining} of ${totalSessions ?? "?"} paid sessions remaining`
+          ? `${programState.program.name} · ${totalSessions != null ? `${remaining} of ${totalSessions} paid sessions remaining` : "Ongoing"}`
           : latestBlock
             ? `Block ${latestBlock.block_number} · ${blockSessionCounts[latestBlock.block_number] ?? blockSessions.length} sessions`
             : allBlocks.length > 0 ? `${allBlocks.length} blocks` : "No training yet"
