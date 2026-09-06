@@ -280,11 +280,17 @@ export function TrainingSummary({
   );
 }
 
+/** Short display label: "Workout A" → "A", "Workout 1 — ..." → "W1". */
 function slotLabel(slot: { label?: string | null; position: number }): string {
   const label = slot.label?.trim();
   if (label) {
-    const match = label.match(/^([A-Za-z0-9]+)/);
-    return match ? match[1] : label.slice(0, 3);
+    const stripped = label.replace(/^(?:Workout|Warm[\s-]*up)\s+/i, "");
+    const match = stripped.match(/^([A-Za-z0-9]+)/);
+    if (match) {
+      const prefix = /^workout\s/i.test(label) ? "W" : "";
+      return prefix + match[1];
+    }
+    return stripped.slice(0, 3);
   }
   return String.fromCharCode(64 + slot.position);
 }

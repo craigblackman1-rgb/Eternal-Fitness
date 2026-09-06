@@ -12,7 +12,8 @@ import type { DBProgramSlot, SlotData } from "@/lib/programs/types";
 
 interface QueueCell {
   position: number;       // 1-based slot position in the queue
-  slotLabel: string;      // "A", "B", etc.
+  slotLabel: string;      // Short display: "A", "W1", etc.
+  fullLabel: string;      // Full slot label for title/aria: "Workout A", "Workout 1 — ..."
   dayLabel: string;       // "Wed 2", "Fri 4", etc.
   state: "done" | "next" | "flag" | "plain" | "unassigned";
   ariaLabel: string;
@@ -30,15 +31,21 @@ interface ProgramQueueMapProps {
   onCellClick?: (position: number) => void;
 }
 
+/** Short display label for a queue cell: "Workout A" → "A", "Workout 1 — ..." → "W1", "B1" → "B1". */
 function slotLetter(slot: DBProgramSlot): string {
   const label = slot.label?.trim();
   if (label) {
-    // Extract leading letter/number — "Workout A" → "A", "B1" → "B"
-    const match = label.match(/^([A-Za-z0-9]+)/);
-    return match ? match[1] : label.slice(0, 3);
+    // Strip leading generic prefix ("Workout ", "Warm-up ") to expose the real identifier
+    const stripped = label.replace(/^(?:Workout|Warm[\s-]*up)\s+/i, "");
+    const match = stripped.match(/^([A-Za-z0-9]+)/);
+    if (match) {
+      // Prepend "W" if we stripped a "Workout" prefix so "W1" reads as "Workout 1"
+      const prefix = /^workout\s/i.test(label) ? "W" : "";
+      return prefix + match[1];
+    }
+    return stripped.slice(0, 3);
   }
-  // Fallback to position letter
-  return String.fromCharCode(64 + slot.position); // 1→A, 2→B, etc.
+  return String.fromCharCode(64 + slot.position);
 }
 
 function fmtDayShort(iso: string | null): string {
@@ -79,12 +86,15 @@ export function ProgramQueueMap({
     const scheduled = scheduledByPosition[queueIndex];
     const dayLabel = scheduled ? fmtDayShort(scheduled.scheduledAt) : "";
 
+    const fullLabel = slot?.label?.trim() || slotLabel;
+
     cells.push({
       position: queueIndex,
       slotLabel,
+      fullLabel,
       dayLabel,
       state,
-      ariaLabel: `${dayLabel ? `${dayLabel}, ` : ""}workout ${slotLabel}${state === "next" ? ", next session" : ""}${state === "flag" ? ", completed with no sets logged" : ""}`,
+      ariaLabel: `${dayLabel ? `${dayLabel}, ` : ""}${fullLabel}${state === "next" ? ", next session" : ""}${state === "flag" ? ", completed with no sets logged" : ""}`,
     });
   }
 
@@ -99,6 +109,7 @@ export function ProgramQueueMap({
               key={cell.position}
               type="button"
               aria-label={cell.ariaLabel}
+              title={cell.fullLabel}
               onClick={() => onCellClick?.(cell.position)}
               className={`
                 w-[60px] h-[42px] shrink-0 border rounded-control bg-white

@@ -252,6 +252,8 @@ export function TrainingDrawer({
   const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null);
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [showAllSessions, setShowAllSessions] = useState(false);
+  const [showAllPast, setShowAllPast] = useState(false);
   const [detailCache, setDetailCache] = useState<Record<string, TrainerizePerformedExerciseDetail[] | "loading" | "error">>({});
 
   const toggleWorkout = (workoutId: string) => {
@@ -406,10 +408,8 @@ export function TrainingDrawer({
       {/* ── Program queue map ── */}
       {programState && totalQueueSlots > 0 && (
         <div className="mb-3">
-          <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
-            <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
-              Program queue
-            </h3>
+          <div className="flex items-baseline gap-2.5 flex-wrap">
+            <p className="dw-h" style={{ margin: 0 }}>Program queue</p>
             <span className="text-xs text-[var(--color-body)]">
               {totalQueueSlots} slots · consumed only by completed sessions, in order
             </span>
@@ -454,12 +454,8 @@ export function TrainingDrawer({
       {/* ── Scheduled sessions ── */}
       {scheduledSessions.length > 0 && (
         <div className="mb-3">
-          <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
-            <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
-              Scheduled sessions
-            </h3>
-          </div>
-          {scheduledSessions.map((s) => (
+          <p className="dw-h">Scheduled sessions</p>
+          {(showAllSessions ? scheduledSessions : scheduledSessions.slice(0, 5)).map((s) => (
             <div
               key={s.id}
               className="flex items-center gap-3 py-[9px] px-3 rounded-nested border border-transparent w-full text-left font-[inherit]"
@@ -485,6 +481,15 @@ export function TrainingDrawer({
               </span>
             </div>
           ))}
+          {scheduledSessions.length > 5 && !showAllSessions && (
+            <button
+              type="button"
+              onClick={() => setShowAllSessions(true)}
+              className="w-full py-2 mt-1 text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-[inherit]"
+            >
+              Show all {scheduledSessions.length} sessions
+            </button>
+          )}
         </div>
       )}
 
@@ -511,10 +516,8 @@ export function TrainingDrawer({
 
       {/* ── Supplementary work ── */}
       <div className="mb-3">
-        <div className="flex items-baseline gap-2.5 flex-wrap mb-1.5">
-          <h3 className="m-0 text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--color-ink)]">
-            Supplementary
-          </h3>
+        <div className="flex items-baseline gap-2.5 flex-wrap">
+          <p className="dw-h" style={{ margin: 0 }}>Supplementary</p>
           <span className="text-xs text-[var(--color-body)]">
             Runs alongside the program. Never consumes a slot or a paid session.
           </span>
@@ -530,7 +533,7 @@ export function TrainingDrawer({
       {pastBlocks.length > 0 && (
         <div className="mb-3">
           <p className="dw-h">Past programs</p>
-          {pastBlocks.map((block) => {
+          {(showAllPast ? pastBlocks : pastBlocks.slice(0, 4)).map((block) => {
             const blockSessionsForCount = allSessions.filter(
               (s) => s.block_id === block.id && !s.parent_session_id
             );
@@ -580,6 +583,15 @@ export function TrainingDrawer({
               </div>
             );
           })}
+          {pastBlocks.length > 4 && !showAllPast && (
+            <button
+              type="button"
+              onClick={() => setShowAllPast(true)}
+              className="w-full py-2 mt-1 text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-[inherit]"
+            >
+              Show all {pastBlocks.length} past programs
+            </button>
+          )}
         </div>
       )}
 
