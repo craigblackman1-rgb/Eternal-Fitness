@@ -105,11 +105,6 @@ export function UpdateIntervalControl({
   return (
     <div
       className="flex items-center gap-3 flex-wrap"
-      style={{
-        marginTop: 14,
-        paddingTop: 14,
-        borderTop: "1px solid var(--hub-border)",
-      }}
     >
       <span
         className="text-xs text-muted-foreground whitespace-nowrap"

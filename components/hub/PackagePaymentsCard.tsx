@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HubCardHeader } from "@/components/hub/HubCardHeader";
-import { IconCheckCircle, IconClipboardList, IconPencil, IconX } from "@/components/icons";
+import { IconCheckCircle, IconPencil, IconX } from "@/components/icons";
 import { toast } from "sonner";
 import type { ClientStatus, DBClient, Package, PaymentStatus } from "@/types";
 
@@ -96,17 +94,20 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
   };
 
   return (
-    <Card className="bg-[var(--hub-card)] rounded-surface border border-[var(--hub-border)] shadow-sm">
-      <div className="flex items-center justify-between pr-4">
-        <HubCardHeader icon={<IconClipboardList className="w-4 h-4" />} title="Package & Payments" color="amber" />
+    <div className="fcard acc-ink">
+      <div className="fcard-h">
+        <span>Package &amp; Payments</span>
         {!editing && (
-          <Button variant="ghost" size="sm" onClick={() => setEditing(true)} className="h-7 gap-1.5 text-xs text-muted-foreground">
-            <IconPencil className="h-3.5 w-3.5" />
+          <button
+            onClick={() => setEditing(true)}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] px-2.5 py-1 text-[12px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+          >
+            <IconPencil className="h-3 w-3" />
             Edit
-          </Button>
+          </button>
         )}
       </div>
-      <CardContent className="pt-4 pb-5 px-5">
+      <div className="fcard-b">
         {editing ? (
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-3">
@@ -196,8 +197,8 @@ export function PackagePaymentsCard({ clientId, initial }: PackagePaymentsCardPr
             <ReadField label="Client status" value={titleCase(initial.client_status)} />
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from "react";
 import {
   IconPlus,
   IconCheckSquare,
@@ -69,17 +69,25 @@ interface Props {
   currentUserName: string | null;
 }
 
-export function ClientTasksPanel({
+export interface ClientTasksPanelHandle {
+  openAddForm: () => void;
+}
+
+export const ClientTasksPanel = forwardRef<ClientTasksPanelHandle, Props>(function ClientTasksPanel({
   clientId,
   clientNumber,
   updateInterval,
   dueInfo,
   lastSentAt,
   currentUserName,
-}: Props) {
+}, ref) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    openAddForm: () => setAdding(true),
+  }));
   const [newTitle, setNewTitle] = useState("");
   const [buckets, setBuckets] = useState<TaskBucket[]>([]);
   const defaultAssignee =
@@ -164,30 +172,20 @@ export function ClientTasksPanel({
     dueInfo.nextDueDate && updateInterval && dueInfo.status;
 
   return (
-        <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)]">
-          <div className="px-5 pt-5 pb-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
-                <IconCheckSquare className="w-4 h-4" />
+        <>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
+              <IconCheckSquare className="w-4 h-4" />
+            </span>
+            <div>
+              <span className="text-sm font-semibold text-foreground">
+                Tasks
               </span>
-              <div>
-                <span className="text-sm font-semibold text-foreground">
-                  Tasks
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  Action items — manual tasks and scheduled reminders
-                </span>
-              </div>
-              <button
-                onClick={() => setAdding(true)}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] px-3 py-1.5 text-xs font-medium text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-              >
-                <IconPlus className="w-3.5 h-3.5" /> Add task
-              </button>
+              <span className="block text-xs text-muted-foreground">
+                Action items — manual tasks and scheduled reminders
+              </span>
             </div>
           </div>
-
-          <div className="px-5 pb-5 pt-3">
             {adding && (
               <div className="flex flex-col gap-2 mb-3 p-3 rounded-[12px] border border-dashed border-[var(--hub-border)] bg-[var(--hub-canvas)]">
                 <div className="flex items-center gap-2">
@@ -399,7 +397,6 @@ export function ClientTasksPanel({
                 })
               )}
             </div>
-          </div>
-        </div>
+        </>
   );
-}
+});

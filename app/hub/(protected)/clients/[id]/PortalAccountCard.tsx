@@ -111,9 +111,9 @@ export function PortalAccountCard({
   };
 
   return (
-    <div className="pb-5 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0 text-sm text-muted-foreground">
           {!hasEmail
             ? "No email address on file — add one before creating portal login details."
             : loadingStatus
@@ -122,7 +122,7 @@ export function PortalAccountCard({
                 ? "This client has portal login details. Regenerating creates a new password and invalidates the old one."
                 : "No portal account yet. Generate login details to give this client access to the portal."}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Button
             variant="outline"
             size="sm"

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
-import { ClientTasksPanel } from "./ClientTasksPanel";
+import { ClientTasksPanel, type ClientTasksPanelHandle } from "./ClientTasksPanel";
 import { PortalAccountCard } from "./PortalAccountCard";
 import { MergedNotesPanel } from "./MergedNotesPanel";
 import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
@@ -1339,6 +1339,8 @@ function CommsDrawer({
 }) {
   const sentUpdates = clientUpdates.filter((u) => u.status === "sent" && u.sent_at);
 
+  const tasksPanelRef = useRef<ClientTasksPanelHandle>(null);
+
   return (
     <DrawerShell id="dw-comms" title="Comms" subtitle="Updates and delivery history" width="md">
       {/* The V3 client record shipped with no way to send an update at all: the
@@ -1372,16 +1374,30 @@ function CommsDrawer({
         </div>
       </div>
 
-      {/* Tasks \u2014 live add/complete control, supersedes the old read-only
+      {/* Tasks — live add/complete control, supersedes the old read-only
           task fcard. */}
-      <ClientTasksPanel
-        clientId={clientId}
-        clientNumber={clientNumber}
-        updateInterval={updateInterval}
-        dueInfo={dueInfo}
-        lastSentAt={lastSentAt}
-        currentUserName={currentUserName}
-      />
+      <div className="fcard acc-amber">
+        <div className="fcard-h">
+          <span>Tasks</span>
+          <button
+            onClick={() => tasksPanelRef.current?.openAddForm()}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] px-2.5 py-1 text-[12px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+          >
+            Add task
+          </button>
+        </div>
+        <div className="fcard-b">
+          <ClientTasksPanel
+            ref={tasksPanelRef}
+            clientId={clientId}
+            clientNumber={clientNumber}
+            updateInterval={updateInterval}
+            dueInfo={dueInfo}
+            lastSentAt={lastSentAt}
+            currentUserName={currentUserName}
+          />
+        </div>
+      </div>
 
       {/* Recent updates */}
       <div className="fcard acc-ink">
@@ -1704,7 +1720,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
       <div className="fcard">
         <div className="fcard-h">Log a personal best</div>
         <div className="fcard-b">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 60px", gap: 8, alignItems: "end" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 60px 100px", gap: 8, alignItems: "end" }}>
             <div>
               <label className="lbl">Exercise</label>
               <select className="fld" value={pbExercise} onChange={(e) => setPbExercise(e.target.value)}>
@@ -1771,7 +1787,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
               )}
             </>
           ) : (
-            <div className="empty-state">
+            <div className="miss">
               No baseline recorded · <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
             </div>
           )}
@@ -1790,7 +1806,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
               </div>
             ))
           ) : (
-            <div className="empty-state">
+            <div className="miss">
               No milestones set · <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
             </div>
           )}

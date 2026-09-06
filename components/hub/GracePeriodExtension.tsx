@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HubCard, HubCardHeader } from "@/components/hub";
-import { IconCalendar, IconCheckCircle, IconX } from "@/components/icons";
+import { IconCheckCircle, IconX } from "@/components/icons";
 
 interface ExtensionHistory {
   from: string;
@@ -78,28 +77,23 @@ export function GracePeriodExtension({ clientId, currentExpiry, extensions }: Gr
   };
 
   return (
-    <HubCard>
-      <HubCardHeader
-        icon={<IconCalendar className="h-4 w-4" />}
-        title="Block expiry"
-        color="amber"
-        action={
-          !editing && currentExpiry ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setNewDate(currentExpiry);
-                setEditing(true);
-              }}
-              className="h-7 gap-1.5 text-xs text-muted-foreground"
-            >
-              Extend
-            </Button>
-          ) : undefined
-        }
-      />
-      <div className="space-y-3">
+    <div className="fcard">
+      <div className="fcard-h">
+        <span>Block expiry</span>
+        {!editing && currentExpiry && (
+          <button
+            onClick={() => {
+              setNewDate(currentExpiry);
+              setEditing(true);
+            }}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-[var(--hub-border)] px-2.5 py-1 text-[12px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+          >
+            Extend
+          </button>
+        )}
+      </div>
+      <div className="fcard-b">
+        <div className="space-y-3">
         {editing ? (
           <div className="space-y-3">
             <div className="flex flex-wrap items-end gap-3">
@@ -161,7 +155,8 @@ export function GracePeriodExtension({ clientId, currentExpiry, extensions }: Gr
             )}
           </div>
         )}
+        </div>
       </div>
-    </HubCard>
+    </div>
   );
 }

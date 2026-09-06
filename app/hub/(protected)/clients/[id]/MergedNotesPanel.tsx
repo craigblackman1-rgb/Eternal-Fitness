@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  IconFileText,
   IconPlus,
   IconTrash2,
   IconSearch,
@@ -421,26 +420,18 @@ export function MergedNotesPanel({
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
-    <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)]">
+    <div className="fcard acc-ink">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-5 pt-5 pb-0">
-        <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground shrink-0">
-          <IconFileText className="w-4 h-4" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <span className="text-sm font-semibold text-foreground">Notes</span>
-          <span className="block text-xs text-muted-foreground">
-            Everything written about {esc(clientName)} — profile, sessions and exercises, in one list
-          </span>
-        </div>
+      <div className="fcard-h">
+        <span>Notes</span>
         {!loading && !loadError && (
-          <span className="text-xs font-bold text-muted-foreground tabular-nums shrink-0">
+          <span className="text-xs font-bold tabular-nums shrink-0">
             {allNotes.length === 1 ? "1 note" : `${allNotes.length} notes`}
           </span>
         )}
       </div>
 
-      <div className="px-5 pb-5 pt-3">
+      <div className="fcard-b">
         {/* 1 · Composer — always visible, never filtered or collapsed */}
         <div>
           <div className="flex items-center gap-2">
@@ -542,25 +533,19 @@ export function MergedNotesPanel({
             </>
           ) : loadError ? (
             /* Load failure — must never look like an empty record */
-            <div className="text-center py-[34px] px-5 rounded-[12px] bg-[rgba(239,68,68,0.07)] border border-[rgba(239,68,68,0.22)]">
-              <div className="w-[46px] h-[46px] rounded-pill mx-auto mb-3.5 flex items-center justify-center bg-white text-[var(--status-danger)]">
-                <IconWarn />
-              </div>
-              <div className="text-[15px] font-bold text-foreground">Notes could not be loaded</div>
-              <div className="text-[13px] leading-[1.6] text-foreground mt-1.5 max-w-[460px] mx-auto">
-                This is a loading failure, not an empty record. {esc(clientName)} may well have notes — they are not being shown. Do not read anything into the blank list. The composer above stays usable: a note written now is queued and saved when the connection returns.
-              </div>
-              <div className="mt-3.5 flex justify-center">
-                <button
-                  onClick={() => {
-                    setLoading(true);
-                    fetchNotes();
-                  }}
-                  className="inline-flex items-center h-[32px] px-3.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-[13px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-                >
-                  Try again
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-3 py-2">
+              <span className="text-[12.5px] text-muted-foreground">
+                Notes could not be loaded — the composer above stays usable; a note written now is queued and saved when the connection returns.
+              </span>
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  fetchNotes();
+                }}
+                className="shrink-0 inline-flex items-center h-[26px] px-2.5 rounded-lg border border-[var(--hub-border)] text-[11.5px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+              >
+                Try again
+              </button>
             </div>
           ) : filtered.length === 0 ? (
             /* Empty state */
@@ -844,58 +829,43 @@ function EmptyNoteState({
   onClear: () => void;
   onFocusComposer: () => void;
 }) {
-  let title: string;
-  let desc: string;
+  let text: string;
 
   if (allEmpty) {
-    title = `Nothing recorded for ${clientName}`;
-    desc =
-      "No notes have been written on this record and none were captured in a session. That is not a sign that nothing happened — it means nothing was written down.";
+    text = `Nothing recorded for ${clientName} — no notes have been written on this record and none were captured in a session.`;
   } else if (filter === "pinned" && !query) {
-    title = "No notes are pinned";
-    desc =
-      "Pinning a note surfaces it at the top of this record and in the trainer app. Nothing is pinned yet.";
+    text = "No notes are pinned — pinning a note surfaces it at the top of this record and in the trainer app.";
   } else if (filter !== "all" && filter !== "pinned" && !query) {
     const noun = ORIGIN_META[filter]?.noun ?? "note";
-    title = `No ${noun} notes recorded`;
     if (filter === "exercise") {
-      desc = `Exercise notes are written while logging a session, on the exercise they belong to. None have been written for ${clientName} yet.`;
+      text = `No ${noun} notes recorded — exercise notes are written while logging a session, on the exercise they belong to.`;
     } else if (filter === "session") {
-      desc = `Session notes are captured with a session open. None have been written for ${clientName} yet.`;
+      text = `No ${noun} notes recorded — session notes are captured with a session open.`;
     } else {
-      desc = `Profile notes are the ones typed here on the record. None have been written for ${clientName} yet.`;
+      text = `No ${noun} notes recorded — profile notes are the ones typed here on the record.`;
     }
   } else {
-    title = "No notes match";
-    desc = `Nothing in ${clientName}'s history matches${query ? ` \u201c${esc(query)}\u201d` : " this filter"}. The history itself is not empty — the filter is hiding it.`;
+    text = `No notes match${query ? ` \u201c${esc(query)}\u201d` : " this filter"} — the history itself is not empty, the filter is hiding it.`;
   }
 
   return (
-    <div className="text-center py-[34px] px-5">
-      <div className="w-[46px] h-[46px] rounded-pill mx-auto mb-3.5 flex items-center justify-center bg-[var(--hub-hover)] text-muted-foreground">
-        {allEmpty ? <IconNote /> : <IconWarn />}
-      </div>
-      <div className="text-[15px] font-bold text-foreground">{title}</div>
-      <div className="text-[13px] leading-[1.6] text-foreground mt-1.5 max-w-[460px] mx-auto">
-        {desc}
-      </div>
-      <div className="mt-3.5 flex justify-center">
-        {allEmpty ? (
-          <button
-            onClick={onFocusComposer}
-            className="inline-flex items-center h-[32px] px-3.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-[13px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-          >
-            Write the first note
-          </button>
-        ) : (
-          <button
-            onClick={onClear}
-            className="inline-flex items-center h-[32px] px-3.5 rounded-lg border border-[var(--hub-border)] bg-[var(--hub-card)] text-[13px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
-          >
-            Clear search and filters
-          </button>
-        )}
-      </div>
+    <div className="flex items-center justify-between gap-3 py-2">
+      <span className="text-[12.5px] text-muted-foreground">{text}</span>
+      {allEmpty ? (
+        <button
+          onClick={onFocusComposer}
+          className="shrink-0 inline-flex items-center h-[26px] px-2.5 rounded-lg border border-[var(--hub-border)] text-[11.5px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+        >
+          Write the first note
+        </button>
+      ) : (
+        <button
+          onClick={onClear}
+          className="shrink-0 inline-flex items-center h-[26px] px-2.5 rounded-lg border border-[var(--hub-border)] text-[11.5px] font-semibold text-foreground hover:bg-[var(--hub-hover)] transition-colors"
+        >
+          Clear filters
+        </button>
+      )}
     </div>
   );
 }

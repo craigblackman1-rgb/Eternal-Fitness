@@ -484,7 +484,7 @@ export function TrainingDrawer({
     >
       {/* ═══ PROGRAM QUEUE ═══ */}
       {programState && totalQueueSlots > 0 && (
-        <div className="fcard acc-teal mb-3.5">
+        <div className="fcard acc-teal">
           <div className="fcard-h">
             <span>Program queue</span>
             <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
@@ -630,7 +630,7 @@ export function TrainingDrawer({
 
       {/* ═══ SCHEDULED SESSIONS ═══ */}
       {scheduledSessions.length > 0 && (
-        <div className="fcard acc-teal mb-3.5">
+        <div className="fcard acc-teal">
           <div className="fcard-h">
             <span>Scheduled sessions</span>
             <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
@@ -697,7 +697,7 @@ export function TrainingDrawer({
       )}
 
       {/* ═══ SUPPLEMENTARY ═══ */}
-      <div className="fcard mb-3.5">
+      <div className="fcard">
         <div className="fcard-h">
           <span>Supplementary</span>
           <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
@@ -715,7 +715,7 @@ export function TrainingDrawer({
 
       {/* ═══ STANDING RULES ═══ */}
       {standingRules.length > 0 && (
-        <div className="fcard acc-amber mb-3.5">
+        <div className="fcard acc-amber">
           <div className="fcard-h">
             <span>Standing rules</span>
             <button
@@ -747,7 +747,7 @@ export function TrainingDrawer({
 
       {/* ═══ PAST PROGRAMMES ═══ */}
       {pastBlocks.length > 0 && (
-        <div className="fcard acc-ink mb-3.5">
+        <div className="fcard acc-ink">
           <div className="fcard-h">
             <span>Past programmes</span>
           </div>
@@ -811,7 +811,7 @@ export function TrainingDrawer({
 
       {/* ═══ BEFORE THE APP ═══ */}
       {hasHistory && (
-        <div className="fcard acc-ink mb-3.5">
+        <div className="fcard acc-ink">
           <div className="fcard-h">
             <span>Before the app</span>
           </div>
