@@ -1,0 +1,60 @@
+<svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#7e8088" />
+    </marker>
+  </defs>
+  <line x1="350" y1="170" x2="375" y2="100" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="350" y1="170" x2="375" y2="240" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="525" y1="100" x2="550" y2="170" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="525" y1="240" x2="550" y2="170" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="700" y1="170" x2="725" y2="170" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  
+  
+  <g>
+    <rect x="25" y="120" width="150" height="100" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="53" cy="148" r="14" fill="#c1839f" />
+    <text x="53" y="153" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">1</text>
+    <text x="100" y="175.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Open</text>
+    <text x="100" y="194.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">/hub/documents</text>
+  </g>
+  <g>
+    <rect x="200" y="120" width="150" height="100" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="228" cy="148" r="14" fill="#c1839f" />
+    <text x="228" y="153" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">2</text>
+    <text x="275" y="185" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Draft → Send</text>
+  </g>
+  <g>
+    <rect x="375" y="50" width="150" height="100" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="403" cy="78" r="14" fill="#c1839f" />
+    <text x="403" y="83" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">3</text>
+    <text x="450" y="105.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Client signs at</text>
+    <text x="450" y="124.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">link</text>
+  </g>
+  <g>
+    <rect x="375" y="190" width="150" height="100" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="403" cy="218" r="14" fill="#c1839f" />
+    <text x="403" y="223" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">4</text>
+    <text x="450" y="245.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Or document</text>
+    <text x="450" y="264.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">superseded</text>
+  </g>
+  <g>
+    <rect x="550" y="120" width="150" height="100" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="578" cy="148" r="14" fill="#c1839f" />
+    <text x="578" y="153" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">5</text>
+    <text x="625" y="175.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Check emailed =</text>
+    <text x="625" y="194.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Yes</text>
+  </g>
+  <g>
+    <rect x="725" y="120" width="150" height="100" rx="18" fill="#087e8b" stroke="#087e8b" stroke-width="1" />
+    
+    <circle cx="753" cy="148" r="14" fill="#ffffff" />
+    <text x="753" y="153" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="700" fill="#087e8b">✓</text>
+    <text x="800" y="185" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#ffffff">Nothing stale</text>
+  </g>
+</svg>
