@@ -22,6 +22,7 @@ interface Consumption {
   no_show: number;
   remaining: number;
   purchased: number;
+  baseline_used?: number;
 }
 
 interface PotLedgerData {
@@ -89,6 +90,9 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
                 <span>{c.remaining} remaining</span>
               </div>
               <div className="mt-3">
+                {(c.baseline_used ?? 0) > 0 && (
+                  <CounterRow count={c.baseline_used!} label="used before the hub (Trainerize)" />
+                )}
                 <CounterRow count={c.completed} label="completed" tone="teal" />
                 <CounterRow count={c.cancelled_free} label="cancelled — didn't touch the pot" chip="Free" />
                 <CounterRow count={c.rescheduled} label="rescheduled — didn't touch the pot" chip="Free" />

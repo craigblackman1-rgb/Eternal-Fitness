@@ -107,6 +107,8 @@ interface ClientRecordShellProps {
   flaggedSessionIds: Set<string>;
   activeProgramId: string | null;
   sessionsPurchased: number | null;
+  baselineUsed: number;
+  hubUsedCount: number;
 }
 
 export function ClientRecordShell({
@@ -184,6 +186,8 @@ export function ClientRecordShell({
   flaggedSessionIds,
   activeProgramId,
   sessionsPurchased,
+  baselineUsed,
+  hubUsedCount,
 }: ClientRecordShellProps) {
   const [showRenewal, setShowRenewal] = useState(false);
   const latestBlock = latestBlockProp;
@@ -381,6 +385,8 @@ export function ClientRecordShell({
         sessionNotes={sessionNotes}
         exerciseNotes={exerciseNotes}
         pinnedNoteRefs={pinnedNoteRefs}
+        baselineUsed={baselineUsed}
+        hubUsedCount={hubUsedCount}
       />
 
       {/* C1a — Renewal flow dialog */}

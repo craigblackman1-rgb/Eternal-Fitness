@@ -26,10 +26,10 @@ export async function GET(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Fetch client
+  // Fetch client — include pot_baseline_used for the pre-hub opening balance
   const { data: client, error: clientError } = await supabase
     .from("clients")
-    .select("id, sessions_purchased, sessions_remaining, block_expiry_date, block_expiry_extensions")
+    .select("id, sessions_purchased, sessions_remaining, block_expiry_date, block_expiry_extensions, pot_baseline_used, pot_baseline_note, pot_baseline_at")
     .eq("client_number", parseInt(params.id))
     .single();
   if (clientError || !client) {
@@ -71,6 +71,7 @@ export async function GET(
   const purchased = client.sessions_purchased ?? 0;
   const remaining = client.sessions_remaining ?? 0;
   const extensions = (client.block_expiry_extensions ?? []) as { from: string; to: string; at: string; reason?: string }[];
+  const baselineUsed = (client as any).pot_baseline_used ?? 0;
 
   // Count session categories
   let completed = 0;
@@ -179,6 +180,21 @@ export async function GET(
     });
   }
 
+  // Pre-hub baseline entry — absorbed Trainerize consumption, always the oldest
+  if (baselineUsed > 0) {
+    const baselineDate = (client as any).pot_baseline_at
+      ?? (sessions.length > 0 ? (sessions[0].scheduled_at ?? sessions[0].completed_at) : null)
+      ?? new Date().toISOString();
+    runningRemaining = Math.max(0, runningRemaining - baselineUsed);
+    ledger.push({
+      date: baselineDate,
+      event: `Before the hub — ${baselineUsed} sessions used (Trainerize)`,
+      delta: -baselineUsed,
+      remaining: runningRemaining,
+      tags: [],
+    });
+  }
+
   // Sort ledger by date descending (newest first)
   ledger.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -190,6 +206,7 @@ export async function GET(
     no_show: noShow,
     remaining,
     purchased,
+    baseline_used: baselineUsed,
   };
 
   return NextResponse.json({ consumption, ledger });

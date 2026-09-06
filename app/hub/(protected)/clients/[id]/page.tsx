@@ -18,7 +18,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const currentUserName = user?.name || "Staff";
-  const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode, resource_visibility").eq("client_number", parseInt(params.id)).single();
+  const { data: client } = await supabase.from("clients").select("*, compliance_status, outstanding_actions, group_type, pace_mode, resource_visibility, pot_baseline_used").eq("client_number", parseInt(params.id)).single();
 
   if (!client) notFound();
 
@@ -49,6 +49,21 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
         .order("scheduled_at", { ascending: false, nullsLast: true })
         .limit(50)
     : { data: [] as any[] };
+
+  // Hub-used sessions across ALL blocks (not limited to 50) for the pot
+  // baseline disagreement check. Counts completed + cancelled-and-charged.
+  let hubUsedCount = 0;
+  if (clientBlockIds.length > 0) {
+    const { data: allHubSessions } = await supabase
+      .from("sessions")
+      .select("id, status, charged_free")
+      .in("block_id", clientBlockIds);
+    for (const s of allHubSessions ?? []) {
+      if (s.status === "completed" || (s.status === "cancelled" && (s as any).charged_free !== "free")) {
+        hubUsedCount++;
+      }
+    }
+  }
 
   // Normalise to strict ISO-8601 (offset-preserving) so WebKit (iOS Safari)
   // doesn't render "Invalid Date" — see lib/pg-timestamp.ts.
@@ -477,11 +492,13 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
     : [];
   const undatedSessionCount = latestBlockSessions.filter((s) => !s.scheduled_at).length;
 
-  // Block session count mismatch: typed sessions_remaining vs counted completed
+  // Block session count mismatch: typed pot_used vs (baseline + hub counted)
+  const baselineUsed = (client as any).pot_baseline_used ?? 0;
+  const blockSessionCountMismatch = client.sessions_used != null
+    && client.sessions_used !== baselineUsed + hubUsedCount;
+
+  // Counted completed sessions in the latest block (for the UI)
   const countedCompleted = latestBlockSessions.filter((s) => s.completed_at).length;
-  const blockSessionCountMismatch = client.sessions_remaining != null
-    && client.sessions_used != null
-    && client.sessions_remaining + client.sessions_used !== latestBlockSessions.length;
 
   // Unpaid blocks: blocks whose package has payment_status != "paid"
   // TODO(S0b): This currently checks client-level payment_status. Per-block
@@ -660,6 +677,8 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
       sessionNotes={sessionNotes}
       exerciseNotes={exerciseNotes}
       pinnedNoteRefs={pinnedNoteRefs}
+      baselineUsed={baselineUsed}
+      hubUsedCount={hubUsedCount}
     />
   );
 }

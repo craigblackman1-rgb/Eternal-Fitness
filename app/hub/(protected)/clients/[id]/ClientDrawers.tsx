@@ -88,6 +88,8 @@ interface ClientDrawersProps {
   sessionNotes: SessionNoteData[];
   exerciseNotes: AggregatedExerciseNote[];
   pinnedNoteRefs: PinnedNoteRef[];
+  baselineUsed: number;
+  hubUsedCount: number;
 }
 
 function fmtDate(iso: string | null): string {
@@ -1061,7 +1063,7 @@ function GoalsCard({ clientNumber, primary }: { clientNumber: number; primary: s
    ARRANGEMENT — how they train, goals, package, kit
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, sessionsRemaining, sessionsUsed, paymentStatus, packageType, clientStatus, blockSessionCountMismatch, unpaidBlocks, countCompletedSessions, blockExpiryDate, clientReviews }: {
+function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, sessionsRemaining, sessionsUsed, paymentStatus, packageType, clientStatus, blockSessionCountMismatch, unpaidBlocks, countCompletedSessions, blockExpiryDate, clientReviews, baselineUsed, hubUsedCount }: {
   client: any;
   latestBlock: DBBlock | null;
   bandSetName: string | null;
@@ -1076,6 +1078,8 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
   countCompletedSessions: number;
   blockExpiryDate: string | null;
   clientReviews: any[];
+  baselineUsed: number;
+  hubUsedCount: number;
 }) {
   const p = client.profile;
   const logistics = p?.logistics;
@@ -1091,7 +1095,7 @@ function ArrangementDrawer({ client, latestBlock, bandSetName, missingBandSet, s
   if (blockSessionCountMismatch) {
     thingsToSort.push({
       headline: "The two session counts disagree",
-      sub: `Typed: ${sessionsUsed ?? 0} used. Counted from completed sessions: ${countCompletedSessions}.`,
+      sub: `Typed: ${sessionsUsed ?? 0} used. Counted: ${baselineUsed} before the hub + ${hubUsedCount} in the hub.`,
     });
   }
   if (missingBandSet) {
@@ -1849,6 +1853,8 @@ export function ClientDrawers(props: ClientDrawersProps) {
         countCompletedSessions={props.countCompletedSessions}
         blockExpiryDate={props.blockExpiryDate}
         clientReviews={props.clientReviews}
+        baselineUsed={props.baselineUsed}
+        hubUsedCount={props.hubUsedCount}
       />
       <DocumentsDrawer
         clientNumber={props.client.client_number}

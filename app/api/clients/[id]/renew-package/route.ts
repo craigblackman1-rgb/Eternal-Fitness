@@ -106,11 +106,13 @@ export async function POST(
     return NextResponse.json({ error: blockError?.message || "Failed to create block" }, { status: 500 });
   }
 
-  // 2. Update client pot
+  // 2. Update client pot — reset used to 0 and baseline to 0 (a fresh
+  //    package has no pre-hub component).
   const clientUpdate: Record<string, unknown> = {
     sessions_purchased: newSessionsPurchased,
     sessions_remaining: newSessionsRemaining,
     sessions_used: 0,
+    pot_baseline_used: 0,
     block_expiry_date: newExpiry,
     payment_status: newPaymentStatus,
     package_type: package_size,
