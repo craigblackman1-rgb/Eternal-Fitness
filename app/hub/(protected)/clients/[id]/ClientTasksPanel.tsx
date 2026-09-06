@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from "react";
 import {
   IconPlus,
-  IconCheckSquare,
   IconMail,
   IconAlertCircle,
   IconClipboardList,
@@ -173,19 +172,6 @@ export const ClientTasksPanel = forwardRef<ClientTasksPanelHandle, Props>(functi
 
   return (
         <>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center justify-center w-[28px] h-[28px] rounded-lg bg-[var(--hub-hover)] text-muted-foreground">
-              <IconCheckSquare className="w-4 h-4" />
-            </span>
-            <div>
-              <span className="text-sm font-semibold text-foreground">
-                Tasks
-              </span>
-              <span className="block text-xs text-muted-foreground">
-                Action items — manual tasks and scheduled reminders
-              </span>
-            </div>
-          </div>
             {adding && (
               <div className="flex flex-col gap-2 mb-3 p-3 rounded-[12px] border border-dashed border-[var(--hub-border)] bg-[var(--hub-canvas)]">
                 <div className="flex items-center gap-2">
