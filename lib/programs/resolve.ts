@@ -91,8 +91,10 @@ function applyWeekBands(exercise: ProgramExercise, week: number): ProgramExercis
 
   return {
     ...exercise,
+    exercise_name: band.exercise_name ?? exercise.exercise_name,
     sets: band.sets ?? exercise.sets,
     reps: band.reps ?? exercise.reps,
     weight: band.weight ?? exercise.weight,
+    notes: band.notes ?? exercise.notes,
   };
 }

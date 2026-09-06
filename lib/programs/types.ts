@@ -34,6 +34,8 @@ export interface WeekBand {
   sets?: number;
   reps?: string;
   weight?: string;
+  exercise_name?: string;
+  notes?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────

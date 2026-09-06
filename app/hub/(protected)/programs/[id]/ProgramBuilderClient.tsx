@@ -153,8 +153,8 @@ function InlineExerciseEditor({
       if (b.from_week > b.to_week) {
         errors.push(`Band ${i + 1}: from-week must not exceed to-week.`);
       }
-      if (!b.sets && !b.reps && !b.weight) {
-        errors.push(`Band ${i + 1}: set at least one of sets, reps, or weight.`);
+      if (!b.sets && !b.reps && !b.weight && !b.exercise_name && !b.notes) {
+        errors.push(`Band ${i + 1}: set at least one of sets, reps, weight, exercise name, or notes.`);
       }
       for (let j = i + 1; j < candidate.length; j++) {
         const other = candidate[j];
@@ -244,8 +244,10 @@ function InlineExerciseEditor({
           <thead>
             <tr className="border-b border-[var(--hub-border)]">
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Weeks</th>
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Exercise</th>
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Sets × reps</th>
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Weight</th>
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Notes</th>
               <th className="w-8"></th>
             </tr>
           </thead>
@@ -276,6 +278,14 @@ function InlineExerciseEditor({
                       </div>
                     </td>
                     <td className="px-2.5 py-1.5">
+                      <Input
+                        value={band.exercise_name ?? ""}
+                        onChange={(e) => updateBand(i, "exercise_name", e.target.value)}
+                        placeholder="swap exercise"
+                        className="h-7 w-36 text-[13px] rounded-control-sm"
+                      />
+                    </td>
+                    <td className="px-2.5 py-1.5">
                       <div className="flex items-center gap-1">
                         <Input
                           type="number"
@@ -302,6 +312,14 @@ function InlineExerciseEditor({
                         className="h-7 w-20 text-[13px] rounded-control-sm tabular-nums"
                       />
                     </td>
+                    <td className="px-2.5 py-1.5">
+                      <Input
+                        value={band.notes ?? ""}
+                        onChange={(e) => updateBand(i, "notes", e.target.value)}
+                        placeholder="notes"
+                        className="h-7 w-32 text-[13px] rounded-control-sm"
+                      />
+                    </td>
                     <td className="px-1.5 py-1.5">
                       <button
                         type="button"
@@ -316,10 +334,12 @@ function InlineExerciseEditor({
                 ) : (
                   <>
                     <td className="px-2.5 py-2 tabular-nums whitespace-nowrap">{band.from_week}–{band.to_week}</td>
+                    <td className="px-2.5 py-2 text-[12.5px]">{band.exercise_name || "—"}</td>
                     <td className="px-2.5 py-2 tabular-nums">
                       {band.sets && band.reps ? `${band.sets} × ${band.reps}` : band.sets ? `${band.sets} sets` : band.reps || "—"}
                     </td>
                     <td className="px-2.5 py-2 tabular-nums">{band.weight || "—"}</td>
+                    <td className="px-2.5 py-2 text-[12.5px] truncate max-w-[160px]" title={band.notes ?? ""}>{band.notes || "—"}</td>
                     <td className="px-1.5 py-2">
                       <div className="flex items-center gap-0.5">
                         <button
@@ -345,7 +365,7 @@ function InlineExerciseEditor({
             ))}
             {bands.length === 0 && (
               <tr className="border-b border-[var(--hub-border)] last:border-b-0">
-                <td colSpan={4} className="px-2.5 py-2 text-muted-foreground">
+                <td colSpan={6} className="px-2.5 py-2 text-muted-foreground">
                   No bands — base prescription applies every week.
                   <button type="button" onClick={addBand} className="ml-1 text-rose-text font-semibold hover:underline underline-offset-2 text-[12.5px]">
                     Add progression
@@ -384,8 +404,10 @@ function InlineExerciseEditor({
           <thead>
             <tr className="border-b border-[var(--hub-border)]">
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Week</th>
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Exercise</th>
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Sets × reps</th>
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Weight</th>
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Notes</th>
             </tr>
           </thead>
           <tbody>
@@ -396,13 +418,18 @@ function InlineExerciseEditor({
                 weekNum,
               );
               const ex = resolved.sections[0].exercises[0];
+              const swapped = ex.exercise_name !== name;
               return (
                 <tr key={weekNum} className="border-b border-[var(--hub-border)] last:border-b-0 hover:bg-[var(--hub-hover)]">
                   <td className="px-2.5 py-1.5 tabular-nums font-medium">{weekNum}</td>
+                  <td className={cn("px-2.5 py-1.5 text-[12.5px]", swapped && "font-semibold text-rose-text")}>
+                    {swapped ? ex.exercise_name : "—"}
+                  </td>
                   <td className="px-2.5 py-1.5 tabular-nums">
                     {ex.sets && ex.reps ? `${ex.sets} × ${ex.reps}` : ex.sets ? `${ex.sets} sets` : ex.reps || "—"}
                   </td>
                   <td className="px-2.5 py-1.5 tabular-nums">{ex.weight || "—"}</td>
+                  <td className="px-2.5 py-1.5 text-[12.5px]">{ex.notes || "—"}</td>
                 </tr>
               );
             })}
