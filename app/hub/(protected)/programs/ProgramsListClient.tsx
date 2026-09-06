@@ -40,6 +40,69 @@ export function ProgramsListClient({
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
+
+  const archivedCount = programs.filter((p) => p.status === "archived").length;
+  const visiblePrograms = showArchived
+    ? programs
+    : programs.filter((p) => p.status !== "archived");
+
+  const handleArchive = async (program: ProgramRow) => {
+    const newStatus = program.status === "archived" ? "active" : "archived";
+    const label = `${program.id}-archive`;
+    setActionBusy(label);
+    try {
+      const res = await fetch(`/api/programs/${program.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const text = await res.text();
+      let data: Record<string, unknown> | null = null;
+      try { data = JSON.parse(text); } catch { /* non-JSON response */ }
+      if (!res.ok) throw new Error((data?.error as string) || "Request failed");
+      toast.success(newStatus === "archived" ? "Program archived" : "Program restored");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
+  const handleDelete = async (program: ProgramRow) => {
+    if (!confirm(`Delete ${program.name}? This cannot be undone.`)) return;
+    const label = `${program.id}-delete`;
+    setActionBusy(label);
+    try {
+      const res = await fetch(`/api/programs/${program.id}`, {
+        method: "DELETE",
+      });
+      const text = await res.text();
+      let data: Record<string, unknown> | null = null;
+      try { data = JSON.parse(text); } catch { /* non-JSON response */ }
+      if (!res.ok) {
+        const msg = (data?.error as string) || "Request failed";
+        if (res.status === 409 && data?.in_use) {
+          const inUse = data.in_use as { clients: number; sessions: number };
+          const parts: string[] = [];
+          if (inUse.clients > 0) parts.push(`${inUse.clients} client${inUse.clients > 1 ? "s" : ""}`);
+          if (inUse.sessions > 0) parts.push(`${inUse.sessions} session${inUse.sessions > 1 ? "s" : ""}`);
+          toast.error(`Program is in use (${parts.join(", ")}). Archive it instead.`);
+        } else {
+          throw new Error(msg);
+        }
+      } else {
+        toast.success("Program deleted");
+        router.refresh();
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setActionBusy(null);
+    }
+  };
 
   const handleNewProgram = async () => {
     setCreating(true);
@@ -132,6 +195,47 @@ export function ProgramsListClient({
     },
   ];
 
+  // Actions column — always added (not just when clientContext is present)
+  columns.push({
+    key: "actions",
+    header: "",
+    render: (row) => {
+      const isArchived = row.status === "archived";
+      const isBusy = actionBusy === `${row.id}-archive` || actionBusy === `${row.id}-delete`;
+      return (
+        <div className="flex items-center gap-1 justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isBusy}
+            className="h-7 px-2 text-xs"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleArchive(row);
+            }}
+          >
+            {isArchived ? "Unarchive" : "Archive"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isBusy}
+            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleDelete(row);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      );
+    },
+    className: "w-40",
+  });
+
   if (clientContext) {
     columns.push({
       key: "apply",
@@ -205,7 +309,7 @@ export function ProgramsListClient({
       />
 
       <HubTable
-        data={programs}
+        data={visiblePrograms}
         columns={columns}
         getRowHref={(row) => `/hub/programs/${row.id}`}
         searchPlaceholder="Search programs…"
@@ -214,15 +318,37 @@ export function ProgramsListClient({
         emptyState={
           <EmptyState
             icon={<IconTarget className="h-8 w-8" />}
-            title="No programs yet"
-            description="Create a reusable training programme or import one from pasted text."
-            cta={{
-              label: "New program",
-              onClick: handleNewProgram,
-            }}
+            title={showArchived ? "No archived programs" : "No programs yet"}
+            description={
+              showArchived
+                ? "All programs are active."
+                : "Create a reusable training programme or import one from pasted text."
+            }
+            cta={
+              showArchived
+                ? undefined
+                : {
+                    label: "New program",
+                    onClick: handleNewProgram,
+                  }
+            }
           />
         }
       />
+
+      {archivedCount > 0 && (
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setShowArchived(!showArchived)}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+          >
+            {showArchived
+              ? "Hide archived"
+              : `Show archived (${archivedCount})`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
