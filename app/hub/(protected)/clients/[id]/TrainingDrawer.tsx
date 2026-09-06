@@ -539,9 +539,9 @@ export function TrainingDrawer({
                             if (sessionForCell) openWorkoutDrawer(sessionForCell.id);
                           }}
                           className={`
-                            w-[92px] h-[44px] shrink-0 border rounded-control
-                            flex flex-col items-center justify-center gap-0.5
-                            font-[inherit] p-0 transition-[border-color,box-shadow] duration-[120ms]
+                            min-w-[90px] shrink-0 border rounded-control
+                            flex flex-col items-start justify-center
+                            font-[inherit] px-2 py-1.5 transition-[border-color,box-shadow] duration-[120ms]
                             ${isBeyond
                               ? "bg-[var(--hub-hover)] border-dashed border-[var(--hub-border)] cursor-default hover:border-[var(--hub-border)] hover:shadow-none"
                               : isDone
@@ -554,7 +554,7 @@ export function TrainingDrawer({
                             }
                           `}
                         >
-                          <small className={`text-[10.5px] font-semibold tabular-nums ${
+                          <span className={`text-[11px] leading-tight ${
                             isBeyond
                               ? "text-[var(--color-muted)]"
                               : isDone || isFlag
@@ -562,10 +562,10 @@ export function TrainingDrawer({
                                 : isNext
                                   ? "text-[var(--color-rose)]"
                                   : "text-[var(--color-body)]"
-                          }`}>
-                            {cell.dayLabel || "\u00a0"}
-                          </small>
-                          <b className={`text-[13px] font-extrabold leading-none ${
+                          } ${cell.dayLabel ? "font-semibold tabular-nums" : "italic"}`}>
+                            {cell.dayLabel || "not booked"}
+                          </span>
+                          <span className={`text-[11px] leading-tight font-semibold truncate max-w-[120px] ${
                             isBeyond
                               ? "text-[var(--color-muted)]"
                               : isDone || isFlag
@@ -573,9 +573,12 @@ export function TrainingDrawer({
                                 : isNext
                                   ? "text-[var(--color-rose)]"
                                   : "text-[var(--color-ink)]"
-                          }`}>
-                            {cell.slotLabel}
-                          </b>
+                          }`} title={cell.fullLabel}>
+                            {(() => {
+                              const label = cell.fullLabel.replace(/^Workout\s+/i, "");
+                              return label.length > 16 ? label.slice(0, 16) + "\u2026" : label;
+                            })()}
+                          </span>
                         </button>
                       );
                     })}
