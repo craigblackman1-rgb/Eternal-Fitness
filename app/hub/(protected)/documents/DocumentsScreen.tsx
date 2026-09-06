@@ -214,7 +214,7 @@ export function DocumentsScreen({
   const settledCount = totalCount - queue.length;
 
   return (
-    <div className="max-w-[940px] mx-auto">
+    <div className="w-full max-w-[1680px] mx-auto">
       <div className="flex items-baseline gap-2.5 flex-wrap mb-3.5">
         <h1 className="m-0 text-[25px] font-bold tracking-tight text-[var(--color-ink)]">Documents</h1>
         <span className="text-[13px] text-[var(--color-body)]">

@@ -246,7 +246,7 @@ export default function AgreementDetailClient({ agreement, clientNumber }: { agr
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 w-full max-w-[1680px] mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex items-center gap-4 flex-1">

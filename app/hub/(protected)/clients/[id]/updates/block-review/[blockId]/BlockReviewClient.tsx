@@ -99,7 +99,7 @@ export function BlockReviewClient({
   }
 
   return (
-    <div className="max-w-[1120px] mx-auto space-y-3.5">
+    <div className="w-full max-w-[1680px] mx-auto space-y-3.5">
       <Link
         href={`/hub/clients/${clientNumber}`}
         className="inline-flex items-center gap-1 text-[12.5px] font-medium text-[var(--color-body)] hover:text-[var(--color-ink)] transition-colors -ml-2 px-2 py-0.5"
