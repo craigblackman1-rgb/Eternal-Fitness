@@ -1631,3 +1631,168 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
 .honesty b { font-weight: 700; }
 .honesty code { background: rgba(0,0,0,.06); padding: 1px 4px; border-radius: 4px; font-size: 11.5px; }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   CR-EF-159 — CLIENT EDIT PAGE
+   Pill-anchor nav, centred 950px column, merged fcard sections, sticky save.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Horizontal anchor pill bar — sticky under the top bar */
+.edit-pill-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 24px;
+  background: var(--hub-card);
+  border-bottom: 1px solid var(--hub-border);
+  position: sticky;
+  top: 52px;
+  z-index: 19;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.edit-pill-bar::-webkit-scrollbar { display: none; }
+
+.edit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-body);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: background-color .12s, color .12s, border-color .12s;
+  background: none;
+  font-family: inherit;
+}
+.edit-pill:hover { background: var(--hub-hover); color: var(--color-ink); }
+.edit-pill.on {
+  background: var(--status-primary-bg);
+  color: var(--rose-text);
+  font-weight: 600;
+  border-color: var(--status-primary-border);
+}
+.edit-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+.edit-pill-dot.clean { background: var(--status-success); }
+.edit-pill-dot.dirty { background: var(--status-warning); }
+
+/* Centred form column */
+.edit-form {
+  max-width: 950px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+}
+
+/* Section wrapper */
+.edit-sec { scroll-margin-top: 110px; }
+.edit-sec + .edit-sec { margin-top: 14px; }
+
+/* Two-column form grid */
+.edit-fg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 18px;
+}
+.edit-fg > div { min-width: 0; }
+.edit-fg .span-2 { grid-column: span 2; }
+.edit-fg .span-3 { grid-column: span 3; }
+@media (max-width: 900px) {
+  .edit-fg { grid-template-columns: 1fr; }
+  .edit-fg .span-2, .edit-fg .span-3 { grid-column: span 1; }
+}
+
+/* Three-column form grid */
+.edit-fg-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px 18px;
+}
+.edit-fg-3 > div { min-width: 0; }
+@media (max-width: 900px) {
+  .edit-fg-3 { grid-template-columns: 1fr; }
+}
+
+/* Sticky save bar */
+.edit-save-bar {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  height: 52px;
+  background: var(--hub-card);
+  border-top: 1px solid var(--hub-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  z-index: 30;
+  box-shadow: 0 -2px 8px rgba(16,24,40,.06);
+  transform: translateY(100%);
+  transition: transform .2s ease;
+}
+.edit-save-bar.dirty { transform: translateY(0); }
+
+/* Sub-card divider inside fcard */
+.edit-sub-hd {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-muted-text);
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--hub-border);
+  margin-top: 8px;
+}
+
+/* Training rules list */
+.edit-rule-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hub-border);
+  font-size: 13px;
+}
+.edit-rule-row:last-child { border-bottom: 0; }
+.edit-rule-text { flex: 1; min-width: 0; color: var(--color-ink); }
+
+/* Milestone list */
+.edit-ms-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--hub-border);
+  font-size: 13px;
+}
+.edit-ms-row:last-child { border-bottom: 0; }
+.edit-ms-text { flex: 1; color: var(--color-ink); }
+.edit-ms-date { flex-shrink: 0; font-size: 12px; color: var(--color-muted-text); font-variant-numeric: tabular-nums; }
+.edit-ms-del {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-control-sm);
+  border: 0;
+  background: none;
+  color: var(--color-muted-text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+.edit-ms-del:hover { background: var(--status-danger-bg); color: var(--status-danger); }
+
+@media (max-width: 768px) {
+  .edit-save-bar { left: 0; }
+}
+
