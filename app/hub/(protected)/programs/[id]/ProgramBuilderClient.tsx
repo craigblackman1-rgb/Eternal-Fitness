@@ -16,7 +16,10 @@ import {
   IconCopy,
   IconGripVertical,
   IconChevronDown,
+  IconX,
+  IconTrash2,
 } from "@/components/icons";
+import { resolveSlotForWeek } from "@/lib/programs/queue";
 import type { DBProgram, DBProgramSlot, SlotData, ProgramSection, ProgramExercise, WeekBand } from "@/lib/programs/types";
 import type { StatusToken } from "@/lib/hubStatus";
 
@@ -126,8 +129,50 @@ function InlineExerciseEditor({
   const [weight, setWeight] = useState(exercise.weight ?? "");
   const [perSide, setPerSide] = useState(exercise.per_side ?? "");
   const [bands, setBands] = useState<WeekBand[]>(weekBands);
+  const [editingBand, setEditingBand] = useState<number | null>(null);
+  const [bandErrors, setBandErrors] = useState<string[]>([]);
+
+  // Build the resolved exercise for weekly prescription preview
+  const baseExercise: ProgramExercise = {
+    ...exercise,
+    exercise_name: name,
+    sets: sets ? parseInt(sets, 10) || undefined : undefined,
+    reps: reps || undefined,
+    weight: weight || undefined,
+    per_side: perSide || undefined,
+    week_bands: bands.length > 0 ? bands : undefined,
+  };
+
+  const validateBands = (candidate: WeekBand[]): string[] => {
+    const errors: string[] = [];
+    for (let i = 0; i < candidate.length; i++) {
+      const b = candidate[i];
+      if (b.from_week < 1 || b.to_week > totalWeeks) {
+        errors.push(`Band ${i + 1}: weeks must be within 1–${totalWeeks}.`);
+      }
+      if (b.from_week > b.to_week) {
+        errors.push(`Band ${i + 1}: from-week must not exceed to-week.`);
+      }
+      if (!b.sets && !b.reps && !b.weight) {
+        errors.push(`Band ${i + 1}: set at least one of sets, reps, or weight.`);
+      }
+      for (let j = i + 1; j < candidate.length; j++) {
+        const other = candidate[j];
+        if (b.from_week <= other.to_week && other.from_week <= b.to_week) {
+          errors.push(`Bands ${i + 1} and ${j + 1} overlap (weeks ${Math.max(b.from_week, other.from_week)}–${Math.min(b.to_week, other.to_week)}).`);
+        }
+      }
+    }
+    return errors;
+  };
 
   const handleSave = () => {
+    const errors = validateBands(bands);
+    if (errors.length > 0) {
+      setBandErrors(errors);
+      return;
+    }
+    setBandErrors([]);
     onSave(
       {
         ...exercise,
@@ -139,6 +184,33 @@ function InlineExerciseEditor({
       },
       bands,
     );
+  };
+
+  const addBand = () => {
+    const newBand: WeekBand = {
+      from_week: 1,
+      to_week: totalWeeks,
+      sets: undefined,
+      reps: undefined,
+      weight: undefined,
+    };
+    setBands([...bands, newBand]);
+    setEditingBand(bands.length);
+  };
+
+  const updateBand = (index: number, field: keyof WeekBand, value: string | number) => {
+    setBands((prev) => {
+      const next = [...prev];
+      const cleaned = value === "" || value === 0 || (typeof value === "number" && isNaN(value)) ? undefined : value;
+      next[index] = { ...next[index], [field]: cleaned as never };
+      return next;
+    });
+  };
+
+  const removeBand = (index: number) => {
+    setBands((prev) => prev.filter((_, i) => i !== index));
+    if (editingBand === index) setEditingBand(null);
+    else if (editingBand !== null && editingBand > index) setEditingBand(editingBand - 1);
   };
 
   return (
@@ -174,26 +246,166 @@ function InlineExerciseEditor({
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Weeks</th>
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Sets × reps</th>
               <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Weight</th>
+              <th className="w-8"></th>
             </tr>
           </thead>
           <tbody>
-            {bands.length > 0 ? (
-              bands.map((band, i) => (
-                <tr key={i} className="border-b border-[var(--hub-border)] last:border-b-0 hover:bg-[var(--hub-hover)]">
-                  <td className="px-2.5 py-2 tabular-nums whitespace-nowrap">{band.from_week}–{band.to_week}</td>
-                  <td className="px-2.5 py-2 tabular-nums">
-                    {band.sets && band.reps ? `${band.sets} × ${band.reps}` : "—"}
-                  </td>
-                  <td className="px-2.5 py-2 tabular-nums">{band.weight || "—"}</td>
-                </tr>
-              ))
-            ) : (
+            {bands.map((band, i) => (
+              <tr key={i} className="border-b border-[var(--hub-border)] last:border-b-0 hover:bg-[var(--hub-hover)]">
+                {editingBand === i ? (
+                  <>
+                    <td className="px-2.5 py-1.5">
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={totalWeeks}
+                          value={band.from_week}
+                          onChange={(e) => updateBand(i, "from_week", parseInt(e.target.value, 10) || 1)}
+                          className="h-7 w-14 text-[13px] rounded-control-sm text-center tabular-nums"
+                        />
+                        <span className="text-muted-foreground text-xs">–</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={totalWeeks}
+                          value={band.to_week}
+                          onChange={(e) => updateBand(i, "to_week", parseInt(e.target.value, 10) || 1)}
+                          className="h-7 w-14 text-[13px] rounded-control-sm text-center tabular-nums"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-2.5 py-1.5">
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          value={band.sets ?? ""}
+                          onChange={(e) => updateBand(i, "sets", e.target.value ? parseInt(e.target.value, 10) : "")}
+                          placeholder="sets"
+                          className="h-7 w-14 text-[13px] rounded-control-sm text-center tabular-nums"
+                        />
+                        <span className="text-muted-foreground text-xs">×</span>
+                        <Input
+                          value={band.reps ?? ""}
+                          onChange={(e) => updateBand(i, "reps", e.target.value)}
+                          placeholder="reps"
+                          className="h-7 w-16 text-[13px] rounded-control-sm text-center tabular-nums"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-2.5 py-1.5">
+                      <Input
+                        value={band.weight ?? ""}
+                        onChange={(e) => updateBand(i, "weight", e.target.value)}
+                        placeholder="weight"
+                        className="h-7 w-20 text-[13px] rounded-control-sm tabular-nums"
+                      />
+                    </td>
+                    <td className="px-1.5 py-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditingBand(null)}
+                        className="shrink-0 w-6 h-6 flex items-center justify-center rounded-control-sm text-muted-foreground hover:bg-[var(--hub-hover)]"
+                        aria-label="Done editing band"
+                      >
+                        <IconX className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-2.5 py-2 tabular-nums whitespace-nowrap">{band.from_week}–{band.to_week}</td>
+                    <td className="px-2.5 py-2 tabular-nums">
+                      {band.sets && band.reps ? `${band.sets} × ${band.reps}` : band.sets ? `${band.sets} sets` : band.reps || "—"}
+                    </td>
+                    <td className="px-2.5 py-2 tabular-nums">{band.weight || "—"}</td>
+                    <td className="px-1.5 py-2">
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingBand(i)}
+                          className="shrink-0 text-[11px] font-semibold text-rose-text hover:underline underline-offset-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeBand(i)}
+                          className="shrink-0 w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-rose-text"
+                          aria-label={`Remove band ${i + 1}`}
+                        >
+                          <IconTrash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+            {bands.length === 0 && (
               <tr className="border-b border-[var(--hub-border)] last:border-b-0">
-                <td colSpan={3} className="px-2.5 py-2 text-muted-foreground">
-                  No week bands — base prescription applies every week
+                <td colSpan={4} className="px-2.5 py-2 text-muted-foreground">
+                  No bands — base prescription applies every week.
+                  <button type="button" onClick={addBand} className="ml-1 text-rose-text font-semibold hover:underline underline-offset-2 text-[12.5px]">
+                    Add progression
+                  </button>
                 </td>
               </tr>
             )}
+          </tbody>
+        </table>
+      </div>
+
+      {bands.length > 0 && (
+        <div className="mt-1.5">
+          <button
+            type="button"
+            onClick={addBand}
+            className="text-[12px] font-semibold text-rose-text hover:underline underline-offset-2"
+          >
+            + Add band
+          </button>
+        </div>
+      )}
+
+      {bandErrors.length > 0 && (
+        <div className="mt-2 rounded-control-sm border border-rose/20 bg-rose/5 p-2.5">
+          {bandErrors.map((err, i) => (
+            <p key={i} className="text-[12px] text-rose-text">{err}</p>
+          ))}
+        </div>
+      )}
+
+      {/* Weekly prescription preview */}
+      <p className="text-[10.5px] font-bold uppercase tracking-widest text-muted-foreground mt-4 mb-2">Weekly prescription</p>
+      <div className="rounded-nested border border-[var(--hub-border)] overflow-hidden">
+        <table className="w-full border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-[var(--hub-border)]">
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Week</th>
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Sets × reps</th>
+              <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: totalWeeks }, (_, w) => {
+              const weekNum = w + 1;
+              const resolved = resolveSlotForWeek(
+                { sections: [{ kind: "straight" as const, exercises: [baseExercise] }] },
+                weekNum,
+              );
+              const ex = resolved.sections[0].exercises[0];
+              return (
+                <tr key={weekNum} className="border-b border-[var(--hub-border)] last:border-b-0 hover:bg-[var(--hub-hover)]">
+                  <td className="px-2.5 py-1.5 tabular-nums font-medium">{weekNum}</td>
+                  <td className="px-2.5 py-1.5 tabular-nums">
+                    {ex.sets && ex.reps ? `${ex.sets} × ${ex.reps}` : ex.sets ? `${ex.sets} sets` : ex.reps || "—"}
+                  </td>
+                  <td className="px-2.5 py-1.5 tabular-nums">{ex.weight || "—"}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
