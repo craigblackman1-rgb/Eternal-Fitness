@@ -3,6 +3,7 @@ import { IconChevronLeft, IconPencil, IconCalendar, IconMail } from "@/component
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/hub/StatusBadge";
 import { lookupStatus } from "@/lib/hubStatus";
+import { useDrawerManager } from "./DrawerManager";
 import type { DBClient } from "@/types";
 
 /* ── ClientRecordHeader — single-screen header replacing HubQuickActions +
@@ -73,6 +74,7 @@ export function ClientRecordHeader({
   sessionsPurchased,
   paymentStatus,
   packageType,
+  onRenewal,
 }: {
   client: DBClient;
   status: string | null;
@@ -82,12 +84,14 @@ export function ClientRecordHeader({
   sessionsPurchased: number | null;
   paymentStatus: string;
   packageType: string | null;
+  onRenewal?: () => void;
 }) {
   const initials = client.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
   const subline = buildSubline(client);
   const complianceLookup = status ? lookupStatus(status) : null;
   const isHomeTraining = (client as any).delivery_mode === "home_training";
   const firstName = client.name.split(" ")[0];
+  const { openDrawer } = useDrawerManager();
 
   // Sessions chip: "N of M · Paid/Unpaid" or "Ongoing"
   const isOngoing = packageType === "ongoing" || sessionsPurchased == null;
@@ -98,6 +102,8 @@ export function ClientRecordHeader({
     ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]"
     : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]";
 
+  const isDNT = status === "do_not_train";
+
   return (
     <>
       <a
@@ -107,6 +113,34 @@ export function ClientRecordHeader({
         ‹ Clients
       </a>
 
+      {/* C1a — Do-Not-Train hard-stop header variant */}
+      {isDNT ? (
+        <div className="border border-[var(--status-danger-border)] rounded-surface overflow-hidden mb-2.5">
+          <div className="flex items-center gap-3 px-4 py-3 bg-[var(--status-danger-bg)] border-b border-[var(--status-danger-border)]">
+            <div className="w-[40px] h-[40px] rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-sm font-bold shrink-0">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="m-0 text-[22px] font-bold tracking-tight text-[var(--color-ink)]">
+                  {client.name}
+                </h1>
+                <span className="inline-flex items-center h-[21px] px-2.5 rounded-pill text-[11.5px] font-semibold border bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]">
+                  Do-Not-Train
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="px-4 py-3">
+            <p className="m-0 text-[10.5px] font-bold uppercase tracking-[.08em] text-[var(--status-danger)] mb-1">
+              Hard-stop active — no sessions may be booked until cleared
+            </p>
+            <p className="m-0 text-[13px] text-[var(--color-body)]">
+              Medical clearance required. Contact Esther to clear this client for training.
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="flex items-start gap-3.5 mb-2.5">
         {/* Avatar */}
         <div className="w-[52px] h-[52px] rounded-pill bg-[var(--status-primary-bg)] text-[var(--status-primary-text)] grid place-items-center text-base font-bold shrink-0">
@@ -134,6 +168,23 @@ export function ClientRecordHeader({
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* C1a — Renewal button: visible when renewal is due (remaining <= 1 or payment not paid) */}
+          {onRenewal && (sessionsRemaining != null && sessionsRemaining <= 1 || paymentStatus !== "paid") && (
+            <Button
+              onClick={onRenewal}
+              className="bg-rose hover:bg-rose/90 text-white rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5"
+            >
+              Start next package
+            </Button>
+          )}
+          {/* C1a — Pot ledger button */}
+          <Button
+            variant="outline"
+            onClick={() => openDrawer("dw-pot-ledger")}
+            className="bg-white border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5"
+          >
+            Pot ledger
+          </Button>
           <Link href={`/hub/clients/${client.client_number}/edit`}>
             <Button variant="outline" className="bg-white border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">
               <IconPencil className="w-4 h-4" /> Edit Client
@@ -163,6 +214,7 @@ export function ClientRecordHeader({
           )}
         </div>
       </div>
+      )}
     </>
   );
 }

@@ -24,6 +24,7 @@ interface SessionMoveDialogProps {
   clientNumber: number;
   clientName: string;
   preferredTime: string | null;
+  sessionsRemaining: number | null;
   onClose: () => void;
 }
 
@@ -33,6 +34,9 @@ const CANCEL_REASONS = [
   "Esther unavailable",
   "Other",
 ] as const;
+
+/** C1a — three-way cancel route: charged, free, or reschedule. */
+type CancelRoute = "charge" | "free" | "reschedule";
 
 function fmtDayShort(iso: string): string {
   const d = new Date(iso);
@@ -51,16 +55,17 @@ export function SessionMoveDialog({
   clientNumber,
   clientName,
   preferredTime,
+  sessionsRemaining,
   onClose,
 }: SessionMoveDialogProps) {
   const router = useRouter();
   const [route, setRoute] = useState<"move" | "cancel">("move");
+  const [cancelRoute, setCancelRoute] = useState<CancelRoute>("free");
   const [slots, setSlots] = useState<SlotCandidate[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState<string>(CANCEL_REASONS[0]);
   const [otherReason, setOtherReason] = useState("");
-  const [chargedFree, setChargedFree] = useState<"free" | "charged">("free");
   const [saving, setSaving] = useState(false);
 
   const sessionDate = session.scheduled_at ? fmtDayShort(session.scheduled_at) : "";
@@ -154,6 +159,11 @@ export function SessionMoveDialog({
   }, [selectedSlot, session.id, onClose, router]);
 
   const handleCancel = useCallback(async () => {
+    // C1a — reschedule route jumps into move mode
+    if (cancelRoute === "reschedule") {
+      setRoute("move");
+      return;
+    }
     setSaving(true);
     try {
       const reason = cancelReason === "Other" && otherReason ? otherReason : cancelReason;
@@ -161,7 +171,8 @@ export function SessionMoveDialog({
         cancelled_at: new Date().toISOString(),
         cancel_reason: reason,
       };
-      if (chargedFree === "free") {
+      // C1a — three-way: "free" sends charged_free, "charge" omits it (defaults to charged)
+      if (cancelRoute === "free") {
         body.charged_free = "free";
       }
       const res = await fetch(`/api/sessions/${session.id}`, {
@@ -173,7 +184,7 @@ export function SessionMoveDialog({
         const data = await res.json();
         throw new Error(data.error || "Failed to cancel session");
       }
-      toast.success("Session cancelled");
+      toast.success(cancelRoute === "free" ? "Session cancelled — free" : "Session cancelled — charged to pot");
       onClose();
       router.refresh();
     } catch (err) {
@@ -181,7 +192,7 @@ export function SessionMoveDialog({
     } finally {
       setSaving(false);
     }
-  }, [session.id, cancelReason, otherReason, chargedFree, onClose, router]);
+  }, [session.id, cancelRoute, cancelReason, otherReason, onClose, router]);
 
   const selectedSlotData = slots.find((s) => s.fullDateTime === selectedSlot);
 
@@ -315,7 +326,43 @@ export function SessionMoveDialog({
           {route === "cancel" && (
             <div className="mt-4">
               <p className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mb-2.5">
-                Reason for cancelling
+                How should this cancellation be handled?
+              </p>
+
+              {/* C1a — Three-way route cards */}
+              <div className="grid grid-cols-3 gap-2.5 mb-3">
+                <RouteCard
+                  title="Charge to the pot"
+                  description="Uses one of the paid sessions. The remaining count drops by 1."
+                  selected={cancelRoute === "charge"}
+                  onSelect={() => setCancelRoute("charge")}
+                />
+                <RouteCard
+                  title="Free cancellation"
+                  description="Doesn't touch the pot. Recorded as a free cancellation."
+                  selected={cancelRoute === "free"}
+                  onSelect={() => setCancelRoute("free")}
+                />
+                <RouteCard
+                  title="Reschedule"
+                  description="Move to a new date. Doesn't touch the pot."
+                  selected={cancelRoute === "reschedule"}
+                  onSelect={() => setCancelRoute("reschedule")}
+                />
+              </div>
+
+              {/* Consequence preview */}
+              <div className="border border-[var(--status-success-border)] rounded-nested bg-[var(--status-success-bg)] px-3.5 py-3 mb-3 text-[13px] text-[var(--color-teal-text)] font-medium">
+                {cancelRoute === "charge"
+                  ? `${sessionsRemaining ?? "?"} remaining → ${Math.max(0, (sessionsRemaining ?? 1) - 1)} remaining`
+                  : cancelRoute === "free"
+                    ? `${sessionsRemaining ?? "?"} remaining → ${sessionsRemaining ?? "?"} remaining (no change)`
+                    : `${sessionsRemaining ?? "?"} remaining → ${sessionsRemaining ?? "?"} remaining (date changes only)`}
+              </div>
+
+              {/* Reason */}
+              <p className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mb-1.5">
+                Reason
               </p>
               <select
                 value={cancelReason}
@@ -336,29 +383,6 @@ export function SessionMoveDialog({
                   className="mt-2 h-[34px] border border-[var(--hub-field-border)] rounded-control-sm px-2.5 font-[inherit] text-[13px] text-[var(--color-ink)] bg-[var(--field-fill)] w-full max-w-[320px]"
                 />
               )}
-
-              {/* Charged/free choice */}
-              <div className="mt-3.5">
-                <label className="flex items-center gap-2 text-[13px] text-[var(--color-ink)]">
-                  <input
-                    type="checkbox"
-                    checked={chargedFree === "free"}
-                    onChange={(e) => setChargedFree(e.target.checked ? "free" : "charged")}
-                    className="w-4 h-4"
-                  />
-                  Don&rsquo;t charge a session (free cancellation)
-                </label>
-              </div>
-
-              {/* Programme unaffected reassurance */}
-              <div className="flex items-center gap-2.5 mt-3.5 px-3.5 py-3 rounded-nested bg-[var(--status-success-bg)] border border-[var(--status-success-border)] text-[var(--color-teal)] text-[13.5px] font-medium">
-                <svg className="shrink-0 w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-                <span>
-                  Her programme is unaffected — <b>{sessionWorkoutName(session)}</b> still delivers at her next session. Cancelling here does not use a paid session or move the queue.
-                </span>
-              </div>
             </div>
           )}
         </div>
@@ -404,4 +428,31 @@ function sessionWorkoutName(s: DBSession): string {
   if (label && typeof label === "string" && label.trim()) return label.trim();
   if (s.program_id && s.program_slot_id) return "Programme session";
   return "Workout";
+}
+
+/** C1a — Route card for three-way cancel choice. */
+function RouteCard({ title, description, selected, onSelect }: {
+  title: string;
+  description: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`border rounded-nested bg-white p-3 text-center font-[inherit] cursor-pointer transition-[border-color,box-shadow] duration-[120ms] ${
+        selected
+          ? "border-[var(--color-rose)] shadow-[inset_0_0_0_1px_var(--color-rose)] bg-[var(--status-primary-bg)]"
+          : "border-[var(--hub-border)] hover:border-[var(--color-rose)]"
+      }`}
+    >
+      <div className={`text-[13.5px] font-bold ${selected ? "text-[var(--status-primary-text)]" : "text-[var(--color-ink)]"}`}>
+        {title}
+      </div>
+      <div className="text-xs text-[var(--color-body)] mt-1 leading-snug">
+        {description}
+      </div>
+    </button>
+  );
 }

@@ -18,6 +18,7 @@ interface QueueItem {
   actionLabel?: string;
   actionDrawerId?: string;
   actionHref?: string;
+  onAction?: () => void;
 }
 
 export interface NeedsYouInput {
@@ -53,6 +54,8 @@ export interface NeedsYouInput {
   sessionsPurchased?: number | null;
   paymentStatus?: string;
   blockExpiryDate?: string | null;
+  /** C1a — callback to open the renewal flow dialog. */
+  onRenewal?: () => void;
 }
 
 /**
@@ -88,6 +91,7 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
     sessionsPurchased,
     paymentStatus,
     blockExpiryDate,
+    onRenewal,
   } = input;
   const items: QueueItem[] = [];
 
@@ -124,7 +128,7 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
         ? `Oldest ${new Date(oldestOpenBooking).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}. Until they are confirmed the block reads fewer sessions done than really happened.`
         : "Until they are confirmed the block reads fewer sessions done than really happened.",
       actionLabel: "Sort in triage",
-      actionHref: "/hub/schedule/triage",
+      actionHref: `/hub/schedule/triage?client=${clientNumber}`,
     });
   }
 
@@ -196,8 +200,8 @@ export function buildNeedsYouItems(input: NeedsYouInput): QueueItem[] {
         dot: "due",
         headline: `Renewal due \u2014 ${reason}`,
         subline: paymentStatus === "pending" ? "Payment is pending." : paymentStatus === "overdue" ? "Payment is overdue." : undefined,
-        actionLabel: "Arrangement",
-        actionDrawerId: "dw-arrangement",
+        actionLabel: "Start next package",
+        onAction: onRenewal,
       });
     }
   }
@@ -309,7 +313,14 @@ export function NeedsYouQueue(props: NeedsYouInput) {
           </span>
           {item.actionLabel && (
             <span className="shrink-0">
-              {item.actionHref ? (
+              {item.onAction ? (
+                <button
+                  onClick={item.onAction}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  {item.actionLabel}
+                </button>
+              ) : item.actionHref ? (
                 <Link
                   href={item.actionHref}
                   className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors no-underline"

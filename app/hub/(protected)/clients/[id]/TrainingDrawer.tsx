@@ -964,6 +964,7 @@ export function TrainingDrawer({
           clientNumber={clientNumber}
           clientName={clientName}
           preferredTime={preferredTime}
+          sessionsRemaining={sessionsRemaining}
           onClose={() => setMoveSession(null)}
         />
       )}

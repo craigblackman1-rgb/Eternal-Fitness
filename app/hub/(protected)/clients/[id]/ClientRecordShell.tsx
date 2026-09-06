@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DrawerManager } from "./DrawerManager";
 import { ClientRecordHeader } from "./ClientRecordHeader";
 import { ClientDrawerStrip } from "./ClientDrawerStrip";
@@ -7,6 +8,7 @@ import { NeedsYouQueue, buildNeedsYouItems } from "./NeedsYouQueue";
 import { TrainingSummary } from "./TrainingSummary";
 import { TrainingDrawer } from "./TrainingDrawer";
 import { ClientDrawers } from "./ClientDrawers";
+import { RenewalFlow } from "./RenewalFlow";
 import type { DBBlock, DBSession } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
@@ -183,6 +185,7 @@ export function ClientRecordShell({
   activeProgramId,
   sessionsPurchased,
 }: ClientRecordShellProps) {
+  const [showRenewal, setShowRenewal] = useState(false);
   const latestBlock = latestBlockProp;
 
   const blockSessions = latestBlock
@@ -231,6 +234,7 @@ export function ClientRecordShell({
     sessionsPurchased: client.sessions_purchased ?? null,
     paymentStatus,
     blockExpiryDate,
+    onRenewal: () => setShowRenewal(true),
   };
   const needsYouCount = buildNeedsYouItems(needsYouInput).length;
 
@@ -246,6 +250,7 @@ export function ClientRecordShell({
           sessionsPurchased={client.sessions_purchased ?? null}
           paymentStatus={paymentStatus}
           packageType={packageType}
+          onRenewal={() => setShowRenewal(true)}
         />
 
         <ClientDrawerStrip
@@ -378,6 +383,16 @@ export function ClientRecordShell({
         exerciseNotes={exerciseNotes}
         pinnedNoteRefs={pinnedNoteRefs}
       />
+
+      {/* C1a — Renewal flow dialog */}
+      {showRenewal && (
+        <RenewalFlow
+          client={client}
+          sessionsRemaining={sessionsRemaining}
+          sessionsPurchased={client.sessions_purchased ?? null}
+          onClose={() => setShowRenewal(false)}
+        />
+      )}
     </DrawerManager>
   );
 }

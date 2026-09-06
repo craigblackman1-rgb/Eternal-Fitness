@@ -17,6 +17,7 @@ import { MergedNotesPanel } from "./MergedNotesPanel";
 import { GpLetterCard } from "@/components/hub/GpLetterCard";
 import { PackagePaymentsCard } from "@/components/hub/PackagePaymentsCard";
 import { GracePeriodExtension } from "@/components/hub/GracePeriodExtension";
+import { PotLedger } from "./PotLedger";
 import type { DBBlock, DBSession, SessionNoteData, PinnedNoteRef } from "@/types";
 import type { ExerciseTrend } from "@/lib/progress";
 import type { ComplianceFlags } from "@/lib/compliance";
@@ -566,18 +567,28 @@ function HealthDrawer({ client, ruleTypesById, gpClearance, medicalClearanceStat
         </div>
       </div>
 
-      {/* Training rules */}
+      {/* Training rules — C1a: severity tags per mockup */}
       <div className="fcard acc-amber">
         <div className="fcard-h">What this means for training</div>
         <div className="fcard-b pad">
           {rules.length > 0 ? (
-            <div className="tags">
+            <div className="space-y-2">
               {rules.map((r: any) => {
                 const ruleType = ruleTypesById.get(r.rule_type_id);
+                const isHard = r.severity === "hard";
                 return (
-                  <span key={r.id} className="tag">
-                    {ruleType?.label ? `${ruleType.label} \u2014 ` : ""}{r.detail}
-                  </span>
+                  <div key={r.id} className="flex items-start gap-2.5 py-2 px-3 rounded-control border border-[var(--hub-border)] bg-white">
+                    <span className="flex-1 text-[13px] text-[var(--color-ink)]">
+                      {ruleType?.label ? `${ruleType.label} — ` : ""}{r.detail}
+                    </span>
+                    <span className={`shrink-0 inline-flex items-center h-[21px] px-2.5 rounded-pill text-[11.5px] font-semibold border ${
+                      isHard
+                        ? "bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]"
+                        : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]"
+                    }`}>
+                      {isHard ? "HARD" : "SOFT"}
+                    </span>
+                  </div>
                 );
               })}
             </div>
@@ -1950,6 +1961,18 @@ function PreAppDrawer({ trainerizeHistory, clientNumber }: { trainerizeHistory: 
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   C1a — POT LEDGER DRAWER
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function PotLedgerDrawer({ clientNumber, clientName }: { clientNumber: number; clientName: string }) {
+  return (
+    <DrawerShell id="dw-pot-ledger" title="Pot ledger" subtitle={`${clientName} — session pot`} width="lg">
+      <PotLedger clientNumber={clientNumber} clientName={clientName} />
+    </DrawerShell>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    MAIN EXPORT
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -2028,6 +2051,11 @@ export function ClientDrawers(props: ClientDrawersProps) {
       <PreAppDrawer
         trainerizeHistory={props.trainerizeHistory}
         clientNumber={props.client.client_number}
+      />
+      {/* C1a — Pot ledger drawer */}
+      <PotLedgerDrawer
+        clientNumber={props.client.client_number}
+        clientName={props.client.name}
       />
     </>
   );

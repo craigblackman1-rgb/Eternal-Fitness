@@ -5,6 +5,9 @@ import { getPool } from "@/lib/pg-client";
    One screen for every exception queue, instead of six pages nobody can hold
    in their head. Craig, 4 Sep: "treat them as individuals for now."
 
+   C1a — supports ?client=<client_number> to filter the open-bookings queue
+   to a single client. The client's Needs-You row links with this param.
+
    Deliberately NOT built here:
    - No series/recurrence grouping. There is no field to group on — every
      Outlook booking is an independent row — so the mockup's "29 bookings
@@ -29,8 +32,9 @@ interface Queue {
   tone: "warn" | "due" | "quiet";
 }
 
-export default async function ScheduleTriagePage() {
+export default async function ScheduleTriagePage({ searchParams }: { searchParams: { client?: string } }) {
   const pool = getPool();
+  const clientFilter = searchParams.client ? parseInt(searchParams.client) : null;
 
   const one = async (sql: string): Promise<number> => {
     try {
@@ -43,8 +47,13 @@ export default async function ScheduleTriagePage() {
     }
   };
 
-  const [openBookings, duplicates, pendingSync, lapseFlagged, needsWorkout] = await Promise.all([
-    one("SELECT count(*)::int AS n FROM outlook_booking_events WHERE status = 'open'"),
+  // C1a — when client filter is active, scope the open-bookings count to that client
+  const openBookingsSql = clientFilter
+    ? `SELECT count(*)::int AS n FROM outlook_booking_events WHERE status = 'open' AND client_number = ${clientFilter}`
+    : "SELECT count(*)::int AS n FROM outlook_booking_events WHERE status = 'open'";
+
+  const [openBookings, duplicates, pendingSync, lapseFlagged, needsWorkout, clientName] = await Promise.all([
+    one(openBookingsSql),
     one("SELECT count(*)::int AS n FROM outlook_duplicate_candidates"),
     one("SELECT count(*)::int AS n FROM calendar_sync_pending_actions"),
     one("SELECT count(*)::int AS n FROM sessions WHERE lapse_flagged_at IS NOT NULL AND status = 'scheduled'"),
@@ -54,6 +63,9 @@ export default async function ScheduleTriagePage() {
           AND parent_session_id IS NULL
           AND data->'versions' IS NULL`,
     ),
+    clientFilter
+      ? pool.query("SELECT name FROM clients WHERE client_number = $1", [clientFilter]).then((r) => r.rows[0]?.name ?? null)
+      : Promise.resolve(null),
   ]);
 
   const queues: Queue[] = [
@@ -61,7 +73,7 @@ export default async function ScheduleTriagePage() {
       id: "bookings",
       label: "Outlook bookings waiting to be sorted",
       count: openBookings,
-      href: "/hub/schedule/outlook",
+      href: clientFilter ? `/hub/schedule/outlook?client=${clientFilter}` : "/hub/schedule/outlook",
       why: "Until these are confirmed into sessions, the blocks they belong to read fewer sessions done than really happened.",
       tone: "warn",
     },
@@ -126,6 +138,20 @@ export default async function ScheduleTriagePage() {
           {total > 0 ? `${total} things waiting across ${known.length} queues` : "Nothing waiting"}
         </span>
       </div>
+
+      {/* C1a — client-scoped filter chip */}
+      {clientFilter && clientName && (
+        <div className="flex items-center gap-2 mb-3.5 px-3 py-2 rounded-nested border border-[var(--status-success-border)] bg-[var(--status-success-bg)] text-[13px] text-[var(--color-teal-text)]">
+          <span className="font-semibold">Showing only {clientName}</span>
+          <span className="text-[var(--color-muted)]">·</span>
+          <Link
+            href="/hub/schedule/triage"
+            className="font-semibold text-[var(--color-rose-text)] hover:underline underline-offset-2"
+          >
+            Show all
+          </Link>
+        </div>
+      )}
 
       <div className="bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_1px_2px_rgba(16,24,40,.04),0_1px_3px_rgba(16,24,40,.07)] overflow-hidden mb-3.5">
         <div className="flex items-center gap-2.5 py-2.5 px-4 border-b border-[var(--hub-border)]">
