@@ -9,7 +9,6 @@ import { SessionChooser } from "./SessionChooser";
 import { SessionMoveDialog } from "./SessionMoveDialog";
 import { ShiftScheduleDialog } from "./ShiftScheduleDialog";
 import { sessionWorkoutName } from "@/lib/session-display";
-import { blockDisplayName } from "@/lib/block-name";
 import { SupplementaryWorkoutsCard } from "@/components/hub/SupplementaryWorkoutsCard";
 import { ensureUids } from "@/lib/exercise-ref";
 import type { DBBlock, DBSession, SessionVersion, BlockStatus } from "@/types";
@@ -247,8 +246,8 @@ export function TrainingDrawer({
     .filter((s) => s.completed_at && !s.parent_session_id)
     .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime());
 
-  // Past programs (all except the latest)
-  const pastBlocks = allBlocks.filter((b) => latestBlock && b.id !== latestBlock.id);
+  // Block title lookup — for session history tags
+  const blockTitleById = new Map(allBlocks.map((b) => [b.id, b.title]));
 
   // Trainerize history summary
   const tBlocks = trainerizeHistory.blocks ?? [];
@@ -274,7 +273,6 @@ export function TrainingDrawer({
   const [notesOpen, setNotesOpen] = useState(false);
   const [showAllSessions, setShowAllSessions] = useState(false);
   const [showAllCompleted, setShowAllCompleted] = useState(false);
-  const [showAllPast, setShowAllPast] = useState(false);
   const [detailCache, setDetailCache] = useState<Record<string, TrainerizePerformedExerciseDetail[] | "loading" | "error">>({});
 
   const toggleWorkout = (workoutId: string) => {
@@ -706,13 +704,13 @@ export function TrainingDrawer({
         </div>
       )}
 
-      {/* ═══ COMPLETED SESSIONS ═══ */}
+      {/* ═══ SESSION HISTORY ═══ */}
       {completedSessions.length > 0 && (
         <div className="fcard acc-teal">
           <div className="fcard-h">
-            <span>Completed sessions</span>
+            <span>Session history</span>
             <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
-              {completedSessions.length} done
+              {completedSessions.length} completed
             </span>
           </div>
           <div className="fcard-b">
@@ -726,6 +724,11 @@ export function TrainingDrawer({
                 </span>
                 <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)]">
                   {sessionWorkoutName(s)}
+                  {blockTitleById.get(s.block_id) && (
+                    <span className="ml-2 inline-block rounded-pill border border-[var(--hub-border)] bg-[var(--hub-hover)] px-2 py-[1px] text-[11px] font-medium text-[var(--color-muted)] leading-snug align-middle">
+                      {blockTitleById.get(s.block_id)}
+                    </span>
+                  )}
                 </span>
                 <Link
                   href={`/hub/clients/${clientNumber}/blocks/${s.block_id}/sessions/${s.session_number}`}
@@ -741,7 +744,7 @@ export function TrainingDrawer({
                 onClick={() => setShowAllCompleted(true)}
                 className="w-full py-2 mt-1 text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-[inherit]"
               >
-                Show all {completedSessions.length} completed
+                Show all {completedSessions.length} sessions
               </button>
             )}
           </div>
@@ -793,70 +796,6 @@ export function TrainingDrawer({
             <p className="miss mt-2 mb-0">
               Both apply to every slot. Either one that bites the next session is named on it.
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ PAST PROGRAMMES ═══ */}
-      {pastBlocks.length > 0 && (
-        <div className="fcard acc-ink">
-          <div className="fcard-h">
-            <span>Past programmes</span>
-          </div>
-          <div className="fcard-b">
-            {(showAllPast ? pastBlocks : pastBlocks.slice(0, 4)).map((block) => {
-              const blockSessionsForCount = allSessions.filter(
-                (s) => s.block_id === block.id && !s.parent_session_id
-              );
-              const dates = blockSessionsForCount
-                .filter((s) => s.scheduled_at)
-                .map((s) => s.scheduled_at!)
-                .sort();
-              const dateLabel = dates.length > 0
-                ? `${fmtDate(dates[0])}${dates.length > 1 ? `\u2013${fmtDate(dates[dates.length - 1])}` : ""}`
-                : "Not scheduled";
-
-              // Use derived status if available, otherwise fall back to stored
-              const derivedStatus = derivedStatusByBlock?.get(block.id) ?? block.status as BlockStatus;
-              const statusLabel = derivedStatus === "complete" ? "Complete" : derivedStatus;
-
-              return (
-                <div
-                  key={block.id}
-                  className="flex items-center gap-[11px] w-full py-[8px] border-b border-[var(--hub-border)] last:border-b-0"
-                >
-                  <span className="w-[26px] h-[26px] shrink-0 rounded-control grid place-items-center text-[11px] font-extrabold bg-[var(--status-success-bg)] text-[var(--color-teal)]">
-                    {block.block_number}
-                  </span>
-                  <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
-                    {blockDisplayName(block, blockSessionsForCount, blockSessionsForCount.length)}
-                    <small className="text-xs font-normal text-[var(--color-body)] ml-2">
-                      {blockSessionsForCount.length} session{blockSessionsForCount.length === 1 ? "" : "s"} · {dateLabel}
-                    </small>
-                  </span>
-                  <span
-                    className={`shrink-0 inline-flex items-center rounded-pill border px-2.5 py-0.5 text-xs font-semibold ${
-                      derivedStatus === "complete"
-                        ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]"
-                        : derivedStatus === "active"
-                          ? "bg-[var(--status-primary-bg)] text-[var(--color-rose)] border-[var(--status-primary-border)]"
-                          : "bg-[var(--status-neutral-bg)] text-[var(--color-body)] border-[var(--status-neutral-border)]"
-                    }`}
-                  >
-                    {statusLabel}
-                  </span>
-                </div>
-              );
-            })}
-            {pastBlocks.length > 4 && !showAllPast && (
-              <button
-                type="button"
-                onClick={() => setShowAllPast(true)}
-                className="w-full py-2 mt-1 text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-[inherit]"
-              >
-                Show all {pastBlocks.length} past programmes
-              </button>
-            )}
           </div>
         </div>
       )}
