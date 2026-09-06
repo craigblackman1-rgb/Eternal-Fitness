@@ -242,6 +242,11 @@ export function TrainingDrawer({
     .filter((s) => s.scheduled_at && !s.completed_at && !s.cancelled_at && !s.parent_session_id)
     .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
 
+  // Completed sessions (not sub-sessions, newest first)
+  const completedSessions = allSessions
+    .filter((s) => s.completed_at && !s.parent_session_id)
+    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime());
+
   // Past programs (all except the latest)
   const pastBlocks = allBlocks.filter((b) => latestBlock && b.id !== latestBlock.id);
 
@@ -268,6 +273,7 @@ export function TrainingDrawer({
   const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
   const [showAllSessions, setShowAllSessions] = useState(false);
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
   const [showAllPast, setShowAllPast] = useState(false);
   const [detailCache, setDetailCache] = useState<Record<string, TrainerizePerformedExerciseDetail[] | "loading" | "error">>({});
 
@@ -694,6 +700,48 @@ export function TrainingDrawer({
                 className="w-full py-2 mt-1 text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-[inherit]"
               >
                 Show all {scheduledSessions.length} sessions
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ COMPLETED SESSIONS ═══ */}
+      {completedSessions.length > 0 && (
+        <div className="fcard acc-teal">
+          <div className="fcard-h">
+            <span>Completed sessions</span>
+            <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
+              {completedSessions.length} done
+            </span>
+          </div>
+          <div className="fcard-b">
+            {(showAllCompleted ? completedSessions : completedSessions.slice(0, 5)).map((s) => (
+              <div
+                key={s.id}
+                className="flex items-center gap-3 py-[9px] border-b border-[var(--hub-border)] last:border-b-0"
+              >
+                <span className="w-[130px] shrink-0 text-[13px] font-semibold text-[var(--color-ink)]">
+                  {fmtDate(s.completed_at!)}
+                </span>
+                <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)]">
+                  {sessionWorkoutName(s)}
+                </span>
+                <Link
+                  href={`/hub/clients/${clientNumber}/blocks/${s.block_id}/sessions/${s.session_number}`}
+                  className="shrink-0 text-[12.5px] font-semibold text-[var(--color-rose)] hover:underline underline-offset-2"
+                >
+                  View
+                </Link>
+              </div>
+            ))}
+            {completedSessions.length > 5 && !showAllCompleted && (
+              <button
+                type="button"
+                onClick={() => setShowAllCompleted(true)}
+                className="w-full py-2 mt-1 text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer text-left font-[inherit]"
+              >
+                Show all {completedSessions.length} completed
               </button>
             )}
           </div>
