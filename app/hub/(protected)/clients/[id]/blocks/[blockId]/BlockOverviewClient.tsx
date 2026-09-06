@@ -17,6 +17,7 @@ import { isoToLocalTime, shiftDay } from "@/lib/schedule-dates";
 import { deriveSessionStatus } from "@/lib/session-status";
 import type { Weekday } from "@/lib/scheduling";
 import type { SessionStatus, DBSession, BlockStatus } from "@/types";
+import type { QueueState } from "@/lib/programs/types";
 import {
   Dialog,
   DialogContent,
@@ -119,6 +120,9 @@ interface BlockOverviewClientProps {
   sessionsPurchased: number | null;
   blockExpiryDate: string | null;
   blockExpiryExtensions: { from: string; to: string; at: string; reason?: string }[];
+  programState: QueueState | null;
+  clientNumber: number;
+  sessionsRemaining: number | null;
 }
 
 function sessionStatus(s: DisplaySession): SessionStatus {
@@ -158,6 +162,9 @@ export function BlockOverviewClient({
   sessionsPurchased,
   blockExpiryDate,
   blockExpiryExtensions,
+  programState,
+  clientNumber,
+  sessionsRemaining,
 }: BlockOverviewClientProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -455,6 +462,9 @@ export function BlockOverviewClient({
                     allSessions={sessions}
                     clientName={clientName}
                     sessionsPurchased={sessionsPurchased}
+                    programState={programState}
+                    clientNumber={clientNumber}
+                    sessionsRemaining={sessionsRemaining}
                   />
                 </div>
               </details>

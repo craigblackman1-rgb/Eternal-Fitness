@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HubCard, HubCardHeader } from "@/components/hub";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { IconBot, IconLoader2, IconPlus, IconSend, IconCopy, IconSearch, IconX, IconDumbbell } from "@/components/icons";
+import { IconBot, IconLoader2, IconSend, IconCopy, IconSearch, IconX, IconDumbbell } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -67,7 +68,6 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
   const [draftRestored, setDraftRestored] = useState(false);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [generatingBlock, setGeneratingBlock] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -177,48 +177,6 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
     }
   }
 
-  async function generateBlock() {
-    if (messages.length === 0) return;
-    setGeneratingBlock(true);
-    setError(null);
-
-    const lastAssistantMessage = [...messages]
-      .reverse()
-      .find((m) => m.role === "assistant");
-
-    const conversationSummary = messages
-      .map((m) => `${m.role === "user" ? "Esther" : "Agent"}: ${m.content}`)
-      .join("\n\n");
-
-    try {
-      const response = await fetch("/api/claude/generate-block", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientId: clientNumber,
-          blockNote: lastAssistantMessage?.content.slice(0, 500) ?? "",
-          previousSummary: conversationSummary.slice(0, 2000),
-          templateId: selectedTemplate?.id ?? null,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Failed to generate block");
-      }
-
-      const { blockId } = await response.json();
-      try {
-        window.localStorage.removeItem(draftStorageKey(clientNumber));
-      } catch { /* best-effort */ }
-      router.push(`/hub/clients/${clientNumber}/blocks/${blockId}/review`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate block");
-    } finally {
-      setGeneratingBlock(false);
-    }
-  }
-
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -241,18 +199,12 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
         className="px-5 pt-5"
         action={
           hasConversation && lastMessageIsAssistant && !streaming ? (
-            <Button
-              onClick={generateBlock}
-              disabled={generatingBlock}
-              className="rounded-lg gap-1.5 bg-rose hover:bg-rose/90 text-white h-9 px-3.5 text-sm"
+            <Link
+              href={`/hub/programs?client=${clientNumber}`}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-rose hover:bg-rose/90 text-white h-9 px-3.5 text-sm font-semibold no-underline transition-colors"
             >
-              {generatingBlock ? (
-                <IconLoader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <IconPlus className="h-4 w-4" />
-              )}
-              Create Block
-            </Button>
+              Programs replace generated blocks
+            </Link>
           ) : undefined
         }
       />
@@ -354,8 +306,11 @@ export function PlanAgentTab({ clientNumber, clientName, paceMode }: PlanAgentTa
             {messages.filter((m) => m.role === "user").length} messages
           </Badge>
           <span>
-            When ready, click Create Block to turn this conversation into a draft block
-            {selectedTemplate ? ` — grounded in the "${selectedTemplate.name}" template` : ""}.
+            Programs now manage training blocks.{" "}
+            <Link href={`/hub/programs?client=${clientNumber}`} className="text-rose font-semibold hover:underline">
+              Apply a program
+            </Link>{" "}
+            to assign workouts from the queue.
           </span>
         </div>
       )}

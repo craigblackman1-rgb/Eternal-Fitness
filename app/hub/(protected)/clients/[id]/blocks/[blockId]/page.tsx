@@ -9,6 +9,7 @@ import { deriveSessionPot } from "@/lib/session-pot";
 import { deriveBlockStatus } from "@/lib/block-status";
 import { deriveChronologicalPositions } from "@/lib/session-chronological-order";
 import { blockDisplayName } from "@/lib/block-name";
+import { getClientProgramState } from "@/lib/programs/queue";
 import type { Weekday } from "@/lib/scheduling";
 import type { Session, SessionStatus, DBSession, BlockStatus } from "@/types";
 
@@ -234,6 +235,11 @@ export default async function BlockViewPage({
     title: (block as { title?: string | null }).title ?? null,
   };
 
+  // CR-EF-154 — program queue state for SessionChooser on block sessions
+  const programState = client?.active_program_id
+    ? await getClientProgramState(String(clientId))
+    : null;
+
   return (
     <div className="space-y-4 pb-24">
       <div className="flex items-center gap-4">
@@ -274,6 +280,9 @@ export default async function BlockViewPage({
         sessionsPurchased={client?.sessions_purchased ?? null}
         blockExpiryDate={client?.block_expiry_date ?? null}
         blockExpiryExtensions={client?.block_expiry_extensions ?? []}
+        programState={programState}
+        clientNumber={client?.client_number ?? parseInt(params.id)}
+        sessionsRemaining={client?.sessions_remaining ?? null}
       />
     </div>
   );

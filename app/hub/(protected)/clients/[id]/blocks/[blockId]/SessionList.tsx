@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { CancelSessionDialog } from "@/components/hub/CancelSessionDialog";
 import { SessionRow } from "./SessionRow";
 import { SubSessionRow } from "./SubSessionRow";
-import { AssignWorkoutDialog } from "./AssignWorkoutDialog";
+import { SessionChooser } from "../../SessionChooser";
 import { deriveSessionStatus } from "@/lib/session-status";
 import { isoToLocalTime } from "@/lib/schedule-dates";
 import { sessionWorkoutName, sessionHasNoExercises } from "@/lib/session-display";
-import type { SessionStatus, DBSession } from "@/types";
+import { ensureUids } from "@/lib/exercise-ref";
+import type { SessionStatus, DBSession, SessionVersion } from "@/types";
+import type { QueueState } from "@/lib/programs/types";
 
 interface SessionItem {
   id: string;
@@ -50,6 +52,10 @@ interface SessionListProps {
   /** Needed by the cancel dialog to re-derive the session pot. */
   clientName?: string;
   sessionsPurchased?: number | null;
+  /** CR-EF-154 — program state for the guided SessionChooser. */
+  programState?: QueueState | null;
+  clientNumber?: number;
+  sessionsRemaining?: number | null;
 }
 
 function sessionStatus(s: SessionItem): SessionStatus {
@@ -102,9 +108,13 @@ export function SessionList({
   allSessions = [],
   clientName = "",
   sessionsPurchased = null,
+  programState = null,
+  clientNumber = 0,
+  sessionsRemaining = null,
 }: SessionListProps) {
   const router = useRouter();
-  const [assignSessionId, setAssignSessionId] = useState<string | null>(null);
+  const [chooserSessionId, setChooserSessionId] = useState<string | null>(null);
+  const [chooserBusy, setChooserBusy] = useState(false);
   const [cancelSession, setCancelSession] = useState<DBSession | null>(null);
   const [suppParentId, setSuppParentId] = useState<string | null>(null);
   const [suppName, setSuppName] = useState("");
@@ -143,6 +153,84 @@ export function SessionList({
     }
   };
 
+  // CR-EF-154 — SessionChooser reassign handlers (mirrors TrainingSection)
+  async function handleChooserProgram(sessionId: string, slotId: string) {
+    setChooserBusy(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          program_id: programState?.program.id ?? null,
+          program_slot_id: slotId,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to assign");
+      }
+      toast.success("Session assigned to program slot");
+      setChooserSessionId(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to assign");
+    } finally {
+      setChooserBusy(false);
+    }
+  }
+
+  async function handleChooserTemplate(sessionId: string, templateId: string, templateName: string) {
+    setChooserBusy(true);
+    try {
+      const tplRes = await fetch("/api/workout-templates");
+      if (!tplRes.ok) throw new Error("Could not load template data");
+      const tplList: { id: string; name: string; data: SessionVersion }[] = await tplRes.json();
+      const tpl = tplList.find((t) => t.id === templateId);
+      if (!tpl) throw new Error("Template not found");
+
+      const versions: Record<string, SessionVersion> = {};
+      const buildVersion = (src: SessionVersion): SessionVersion => ({
+        warm_up: ensureUids(src.warm_up ?? []),
+        main_block: ensureUids(src.main_block ?? []),
+        cooldown: ensureUids(src.cooldown ?? []),
+      });
+      versions.studio = buildVersion(tpl.data);
+      versions.home = buildVersion(tpl.data);
+
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: { versions, focus_label: tpl.name },
+          source_focus_label: tpl.name,
+          source_archetype: null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to assign template");
+      }
+      fetch(`/api/workout-templates/${templateId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ increment_usage: true }),
+      }).catch(() => {});
+
+      toast.success(`Assigned "${tpl.name}" to session`);
+      setChooserSessionId(null);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to assign template");
+    } finally {
+      setChooserBusy(false);
+    }
+  }
+
+  function handleChooserOneOff(sessionId: string) {
+    setChooserSessionId(null);
+    router.push(`/hub/clients/${clientNumber}/add-workout?view=chooser`);
+  }
+
   // CR-EF-126 — build map of parent_session_id → sub-sessions for nesting
   const subSessionsByParent = new Map<string, DBSession[]>();
   for (const s of allSessions) {
@@ -178,7 +266,7 @@ export function SessionList({
               cancelReason={session.cancel_reason}
               chargedFree={session.charged_free}
               isEmpty={sessionHasNoExercises(session.data)}
-              onAssignWorkout={setAssignSessionId}
+              onAssignWorkout={setChooserSessionId}
               onCancel={(id) => { const full = byId.get(id); if (full) setCancelSession(full); }}
               onAddSupplementary={(id) => { setSuppParentId(id); setSuppName(""); }}
               canCancel={status !== "completed" && status !== "cancelled"}
@@ -216,12 +304,43 @@ export function SessionList({
         );
       })}
 
-      <AssignWorkoutDialog
-        open={assignSessionId !== null}
-        onOpenChange={(open) => { if (!open) setAssignSessionId(null); }}
-        sessionId={assignSessionId || ""}
-        blockId={blockId}
-      />
+      {/* CR-EF-154 — SessionChooser replaces AssignWorkoutDialog */}
+      {chooserSessionId && programState && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-[var(--color-ink)]/40 backdrop-blur-sm"
+            onClick={() => !chooserBusy && setChooserSessionId(null)}
+          />
+          <div className="relative w-full max-w-[680px] mx-4 bg-white border border-[var(--hub-border)] rounded-surface shadow-[0_20px_60px_rgba(16,24,40,.18)] max-h-[85vh] overflow-y-auto">
+            <div className="px-5 py-4 border-b border-[var(--hub-border)]">
+              <h3 className="m-0 text-[15.5px] font-bold text-[var(--color-ink)] tracking-tight">
+                Assign this session
+              </h3>
+            </div>
+            <div className="px-5 py-4">
+              <SessionChooser
+                nextSlot={programState.nextSlot}
+                currentWeek={programState.currentWeek ?? 1}
+                programWeeks={programState.program?.weeks ?? 1}
+                slotPosition={programState.nextPosition ?? 1}
+                totalSlots={programState.totalSlots ?? 0}
+                sessionsRemaining={sessionsRemaining ?? 0}
+                programName={programState.program?.name ?? ""}
+                clientNumber={clientNumber}
+                onConfirmProgram={(slotId) => handleChooserProgram(chooserSessionId, slotId)}
+                onConfirmTemplate={(templateId, templateName) => handleChooserTemplate(chooserSessionId, templateId, templateName)}
+                onConfirmOneOff={() => handleChooserOneOff(chooserSessionId)}
+                onCancel={() => !chooserBusy && setChooserSessionId(null)}
+              />
+            </div>
+            {chooserBusy && (
+              <div className="absolute inset-0 bg-white/60 rounded-surface flex items-center justify-center pointer-events-none">
+                <span className="text-[13px] font-semibold text-[var(--color-muted)]">Saving…</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {cancelSession && (
         <CancelSessionDialog
