@@ -44,6 +44,68 @@ function exercisePrescription(ex: ProgramExercise): string {
   return parts.join(" · ") || "—";
 }
 
+interface ProgressionSegment {
+  weekRange: string;
+  text: string;
+  isSwapped: boolean;
+  notes?: string;
+}
+
+function buildProgressionStrip(exercise: ProgramExercise, totalWeeks: number): ProgressionSegment[] {
+  if (!exercise.week_bands || exercise.week_bands.length === 0) return [];
+  const segments: ProgressionSegment[] = [];
+  let i = 1;
+  while (i <= totalWeeks) {
+    const resolved = resolveSlotForWeek(
+      { sections: [{ kind: "straight", exercises: [exercise] }] },
+      i,
+    ).sections[0].exercises[0];
+    const swapped = resolved.exercise_name !== exercise.exercise_name;
+    let text: string;
+    if (swapped) {
+      text = resolved.exercise_name;
+    } else {
+      const parts: string[] = [];
+      if (resolved.sets && resolved.reps) parts.push(`${resolved.sets}×${resolved.reps}`);
+      else if (resolved.sets) parts.push(`${resolved.sets} sets`);
+      else if (resolved.reps) parts.push(resolved.reps);
+      if (resolved.weight) parts.push(resolved.weight);
+      text = parts.join(" ") || "—";
+    }
+    const notes = resolved.notes && resolved.notes.length <= 20 ? resolved.notes : undefined;
+    let j = i + 1;
+    while (j <= totalWeeks) {
+      const nextResolved = resolveSlotForWeek(
+        { sections: [{ kind: "straight", exercises: [exercise] }] },
+        j,
+      ).sections[0].exercises[0];
+      const nextSwapped = nextResolved.exercise_name !== exercise.exercise_name;
+      if (nextSwapped !== swapped) break;
+      let nextText: string;
+      if (nextSwapped) {
+        nextText = nextResolved.exercise_name;
+      } else {
+        const parts: string[] = [];
+        if (nextResolved.sets && nextResolved.reps) parts.push(`${nextResolved.sets}×${nextResolved.reps}`);
+        else if (nextResolved.sets) parts.push(`${nextResolved.sets} sets`);
+        else if (nextResolved.reps) parts.push(nextResolved.reps);
+        if (nextResolved.weight) parts.push(nextResolved.weight);
+        nextText = parts.join(" ") || "—";
+      }
+      if (nextText !== text) break;
+      j++;
+    }
+    segments.push({
+      weekRange: i === j - 1 ? `W${i}` : `W${i}-${j - 1}`,
+      text,
+      isSwapped: swapped,
+      notes,
+    });
+    i = j;
+  }
+  return segments;
+}
+
 function sectionSummary(section: ProgramSection): string {
   const n = section.exercises.length;
   if (section.kind === "warmup") return `${n} moves`;
@@ -69,42 +131,86 @@ function ExerciseRow({
   exercise,
   letter,
   isSuperset,
+  totalWeeks,
+  selectedWeek,
   onEdit,
 }: {
   exercise: ProgramExercise;
   letter?: string;
   isSuperset?: boolean;
+  totalWeeks?: number;
+  selectedWeek?: number | null;
   onEdit?: () => void;
 }) {
+  const bands = exercise.week_bands;
+  const hasBands = bands && bands.length > 0;
+  const segments = totalWeeks && hasBands ? buildProgressionStrip(exercise, totalWeeks) : [];
+  const resolvedForWeek = selectedWeek
+    ? resolveSlotForWeek(
+        { sections: [{ kind: "straight", exercises: [exercise] }] },
+        selectedWeek,
+      ).sections[0].exercises[0]
+    : null;
+
   return (
-    <div className={cn("flex items-center gap-3 py-2.5 px-3 text-[13px]", "border-b border-[var(--hub-border)] last:border-b-0")}>
-      {isSuperset && letter && (
-        <span className="shrink-0 w-6 h-6 rounded-control-sm flex items-center justify-center text-[10.5px] font-extrabold bg-dark-navy text-white">
-          {letter}
-        </span>
-      )}
-      <span className="flex-1 min-w-0 text-foreground font-medium">
-        {exercise.exercise_name}
-        {exercise.per_side && (
-          <span className="inline-flex items-center h-5 px-2 ml-2 rounded-pill bg-rose/10 border border-rose/20 text-rose-text text-[10.5px] font-bold uppercase tracking-wide shrink-0">
-            {exercise.per_side}
+    <div className="border-b border-[var(--hub-border)] last:border-b-0">
+      <div className="flex items-center gap-3 py-2.5 px-3 text-[13px]">
+        {isSuperset && letter && (
+          <span className="shrink-0 w-6 h-6 rounded-control-sm flex items-center justify-center text-[10.5px] font-extrabold bg-dark-navy text-white">
+            {letter}
           </span>
         )}
-        {exercise.notes && (
-          <span className="text-muted-foreground font-normal ml-2">({exercise.notes})</span>
+        <span className="flex-1 min-w-0 text-foreground font-medium">
+          {resolvedForWeek ? resolvedForWeek.exercise_name : exercise.exercise_name}
+          {exercise.per_side && (
+            <span className="inline-flex items-center h-5 px-2 ml-2 rounded-pill bg-rose/10 border border-rose/20 text-rose-text text-[10.5px] font-bold uppercase tracking-wide shrink-0">
+              {exercise.per_side}
+            </span>
+          )}
+          {(resolvedForWeek ? resolvedForWeek.notes : exercise.notes) && (
+            <span className="text-muted-foreground font-normal ml-2">({resolvedForWeek ? resolvedForWeek.notes : exercise.notes})</span>
+          )}
+          {selectedWeek && (
+            <span className="inline-flex items-center h-5 px-1.5 ml-2 rounded-pill bg-muted text-[10px] font-semibold text-muted-foreground tabular-nums">
+              W{selectedWeek}
+            </span>
+          )}
+        </span>
+        <span className="shrink-0 tabular-nums text-body text-[12.5px]">
+          {resolvedForWeek ? exercisePrescription(resolvedForWeek) : exercisePrescription(exercise)}
+        </span>
+        {hasBands && !selectedWeek && (
+          <span className="shrink-0 h-5 px-2 rounded-pill bg-rose/10 border border-rose/20 text-rose-text text-[10.5px] font-bold tabular-nums">
+            {totalWeeks}-wk progression
+          </span>
         )}
-      </span>
-      <span className="shrink-0 tabular-nums text-body text-[12.5px]">
-        {exercisePrescription(exercise)}
-      </span>
-      {onEdit && (
-        <button
-          type="button"
-          onClick={onEdit}
-          className="shrink-0 text-[12.5px] font-semibold text-rose-text hover:underline underline-offset-2"
-        >
-          Edit
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="shrink-0 text-[12.5px] font-semibold text-rose-text hover:underline underline-offset-2"
+          >
+            Edit
+          </button>
+        )}
+      </div>
+      {segments.length > 0 && !selectedWeek && (
+        <div className="px-3 pb-2.5 pl-[calc(1.5rem+0.75rem+1.5rem)]">
+          <span className="text-[12px] text-muted-foreground tabular-nums leading-relaxed">
+            {segments.map((seg, idx) => (
+              <span key={idx}>
+                {idx > 0 && <span className="mx-1.5">·</span>}
+                <span>{seg.weekRange} </span>
+                {seg.isSwapped ? (
+                  <span className="text-rose-text font-medium">{seg.text}</span>
+                ) : (
+                  <span>{seg.text}</span>
+                )}
+                {seg.notes && <span className="text-muted-foreground/70 ml-0.5">({seg.notes})</span>}
+              </span>
+            ))}
+          </span>
+        </div>
       )}
     </div>
   );
@@ -467,11 +573,13 @@ function SectionCard({
   section,
   sectionIndex,
   totalWeeks,
+  selectedWeek,
   onExerciseUpdate,
 }: {
   section: ProgramSection;
   sectionIndex: number;
   totalWeeks: number;
+  selectedWeek?: number | null;
   onExerciseUpdate: (sectionIdx: number, exerciseIdx: number, updated: ProgramExercise, bands: WeekBand[]) => void;
 }) {
   const [editingExercise, setEditingExercise] = useState<number | null>(null);
@@ -514,6 +622,8 @@ function SectionCard({
                 exercise={ex}
                 letter={letter}
                 isSuperset={isSuperset}
+                totalWeeks={totalWeeks}
+                selectedWeek={selectedWeek}
                 onEdit={() => setEditingExercise(editingExercise === exIdx ? null : exIdx)}
               />
               {editingExercise === exIdx && (
@@ -556,6 +666,7 @@ function SlotCard({
   const letter = slotLetters[index] || String(index + 1);
   const label = slot.label || `Workout ${letter}`;
   const sections = slot.data?.sections ?? [];
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   return (
     <div>
@@ -590,6 +701,37 @@ function SlotCard({
         <div className="mt-[-2px] mb-3 bg-white border border-[var(--hub-border)] rounded-nested p-3">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[10.5px] font-extrabold uppercase tracking-widest text-muted-foreground">{label} — sections</span>
+            {totalWeeks > 1 && (
+              <div className="ml-auto flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedWeek(null)}
+                  className={cn(
+                    "px-2 py-0.5 rounded-pill text-[11px] font-semibold border transition-colors",
+                    selectedWeek === null
+                      ? "bg-foreground text-white border-foreground"
+                      : "bg-transparent text-muted-foreground border-[var(--hub-border)] hover:bg-[var(--hub-hover)]",
+                  )}
+                >
+                  All
+                </button>
+                {Array.from({ length: totalWeeks }, (_, w) => w + 1).map((wk) => (
+                  <button
+                    key={wk}
+                    type="button"
+                    onClick={() => setSelectedWeek(selectedWeek === wk ? null : wk)}
+                    className={cn(
+                      "w-6 h-6 rounded-pill text-[11px] font-semibold border transition-colors tabular-nums",
+                      selectedWeek === wk
+                        ? "bg-foreground text-white border-foreground"
+                        : "bg-transparent text-muted-foreground border-[var(--hub-border)] hover:bg-[var(--hub-hover)]",
+                    )}
+                  >
+                    {wk}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           {sections.map((section, sIdx) => (
             <SectionCard
@@ -597,6 +739,7 @@ function SlotCard({
               section={section}
               sectionIndex={sIdx + 1}
               totalWeeks={totalWeeks}
+              selectedWeek={selectedWeek}
               onExerciseUpdate={(sectionIdx, exerciseIdx, updated, bands) => {
                 onExerciseUpdate(index, sectionIdx, exerciseIdx, updated, bands);
               }}
