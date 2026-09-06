@@ -772,8 +772,10 @@ export function ProgramBuilderClient({
   const [slots, setSlots] = useState<DBProgramSlot[]>(initialSlots);
   const [expandedSlot, setExpandedSlot] = useState<number | null>(0);
   const [saving, setSaving] = useState(false);
+  const [programStatus, setProgramStatus] = useState(program.status);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
 
-  const statusCfg = statusConfig[program.status] ?? statusConfig.active;
+  const statusCfg = statusConfig[programStatus] ?? statusConfig.active;
   const slotCount = slots.length;
   const totalSessions = parseInt(weeks || "6", 10) * slotCount;
 
@@ -800,6 +802,60 @@ export function ProgramBuilderClient({
       toast.error("Failed to save program");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    const newStatus = programStatus === "archived" ? "active" : "archived";
+    setActionBusy("archive");
+    try {
+      const res = await fetch(`/api/programs/${program.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const text = await res.text();
+      let data: Record<string, unknown> | null = null;
+      try { data = JSON.parse(text); } catch { /* non-JSON response */ }
+      if (!res.ok) throw new Error((data?.error as string) || "Request failed");
+      setProgramStatus(newStatus);
+      toast.success(newStatus === "archived" ? "Program archived" : "Program restored");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Delete ${name || "Untitled program"}? This cannot be undone.`)) return;
+    setActionBusy("delete");
+    try {
+      const res = await fetch(`/api/programs/${program.id}`, {
+        method: "DELETE",
+      });
+      const text = await res.text();
+      let data: Record<string, unknown> | null = null;
+      try { data = JSON.parse(text); } catch { /* non-JSON response */ }
+      if (!res.ok) {
+        const msg = (data?.error as string) || "Request failed";
+        if (res.status === 409 && data?.in_use) {
+          const inUse = data.in_use as { clients: number; sessions: number };
+          const parts: string[] = [];
+          if (inUse.clients > 0) parts.push(`${inUse.clients} client${inUse.clients > 1 ? "s" : ""}`);
+          if (inUse.sessions > 0) parts.push(`${inUse.sessions} session${inUse.sessions > 1 ? "s" : ""}`);
+          toast.error(`Program is in use (${parts.join(", ")}). Archive it instead.`);
+        } else {
+          throw new Error(msg);
+        }
+      } else {
+        toast.success("Program deleted");
+        router.push("/hub/programs");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setActionBusy(null);
     }
   };
 
@@ -884,6 +940,26 @@ export function ProgramBuilderClient({
             <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
               {saving ? "Saving…" : "Save program"}
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={actionBusy !== null}
+              className="h-7 px-2 text-xs"
+              onClick={handleArchive}
+            >
+              {programStatus === "archived" ? "Unarchive" : "Archive"}
+            </Button>
+            <div title={program.clients ? "Unassign from client before deleting" : undefined}>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={actionBusy !== null || !!program.clients}
+                className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            </div>
           </div>
         }
       />
