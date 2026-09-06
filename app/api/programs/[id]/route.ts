@@ -91,3 +91,59 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } },
+) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = params;
+
+  // Check if program exists
+  const { data: program, error: progErr } = await supabase
+    .from("programs")
+    .select("id")
+    .eq("id", id)
+    .single();
+
+  if (progErr || !program) {
+    return NextResponse.json({ error: "Program not found" }, { status: 404 });
+  }
+
+  // Check if any client has this as their active program
+  const { count: clientCount } = await supabase
+    .from("clients")
+    .select("id", { count: "exact", head: true })
+    .eq("active_program_id", id);
+
+  // Check if any sessions reference this program
+  const { count: sessionCount } = await supabase
+    .from("sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("program_id", id);
+
+  if ((clientCount ?? 0) > 0 || (sessionCount ?? 0) > 0) {
+    return NextResponse.json(
+      {
+        error: "Program is in use — archive it instead",
+        in_use: { clients: clientCount ?? 0, sessions: sessionCount ?? 0 },
+      },
+      { status: 409 },
+    );
+  }
+
+  // Delete program — program_slots cascade via ON DELETE CASCADE
+  const { error: delErr } = await supabase
+    .from("programs")
+    .delete()
+    .eq("id", id);
+
+  if (delErr) {
+    return NextResponse.json({ error: delErr.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
