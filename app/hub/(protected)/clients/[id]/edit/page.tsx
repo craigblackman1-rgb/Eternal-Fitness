@@ -17,7 +17,7 @@ import { MedicationTable } from "@/components/hub/MedicationTable";
 import { TrainingRulesEditor } from "@/components/hub/TrainingRulesEditor";
 import { ClientEquipmentCard } from "@/components/hub/ClientEquipmentCard";
 import { normaliseClientEquipment } from "@/lib/client-equipment";
-import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender, Frequency, Package, ClientEquipmentEntry } from "@/types";
+import type { ClientProfile, DBClientComplianceStatus, DBClientGroupType, DBClientPaceMode, DeliveryMode, Gender, Frequency, Package, ClientEquipmentEntry, TrainingLocation, TimeTier } from "@/types";
 import { DEFAULT_FREQUENCY } from "@/types";
 import { parseSplits } from "@/lib/planAgentPrompt";
 import { DEFAULT_SPLITS } from "@/lib/planAgentPrompt";
@@ -115,7 +115,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
           }
         }
       },
-      { rootMargin: "-120px 0px -50% 0px", threshold: 0 },
+      { rootMargin: "-116px 0px -50% 0px", threshold: 0 },
     );
     sections.forEach((sec) => observer.observe(sec));
     return () => observer.disconnect();
@@ -203,8 +203,6 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
     setProfile((prev) => ({ ...prev, [section]: { ...prev[section], ...updates } }));
   }, []);
 
-  const markDirty = useCallback(() => setDirty(true), []);
-
   const handleSave = async () => {
     if (!name.trim()) {
       toast.error("Client name is required");
@@ -267,11 +265,6 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
     const el = document.getElementById(`sec-${sectionId}`);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  const handleFieldChange = useCallback((fieldId: string, value: string) => {
-    setDirty(true);
-    recordFieldChange(dirtySections, fieldId);
-  }, []);
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
@@ -347,11 +340,22 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 )}
                 <span className="bdg mut">{riskLevel} risk</span>
                 {isUpdateOverdue && <span className="bdg warn">Update overdue</span>}
-                <span className="ml-auto flex gap-3">
+                <span className="ml-auto flex gap-3 flex-wrap">
                   <Link href={`/hub/clients/${params.id}`} className="btn-link text-xs">View record</Link>
                   <Link href={`/hub/clients/${params.id}/training`} className="btn-link text-xs">Training</Link>
                   <Link href={`/hub/clients/${params.id}`} className="btn-link text-xs">Invoice</Link>
                 </span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                {hasSignedAgreementDocument && <span className="bdg ok">Agreement signed</span>}
+                {blocksCompleted > 0 && <span className="bdg mut">{blocksCompleted} block{blocksCompleted !== 1 ? "s" : ""} completed</span>}
+                {lastSessionDate && (
+                  <span className="bdg mut">
+                    Last session {new Date(lastSessionDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                )}
+                {outstandingCount > 0 && <span className="bdg warn">{outstandingCount} outstanding action{outstandingCount !== 1 ? "s" : ""}</span>}
+                {parqOverridden && <span className="bdg ok">PAR-Q override</span>}
               </div>
             </div>
           </div>
@@ -401,6 +405,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 <div className="space-y-2">
                   <Label>Email</Label>
                   <Input type="email" value={email} onChange={(e) => { setDirty(true); setEmail(e.target.value); recordFieldChange(dirtySections, "email"); }} placeholder="client@example.com" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  <p className="text-xs text-muted-foreground">Used to send 6-week updates.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Phone</Label>
@@ -409,6 +414,9 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 <div className="space-y-2">
                   <Label>Date of birth</Label>
                   <Input type="date" value={profile.client.date_of_birth ?? ""} onChange={(e) => { updateProfile("client", { date_of_birth: e.target.value || null }); recordFieldChange(dirtySections, "dob"); }} className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
+                  <p className="text-xs text-muted-foreground">
+                    {profile.client.date_of_birth ? `Age: ${calculateAge(profile.client.date_of_birth)}` : "Age will be calculated from date of birth"}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Gender</Label>
@@ -435,6 +443,9 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
               {/* Emergency contact subsection */}
               <div className="edit-sub-hd">Emergency contact</div>
               <div className="edit-fg" style={{ padding: "4px 0 4px" }}>
+                <p className="text-xs text-muted-foreground" style={{ gridColumn: "1 / -1" }}>
+                  Clinically important — hard to leave empty for any client doing in-person training.
+                </p>
                 <div className="space-y-2">
                   <Label>Name</Label>
                   <Input value={ecName} onChange={(e) => { setDirty(true); setEcName(e.target.value); recordFieldChange(dirtySections, "ecName"); }} placeholder="Emergency contact name" className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30" />
@@ -460,7 +471,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
               <div className="edit-fg-3" style={{ padding: "4px 0 8px" }}>
                 <div className="space-y-2">
                   <Label>Training location</Label>
-                  <Select value={profile.logistics.training_location} onValueChange={(v) => { updateProfile("logistics", { training_location: v as any }); recordFieldChange(dirtySections, "training_location"); }}>
+                  <Select value={profile.logistics.training_location} onValueChange={(v) => { updateProfile("logistics", { training_location: v as TrainingLocation }); recordFieldChange(dirtySections, "training_location"); }}>
                     <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="studio">Studio 1-to-1</SelectItem>
@@ -495,7 +506,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                 </div>
                 <div className="space-y-2">
                   <Label>Session length</Label>
-                  <Select value={profile.logistics.time_tier} onValueChange={(v) => { updateProfile("logistics", { time_tier: v as any }); recordFieldChange(dirtySections, "time_tier"); }}>
+                  <Select value={profile.logistics.time_tier} onValueChange={(v) => { updateProfile("logistics", { time_tier: v as TimeTier }); recordFieldChange(dirtySections, "time_tier"); }}>
                     <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="compact">45 min</SelectItem>
@@ -539,6 +550,10 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Which band set this client uses for banded exercises. PBs compare by actual tension (kg),
+                    so a client switching sets won&apos;t lose their history.
+                  </p>
                 </div>
               </div>
               {profile.logistics.frequency && profile.logistics.frequency.unit !== "irregular" && (
@@ -552,7 +567,9 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                     <SelectContent>
                       <SelectItem value="1">1×</SelectItem>
                       <SelectItem value="2">2×</SelectItem>
-                      <SelectItem value="3">3×</SelectItem>
+                      {profile.logistics.frequency?.unit === "week" && (
+                        <SelectItem value="3">3×</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -646,7 +663,7 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                   </label>
                   <div className="min-w-0">
                     <Label htmlFor="gp_clearance_required" className="text-[13px] font-semibold text-foreground cursor-pointer">GP clearance required</Label>
-                    <p className="text-xs text-muted-foreground mt-0.5">Tick if this client needs written GP clearance before training.</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Your call — tick if this client needs written GP clearance before training. Drives the &quot;pending medical&quot; status below until it&apos;s obtained.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 py-3 border-b border-[var(--hub-border)]">
@@ -671,43 +688,32 @@ export default function EditClientPage({ params }: { params: { id: string } }) {
                     </label>
                     <div className="min-w-0">
                       <Label htmlFor="parq_trainer_override" className="text-[13px] font-semibold text-foreground cursor-pointer">PAR-Q trainer override — completed on Microsoft Forms, not yet in system</Label>
-                      <p className="text-xs text-muted-foreground mt-0.5">Only tick this once you&apos;ve personally reviewed the client&apos;s submitted PAR-Q.</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Only tick this once you&apos;ve personally reviewed the client&apos;s submitted PAR-Q. This unblocks plan
+                        generation until the record is migrated into the hub — it does not replace a signed PAR-Q on file.
+                      </p>
                     </div>
                   </div>
                   {parqOverridden && (
                     <Textarea
                       placeholder="Optional note — anything flagged on the form Esther should know"
                       value={profile.health.parq_trainer_override_note ?? ""}
-                      onChange={(e) => updateProfile("health", { parq_trainer_override_note: e.target.value })}
+                      onChange={(e) => { updateProfile("health", { parq_trainer_override_note: e.target.value }); recordFieldChange(dirtySections, "parq_trainer_override"); }}
                       rows={2}
                       className="border-[var(--color-muted-text)] focus-visible:border-rose focus-visible:ring-rose/30"
                     />
                   )}
                 </div>
-                <div className="edit-fg" style={{ marginBottom: 12 }}>
-                  <div className="space-y-2">
-                    <Label>Compliance status</Label>
-                    <Select value={complianceStatus} onValueChange={(v: DBClientComplianceStatus) => { setDirty(true); setComplianceStatus(v); recordFieldChange(dirtySections, "clearance_status"); }}>
-                      <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="clear">Cleared</SelectItem>
-                        <SelectItem value="pending_medical">Pending medical</SelectItem>
-                        <SelectItem value="action_needed">Action needed</SelectItem>
-                        <SelectItem value="do_not_train">Do not train</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Risk level</Label>
-                    <Select value={riskLevel.toLowerCase()} onValueChange={() => {}} disabled>
-                      <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2" style={{ marginBottom: 12 }}>
+                  <Label>Risk level</Label>
+                  <Select value={riskLevel.toLowerCase()} onValueChange={() => {}} disabled>
+                    <SelectTrigger className="border-[var(--color-muted-text)] focus:border-rose focus:ring-rose/30"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>

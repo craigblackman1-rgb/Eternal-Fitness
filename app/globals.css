@@ -1645,7 +1645,7 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
   background: var(--hub-card);
   border-bottom: 1px solid var(--hub-border);
   position: sticky;
-  top: 52px;
+  top: var(--rail-top);
   z-index: 19;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -1693,7 +1693,7 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
 }
 
 /* Section wrapper */
-.edit-sec { scroll-margin-top: 110px; }
+.edit-sec { scroll-margin-top: 116px; }
 .edit-sec + .edit-sec { margin-top: 14px; }
 
 /* Two-column form grid */
@@ -1753,46 +1753,8 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
   margin-top: 8px;
 }
 
-/* Training rules list */
-.edit-rule-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--hub-border);
-  font-size: 13px;
-}
-.edit-rule-row:last-child { border-bottom: 0; }
-.edit-rule-text { flex: 1; min-width: 0; color: var(--color-ink); }
 
-/* Milestone list */
-.edit-ms-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--hub-border);
-  font-size: 13px;
-}
-.edit-ms-row:last-child { border-bottom: 0; }
-.edit-ms-text { flex: 1; color: var(--color-ink); }
-.edit-ms-date { flex-shrink: 0; font-size: 12px; color: var(--color-muted-text); font-variant-numeric: tabular-nums; }
-.edit-ms-del {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--r-control-sm);
-  border: 0;
-  background: none;
-  color: var(--color-muted-text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-}
-.edit-ms-del:hover { background: var(--status-danger-bg); color: var(--status-danger); }
-
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .edit-save-bar { left: 0; }
 }
 
