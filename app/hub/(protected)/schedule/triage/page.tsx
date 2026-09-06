@@ -114,7 +114,7 @@ export default async function ScheduleTriagePage({ searchParams }: { searchParam
       label: "Cancellations to review",
       count: -1,
       href: "/hub/sessions/review",
-      why: "Charged or free, and whether the session comes back to the pot.",
+      why: "Charged or free, and whether the session goes back on the balance.",
       tone: "quiet",
     },
   ];
