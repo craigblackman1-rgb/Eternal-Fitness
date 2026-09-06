@@ -698,7 +698,7 @@ function SlotCard({
       </button>
 
       {expanded && (
-        <div className="mt-[-2px] mb-3 bg-white border border-[var(--hub-border)] rounded-nested p-3">
+        <div className="mt-3 mb-3 bg-white border border-[var(--hub-border)] rounded-nested p-3">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[10.5px] font-extrabold uppercase tracking-widest text-muted-foreground">{label} — sections</span>
             {totalWeeks > 1 && (
