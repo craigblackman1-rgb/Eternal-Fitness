@@ -59,6 +59,8 @@ export interface ScheduledEntry {
   cancelReason: string | null;
   /** CR-EF-115 — resolved workout name via sessionWorkoutName(). */
   focusLabel: string;
+  /** Number of supplementary sub-sessions attached to this parent. */
+  supplementaryCount: number;
 }
 
 /** Outlook booking that hasn't been triaged into a session yet. */
@@ -339,6 +341,11 @@ export function ScheduleCalendar({
                         <p className="text-xs text-muted-foreground mt-[3px]">
                           {entry.focusLabel}
                           {` · ${entry.durationMinutes} min`}
+                          {entry.supplementaryCount > 0 && (
+                            <span className="ml-1 inline-flex items-center rounded-pill border border-[var(--hub-border)] bg-[var(--hub-hover)] px-1.5 py-px text-[10px] font-semibold text-muted-foreground">
+                              +{entry.supplementaryCount} supplementary
+                            </span>
+                          )}
                           {cancelled && entry.cancelReason && ` · ${entry.cancelReason}`}
                         </p>
                       </div>

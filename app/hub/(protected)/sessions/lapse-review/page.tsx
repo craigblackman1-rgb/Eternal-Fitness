@@ -20,6 +20,7 @@ export default async function LapseReviewPage() {
     .select("id, block_id, session_number, scheduled_at, lapse_flagged_at, data")
     .not("lapse_flagged_at", "is", null)
     .eq("status", "scheduled")
+    .is("parent_session_id", null)
     .order("scheduled_at", { ascending: false });
 
   const flagged = (flaggedRows ?? []) as SessionRow[];

@@ -70,6 +70,7 @@ export default async function MobileCalendarPage({
     .from("sessions")
     .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, status, completed_at")
     .not("scheduled_at", "is", null)
+    .is("parent_session_id", null)
     .order("scheduled_at", { ascending: true });
 
   const sessions: SessionRow[] = ((sessionRows ?? []) as SessionRow[]).filter((s) => {

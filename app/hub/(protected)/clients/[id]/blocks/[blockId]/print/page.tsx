@@ -39,6 +39,7 @@ export default async function BlockPrintPage({
       .from("sessions")
       .select("*")
       .eq("block_id", params.blockId)
+      .is("parent_session_id", null)
       .order("session_number", { ascending: true }),
   ]);
 

@@ -56,7 +56,7 @@ export default async function ScheduleTriagePage({ searchParams }: { searchParam
     one(openBookingsSql),
     one("SELECT count(*)::int AS n FROM outlook_duplicate_candidates"),
     one("SELECT count(*)::int AS n FROM calendar_sync_pending_actions"),
-    one("SELECT count(*)::int AS n FROM sessions WHERE lapse_flagged_at IS NOT NULL AND status = 'scheduled'"),
+    one("SELECT count(*)::int AS n FROM sessions WHERE lapse_flagged_at IS NOT NULL AND status = 'scheduled' AND parent_session_id IS NULL"),
     one(
       `SELECT count(*)::int AS n FROM sessions
         WHERE status = 'scheduled' AND cancelled_at IS NULL

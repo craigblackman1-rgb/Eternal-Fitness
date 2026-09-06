@@ -9,7 +9,8 @@ export default async function TrainTabPage() {
     .from("sessions")
     .select("id, data, scheduled_at, cancelled_at")
     .not("scheduled_at", "is", null)
-    .is("cancelled_at", null);
+    .is("cancelled_at", null)
+    .is("parent_session_id", null);
 
   const sessions = (sessionRows ?? []) as {
     id: string;

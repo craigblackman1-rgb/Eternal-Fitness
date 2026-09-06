@@ -30,6 +30,7 @@ export default async function TodayPage() {
     .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at")
     .not("scheduled_at", "is", null)
     .is("cancelled_at", null)
+    .is("parent_session_id", null)
     .order("scheduled_at", { ascending: true });
 
   const sessions: Array<{

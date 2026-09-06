@@ -69,6 +69,7 @@ export default async function AvailabilityPage() {
     .select("id", { count: "exact", head: true })
     .not("scheduled_at", "is", null)
     .is("cancelled_at", null)
+    .is("parent_session_id", null)
     .gte("scheduled_at", monday.toISOString())
     .lte("scheduled_at", sunday.toISOString());
 

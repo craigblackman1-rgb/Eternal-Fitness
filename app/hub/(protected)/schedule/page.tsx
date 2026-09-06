@@ -26,11 +26,12 @@ export const dynamic = "force-dynamic";
 export default async function SchedulePage() {
   const supabase = createClient();
 
-  // 1. Scheduled sessions (on the calendar)
+  // 1. Scheduled sessions (on the calendar) — exclude supplementary sub-sessions
   const { data: sessionRows } = await supabase
     .from("sessions")
     .select("id, block_id, session_number, archetype, data, scheduled_at, cancelled_at, cancel_reason, status, started_at, completed_at")
     .not("scheduled_at", "is", null)
+    .is("parent_session_id", null)
     .order("scheduled_at", { ascending: true });
 
   const sessions: Array<{
@@ -47,12 +48,13 @@ export default async function SchedulePage() {
     completed_at: string | null;
   }> = sessionRows ?? [];
 
-  // 2. Planned sessions (no date, above the grid)
+  // 2. Planned sessions (no date, above the grid) — exclude supplementary sub-sessions
   const { data: plannedRows } = await supabase
     .from("sessions")
     .select("id, block_id, session_number, archetype, data, status")
     .eq("status", "planned")
     .is("scheduled_at", null)
+    .is("parent_session_id", null)
     .order("session_number", { ascending: true });
 
   const plannedSessions: Array<{
@@ -63,6 +65,19 @@ export default async function SchedulePage() {
     data: Session | null;
     status: string | null;
   }> = plannedRows ?? [];
+
+  // 3. Sub-session counts — how many supplementary sessions attach to each parent
+  const allSessionIds = [...new Set([...sessions.map((s) => s.id), ...plannedSessions.map((s) => s.id)])];
+  const { data: subCountRows } = allSessionIds.length
+    ? await supabase
+        .from("sessions")
+        .select("parent_session_id")
+        .in("parent_session_id", allSessionIds)
+    : { data: [] as { parent_session_id: string }[] };
+  const subCountByParent = new Map<string, number>();
+  for (const row of subCountRows ?? []) {
+    subCountByParent.set(row.parent_session_id, (subCountByParent.get(row.parent_session_id) ?? 0) + 1);
+  }
 
   // Resolve blocks → clients for all sessions
   const allBlockIds = [...new Set([...sessions.map((s) => s.block_id), ...plannedSessions.map((s) => s.block_id)].filter(Boolean))];
@@ -108,6 +123,7 @@ export default async function SchedulePage() {
         cancelledAt: s.cancelled_at ?? null,
         cancelReason: s.cancel_reason ?? null,
         focusLabel: sessionWorkoutName(s, ""),
+        supplementaryCount: subCountByParent.get(s.id) ?? 0,
       };
     });
 
