@@ -246,6 +246,21 @@ export function TrainingDrawer({
     .filter((s) => s.completed_at && !s.parent_session_id)
     .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime());
 
+  // Completed program-consuming sessions (ascending by completed_at) for queue position dates
+  const completedAscending = programSessions
+    .filter((s) => s.completed_at && !s.cancelled_at)
+    .sort((a, b) => new Date(a.completed_at!).getTime() - new Date(b.completed_at!).getTime());
+  for (let i = 0; i < completedAscending.length && i < completedCount; i++) {
+    const s = completedAscending[i];
+    scheduledByPosition[i + 1] = { scheduledAt: s.scheduled_at ?? s.completed_at };
+  }
+  // Upcoming scheduled sessions fill positions after completedCount
+  for (let i = 0; i < scheduledSessions.length; i++) {
+    const pos = completedCount + i + 1;
+    if (pos > totalQueueSlots) break;
+    scheduledByPosition[pos] = { scheduledAt: scheduledSessions[i].scheduled_at };
+  }
+
   // Block title lookup — for session history tags
   const blockTitleById = new Map(allBlocks.map((b) => [b.id, b.title]));
 

@@ -230,7 +230,7 @@ export function TrainingSummary({
               No program applied yet. Apply a program to use the queue.
             </p>
             <Link
-              href={`/hub/programs?client=${clientNumber}`}
+              href={`/hub/clients/${clientNumber}/programs/new`}
               className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-control bg-rose text-white font-[inherit] text-xs font-semibold cursor-pointer px-3.5 py-1.5 no-underline hover:bg-[color-mix(in_oklab,var(--rose)_88%,var(--ink))] transition-colors"
             >
               Apply a program
