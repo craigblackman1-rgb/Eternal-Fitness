@@ -247,8 +247,8 @@ export function TrainingDrawer({
     .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime());
 
   // Completed program-consuming sessions (ascending by completed_at) for queue position dates
-  const completedAscending = programSessions
-    .filter((s) => s.completed_at && !s.cancelled_at)
+  const completedAscending = blockSessions
+    .filter((s) => s.completed_at && !s.cancelled_at && !s.parent_session_id)
     .sort((a, b) => new Date(a.completed_at!).getTime() - new Date(b.completed_at!).getTime());
   for (let i = 0; i < completedAscending.length && i < completedCount; i++) {
     const s = completedAscending[i];
