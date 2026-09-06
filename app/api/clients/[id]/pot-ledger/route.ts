@@ -108,15 +108,34 @@ export async function GET(
 
   // Package start event (earliest session)
   const firstSession = (sessions ?? [])[0];
+  let packageStartDate: string | null = null;
   if (firstSession?.scheduled_at) {
+    packageStartDate = firstSession.scheduled_at;
     ledger.push({
-      date: firstSession.scheduled_at,
+      date: packageStartDate,
       event: `Package started — ${purchased} sessions`,
       delta: purchased,
       remaining: purchased,
       tags: [],
     });
     runningRemaining = purchased;
+  }
+
+  // Pre-hub baseline — dated 1ms after package start so it sorts directly
+  // below it in the desc display (baseline chronologically happened right
+  // after purchase, before all hub events).
+  if (baselineUsed > 0) {
+    const baselineDate = packageStartDate
+      ? new Date(new Date(packageStartDate).getTime() + 1).toISOString()
+      : ((client as any).pot_baseline_at ?? new Date().toISOString());
+    runningRemaining = Math.max(0, runningRemaining - baselineUsed);
+    ledger.push({
+      date: baselineDate,
+      event: `Before the hub — ${baselineUsed} sessions used (Trainerize)`,
+      delta: -baselineUsed,
+      remaining: runningRemaining,
+      tags: [],
+    });
   }
 
   // Extension events
@@ -175,21 +194,6 @@ export async function GET(
       date: client.block_expiry_date,
       event: "Package expired",
       delta: null,
-      remaining: runningRemaining,
-      tags: [],
-    });
-  }
-
-  // Pre-hub baseline entry — absorbed Trainerize consumption, always the oldest
-  if (baselineUsed > 0) {
-    const baselineDate = (client as any).pot_baseline_at
-      ?? (sessions.length > 0 ? (sessions[0].scheduled_at ?? sessions[0].completed_at) : null)
-      ?? new Date().toISOString();
-    runningRemaining = Math.max(0, runningRemaining - baselineUsed);
-    ledger.push({
-      date: baselineDate,
-      event: `Before the hub — ${baselineUsed} sessions used (Trainerize)`,
-      delta: -baselineUsed,
       remaining: runningRemaining,
       tags: [],
     });
