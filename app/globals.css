@@ -1503,11 +1503,15 @@ table.eb-table { width: 100%; border-collapse: collapse; font-size: 14px; min-wi
 .fcard-b { padding: 10px 14px; }
 .fcard-b.pad { padding: 14px; }
 
-/* Fcard accent colours (top border via border-left on the card, matching mockup) */
-.fcard.acc-rose { border-top: 3px solid var(--color-rose); }
-.fcard.acc-teal { border-top: 3px solid var(--color-teal); }
+/* Fcard accent colours — top border + tinted header background (per mockup) */
+.fcard.acc-rose  { border-top: 3px solid var(--color-rose); }
+.fcard.acc-rose  > .fcard-h { background: var(--status-primary-bg); color: var(--color-rose); }
+.fcard.acc-teal  { border-top: 3px solid var(--color-teal); }
+.fcard.acc-teal  > .fcard-h { background: var(--status-success-bg); color: var(--color-teal); }
 .fcard.acc-amber { border-top: 3px solid var(--color-amber); }
-.fcard.acc-ink { border-top: 3px solid var(--color-ink); }
+.fcard.acc-amber > .fcard-h { background: var(--status-warning-bg); color: var(--color-amber); }
+.fcard.acc-ink   { border-top: 3px solid var(--color-ink); }
+.fcard.acc-ink   > .fcard-h { background: var(--status-neutral-bg); color: var(--color-ink); }
 
 /* Frow: key-value row inside fcard */
 .frow { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; font-size: 13px; line-height: 1.4; }

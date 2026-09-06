@@ -326,6 +326,7 @@ export function ClientRecordShell({
         flaggedSessionIds={flaggedSessionIds}
         activeProgramId={activeProgramId}
         clientId={client.id}
+        derivedStatusByBlock={derivedStatusByBlock}
       />
       <ClientDrawers
         client={client}
