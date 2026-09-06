@@ -71,19 +71,13 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
         <p className="text-sm text-[var(--color-muted)]">Could not load pot data.</p>
       ) : (
         <>
-          {/* Consumption bar */}
-          <p className="text-[10.5px] font-bold uppercase tracking-[.08em] text-[var(--color-muted)] mb-2.5">
-            Consumption
-          </p>
-          <div className="border border-[var(--status-success-border)] rounded-nested overflow-hidden mb-3.5">
-            <div className="flex items-center gap-2 px-3 py-2 bg-[var(--status-success-bg)] border-t-[3px] border-[var(--color-teal)] border-b border-[var(--status-success-border)] text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--color-teal-text)]">
-              Pot status
-            </div>
-            <div className="p-3">
+          {/* Consumption */}
+          <div className="fcard acc-teal">
+            <div className="fcard-h">Pot status</div>
+            <div className="fcard-b">
               <p className="text-[13px] font-semibold text-[var(--color-ink)] mb-1">
                 {c.purchased - c.remaining} of {c.purchased} sessions used
               </p>
-              {/* Progress bar */}
               <div className="h-[10px] rounded-pill bg-neutral-100 overflow-hidden mb-1.5">
                 <div
                   className="h-full rounded-pill bg-[var(--color-teal)] transition-[width] duration-300"
@@ -94,16 +88,13 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
                 <span>{c.purchased - c.remaining} used</span>
                 <span>{c.remaining} remaining</span>
               </div>
-
-              {/* Counters */}
-              <div className="mt-3 space-y-1.5">
+              <div className="mt-3">
                 <CounterRow count={c.completed} label="completed" tone="teal" />
                 <CounterRow count={c.cancelled_free} label="cancelled — didn't touch the pot" chip="Free" />
                 <CounterRow count={c.rescheduled} label="rescheduled — didn't touch the pot" chip="Free" />
                 <CounterRow count={c.no_show} label="no-show" tone="warn" />
                 <CounterRow count={c.remaining} label="remaining" />
               </div>
-
               <p className="mt-3 mb-0 text-xs text-[var(--color-muted)]">
                 Queue advances on completed sessions only. Cancelled and rescheduled sessions don&apos;t consume the pot.
               </p>
@@ -111,14 +102,9 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
           </div>
 
           {/* Ledger table */}
-          <p className="text-[10.5px] font-bold uppercase tracking-[.08em] text-[var(--color-muted)] mb-2.5">
-            What moved the pot
-          </p>
-          <div className="border border-[var(--hub-border)] rounded-nested overflow-hidden mb-3">
-            <div className="flex items-center gap-2 px-3 py-2 bg-neutral-50 border-t-[3px] border-[var(--color-muted)] border-b border-[var(--hub-border)] text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--color-ink)]">
-              Pot ledger
-            </div>
-            <div className="p-0">
+          <div className="fcard acc-ink">
+            <div className="fcard-h">Pot ledger</div>
+            <div className="fcard-b" style={{ padding: 0 }}>
               <table className="w-full border-collapse text-[12.5px]">
                 <thead>
                   <tr>
@@ -177,7 +163,7 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
 
 function CounterRow({ count, label, tone, chip }: { count: number; label: string; tone?: "teal" | "warn"; chip?: string }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5 text-[13px] text-[var(--color-body)]">
+    <div className="flex items-center gap-2.5 py-[7px] text-[13px] text-[var(--color-body)]" style={{ borderTop: "1px solid var(--hub-border)" }}>
       <span className={`font-bold min-w-[24px] ${tone === "teal" ? "text-[var(--color-teal-text)]" : tone === "warn" ? "text-[var(--color-amber)]" : "text-[var(--color-ink)]"}`}>
         {count}
       </span>

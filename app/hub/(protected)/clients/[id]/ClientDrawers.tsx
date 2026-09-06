@@ -154,16 +154,11 @@ function ProfileDrawer({ client, portalAccount, clientNotes, sessionNotes, exerc
         </div>
       </div>
 
-      {/* Portal \u2014 live control (reconnect, 5 Sep 2026). Supersedes the old
-          read-only "Account / Not invited" fcard: per the project's
-          CLAUDE.md, portal accounts can ONLY be created through this
-          button, so the dead text used to mean no client could be invited
-          at all from anywhere in the app. */}
-      <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
-        <div className="flex items-center justify-between gap-3 mb-1">
-          <span className="text-sm font-semibold text-foreground">Portal</span>
+      <div className="fcard">
+        <div className="fcard-h">
+          Portal
           {portalAccount && !portalAccount.disabled_at && (
-            <span className="text-xs text-muted-foreground">
+            <span className="ml-auto text-[12px] font-normal normal-case tracking-normal" style={{ color: "var(--color-body)" }}>
               {(() => {
                 const rv = client.resource_visibility;
                 if (!rv || Object.keys(rv).length === 0) return "Default visibility";
@@ -173,7 +168,9 @@ function ProfileDrawer({ client, portalAccount, clientNotes, sessionNotes, exerc
             </span>
           )}
         </div>
-        <PortalAccountCard clientNumber={client.client_number} hasEmail={!!client.email} />
+        <div className="fcard-b">
+          <PortalAccountCard clientNumber={client.client_number} hasEmail={!!client.email} />
+        </div>
       </div>
 
       {/* Your notes \u2014 profile.notes (client_intro / observations / motivation /
@@ -1274,30 +1271,33 @@ function DocumentsDrawer({ clientNumber, clientDocuments, legacyDocumentRows, fl
         </div>
       </div>
 
-      {/* On file */}
-      <p className="dw-h">On file</p>
-      {allDocs.length > 0 ? (
-        allDocs.map((doc: any) => (
-          <Link
-            key={doc.id}
-            href={`/hub/clients/${clientNumber}/documents/${doc.id}`}
-            className="drow no-underline hover:bg-[var(--hub-hover)] transition-colors rounded-nested"
-          >
-            <span className="drow-m">
-              {doc.title || doc.kind}
-              <small>
-                {doc.status === "signed" ? `Signed${doc.updated_at ? " " + fmtShortDate(doc.updated_at) : doc.created_at ? " " + fmtShortDate(doc.created_at) : ""}` : doc.status}
-                {doc.legacy ? " \u00b7 legacy record" : ""}
-              </small>
-            </span>
-            <span className={`bdg ${doc.status === "signed" ? "ok" : doc.status === "superseded" ? "mut" : "warn"}`}>
-              {doc.status === "signed" ? "Signed" : doc.status === "superseded" ? "Superseded" : doc.status === "sent" ? "Sent" : "Draft"}
-            </span>
-          </Link>
-        ))
-      ) : (
-        <p className="miss">No documents on file.</p>
-      )}
+      <div className="fcard acc-ink">
+        <div className="fcard-h">On file</div>
+        <div className="fcard-b" style={{ padding: 0 }}>
+          {allDocs.length > 0 ? (
+            allDocs.map((doc: any) => (
+              <Link
+                key={doc.id}
+                href={`/hub/clients/${clientNumber}/documents/${doc.id}`}
+                className="drow no-underline hover:bg-[var(--hub-hover)] transition-colors rounded-nested"
+              >
+                <span className="drow-m">
+                  {doc.title || doc.kind}
+                  <small>
+                    {doc.status === "signed" ? `Signed${doc.updated_at ? " " + fmtShortDate(doc.updated_at) : doc.created_at ? " " + fmtShortDate(doc.created_at) : ""}` : doc.status}
+                    {doc.legacy ? " \u00b7 legacy record" : ""}
+                  </small>
+                </span>
+                <span className={`bdg ${doc.status === "signed" ? "ok" : doc.status === "superseded" ? "mut" : "warn"}`}>
+                  {doc.status === "signed" ? "Signed" : doc.status === "superseded" ? "Superseded" : doc.status === "sent" ? "Sent" : "Draft"}
+                </span>
+              </Link>
+            ))
+          ) : (
+            <p className="miss" style={{ margin: 0, padding: "14px" }}>No documents on file.</p>
+          )}
+        </div>
+      </div>
     </DrawerShell>
   );
 }
@@ -1355,17 +1355,17 @@ function CommsDrawer({
           See every update sent
         </Link>
       </div>
-      {/* Next update \u2014 live control (CR-EF-073), supersedes the old read-only
-          Due/Cadence fcard: setting the cadence belongs beside the updates
-          it schedules. */}
-      <div className="rounded-surface border border-[var(--hub-border)] bg-[var(--hub-card)] px-5 py-4">
-        <UpdateIntervalControl
-          clientNumber={clientNumber}
-          updateInterval={updateInterval}
-          updateIntervalWeeks={updateIntervalWeeks}
-          updateIntervalNextDate={updateIntervalNextDate}
-          dueInfo={dueInfo}
-        />
+      <div className="fcard acc-teal">
+        <div className="fcard-h">Update cadence</div>
+        <div className="fcard-b">
+          <UpdateIntervalControl
+            clientNumber={clientNumber}
+            updateInterval={updateInterval}
+            updateIntervalWeeks={updateIntervalWeeks}
+            updateIntervalNextDate={updateIntervalNextDate}
+            dueInfo={dueInfo}
+          />
+        </div>
       </div>
 
       {/* Tasks \u2014 live add/complete control, supersedes the old read-only
@@ -1634,8 +1634,6 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
 
   return (
     <DrawerShell id="dw-progress" title="Progress" subtitle={`${exerciseTrends.length} exercise${exerciseTrends.length !== 1 ? "s" : ""} logged \u00b7 ${exerciseTrendSummary?.personalBests ?? 0} personal bests`} width="lg">
-      {/* Per-exercise last / best table */}
-      <p className="dw-h">Per-exercise last / best</p>
       {rows.length > 0 ? (
         <div className="fcard acc-teal">
           <div className="fcard-h">Load progression</div>
@@ -1674,9 +1672,8 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
         <p className="miss">No exercise data to show yet.</p>
       )}
 
-      {/* Session RPE mini-trend */}
-      <p className="dw-h">Session RPE</p>
       <div className="fcard">
+        <div className="fcard-h">Session RPE</div>
         <div className="fcard-b">
           {rpeData.length > 0 ? (
             <>
@@ -1700,9 +1697,8 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
         </div>
       </div>
 
-      {/* Log a personal best */}
-      <p className="dw-h">Log a personal best</p>
       <div className="fcard">
+        <div className="fcard-h">Log a personal best</div>
         <div className="fcard-b">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 60px", gap: 8, alignItems: "end" }}>
             <div>
@@ -1744,8 +1740,6 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
         </div>
       </div>
 
-      {/* Physical baseline */}
-      <p className="dw-h">Physical baseline</p>
       <div className="fcard acc-rose">
         <div className="fcard-h">Baseline &amp; goals</div>
         <div className="fcard-b">
