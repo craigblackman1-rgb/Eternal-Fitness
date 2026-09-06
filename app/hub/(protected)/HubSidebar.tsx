@@ -46,7 +46,7 @@ const navGroups: { label: string; items: { href: string; label: string; icon: Re
     label: "Clients",
     items: [
       { href: "/hub/clients", label: "Clients", icon: IconUsers },
-      { href: "/hub/training-blocks", label: "Training Blocks", icon: IconClock },
+      { href: "/hub/training-blocks", label: "Training history", icon: IconClock },
       { href: "/hub/resources", label: "Portal Resources", icon: IconRibbon },
     ],
   },

@@ -157,8 +157,8 @@ export default async function CashflowOverviewPage() {
     queue.push({
       id: `block-${c.id}`,
       tone: "due",
-      headline: `${c.name}'s block ${whenText}`,
-      subline: `${remaining} of ${purchased} session${purchased === 1 ? "" : "s"} unused. Decide whether to sell the next block now.`,
+      headline: `${c.name}'s program ${whenText}`,
+      subline: `${remaining} of ${purchased} session${purchased === 1 ? "" : "s"} unused. Decide whether to sell the next program now.`,
       actionLabel: "Raise invoice",
       href: "/hub/cashflow/invoices/new",
     });

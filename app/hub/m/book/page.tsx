@@ -285,7 +285,7 @@ export default function BookSessionPage() {
             <div className="mtop-t">{isBookingConfirm ? "Confirm booking" : "Book session"}</div>
             <div className="mtop-s">
               {isBookingConfirm
-                ? "Match this Outlook booking to a client and block"
+                ? "Match this Outlook booking to a client and program"
                 : "Writes scheduled_at — syncs to Outlook"}
             </div>
           </div>
@@ -353,7 +353,7 @@ export default function BookSessionPage() {
           <div className="panel-h">
             <span className="panel-h-ic ic-slate">{ICO.block}</span>
             <span>
-              <span className="panel-h-t">Which block?</span>
+              <span className="panel-h-t">Which program?</span>
               <span className="panel-h-s">
                 {selectedClient ? `For ${firstName(selectedClient.name)}` : "Pick a client first"}
               </span>
@@ -361,11 +361,11 @@ export default function BookSessionPage() {
           </div>
           <div className="panel-b">
             {loadingBlocks ? (
-              <div className="pick-loading">Loading blocks…</div>
+              <div className="pick-loading">Loading programs…</div>
             ) : !selectedClientId ? (
               <div className="pick-empty">Pick a client first.</div>
             ) : blocks.length === 0 ? (
-              <div className="pick-empty">This client has no block yet.</div>
+              <div className="pick-empty">This client has no program yet.</div>
             ) : (
               blocks.map((b) => {
                 const selected = selectedBlockId === b.id;
@@ -377,7 +377,7 @@ export default function BookSessionPage() {
                   >
                     <span className="pick-b">
                       <span className="pick-t">
-                        Block {b.block_number}
+                        Program {b.block_number}
                         {b.block_note ? ` · ${b.block_note}` : ""}
                       </span>
                       <span className="pick-m">{b.status}</span>
@@ -397,7 +397,7 @@ export default function BookSessionPage() {
               <b>From Microsoft Bookings</b>
               {loadingBooking
                 ? "Loading…"
-                : `"${booking!.subject}" · ${formatBookingContext(booking!.start_at)}. Confirm who and which block it belongs to — then it becomes a real session.`}
+                : `"${booking!.subject}" · ${formatBookingContext(booking!.start_at)}. Confirm who and which program it belongs to — then it becomes a real session.`}
             </div>
           </div>
         )}

@@ -121,10 +121,10 @@ export default async function TrainingBlocksPage() {
   return (
     <div className="space-y-6">
       <HubPageHeader
-        title="Training blocks"
+        title="Training history"
         subtitle={
           <>
-            Every client{`'`}s current training block — start date, sessions and approval status. Looking for individual session times instead? See{" "}
+            Every client{`'`}s current training program — start date, sessions and approval status. Looking for individual session times instead? See{" "}
             <Link href="/hub/schedule" className="text-teal font-semibold hover:underline">Studio Schedule</Link>.
           </>
         }

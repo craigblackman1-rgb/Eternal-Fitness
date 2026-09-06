@@ -49,7 +49,7 @@ export default function LoginPage() {
             <EternalFitnessLogo variant="dark" size="lg" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Trainer Hub</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sign in to manage clients and training blocks</p>
+          <p className="text-sm text-muted-foreground mt-1">Sign in to manage clients and training history</p>
         </div>
 
         <div className="px-6 pb-8">

@@ -4,7 +4,7 @@ import { DrawerManager } from "./DrawerManager";
 import { ClientRecordHeader } from "./ClientRecordHeader";
 import { ClientDrawerStrip } from "./ClientDrawerStrip";
 import { NeedsYouQueue, buildNeedsYouItems } from "./NeedsYouQueue";
-import { TrainingSection } from "./TrainingSection";
+import { TrainingSummary } from "./TrainingSummary";
 import { TrainingDrawer } from "./TrainingDrawer";
 import { ClientDrawers } from "./ClientDrawers";
 import type { DBBlock, DBSession } from "@/types";
@@ -273,22 +273,16 @@ export function ClientRecordShell({
           <NeedsYouQueue {...needsYouInput} />
         </div>
 
-        {/* ── Section 2: Training ── */}
-        <TrainingSection
+        {/* ── Section 2: Training (compact band) ── */}
+        <TrainingSummary
           clientNumber={client.client_number}
           clientName={client.name}
-          sessionDuration={client.session_duration}
-          deliveryMode={(client as any).delivery_mode ?? null}
           preferredTime={client.profile?.logistics?.preferred_time ?? null}
           latestBlock={latestBlock}
           blockSessions={blockSessions}
           allBlocks={blocks}
           allSessions={sessions}
-          blockSessionCounts={blockSessionCounts}
-          blockCompletedCounts={blockCompletedCounts}
-          blockDateRangeLabel={blockDateRangeLabel}
           exerciseTrendSummary={exerciseTrendSummary}
-          trainerizeHistory={trainerizeHistory}
           sessionsRemaining={sessionsRemaining}
           sessionsPurchased={sessionsPurchased}
           paymentStatus={paymentStatus}
@@ -297,15 +291,6 @@ export function ClientRecordShell({
           flaggedSessionIds={flaggedSessionIds}
           activeProgramId={activeProgramId}
           clientId={client.id}
-          standingRules={
-            isHomeTraining
-              ? (trainingRules ?? []).map((r) => ({
-                  id: r.id,
-                  label: ruleTypesById.get(r.rule_type_id)?.label ?? null,
-                  detail: r.detail,
-                }))
-              : []
-          }
         />
       </div>
 
@@ -313,15 +298,34 @@ export function ClientRecordShell({
       <TrainingDrawer
         clientNumber={client.client_number}
         clientName={client.name}
+        sessionDuration={client.session_duration}
+        deliveryMode={(client as any).delivery_mode ?? null}
+        preferredTime={client.profile?.logistics?.preferred_time ?? null}
         latestBlock={latestBlock}
         blockSessions={blockSessions}
         allBlocks={blocks}
         allSessions={sessions}
         blockSessionCounts={blockSessionCounts}
         blockDateRangeLabel={blockDateRangeLabel}
+        exerciseTrendSummary={exerciseTrendSummary}
         trainerizeHistory={trainerizeHistory}
+        standingRules={
+          isHomeTraining
+            ? (trainingRules ?? []).map((r) => ({
+                id: r.id,
+                label: ruleTypesById.get(r.rule_type_id)?.label ?? null,
+                detail: r.detail,
+              }))
+            : []
+        }
         sessionsRemaining={sessionsRemaining}
+        sessionsPurchased={sessionsPurchased}
+        paymentStatus={paymentStatus}
+        packageType={packageType}
         programState={programState}
+        flaggedSessionIds={flaggedSessionIds}
+        activeProgramId={activeProgramId}
+        clientId={client.id}
       />
       <ClientDrawers
         client={client}

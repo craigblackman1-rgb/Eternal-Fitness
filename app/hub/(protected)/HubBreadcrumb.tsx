@@ -24,10 +24,10 @@ const crumbLabels: Record<string, string> = {
 function resolveLabel(pathname: string): string {
   if (crumbLabels[pathname]) return crumbLabels[pathname];
   if (pathname.startsWith("/hub/clients/") && pathname.includes("/blocks/")) {
-    if (pathname.endsWith("/review")) return "Block Review";
-    if (pathname.endsWith("/print")) return "Print Block";
+    if (pathname.endsWith("/review")) return "Program Review";
+    if (pathname.endsWith("/print")) return "Print program";
     if (pathname.includes("/sessions/")) return "Session";
-    return "Block";
+    return "Program";
   }
   if (pathname.startsWith("/hub/clients/") && pathname.endsWith("/updates/new")) return "New Update";
   if (pathname.startsWith("/hub/clients/") && pathname.includes("/updates/") && pathname.endsWith("/edit")) return "Edit Update";

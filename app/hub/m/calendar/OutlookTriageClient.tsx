@@ -160,7 +160,7 @@ export function OutlookTriageClient({
             <span className="alert-ic">{ICO.warn}</span>
             <div>
               <b>{count} booking{count !== 1 ? "s" : ""} waiting to be matched</b>
-              Booked through Microsoft Bookings and not yet linked to a client or block — confirm or dismiss them.
+              Booked through Microsoft Bookings and not yet linked to a client or program — confirm or dismiss them.
             </div>
             <button className="alert-cta" onClick={() => setSheetOpen(true)}>
               Review
@@ -194,7 +194,7 @@ export function OutlookTriageClient({
               </button>
             </div>
             <div className="sh-s">
-              Booked through Microsoft Bookings — tap one to confirm it against a client and block.
+              Booked through Microsoft Bookings — tap one to confirm it against a client and program.
             </div>
             <div className="sh-b">
               {count === 0 ? (
