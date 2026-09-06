@@ -338,7 +338,6 @@ export function ClientRecordShell({
         blocks={blocks}
         sessions={sessions}
         latestBlock={latestBlock}
-        blockSessions={blockSessions}
         portalAccount={portalAccount}
         clientNotes={clientNotes}
         clientReviews={clientReviews}

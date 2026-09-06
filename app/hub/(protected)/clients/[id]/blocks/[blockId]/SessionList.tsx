@@ -56,6 +56,8 @@ interface SessionListProps {
   programState?: QueueState | null;
   clientNumber?: number;
   sessionsRemaining?: number | null;
+  setCountsBySession?: Record<string, number>;
+  pbCountsBySession?: Record<string, number>;
 }
 
 function sessionStatus(s: SessionItem): SessionStatus {
@@ -111,6 +113,8 @@ export function SessionList({
   programState = null,
   clientNumber = 0,
   sessionsRemaining = null,
+  setCountsBySession = {},
+  pbCountsBySession = {},
 }: SessionListProps) {
   const router = useRouter();
   const [chooserSessionId, setChooserSessionId] = useState<string | null>(null);
@@ -263,9 +267,12 @@ export function SessionList({
               sessionUrl={sessionUrl}
               scheduledAt={session.scheduled_at}
               projectedAt={session.projected_at}
+              completedAt={session.completed_at}
               cancelReason={session.cancel_reason}
               chargedFree={session.charged_free}
               isEmpty={sessionHasNoExercises(session.data)}
+              setCount={setCountsBySession[session.id] ?? null}
+              pbCount={pbCountsBySession[session.id] ?? null}
               onAssignWorkout={setChooserSessionId}
               onCancel={(id) => { const full = byId.get(id); if (full) setCancelSession(full); }}
               onAddSupplementary={(id) => { setSuppParentId(id); setSuppName(""); }}

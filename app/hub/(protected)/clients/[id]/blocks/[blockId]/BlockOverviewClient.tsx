@@ -123,6 +123,8 @@ interface BlockOverviewClientProps {
   programState: QueueState | null;
   clientNumber: number;
   sessionsRemaining: number | null;
+  setCountsBySession?: Record<string, number>;
+  pbCountsBySession?: Record<string, number>;
 }
 
 function sessionStatus(s: DisplaySession): SessionStatus {
@@ -165,6 +167,8 @@ export function BlockOverviewClient({
   programState,
   clientNumber,
   sessionsRemaining,
+  setCountsBySession,
+  pbCountsBySession,
 }: BlockOverviewClientProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -465,6 +469,8 @@ export function BlockOverviewClient({
                     programState={programState}
                     clientNumber={clientNumber}
                     sessionsRemaining={sessionsRemaining}
+                    setCountsBySession={setCountsBySession}
+                    pbCountsBySession={pbCountsBySession}
                   />
                 </div>
               </details>

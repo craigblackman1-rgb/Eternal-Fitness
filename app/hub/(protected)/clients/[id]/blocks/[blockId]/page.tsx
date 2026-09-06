@@ -81,6 +81,26 @@ export default async function BlockViewPage({
   const sessions = (sessionsData || []) as SessionRow[];
   const clientId = client?.client_number || params.id;
 
+  // Session honesty — set_log counts and PB counts per session for evidence chips
+  const sessionIds = sessions.map((s) => s.id);
+  const [{ data: setLogRows }, { data: pbRows }] = await Promise.all([
+    sessionIds.length > 0
+      ? supabase.from("set_logs").select("session_id").in("session_id", sessionIds)
+      : Promise.resolve({ data: [] as { session_id: string }[] }),
+    sessionIds.length > 0 && client?.id
+      ? supabase.from("personal_records").select("session_id").eq("client_id", client.id).in("session_id", sessionIds)
+      : Promise.resolve({ data: [] as { session_id: string }[] }),
+  ]);
+
+  const setCountsBySession: Record<string, number> = {};
+  for (const row of setLogRows ?? []) {
+    setCountsBySession[row.session_id] = (setCountsBySession[row.session_id] ?? 0) + 1;
+  }
+  const pbCountsBySession: Record<string, number> = {};
+  for (const row of pbRows ?? []) {
+    pbCountsBySession[row.session_id] = (pbCountsBySession[row.session_id] ?? 0) + 1;
+  }
+
   // CR-EF-101 — sub-sessions excluded from pot count and numbering.
   const potSessions = sessions.filter((s) => !s.parent_session_id);
   const totalSessions = potSessions.length;
@@ -283,6 +303,8 @@ export default async function BlockViewPage({
         programState={programState}
         clientNumber={client?.client_number ?? parseInt(params.id)}
         sessionsRemaining={client?.sessions_remaining ?? null}
+        setCountsBySession={setCountsBySession}
+        pbCountsBySession={pbCountsBySession}
       />
     </div>
   );

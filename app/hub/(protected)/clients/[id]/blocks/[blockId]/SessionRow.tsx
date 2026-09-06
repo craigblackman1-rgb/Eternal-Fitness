@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SessionStatusPill } from "@/components/hub/SessionStatusPill";
-import type { SessionStatus } from "@/types";
+import type { SessionStatus, SetLog } from "@/types";
 import {
   isoToLocalDate,
   isoToLocalTime,
   localPartsToISO,
   todayLocalISODate,
 } from "@/lib/schedule-dates";
+import { buildSessionSetEvidence, type ExerciseSetEvidence } from "@/lib/session-sets";
 
 interface SessionRowProps {
   sessionId: string;
@@ -20,31 +21,29 @@ interface SessionRowProps {
   focusLabel: string;
   status: SessionStatus;
   dayLabel: string;
-  /** Chronological position derived from scheduled_at — NOT session_number. */
   chronologicalPosition: { position: number; total: number } | null;
   sessionUrl: string;
   scheduledAt: string | null;
-  /** CR-EF-145 — projected date for unbooked sessions (display-only). */
   projectedAt?: string | null;
+  completedAt?: string | null;
   cancelReason: string | null;
-  /** CR-EF-099 — structured flag: 'charged' = consumed a session, 'free' = did not. */
   chargedFree?: "charged" | "free" | null;
   isEmpty: boolean;
+  setCount?: number | null;
+  pbCount?: number | null;
   onAssignWorkout: (sessionId: string) => void;
-  /** Actions moved here from BlockPoolView when the duplicate session
-   *  panels were removed -- the row is now the only place a session is
-   *  listed, so it has to carry everything you can do to one. */
   onCancel?: (sessionId: string) => void;
   onAddSupplementary?: (sessionId: string) => void;
   canCancel?: boolean;
 }
 
-/**
- * Collapsed one-liner session row — the block overview's real design
- * (hub-block-module.html `sessionHtml`/`actionsHtml`). Day+time · archetype ·
- * focus label · status pill · 1–2 action buttons. The prescription lives on
- * the dedicated session page, so there is no inline exercise table here.
- */
+function fmtShort(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+}
+
 export function SessionRow({
   sessionId,
   archetypeLabel,
@@ -56,9 +55,12 @@ export function SessionRow({
   sessionUrl,
   scheduledAt,
   projectedAt,
+  completedAt,
   cancelReason,
   chargedFree,
   isEmpty,
+  setCount,
+  pbCount,
   onAssignWorkout,
   onCancel,
   onAddSupplementary,
@@ -71,7 +73,36 @@ export function SessionRow({
   const [pushAlong, setPushAlong] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Evidence expansion state
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
+  const [evidenceError, setEvidenceError] = useState(false);
+  const [evidenceExercises, setEvidenceExercises] = useState<ExerciseSetEvidence[] | null>(null);
+
   const settled = status === "completed" || status === "cancelled";
+  const hasEvidence = status === "completed" && (setCount != null ? setCount > 0 : true);
+
+  const toggleEvidence = async () => {
+    if (evidenceOpen) {
+      setEvidenceOpen(false);
+      return;
+    }
+    setEvidenceOpen(true);
+    if (evidenceExercises) return; // already loaded
+    setEvidenceLoading(true);
+    setEvidenceError(false);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/set-logs`);
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      const logs: SetLog[] = await res.json();
+      const evidence = buildSessionSetEvidence(logs);
+      setEvidenceExercises(evidence.exercises);
+    } catch {
+      setEvidenceError(true);
+    } finally {
+      setEvidenceLoading(false);
+    }
+  };
 
   const startReschedule = () => {
     if (scheduledAt) {
@@ -106,9 +137,19 @@ export function SessionRow({
     router.refresh();
   };
 
+  // Date divergence: "Booked Mon 25 · Written up Thu 28"
+  const dateDivergence = scheduledAt && completedAt
+    ? fmtShort(scheduledAt) !== fmtShort(completedAt)
+      ? `Booked ${fmtShort(scheduledAt)} · Written up ${fmtShort(completedAt)}`
+      : null
+    : null;
+
+  const displaySetCount = setCount ?? 0;
+  const displayPbCount = pbCount ?? 0;
+
   return (
-    <div className="border-t border-[var(--hub-border)] first:border-t-0">
-      <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-2 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors ${status === "cancelled" ? "opacity-55" : ""}`}>
+    <div className={`border-t border-[var(--hub-border)] first:border-t-0 ${evidenceOpen ? "border-b-0" : ""}`}>
+      <div className={`flex flex-wrap items-center gap-x-3.5 gap-y-2 px-4 py-2.5 hover:bg-[var(--hub-hover)] transition-colors ${status === "cancelled" ? "opacity-55" : ""} ${evidenceOpen ? "rounded-t-nested" : ""}`}>
         <span className="min-w-[92px] shrink-0 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           {projectedAt
             ? `${new Date(projectedAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} · projected`
@@ -130,6 +171,17 @@ export function SessionRow({
           </div>
         </div>
         <div className="flex items-center gap-3.5 w-full justify-end sm:w-auto sm:contents">
+          {/* Evidence chip — completed sessions only */}
+          {hasEvidence && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); toggleEvidence(); }}
+              className="text-[12.5px] font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit] whitespace-nowrap"
+            >
+              {displaySetCount} set{displaySetCount !== 1 ? "s" : ""}
+              {displayPbCount > 0 && ` · ${displayPbCount} PB${displayPbCount !== 1 ? "s" : ""}`}
+            </button>
+          )}
           <span className="w-[150px] shrink-0 flex justify-end">
             <SessionStatusPill status={status} />
           </span>
@@ -231,22 +283,90 @@ export function SessionRow({
         </div>
       </div>
 
-      {status === "cancelled" && (
-        <div className="px-4 pb-3 text-xs text-muted-foreground">
-          {chargedFree === "charged" && (
-            <span className="inline-flex items-center rounded-pill bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
-              Charged
-            </span>
-          )}
-          {chargedFree === "free" && (
-            <span className="inline-flex items-center rounded-pill bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)] px-2 py-0 text-[10px] font-bold mr-1.5">
-              Free
-            </span>
-          )}
-          Cancelled{cancelReason ? ` — ${cancelReason}` : ""}
+      {/* Date divergence — "Booked Mon 25 · Written up Thu 28" */}
+      {dateDivergence && (
+        <div className="px-4 pb-1 text-[12px] text-muted-foreground">
+          {dateDivergence}
         </div>
       )}
 
+      {/* Cancelled row — dual badges + reason */}
+      {status === "cancelled" && (
+        <div className="px-4 pb-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+            <span className="inline-flex items-center rounded-pill bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold">
+              Cancelled
+            </span>
+            {chargedFree === "charged" && (
+              <span className="inline-flex items-center rounded-pill bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)] px-2 py-0 text-[10px] font-bold">
+                Charged
+              </span>
+            )}
+            {chargedFree === "free" && (
+              <span className="inline-flex items-center rounded-pill bg-[var(--status-success-bg)] text-[var(--teal)] border border-[var(--status-success-border)] px-2 py-0 text-[10px] font-bold">
+                Free
+              </span>
+            )}
+            {displaySetCount > 0 && (
+              <span className="inline-flex items-center rounded-pill bg-[var(--s-neutral-bg)] text-[var(--color-body)] border border-[var(--s-neutral-border)] px-2 py-0 text-[10px] font-bold">
+                {displaySetCount} set{displaySetCount !== 1 ? "s" : ""} kept
+              </span>
+            )}
+          </div>
+          {cancelReason && (
+            <div className="text-[12px] text-muted-foreground">{cancelReason}</div>
+          )}
+        </div>
+      )}
+
+      {/* Expandable evidence panel */}
+      {evidenceOpen && (
+        <div className="px-4 pb-3">
+          <div className="border border-[var(--hub-border)] border-t-0 rounded-b-nested bg-[var(--hub-card)] overflow-hidden">
+            {evidenceLoading && (
+              <div className="px-3 py-3 text-xs text-muted-foreground">Loading sets…</div>
+            )}
+            {evidenceError && (
+              <div className="px-3 py-3 text-xs text-[var(--status-danger)]">Couldn't load set data.</div>
+            )}
+            {evidenceExercises && evidenceExercises.length === 0 && (
+              <div className="px-3 py-3 text-xs text-muted-foreground">No sets recorded for this session.</div>
+            )}
+            {evidenceExercises && evidenceExercises.length > 0 && (
+              <table className="w-full text-[12.5px]">
+                <thead>
+                  <tr>
+                    <th className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground text-left bg-[var(--hub-hover)] px-3 py-1.5">Exercise</th>
+                    <th className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground text-left bg-[var(--hub-hover)] px-3 py-1.5">Set</th>
+                    <th className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground text-left bg-[var(--hub-hover)] px-3 py-1.5">Weight</th>
+                    <th className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground text-left bg-[var(--hub-hover)] px-3 py-1.5">Reps</th>
+                    <th className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground text-left bg-[var(--hub-hover)] px-3 py-1.5">RPE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evidenceExercises.map((ex) =>
+                    ex.sets.map((set, si) => (
+                      <tr key={`${ex.key}-${set.setNumber}`} className="border-b border-[var(--hub-border)] last:border-b-0">
+                        {si === 0 && (
+                          <td className="px-3 py-1.5 font-semibold text-foreground" rowSpan={ex.sets.length}>
+                            {ex.name}
+                          </td>
+                        )}
+                        <td className="px-3 py-1.5 tabular-nums">{set.setNumber}</td>
+                        <td className="px-3 py-1.5 tabular-nums">{set.summary}</td>
+                        <td className="px-3 py-1.5 tabular-nums">{!set.completed ? "skipped" : ""}</td>
+                        <td className="px-3 py-1.5 tabular-nums"></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Rescheduling UI */}
       {rescheduling && (
         <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
           <span className="text-xs text-muted-foreground">Move to</span>

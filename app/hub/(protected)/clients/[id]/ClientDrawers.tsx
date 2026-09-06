@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DrawerShell, useDrawerManager } from "./DrawerManager";
-import { blockDisplayName } from "@/lib/block-name";
 import { sessionWorkoutName } from "@/lib/session-display";
 import { UpdateIntervalControl } from "./UpdateIntervalControl";
 import { ClientTasksPanel } from "./ClientTasksPanel";
 import { PortalAccountCard } from "./PortalAccountCard";
 import { MergedNotesPanel } from "./MergedNotesPanel";
+import { PrescriptionTable } from "@/components/hub/PrescriptionTable";
 // components/hub/ClinicalComplianceCard.tsx is deliberately NOT wired in here —
 // every field it edits (medical_clearance_status, risk_level,
 // exercise_modifications) is already covered by ClearedToTrainCard below;
@@ -38,7 +38,6 @@ interface ClientDrawersProps {
   blocks: DBBlock[];
   sessions: DBSession[];
   latestBlock: DBBlock | null;
-  blockSessions: DBSession[];
   portalAccount: any;
   clientNotes: any[];
   clientReviews: any[];
@@ -1337,7 +1336,7 @@ function CommsDrawer({
   const sentUpdates = clientUpdates.filter((u) => u.status === "sent" && u.sent_at);
 
   return (
-    <DrawerShell id="dw-comms" title="Comms" subtitle="Updates and tasks" width="md">
+    <DrawerShell id="dw-comms" title="Comms" subtitle="Updates and delivery history" width="md">
       {/* The V3 client record shipped with no way to send an update at all: the
           only "Write an update" action lived in the Needs You queue, gated to
           home-training clients who had gone quiet, so it never appeared for a
@@ -1380,25 +1379,74 @@ function CommsDrawer({
         currentUserName={currentUserName}
       />
 
-      {/* Sent */}
+      {/* Recent updates */}
       <div className="fcard acc-ink">
-        <div className="fcard-h">Sent</div>
-        <div className="fcard-b">
+        <div className="fcard-h">Recent updates</div>
+        <div className="fcard-b" style={{ padding: "4px 12px" }}>
           {sentUpdates.length > 0 ? (
             sentUpdates.slice(0, 5).map((u: any) => (
-              <div key={u.id} className="frow">
-                <span className="fk num">{fmtShortDate(u.sent_at)}</span>
-                <span className="fv">
-                  {u.subject || "Update"}
-                  {u.opened_at && <span className="bdg ok" style={{ marginLeft: 6 }}>Opened</span>}
-                </span>
+              <div key={u.id} className="border-b border-[var(--hub-border)] last:border-b-0 py-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[12.5px] font-semibold text-foreground">{fmtShortDate(u.sent_at)}</span>
+                  <span className="text-[13px] text-[var(--color-body)]">· {u.subject || "Update"}</span>
+                  {/* Emailed vs Logged only badge */}
+                  {u.emailed ? (
+                    <span className="inline-flex items-center h-[21px] px-2 rounded-pill text-[11.5px] font-semibold bg-[var(--status-success-bg)] text-[var(--teal-text)] border border-[var(--status-success-border)]">
+                      Emailed
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center h-[21px] px-2 rounded-pill text-[11.5px] font-semibold bg-[var(--s-neutral-bg)] text-[var(--color-body)] border border-[var(--s-neutral-border)]">
+                      Logged only
+                    </span>
+                  )}
+                </div>
+                {/* Engagement summary */}
+                <div className="flex items-center gap-2 mt-1 text-[11.5px] text-[var(--color-muted)]">
+                  {u.opened_at && (
+                    <span className="flex items-center gap-1">
+                      Opened
+                      {u.open_count > 1 && <span>({u.open_count})</span>}
+                    </span>
+                  )}
+                  {u.click_count > 0 && (
+                    <span>{u.click_count} click{u.click_count !== 1 ? "s" : ""}</span>
+                  )}
+                  {u.status === "failed" && u.send_error && (
+                    <span className="text-[var(--status-danger)] truncate max-w-[220px]" title={u.send_error}>
+                      Failed: {u.send_error}
+                    </span>
+                  )}
+                </div>
               </div>
             ))
           ) : (
-            <p className="miss">Nothing sent from the hub yet.</p>
+            <p className="miss" style={{ margin: 0 }}>Nothing sent from the hub yet.</p>
           )}
         </div>
       </div>
+
+      {/* Delivery issues — only if there are failed sends */}
+      {sentUpdates.some((u: any) => u.status === "failed" && u.send_error) && (
+        <div className="fcard acc-amber">
+          <div className="fcard-h">Delivery issues</div>
+          <div className="fcard-b" style={{ padding: "4px 12px" }}>
+            {sentUpdates.filter((u: any) => u.status === "failed" && u.send_error).slice(0, 3).map((u: any) => (
+              <div key={u.id} className="flex gap-3 items-start py-2 border-b border-[var(--hub-border)] last:border-b-0">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[12.5px] font-semibold text-foreground">{fmtShortDate(u.sent_at || u.created_at)}</span>
+                    <span className="text-[13px] text-[var(--color-body)]">· {u.subject || "Update"}</span>
+                    <span className="inline-flex items-center h-[21px] px-2 rounded-pill text-[11.5px] font-semibold bg-[var(--s-warning-bg)] text-[var(--amber-text)] border border-[var(--s-warning-border)]">
+                      Failed
+                    </span>
+                  </div>
+                  <div className="text-[12.5px] text-[var(--color-body)] mt-1 leading-snug">{u.send_error}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </DrawerShell>
   );
 }
@@ -1421,44 +1469,15 @@ function WorkoutDrawer({ sessions, ruleTypesById }: { sessions: DBSession[]; rul
 
   const data = session.data;
   const version = data?.versions?.studio ?? data?.versions?.home;
-  const mainBlock: any[] = version?.main_block ?? [];
-  const warmUp: any[] = version?.warm_up ?? [];
-  const cooldown: any[] = version?.cooldown ?? [];
   const focusLabel = sessionWorkoutName(session, `Session ${session.session_number}`);
   const blockNumber = (session as any).blocks?.block_number;
   const sessionNumber = session.session_number;
 
-  // Group exercises by group_label (supersets)
-  const groupExercises = (exercises: any[]) => {
-    const groups: { label: string; items: any[] }[] = [];
-    let current: { label: string; items: any[] } | null = null;
-    for (const ex of exercises) {
-      if (ex.group_label) {
-        if (!current || current.label !== ex.group_label) {
-          current = { label: ex.group_label, items: [ex] };
-          groups.push(current);
-        } else {
-          current.items.push(ex);
-        }
-      } else {
-        current = null;
-        groups.push({ label: "", items: [ex] });
-      }
-    }
-    return groups;
-  };
-
-  const formatExercise = (ex: any) => {
-    const parts: string[] = [];
-    if (ex.sets) parts.push(`${ex.sets} \u00d7`);
-    if (ex.reps) parts.push(ex.reps);
-    if (ex.load) parts.push(`\u00b7 ${ex.load}`);
-    if (ex.rest) parts.push(`\u00b7 ${ex.rest}`);
-    return parts.join(" ");
-  };
-
-  // Find which training rules apply (simplified: show all rules)
-  const rules: any[] = [];
+  const hasExercises = version && (
+    (version.warm_up?.length ?? 0) > 0 ||
+    (version.main_block?.length ?? 0) > 0 ||
+    (version.cooldown?.length ?? 0) > 0
+  );
 
   return (
     <DrawerShell
@@ -1467,169 +1486,11 @@ function WorkoutDrawer({ sessions, ruleTypesById }: { sessions: DBSession[]; rul
       subtitle={`Block ${blockNumber ?? "\u2014"} \u00b7 session ${sessionNumber ?? "\u2014"}`}
       width="lg"
     >
-      {/* Supersets */}
-      {mainBlock.length > 0 && groupExercises(mainBlock).map((group, gi) => (
-        <div key={gi} className="ss">
-          {group.label && (
-            <div className="ss-hd">
-              <span>{group.label}</span>
-              {group.items[0]?.rest && <span className="rest">{group.items[0].rest}</span>}
-            </div>
-          )}
-          {group.items.map((ex: any, ei: number) => (
-            <div key={ei} className="ex">
-              <span className="ex-l">{group.label ? `${group.label.charAt(0)}${ei + 1}` : `${ei + 1}`}</span>
-              <span className="ex-n">{ex.exercise_name}</span>
-              <span className="ex-p">{formatExercise(ex)}</span>
-            </div>
-          ))}
-        </div>
-      ))}
-
-      {/* Warm-up */}
-      {warmUp.length > 0 && (
-        <>
-          <p className="dw-h">Warm-up</p>
-          {warmUp.map((ex: any, i: number) => (
-            <div key={i} className="ex">
-              <span className="ex-l">{i + 1}</span>
-              <span className="ex-n">{ex.exercise_name}</span>
-              <span className="ex-p">{formatExercise(ex)}</span>
-            </div>
-          ))}
-        </>
-      )}
-
-      {/* Cooldown */}
-      {cooldown.length > 0 && (
-        <>
-          <p className="dw-h">Cooldown</p>
-          {cooldown.map((ex: any, i: number) => (
-            <div key={i} className="ex">
-              <span className="ex-l">{i + 1}</span>
-              <span className="ex-n">{ex.exercise_name}</span>
-              <span className="ex-p">{formatExercise(ex)}</span>
-            </div>
-          ))}
-        </>
-      )}
-
-      {mainBlock.length === 0 && warmUp.length === 0 && cooldown.length === 0 && (
+      {hasExercises && version ? (
+        <PrescriptionTable version={version} />
+      ) : (
         <p className="miss">No exercises assigned to this session yet.</p>
       )}
-    </DrawerShell>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   BLOCK — every workout in the currently-open block
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
-  latestBlock: DBBlock | null;
-  blockSessions: DBSession[];
-  clientNumber: number;
-}) {
-  const { openWorkoutDrawer } = useDrawerManager();
-
-  if (!latestBlock) {
-    return (
-      <DrawerShell id="dw-block" title="Block" subtitle="Every workout in the block" width="md">
-        <p className="miss">No active block.</p>
-      </DrawerShell>
-    );
-  }
-
-  // Group sessions by resolved workout name (CR-EF-115's sessionWorkoutName \u2014
-  // the same helper the block map on this screen already uses) so Outlook
-  // placeholder sessions collapse into "No workout assigned yet" here too,
-  // instead of a raw "Outlook booking \u2014 <name>" label masquerading as a real
-  // workout (BUG raised by Craig, 5 Sep 2026: the drawer contradicted the map).
-  const NO_WORKOUT_LABEL = "No workout assigned yet";
-  const workoutMap = new Map<string, { label: string; sessions: DBSession[]; exerciseSummary: string }>();
-  for (const s of blockSessions) {
-    if ((s as any).parent_session_id) continue;
-    const label = sessionWorkoutName(s, `Session ${s.session_number}`);
-    const existing = workoutMap.get(label);
-    if (existing) {
-      existing.sessions.push(s);
-    } else {
-      // Build a short exercise summary from the first session's main_block
-      const version = s.data?.versions?.studio ?? s.data?.versions?.home;
-      const exNames = (version?.main_block ?? []).slice(0, 3).map((e: any) => e.exercise_name).join(", ");
-      workoutMap.set(label, {
-        label,
-        sessions: [s],
-        exerciseSummary: exNames ? exNames + "\u2026" : "",
-      });
-    }
-  }
-
-  // Real workouts keep their existing order and get A/B/C letters; the
-  // unassigned group (if any) is listed last, ungrouped from the lettering,
-  // so Esther still sees how many sessions still need a workout without it
-  // reading as one more real workout.
-  const allWorkouts = Array.from(workoutMap.values());
-  const workouts = allWorkouts.filter((w) => w.label !== NO_WORKOUT_LABEL);
-  const unassigned = allWorkouts.find((w) => w.label === NO_WORKOUT_LABEL) ?? null;
-
-  return (
-    <DrawerShell
-      id="dw-block"
-      title={blockDisplayName(latestBlock, blockSessions, blockSessions.filter((s) => !(s as any).parent_session_id).length)}
-      subtitle={`Every workout in the block`}
-      width="md"
-    >
-      {workouts.map((w, i) => (
-        <button
-          key={i}
-          type="button"
-          className="srow"
-          onClick={(e) => openWorkoutDrawer(w.sessions[0].id, e.currentTarget)}
-        >
-          <span className="srow-d">
-            {String.fromCharCode(65 + i)}
-            <small>{w.sessions.length} session{w.sessions.length !== 1 ? "s" : ""}</small>
-          </span>
-          <span className="srow-w">
-            {w.label}
-            {w.exerciseSummary && <small>{w.exerciseSummary}</small>}
-          </span>
-          <span className="srow-a">
-            <span className="btn-link">See exercises</span>
-          </span>
-        </button>
-      ))}
-
-      {unassigned && (
-        <button
-          type="button"
-          className="srow"
-          onClick={(e) => openWorkoutDrawer(unassigned.sessions[0].id, e.currentTarget)}
-        >
-          <span className="srow-d">
-            <small>{unassigned.sessions.length} session{unassigned.sessions.length !== 1 ? "s" : ""}</small>
-          </span>
-          <span className="srow-w">
-            {NO_WORKOUT_LABEL}
-          </span>
-          <span className="srow-a">
-            <span className="btn-link">See sessions</span>
-          </span>
-        </button>
-      )}
-
-      {workouts.length === 0 && !unassigned && <p className="miss">No sessions in this block yet.</p>}
-
-      {/* Footer */}
-      <div className="mt-4 pt-3 border-t border-[var(--hub-border)]">
-        <Link
-          href={`/hub/clients/${clientNumber}/blocks/${latestBlock.id}`}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--hub-field-border)] bg-white hover:bg-[var(--hub-hover)] text-foreground px-2.5 py-1 min-h-[30px] font-[inherit] text-xs font-semibold cursor-pointer transition-colors"
-        >
-          Manage block →
-        </Link>
-      </div>
     </DrawerShell>
   );
 }
@@ -1638,7 +1499,7 @@ function BlockDrawer({ latestBlock, blockSessions, clientNumber }: {
    PROGRESS — per-exercise last/best table
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function ProgressDrawer({ exerciseTrends, exerciseTrendSummary }: {
+function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, clientNumber, client }: {
   exerciseTrends: ExerciseTrend[];
   exerciseTrendSummary?: {
     totalExercisesLogged: number;
@@ -1647,8 +1508,11 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary }: {
     belowBestCount: number;
     recentNotes: string | null;
   };
+  sessions: DBSession[];
+  clientNumber: number;
+  client: any;
 }) {
-  // Build a table: exercise name, last performed, best
+  // Build a table: exercise name, last performed, best, with trend arrows
   const rows = exerciseTrends.map((trend) => {
     const pts = trend.points;
     if (!pts || pts.length === 0) return null;
@@ -1664,7 +1528,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary }: {
 
     const formatValue = (pt: any) => {
       if (trend.metric === "weight" && pt.topWeightKg != null) {
-        return `${pt.topWeightKg}kg \u00d7 ${pt.repsAtTopWeight ?? "?"}`;
+        return `${pt.topWeightKg} kg \u00d7 ${pt.repsAtTopWeight ?? "?"}`;
       }
       if (trend.metric === "reps" && pt.maxReps != null) {
         return `${pt.maxReps} reps`;
@@ -1675,6 +1539,25 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary }: {
       return "\u2014";
     };
 
+    // Trend arrow: compare last two points
+    let trendDir: "up" | "flat" | "down" = "flat";
+    if (pts.length >= 2) {
+      const prev = pts[pts.length - 2];
+      if (trend.metric === "weight") {
+        const lastVal = last.topWeightKg ?? 0;
+        const prevVal = prev.topWeightKg ?? 0;
+        trendDir = lastVal > prevVal ? "up" : lastVal < prevVal ? "down" : "flat";
+      } else if (trend.metric === "reps") {
+        const lastVal = last.maxReps ?? 0;
+        const prevVal = prev.maxReps ?? 0;
+        trendDir = lastVal > prevVal ? "up" : lastVal < prevVal ? "down" : "flat";
+      } else if (trend.metric === "duration") {
+        const lastVal = last.maxDurationSeconds ?? 0;
+        const prevVal = prev.maxDurationSeconds ?? 0;
+        trendDir = lastVal > prevVal ? "up" : lastVal < prevVal ? "down" : "flat";
+      }
+    }
+
     return {
       name: trend.exerciseName,
       lastValue: formatValue(last),
@@ -1682,280 +1565,239 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary }: {
       bestValue: formatValue(best),
       bestDate: fmtShortDate(best.loggedAt),
       isBest: last === best || (trend.metric === "weight" && last.topWeightKg === best.topWeightKg && last.repsAtTopWeight === best.repsAtTopWeight),
+      trendDir,
     };
   }).filter(Boolean);
 
+  // RPE mini-trend: pull session RPE from recent completed sessions
+  const rpeData = sessions
+    .filter((s: any) => s.data?.session_log?.rpe != null && s.status === "completed")
+    .sort((a: any, b: any) => {
+      const aDate = a.data?.session_log?.completed_at ?? a.scheduled_at ?? "";
+      const bDate = b.data?.session_log?.completed_at ?? b.scheduled_at ?? "";
+      return aDate.localeCompare(bDate);
+    })
+    .slice(-8)
+    .map((s: any) => ({
+      rpe: s.data.session_log.rpe as number,
+      date: fmtShortDate(s.data?.session_log?.completed_at ?? s.scheduled_at),
+    }));
+
+  // Physical baseline + goals from client profile
+  const profile = client?.profile as Record<string, any> | undefined;
+  const baseline = profile?.physical_baseline as Record<string, any> | undefined;
+  const goals = profile?.goals as Record<string, any> | undefined;
+  const milestones = Array.isArray(goals?.milestones) ? goals.milestones : [];
+  const hasBaseline = baseline && (baseline.fitness_level || baseline.strength_baseline);
+
+  // PB entry form state
+  const [pbExercise, setPbExercise] = useState("");
+  const [pbValue, setPbValue] = useState("");
+  const [pbReps, setPbReps] = useState("");
+  const [pbDate, setPbDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [pbNote, setPbNote] = useState("");
+  const [pbSaving, setPbSaving] = useState(false);
+
+  const uniqueExercises = [...new Set(exerciseTrends.map((t) => t.exerciseName))].sort();
+
+  const savePB = async () => {
+    if (!pbExercise || !pbValue || !pbReps) return;
+    setPbSaving(true);
+    try {
+      const res = await fetch(`/api/clients/${clientNumber}/personal-records`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercise: pbExercise,
+          unit: "kg",
+          value: parseFloat(pbValue),
+          reps: parseInt(pbReps, 10),
+          achieved_at: pbDate,
+          note: pbNote || undefined,
+        }),
+      });
+      if (res.ok) {
+        setPbExercise("");
+        setPbValue("");
+        setPbReps("");
+        setPbNote("");
+      }
+    } finally {
+      setPbSaving(false);
+    }
+  };
+
+  const rpeColor = (rpe: number) =>
+    rpe <= 4 ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
+    : rpe <= 7 ? "bg-[var(--status-warning-bg)] text-[var(--amber-text)]"
+    : "bg-[var(--status-primary-bg)] text-[var(--rose-text)]";
+
   return (
     <DrawerShell id="dw-progress" title="Progress" subtitle={`${exerciseTrends.length} exercise${exerciseTrends.length !== 1 ? "s" : ""} logged \u00b7 ${exerciseTrendSummary?.personalBests ?? 0} personal bests`} width="lg">
+      {/* Per-exercise last / best table */}
+      <p className="dw-h">Per-exercise last / best</p>
       {rows.length > 0 ? (
-        <table className="ptab">
-          <thead>
-            <tr>
-              <th>Exercise</th>
-              <th>Last</th>
-              <th>When</th>
-              <th>Personal best</th>
-              <th>When</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => (
-              <tr key={i}>
-                <td>{row!.name}</td>
-                <td className="n">{row!.lastValue}</td>
-                <td className="n w">{row!.lastDate}</td>
-                <td className="n"><span className={row!.isBest ? "pb" : undefined}>{row!.bestValue}</span></td>
-                <td className="n w">{row!.bestDate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="miss">No exercise data to show yet.</p>
-      )}
-
-      {/* Bests this table cannot show */}
-      <p className="dw-h">Bests this table cannot show</p>
-      <div className="fcard acc-amber">
-        <div className="fcard-h">Band and hand-recorded bests</div>
-        <div className="fcard-b pad">
-          <p className="miss" style={{ margin: 0 }}>
-            No hand-recorded bests and no band bests yet. These sit alongside logged bests and keep your name and note against them.
-          </p>
-        </div>
-      </div>
-    </DrawerShell>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   PRE-APP — Trainerize import history (read-only)
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-function sourceLabel(source: string): string {
-  switch (source) {
-    case "message": return "Message";
-    case "attention": return "Attention flag";
-    case "program_instruction": return "Block note";
-    case "workout_instruction": return "Workout note";
-    default: return source;
-  }
-}
-
-/** One logged workout row inside an expanded block (or the "Outside any
- * block" bucket) \u2014 collapsed to a summary line until clicked, at which point
- * it lazy-fetches the real per-set detail so the drawer never has to hold
- * (or render) every set for every workout at once. */
-function PerformedWorkoutRow({
-  workout,
-  clientNumber,
-  isOpen,
-  onToggle,
-  detail,
-}: {
-  workout: TrainerizePerformedWorkoutSummary;
-  clientNumber: number;
-  isOpen: boolean;
-  onToggle: () => void;
-  detail: TrainerizePerformedExerciseDetail[] | "loading" | "error" | undefined;
-}) {
-  const exerciseCount = workout.exercises.length;
-  return (
-    <div>
-      <button type="button" className="srow" style={{ paddingLeft: 30 }} onClick={onToggle}>
-        <span className="srow-d" style={{ width: 18, fontSize: 12 }}>{isOpen ? "\u25be" : "\u25b8"}</span>
-        <span className="srow-w">
-          {workout.workoutName || "Workout"}
-          <small>
-            {fmtShortDate(workout.performedDate)} \u00b7 {exerciseCount} exercise{exerciseCount !== 1 ? "s" : ""} \u00b7 {workout.setCount} set{workout.setCount !== 1 ? "s" : ""}
-          </small>
-        </span>
-      </button>
-      {isOpen && (
-        <div className="fcard-b pad rounded-control-sm" style={{ background: "var(--hub-hover)", borderBottom: "1px solid var(--hub-border)", marginLeft: 18 }}>
-          {detail === "loading" && <p className="miss" style={{ margin: 0 }}>Loading sets\u2026</p>}
-          {detail === "error" && <p className="miss" style={{ margin: 0 }}>Couldn&rsquo;t load this workout&rsquo;s sets.</p>}
-          {Array.isArray(detail) && detail.length === 0 && (
-            <p className="miss" style={{ margin: 0 }}>No sets recorded for this workout.</p>
-          )}
-          {Array.isArray(detail) && detail.map((ex, i) => (
-            <div key={i} style={{ marginBottom: i < detail.length - 1 ? 10 : 0 }}>
-              <p className="fk" style={{ margin: "0 0 4px", fontWeight: 700, color: "var(--color-ink)" }}>{ex.name}</p>
+        <div className="fcard acc-teal">
+          <div className="fcard-h">Load progression</div>
+          <div className="fcard-b" style={{ padding: 0 }}>
+            <div className="ptab-wrap">
               <table className="ptab">
                 <thead>
-                  <tr><th>Set</th><th>Reps</th><th>Weight</th><th>RPE</th></tr>
+                  <tr>
+                    <th>Exercise</th>
+                    <th>Last</th>
+                    <th>Best</th>
+                    <th>Trend</th>
+                    <th>Date</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {ex.sets.map((s, si) => (
-                    <tr key={si}>
-                      <td className="n">{s.setNumber}</td>
-                      <td className="n">{s.reps ?? "\u2014"}</td>
-                      <td className="n">{s.weightKg != null ? `${s.weightKg}kg` : "\u2014"}</td>
-                      <td className="n">{s.rpe ?? "\u2014"}</td>
+                  {rows.map((row, i) => (
+                    <tr key={i}>
+                      <td>{row!.name}</td>
+                      <td className="n">{row!.lastValue}</td>
+                      <td className="n">{row!.bestValue}</td>
+                      <td>
+                        <span className={`trend ${row!.trendDir}`}>
+                          {row!.trendDir === "up" ? "\u2191" : row!.trendDir === "down" ? "\u2193" : "\u2192"}
+                        </span>
+                      </td>
+                      <td className="n w">{row!.lastDate}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          ))}
+          </div>
         </div>
+      ) : (
+        <p className="miss">No exercise data to show yet.</p>
       )}
-    </div>
-  );
-}
 
-function PreAppDrawer({ trainerizeHistory, clientNumber }: { trainerizeHistory: TrainerizeHistoryData; clientNumber: number }) {
-  const tBlocks = trainerizeHistory.blocks ?? [];
-  const unmatched = trainerizeHistory.unmatchedPerformedWorkouts ?? [];
-  const notes = trainerizeHistory.notes ?? [];
-
-  // "Sessions" is the count of workouts Esther's clients actually logged
-  // (trainerize_workout_results), not the number of prescribed workout
-  // templates in the program \u2014 the two can differ, and the real count is
-  // what matters for "has this client got a history to review".
-  const totalSessions = tBlocks.reduce((sum, b) => sum + (b.performedWorkouts?.length ?? 0), 0) + unmatched.length;
-  const hasHistory = tBlocks.length > 0 || unmatched.length > 0 || notes.length > 0;
-
-  const allDates: string[] = [];
-  for (const b of tBlocks) {
-    if (b.start_date) allDates.push(b.start_date);
-    if (b.end_date) allDates.push(b.end_date);
-  }
-  for (const w of unmatched) if (w.performedDate) allDates.push(w.performedDate);
-  const sortedDates = allDates.sort();
-  const periodStart = sortedDates.length > 0 ? sortedDates[0] : null;
-  const periodEnd = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
-
-  const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null);
-  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
-  const [notesOpen, setNotesOpen] = useState(false);
-  const [detailCache, setDetailCache] = useState<Record<string, TrainerizePerformedExerciseDetail[] | "loading" | "error">>({});
-
-  const toggleWorkout = (workoutId: string) => {
-    if (expandedWorkoutId === workoutId) {
-      setExpandedWorkoutId(null);
-      return;
-    }
-    setExpandedWorkoutId(workoutId);
-    if (detailCache[workoutId]) return;
-    setDetailCache((c) => ({ ...c, [workoutId]: "loading" }));
-    fetch(`/api/clients/${clientNumber}/trainerize-workout/${workoutId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`status ${res.status}`);
-        return res.json();
-      })
-      .then((json) => setDetailCache((c) => ({ ...c, [workoutId]: json.exercises ?? [] })))
-      .catch(() => setDetailCache((c) => ({ ...c, [workoutId]: "error" })));
-  };
-
-  const renderPerformedList = (workouts: TrainerizePerformedWorkoutSummary[]) =>
-    workouts.map((w) => (
-      <PerformedWorkoutRow
-        key={w.id}
-        workout={w}
-        clientNumber={clientNumber}
-        isOpen={expandedWorkoutId === w.id}
-        onToggle={() => toggleWorkout(w.id)}
-        detail={detailCache[w.id]}
-      />
-    ));
-
-  return (
-    <DrawerShell id="dw-preapp" title="Before the app" subtitle={`${totalSessions} session${totalSessions !== 1 ? "s" : ""} imported from Trainerize \u00b7 read-only`} width="md">
-      {hasHistory ? (
-        <>
-          <div className="fcard acc-ink">
-            <div className="fcard-h">Imported</div>
-            <div className="fcard-b">
-              <div className="fgrid">
-                <div className="frow"><span className="fk">Period</span><span className="fv num">{periodStart && periodEnd ? `${fmtShortDate(periodStart)} \u2013 ${fmtShortDate(periodEnd)}` : "\u2014"}</span></div>
-                <div className="frow"><span className="fk">Blocks</span><span className="fv num">{tBlocks.length}</span></div>
-                <div className="frow"><span className="fk">Sessions</span><span className="fv num">{totalSessions}</span></div>
-                <div className="frow"><span className="fk">Notes</span><span className="fv num">{notes.length}</span></div>
+      {/* Session RPE mini-trend */}
+      <p className="dw-h">Session RPE</p>
+      <div className="fcard">
+        <div className="fcard-b">
+          {rpeData.length > 0 ? (
+            <>
+              <div className="rpe-row">
+                {rpeData.map((d, i) => (
+                  <div key={i} className="rpe-cell">
+                    <div className={`rpe-box ${rpeColor(d.rpe)}`}>{d.rpe}</div>
+                    <span className="rpe-date">{d.date}</span>
+                  </div>
+                ))}
               </div>
+              <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--muted)" }}>
+                Session effort on a 1\u201310 scale.
+              </p>
+            </>
+          ) : (
+            <p className="miss" style={{ margin: 0 }}>
+              No session RPE recorded yet. RPE is logged when a session is completed in the trainer hub or client portal.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Log a personal best */}
+      <p className="dw-h">Log a personal best</p>
+      <div className="fcard">
+        <div className="fcard-b">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 60px", gap: 8, alignItems: "end" }}>
+            <div>
+              <label className="lbl">Exercise</label>
+              <select className="fld" value={pbExercise} onChange={(e) => setPbExercise(e.target.value)}>
+                <option value="">Select\u2026</option>
+                {uniqueExercises.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="lbl">Value (kg)</label>
+              <input className="fld" type="text" placeholder="65" value={pbValue} onChange={(e) => setPbValue(e.target.value)} />
+            </div>
+            <div>
+              <label className="lbl">Reps</label>
+              <input className="fld" type="text" placeholder="8" value={pbReps} onChange={(e) => setPbReps(e.target.value)} />
+            </div>
+            <div>
+              <label className="lbl">Date</label>
+              <input className="fld" type="date" value={pbDate} onChange={(e) => setPbDate(e.target.value)} />
+            </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label className="lbl">Note</label>
+              <textarea className="fld" placeholder="e.g. felt strong, good depth" value={pbNote} onChange={(e) => setPbNote(e.target.value)} />
             </div>
           </div>
+          <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              onClick={savePB}
+              disabled={pbSaving || !pbExercise || !pbValue || !pbReps}
+              className="inline-flex items-center rounded-control bg-rose px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose/90 disabled:opacity-50 transition-colors"
+            >
+              {pbSaving ? "Saving\u2026" : "Save PB"}
+            </button>
+          </div>
+        </div>
+      </div>
 
-          {tBlocks.length > 0 && (
+      {/* Physical baseline */}
+      <p className="dw-h">Physical baseline</p>
+      <div className="fcard acc-rose">
+        <div className="fcard-h">Baseline &amp; goals</div>
+        <div className="fcard-b">
+          {hasBaseline ? (
             <>
-              <p className="dw-h">Training blocks \u2014 tap to see sessions</p>
-              {tBlocks.map((b) => {
-                const isOpen = expandedBlockId === b.id;
-                const performed = b.performedWorkouts ?? [];
-                return (
-                  <div key={b.id}>
-                    <button
-                      type="button"
-                      className="srow"
-                      onClick={() => setExpandedBlockId(isOpen ? null : b.id)}
-                    >
-                      <span className="srow-d" style={{ width: 18, fontSize: 13 }}>{isOpen ? "\u25be" : "\u25b8"}</span>
-                      <span className="srow-w">
-                        {b.phase_name || "Block"}
-                        <small>
-                          {b.start_date && b.end_date
-                            ? `${fmtShortDate(b.start_date)} \u2013 ${fmtShortDate(b.end_date)}`
-                            : b.start_date
-                              ? `From ${fmtShortDate(b.start_date)}`
-                              : "Not dated"}
-                          {" \u00b7 "}
-                          {performed.length > 0 ? `${performed.length} session${performed.length !== 1 ? "s" : ""} performed` : "no sessions logged"}
-                        </small>
-                      </span>
-                    </button>
-                    {isOpen && (
-                      performed.length > 0
-                        ? renderPerformedList(performed)
-                        : <p className="miss" style={{ padding: "10px 0 10px 30px", margin: 0 }}>No logged sessions fell inside this block&rsquo;s dates.</p>
-                    )}
+              <div className="bl-row">
+                <span className="bl-k">Fitness level</span>
+                <span className="bl-v">{baseline.fitness_level ?? "\u2014"} / 5</span>
+              </div>
+              {baseline.strength_baseline && (
+                <>
+                  <div className="bl-row">
+                    <span className="bl-k">Lower body</span>
+                    <span className="bl-v">{baseline.strength_baseline.lower_body ?? "\u2014"}</span>
                   </div>
-                );
-              })}
+                  <div className="bl-row">
+                    <span className="bl-k">Upper body</span>
+                    <span className="bl-v">{baseline.strength_baseline.upper_body ?? "\u2014"}</span>
+                  </div>
+                  <div className="bl-row">
+                    <span className="bl-k">Core</span>
+                    <span className="bl-v">{baseline.strength_baseline.core ?? "\u2014"}</span>
+                  </div>
+                </>
+              )}
             </>
+          ) : (
+            <div className="empty-state">
+              No baseline recorded \u00b7 <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
+            </div>
           )}
+        </div>
+      </div>
 
-          {unmatched.length > 0 && (
-            <>
-              <p className="dw-h">Outside any block</p>
-              <p className="miss" style={{ margin: "0 0 8px" }}>
-                {unmatched.length} logged session{unmatched.length !== 1 ? "s" : ""} from before this client&rsquo;s first imported block.
-              </p>
-              {renderPerformedList(unmatched)}
-            </>
+      {/* Goal milestones */}
+      <div className="fcard acc-rose">
+        <div className="fcard-h">Goal milestones</div>
+        <div className="fcard-b">
+          {milestones.length > 0 ? (
+            milestones.map((m: string, i: number) => (
+              <div key={i} className="goal-row">
+                <span className="goal-icon">{m.charAt(0).toUpperCase()}</span>
+                {m}
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              No milestones set \u00b7 <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
+            </div>
           )}
-
-          <button
-            type="button"
-            className="dw-h"
-            style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, font: "inherit" }}
-            onClick={() => setNotesOpen((v) => !v)}
-          >
-            <span style={{ fontSize: 11 }}>{notesOpen ? "\u25be" : "\u25b8"}</span>
-            Notes ({notes.length})
-          </button>
-          {notesOpen && (
-            notes.length > 0 ? (
-              notes.map((n) => (
-                <div key={n.id} className="drow">
-                  <span className="drow-m">
-                    {sourceLabel(n.source)}{n.sender_name ? ` \u00b7 ${n.sender_name}` : ""}
-                    <small style={{ whiteSpace: "pre-wrap" }}>{n.content}</small>
-                  </span>
-                  <span className="fk num" style={{ minWidth: 0, flexShrink: 0 }}>{fmtShortDate(n.source_date)}</span>
-                </div>
-              ))
-            ) : (
-              <p className="miss">No notes or messages imported.</p>
-            )
-          )}
-
-          <p className="miss" style={{ margin: "14px 0 0" }}>
-            Imported history cannot be edited and does not count toward the session pot.
-          </p>
-        </>
-      ) : (
-        <p className="miss">No Trainerize history imported.</p>
-      )}
+        </div>
+      </div>
     </DrawerShell>
   );
 }
@@ -2039,18 +1881,12 @@ export function ClientDrawers(props: ClientDrawersProps) {
         sessions={props.sessions}
         ruleTypesById={props.ruleTypesById}
       />
-      <BlockDrawer
-        latestBlock={props.latestBlock}
-        blockSessions={props.blockSessions}
-        clientNumber={props.client.client_number}
-      />
       <ProgressDrawer
         exerciseTrends={props.exerciseTrends}
         exerciseTrendSummary={props.exerciseTrendSummary}
-      />
-      <PreAppDrawer
-        trainerizeHistory={props.trainerizeHistory}
+        sessions={props.sessions}
         clientNumber={props.client.client_number}
+        client={props.client}
       />
       {/* C1a — Pot ledger drawer */}
       <PotLedgerDrawer

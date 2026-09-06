@@ -268,7 +268,7 @@ export function TrainingSummary({
           </div>
           <div className="flex gap-1.5 py-[7px] px-2.5 border-t border-[var(--hub-border)] bg-[var(--field-fill)]">
             <button
-              onClick={(e) => openDrawer("dw-training", e.currentTarget)}
+              onClick={(e) => openDrawer("dw-progress", e.currentTarget)}
               className="ml-auto text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer font-[inherit]"
             >
               See every exercise ›
