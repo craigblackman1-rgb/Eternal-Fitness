@@ -419,6 +419,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
     review_date: null,
     linked_client: null,
     source: null,
+    diagram_url: null,
     status: "active",
   };
   const [form, setForm] = useState(blank);
@@ -445,6 +446,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
       review_date: item.review_date,
       linked_client: item.linked_client,
       source: item.source,
+      diagram_url: item.diagram_url,
       status: item.status,
     });
     setShowForm(true);
@@ -525,6 +527,7 @@ function SopsSection({ initial }: { initial: Sop[] }) {
       review_date: null,
       linked_client: original.linked_client,
       source: original.source,
+      diagram_url: original.diagram_url,
       status: "draft",
     };
 
@@ -612,6 +615,10 @@ function SopsSection({ initial }: { initial: Sop[] }) {
               <div className="space-y-2">
                 <Label>Source</Label>
                 <Input value={form.source ?? ""} onChange={(e) => setForm({ ...form, source: e.target.value || null })} placeholder="e.g. Medical tracker" />
+              </div>
+              <div className="space-y-2">
+                <Label>Diagram URL (optional)</Label>
+                <Input value={form.diagram_url ?? ""} onChange={(e) => setForm({ ...form, diagram_url: e.target.value || null })} placeholder="https://…/flow.png" />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
@@ -758,6 +765,17 @@ function SopDetailModal({ sop, onClose, onDuplicate }: { sop: Sop; onClose: () =
         </div>
 
         <div className="divide-y divide-[var(--hub-border)]">
+          {sop.diagram_url && (
+            <div className="px-5 py-4">
+              <img
+                src={sop.diagram_url}
+                alt={`${sop.title} flow diagram`}
+                className="w-full rounded-[12px] border border-[var(--hub-border)]"
+                style={{ objectFit: "contain" }}
+              />
+            </div>
+          )}
+
           <Section n={1} title="Purpose">
             <p className="m-0 text-sm text-muted-foreground">{sop.what}</p>
           </Section>
