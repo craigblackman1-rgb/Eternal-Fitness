@@ -19,7 +19,7 @@ import {
   IconX,
   IconTrash2,
 } from "@/components/icons";
-import { resolveSlotForWeek } from "@/lib/programs/queue";
+import { resolveSlotForWeek } from "@/lib/programs/resolve";
 import type { DBProgram, DBProgramSlot, SlotData, ProgramSection, ProgramExercise, WeekBand } from "@/lib/programs/types";
 import type { StatusToken } from "@/lib/hubStatus";
 
