@@ -190,14 +190,16 @@ export function NewInvoiceDrawer({ open, onClose, onCreated }: NewInvoiceDrawerP
       const sendRes = await fetch(`/api/invoices/${saveData.id}/send`, {
         method: "POST",
       });
-      const sendData = await sendRes.json();
-      if (!sendRes.ok) throw new Error(sendData.error || "Failed to send");
+      const sendText = await sendRes.text();
+      let sendData: Record<string, unknown> | null = null;
+      try { sendData = JSON.parse(sendText); } catch { /* non-JSON */ }
+      if (!sendRes.ok) throw new Error((sendData?.error as string) || "Failed to send");
 
-      toast.success(
-        sendData.dryRun
-          ? "Invoice created (email skipped — no backend configured)"
-          : "Invoice sent"
-      );
+      if (sendData?.dryRun) {
+        toast("Email backend not configured — invoice marked, nothing was emailed", { description: "Add RESEND_API_KEY or SENDGRID_API_KEY to send real emails." });
+      } else {
+        toast.success("Invoice sent");
+      }
       onClose();
       onCreated();
     } catch (e) {

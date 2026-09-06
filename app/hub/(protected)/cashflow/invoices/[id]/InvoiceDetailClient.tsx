@@ -41,8 +41,10 @@ export function InvoiceDetailClient({ invoice, lineItems, deliveryHistory }: Inv
     setBusy(label);
     try {
       const res = await run();
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Request failed");
+      const text = await res.text();
+      let data: Record<string, unknown> | null = null;
+      try { data = JSON.parse(text); } catch { /* non-JSON response */ }
+      if (!res.ok) throw new Error((data?.error as string) || "Request failed");
       onOk(data);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong");
@@ -53,8 +55,12 @@ export function InvoiceDetailClient({ invoice, lineItems, deliveryHistory }: Inv
 
   const sendInvoice = () =>
     act("send", () => fetch(`/api/invoices/${invoice.id}/send`, { method: "POST" }), (data) => {
-      const dry = Boolean((data as { dryRun?: boolean }).dryRun);
-      toast.success(dry ? "Invoice created (email skipped — no backend configured)" : "Invoice sent");
+      const d = data as { dryRun?: boolean } | null;
+      if (d?.dryRun) {
+        toast("Email backend not configured — invoice marked, nothing was emailed", { description: "Add RESEND_API_KEY or SENDGRID_API_KEY to send real emails." });
+      } else {
+        toast.success("Invoice sent");
+      }
       router.refresh();
     });
 

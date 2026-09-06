@@ -73,7 +73,6 @@ export async function POST(_request: Request, { params }: { params: { id: string
     .from("invoices")
     .update({
       client_document_id: doc.id,
-      status: "sent",
       updated_at: new Date().toISOString(),
     })
     .eq("id", params.id);
@@ -98,11 +97,23 @@ export async function POST(_request: Request, { params }: { params: { id: string
 
   const alreadySent = await hasPriorSend("document", doc.id);
   const sender = getEmailSender();
-  const result = await sender.send({
-    to: recipient,
-    subject: `Your invoice is ready: ${invoice.invoice_number}`,
-    html,
-  });
+
+  let result;
+  try {
+    result = await sender.send({
+      to: recipient,
+      subject: `Your invoice is ready: ${invoice.invoice_number}`,
+      html,
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Email send failed";
+    return NextResponse.json({ error: `Email send failed: ${message}` }, { status: 502 });
+  }
+
+  await supabase
+    .from("invoices")
+    .update({ status: "sent", updated_at: new Date().toISOString() })
+    .eq("id", params.id);
 
   await admin
     .from("client_documents")
