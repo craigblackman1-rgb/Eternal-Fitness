@@ -36,14 +36,36 @@ export async function GET(
     return NextResponse.json({ error: "Client not found" }, { status: 404 });
   }
 
-  // Fetch all sessions for this client (all blocks)
-  const { data: sessions, error: sessionsError } = await supabase
-    .from("sessions")
-    .select("id, status, cancelled_at, charged_free, scheduled_at, completed_at, block_id, session_number")
-    .eq("client_id", client.id)
-    .order("scheduled_at", { ascending: true });
-  if (sessionsError) {
-    return NextResponse.json({ error: sessionsError.message }, { status: 500 });
+  // Fetch all sessions for this client — sessions link via blocks, not client_id
+  const { data: blocks, error: blocksError } = await supabase
+    .from("blocks")
+    .select("id")
+    .eq("client_id", client.id);
+  if (blocksError) {
+    return NextResponse.json({ error: blocksError.message }, { status: 500 });
+  }
+  const blockIds = (blocks ?? []).map((b: { id: string }) => b.id);
+
+  let sessions: {
+    id: string;
+    status: string | null;
+    cancelled_at: string | null;
+    charged_free: string | null;
+    scheduled_at: string | null;
+    completed_at: string | null;
+    block_id: string;
+    session_number: number | null;
+  }[] = [];
+  if (blockIds.length > 0) {
+    const { data: sessionRows, error: sessionsError } = await supabase
+      .from("sessions")
+      .select("id, status, cancelled_at, charged_free, scheduled_at, completed_at, block_id, session_number")
+      .in("block_id", blockIds)
+      .order("scheduled_at", { ascending: true });
+    if (sessionsError) {
+      return NextResponse.json({ error: sessionsError.message }, { status: 500 });
+    }
+    sessions = (sessionRows ?? []) as typeof sessions;
   }
 
   const purchased = client.sessions_purchased ?? 0;

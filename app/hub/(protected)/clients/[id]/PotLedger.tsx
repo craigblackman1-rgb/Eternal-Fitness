@@ -47,9 +47,12 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/clients/${clientNumber}/pot-ledger`)
-      .then((r) => r.json())
-      .then((d: PotLedgerData) => {
-        if (!cancelled) setData(d);
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: PotLedgerData | null) => {
+        if (!cancelled) setData(d && d.consumption ? d : null);
+      })
+      .catch(() => {
+        if (!cancelled) setData(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -64,7 +67,7 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
     <>
       {loading ? (
         <p className="text-sm text-[var(--color-muted)]">Loading pot data…</p>
-      ) : !data ? (
+      ) : !data || !c ? (
         <p className="text-sm text-[var(--color-muted)]">Could not load pot data.</p>
       ) : (
         <>
@@ -78,7 +81,7 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
             </div>
             <div className="p-3">
               <p className="text-[13px] font-semibold text-[var(--color-ink)] mb-1">
-                {c!.purchased - c!.remaining} of {c!.purchased} sessions used
+                {c.purchased - c.remaining} of {c.purchased} sessions used
               </p>
               {/* Progress bar */}
               <div className="h-[10px] rounded-pill bg-neutral-100 overflow-hidden mb-1.5">
@@ -88,17 +91,17 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
                 />
               </div>
               <div className="flex justify-between text-xs text-[var(--color-muted)]">
-                <span>{c!.purchased - c!.remaining} used</span>
-                <span>{c!.remaining} remaining</span>
+                <span>{c.purchased - c.remaining} used</span>
+                <span>{c.remaining} remaining</span>
               </div>
 
               {/* Counters */}
               <div className="mt-3 space-y-1.5">
-                <CounterRow count={c!.completed} label="completed" tone="teal" />
-                <CounterRow count={c!.cancelled_free} label="cancelled — didn't touch the pot" chip="Free" />
-                <CounterRow count={c!.rescheduled} label="rescheduled — didn't touch the pot" chip="Free" />
-                <CounterRow count={c!.no_show} label="no-show" tone="warn" />
-                <CounterRow count={c!.remaining} label="remaining" />
+                <CounterRow count={c.completed} label="completed" tone="teal" />
+                <CounterRow count={c.cancelled_free} label="cancelled — didn't touch the pot" chip="Free" />
+                <CounterRow count={c.rescheduled} label="rescheduled — didn't touch the pot" chip="Free" />
+                <CounterRow count={c.no_show} label="no-show" tone="warn" />
+                <CounterRow count={c.remaining} label="remaining" />
               </div>
 
               <p className="mt-3 mb-0 text-xs text-[var(--color-muted)]">
