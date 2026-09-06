@@ -13,20 +13,18 @@ ALTER TABLE clients ADD COLUMN IF NOT EXISTS pot_baseline_at timestamptz;
 -- pot_baseline_used = GREATEST(0, sessions_used - hub_used) where hub_used =
 -- count of sessions completed OR cancelled-and-charged (charged_free <> 'free')
 -- across all their hub sessions. Idempotent (safe to re-run).
+-- NOTE: must cover clients with ZERO hub sessions too (their whole pot is
+-- pre-hub), so the count is a correlated subquery, not an inner join.
 UPDATE clients c
 SET
-  pot_baseline_used = GREATEST(0, c.sessions_used - hub_used.cnt),
+  pot_baseline_used = GREATEST(0, c.sessions_used - COALESCE((
+    SELECT COUNT(*)::int
+    FROM sessions s
+    JOIN blocks b ON s.block_id = b.id
+    WHERE b.client_id = c.id
+      AND (s.status = 'completed'
+           OR (s.status = 'cancelled' AND COALESCE(s.charged_free, '') <> 'free'))
+  ), 0)),
   pot_baseline_note = 'Trainerize cutover 2026-09-06',
   pot_baseline_at = now()
-FROM (
-  SELECT
-    b.client_id,
-    COUNT(*) AS cnt
-  FROM sessions s
-  JOIN blocks b ON s.block_id = b.id
-  WHERE s.status = 'completed'
-     OR (s.status = 'cancelled' AND COALESCE(s.charged_free, '') <> 'free')
-  GROUP BY b.client_id
-) hub_used
-WHERE c.id = hub_used.client_id
-  AND c.sessions_used IS NOT NULL;
+WHERE c.sessions_used IS NOT NULL;
