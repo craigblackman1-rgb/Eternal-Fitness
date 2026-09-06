@@ -272,7 +272,7 @@ export function RenewalFlow({ client, sessionsRemaining, sessionsPurchased, onCl
                     Current programme
                   </p>
                   <p className="text-[12.5px] text-[var(--color-body)] mt-1 mb-0">
-                    Continues from where {firstName} left off. The queue picks up at session 1 of the new pot.
+                    Continues from where {firstName} left off. The queue picks up at session 1 of the new balance.
                   </p>
                 </button>
                 <button
@@ -308,7 +308,7 @@ export function RenewalFlow({ client, sessionsRemaining, sessionsPurchased, onCl
               {/* Pot summary */}
               <div className="border border-[var(--status-success-border)] rounded-nested overflow-hidden mb-3">
                 <div className="flex items-center gap-2 px-3 py-2 bg-[var(--status-success-bg)] border-t-[3px] border-[var(--color-teal)] border-b border-[var(--status-success-border)] text-[10.5px] font-extrabold uppercase tracking-[.08em] text-[var(--color-teal-text)]">
-                  Pot summary
+                  Balance summary
                 </div>
                 <div className="p-3">
                   <div className="flex items-baseline gap-3.5 py-2 text-[13px]">
@@ -373,7 +373,7 @@ export function RenewalFlow({ client, sessionsRemaining, sessionsPurchased, onCl
               <div className="border border-[var(--status-success-border)] rounded-nested bg-[var(--status-success-bg)] p-3.5 mt-3.5">
                 <h4 className="m-0 mb-1.5 text-[13px] font-bold text-[var(--color-teal-text)]">What happens next</h4>
                 <p className="m-0 text-[13px] text-[var(--color-teal-text)]">
-                  {firstName}&apos;s pot resets{isOngoing ? " to ongoing" : ` to ${newPurchased} sessions`}.
+                  {firstName}&apos;s balance resets{isOngoing ? " to ongoing" : ` to ${newPurchased} sessions`}.
                   {" "}{keepProgramme ? "The programme continues from session 1." : "You can assign a new programme after."}
                   {" "}{raiseInvoice && `A draft invoice for ${pkg?.priceDisplay} is created — send it when ready.`}
                   {" "}{firstName} can book once{raiseInvoice ? " the invoice is paid" : " the package is live"}.

@@ -1690,7 +1690,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
                 ))}
               </div>
               <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--muted)" }}>
-                Session effort on a 1\u201310 scale.
+                Session effort on a 1–10 scale.
               </p>
             </>
           ) : (
@@ -1708,7 +1708,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
             <div>
               <label className="lbl">Exercise</label>
               <select className="fld" value={pbExercise} onChange={(e) => setPbExercise(e.target.value)}>
-                <option value="">Select\u2026</option>
+                <option value="">Select…</option>
                 {uniqueExercises.map((name) => (
                   <option key={name} value={name}>{name}</option>
                 ))}
@@ -1772,7 +1772,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
             </>
           ) : (
             <div className="empty-state">
-              No baseline recorded \u00b7 <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
+              No baseline recorded · <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
             </div>
           )}
         </div>
@@ -1791,7 +1791,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
             ))
           ) : (
             <div className="empty-state">
-              No milestones set \u00b7 <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
+              No milestones set · <Link href={`/hub/clients/${clientNumber}/edit`} className="text-[var(--color-rose)] hover:underline">Add on Edit</Link>
             </div>
           )}
         </div>
@@ -1806,7 +1806,7 @@ function ProgressDrawer({ exerciseTrends, exerciseTrendSummary, sessions, client
 
 function PotLedgerDrawer({ clientNumber, clientName }: { clientNumber: number; clientName: string }) {
   return (
-    <DrawerShell id="dw-pot-ledger" title="Pot ledger" subtitle={`${clientName} — session pot`} width="lg">
+    <DrawerShell id="dw-pot-ledger" title="Session balance" subtitle={`${clientName} — paid sessions in and out`} width="lg">
       <PotLedger clientNumber={clientNumber} clientName={clientName} />
     </DrawerShell>
   );

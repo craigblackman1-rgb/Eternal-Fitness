@@ -183,7 +183,7 @@ export function ClientRecordHeader({
             onClick={() => openDrawer("dw-pot-ledger")}
             className="bg-white border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5"
           >
-            Pot ledger
+            Session balance
           </Button>
           <Link href={`/hub/clients/${client.client_number}/edit`}>
             <Button variant="outline" className="bg-white border-[var(--hub-field-border)] hover:bg-[var(--hub-hover)] text-foreground rounded-lg px-3.5 py-1.5 h-auto text-sm font-semibold gap-1.5">

@@ -134,7 +134,7 @@ export function TrainingSummary({
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-bold text-[var(--color-ink)] flex items-center gap-2 flex-wrap">
-              Session pot{" "}
+              Session balance{" "}
               <span className="inline-flex items-center h-[21px] px-2.5 rounded-full text-[11.5px] font-semibold border border-transparent bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]">
                 {paymentStatus === "paid" ? "Paid" : paymentStatus === "unpaid" ? "Unpaid" : paymentStatus ?? "Unknown"}
               </span>

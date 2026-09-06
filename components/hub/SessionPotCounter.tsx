@@ -86,7 +86,7 @@ export function SessionPotCounter({ pot, blockExpiryDate, extended, originalExpi
 
         {/* Bar */}
         <div className="flex-1 min-w-[220px]">
-          <div className="flex h-3 rounded-pill overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session pot breakdown">
+          <div className="flex h-3 rounded-pill overflow-hidden bg-[var(--hub-hover)] border border-[var(--hub-border)]" role="img" aria-label="Session balance breakdown">
             {segments.map((seg) => (
               <span
                 key={seg.label}

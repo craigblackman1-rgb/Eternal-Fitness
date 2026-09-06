@@ -184,7 +184,7 @@ export function SessionMoveDialog({
         const data = await res.json();
         throw new Error(data.error || "Failed to cancel session");
       }
-      toast.success(cancelRoute === "free" ? "Session cancelled — free" : "Session cancelled — charged to pot");
+      toast.success(cancelRoute === "free" ? "Session cancelled — free" : "Session cancelled — charged to balance");
       onClose();
       router.refresh();
     } catch (err) {
@@ -332,20 +332,20 @@ export function SessionMoveDialog({
               {/* C1a — Three-way route cards */}
               <div className="grid grid-cols-3 gap-2.5 mb-3">
                 <RouteCard
-                  title="Charge to the pot"
+                  title="Charge to the balance"
                   description="Uses one of the paid sessions. The remaining count drops by 1."
                   selected={cancelRoute === "charge"}
                   onSelect={() => setCancelRoute("charge")}
                 />
                 <RouteCard
                   title="Free cancellation"
-                  description="Doesn't touch the pot. Recorded as a free cancellation."
+                  description="Doesn't use a session. Recorded as a free cancellation."
                   selected={cancelRoute === "free"}
                   onSelect={() => setCancelRoute("free")}
                 />
                 <RouteCard
                   title="Reschedule"
-                  description="Move to a new date. Doesn't touch the pot."
+                  description="Move to a new date. Doesn't use a session."
                   selected={cancelRoute === "reschedule"}
                   onSelect={() => setCancelRoute("reschedule")}
                 />

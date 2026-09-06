@@ -93,31 +93,36 @@ function PerformedWorkoutRow({
         <span className="srow-w">
           {workout.workoutName || "Workout"}
           <small>
-            {fmtShortDate(workout.performedDate)} \u00b7 {exerciseCount} exercise{exerciseCount !== 1 ? "s" : ""} \u00b7 {workout.setCount} set{workout.setCount !== 1 ? "s" : ""}
+            {fmtShortDate(workout.performedDate)} · {exerciseCount} exercise{exerciseCount !== 1 ? "s" : ""} · {workout.setCount} set{workout.setCount !== 1 ? "s" : ""}
           </small>
         </span>
       </button>
       {isOpen && (
-        <div className="fcard-b pad rounded-control-sm" style={{ background: "var(--hub-hover)", borderBottom: "1px solid var(--hub-border)", marginLeft: 18 }}>
-          {detail === "loading" && <p className="miss" style={{ margin: 0 }}>Loading sets\u2026</p>}
-          {detail === "error" && <p className="miss" style={{ margin: 0 }}>Couldn&rsquo;t load this workout&rsquo;s sets.</p>}
+        <div className="border border-[var(--hub-border)] rounded-nested bg-[var(--hub-hover)] mt-1 ml-[18px]">
+          {detail === "loading" && <p className="text-[12.5px] text-[var(--color-muted)] px-2.5 py-2">Loading sets…</p>}
+          {detail === "error" && <p className="text-[12.5px] text-[var(--color-muted)] px-2.5 py-2">Couldn't load this workout's sets.</p>}
           {Array.isArray(detail) && detail.length === 0 && (
-            <p className="miss" style={{ margin: 0 }}>No sets recorded for this workout.</p>
+            <p className="text-[12.5px] text-[var(--color-muted)] px-2.5 py-2">No sets recorded for this workout.</p>
           )}
           {Array.isArray(detail) && detail.map((ex, i) => (
-            <div key={i} style={{ marginBottom: i < detail.length - 1 ? 10 : 0 }}>
-              <p className="fk" style={{ margin: "0 0 4px", fontWeight: 700, color: "var(--color-ink)" }}>{ex.name}</p>
-              <table className="ptab">
+            <div key={i} className={i < detail.length - 1 ? "border-b border-[var(--hub-border)]" : ""}>
+              <p className="text-[13px] font-bold text-[var(--color-ink)] px-2.5 pt-2.5 pb-1 m-0">{ex.name}</p>
+              <table className="w-full border-collapse text-[12.5px]">
                 <thead>
-                  <tr><th>Set</th><th>Reps</th><th>Weight</th><th>RPE</th></tr>
+                  <tr>
+                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">Set</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">Reps</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">Weight</th>
+                    <th className="text-left px-2.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] border-b border-[var(--hub-border)]">RPE</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {ex.sets.map((s, si) => (
                     <tr key={si}>
-                      <td className="n">{s.setNumber}</td>
-                      <td className="n">{s.reps ?? "\u2014"}</td>
-                      <td className="n">{s.weightKg != null ? `${s.weightKg}kg` : "\u2014"}</td>
-                      <td className="n">{s.rpe ?? "\u2014"}</td>
+                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] font-semibold tabular-nums">{s.setNumber}</td>
+                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] tabular-nums">{s.reps ?? "—"}</td>
+                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] tabular-nums">{s.weightKg != null ? `${s.weightKg}kg` : "—"}</td>
+                      <td className="px-2.5 py-1.5 border-b border-[var(--hub-border)] text-[var(--color-body)] tabular-nums">{s.rpe ?? "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -448,7 +453,7 @@ export function TrainingDrawer({
           ariaLabel: `${dayLabel ? `${dayLabel}, ` : ""}${fullLabel}${
             state === "next" ? ", next session" : ""
           }${state === "flag" ? ", completed with no sets logged" : ""}${
-            state === "beyond" ? ", beyond the current paid pot" : ""
+            state === "beyond" ? ", beyond the current paid sessions" : ""
           }`,
         });
       }
@@ -483,7 +488,7 @@ export function TrainingDrawer({
           <div className="fcard-h">
             <span>Program queue</span>
             <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
-              {totalQueueSlots} slots \u00b7 consumed only by completed sessions, in order
+              {totalQueueSlots} slots · consumed only by completed sessions, in order
             </span>
             <button
               type="button"
@@ -607,14 +612,14 @@ export function TrainingDrawer({
                 <span className="w-[7px] h-[7px] rounded-full shrink-0 bg-[var(--color-muted)]" />
                 <span>
                   {beyondPaidCount} slot{beyondPaidCount === 1 ? "" : "s"} run past what&rsquo;s currently paid for.{" "}
-                  {clientName} needs a pot renewal, or those sessions have nowhere to bill against.{" "}
+                  {clientName} needs a session renewal, or those sessions have nowhere to bill against.{" "}
                   <button
                     type="button"
                     disabled={extending}
                     onClick={() => handleExtendProgram(2)}
                     className="inline font-[inherit] text-xs font-semibold text-[var(--color-rose)] hover:underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer disabled:opacity-50"
                   >
-                    {extending ? "Extending\u2026" : "Manage the pot"}
+                    {extending ? "Extending\u2026" : "Manage the balance"}
                   </button>
                 </span>
               </div>
@@ -629,7 +634,7 @@ export function TrainingDrawer({
           <div className="fcard-h">
             <span>Scheduled sessions</span>
             <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
-              {scheduledSessions.length} booked \u00b7 {preferredTime ? preferredTime : ""}
+              {scheduledSessions.length} booked · {preferredTime ? preferredTime : ""}
             </span>
             <button
               type="button"
@@ -696,7 +701,7 @@ export function TrainingDrawer({
         <div className="fcard-h">
           <span>Supplementary</span>
           <span className="sub ml-2.5 normal-case tracking-normal font-medium text-[12px] text-[var(--color-body)]">
-            runs alongside the program \u00b7 never uses a slot or a paid session
+            runs alongside the program · never uses a slot or a paid session
           </span>
         </div>
         <div className="fcard-b">
@@ -728,7 +733,7 @@ export function TrainingDrawer({
                   key={rule.id}
                   className="inline-flex items-center h-[25px] px-2.5 rounded-pill bg-[var(--hub-hover)] border border-[var(--hub-border)] text-[12.5px] text-[var(--color-ink)]"
                 >
-                  {rule.label && <span className="font-semibold">{rule.label} \u2014 </span>}
+                  {rule.label && <span className="font-semibold">{rule.label} — </span>}
                   {rule.detail}
                 </span>
               ))}
@@ -774,7 +779,7 @@ export function TrainingDrawer({
                   <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
                     {blockDisplayName(block, blockSessionsForCount, blockSessionsForCount.length)}
                     <small className="text-xs font-normal text-[var(--color-body)] ml-2">
-                      {blockSessionsForCount.length} session{blockSessionsForCount.length === 1 ? "" : "s"} \u00b7 {dateLabel}
+                      {blockSessionsForCount.length} session{blockSessionsForCount.length === 1 ? "" : "s"} · {dateLabel}
                     </small>
                   </span>
                   <span
@@ -811,16 +816,29 @@ export function TrainingDrawer({
             <span>Before the app</span>
           </div>
           <div className="fcard-b">
-            <div className="fgrid">
-              <div className="frow"><span className="fk">Period</span><span className="fv num">{periodStart && periodEnd ? `${fmtShortDate(periodStart)} \u2013 ${fmtShortDate(periodEnd)}` : "\u2014"}</span></div>
-              <div className="frow"><span className="fk">Blocks</span><span className="fv num">{tBlocks.length}</span></div>
-              <div className="frow"><span className="fk">Sessions</span><span className="fv num">{tzTotalSessions}</span></div>
-              <div className="frow"><span className="fk">Notes</span><span className="fv num">{notes.length}</span></div>
+            {/* ── Summary stat strip ── */}
+            <div className="grid grid-cols-4 gap-0 border border-[var(--hub-border)] rounded-nested bg-[var(--field-fill)] mb-3">
+              <div className="flex flex-col items-center py-2.5 px-2 border-r border-[var(--hub-border)]">
+                <span className="text-[15px] font-bold text-[var(--color-ink)] tabular-nums">{periodStart && periodEnd ? `${fmtShortDate(periodStart)} – ${fmtShortDate(periodEnd)}` : "—"}</span>
+                <span className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mt-0.5">Period</span>
+              </div>
+              <div className="flex flex-col items-center py-2.5 px-2 border-r border-[var(--hub-border)]">
+                <span className="text-[15px] font-bold text-[var(--color-ink)] tabular-nums">{tBlocks.length}</span>
+                <span className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mt-0.5">Blocks</span>
+              </div>
+              <div className="flex flex-col items-center py-2.5 px-2 border-r border-[var(--hub-border)]">
+                <span className="text-[15px] font-bold text-[var(--color-ink)] tabular-nums">{tzTotalSessions}</span>
+                <span className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mt-0.5">Sessions</span>
+              </div>
+              <div className="flex flex-col items-center py-2.5 px-2">
+                <span className="text-[15px] font-bold text-[var(--color-ink)] tabular-nums">{notes.length}</span>
+                <span className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mt-0.5">Notes</span>
+              </div>
             </div>
 
             {tBlocks.length > 0 && (
               <>
-                <p className="dw-h">Training history \u2014 tap to see sessions</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mb-1.5">Training history — tap to see sessions</p>
                 {tBlocks.map((b) => {
                   const isOpen = expandedBlockId === b.id;
                   const performed = b.performedWorkouts ?? [];
@@ -828,27 +846,27 @@ export function TrainingDrawer({
                     <div key={b.id}>
                       <button
                         type="button"
-                        className="srow"
+                        className="flex items-center gap-[11px] w-full py-[8px] border-b border-[var(--hub-border)] last:border-b-0 bg-transparent border-x-0 border-t-0 cursor-pointer font-[inherit] text-left"
                         onClick={() => setExpandedBlockId(isOpen ? null : b.id)}
                       >
-                        <span className="srow-d" style={{ width: 18, fontSize: 13 }}>{isOpen ? "\u25be" : "\u25b8"}</span>
-                        <span className="srow-w">
+                        <span className="w-[18px] shrink-0 text-[13px] text-[var(--color-muted)] text-center">{isOpen ? "▾" : "▸"}</span>
+                        <span className="flex-1 min-w-0 text-[13.5px] text-[var(--color-ink)] font-semibold">
                           {b.phase_name || "Program"}
-                          <small>
+                          <small className="text-xs font-normal text-[var(--color-body)] ml-2">
                             {b.start_date && b.end_date
-                              ? `${fmtShortDate(b.start_date)} \u2013 ${fmtShortDate(b.end_date)}`
+                              ? `${fmtShortDate(b.start_date)} – ${fmtShortDate(b.end_date)}`
                               : b.start_date
                                 ? `From ${fmtShortDate(b.start_date)}`
                                 : "Not dated"}
-                            {" \u00b7 "}
+                            {" · "}
                             {performed.length > 0 ? `${performed.length} session${performed.length !== 1 ? "s" : ""} performed` : "no sessions logged"}
                           </small>
                         </span>
                       </button>
                       {isOpen && (
                         performed.length > 0
-                          ? renderPerformedList(performed)
-                          : <p className="miss" style={{ padding: "10px 0 10px 30px", margin: 0 }}>No logged sessions fell inside this program&rsquo;s dates.</p>
+                          ? <div className="ml-[18px]">{renderPerformedList(performed)}</div>
+                          : <p className="text-[12.5px] text-[var(--color-muted)] py-2 ml-[18px]">No logged sessions fell inside this program's dates.</p>
                       )}
                     </div>
                   );
@@ -858,9 +876,9 @@ export function TrainingDrawer({
 
             {unmatched.length > 0 && (
               <>
-                <p className="dw-h">Outside any program</p>
-                <p className="miss" style={{ margin: "0 0 8px" }}>
-                  {unmatched.length} logged session{unmatched.length !== 1 ? "s" : ""} from before this client&rsquo;s first imported program.
+                <p className="text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-muted)] mb-1.5 mt-3">Outside any program</p>
+                <p className="text-[12.5px] text-[var(--color-muted)] mb-1.5">
+                  {unmatched.length} logged session{unmatched.length !== 1 ? "s" : ""} from before this client's first imported program.
                 </p>
                 {renderPerformedList(unmatched)}
               </>
@@ -868,31 +886,30 @@ export function TrainingDrawer({
 
             <button
               type="button"
-              className="dw-h"
-              style={{ background: "none", border: 0, padding: 0, width: "100%", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, font: "inherit" }}
+              className="flex items-center gap-1.5 w-full py-[8px] border-b border-[var(--hub-border)] last:border-b-0 bg-transparent border-x-0 border-t-0 cursor-pointer font-[inherit] text-left mt-1"
               onClick={() => setNotesOpen((v) => !v)}
             >
-              <span style={{ fontSize: 11 }}>{notesOpen ? "\u25be" : "\u25b8"}</span>
-              Notes ({notes.length})
+              <span className="w-[18px] shrink-0 text-[13px] text-[var(--color-muted)] text-center">{notesOpen ? "▾" : "▸"}</span>
+              <span className="text-[13.5px] font-semibold text-[var(--color-ink)]">Notes ({notes.length})</span>
             </button>
             {notesOpen && (
               notes.length > 0 ? (
                 notes.map((n) => (
-                  <div key={n.id} className="drow">
-                    <span className="drow-m">
-                      {sourceLabel(n.source)}{n.sender_name ? ` \u00b7 ${n.sender_name}` : ""}
-                      <small style={{ whiteSpace: "pre-wrap" }}>{n.content}</small>
+                  <div key={n.id} className="flex items-start gap-[11px] w-full py-[8px] border-b border-[var(--hub-border)] last:border-b-0">
+                    <span className="flex-1 min-w-0 text-[13px] text-[var(--color-ink)]">
+                      <span className="font-semibold">{sourceLabel(n.source)}{n.sender_name ? ` · ${n.sender_name}` : ""}</span>
+                      <span className="block text-[12.5px] text-[var(--color-body)] mt-0.5 whitespace-pre-wrap">{n.content}</span>
                     </span>
-                    <span className="fk num" style={{ minWidth: 0, flexShrink: 0 }}>{fmtShortDate(n.source_date)}</span>
+                    <span className="text-xs font-semibold text-[var(--color-muted)] shrink-0 tabular-nums">{fmtShortDate(n.source_date)}</span>
                   </div>
                 ))
               ) : (
-                <p className="miss">No notes or messages imported.</p>
+                <p className="text-[12.5px] text-[var(--color-muted)] py-2">No notes or messages imported.</p>
               )
             )}
 
-            <p className="miss" style={{ margin: "14px 0 0" }}>
-              Imported history cannot be edited and does not count toward the session pot.
+            <p className="text-[12.5px] text-[var(--color-muted)] mt-3">
+              Imported history cannot be edited and does not count toward the session balance.
             </p>
           </div>
         </div>
@@ -929,7 +946,7 @@ export function TrainingDrawer({
                 Assign this session
               </h3>
               <p className="m-0 mt-0.5 text-xs text-[var(--color-muted)]">
-                {fmtShortDate(scheduledSessions.find((s) => s.id === chooserSessionId)?.scheduled_at ?? "")} \u00b7 {clientName}
+                {fmtShortDate(scheduledSessions.find((s) => s.id === chooserSessionId)?.scheduled_at ?? "")} · {clientName}
               </p>
             </div>
             <div className="px-5 py-4">
@@ -950,7 +967,7 @@ export function TrainingDrawer({
             </div>
             {chooserBusy && (
               <div className="absolute inset-0 bg-white/60 rounded-surface flex items-center justify-center pointer-events-none">
-                <span className="text-[13px] font-semibold text-[var(--color-muted)]">Saving\u2026</span>
+                <span className="text-[13px] font-semibold text-[var(--color-muted)]">Saving…</span>
               </div>
             )}
           </div>

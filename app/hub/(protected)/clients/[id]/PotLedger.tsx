@@ -67,14 +67,14 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
   return (
     <>
       {loading ? (
-        <p className="text-sm text-[var(--color-muted)]">Loading pot data…</p>
+        <p className="text-sm text-[var(--color-muted)]">Loading balance data…</p>
       ) : !data || !c ? (
-        <p className="text-sm text-[var(--color-muted)]">Could not load pot data.</p>
+        <p className="text-sm text-[var(--color-muted)]">Could not load balance data.</p>
       ) : (
         <>
           {/* Consumption */}
           <div className="fcard acc-teal">
-            <div className="fcard-h">Pot status</div>
+            <div className="fcard-h">Balance</div>
             <div className="fcard-b">
               <p className="text-[13px] font-semibold text-[var(--color-ink)] mb-1">
                 {c.purchased - c.remaining} of {c.purchased} sessions used
@@ -94,20 +94,20 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
                   <CounterRow count={c.baseline_used!} label="used before the hub (Trainerize)" />
                 )}
                 <CounterRow count={c.completed} label="completed" tone="teal" />
-                <CounterRow count={c.cancelled_free} label="cancelled — didn't touch the pot" chip="Free" />
-                <CounterRow count={c.rescheduled} label="rescheduled — didn't touch the pot" chip="Free" />
+                <CounterRow count={c.cancelled_free} label="cancelled — didn't use a session" chip="Free" />
+                <CounterRow count={c.rescheduled} label="rescheduled — didn't use a session" chip="Free" />
                 <CounterRow count={c.no_show} label="no-show" tone="warn" />
                 <CounterRow count={c.remaining} label="remaining" />
               </div>
               <p className="mt-3 mb-0 text-xs text-[var(--color-muted)]">
-                Queue advances on completed sessions only. Cancelled and rescheduled sessions don&apos;t consume the pot.
+                Queue advances on completed sessions only. Cancelled and rescheduled sessions don&apos;t use a session.
               </p>
             </div>
           </div>
 
           {/* Ledger table */}
           <div className="fcard acc-ink">
-            <div className="fcard-h">Pot ledger</div>
+            <div className="fcard-h">What moved the balance</div>
             <div className="fcard-b" style={{ padding: 0 }}>
               <table className="w-full border-collapse text-[12.5px]">
                 <thead>
@@ -151,7 +151,7 @@ export function PotLedger({ clientNumber, clientName }: PotLedgerProps) {
                   {data.ledger.length === 0 && (
                     <tr>
                       <td colSpan={4} className="px-2.5 py-4 text-center text-sm text-[var(--color-muted)]">
-                        No pot movements yet.
+                        No balance movements yet.
                       </td>
                     </tr>
                   )}

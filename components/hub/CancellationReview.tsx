@@ -108,7 +108,7 @@ export function CancellationReview({ clients: initialClients }: CancellationRevi
 
       toast.success(
         chargedFree === "charged"
-          ? `Charged — session counted against the pot`
+          ? `Charged — session counted against the balance`
           : `Free — session does not count`,
       );
       router.refresh();

@@ -107,7 +107,7 @@ export function CarryOverDialog({
         <DialogHeader>
           <DialogTitle className="text-[15px]">Carry over remaining sessions</DialogTitle>
           <DialogDescription className="text-sm">
-            Create {remainingCount} free-to-book session{remainingCount === 1 ? "" : "s"} in another block, using the remaining pot count from Block {blockNumber}. These sessions are unscheduled and ready to book through the existing scheduling flow.
+            Create {remainingCount} free-to-book session{remainingCount === 1 ? "" : "s"} in another block, using the remaining session count from Block {blockNumber}. These sessions are unscheduled and ready to book through the existing scheduling flow.
           </DialogDescription>
         </DialogHeader>
 
