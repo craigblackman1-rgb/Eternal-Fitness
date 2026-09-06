@@ -1,0 +1,52 @@
+<svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#7e8088" />
+    </marker>
+  </defs>
+  <line x1="175" y1="130" x2="200" y2="130" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="350" y1="130" x2="375" y2="130" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="525" y1="130" x2="550" y2="130" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <line x1="700" y1="130" x2="725" y2="130" stroke="#7e8088" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  
+  
+  <g>
+    <rect x="25" y="75" width="150" height="110" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="53" cy="103" r="14" fill="#c1839f" />
+    <text x="53" y="108" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">1</text>
+    <text x="100" y="135.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Open</text>
+    <text x="100" y="154.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">/hub/clients</text>
+  </g>
+  <g>
+    <rect x="200" y="75" width="150" height="110" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="228" cy="103" r="14" fill="#c1839f" />
+    <text x="228" y="108" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">2</text>
+    <text x="275" y="135.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Check "needs me</text>
+    <text x="275" y="154.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">today" queue</text>
+  </g>
+  <g>
+    <rect x="375" y="75" width="150" height="110" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="403" cy="103" r="14" fill="#c1839f" />
+    <text x="403" y="108" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">3</text>
+    <text x="450" y="135.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Click client's</text>
+    <text x="450" y="154.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">record</text>
+  </g>
+  <g>
+    <rect x="550" y="75" width="150" height="110" rx="18" fill="#f5efea" stroke="#e4ddd7" stroke-width="1" />
+    
+    <circle cx="578" cy="103" r="14" fill="#c1839f" />
+    <text x="578" y="108" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#ffffff">4</text>
+    <text x="625" y="135.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">Use doc/notes</text>
+    <text x="625" y="154.5" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#131313">drawers</text>
+  </g>
+  <g>
+    <rect x="725" y="75" width="150" height="110" rx="18" fill="#087e8b" stroke="#087e8b" stroke-width="1" />
+    
+    <circle cx="753" cy="103" r="14" fill="#ffffff" />
+    <text x="753" y="108" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="700" fill="#087e8b">✓</text>
+    <text x="800" y="145" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="600" fill="#ffffff">Queue is empty</text>
+  </g>
+</svg>

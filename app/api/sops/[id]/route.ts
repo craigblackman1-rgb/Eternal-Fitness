@@ -26,6 +26,7 @@ export async function PATCH(
     review_date: string;
     linked_client: string;
     source: string;
+    diagram_url: string;
     status: string;
   }>;
 
