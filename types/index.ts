@@ -164,6 +164,7 @@ export interface Sop {
   review_date: string | null;
   linked_client: string | null;
   source: string | null;
+  diagram_url: string | null;
   status: string;
   created_at: string;
 }

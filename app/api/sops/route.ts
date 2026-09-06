@@ -42,6 +42,7 @@ export async function POST(request: Request) {
     review_date: string;
     linked_client: string;
     source: string;
+    diagram_url: string;
     status: string;
   }>;
 
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
       review_date: body.review_date ?? null,
       linked_client: body.linked_client ?? null,
       source: body.source ?? null,
+      diagram_url: body.diagram_url ?? null,
       status: body.status ?? "active",
     })
     .select()
